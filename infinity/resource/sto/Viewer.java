@@ -25,7 +25,7 @@ final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Buy markup"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Lore"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Cost to identify"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Stealing failure %"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Stealing difficulty"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Depreciation rate"), gbl, gbc, true);
 
     return fieldPanel;
@@ -41,7 +41,7 @@ final class Viewer extends JPanel
       salePanel =
       ViewerUtil.makeListPanel("Items for sale", sto, ItemSale.class, "Item");
     JPanel curePanel = ViewerUtil.makeListPanel("Cures for sale", sto, Cure.class,
-                                                "Spell name");
+                                                "Spell");
     JPanel drinkPanel = ViewerUtil.makeListPanel("Drinks for sale", sto, Drink.class,
                                                  "Drink name");
     JPanel buyPanel = ViewerUtil.makeListPanel("Items purchased", sto, Purchases.class,

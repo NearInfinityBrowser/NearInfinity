@@ -11,9 +11,9 @@ final class Animation extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_flag = {"Not shown", "Is shown", "No shadow", "Not light source",
                                           "Partial animation", "Synchronized draw", "",
-                                          "Not covered by wall", "", "Draw as background",
-                                          "Play all frames", "Recolored by palette", "Mirror Y axis",
-                                          "Don't remove in combat"};
+                                          "Not covered by wall", "Static animation",
+                                          "Draw as background", "Play all frames", "Recolored by palette",
+                                          "Mirror Y axis", "Don't remove in combat"};
 
   Animation() throws Exception
   {
@@ -44,8 +44,10 @@ final class Animation extends AbstractStruct implements AddRemovable
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
         ResourceFactory.getGameID() == ResourceFactory.ID_TUTU)
       list.add(new ResourceRef(buffer, offset + 64, "Palette", "BMP"));
-    else
-      list.add(new Unknown(buffer, offset + 64, 8));
+    else {
+      list.add(new Unknown(buffer, offset + 64, 4));
+      list.add(new Unknown(buffer, offset + 68, 4));
+    }
     list.add(new Unknown(buffer, offset + 72, 4));
     return offset + 76;
   }

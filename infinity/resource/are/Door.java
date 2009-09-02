@@ -12,7 +12,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 {
   private static final String[] s_yesno = {"No", "Yes"};
   private static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                          "Detectable trap", "", "", "", "Door secret",
+                                          "Detectable trap", "Door forced", "", "", "Door secret",
                                           "Secret door detected", "Can be looked through",
                                           "Uses key", "Sliding door"};
 
@@ -51,15 +51,15 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     for (int i = 0; i < numVertices.getValue(); i++)
       list.add(new ClosedVertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
 
-    firstVertex = (DecNumber)getAttribute("First vertex index (impeded, closed)");
-    numVertices = (DecNumber)getAttribute("# vertices (impeded, closed)");
-    for (int i = 0; i < numVertices.getValue(); i++)
-      list.add(new ClosedVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
-
     firstVertex = (DecNumber)getAttribute("First vertex index (impeded, open)");
     numVertices = (DecNumber)getAttribute("# vertices (impeded, open)");
     for (int i = 0; i < numVertices.getValue(); i++)
       list.add(new OpenVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
+
+    firstVertex = (DecNumber)getAttribute("First vertex index (impeded, closed)");
+    numVertices = (DecNumber)getAttribute("# vertices (impeded, closed)");
+    for (int i = 0; i < numVertices.getValue(); i++)
+      list.add(new ClosedVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
   }
 
   public int updateVertices(int offset, int number)
@@ -69,10 +69,10 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     int count = ((DecNumber)getAttribute("# vertices (open)")).getValue();
     ((DecNumber)getAttribute("First vertex index (closed)")).setValue(number + count);
     count += ((DecNumber)getAttribute("# vertices (closed)")).getValue();
-    ((DecNumber)getAttribute("First vertex index (impeded, closed)")).setValue(number + count);
-    count += ((DecNumber)getAttribute("# vertices (impeded, closed)")).getValue();
     ((DecNumber)getAttribute("First vertex index (impeded, open)")).setValue(number + count);
     count += ((DecNumber)getAttribute("# vertices (impeded, open)")).getValue();
+    ((DecNumber)getAttribute("First vertex index (impeded, closed)")).setValue(number + count);
+    count += ((DecNumber)getAttribute("# vertices (impeded, closed)")).getValue();
 
     for (int i = 0; i < list.size(); i++) {
       StructEntry entry = list.get(i);
@@ -115,7 +115,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new TextString(buffer, offset + 32, 8, "ID"));
+    list.add(new TextString(buffer, offset + 32, 8, "Door ID"));
     list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
     list.add(new DecNumber(buffer, offset + 44, 4, "First vertex index (open)"));
     list.add(new SectionCount(buffer, offset + 48, 2, "# vertices (open)", OpenVertex.class));
@@ -129,17 +129,17 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     list.add(new DecNumber(buffer, offset + 66, 2, "Bounding box (closed): Top"));
     list.add(new DecNumber(buffer, offset + 68, 2, "Bounding box (closed): Right"));
     list.add(new DecNumber(buffer, offset + 70, 2, "Bounding box (closed): Bottom"));
-    list.add(new DecNumber(buffer, offset + 72, 4, "First vertex index (impeded, closed)"));
+    list.add(new DecNumber(buffer, offset + 72, 4, "First vertex index (impeded, open)"));
     list.add(
-            new SectionCount(buffer, offset + 76, 2, "# vertices (impeded, closed)",
-                             ClosedVertexImpeded.class));
-    list.add(new SectionCount(buffer, offset + 78, 2, "# vertices (impeded, open)", OpenVertexImpeded.class));
-    list.add(new DecNumber(buffer, offset + 80, 4, "First vertex index (impeded, open)"));
+            new SectionCount(buffer, offset + 76, 2, "# vertices (impeded, open)",
+                             OpenVertexImpeded.class));
+    list.add(new SectionCount(buffer, offset + 78, 2, "# vertices (impeded, closed)", ClosedVertexImpeded.class));
+    list.add(new DecNumber(buffer, offset + 80, 4, "First vertex index (impeded, closed)"));
     list.add(new Unknown(buffer, offset + 84, 2));
     list.add(new Unknown(buffer, offset + 86, 2));
     list.add(new ResourceRef(buffer, offset + 88, "Opening sound", "WAV"));
     list.add(new ResourceRef(buffer, offset + 96, "Closing sound", "WAV"));
-    list.add(new DecNumber(buffer, offset + 104, 4, "Cursor"));
+    list.add(new DecNumber(buffer, offset + 104, 4, "Cursor frame number"));
     list.add(new DecNumber(buffer, offset + 108, 2, "Trap detection difficulty"));
     list.add(new DecNumber(buffer, offset + 110, 2, "Trap removal difficulty"));
     list.add(new Bitmap(buffer, offset + 112, 2, "Is trapped?", s_yesno));
@@ -148,18 +148,18 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     list.add(new DecNumber(buffer, offset + 118, 2, "Launch point: Y"));
     list.add(new ResourceRef(buffer, offset + 120, "Key", "ITM"));
     list.add(new ResourceRef(buffer, offset + 128, "Script", "BCS"));
-    list.add(new DecNumber(buffer, offset + 136, 4, "Door detection difficulty"));
+    list.add(new DecNumber(buffer, offset + 136, 4, "Detection difficulty"));
     list.add(new DecNumber(buffer, offset + 140, 4, "Lock difficulty"));
     list.add(new DecNumber(buffer, offset + 144, 2, "Open location: X"));
     list.add(new DecNumber(buffer, offset + 146, 2, "Open location: Y"));
-    list.add(new DecNumber(buffer, offset + 148, 2, "Closed location: X"));
-    list.add(new DecNumber(buffer, offset + 150, 2, "Closed location: Y"));
+    list.add(new DecNumber(buffer, offset + 148, 2, "Close location: X"));
+    list.add(new DecNumber(buffer, offset + 150, 2, "Close location: Y"));
     list.add(new StringRef(buffer, offset + 152, "Unlock message"));
-    list.add(new TextString(buffer, offset + 156, 16, "Travel trigger name"));
-    list.add(new Unknown(buffer, offset + 172, 8));
-    list.add(new StringRef(buffer, offset + 180, "Door name"));
-    list.add(new ResourceRef(buffer, offset + 184, "Dialogue", "DLG"));
-    list.add(new Unknown(buffer, offset + 192, 8));
+    list.add(new TextString(buffer, offset + 156, 32, "Travel trigger name"));
+//    list.add(new Unknown(buffer, offset + 172, 8));
+    list.add(new StringRef(buffer, offset + 188, "Door name"));
+    list.add(new ResourceRef(buffer, offset + 192, "Dialogue", "DLG"));
+//    list.add(new Unknown(buffer, offset + 192, 8));
     return offset + 200;
   }
 }

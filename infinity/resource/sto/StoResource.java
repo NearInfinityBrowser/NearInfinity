@@ -21,12 +21,12 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   private static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
                                               "Can steal", "Can buy cures", "Can donate", "Can buy drinks",
                                               "", "", "Tavern quality 1", "Tavern quality 2",
-                                              "Tavern quality 3", "Fence"};
+											  "Tavern quality 3", "Fence"};
   private static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 
   public static String getSearchString(byte buffer[])
   {
-    return new StringRef(buffer, 12, "").toString();
+    return new StringRef(buffer, 12, "").toString().trim();
   }
 
   public StoResource(ResourceEntry entry) throws Exception
@@ -84,7 +84,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 20, 4, "Sell markup"));
     list.add(new DecNumber(buffer, offset + 24, 4, "Buy markup"));
     list.add(new DecNumber(buffer, offset + 28, 4, "Depreciation rate"));
-    list.add(new DecNumber(buffer, offset + 32, 2, "Stealing failure %"));
+    list.add(new DecNumber(buffer, offset + 32, 2, "Stealing difficulty"));
     if (version.toString().equalsIgnoreCase("V9.0"))
       list.add(new Unknown(buffer, offset + 34, 2));
     else

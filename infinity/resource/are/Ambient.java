@@ -11,7 +11,7 @@ import infinity.resource.AddRemovable;
 final class Ambient extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_flag = {"Disabled", "Enabled", "Disable environmental effects",
-                                          "Ignore radius", "Play in random order"};
+                                          "Ignore radius", "Play in random order", "High memory ambient"};
 
   Ambient() throws Exception
   {
@@ -29,6 +29,7 @@ final class Ambient extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 32, 2, "Origin: X"));
     list.add(new DecNumber(buffer, offset + 34, 2, "Origin: Y"));
     list.add(new DecNumber(buffer, offset + 36, 2, "Radius"));
+//    list.add(new DecNumber(buffer, offset + 38, 2, "Height (3D)?"));
     list.add(new Unknown(buffer, offset + 38, 8));
     list.add(new DecNumber(buffer, offset + 46, 2, "Volume"));
     if (getSuperStruct() != null)

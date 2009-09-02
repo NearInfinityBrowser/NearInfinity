@@ -89,18 +89,19 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     list.add(new DecNumber(buffer, offset + 34, 2, "Position: Y"));
     list.add(new DecNumber(buffer, offset + 36, 2, "Destination: X"));
     list.add(new DecNumber(buffer, offset + 38, 2, "Destination: Y"));
-//     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-//         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB)
-       list.add(new Flag(buffer, offset + 40, 4, "Loading", s_yesno));
-//     else
-//       list.add(new Bitmap(buffer, offset + 40, 4, "Is visible?", s_noyes));
+//    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
+//        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB)
+      list.add(new Flag(buffer, offset + 40, 4, "Loading", s_yesno));
+//    else
+//      list.add(new Bitmap(buffer, offset + 40, 4, "Is visible?", s_noyes));
     list.add(new Bitmap(buffer, offset + 44, 2, "Is spawned?", s_noyes));
     list.add(new Unknown(buffer, offset + 46, 2));
     list.add(new IdsBitmap(buffer, offset + 48, 4, "Animation", "ANIMATE.IDS"));
     list.add(new Bitmap(buffer, offset + 52, 2, "Orientation", s_orientation));
     list.add(new Unknown(buffer, offset + 54, 2));
-    list.add(new Unknown(buffer, offset + 56, 4));
-    list.add(new Unknown(buffer, offset + 60, 4));
+    list.add(new DecNumber(buffer, offset + 56, 4, "Expiry time"));
+    list.add(new DecNumber(buffer, offset + 60, 2, "Wander distance"));
+    list.add(new DecNumber(buffer, offset + 62, 2, "Movement distance"));
     list.add(new Flag(buffer, offset + 64, 4, "Present at", s_schedule));
     list.add(new DecNumber(buffer, offset + 68, 4, "# times talked to"));
     list.add(new ResourceRef(buffer, offset + 72, "Dialogue", "DLG"));

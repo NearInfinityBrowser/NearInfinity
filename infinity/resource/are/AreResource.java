@@ -24,8 +24,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                                   "Ravel's maze", "Baator", "Rubikon",
                                                   "Negative material plane", "Curst", "Carceri",
                                                   "Allow day/night"};
-  private static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area",
-                                           "Dead magic zone", "Dream area"};
+  private static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+                                           "Dream area"};
   private static final String s_atype_torment[] = {"Can rest", "Cannot save",
                                                    "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                    "Cannot save", "Can rest with permission"};
@@ -37,8 +37,11 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       offset = 16;
 
     // Actors
-//     addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 84),
-//                    (int)Byteconvert.convertShort(buffer, offset + 88), 272);
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT)
+      addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 84),
+                     (int)Byteconvert.convertShort(buffer, offset + 88), 272);
 
     // ITEPoints
     addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 92),
@@ -49,8 +52,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                    Byteconvert.convertInt(buffer, offset + 100), 200);
 
     // Entrances
-//     addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 104),
-//                    Byteconvert.convertInt(buffer, offset + 108), 104);
+//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 104),
+//                   Byteconvert.convertInt(buffer, offset + 108), 104);
 
     // Containers
     addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 112),
@@ -61,8 +64,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                    (int)Byteconvert.convertShort(buffer, offset + 130), 212);
 
     // Variables
-//     addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 136),
-//                    Byteconvert.convertInt(buffer, offset + 140), 84);
+//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 136),
+//                   Byteconvert.convertInt(buffer, offset + 140), 84);
 
     // Doors
     addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 168),
@@ -77,7 +80,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                    Byteconvert.convertInt(buffer, offset + 180), 108);
 
     // Rest spawn
-//     addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 192), 1, 228);
+//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 192), 1, 228);
   }
 
   private static void addScriptNames(Set<String> scriptNames, byte buffer[], int offset, int count, int size)
@@ -338,7 +341,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     SectionOffset offset_songs = new SectionOffset(buffer, offset + 188, "Songs offset",
                                                    Song.class);
     list.add(offset_songs);
-    SectionOffset offset_rest = new SectionOffset(buffer, offset + 192, "Rest spawn creatures offset",
+    SectionOffset offset_rest = new SectionOffset(buffer, offset + 192, "Rest encounters offset",
                                                   RestSpawn.class);
     list.add(offset_rest);
 

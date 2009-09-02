@@ -6,6 +6,7 @@ package infinity.resource.itm;
 
 import infinity.datatype.*;
 import infinity.resource.*;
+import infinity.resource.spl.SplResource;
 
 import javax.swing.*;
 
@@ -16,7 +17,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
   private static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
   private static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem"};
   private static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
-                                              "", "", "", "", "", "", "", "Recharge after resting"};
+                                              "", "", "", "", "", "", "Hostile", "Recharge after resting"};
 
   Ability() throws Exception
   {
@@ -67,8 +68,8 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
     list.add(new SectionCount(buffer, offset + 30, 2, "# effects", Effect.class));
     list.add(new DecNumber(buffer, offset + 32, 2, "Effects index"));
     list.add(new DecNumber(buffer, offset + 34, 2, "# charges"));
-    list.add(new Bitmap(buffer, offset + 36, 1, "When drained", s_drain));
-    list.add(new Unknown(buffer, offset + 37, 1));
+    list.add(new Bitmap(buffer, offset + 36, 2, "When drained", s_drain));
+//    list.add(new Unknown(buffer, offset + 37, 1));
 //    list.add(new Bitmap(buffer, offset + 38, 1, "Allow strength bonus?", s_yesno));
 //    list.add(new Bitmap(buffer, offset + 39, 1, "Item recharges?", s_recharge));
     list.add(new Flag(buffer, offset + 38, 2, "Flags", s_recharge));

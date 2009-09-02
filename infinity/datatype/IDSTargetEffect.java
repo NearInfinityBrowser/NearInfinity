@@ -23,7 +23,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 {
   private final String sIDS[] = new String[]
   {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
-   "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS"};
+   "SPECIFIC.IDS", "GENDER.IDS", "ALIGNMEN.IDS"};
   private LongIntegerHashMap<IdsMapEntry> idsMap;
   private TextListPanel fileList, valueList;
   private long idsValue, idsFile;

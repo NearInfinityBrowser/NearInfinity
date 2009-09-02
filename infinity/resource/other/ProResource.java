@@ -16,6 +16,12 @@ public final class ProResource extends AbstractStruct implements Resource
                                            "Green", "Purple", "Red", "White", "Ice",
                                            "Stone", "Magenta", "Orange"};
   private static final LongIntegerHashMap<String> s_proj = new LongIntegerHashMap<String>();
+//  private static final String[] s_proj = {"Fireball", "Stinking cloud", "Cloudkill", "Ice storm",
+//                                          "Grease", "Web", "Meteor", "Abi-Dalzim's Horrid Wilting",
+//                                          "Teleport field", "Entangle", "Color spray",
+//                                          "Cone of cold", "Holy smite", "Unholy blight",
+//                                          "Prismatic spray", "Big flame", "Storm of vengence",
+//                                          "Purple fireball", "Green dragon blast"};
   private static final String[] s_areaflags = {
     "Trap not visible", "Trap visible", "Triggered by inanimates", "Triggered by condition",
     "No overlapping effects", "Secondary projectile", "Fragments", "Not affecting allies",
@@ -25,7 +31,7 @@ public final class ProResource extends AbstractStruct implements Resource
     "Light spot enabled", "Translucent"
   };
   private static final String[] s_behave = {"No flags set", "Show sparks", "3D traveling",
-                                            "Loop sound", "", "Ignore center"};
+                                            "Loop sound 1", "Loop sound 2", "Ignore center"};
   private static final String[] s_areatype = {"Round", "", "", "Draw animation", "Cone-shaped"};
 
   static {
@@ -63,8 +69,8 @@ public final class ProResource extends AbstractStruct implements Resource
     HexNumber projtype = new HexNumber(buffer, offset + 8, 2, "Type");
     list.add(projtype);
     list.add(new DecNumber(buffer, offset + 10, 2, "Speed"));
-    list.add(new Flag(buffer, offset + 12, 2, "Behavior", s_behave));
-    list.add(new Unknown(buffer, offset + 14, 2));
+    list.add(new Flag(buffer, offset + 12, 4, "Behavior", s_behave));
+//    list.add(new Unknown(buffer, offset + 14, 2));
     list.add(new ResourceRef(buffer, offset + 16, "Sound 1", "WAV"));
     list.add(new ResourceRef(buffer, offset + 24, "Sound 2", "WAV"));
     list.add(new ResourceRef(buffer, offset + 32, "Sound 3", "WAV"));
@@ -95,6 +101,8 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ColorValue(buffer, offset + 305, 1, "Smoke color 6"));
     list.add(new ColorValue(buffer, offset + 306, 1, "Smoke color 7"));
     list.add(new HexNumber(buffer, offset + 307, 1, "Face target?"));
+//            new Flag(buffer, offset + 307, 1, "Aim to target",
+//                     new String[]{"No flags set", "", "", "Face target"}));
     list.add(new IdsBitmap(buffer, offset + 308, 2, "Smoke animation", "ANIMATE.IDS"));
     list.add(new ResourceRef(buffer, offset + 310, "Trailing animation 1", "BAM"));
     list.add(new ResourceRef(buffer, offset + 318, "Trailing animation 2", "BAM"));
@@ -117,8 +125,8 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ProRef(buffer, offset + 532, "Secondary projectile"));
     list.add(new DecNumber(buffer, offset + 534, 1, "Duration"));
     list.add(new HashBitmap(buffer, offset + 535, 1, "Explosion effect", s_proj));
-    list.add(new ColorValue(buffer, offset + 536, 1, "Explosion color"));
-    list.add(new Unknown(buffer, offset + 537, 1));
+    list.add(new ColorValue(buffer, offset + 536, 2, "Explosion color"));
+//    list.add(new Unknown(buffer, offset + 537, 1));
     list.add(new ProRef(buffer, offset + 538, "Explosion projectile"));
     list.add(new ResourceRef(buffer, offset + 540, "Explosion animation", "VVC"));
     list.add(new DecNumber(buffer, offset + 548, 2, "Cone width"));

@@ -54,8 +54,8 @@ public final class AreResourceRef extends ResourceRef
     if (entry.hasOverride())
       return true;
     String bifName = ((BIFFResourceEntry)entry).getBIFFEntry().toString();
-//     if (bifName.length() > 8 && bifName.substring(0, 9).equalsIgnoreCase("data/AREA"))
-//       return true;
+//    if (bifName.length() > 8 && bifName.substring(0, 9).equalsIgnoreCase("data/AREA"))
+//      return true;
     for (final String legalBIF : legalBIFs) {
       if (bifName.equalsIgnoreCase(legalBIF))
         return true;

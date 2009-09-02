@@ -22,7 +22,7 @@ final class Drink extends AbstractStruct implements AddRemovable
 
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Special rumor", "DLG"));
+    list.add(new Unknown(buffer, offset, 8));
     list.add(new StringRef(buffer, offset + 8, "Drink name"));
     list.add(new DecNumber(buffer, offset + 12, 4, "Price"));
     list.add(new DecNumber(buffer, offset + 16, 4, "Rumor rate"));

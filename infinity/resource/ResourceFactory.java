@@ -60,8 +60,8 @@ public final class ResourceFactory
   static
   {
     String bgdirs[] = {"Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
-                       "Scripts", "Sounds", "Temp", "TempSave"};
-    String iwddirs[] = {"Characters", "MPSave", "Music", "Scripts", "Sounds", "Temp"};
+                       "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave"};
+    String iwddirs[] = {"Music", "Characters", "Scripts", "Sounds", "Temp", "MPSave"};
 
     games = new GameConfig[15];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
@@ -69,13 +69,13 @@ public final class ResourceFactory
     games[ID_BG1TOTSC] = new GameConfig("Baldur's Gate - Tales of the Sword Coast", "baldur.ini", bgdirs);
     games[ID_TORMENT] =
     new GameConfig("Planescape: Torment", "torment.ini", new String[]{"Music", "Save", "Temp"});
-    games[ID_ICEWIND] = new GameConfig("Icewind Dale", "icewind.ini", iwddirs);
-    games[ID_ICEWINDHOW] = new GameConfig("Icewind Dale - Heart of Winter", "icewind.ini", iwddirs);
+    games[ID_ICEWIND] = new GameConfig("Icewind Dale", "icewind.ini", bgdirs);
+    games[ID_ICEWINDHOW] = new GameConfig("Icewind Dale - Heart of Winter", "icewind.ini", bgdirs);
     games[ID_ICEWINDHOWTOT] =
-    new GameConfig("Icewind Dale - Trials of the Luremaster", "icewind.ini", iwddirs);
+    new GameConfig("Icewind Dale - Trials of the Luremaster", "icewind.ini", bgdirs);
     games[ID_BG2] = new GameConfig("Baldur's Gate 2 - Shadows of Amn", "baldur.ini", bgdirs);
     games[ID_BG2TOB] = new GameConfig("Baldur's Gate 2 - Throne of Bhaal", "baldur.ini", bgdirs);
-    games[ID_ICEWIND2] = new GameConfig("Icewind Dale 2", "icewind2.ini", iwddirs);
+    games[ID_ICEWIND2] = new GameConfig("Icewind Dale 2", "icewind2.ini", bgdirs);
     games[ID_NWN] = new GameConfig("Neverwinter Nights", "nwn.ini",
                                    new String[]{"Ambient", "DMVault", "Hak", "LocalVault", "Modules", "Music",
                                                 "NWM", "Saves", "ServerVault", "Source", "TexturePacks"});

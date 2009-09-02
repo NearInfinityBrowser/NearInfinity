@@ -22,10 +22,11 @@ final class ProTrap extends AbstractStruct implements AddRemovable
 
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Projectile", "PRO"));
+    list.add(new ResourceRef(buffer, offset, "Trap", "PRO"));
     list.add(new SectionOffset(buffer, offset + 8, "Effects list offset", null));
     // Mac ToB doesn't save these right, so EFFs not handled
-    list.add(new SectionCount(buffer, offset + 12, 4, "Effects list size", null));
+    list.add(new DecNumber(buffer, offset + 12, 2, "Effects list size"));
+    list.add(new Unknown(buffer, offset + 14, 2, "Projectile"));
     list.add(new Unknown(buffer, offset + 16, 2));
     list.add(new Unknown(buffer, offset + 18, 2));
     list.add(new DecNumber(buffer, offset + 20, 2, "Location: X"));

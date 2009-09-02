@@ -11,23 +11,23 @@ final class RestSpawn extends AbstractStruct // implements AddRemovable
 {
   RestSpawn(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
-    super(superStruct, "Rest spawn creatures", buffer, offset);
+    super(superStruct, "Rest encounters", buffer, offset);
   }
 
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
     for (int i = 0; i < 10; i++)
-      list.add(new StringRef(buffer, offset + 32 + i * 4, "Creature " + (i + 1) + " string "));
+      list.add(new StringRef(buffer, offset + 32 + i * 4, "Creature " + (i + 1) + " string"));
     for (int i = 0; i < 10; i++)
       list.add(new SpawnResourceRef(buffer, offset + 72 + i * 8, "Creature " + (i + 1)));
     list.add(new DecNumber(buffer, offset + 152, 2, "# creatures in list"));
     list.add(new DecNumber(buffer, offset + 154, 2, "Encounter difficulty"));
-    list.add(new Unknown(buffer, offset + 156, 4));
-    list.add(new Unknown(buffer, offset + 160, 2));
-    list.add(new Unknown(buffer, offset + 162, 2));
+    list.add(new DecNumber(buffer, offset + 156, 4, "Creature duration"));
+    list.add(new DecNumber(buffer, offset + 160, 2, "Creature wander distance"));
+    list.add(new DecNumber(buffer, offset + 162, 2, "Creature movement distance"));
     list.add(new DecNumber(buffer, offset + 164, 2, "Maximum spawned creatures"));
-    list.add(new Unknown(buffer, offset + 166, 2));
+    list.add(new Bitmap(buffer, offset + 166, 2, "Is active?", new String[]{"No", "Yes"}));
     list.add(new DecNumber(buffer, offset + 168, 2, "Probability (day)"));
     list.add(new DecNumber(buffer, offset + 170, 2, "Probability (night)"));
     list.add(new Unknown(buffer, offset + 172, 56));

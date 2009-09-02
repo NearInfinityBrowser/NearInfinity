@@ -23,7 +23,7 @@ final class Cure extends AbstractStruct implements AddRemovable
 
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Spell name", "SPL"));
+    list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));
     list.add(new DecNumber(buffer, offset + 8, 4, "Price"));
     return offset + 12;
   }

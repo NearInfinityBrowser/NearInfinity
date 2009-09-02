@@ -12,7 +12,7 @@ final class AutomapNote extends AbstractStruct implements AddRemovable
 {
   private static final String s_flag[] = {"Gray", "Violet", "Green", "Orange", "Red", "Blue",
                                           "Dark blue", "Light gray"};
-  private static final String s_source[] = {"External", "Internal"};
+  private static final String s_source[] = {"Talk override", "Dialog.tlk"};
 
   AutomapNote() throws Exception
   {
@@ -31,7 +31,7 @@ final class AutomapNote extends AbstractStruct implements AddRemovable
     list.add(new StringRef(buffer, offset + 4, "Text"));
     list.add(new Bitmap(buffer, offset + 8, 2, "Text location", s_source));
     list.add(new Bitmap(buffer, offset + 10, 2, "Automap mark color", s_flag));
-    list.add(new Unknown(buffer, offset + 12, 4));
+    list.add(new DecNumber(buffer, offset + 12, 4, "Control ID"));
     list.add(new Unknown(buffer, offset + 16, 36));
     return offset + 52;
   }

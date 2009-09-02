@@ -4,15 +4,8 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.Bitmap;
-import infinity.datatype.DecNumber;
-import infinity.datatype.HexNumber;
-import infinity.resource.AbstractStruct;
-import infinity.resource.AddRemovable;
-import infinity.resource.HasAddRemovable;
-import infinity.resource.StructEntry;
-
-import java.util.List;
+import infinity.datatype.*;
+import infinity.resource.*;
 
 final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
