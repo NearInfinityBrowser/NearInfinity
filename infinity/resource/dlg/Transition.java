@@ -11,8 +11,8 @@ import infinity.resource.AddRemovable;
 public final class Transition extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_flag = {"No flags set", "Text associated", "Trigger", "Action",
-                                          "Terminates dialogue", "Journal entry", "",
-                                          "Add unsolved quest", "Add journal note", "Add solved quest"};
+                                          "Terminates dialogue", "Journal entry", "", "Add unsolved quest",
+                                          "Add journal note", "Add solved quest"};
   private int nr;
 
   Transition() throws Exception

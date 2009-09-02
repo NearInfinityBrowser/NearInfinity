@@ -12,7 +12,7 @@ import java.io.OutputStream;
 public abstract class AbstractAbility extends AbstractStruct
 {
   protected static final String[] s_type = {"Default", "Melee", "Ranged", "Magical", "Launcher"};
-  protected static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
+  protected static final String[] s_targettype = {"", "Living actor", "", "Dead actor",
                                                   "Any point within range", "Caster", "",
                                                   "Caster (keep spell, no animation)"};
   protected static final String[] s_dmgtype = {"None", "Piercing", "Crushing", "Slashing", "Missile",

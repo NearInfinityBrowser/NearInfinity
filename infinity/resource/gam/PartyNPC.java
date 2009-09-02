@@ -25,6 +25,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     partyOrder.put(3L, "Slot 4");
     partyOrder.put(4L, "Slot 5");
     partyOrder.put(5L, "Slot 6");
+//    partyOrder.put(0x8000L, "In party, dead");
     partyOrder.put(0xffff, "Not in party");
 
     m_selected.put(0L, "Not selected");
@@ -111,7 +112,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     HexNumber creOffset = new HexNumber(buffer, offset + 4, 4, "CRE structure offset");
     list.add(creOffset);
     list.add(new DecNumber(buffer, offset + 8, 4, "CRE structure size"));
-    list.add(new TextString(buffer, offset + 12, 8, "CRE name"));
+    list.add(new TextString(buffer, offset + 12, 8, "Character"));
     list.add(new Bitmap(buffer, offset + 20, 4, "Orientation", Actor.s_orientation));
     list.add(new ResourceRef(buffer, offset + 24, "Current area", "ARE"));
     list.add(new DecNumber(buffer, offset + 32, 2, "Location: X"));

@@ -16,10 +16,10 @@ public final class EffectType extends Bitmap
                                            "Not dispel/not bypass resistance", "Dispel/Bypass resistance"};
   private static final String s_target[] = {"None", "Self", "Preset target",
                                             "Party", "Everyone", "Everyone except party",
-                                            "Everyone not evil", "", "Everyone except self", "Original caster"};
+                                            "Everyone or party", "", "Everyone except self", "Original caster"};
   private static final String s_duration[] = {"Instant/Limited", "Instant/Permanent until death",
                                               "Instant/While equipped", "Delay/Limited", "Delay/Permanent",
-                                              "", "", "After duration expires", "", "Instant/Permanent",
+                                              "Delay/While equipped", "", "", "", "Instant/Permanent",
                                               "Trigger"};
   private int attr_length;
 

@@ -36,7 +36,8 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
         items.add((Item)entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
                entry instanceof DecNumber
-               && !entry.getName().equals("Weapon slot selected"))
+               && !entry.getName().equals("Weapon slot selected")
+               && !entry.getName().equals("Weapon ability selected"))
         slots.add(entry);
     }
     for (int i = 0; i < slots.size(); i++) {

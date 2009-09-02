@@ -41,7 +41,7 @@ final class Viewer extends JPanel
       salePanel =
       ViewerUtil.makeListPanel("Items for sale", sto, ItemSale.class, "Item");
     JPanel curePanel = ViewerUtil.makeListPanel("Cures for sale", sto, Cure.class,
-                                                "Spell name");
+                                                "Spell");
     JPanel drinkPanel = ViewerUtil.makeListPanel("Drinks for sale", sto, Drink.class,
                                                  "Drink name");
     JPanel buyPanel = ViewerUtil.makeListPanel("Items purchased", sto, Purchases.class,

@@ -51,13 +51,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     super("Find");
     setIconImage(Icons.getIcon("Find16.gif").getImage());
     getRootPane().setDefaultButton(bsearch);
-    bopen.setMnemonic('p');
+    bopen.setMnemonic('o');
     bopennew.setMnemonic('n');
     binsert.setMnemonic('r');
     rbcre.setMnemonic('c');
     rbitm.setMnemonic('i');
     rbspl.setMnemonic('s');
-    rbsto.setMnemonic('o');
+    rbsto.setMnemonic('t');
     ButtonGroup bg = new ButtonGroup();
     bg.add(rbcre);
     bg.add(rbitm);

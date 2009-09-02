@@ -17,8 +17,8 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
                                                          "Journal"};
 
   static {
-    chapter.put(0x1f, "External");
-    chapter.put(0xff, "Internal");
+    chapter.put(0x1f, "From talk override");
+    chapter.put(0xff, "From dialog.tlk");
   }
 
 

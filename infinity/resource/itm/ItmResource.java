@@ -27,7 +27,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Candles", "", "Clubs", "", "",
            "Large shields", "", "Medium shields", "Notes",
            "", "", "Small shields", "",
-           "Telescopes", "Bottles", "Great swords", "Containers",
+           "Telescopes", "Bottles", "Greatswords", "Containers",
            "Furs and pelts", "Leather armor", "Studded leather", "Chain mail",
            "Splint mail", "Plate mail", "Full plate", "Hide armor", "Robes",
            "", "Bastard swords", "Scarves", "Food", "Hats", "Gauntlets"};
@@ -44,10 +44,10 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Candles", "", "", "", "",
            "Large shields", "", "Medium shields", "",
            "", "", "Small shields", "",
-           "Telescopes", "Bottles", "Great swords"};
+           "Telescopes", "Bottles", "Greatswords"};
   private static final String[] s_flags =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
-           "Cursed", "Not copyable", "Magical", "Bow", "Silver weapon", "Cold iron", "Stolen", "Conversable"};
+           "Cursed", "Not copyable", "Magical", "Bow", "Silver", "Gold", "Stolen", "Conversable"};
   private static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "", "Silver weapon", "Cold iron", "Steel", "Conversable",
@@ -110,9 +110,9 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public static String getSearchString(byte buffer[])
   {
 //    return new StringRef(buffer, 12, "").toString();
-    String name = new StringRef(buffer, 12, "").toString();
+    String name = new StringRef(buffer, 12, "").toString().trim();
     if (name.equals("") || name.equalsIgnoreCase("No such index"))
-      return new StringRef(buffer, 8, "").toString();
+      return new StringRef(buffer, 8, "").toString().trim();
     return name;
   }
 
@@ -266,32 +266,37 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       else
         list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability));
       list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag, s_anim));
-      list.add(new DecNumber(buffer, 36, 1, "Minimum level"));
-      list.add(new Unknown(buffer, 37, 1));
-      list.add(new DecNumber(buffer, 38, 1, "Minimum strength"));
-      list.add(new Unknown(buffer, 39, 1));
-      list.add(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
-      list.add(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
-      list.add(new DecNumber(buffer, 44, 1, "Minimum dexterity"));
-      list.add(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
-      list.add(new DecNumber(buffer, 48, 1, "Minimum constitution"));
+      list.add(new DecNumber(buffer, 36, 2, "Minimum level"));
+//      list.add(new Unknown(buffer, 37, 1));
+      list.add(new DecNumber(buffer, 38, 2, "Minimum strength"));
+//      list.add(new Unknown(buffer, 39, 1));
       if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
         // NB! Not in order
+        list.add(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
         list.add(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
+        list.add(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
         list.add(new Flag(buffer, 43, 1, "Unusable by (2/4)", s_kituse2));
+        list.add(new DecNumber(buffer, 44, 1, "Minimum dexterity"));
         list.add(new Flag(buffer, 45, 1, "Unusable by (3/4)", s_kituse3));
+        list.add(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
         list.add(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
+        list.add(new DecNumber(buffer, 48, 1, "Minimum constitution"));
         list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
       }
       else {
-        list.add(new Unknown(buffer, 41, 1));
-        list.add(new Unknown(buffer, 43, 1));
-        list.add(new Unknown(buffer, 45, 1));
-        list.add(new Unknown(buffer, 47, 1));
-        list.add(new Unknown(buffer, 49, 1));
+        list.add(new DecNumber(buffer, 40, 2, "Minimum strength bonus"));
+        list.add(new DecNumber(buffer, 42, 2, "Minimum intelligence"));
+        list.add(new DecNumber(buffer, 44, 2, "Minimum dexterity"));
+        list.add(new DecNumber(buffer, 46, 2, "Minimum wisdom"));
+        list.add(new DecNumber(buffer, 48, 2, "Minimum constitution"));
+//        list.add(new Unknown(buffer, 41, 1));
+//        list.add(new Unknown(buffer, 43, 1));
+//        list.add(new Unknown(buffer, 45, 1));
+//        list.add(new Unknown(buffer, 47, 1));
+//        list.add(new Unknown(buffer, 49, 1));
       }
-      list.add(new DecNumber(buffer, 50, 1, "Minimum charisma"));
-      list.add(new Unknown(buffer, 51, 1));
+      list.add(new DecNumber(buffer, 50, 2, "Minimum charisma"));
+//      list.add(new Unknown(buffer, 51, 1));
       list.add(new DecNumber(buffer, 52, 4, "Price"));
       list.add(new DecNumber(buffer, 56, 2, "Maximum in stack"));
       list.add(new ResourceRef(buffer, 58, "Icon", "BAM"));

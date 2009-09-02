@@ -254,7 +254,8 @@ public final class Decompiler
   {
     int pIndex = p.indexOf((int)'*');
     if (pIndex != -1 && pIndex != p.length() - 1) {
-
+//      if (nr < 0)
+//        nr += 4294967296L;
       IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase() + ".IDS");
       IdsMapEntry entry = map.getValue(nr);
       if (entry != null)
@@ -262,12 +263,10 @@ public final class Decompiler
       else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
                            map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
                            map.toString().equalsIgnoreCase("STATE.IDS"))) {
-        // XXX: moved from above [failed for real signed ints like happiness]
         if (nr < 0)
           nr += 4294967296L;
-
         StringBuilder temp = new StringBuilder();
-        for (int bit = 0; nr > 0 & bit < 32; bit++) {
+        for (int bit = 0; nr > 0 && bit < 32; bit++) {
           long bitnr = (long)Math.pow((double)2, (double)bit);
           if ((nr & bitnr) == bitnr) {
             entry = map.getValue(bitnr);
@@ -318,7 +317,9 @@ public final class Decompiler
           coord = name;
           break;
         }
-      name = st.nextToken();
+      name = st.nextToken(); // IWD couldn't handle spaces in objstring
+      while (name.charAt(0) == '"' && !name.endsWith("OB"))
+        name = name + ' ' + st.nextToken();
     }
     if (name.endsWith("OB"))
       name = name.substring(0, name.length() - 2);
@@ -539,7 +540,7 @@ public final class Decompiler
       else if (p.substring(0, 2).equals("O:"))
         code.append(object);
       else if (p.substring(0, 2).equals("P:"))
-        code.append(coord.replaceFirst(",", "."));       // be consistent with WeiDU
+        code.append(coord.replaceFirst(",", ".");   // for WeiDU compatability
       else if (p.substring(0, 2).equals("I:")) {
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);

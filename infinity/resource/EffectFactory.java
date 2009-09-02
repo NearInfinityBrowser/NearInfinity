@@ -27,7 +27,7 @@ public final class EffectFactory
     "Axe exploding", "Axe flaming", "Axe heavy", "Axe shocking", "Bolt",
     "Bolt exploding", "Bolt flaming", "Bolt heavy", "Bolt shocking", "Bullet",
     "Bullet exploding", "Bullet flaming", "Bullet heavy", "Bullet shocking",
-    "Burning hands", "Call lightning BG", "Chromiatic orb", "Cone of cold BG",
+    "Burning hands", "Call lightning BG", "Chromatic orb", "Cone of cold BG",
     "Cone of fire", "Dagger", "Dagger exploding", "Dagger flaming",
     "Dagger heavy", "Dagger shocking", "Dart", "Dart exploding", "Dart flaming",
     "Dart heavy", "Dart shocking", "Magic missile BG", "Fireball",
@@ -79,21 +79,22 @@ public final class EffectFactory
     "Sparkle area green (not party)", "Sparkle area magenta (not party)",
     "Sparkle area orange (not party)", "Sparkle area magenta (party only)",
     "Sparkle area orange (party only)", "Sparkle area magenta",
-    "Sparkle area orange", "Sparkle magneta", "Sparkle orange",
+    "Sparkle area orange", "Sparkle magenta", "Sparkle orange",
     "Non-sprite area", "Cloudkill BG", "Flame arrow ice", "Cow", "Hold",
     "Scorcher ice", "Acid blob mustard", "Acid blob gray", "Acid blob ochre",
     "Red holy might", "Hit necromancy area", "Hit alteration area",
     "Hit enchantment area", "Hit abjuration area", "Hit illusion area",
     "Hit conjuration area", "Hit invocation area", "Litany of curses",
-    "Stories-bones-tell", "Magic missles 1", "Magic missles 2",
-    "Magic missles 3", "Magic missles 4", "Magic missles 5", "Magic missles 6",
-    "Magic missles 7", "Magic missles 8", "Magic missles 9", "Magic missles 10",
-    "Skull mob", "One skull at the target", "Swarm curse",
-    "Bees fly to target, no damage", "Adder's kiss", "Ice knife", "Pacify",
-    "Strength", "Ball lightning", "Ball lightning 2", "Blood bridge",
-    "Force missles", "Improved strength", "Shroud of shadows", "Cloudkill",
-    "Howl of pandemonium", "Bladestorm", "Elysium's fires", "Abyssal fury",
-    "Horror", "Knock", "Hold undead", "Missle of patience", "Elysium's tears",
+    "Stories-bones-tell", "Magic missiles 1", "Magic missiles 2",
+    "Magic missiles 3", "Magic missiles 4", "Magic missiles 5",
+    "Magic missiles 6", "Magic missiles 7", "Magic missiles 8",
+    "Magic missiles 9", "Magic missiles 10", "Skull mob",
+    "One skull at the target", "Swarm curse", "Bees fly to target, no damage",
+    "Adder's kiss", "Ice knife", "Pacify", "Strength", "Ball lightning",
+    "Ball lightning 2", "Blood bridge", "Force missiles", "Improved strength",
+    "Shroud of shadows", "Cloudkill", "Howl of pandemonium", "Bladestorm",
+    "Elysium's fires", "Abyssal fury", "Horror", "Knock", "Hold undead",
+    "Missile of patience", "Elysium's tears",
     "Tasha's unbearable derisive laughter", "Axe of torment", "Blacksphere",
     "Cone of cold", "Desert hell", "Fire and ice", "Chain lightning storm",
     "Acid storm", "Stygian ice storm", "Meteor storm bombardment", "Deathbolt",
@@ -109,6 +110,39 @@ public final class EffectFactory
     "Reign of anger 1", "Reign of anger 2", "Reign of anger 3",
     "Reign of anger 4", "Reign of anger 5", "Power of one", "Kiss",
     "Embalming"};
+  private static final String s_visuals[] = {"None", "Hit abjuration",
+    "Hit alteration", "Hit invocation", "Hit necromancy", "Hit conjuration",
+    "Hit enchantment", "Hit illusion", "Hit divination", "Armor",
+    "Spirit armor", "Ghost armor", "Strength", "Confusion", "Shroud of flame",
+    "Death spell", "Disintegrate", "Power word, silence", "Power word, stun",
+    "Finger of death", "Mordenkainen's sword", "Monster summoning 1",
+    "Monster summoning 2", "Monster summoning 3", "Monster summoning 4",
+    "Monster summoning 5", "Monster summoning 6", "Monster summoning 7",
+    "Conjure fire elemental", "Conjure earth elemental",
+    "Conjure water elemental", "Bless", "Curse", "Prayer", "Recitation",
+    "Cure light wounds", "Cure moderate wounds", "Cure serious wounds",
+    "Cure critical wounds", "Heal", "Animal summoning 1", "Animal summoning 2",
+    "Animal summoning 3", "Slow poison", "Neutralize poison", "Call lightning",
+    "Static charge", "Remove paralysis", "Free action", "Miscast magic",
+    "Strength of one", "Champion's strength", "Flame strike", "Raise dead",
+    "Resurrection", "Chaotic commands", "Righteous wrath of the faithful",
+    "Sunray", "Spike stones", "Dimension door (origin)",
+    "Dimension door (destination)", "Cone of cold", "Sol's searing orb",
+    "Hit fire", "Hit cold", "Hit electricity", "Hit acid", "Hit paralysis",
+    "Malavon's rage", "Righteous wrath of the faithful ground",
+    "Belhifet death", "Portal", "Sunscorch", "Blade barrier (front)",
+    "Blade barrier (back)", "Circle of bones (front)", "Circle of bones (back)",
+    "Cause light wounds", "Cause moderate wounds", "Cause serious wounds",
+    "Cause critical wounds", "Cause disease", "Hit poison", "Slay living",
+    "Harm", "Destruction", "Exaltation", "Cloudburst", "Mold touch",
+    "Lower resistance", "Cat's grace", "Soul eater", "Smashing wave",
+    "Suffocate", "Abi-dalzim's horrid wilting", "Mordenkainen's force missile",
+    "Vitriolic sphere", "Wailing virgin death", "Undead ward",
+    "Wailing virgin hit", "Wylfden's death 1", "Wylfden's death 2",
+    "Dragon's death 1", "Dragon's death 2", "Monster summoning circle",
+    "Animal summoning circle", "Earth summoning circle",
+    "Fire summoning circle", "Water summoning circle", "Gedlee's electric loop",
+    "Darktree attack"};
   private static final String s_actype[] = {"All weapons", "Crushing weapons",
     "Missile weapons", "Piercing weapons", "Slashing weapons",
     "Set base AC to value"};
@@ -178,14 +212,14 @@ public final class EffectFactory
           "Save vs. polymorph bonus", "Save vs. breath bonus",
           "Save vs. spell bonus", "Silence", "Sleep", "Slow", "Sparkle",
           "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-          "Unstun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+          "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
           "Character color pulse", "Character tint solid",
           "Character tint bright", "Animation change", "Base THAC0 bonus",
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
           "Stealth bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
           "Translucent", "Summon creature", "Unsummon creature",
-          "Non-detection", "Remove non-detection", "Change gender",
+          "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
           "Disease", "Cure disease", "Deafness", "Cure deafness",
@@ -233,15 +267,15 @@ public final class EffectFactory
           "Blind", "Protection from evil", "Protection from petrification",
           "Protection from normal missiles", "Magic armor", "Held", "Sleep",
           "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-          "Bark skin", "Strength", "Heroism", "Invulnerable",
+          "Barkskin", "Strength", "Heroism", "Invulnerable",
           "Protection from acid", "Protection from cold", "Resist fire/cold",
           "Protection from electricity", "Protection from magic",
-          "Protection from undead", "Protection from poison", "Non-detection",
+          "Protection from undead", "Protection from poison", "Nondetection",
           "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
           "Haste", "Fatigue", "Bard song", "Slow", "Regenerate", "Domination",
           "Hopelessness", "Greater malison", "Spirit armor", "Chaos",
-          "Feebleminded", "Defensive harmony", "Champion's strength", "Dying",
-          "Mind shield", "Level drain", "Polymorph self", "Stun",
+          "Feeblemind", "Defensive harmony", "Champion's strength", "Dying",
+          "Mind shield", "Energy drain", "Polymorph self", "Stun",
           "Regeneration", "Perception", "Master thievery"};
         break;
 
@@ -260,14 +294,14 @@ public final class EffectFactory
           "Save vs. polymorph bonus", "Save vs. breath bonus",
           "Save vs. spell bonus", "Silence", "Sleep", "Slow", "Sparkle",
           "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-          "Unstun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+          "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
           "Character color pulse", "Character tint solid",
           "Character tint bright", "Animation change", "Base THAC0 bonus",
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
           "Stealth bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
           "Translucent", "Summon creature", "Unsummon creature",
-          "Non-detection", "Remove non-detection", "Change gender",
+          "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
           "Disease", "Cure disease", "Deafness", "Cure deafness",
@@ -319,14 +353,14 @@ public final class EffectFactory
           "Blind", "Protection from evil", "Protection from petrification",
           "Protection from normal missiles", "Magic armor", "Held", "Sleep",
           "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-          "Bark skin", "Strength", "Heroism", "Invulnerable",
+          "Barkskin", "Strength", "Heroism", "Invulnerable",
           "Protection from acid", "Protection from cold", "Resist fire/cold",
           "Protection from electricity", "Protection from magic",
-          "Protection from undead", "Protection from poison", "Non-detection",
+          "Protection from undead", "Protection from poison", "Nondetection",
           "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
           "Haste", "Fatigue", "Bard song", "Slow", "Regenerate", "Domination",
           "Hopelessness", "Greater malison", "Spirit armor", "Chaos",
-          "Feebleminded", "Defensive harmony", "Champions strength", "Dying",
+          "Feeblemind", "Defensive harmony", "Champions strength", "Dying",
           "Mind shield", "Level drain", "Polymorph self", "Stun",
           "Regeneration", "Perception", "Master thievery"};
         break;
@@ -348,14 +382,14 @@ public final class EffectFactory
           "Save vs. polymorph bonus", "Save vs. breath bonus",
           "Save vs. spell bonus", "Silence", "Sleep", "Slow", "Sparkle",
           "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-          "Unstun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+          "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
           "Character color pulse", "Character tint solid",
           "Character tint bright", "Animation change", "Base THAC0 bonus",
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
           "Stealth bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
           "Translucent", "Summon creature", "Unsummon creature",
-          "Non-detection", "Remove non-detection", "Change gender",
+          "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
           "Disease", "Cure disease", "Deafness", "Cure deafness",
@@ -397,10 +431,10 @@ public final class EffectFactory
           "No collision detection", "Hold creature 2", "Move creature",
           "Set local variable", "Increase spells cast per round",
           "Increase casting speed factor", "Increase attack speed factor",
-          "Casting level bonus", "Unknown (C0)", "Unknown (C1)", "Unknown (C2)",
-          "Unknown (C3)", "Unknown (C4)", "Unknown (C5)", "Unknown (C6)",
-          "Unknown (C7)", "Unknown (C8)", "Unknown (C9)", "Unknown (CA)",
-          "Unknown (CB)", "Unknown (CC)", "Unknown (CD)",
+          "Casting level bonus", "Unknown (C0)", "Invisibility detection",
+          "Unknown (C2)", "Unknown (C3)", "Unknown (C4)", "Unknown (C5)",
+          "Unknown (C6)", "Unknown (C7)", "Unknown (C8)", "Unknown (C9)",
+          "Unknown (CA)", "Unknown (CB)", "Unknown (CC)", "Unknown (CD)",
           "Protection from spell", "Unknown (CF)", "Minimum HP", "Unknown (D1)",
           "Power word, stun", "Unknown (D3)", "Unknown (D4)", "Unknown (D5)",
           "Unknown (D6)", "Unknown (D7)", "Unknown (D8)", "Unknown (D9)",
@@ -409,21 +443,21 @@ public final class EffectFactory
           "Unknown (E2)", "Unknown (E3)", "Unknown (E4)", "Unknown (E5)",
           "Unknown (E6)", "Unknown (E7)", "Creature RGB color fade",
           "Show visual effect", "Cold damage on hit", "Unknown (EB)",
-          "Unknown (EC)", "Double damage to undead", "All saving throws bonus",
-          "Unknown (EF)", "Summon creature 2", "Hit point transfer",
+          "Chill touch", "Double damage to undead", "All saving throws bonus",
+          "Slow poison", "Summon creature 2", "Vampiric touch",
           "Show visual overlay", "Animate dead", "Unknown (F4)", "Unknown (F5)",
           "Summon creature 3", "Beltyn's burning blood", "Summon shadow",
-          "Unknown (F9)", "Unknown (FA)", "Unknown (FB)", "Blinding",
+          "Unknown (F9)", "Unknown (FA)", "Lich touch", "Sol's searing orb",
           "Bonus AC vs. weapons", "Dispel specific spell", "Salamander aura",
           "Umber hulk gaze", "Unknown (101)", "Unknown (102)",
           "Summon creatures with cloud", "Animation removal",
           "Immunity to effect and string", "Unknown (106)", "Unknown (107)",
-          "Unknown (108)", "Unknown (109)", "Movement rate modifier",
+          "Static charge", "Cloak of fear", "Movement rate modifier",
           "Unknown (10B)", "Eye of the mind", "Eye of the sword",
           "Eye of the mage", "Eye of venom", "Eye of the spirit",
           "Eye of fortitude", "Eye of stone", "Unknown (113)", "Unknown (114)",
           "Unknown (115)", "Unknown (116)", "Unknown (117)", "Unknown (118)",
-          "Unknown (119)", "Hide hit points", "Display string over head",
+          "Unknown (119)", "Hide hit points", "Float text",
           "Double damage vs. undead/outer planar", "Unknown (11D)",
           "Ranger tracking", "Unknown (11F)", "Unknown (120)", "Unknown (121)",
           "Display spell immunity string",
@@ -433,15 +467,15 @@ public final class EffectFactory
           "Blind", "Protection from evil", "Protection from petrification",
           "Protection from normal missiles", "Magic armor", "Held", "Sleep",
           "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-          "Bark skin", "Strength", "Heroism", "Invulnerable",
+          "Barkskin", "Strength", "Heroism", "Invulnerable",
           "Protection from acid", "Protection from cold", "Resist fire/cold",
           "Protection from electricity", "Protection from magic",
-          "Protection from undead", "Protection from poison", "Non-detection",
+          "Protection from undead", "Protection from poison", "Nondetection",
           "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
           "Haste", "Fatigue", "Bard song", "Slow", "Regenerate", "Nauseous",
           "Stun", "Ghost armor", "Stoneskin", "Hopelessness", "Courage",
           "Friends", "Hope", "Malison", "Spirit armor", "Domination",
-          "Feebleminded", "Tensor's transformation", "Mind blank", "Aid",
+          "Feeblemind", "Tenser's transformation", "Mind blank", "Aid",
           "Find traps", "Draw upon holy might", "Miscast magic",
           "Strength of one", "Prayer", "Defensive harmony", "Recitation",
           "Champion's strength", "Chaotic commands",
@@ -471,14 +505,14 @@ public final class EffectFactory
           "Save vs. polymorph bonus", "Save vs. breath bonus",
           "Save vs. spell bonus", "Silence", "Sleep", "Slow", "Sparkle",
           "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-          "Unstun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+          "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
           "Character color pulse", "Character tint solid",
           "Character tint bright", "Animation change", "Base THAC0 bonus",
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
-          "Stealth bonus", "Casting failure", "Unknown (3D)",
+          "Move silently bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
           "Translucent", "Summon creature", "Unsummon creature",
-          "Non-detection", "Remove non-detection", "Change gender",
+          "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
           "Disease", "Cure disease", "Deafness", "Cure deafness",
@@ -521,10 +555,10 @@ public final class EffectFactory
           "Set local variable", "Increase spells cast per round",
           "Increase casting speed factor", "Increase attack speed factor",
           "Casting level bonus", "Find familiar",
-          "Invisible detection", "Ignore dialogue pause", "Drain HP on death",
-          "Familiar", "Physical mirror", "Reflect specified effect",
-          "Reflect spell level", "Spell turning", "Spell deflection",
-          "Reflect spell school", "Reflect spell type",
+          "Invisibility detection", "Ignore dialogue pause",
+          "Drain HP on death", "Familiar", "Physical mirror",
+          "Reflect specified effect", "Reflect spell level", "Spell turning",
+          "Spell deflection", "Reflect spell school", "Reflect spell type",
           "Protection from spell school", "Protection from spell type",
           "Protection from spell", "Reflect specified spell", "Minimum HP",
           "Power word, kill", "Power word, stun", "Imprisonment", "Freedom",
@@ -541,8 +575,8 @@ public final class EffectFactory
           "Drain item charges", "Drain wizard spells", "Unknown (F5)",
           "Berserk effect", "Attack nearest creature", "Melee hit effect",
           "Ranged hit effect", "Maximum damage each hit", "Change bard song",
-          "Set trap", "Set automap note", "Remove automap note", "Create item",
-          "Spell sequencer", "Create spell sequencer",
+          "Set trap", "Set automap note", "Remove automap note",
+          "Create item (days)", "Spell sequencer", "Create spell sequencer",
           "Activate spell sequencer", "Spell trap", "Unknown (104)",
           "Wondrous recall", "Visual range bonus", "Backstab bonus",
           "Drop item", "Set global variable", "Remove protection from spell",
@@ -569,26 +603,26 @@ public final class EffectFactory
           "Blind", "Protection from evil", "Protection from petrification",
           "Protection from normal missiles", "Magic armor", "Held", "Sleep",
           "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-          "Bark skin", "Strength", "Heroism", "Invulnerable",
+          "Barkskin", "Strength", "Heroism", "Invulnerable",
           "Protection from acid", "Protection from cold", "Resist fire/cold",
           "Protection from electricity", "Protection from magic",
-          "Protection from undead", "Protection from poison", "Non-detection",
+          "Protection from undead", "Protection from poison", "Nondetection",
           "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
           "Haste", "Fatigue", "Bard song", "Slow", "Regenerate", "Domination",
           "Hopelessness", "Greater malison", "Spirit armor", "Chaos",
-          "Feebleminded", "Defensive harmony", "Champion's strength", "Dying",
+          "Feeblemind", "Defensive harmony", "Champion's strength", "Dying",
           "Mind shield", "Level drain", "Polymorph self", "Stun",
           "Regeneration", "Perception", "Master thievery", "Energy drain",
           "Holy power", "Cloak of fear", "Iron skins", "Magic resistance",
           "Righteous magic", "Spell turning", "Repulsing undead",
           "Spell deflection", "Fire shield (red)", "Fire shield (blue)",
           "Protection from normal weapons", "Protection from magic weapons",
-          "Tensor's transformation", "Protection from magical energy",
+          "Tenser's transformation", "Protection from magic energy",
           "Mislead", "Contingency", "Protection from the elements",
           "Projected image", "Maze", "Imprisonment", "Stoneskin", "Kai",
           "Called shot", "Spell failure", "Offensive stance",
           "Defensive stance", "Intelligence drained", "Regenerating", "Talking",
-          "At store", "Negative plane protection", "Ability score drained",
+          "Shopping", "Negative plane protection", "Ability score drained",
           "Spell sequencer", "Protection from energy", "Magnetized",
           "Able to poison weapons", "Setting trap", "Glass dust",
           "Blade barrier", "Death ward", "Doom", "Decaying", "Acid", "Vocalize",
@@ -615,79 +649,82 @@ public final class EffectFactory
 
       case ResourceFactory.ID_ICEWIND2:
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
-          "Awaken", "Berserk", "Calm", "Charm creature", "Charisma bonus",
-          "Set item color", "Set color glow solid", "Set color glow pulse",
-          "Constitution bonus", "Cure poison", "Damage", "Kill target",
-          "Defrost", "Dexterity bonus", "Haste", "Current HP bonus",
-          "Maximum HP bonus", "Intelligence bonus", "Invisibility",
-          "Knowledge arcana", "Luck bonus", "Reset morale", "Panic", "Poison",
-          "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
-          "Electricity resistance bonus", "Fire resistance bonus",
-          "Magic damage resistance bonus", "Raise dead", "Fortitude save bonus",
-          "Reflex save bonus", "Will save bonus", "Unknown (24)",
-          "Unknown (25)", "Silence", "Sleep", "Slow", "Sparkle",
-          "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-          "Unstun", "Visible", "Vocalize", "Wisdom bonus", "RGB glow",
-          "RGB hue dark", "RGB hue light", "Animation change",
+          "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
+          "Charisma bonus", "Set item color", "Set color glow solid",
+          "Set color glow pulse", "Constitution bonus", "Cure poison", "Damage",
+          "Kill target", "Defrost", "Dexterity bonus", "Haste",
+          "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
+          "Invisibility", "Knowledge arcana", "Luck bonus", "Reset morale",
+          "Panic", "Poison", "Remove curse", "Acid resistance bonus",
+          "Cold resistance bonus", "Electricity resistance bonus",
+          "Fire resistance bonus", "Magic damage resistance bonus",
+          "Raise dead", "Fortitude save bonus", "Reflex save bonus",
+          "Will save bonus", "Unknown (24)", "Unknown (25)", "Silence", "Sleep",
+          "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh",
+          "Strength bonus", "Stun", "Cure stun", "Remove invisibility",
+          "Vocalize", "Wisdom bonus", "Character color pulse",
+          "Character tint solid", "Character tint bright", "Animation change",
           "Base attack bonus", "Slay", "Reverse alignment", "Change alignment",
           "Dispel effects", "Move silently bonus", "Casting failure", "Alchemy",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
-          "Translucent", "Summon creature", "Unsummon creature",
-          "Non-detection", "Remove non-detection", "Change gender", "AI change",
-          "Attack damage bonus", "Blindness", "Cure blindness", "Feeblemind",
-          "Cure feeblemind", "Disease", "Cure disease", "Deafness",
-          "Cure deafness", "Set AI script", "Immunity to projectile",
-          "Unknown (54)", "Unknown (55)", "Slashing resistance bonus",
-          "Crushing resistance bonus", "Piercing resistance bonus",
-          "Missile resistance bonus", "Open locks bonus", "Find traps bonus",
-          "Pick pockets bonus", "Fatigue bonus", "Intoxication bonus",
-          "Tracking bonus", "Change level", "Unknown (61)", "Regeneration",
-          "Modify duration", "Unknown (64)", "Immunity to effect",
-          "Immunity to spell level", "Change name", "XP bonus", "Remove gold",
-          "Morale break", "Change portrait", "Reputation bonus", "Paralyze",
-          "Retreat from", "Create weapon", "Remove item", "Equip weapon",
-          "Dither", "Unknown (73)", "Detect invisible", "Clairvoyance",
-          "Show creatures", "Mirror image", "Immunity to weapon",
-          "Unknown (79)", "Create inventory item", "Remove inventory item",
-          "Teleport", "Unlock", "Movement rate bonus", "Unknown (7E)",
-          "Confusion", "Aid (non-cumulative)", "Bless (non-cumulative)",
+          "Translucent", "Summon creature", "Unsummon creature", "Nondetection",
+          "Remove nondetection", "Change gender", "Change AI type",
+          "Attack damage bonus", "Blindness", "Cure blindness",
+          "Feeblemindedness", "Cure feeblemindedness", "Disease",
+          "Cure disease", "Deafness", "Cure deafness", "Set AI script",
+          "Immunity to projectile", "Unknown (54)", "Unknown (55)",
+          "Slashing resistance bonus", "Crushing resistance bonus",
+          "Piercing resistance bonus", "Missile resistance bonus",
+          "Open locks bonus", "Find traps bonus", "Pick pockets bonus",
+          "Fatigue bonus", "Intoxication bonus", "Tracking bonus",
+          "Change level", "Unknown (61)", "Regeneration", "Modify duration",
+          "Unknown (64)", "Immunity to effect", "Immunity to spell level",
+          "Change name", "XP bonus", "Remove gold", "Morale break",
+          "Change portrait", "Reputation bonus", "Paralyze", "Retreat from",
+          "Create weapon", "Remove item", "Equip weapon", "Dither",
+          "Unknown (73)", "Detect invisible", "Clairvoyance", "Show creatures",
+          "Mirror image", "Immunity to weapons", "Unknown (79)",
+          "Create inventory item", "Remove inventory item", "Teleport",
+          "Unlock", "Movement rate bonus", "Unknown (7E)", "Confusion",
+          "Aid (non-cumulative)", "Bless (non-cumulative)",
           "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
           "Luck (non-cumulative)", "Petrification", "Polymorph",
           "Force visible", "Unknown (89)", "Set animation sequence",
           "Display string", "Casting glow", "Visual spell hit",
           "Display portrait icon", "Create item in slot", "Disable button",
           "Disable spellcasting", "Cast spell", "Learn spell",
-          "Cast spell (point)", "Identify", "Detect traps", "Replace self",
+          "Cast spell at point", "Identify", "Detect traps", "Replace self",
           "Play movie", "Sanctuary", "Entangle", "Unknown (9B)", "Unknown (9C)",
           "Web effect", "Grease overlay", "Mirror image effect", "Unknown (A0)",
-          "Remove panic", "Remove hold", "Free action", "Remove intoxication",
-          "Pause caster", "Magic resistance bonus", "Missile attack bonus",
-          "Destroy self", "Prevent portrait icon", "Play damage animation",
-          "Give innate ability", "Remove innate ability",
-          "Poison resistance bonus", "Play sound", "Unknown (AF)",
-          "Movement rate penalty", "Unknown (B1)", "Unknown (B2)",
-          "Unknown (B3)", "Unknown (B4)", "Unknown (B5)", "Unknown (B6)",
-          "Unknown (B7)", "Unknown (B8)", "Hold creature (forced)",
-          "Unknown (BA)", "Unknown (BB)", "Aura cleansing", "Mental speed",
-          "Physical speed", "Casting level bonus", "Unknown (C0)",
-          "See invisible", "Unknown (C2)", "Unknown (C3)", "Unknown (C4)",
-          "Unknown (C5)", "Unknown (C6)", "Unknown (C7)", "Unknown (C8)",
-          "Unknown (C9)", "Unknown (CA)", "Unknown (CB)", "Unknown (CC)",
-          "Unknown (CD)", "Immunity spell", "Unknown (CF)", "Minimum HP",
-          "Unknown (D1)", "Unknown (D2)", "Unknown (D3)", "Unknown (D4)",
-          "Unknown (D5)", "Unknown (D6)", "Unknown (D7)", "Unknown (D8)",
-          "Unknown (D9)", "Stoneskin effect", "Unknown (DB)", "Unknown (DC)",
-          "Unknown (DD)", "Unknown (DE)", "Unknown (DF)", "Unknown (E0)",
-          "Unknown (E1)", "Unknown (E2)", "Unknown (E3)", "Unknown (E4)",
-          "Unknown (E5)", "Unknown (E6)", "Unknown (E7)",
-          "Color glow dissipate", "Visual spell hit", "Unknown (EA)",
-          "Casting glow", "Panic undead", "Unknown (ED)", "Saving throw change",
-          "Slow poison", "Unknown (F0)", "Vampiric touch", "Unknown (F2)",
-          "Unknown (F3)", "Prayer", "Unknown (F5)", "Unknown (F6)",
-          "Beltyn's burning blood", "Unknown (F8)", "Recitation",
-          "Unknown (FA)", "Unknown (FB)", "Unknown (FC)", "Unknown (FD)",
-          "Remove specific effects", "Salamander aura", "Umber hulk gaze",
-          "Zombie lord aura", "Unknown (102)", "Unknown (103)", "Hide creature",
+          "Remove fear", "Remove paralysis", "Free action",
+          "Remove intoxication", "Pause caster", "Magic resistance bonus",
+          "Missile attack bonus", "Remove creature", "Prevent portrait icon",
+          "Play damage animation", "Give innate ability",
+          "Remove innate ability", "Poison resistance bonus", "Play sound",
+          "Unknown (AF)", "Movement rate bonus 2", "Unknown (B1)",
+          "Unknown (B2)", "Unknown (B3)", "Unknown (B4)", "Unknown (B5)",
+          "Unknown (B6)", "Unknown (B7)", "Unknown (B8)",
+          "Hold creature (forced)", "Unknown (BA)", "Unknown (BB)",
+          "Aura cleansing", "Mental speed", "Physical speed",
+          "Casting level bonus", "Unknown (C0)", "Invisibility detection",
+          "Unknown (C2)", "Unknown (C3)", "Unknown (C4)", "Unknown (C5)",
+          "Unknown (C6)", "Unknown (C7)", "Unknown (C8)", "Unknown (C9)",
+          "Unknown (CA)", "Unknown (CB)", "Unknown (CC)", "Unknown (CD)",
+          "Protection from spell", "Unknown (CF)", "Minimum HP", "Unknown (D1)",
+          "Unknown (D2)", "Unknown (D3)", "Unknown (D4)", "Unknown (D5)",
+          "Unknown (D6)", "Unknown (D7)", "Unknown (D8)", "Unknown (D9)",
+          "Stoneskin effect", "Unknown (DB)", "Unknown (DC)", "Unknown (DD)",
+          "Unknown (DE)", "Unknown (DF)", "Unknown (E0)", "Unknown (E1)",
+          "Unknown (E2)", "Unknown (E3)", "Unknown (E4)", "Unknown (E5)",
+          "Unknown (E6)", "Unknown (E7)", "Color glow dissipate",
+          "Show visual effect", "Unknown (EA)", "Casting glow", "Panic undead",
+          "Unknown (ED)", "Saving throw change", "Slow poison", "Unknown (F0)",
+          "Vampiric touch", "Unknown (F2)", "Unknown (F3)", "Prayer",
+          "Unknown (F5)", "Unknown (F6)", "Beltyn's burning blood",
+          "Unknown (F8)", "Recitation", "Unknown (FA)", "Unknown (FB)",
+          "Unknown (FC)", "Unknown (FD)", "Remove specific effects",
+          "Salamander aura", "Umber hulk gaze", "Zombie lord aura",
+          "Unknown (102)", "Unknown (103)", "Hide creature",
           "Immunity effect and resource", "Unknown (106)", "Unknown (107)",
           "Static charge", "Cloak of fear", "Movement rate", "Remove confusion",
           "Eye of the mind", "Eye of the sword", "Eye of the mage",
@@ -696,7 +733,7 @@ public final class EffectFactory
           "Soul eater", "Shroud of flame", "Animal rage", "Turn undead",
           "Vitriolic sphere", "Suppress HP info", "Float text",
           "Mace of disruption", "Sleep", "Tracking", "Sneak attack immunity",
-          "Set state", "Unknown (121)", "Immunity spell (message)",
+          "Set state", "Unknown (121)", "Display spell immunity string",
           "Unknown (123)", "Rest", "Beholder dispel magic", "Harpy wail",
           "Jackalwere gaze", "Set global variable", "Hide in shadows bonus",
           "Use magic device bonus", "Unknown (12B)", "Unknown (12C)",
@@ -729,7 +766,7 @@ public final class EffectFactory
           "Nausea", "Enfeeblement", "Fire shield", "Death ward", "Holy power",
           "Righteous wrath of the faithful", "Summon (as ally)",
           "Summon (as enemy)", "Control", "Visual effect",
-          "Otiluke's resilient sphere", "Bark skin", "Bleeding wounds",
+          "Otiluke's resilient sphere", "Barkskin", "Bleeding wounds",
           "Area effect using effects list", "Free action",
           "Knocked unconscious", "Death magic", "Entropy shield", "Storm shell",
           "Protection from the elements", "Hold undead", "Control undead",
@@ -738,7 +775,7 @@ public final class EffectFactory
           "Projectile type using effects list", "Energy drain",
           "Tortoise shell", "Blink", "Persistant using effects list",
           "Day blindness", "Damage reduction", "Disguise", "Heroic inspiration",
-          "Prevent AI slowdown", "Barbarian rage", "Slowed", "Unknown (1BA)",
+          "Prevent AI slowdown", "Barbarian rage", "Slowed", "Cleave",
           "Protection from arrows", "Tenser's transformation", "Unknown (1BD)",
           "Smite evil", "Restoration", "Alicorn lance glow", "Call lightning",
           "Globe of invulnerability", "Lower resistance", "Bane",
@@ -749,15 +786,15 @@ public final class EffectFactory
           "Protection from evil", "Protection from petrification",
           "Protection from normal missiles", "Armor", "Held", "Asleep",
           "Shield", "Protection from fire", "Bless", "Chant", "Free action",
-          "Bark skin", "Strength", "Heroism", "Spell invulnerability",
+          "Barkskin", "Strength", "Heroism", "Spell invulnerability",
           "Protection from acid", "Protection from cold",
           "Protection from electricity", "Protection from magic",
-          "Protection from undead", "Protection from poison", "Non-detectable",
+          "Protection from undead", "Protection from poison", "Undetectable",
           "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
           "Hasted", "Fatigued", "Bard song", "Slowed", "Regenerating",
           "Nauseous", "Stunned", "Ghost armor", "Stoneskin", "Hopelessness",
           "Courage", "Friends", "Hope", "Malison", "Spirit armor", "Dominated",
-          "Feebleminded", "Tenser's transformation", "Mind blank", "Aid",
+          "Feeblemind", "Tenser's transformation", "Mind blank", "Aid",
           "Find traps", "Draw upon holy might", "Miscast magic",
           "Strength of one", "Prayer", "Defensive harmony", "Recitation",
           "Champion's strength", "Chaotic commands",
@@ -808,7 +845,7 @@ public final class EffectFactory
     // Infinity Engine Effects
     // -----------------------
     switch (effectType) {
-      case 0x1: // Modify attacks per round
+      case 0x1: // Modify attacks per round (CGameEffectAttackNo)
         s.add(new Bitmap(buffer, offset, 4, "Value",
           new String[]{"0 attacks per round", "1 attack per round",
                        "2 attacks per round", "3 attacks per round",
@@ -819,65 +856,65 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         break;
 
-      case 0x5: // Charm creature
+      case 0x5: // Charm creature (CGameEffectCharm)
         s.add(new IdsBitmap(buffer, offset, 4, "Creature type", "GENERAL.IDS"));
         s.add(new Flag(buffer, offset + 4, 4, "Charm flags",
           new String[]{"No flags set", "Turn hostile afterward", "Dire charm",
                        "Controlled by cleric"}));
         break;
 
-      case 0x6: // Charisma bonus
-      case 0xA: // Constitution bonus
-      case 0xF: // Dexterity bonus
-      case 0x13: // Intelligence bonus
-      case 0x15: // Lore bonus
-      case 0x16: // Luck bonus
-      case 0x1B: // Acid resistance bonus
-      case 0x1C: // Cold resistance bonus
-      case 0x1D: // Electricity resistance bonus
-      case 0x1E: // Fire resistance bonus
-      case 0x1F: // Magic damage resistance bonus
-      case 0x21: // Save vs. death bonus / Fortitude save bonus
-      case 0x22: // Save vs. wand bonus / Reflex save bonus
-      case 0x23: // Save vs. polymorph bonus / Will save bonus
-      case 0x24: // Save vs. breath bonus
-      case 0x25: // Save vs. spell bonus
-      case 0x2C: // Strength bonus
-      case 0x31: // Wisdom bonus
-      case 0x36: // Base THAC0 bonus / Base attack bonus
-      case 0x3B: // Stealth bonus / Move silently bonus
-      case 0x49: // Attack damage bonus
-      case 0x54: // Magical fire resistance bonus
-      case 0x55: // Magical cold resistance bonus
-      case 0x56: // Slashing resistance bonus
-      case 0x57: // Crushing resistance bonus
-      case 0x58: // Piercing resistance bonus
-      case 0x59: // Missile resistance bonus
-      case 0x5A: // Open locks bonus
-      case 0x5B: // Find traps bonus
-      case 0x5C: // Pick pockets bonus
-      case 0x5D: // Fatigue bonus
-      case 0x5E: // Intoxication bonus
-      case 0x5F: // Tracking bonus
-      case 0x60: // Change level
-      case 0x61: // Exceptional strength bonus
-      case 0x68: // XP bonus
-      case 0x69: // Remove gold
-      case 0x6A: // Morale break
-      case 0x6C: // Reputation bonus
-      case 0x7E: // Movement rate bonus
-      case 0xA7: // Missile THAC0 bonus
-      case 0xB0: // Movement rate bonus 2
+      case 0x6: // Charisma bonus (CGameEffectCHR)
+      case 0xA: // Constitution bonus (CGameEffectCON)
+      case 0xF: // Dexterity bonus (CGameEffectDEX)
+      case 0x13: // Intelligence bonus (CGameEffectINT)
+      case 0x15: // Lore bonus (CGameEffectLore) / Knowledge arcana
+      case 0x16: // Luck bonus (CGameEffectLuck)
+      case 0x1B: // Acid resistance bonus (CGameEffectResistAcid)
+      case 0x1C: // Cold resistance bonus (CGameEffectResistCold)
+      case 0x1D: // Electricity resistance bonus (CGameEffectResistElectricity)
+      case 0x1E: // Fire resistance bonus (CGameEffectResistFire)
+      case 0x1F: // Magic damage resistance bonus (CGameEffectResistMagic)
+      case 0x21: // Save vs. death bonus (CGameEffectSaveVsDeath) / Fortitude save bonus
+      case 0x22: // Save vs. wand bonus (CGameEffectSaveVsWands) / Reflex save bonus
+      case 0x23: // Save vs. polymorph bonus (CGameEffectSaveVsPoly) / Will save bonus
+      case 0x24: // Save vs. breath bonus (CGameEffectSaveVsBreath)
+      case 0x25: // Save vs. spell bonus (CGameEffectSaveVsSpell)
+      case 0x2C: // Strength bonus (CGameEffectSTR)
+      case 0x31: // Wisdom bonus (CGameEffectWIS)
+      case 0x36: // Base THAC0 bonus (CGameEffectThac0) / Base attack bonus
+      case 0x3B: // Stealth bonus / Move silently bonus (CGameEffectSkillStealth)
+      case 0x49: // Attack damage bonus (CGameEffectDamageMod)
+      case 0x54: // Magical fire resistance bonus (CGameEffectResistMagicFire)
+      case 0x55: // Magical cold resistance bonus (CGameEffectResistMagicCold)
+      case 0x56: // Slashing resistance bonus (CGameEffectResistSlashing)
+      case 0x57: // Crushing resistance bonus (CGameEffectResistCrushing)
+      case 0x58: // Piercing resistance bonus (CGameEffectResistPiercing)
+      case 0x59: // Missile resistance bonus (CGameEffectResistMissile)
+      case 0x5A: // Open locks bonus (CGameEffectSkillLockPicking)
+      case 0x5B: // Find traps bonus (CGameEffectSkillTraps)
+      case 0x5C: // Pick pockets bonus (CGameEffectSkillPickPocket)
+      case 0x5D: // Fatigue bonus (CGameEffectFatigue)
+      case 0x5E: // Intoxication bonus (CGameEffectIntoxication)
+      case 0x5F: // Tracking bonus (CGameEffectSkillTracking)
+      case 0x60: // Change level (CGameEffectLevel)
+      case 0x61: // Exceptional strength bonus (CGameEffectSTRExtra)
+      case 0x68: // XP bonus (CGameEffectXP)
+      case 0x69: // Remove gold (CGameEffectGold)
+      case 0x6A: // Morale break (CGameEffectMoraleBreak)
+      case 0x6C: // Reputation bonus (CGameEffectReputation)
+      case 0x7E: // Movement rate bonus (CGameEffectMovementRate)
+      case 0xA7: // Missile THAC0 bonus (CGameEffectMissileTHAC0Bonus) / Missile attack bonus
+      case 0xB0: // Movement rate bonus 2 (CGameEffectMovementRate)
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         break;
 
-      case 0x7: // Set item color
+      case 0x7: // Set item color (CGameEffectColorChange)
         s.add(new ColorValue(buffer, offset, 4, "Color"));
         s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc));
         break;
 
-      case 0x8: // Set color glow solid
+      case 0x8: // Set color glow solid (CGameEffectColorGlowSolid)
         s.add(new Unknown(buffer, offset, 1));
         s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
         s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
@@ -885,7 +922,7 @@ public final class EffectFactory
         s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc));
         break;
 
-      case 0x9: // Set color glow pulse
+      case 0x9: // Set color glow pulse (CGameEffectColorGlowPulse)
         s.add(new Unknown(buffer, offset, 1));
         s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
         s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
@@ -894,14 +931,14 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset + 6, 2, "Cycle speed"));
         break;
 
-      case 0xC: // Damage
+      case 0xC: // Damage (CGameEffectDamage)
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
           new String[]{"Normal", "Set to value", "Set to %", "Percentage"}));
         s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
         break;
 
-      case 0xD: // Kill target
+      case 0xD: // Kill target (CGameEffectDeath)
         s.add(new Bitmap(buffer, offset, 4, "Display text?", s_yesno));
         s.add(new Flag(buffer, offset + 4, 4, "Death type",
           new String[]{"Acid", "Burning", "Crushed", "Normal", "Chunked",
@@ -909,13 +946,13 @@ public final class EffectFactory
                        "Exploding freezing", "Electrified", "Disintegration"}));
         break;
 
-      case 0x10: // Haste
+      case 0x10: // Haste (CGameEffectHaste)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Haste type",
           new String[]{"Normal", "Improved", "Movement rate only"}));
         break;
 
-      case 0x11: // Current HP bonus
+      case 0x11: // Current HP bonus (CGameEffectHeal)
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
           new String[]{"Increment", "Set", "Increment % of"}));
@@ -924,7 +961,7 @@ public final class EffectFactory
                        "Remove limited effects"}));
         break;
 
-      case 0x12: // Maximum HP bonus
+      case 0x12: // Maximum HP bonus (CGameEffectHitPoints)
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
           new String[]{"Increment", "Set", "Set % of",
@@ -933,22 +970,22 @@ public final class EffectFactory
                        "Set % of, don't update current HP"}));
         break;
 
-      case 0x14: // Invisibility
+      case 0x14: // Invisibility (CGameEffectInvisible)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Invisibility type",
           new String[]{"Normal", "Improved"}));
         break;
 
-      case 0x19: // Poison
+      case 0x19: // Poison (CGameEffectPoison)
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
           new String[]{"1 damage per second", "1 damage per second",
                        "Amount damage per second",
                        "1 damage per amount seconds",
-                       "Amount damage per amount seconds"}));
+                       "Variable per amount seconds"}));
         break;
 
-      case 0x29: // Sparkle
+      case 0x29: // Sparkle (CGameEffectSparkle)
         s.add(new Bitmap(buffer, offset, 4, "Color",
           new String[]{"", "Black", "Blue", "Chromatic", "Gold", "Green",
                        "Purple", "Red", "White", "Ice", "Stone", "Magenta",
@@ -957,8 +994,7 @@ public final class EffectFactory
           new String[]{"", "Explosion", "", "Shower"}));
         break;
 
-      case 0x2A: // Bonus wizard spells
-      case 0x3E: // Bonus priest spells
+      case 0x2A: // Bonus wizard spells (CGameEffectSpellMemorizationMage)
         s.add(new DecNumber(buffer, offset, 4, "# spells to add"));
         s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
           new String[]{"Double spells", "Level 1", "Level 2", "Level 3",
@@ -966,7 +1002,7 @@ public final class EffectFactory
                        "Level 9"}));
         break;
 
-      case 0x32: // Character color pulse
+      case 0x32: // Character color pulse (CGameEffectSingleColorPulseAll)
         s.add(new Unknown(buffer, offset, 1));
         s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
         s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
@@ -975,8 +1011,8 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset + 6, 2, "Cycle speed"));
         break;
 
-      case 0x33: // Character tint solid
-      case 0x34: // Character tint bright
+      case 0x33: // Character tint solid (CGameEffectColorTintSolid)
+      case 0x34: // Character tint bright (CGameEffectColorLightSolid)
         s.add(new Unknown(buffer, offset, 1));
         s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
         s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
@@ -985,24 +1021,24 @@ public final class EffectFactory
         s.add(new Unknown(buffer, offset + 6, 2));
         break;
 
-      case 0x35: // Animation change
+      case 0x35: // Animation change (CGameEffectAnimationChange)
         s.add(new IdsBitmap(buffer, offset, 4, "Morph into", "ANIMATE.IDS"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Morph type",
           new String[]{"Temporary change", "Remove temporary change",
                        "Permanent change"}));
         break;
 
-      case 0x37: // Slay
-      case 0x64: // Protection from creature type
-      case 0x6D: // Paralyze
-      case 0xAF: // Hold creature
-      case 0xB2: // THAC0 vs. type bonus
-      case 0xB3: // Damage vs. type bonus
-      case 0xB9: // Hold creature 2 / Hold creature (forced)
+      case 0x37: // Slay (CGameEffectSlay)
+      case 0x64: // Protection from creature type (CGameEffectProtectionFromCreature)
+      case 0x6D: // Paralyze (CGameEffectHoldCreature)
+      case 0xAF: // Hold creature (CGameEffectHoldCreatureSpell)
+      case 0xB2: // THAC0 vs. type bonus (CGameEffectSelectiveToHitBonus)
+      case 0xB3: // Damage vs. type bonus (CGameEffectSelectiveDamageBonus)
+      case 0xB9: // Hold creature 2 (CGameEffectHoldCreatureSpell) / Hold creature (forced)
         s.add(new IDSTargetEffect(buffer, offset));
         break;
 
-      case 0x39: // Change alignment
+      case 0x39: // Change alignment (CGameEffectAlignmentChange)
         s.add(new Unknown(buffer, offset, 4));
         if (gameid == ResourceFactory.ID_ICEWIND2)
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment", "ALIGNMNT.IDS"));
@@ -1010,26 +1046,33 @@ public final class EffectFactory
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment", "ALIGNMEN.IDS"));
         break;
 
-      case 0x3A: // Dispel effects
+      case 0x3A: // Dispel effects (CGameEffectDispelEffects)
         s.add(new DecNumber(buffer, offset, 4, "Level"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
           new String[]{"Always dispel", "Use caster level",
                        "Use specific level"}));
         break;
 
-      case 0x3C: // Casting failure
+      case 0x3C: // Casting failure (CGameEffectCastingFailure)
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
           new String[]{"Wizard", "Priest", "Innate", "Wizard (dead magic)",
                        "Priest (dead magic)", "Innate (dead magic)"}));
         break;
 
-      case 0x42: // Translucent
+      case 0x3E: // Bonus priest spells (CGameEffectSpellMemorizationCleric)
+        s.add(new DecNumber(buffer, offset, 4, "# spells to add"));
+        s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
+          new String[]{"Double spells", "Level 1", "Level 2", "Level 3",
+                       "Level 4", "Level 5", "Level 6", "Level 7"}));
+        break;
+
+      case 0x42: // Translucent (CGameEffectTranslucent)
         s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
 
-      case 0x43: // Summon creature
+      case 0x43: // Summon creature (CGameEffectSummon)
         if (gameid == ResourceFactory.ID_ICEWIND ||
             gameid == ResourceFactory.ID_ICEWINDHOW ||
             gameid == ResourceFactory.ID_ICEWINDHOWTOT)
@@ -1042,30 +1085,29 @@ public final class EffectFactory
           s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Allegiance",
           new String[]{"Match target", "Match target", "From CRE file",
-                       "Match target", "From CRE file", "Hostile",
-                       "From CRE file"}));
+                       "Match target", "From CRE file", "Hostile"}));
         restype = "CRE";
         break;
 
-      case 0x44: // Unsummon creature
+      case 0x44: // Unsummon creature (CGameEffectUnsummon)
         s.add(new Bitmap(buffer, offset, 4, "Display text?", s_noyes));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
 
-      case 0x47: // Change gender
+      case 0x47: // Change gender (CGameEffectSexChange)
         s.add(new IdsBitmap(buffer, offset, 4, "Gender", "GENDER.IDS"));
         s.add(new Bitmap(buffer, offset + 4, 4, "How?",
           new String[]{"Reverse gender", "Set gender"}));
         break;
 
-      case 0x48: // Change AI type
+      case 0x48: // Change AI type (CGameEffectAIChange)
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "From IDS file",
-          new String[]{"Ea.ids", "General.ids", "Race.ids", "Class.ids",
-                       "Specific.ids", "Gender.ids", "Align.ids"}));
+          new String[]{"EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
+                       "SPECIFIC.IDS", "GENDER.IDS", "ALIGNMEN.IDS"}));
         break;
 
-      case 0x4E: // Disease
+      case 0x4E: // Disease (CGameEffectDisease)
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
           new String[]{"1 damage per second", "1 damage per second",
@@ -1075,13 +1117,13 @@ public final class EffectFactory
                        "Slow target"}));
         break;
 
-      case 0x52: // Set AI script
+      case 0x52: // Set AI script (CGameEffectSetAIScript)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
         restype = "BCS";
         break;
 
-      case 0x53: // Immunity to projectile
+      case 0x53: // Immunity to projectile (CGameEffectImmunityToProjectile)
         s.add(new Unknown(buffer, offset, 4));
         if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
@@ -1089,75 +1131,69 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Projectile", s_projectile));
         break;
 
-      case 0x62: // Regeneration
+      case 0x62: // Regeneration (CGameEffectRegeneration)
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
           new String[]{"1 HP per second", "1 HP per second",
                        "Amount HP per second", "1 HP per amount seconds",
-                       "Amount HP per amount seconds"}));
+                       "Variable per amount seconds"}));
         break;
 
-      case 0x63: // Modify duration
+      case 0x63: // Modify duration (CGameEffectDurationCasting)
         s.add(new DecNumber(buffer, offset, 4, "Percentage"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
           new String[]{"Wizard", "Priest"}));
         break;
 
-      case 0x65: // Immunity to effect
+      case 0x65: // Immunity to effect (CGameEffectImmunityToEffect)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
         break;
 
-      case 0x66: // Immunity to spell level
+      case 0x66: // Immunity to spell level (CGameEffectImmunityToSpellLevel)
         s.add(new DecNumber(buffer, offset, 4, "Spell level"));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
 
-      case 0x67: // Change name
+      case 0x67: // Change name (CGameEffectName)
         s.add(new StringRef(buffer, offset, "Name"));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
 
-      case 0x6B: // Portrait
+      case 0x6B: // Change portrait (CGameEffectPortrait)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Which portrait?",
           new String[]{"Small", "Large"}));
         restype = "BMP";
         break;
 
-      case 0x6F: // Create weapon
-      case 0x7A: // Create inventory item
+      case 0x6F: // Create weapon (CGameEffectCreateWeapon)
+      case 0x7A: // Create inventory item (CGameEffectCreateItem)
         s.add(new DecNumber(buffer, offset, 4, "# to create"));
         s.add(new Unknown(buffer, offset + 4, 4));
         restype = "ITM";
         break;
 
-      case 0x70: // Remove item
-      case 0x7B: // Remove inventory item
+      case 0x70: // Remove item (CGameEffectDestroyWeapon)
+      case 0x7B: // Remove inventory item (CGameEffectDestroyItem)
         restype = "ITM";
         break;
 
-      case 0x73: // Detect alignment
+      case 0x73: // Detect alignment (CGameEffectDetectAlignment)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Alignment mask",
           new String[]{"Evil", "Neutral", "Good"}));
         break;
 
-//      case 0x77: // Mirror image
-//        s.add(new DecNumber(buffer, offset, 4, "Maximum # images"));
-//        s.add(new Unknown(buffer, offset + 4, 4));
-//        break;
-
-      case 0x78: // Immunity to weapons
-        s.add(new DecNumber(buffer, offset, 4, "Enchantment"));
+      case 0x78: // Immunity to weapons (CGameEffectImmuneToWeapon)
+        s.add(new DecNumber(buffer, offset, 4, "Maximum enchantment"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Weapon type",
           new String[]{"Enchanted", "Magical", "Non-magical", "Silver",
-                       "Non-silver", "Non-magical, non-silver", "Two-handed",
-                       "One-handed", "Cursed", "Non-cursed", "Cold iron",
-                       "Non-cold iron", "Magical two-handed"}));
+                       "Non-silver", "Non-silver", "Two-handed", "One-handed",
+                       "Cursed", "Non-cursed", "Gold", "Non-gold"}));
         break;
 
-      case 0x7F: // Summon monsters
+      case 0x7F: // Summon monsters (CGameEffectRandomSummon)
         s.add(new DecNumber(buffer, offset, 4, "Total XP"));
         s.add(new Bitmap(buffer, offset + 4, 4, "From 2DA file",
           new String[]{"Monsum01 (ally)", "Monsum02 (ally)", "Monsum03 (ally)",
@@ -1167,26 +1203,30 @@ public final class EffectFactory
         restype = "2DA";
         break;
 
-      case 0x81: // Aid (non-cumulative)
-      case 0x82: // Bless (non-cumulative)
-      case 0x83: // Chant (non-cumulative)
-      case 0x84: // Draw upon holy might (non-cumulative)
-      case 0x85: // Luck (non-cumulative)
-      case 0x89: // Bad chant (non-cumulative)
-      case 0xAD: // Poison resistance bonus
+      case 0x81: // Aid (non-cumulative) (CGameEffectNon_CumulativeAid)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "HP bonus"));
+        break;
+
+      case 0x82: // Bless (non-cumulative) (CGameEffectNon_CumulativeBless)
+      case 0x83: // Chant (non-cumulative) (CGameEffectNon_CumulativeChant)
+      case 0x84: // Draw upon holy might (non-cumulative) (CGameEffectNon_CumulativeDrawUponHolyMight)
+      case 0x85: // Luck (non-cumulative) (CGameEffectNon_CumulativeLuck)
+      case 0x89: // Bad chant (non-cumulative) (CGameEffectNon_CumulativeChantBad)
+      case 0xAD: // Poison resistance bonus (CGameEffectResistanceToPoison)
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
 
-      case 0x87: // Polymorph
-        s.add(new Unknown(buffer, offset, 4));
+      case 0x87: // Polymorph (CGameEffectPolymorph)
+        s.add(new IdsBitmap(buffer, offset, 4, "Animation", "ANIMATE.IDS"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Polymorph type",
           new String[]{"Change into", "Appearance only", "Appearance only",
                        "Appearance only"}));
         restype = "CRE";
         break;
 
-      case 0x8A: // Set animation sequence
+      case 0x8A: // Set animation sequence (CGameEffectSetSequence)
         s.add(new Unknown(buffer, offset, 4));
         if (ResourceFactory.getInstance().resourceExists("ANIMSTAT.IDS"))
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Sequence", "ANIMSTAT.IDS"));
@@ -1208,12 +1248,12 @@ public final class EffectFactory
         }
         break;
 
-      case 0x8B: // Display string
+      case 0x8B: // Display string (CGameEffectDisplayString)
         s.add(new StringRef(buffer, offset, "String"));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
 
-      case 0x8C: // Casting glow
+      case 0x8C: // Casting glow (CGameEffectCastingGlow)
         final LongIntegerHashMap<String> m_castglow = new LongIntegerHashMap<String>();
         m_castglow.put(9L, "Necromancy");
         m_castglow.put(10L, "Alteration");
@@ -1227,7 +1267,7 @@ public final class EffectFactory
         s.add(new HashBitmap(buffer, offset + 4, 4, "Glow", m_castglow));
         break;
 
-      case 0x8D: // Lighting effects / Visual spell hit
+      case 0x8D: // Lighting effects (CGameEffectVisualSpellHit) / Visual spell hit
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
           new String[]{"Necromancy air", "Necromancy earth", "Necromancy water",
@@ -1244,39 +1284,38 @@ public final class EffectFactory
                        "Shaft white", "Hit door", "Hit finger of death"}));
         break;
 
-      case 0x8E: // Display portrait icon
-      case 0xA9: // Prevent portrait icon
+      case 0x8E: // Display portrait icon (CGameEffectPortraitIcon)
+      case 0xA9: // Prevent portrait icon (CGameEffectImmunityToPortraitIcon)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Icon", s_poricon));
         break;
 
-      case 0x8F: // Create item in slot
+      case 0x8F: // Create item in slot (CGameEffectReplaceItem)
         s.add(new IdsBitmap(buffer, offset, 4, "Slot", "SLOTS.IDS"));
         s.add(new Unknown(buffer, offset + 4, 4));
         restype = "ITM";
         break;
 
-      case 0x91: // Disable spellcasting
+      case 0x91: // Disable spellcasting (CGameEffectDisableSpellType)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
           new String[]{"Wizard", "Priest", "Innate"}));
         break;
 
-      case 0x92: // Cast spell
-      case 0x94: // Cast spell at point
+      case 0x92: // Cast spell (CGameEffectCastSpell)
+      case 0x94: // Cast spell at point (CGameEffectCastSpellPoint)
         s.add(new DecNumber(buffer, offset, 4, "Cast at level"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Cast instantly?", s_noyes));
         restype = "SPL";
         break;
 
-      case 0x93: // Learn spell
-      case 0xAB: // Give innate ability
-      case 0xAC: // Remove spell / Remove innate ability
-      case 0x10A: // Remove protection from spell
+      case 0x93: // Learn spell (CGameEffectLearnSpell)
+      case 0xAB: // Give innate ability (CGameEffectAddInnateAbility)
+      case 0xAC: // Remove spell (CGameEffectRemoveInnateAbility) / Remove innate ability
         restype = "SPL";
         break;
 
-      case 0x97: // Replace self
+      case 0x97: // Replace self (CGameEffectReplaceSelf)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Replacement method",
           new String[]{"Remove silently", "Remove via chunked death",
@@ -1284,22 +1323,22 @@ public final class EffectFactory
         restype = "CRE";
         break;
 
-      case 0x98: // Play movie
+      case 0x98: // Play movie (CGameEffectPlayMovie)
         restype = "MVE";
         break;
 
-      case 0x9F: // Mirror image effect
+      case 0x9F: // Mirror image effect (CGameEffectMirrorImageRun)
         s.add(new DecNumber(buffer, offset, 4, "# images"));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
 
-      case 0xA6: // Magic resistance bonus
+      case 0xA6: // Magic resistance bonus (CGameEffectResistanceToMagic)
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
           new String[]{"Increment", "Set"}));
         break;
 
-      case 0xAA: // Play damage animation
+      case 0xAA: // Play damage animation (CGameEffectDamageVisualEffect)
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Animation",
           new String[]{"Blood (behind)", "Blood (front)", "Blood (left)",
@@ -1307,16 +1346,16 @@ public final class EffectFactory
                        "Electricity 1", "Electricity 2", "Electricity 3"}));
         break;
 
-      case 0xAE: // Play sound
+      case 0xAE: // Play sound (CGameEffectPlaySound)
         restype = "WAV";
         break;
 
-      case 0xB1: // Use EFF file
+      case 0xB1: // Use EFF file (CGameEffectApplyEffect)
         s.add(new IDSTargetEffect(buffer, offset));
         restype = "EFF";
         break;
 
-      case 0xB4: // Disallow item
+      case 0xB4: // Disallow item (CGameEffectRestrictEquipItem)
         s.add(new StringRef(buffer, offset, "String"));
         s.add(new Unknown(buffer, offset + 4, 4));
         restype = "ITM";
@@ -1333,40 +1372,40 @@ public final class EffectFactory
         gameid == ResourceFactory.ID_BG1TOTSC ||
         gameid == ResourceFactory.ID_DEMO) {
       switch (effectType) {
-        case 0x0: // AC bonus
+        case 0x0: // AC bonus (CGameEffectAC)
           s.add(new DecNumber(buffer, offset, 4, "AC value"));
           s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
           break;
 
-        case 0x90: // Disable button
+        case 0x90: // Disable button (CGameEffectDisableButton)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
           break;
 
-        case 0xBA: // Move creature
+        case 0xBA: // Move creature (CGameEffectJumpToArea)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", Actor.s_orientation));
           restype = "ARE";
           break;
 
-        case 0xBB: // Set local variable
+        case 0xBB: // Set local variable (CGameEffectSetLocalVariable)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Unknown(buffer, offset + 4, 4));
           restype = "String";
           break;
 
-        case 0xBC: // Increase spells cast per round
+        case 0xBC: // Increase spells cast per round (CGameEffectAuraCleansing)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
           break;
 
-        case 0xBD: // Increase casting speed factor
-        case 0xBE: // Increase attack speed factor
+        case 0xBD: // Increase casting speed factor (CGameEffectMentalSpeed)
+        case 0xBE: // Increase attack speed factor (CGameEffectPhysicalSpeed)
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xBF: // Casting level bonus
+        case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
             new String[]{"Wizard", "Priest"}));
@@ -1562,7 +1601,7 @@ public final class EffectFactory
 
         case 0xE9: // Show visual effect
           s.add(new Unknown(buffer, offset, 4));
-          s.add(new HexNumber(buffer, offset + 4, 4, "Effect"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
           break;
 
         case 0xEE: // All saving throws bonus
@@ -1582,7 +1621,7 @@ public final class EffectFactory
                          "Summon insects", "Creeping doom", "Malavon summon"}));
           break;
 
-        case 0xF1: // Hit point transfer
+        case 0xF1: // Vampiric touch
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
             new String[]{"Target to caster", "Caster to target"}));
@@ -1618,7 +1657,7 @@ public final class EffectFactory
         case 0xF8: // Summon shadow
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Shadow type",
-            new String[]{"Shadow", "Demi-shadow", "Shade"}));
+            new String[]{"Shadow", "Demishadow", "Shade"}));
           break;
 
         case 0xFD: // Bonus AC vs. weapons
@@ -1660,7 +1699,7 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
           break;
 
-        case 0x11B: // Display string over head
+        case 0x11B: // Float text
           s.add(new StringRef(buffer, offset, "String"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Display type",
             new String[]{"Default", "Cynicism"}));
@@ -1675,70 +1714,71 @@ public final class EffectFactory
              gameid == ResourceFactory.ID_BG2TOB ||
              gameid == ResourceFactory.ID_TUTU) {
       switch (effectType) {
-        case 0x0: // AC bonus
+        case 0x0: // AC bonus (CGameEffectAC)
           s.add(new DecNumber(buffer, offset, 4, "AC value"));
           s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
           break;
 
-        case 0x90: // Disable button
-        case 0x117: // Reenable button
+        case 0x90: // Disable button (CGameEffectDisableButton)
+        case 0x117: // Enable button (CGameEffectEnableButton)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
           break;
 
-        case 0xB8: // No collision detection
-        case 0xBC: // Increase spells cast per round
-        case 0xC1: // Invisible detection
-        case 0xC2: // Ignore dialogue pause
-        case 0xF5: // Unknown (F5)
-        case 0xF6: // Berserk effect
-        case 0xF7: // Attack nearest creature
-        case 0x123: // Disable visual effects
-        case 0x124: // Immunity to backstab
-        case 0x125: // Set persistent AI
-        case 0x126: // Unknown (126)
-        case 0x127: // Disable permanent death
-        case 0x129: // Immunity to turn undead
-        case 0x12C: // Modify collision behavior
-        case 0x12E: // Can use any item
-        case 0x12F: // Backstab every hit
-        case 0x134: // Immunity to tracking
-        case 0x136: // Immunity to time stop
-        case 0x13B: // Full animation removal
+        case 0xB8: // No collision detection (CGameEffectSetDoNotJump)
+        case 0xBC: // Increase spells cast per round (CGameEffectAuraCleansing)
+        case 0xC1: // Invisibility detection (CGameEffectSeeInvisible)
+        case 0xC2: // Ignore dialogue pause (CGameEffectIgnoreDialogPause)
+        case 0xF5: // Unknown (F5) (CGameEffectCheckForBerserk)
+        case 0xF6: // Berserk effect (CGameEffectBerserkStage1)
+        case 0xF7: // Attack nearest creature (CGameEffectBerserkStage2)
+        case 0x123: // Disable visual effects (CGameEffectPreventSpellProtectionEffects)
+        case 0x124: // Immunity to backstab (CGameEffectImmunityToBackstab)
+        case 0x125: // Set persistent AI (CGameEffectPreventAISlowDown)
+        case 0x126: // Unknown (126) (CGameEffectExistanceDelayOverride)
+        case 0x127: // Disable permanent death (CGameEffectNoPermanentDeath)
+        case 0x129: // Immunity to turn undead (CGameEffectImmunityToTurnUndead)
+        case 0x12C: // Modify collision behavior (CGameEffectNPCBump)
+        case 0x12E: // Can use any item (CGameEffectUseAnyItem)
+        case 0x12F: // Backstab every hit (CGameEffectAssassination)
+        case 0x134: // Immunity to tracking (CGameEffectImmuneToTracking)
+        case 0x136: // Immunity to time stop (CGameEffectImmunityToTimeStop)
+        case 0x13B: // Remove animation (CGameEffectDoNotDraw)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
           break;
 
-        case 0xBA: // Move creature
+        case 0xBA: // Move creature (CGameEffectJumpToArea)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", Actor.s_orientation));
           restype = "ARE";
           break;
 
-        case 0xBB: // Set local variable
+        case 0xBB: // Set local variable (CGameEffectSetLocalVariable)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Unknown(buffer, offset + 4, 4));
           restype = "String";
           break;
 
-        case 0xBD: // Increase casting speed factor
-        case 0xBE: // Increase attack speed factor
+        case 0xBD: // Increase casting speed factor (CGameEffectMentalSpeed)
+        case 0xBE: // Increase attack speed factor (CGameEffectPhysicalSpeed)
+        case 0x12D: // Critical threat range bonus (CGameEffectCriticalHitBonus)
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xBF: // Casting level bonus
+        case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
             new String[]{"Wizard", "Priest"}));
           break;
 
-        case 0xC3: // Familiar death
+        case 0xC3: // Drain HP on death (CGameEffectHitPointsOnDeath)
           s.add(new DecNumber(buffer, offset, 4, "HP amount"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xC5: // Physical mirror
+        case 0xC5: // Physical mirror (CGameEffectBounceProjectile)
           s.add(new Unknown(buffer, offset, 4));
           if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
             s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
@@ -1746,115 +1786,116 @@ public final class EffectFactory
             s.add(new HexNumber(buffer, offset + 4, 4, "Projectile"));
           break;
 
-        case 0xC6: // Reflect specified effect
+        case 0xC6: // Reflect specified effect (CGameEffectBounceEffect)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
           break;
 
-        case 0xC7: // Reflect spell level
+        case 0xC7: // Reflect spell level (CGameEffectBounceLevel)
           s.add(new DecNumber(buffer, offset, 4, "Spell level"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xC8: // Spell turning
-        case 0xC9: // Spell deflection
+        case 0xC8: // Spell turning (CGameEffectBounceLevelDecrement)
+        case 0xC9: // Spell deflection (CGameEffectImmunityLevelDecrement)
           s.add(new DecNumber(buffer, offset, 4, "# levels"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Maximum level"));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
           break;
 
-        case 0xCA: // Reflect spell school
-        case 0xCC: // Protection from spell school
+        case 0xCA: // Reflect spell school (CGameEffectBounceSchool)
+        case 0xCC: // Protection from spell school (CGameEffectImmunitySchool)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
           break;
 
-        case 0xCB: // Reflect spell type
-        case 0xCD: // Protection from spell type
+        case 0xCB: // Reflect spell type (CGameEffectBounceSecondaryType)
+        case 0xCD: // Protection from spell type (CGameEffectImmunitySecondaryType)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
           break;
 
-        case 0xCE: // Protection from spell
+        case 0xCE: // Protection from spell (CGameEffectImmunitySpell)
           s.add(new StringRef(buffer, offset, "String"));
           s.add(new Unknown(buffer, offset + 4, 4));
           restype = "SPL";
           break;
 
-        case 0xCF: // Reflect specified spell
-        case 0xFB: // Change bard song
-        case 0xFC: // Set trap
-        case 0x100: // Spell sequencer
-        case 0x102: // Activate spell sequencer
-        case 0x139: // High-level ability
+        case 0xCF: // Reflect specified spell (CGameEffectBounceSpell)
+        case 0xFB: // Change bard song (CGameEffectBardSong)
+        case 0xFC: // Set trap (CGameEffectSetSnare)
+        case 0x100: // Spell sequencer (CGameEffectSequencerInstance)
+        case 0x102: // Activate spell sequencer (CGameEffectSequencerFire)
+        case 0x10A: // Remove protection from spell (CGameEffectRemoveSpellImmunity)
+        case 0x139: // High-level ability (CGameEffectHighLevelAbility)
           restype = "SPL";
           break;
 
-        case 0xD0: // Minimum HP
+        case 0xD0: // Minimum HP (CGameEffectMinHitPoints)
           s.add(new DecNumber(buffer, offset, 4, "HP amount"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xD6: // Select spell
+        case 0xD6: // Select spell (CGameEffectSecondaryCastList)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Show",
             new String[]{"All spells", "Known spells"}));
           restype = "2DA";
           break;
 
-        case 0xD7: // Play 3D effect
+        case 0xD7: // Play visual effect (CGameEffectVisualEffect)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Play where?",
             new String[]{"Over target (unattached)", "Over target (attached)",
-                         "On point cast"}));
+                         "At target point"}));
           restype = "VVC";
           break;
 
-        case 0xD8: // Level drain
+        case 0xD8: // Level drain (CGameEffectLevelDrain)
           s.add(new DecNumber(buffer, offset, 4, "# levels"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xDA: // Stoneskin effect
-        case 0x13A: // Stoneskin protection
+        case 0xDA: // Stoneskin effect (CGameEffectStoneSkins)
+        case 0x13A: // Stoneskin protection (CGameEffectStoneSkinsGolem)
           s.add(new DecNumber(buffer, offset, 4, "# skins"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xDB: // Attack roll penalty
-        case 0xEE: // Disintegrate
+        case 0xDB: // Attack roll penalty (CGameEffectProtectionCircle)
+        case 0xEE: // Disintegrate (CGameEffectDisintegrate)
           s.add(new IDSTargetEffect(buffer, offset));
           break;
 
-        case 0xDC: // Remove spell school protections
-        case 0xE5: // Remove protection by school
+        case 0xDC: // Remove spell school protections (CGameEffectDispelSchool)
+        case 0xE5: // Remove protection by school (CGameEffectDispelSchoolOne)
           s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
           break;
 
-        case 0xDD: // Remove spell type protections
-        case 0xE6: // Remove protection by type
+        case 0xDD: // Remove spell type protections (CGameEffectDispelSecondaryType)
+        case 0xE6: // Remove protection by type (CGameEffectDispelSecondaryTypeOne)
           s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
           break;
 
-        case 0xDE: // Teleport field
+        case 0xDE: // Teleport field (CGameEffectRandomTeleport)
           s.add(new DecNumber(buffer, offset, 4, "Maximum range"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xDF: // Spell school deflection
-        case 0xE3: // Spell school turning
+        case 0xDF: // Spell school deflection (CGameEffectImmunitySchoolDecrement)
+        case 0xE3: // Spell school turning (CGameEffectBounceSchoolDecrement)
           s.add(new DecNumber(buffer, offset, 4, "# levels"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
           break;
 
-        case 0xE2: // Spell type deflection
-        case 0xE4: // Spell type turning
+        case 0xE2: // Spell type deflection (CGameEffectImmunitySecondaryTypeDecrement)
+        case 0xE4: // Spell type turning (CGameEffectBounceSecondaryTypeDecrement)
           s.add(new DecNumber(buffer, offset, 4, "# levels"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
           break;
 
-        case 0xE8: // Cast spell on condition
+        case 0xE8: // Cast spell on condition (CGameEffectContingencyInstance)
           s.add(new Bitmap(buffer, offset, 4, "Target",
             new String[]{"Caster", "Last hit by", "Nearest enemy"}));
           s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
@@ -1865,12 +1906,12 @@ public final class EffectFactory
           restype = "SPL";
           break;
 
-        case 0xE9: // Modify proficiencies
+        case 0xE9: // Modify proficiencies (CGameEffectProficiency)
           s.add(new DecNumber(buffer, offset, 4, "# stars"));
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
           break;
 
-        case 0xEA: // Contingency
+        case 0xEA: // Create contingency (CGameEffectContingencyStart)
           s.add(new DecNumber(buffer, offset, 4, "Maximum spell level"));
           s.add(new DecNumber(buffer, offset + 4, 2, "# spells"));
           s.add(new Bitmap(buffer, offset + 6, 2, "Trigger type",
@@ -1878,129 +1919,126 @@ public final class EffectFactory
                          "Spell sequencer"}));
           break;
 
-        case 0xEB: // Wing buffet
+        case 0xEB: // Wing buffet (CGameEffectPushPull)
           s.add(new DecNumber(buffer, offset, 4, "Distance"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
             new String[]{"", "", "Away from source", "", "Toward source"}));
           break;
 
-        case 0xEC: // Project image
+        case 0xEC: // Project image (CGameEffectCopySelf)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Image type",
             new String[]{"", "Mislead", "Project image", "Simulacrum"}));
           break;
 
-        case 0xED: // Set image type
+        case 0xED: // Set image type (CGameEffectPuppetMaster)
           s.add(new DecNumber(buffer, offset, 4, "Puppet master"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Puppet type",
             new String[]{"", "Mislead", "Project image", "Simulacrum"}));
           break;
 
-        case 0xEF: // Farsight
+        case 0xEF: // Farsight (CGameEffectClairvoyance)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Can view unexplored?", s_noyes));
           break;
 
-        case 0xF0: // Remove portrait icon
+        case 0xF0: // Remove portrait icon (CGameEffectRemovePortraitIcon)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Icon", s_poricon));
           break;
 
-        case 0xF1: // Control creature
+        case 0xF1: // Control creature (CGameEffectCharm)
           s.add(new IdsBitmap(buffer, offset, 4, "Creature type", "GENERAL.IDS"));
-          s.add(new Flag(buffer, offset + 4, 4, "Control flags",
+          s.add(new Flag(buffer, offset + 4, 4, "Charm flags",
             new String[]{"No flags set", "Turn hostile afterward", "Dire charm",
                          "Controlled by cleric"}));
           break;
 
-        case 0xF3: // Drain item charges
+        case 0xF3: // Drain item charges (CGameEffectDrainChargeFromAllItems)
           s.add(new Bitmap(buffer, offset, 4, "Include weapons?", s_noyes));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xF4: // Drain wizard spells
+        case 0xF4: // Drain wizard spells (CGameEffectRemoveRandomSpell)
           s.add(new DecNumber(buffer, offset, 4, "# spells"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xF8: // Melee hit effect
-        case 0xF9: // Ranged hit effect
-        case 0x11B: // Use EFF file as curse
-          s.add(new IDSTargetEffect(buffer, offset));
+        case 0xF8: // Melee hit effect (CGameEffectMeleeEffect)
+        case 0xF9: // Ranged hit effect (CGameEffectRangeEffect)
           restype = "EFF";
           break;
 
-        case 0xFA: // Maximum damage each hit
-        case 0x12D: // Critical threat range bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
+        case 0xFA: // Maximum damage each hit (CGameEffectDamageLuck)
+          s.add(new DecNumber(buffer, offset, 4, "Stat value"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xFD: // Set automap note
-        case 0xFE: // Remove automap note
-        case 0x10B: // Disable display string
+        case 0xFD: // Set automap note (CGameAddMapNote)
+        case 0xFE: // Remove automap note (CGameRemoveMapNote)
+        case 0x10B: // Disable display string (CGameEffectImmunityToDisplayString)
           s.add(new StringRef(buffer, offset, "String"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0xFF: // Create item
+        case 0xFF: // Create item (days) (CGameEffectCreateItem)
           s.add(new DecNumber(buffer, offset, 4, "# items in stack"));
           s.add(new Unknown(buffer, offset + 4, 4));
           restype = "ITM";
           break;
 
-        case 0x101: // Create spell sequencer
+        case 0x101: // Create spell sequencer (CGameEffectSequencerStart)
           s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
           s.add(new DecNumber(buffer, offset + 4, 4, "# spells"));
           break;
 
-        case 0x103: // Spell trap
+        case 0x103: // Spell trap (CGameEffectSpellTrapLevelDecrement)
           s.add(new DecNumber(buffer, offset, 4, "# spells"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
           break;
 
-        case 0x105: // Wondrous recall
+        case 0x105: // Wondrous recall (CGameEffectRememorizeSpell)
           s.add(new DecNumber(buffer, offset, 4, "Spell level"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
             new String[]{"Wizard", "Priest"}));
           break;
 
-        case 0x106: // Visual range bonus
-        case 0x107: // Backstab bonus
-        case 0x113: // Hide in shadows bonus
-        case 0x114: // Detect illusions bonus
-        case 0x115: // Set traps bonus
-        case 0x116: // THAC0 bonus
-        case 0x119: // Wild surge bonus
-        case 0x11C: // Melee THAC0 bonus
-        case 0x11D: // Melee weapon damage bonus
-        case 0x11E: // Missile weapon damage bonus
-        case 0x120: // Fist THAC0 bonus
-        case 0x121: // Fist damage bonus
-        case 0x131: // Off-hand THAC0 bonus
-        case 0x132: // Main hand THAC0 bonus
+        case 0x106: // Visual range bonus (CGameEffectVisualRange)
+        case 0x107: // Backstab bonus (CGameEffectBackStabMod)
+        case 0x113: // Hide in shadows bonus (CGameEffectHideInShadows)
+        case 0x114: // Detect illusions bonus (CGameEffectDetectIllusion)
+        case 0x115: // Set traps bonus (CGameEffectSetTrap)
+        case 0x116: // THAC0 bonus (CGameEffectHitMod)
+        case 0x119: // Wild surge bonus (CGameEffectSurgeMod)
+        case 0x11C: // Melee THAC0 bonus (CGameEffectMeleeTHAC0Bonus)
+        case 0x11D: // Melee weapon damage bonus (CGameEffectMeleeDamageBonus)
+        case 0x11E: // Missile weapon damage bonus (CGameEffectMissileDamageBonus)
+        case 0x120: // Fist THAC0 bonus (CGameEffectFistTHAC0Bonus)
+        case 0x121: // Fist damage bonus (CGameEffectFistDamageBonus)
+        case 0x131: // Off-hand THAC0 bonus (CGameEffectThac0Left)
+        case 0x132: // Main hand THAC0 bonus (CGameEffectThac0Right)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
           break;
 
-        case 0x108: // Drop item
+        case 0x108: // Drop item (CGameEffectRandomDrop)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Only quick weapons?", s_noyes));
           break;
 
-        case 0x109: // Set global variable
+        case 0x109: // Set global variable (CGameEffectSetGlobal)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
             new String[]{"Set", "Increment"}));
           restype = "String";
           break;
 
-        case 0x10D: // Shake screen
+        case 0x10D: // Shake screen (CGameEffectScreenShake)
           s.add(new DecNumber(buffer, offset, 4, "Strength"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0x110: // Use EFF File on condition
+        case 0x110: // Use EFF file on condition (CGameEffectRepeatingApplyEffect)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Frequency",
             new String[]{"Once per second", "", "Value per second",
@@ -2009,44 +2047,45 @@ public final class EffectFactory
           restype = "EFF";
           break;
 
-        case 0x118: // Wild magic
+        case 0x118: // Wild magic (CGameEffectForceSurge)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Affect",
             new String[]{"", "Next spell", "Every spell"}));
           break;
 
-        case 0x11A: // Modify script state
+        case 0x11A: // Modify script state (CGameEffectScriptingState)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "STATS.IDS", 156));
           break;
 
-        case 0x122: // Change title
+        case 0x11B: // Use EFF file as curse (CGameEffectCurseApplyEffect)
+          s.add(new IDSTargetEffect(buffer, offset));
+          restype = "EFF";
+          break;
+
+        case 0x122: // Change title (CGameEffectClassStringOverride)
           s.add(new StringRef(buffer, offset, "Title"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Change where?",
             new String[]{"Records screen", "Class name"}));
           break;
 
-        case 0x128: // Immunity to specific animation
+        case 0x128: // Immunity to specific animation (CGameEffectImmunityToVisualEffect)
           restype = "VVC";
           break;
 
-        case 0x12A: // Pocket plane
-          restype = "2DA";
-          break;
-
-        case 0x133: // Tracking
+        case 0x133: // Tracking (CGameEffectTracking)
           s.add(new DecNumber(buffer, offset, 4, "Range"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
-        case 0x135: // Set variable
+        case 0x135: // Set variable (CGameEffectSetLocalExternal)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Global or local?",
             new String[]{"Both", "Local only"}));
           restype = "String";
           break;
 
-        case 0x13D: // Haste 2
+        case 0x13D: // Haste 2 (CGameEffectHaste2)
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Haste type",
             new String[]{"Normal", "Improved", "Movement rate only"}));
@@ -2102,8 +2141,8 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
           break;
 
-        case 0xBD: // Increase casting speed factor
-        case 0xBE: // Increase attack speed factor
+        case 0xBD: // Mental speed
+        case 0xBE: // Physical speed
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
           s.add(new Unknown(buffer, offset + 4, 4));
           break;
@@ -2114,8 +2153,8 @@ public final class EffectFactory
             new String[]{"Wizard", "Priest"}));
           break;
 
-        case 0xCE: // Immunity spell
-        case 0x122: // Immunity spell (message)
+        case 0xCE: // Protection from spell
+        case 0x122: // Display spell immunity string
           final String s_cretype[] = {"Default", "Undead", "Not undead",
             "Fire dwelling", "Not fire dwelling", "Humanoid", "Not humanoid",
             "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
@@ -2157,44 +2196,7 @@ public final class EffectFactory
             new String[]{"Stoneskin", "Iron skins"}));
           break;
 
-        case 0xE9: // Visual spell hit
-          final String s_visuals[] = {"None", "Abjuration", "Alteration",
-            "Invocation", "Necromancy", "Conjuration", "Enchantment",
-            "Illusion", "Divination", "Armor", "Spirit armor", "Ghost armor",
-            "Strength", "Confusion", "Shroud of flame", "Death spell",
-            "Disintegrate", "Power word, silence", "Power word, stun",
-            "Finger of death", "Mordenkainen's sword", "Monster summoning 1",
-            "Monster summoning 2", "Monster summoning 3", "Monster summoning 4",
-            "Monster summoning 5", "Monster summoning 6", "Monster summoning 7",
-            "Conjure fire elemental", "Conjure earth elemental",
-            "Conjure water elemental", "Bless", "Curse", "Prayer", "Recitation",
-            "Cure light wounds", "Cure moderate wounds", "Cure serious wounds",
-            "Cure critical wounds", "Heal", "Animal summoning 1",
-            "Animal summoning 2", "Animal summoning 3", "Slow posion",
-            "Neutralize posion", "Call lightning", "Static charge",
-            "Remove paralysis", "Free action", "Miscast magic",
-            "Strength of one", "Champion's strength", "Flame strike",
-            "Raise dead", "Resurrection", "Chaotic commands",
-            "Righteous wrath of the faithful", "Sunray", "Spike stones",
-            "Dimension door origin", "Dimension door destination",
-            "Cone of cold", "Sol's searing orb", "Fire hit", "Cold hit",
-            "Electricity hit", "Acid hit", "Paralysis", "Malavon's rage",
-            "Righteous wrath of the faithful ground", "Belhifet death",
-            "Portal", "Sunscorch", "Blade barrier (front)",
-            "Blade barrier (back)", "Circle of bones (front)",
-            "Circle of bones (back)", "Cause light wounds",
-            "Cause moderate wounds", "Cause serious wounds",
-            "Cause critical wounds", "Cause disease", "Poison", "Slay living",
-            "Harm", "Destruction", "Exaltation", "Cloudburst", "Mold touch",
-            "Lower resistance", "Cat's grace", "Soul eater", "Smashing wave",
-            "Suffocate", "Abi-dalzim's horrid wilting",
-            "Mordenkainen's force missile", "Vitriolic sphere",
-            "Wailing virgin death", "Undead ward", "Wailing virgin hit",
-            "Wylfden's death 1", "Wylfden's death 2", "Dragon's death 1",
-            "Dragon's death 2", "Monster summoning circle",
-            "Animal summoning circle", "Earth summoning circle",
-            "Fire summoning circle", "Water summoning circle",
-            "Dedlee's electric loop", "Darktree attack"};
+        case 0xE9: // Show visual effect
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
           break;
@@ -2229,7 +2231,7 @@ public final class EffectFactory
             new String[]{"Beneficial", "Detrimental"}));
           break;
 
-        case 0xFE: // Remove effects with res equals
+        case 0xFE: // Remove specific effects
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Removal type",
             new String[]{"Default", "Equipped effects only",

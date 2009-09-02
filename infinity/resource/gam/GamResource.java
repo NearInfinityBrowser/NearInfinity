@@ -130,17 +130,17 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     int gameid = ResourceFactory.getGameID();
     if (gameid == ResourceFactory.ID_BG1 || gameid == ResourceFactory.ID_BG1TOTSC) { // V1.1
-      list.add(new DecNumber(buffer, offset + 84, 4, "Reputation * 10"));
+      list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-                        new String[]{"Normal windows", "", "Larger text window",
+                        new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                                      "Largest text window"}));
       list.add(new Unknown(buffer, offset + 100, 4));
       list.add(new Unknown(buffer, offset + 104, 76));
     }
     else if (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
              gameid == ResourceFactory.ID_ICEWINDHOWTOT) { // V1.1
-      list.add(new DecNumber(buffer, offset + 84, 4, "Reputation * 10"));
+      list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "", "Larger text window",
@@ -152,20 +152,20 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 108, 72));
     }
     else if (gameid == ResourceFactory.ID_TORMENT) { // V1.1
-      list.add(new HexNumber(buffer, offset + 84, 4, "Unknown offset"));
-      list.add(new Unknown(buffer, offset + 88, 4));
-      list.add(new ResourceRef(buffer, offset + 92, "Current area?", "ARE"));
+      list.add(new HexNumber(buffer, offset + 84, 4, "Maze offset"));
+      list.add(new DecNumber(buffer, offset + 88, 4, "Reputation"));
+      list.add(new ResourceRef(buffer, offset + 92, "Current area", "ARE"));
       offKillvariable = new SectionOffset(buffer, offset + 100, "Kill variables offset", KillVariable.class);
       list.add(offKillvariable);
       numKillVariable = new SectionCount(buffer, offset + 104, 4, "# kill variables", KillVariable.class);
       list.add(numKillVariable);
-      list.add(new HexNumber(buffer, offset + 108, 4, "Unknown offset"));
-      list.add(new ResourceRef(buffer, offset + 112, "Current area?", "ARE"));
+      list.add(new HexNumber(buffer, offset + 108, 4, "Bestiary offset"));
+      list.add(new ResourceRef(buffer, offset + 112, "Current area", "ARE"));
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
              gameid == ResourceFactory.ID_TUTU) { // V2.0
-      list.add(new DecNumber(buffer, offset + 84, 4, "Reputation * 10"));
+      list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "Party AI disabled", "Larger text window",

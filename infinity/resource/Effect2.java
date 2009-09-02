@@ -11,11 +11,12 @@ import java.util.List;
 
 public final class Effect2 extends AbstractStruct implements AddRemovable
 {
-  private static final String s_itmflag[] = {"No flags set", "Strength bonus", "Breakable",
-                                             "", "", "", "", "", "", "", "", "", "Recharges"};
+  private static final String s_itmflag[] = {"No flags set", "Add strength bonus", "Breakable",
+                                              "", "", "", "", "", "", "", "", "Hostile",
+                                              "Recharge after resting"};
   private static final String s_splflag[] = {"No flags set", "", "", "", "", "", "", "", "", "",
                                              "", "Hostile", "No LOS required", "", "Outdoors only",
-                                             "Simplified duration", "Trigger/Contingency"};
+                                             "Non-magical ability", "Trigger/Contingency"};
 
   public static void readCommon(List<StructEntry> list, byte[] buffer, int offset)
   {
@@ -64,7 +65,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
       list.add(new IdsBitmap(buffer, offset + 104, 4, "Impact projectile", "PROJECTL.IDS"));
     else
       list.add(new DecNumber(buffer, offset + 104, 4, "Impact projectile"));
-    list.add(new DecNumber(buffer, offset + 108, 4, "Source item slot"));
+    list.add(new IdsBitmap(buffer, offset + 108, 4, "Source item slot", "SLOTS.IDS"));
     list.add(new TextString(buffer, offset + 112, 32, "Variable name"));
     list.add(new DecNumber(buffer, offset + 144, 4, "Caster level"));
     list.add(new Unknown(buffer, offset + 148, 4));

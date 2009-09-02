@@ -224,6 +224,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP value"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gold"), gbl, gbc, true);
 
     StructEntry s1 = cre.getAttribute("Level first class");
     StructEntry s2 = cre.getAttribute("Level second class");

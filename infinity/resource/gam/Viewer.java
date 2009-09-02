@@ -21,7 +21,10 @@ final class Viewer extends JPanel
     gbc.insets = new Insets(2, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Current area"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (game seconds)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (real seconds)"), gbl, gbc, true);
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_TUTU) // V2.0 - better check?
+      ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (real seconds)"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Party gold"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Main area"), gbl, gbc, true);
     return panel;
@@ -48,9 +51,9 @@ final class Viewer extends JPanel
     else {
       stats1Panel =
       ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class,
-                               "CRE name");
+                               "Character");
       stats2Panel =
-      ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, "CRE name");
+      ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, "Character");
     }
 
     JPanel var1Panel = ViewerUtil.makeListPanel("Variables", gam, Variable.class, "Name",

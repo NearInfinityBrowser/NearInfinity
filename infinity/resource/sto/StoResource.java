@@ -26,7 +26,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 
   public static String getSearchString(byte buffer[])
   {
-    return new StringRef(buffer, 12, "").toString();
+    return new StringRef(buffer, 12, "").toString().trim();
   }
 
   public StoResource(ResourceEntry entry) throws Exception

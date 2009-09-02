@@ -12,7 +12,7 @@ final class AutomapNote extends AbstractStruct implements AddRemovable
 {
   private static final String s_flag[] = {"Gray", "Violet", "Green", "Orange", "Red", "Blue",
                                           "Dark blue", "Light gray"};
-  private static final String s_source[] = {"External", "Internal"};
+  private static final String s_source[] = {"Talk override", "Dialog.tlk"};
 
   AutomapNote() throws Exception
   {
