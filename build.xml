@@ -17,4 +17,9 @@
              includes="infinity/**/*"
              excludes="**/.*,**/*.class" />
     </target>
+    <target name="clean">
+        <delete>
+            <fileset dir="." includes="**/*.class,NearInfinity.jar" />
+        </delete>
+    </target>
 </project>
