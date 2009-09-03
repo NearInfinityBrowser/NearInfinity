@@ -46,7 +46,7 @@ public class Bitmap extends Datatype implements Editable
       List<String> values = new ArrayList<String>(Math.max(table.length, value + 1));
       for (int i = 0; i < Math.max(table.length, value + 1); i++)
         values.add(getString(i));
-      list = new TextListPanel(values, false);
+      list = new TextListPanel(values);
       list.addMouseListener(new MouseAdapter()
       {
         public void mouseClicked(MouseEvent event)

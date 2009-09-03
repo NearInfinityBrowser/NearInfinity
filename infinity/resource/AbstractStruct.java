@@ -15,7 +15,6 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 
 import javax.swing.*;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
 import java.io.*;
 import java.util.*;
@@ -445,11 +444,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public int getExtraOffset()
   {
     return extraoffset;
-  }
-
-  public List<StructEntry> getList()
-  {
-    return list;
   }
 
   public List<StructEntry> getFlatList()

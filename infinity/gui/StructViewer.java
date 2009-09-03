@@ -5,79 +5,21 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
-import infinity.datatype.Datatype;
-import infinity.datatype.Editable;
-import infinity.datatype.EffectType;
-import infinity.datatype.HexNumber;
-import infinity.datatype.InlineEditable;
-import infinity.datatype.ResourceRef;
-import infinity.datatype.SectionCount;
-import infinity.datatype.TextString;
-import infinity.datatype.Unknown;
-import infinity.datatype.UnknownBinary;
-import infinity.datatype.UnknownDecimal;
+import infinity.datatype.*;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
-import infinity.resource.AddRemovable;
-import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
-import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
-import infinity.resource.StructEntry;
-import infinity.resource.Viewable;
-import infinity.resource.dlg.AbstractCode;
-import infinity.resource.dlg.DialogItemRefSearcher;
+import infinity.resource.*;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.dlg.State;
-import infinity.resource.dlg.Transition;
-import infinity.search.AttributeSearcher;
-import infinity.search.DialogStateReferenceSearcher;
-import infinity.search.ReferenceSearcher;
+import infinity.search.*;
 import infinity.util.StructClipboard;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.table.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.print.*;
 import java.io.ByteArrayOutputStream;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableCellRenderer;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener
@@ -96,7 +38,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem ifindattribute = new JMenuItem("selected attribute");
   private final JMenuItem ifindreferences = new JMenuItem("references to this file");
   private final JMenuItem ifindstatereferences = new JMenuItem("references to this state");
-  private final JMenuItem ifindreftoitem = new JMenuItem("references to selected item in this file");
   private final JMenuItem miCopyValue = new JMenuItem("Copy value", Icons.getIcon("Copy16.gif"));
   private final JMenuItem miPasteValue = new JMenuItem("Replace value", Icons.getIcon("Paste16.gif"));
   private final JMenuItem miCut = new JMenuItem("Cut", Icons.getIcon("Cut16.gif"));
@@ -106,8 +47,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToString = new JMenuItem("Edit as string", Icons.getIcon("Refresh16.gif"));
   private final JMenuItem miToBin = new JMenuItem("Edit as binary", Icons.getIcon("Refresh16.gif"));
   private final JMenuItem miToDec = new JMenuItem("Edit as decimal", Icons.getIcon("Refresh16.gif"));
-  private final JMenuItem miShowViewer = new JMenuItem("Show in viewer");
-  private final JMenuItem miShowNewViewer = new JMenuItem("Show in new viewer");
   private final JPanel lowerpanel = new JPanel(cards);
   private final JPanel editpanel = new JPanel();
   private final JPopupMenu popupmenu = new JPopupMenu();
@@ -161,8 +100,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToBin.addActionListener(this);
     miToDec.addActionListener(this);
     miToString.addActionListener(this);
-    miShowViewer.addActionListener(this);
-    miShowNewViewer.addActionListener(this);
     popupmenu.add(miCopyValue);
     popupmenu.add(miPasteValue);
     popupmenu.add(miCut);
@@ -172,10 +109,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToBin);
     popupmenu.add(miToDec);
     popupmenu.add(miToString);
-    if (struct instanceof DlgResource) {
-      popupmenu.add(miShowViewer);
-      popupmenu.add(miShowNewViewer);
-    }
     table.addMouseListener(new PopupListener());
     miCopyValue.setEnabled(false);
     miPasteValue.setEnabled(false);
@@ -187,8 +120,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToBin.setEnabled(false);
     miToDec.setEnabled(false);
     miToString.setEnabled(false);
-    miShowViewer.setEnabled(false);
-    miShowNewViewer.setEnabled(false);
 
     tatext.setEditable(false);
     tatext.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
@@ -236,10 +167,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     ifindattribute.setEnabled(false);
     ifindreferences.setEnabled(struct instanceof Resource && struct.getSuperStruct() == null);
     ifindstatereferences.setEnabled(false);
-    ifindreftoitem.setEnabled(false);
     if (struct instanceof DlgResource)
       bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindattribute, ifindreferences,
-                                                             ifindstatereferences, ifindreftoitem});
+                                                             ifindstatereferences});
     else
       bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindattribute, ifindreferences});
     bfind.setIcon(Icons.getIcon("Find16.gif"));
@@ -380,22 +310,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(table.getSelectedRow(), miToDec);
     else if (event.getSource() == miToString)
       convertAttribute(table.getSelectedRow(), miToString);
-    else if (event.getSource() == miShowViewer) {
-      // this should only be available for DlgResources
-      DlgResource dlgRes = (DlgResource) struct;
-      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
-      JComponent detailViewer = dlgRes.getDetailViewer();
-      JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
-      parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
-
-    }
-    else if (event.getSource() == miShowNewViewer) {
-      // get a copy of the resource first
-      DlgResource dlgRes = (DlgResource) ResourceFactory.getResource(struct.getResourceEntry());
-      new ViewFrame(getTopLevelAncestor(), dlgRes);
-      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
-
-    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -446,10 +360,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         State state = (State)table.getValueAt(table.getSelectedRow(), 1);
         new DialogStateReferenceSearcher(struct.getResourceEntry(), state.getNumber(), getTopLevelAncestor());
       }
-      else if (item == ifindreftoitem) {
-        new DialogItemRefSearcher((DlgResource) struct, table.getValueAt(table.getSelectedRow(), 1),
-                                  getTopLevelAncestor());
-      }
     }
   }
 
@@ -473,11 +383,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToBin.setEnabled(false);
       miToDec.setEnabled(false);
       miToString.setEnabled(false);
-      miShowViewer.setEnabled(false);
-      miShowNewViewer.setEnabled(false);
       ifindattribute.setEnabled(false);
       ifindstatereferences.setEnabled(false);
-      ifindreftoitem.setEnabled(false);
     }
     else {
       table.scrollRectToVisible(table.getCellRect(lsm.getMinSelectionIndex(), 0, true));
@@ -499,14 +406,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                                                            selected instanceof SectionCount));
       miToString.setEnabled(selected instanceof Datatype && (selected instanceof Unknown ||
                                                              selected instanceof ResourceRef));
-      boolean isSpecialDlgStruct = (selected instanceof State
-                                 || selected instanceof Transition
-                                 || selected instanceof AbstractCode);
-
-      ifindreftoitem.setEnabled(isSpecialDlgStruct);
-      miShowViewer.setEnabled(isSpecialDlgStruct);
-      miShowNewViewer.setEnabled(isSpecialDlgStruct);
-
       if (selected instanceof Editable) {
         editable = (Editable)selected;
         editpanel.removeAll();

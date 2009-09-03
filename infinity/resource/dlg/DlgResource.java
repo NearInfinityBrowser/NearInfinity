@@ -160,13 +160,5 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
     }
     return offset + textSize;
   }
-
-  // sorry for this (visibility)
-  public void showStateWithStructEntry(StructEntry entry) {
-    if (detailViewer == null) {
-      getDetailViewer();
-    }
-    detailViewer.showStateWithStructEntry(entry);
-  }
 }
 

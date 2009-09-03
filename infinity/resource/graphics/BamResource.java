@@ -102,9 +102,8 @@ public final class BamResource implements Resource, ActionListener, ItemListener
     }
     else if (event.getSource() == bnextanim) {
       selectedAnim++;
-      // stop timer if no frames in current cycle
-      if ((timer != null) && timer.isRunning()
-          && (anims[selectedAnim].frameCount == 0)) {
+      // stop timer if no frames in cycle
+      if (timer != null && timer.isRunning() && anims[selectedAnim].frameCount == 0) {
         timer.stop();
         bplay.setSelected(false);
       }
@@ -113,8 +112,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
     }
     else if (event.getSource() == bprevanim) {
       selectedAnim--;
-      if ((timer != null) && timer.isRunning()
-          && (anims[selectedAnim].frameCount == 0)) {
+      if (timer != null && timer.isRunning() && anims[selectedAnim].frameCount == 0) {
         timer.stop();
         bplay.setSelected(false);
       }
@@ -282,7 +280,6 @@ public final class BamResource implements Resource, ActionListener, ItemListener
     bprevframe.setEnabled(selectedFrame > 0);
     bnextanim.setEnabled(selectedAnim + 1 < anims.length);
     bprevanim.setEnabled(selectedAnim > 0);
-
   }
 
 // -------------------------- INNER CLASSES --------------------------

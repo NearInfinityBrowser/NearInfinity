@@ -6,7 +6,6 @@ package infinity.util;
 
 import javax.swing.*;
 import java.io.*;
-import java.nio.charset.Charset;
 
 public final class StringResource
 {
@@ -14,15 +13,6 @@ public final class StringResource
   private static RandomAccessFile file;
   private static String version;
   private static int maxnr, startindex;
-  private static Charset charset = Charset.forName("windows-1252");
-
-  public static Charset getCharset() {
-    return charset;
-  }
-
-  public static void setCharset(String cs) {
-    charset = Charset.forName(cs);
-  }
 
   public static void close()
   {
@@ -101,7 +91,7 @@ public final class StringResource
       int offset = startindex + Filereader.readInt(file);
       int length = Filereader.readInt(file);
       file.seek((long)offset);
-      return Filereader.readString(file, length, charset);
+      return Filereader.readString(file, length);
     } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),

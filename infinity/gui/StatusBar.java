@@ -53,14 +53,5 @@ public final class StatusBar extends JPanel implements CaretListener
     messageLabel.setText(' ' + msg);
     cursorLabel.setText("");
   }
-
-  public String getMessage()
-  {
-    String text = messageLabel.getText();
-    if (text.length() > 0)
-      return messageLabel.getText().substring(1);
-    else
-      return "";
-  }
 }
 

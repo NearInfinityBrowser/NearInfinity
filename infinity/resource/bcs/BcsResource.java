@@ -35,8 +35,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   private JMenuItem ifindall, ifindthis, ifindusage, iexportsource, iexportscript;
   private JPanel panel;
   private JTabbedPane tabbedPane;
-  private JTextArea codeText;
-  private ScriptTextArea sourceText;
+  private JTextArea codeText, sourceText;
   private String text;
   private boolean sourceChanged = false, codeChanged = false;
 
@@ -398,7 +397,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
   public JComponent makeViewer(ViewableContainer container)
   {
-    sourceText = new ScriptTextArea();
+    sourceText = new JTextArea();
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
     sourceText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));

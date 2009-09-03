@@ -102,41 +102,27 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     m_zoom.put(65535L, "Yes");
   }
 
-  public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
-                                   ResourceEntry entry)
+  public static void addScriptName(Set<String> scriptNames, byte buffer[])
   {
-    try {
-      byte[] buffer = entry.getResourceData();
-      String signature = new String(buffer, 0, 4);
-      String scriptName = "";
-      if (signature.equalsIgnoreCase("CRE ")) {
-        String version = new String(buffer, 4, 4);
-        if (version.equalsIgnoreCase("V1.0"))
-          scriptName = Byteconvert.convertString(buffer, 640, 32);
-        else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2"))
-          scriptName = Byteconvert.convertString(buffer, 804, 32);
-        else if (version.equalsIgnoreCase("V2.2"))
-          scriptName = Byteconvert.convertString(buffer, 916, 32);
-        else if (version.equalsIgnoreCase("V9.0"))
-          scriptName = Byteconvert.convertString(buffer, 744, 32);
-        if (scriptName.equals("") || scriptName.equalsIgnoreCase("None"))
-          return;
-        // Apparently script name is the only thing that matters
-  //        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
-        else {
-          scriptName = scriptName.toLowerCase().replaceAll(" ", "");
-          if (scriptNames.containsKey(scriptName)) {
-            Set<ResourceEntry> entries = scriptNames.get(scriptName);
-            entries.add(entry);
-          }
-          else {
-            Set<ResourceEntry> entries = new HashSet<ResourceEntry>();
-            entries.add(entry);
-            scriptNames.put(scriptName, entries);
-          }
-        }
-      }
-    } catch (Exception e) {}
+    String signature = new String(buffer, 0, 4);
+    String scriptName = "";
+    if (signature.equalsIgnoreCase("CRE ")) {
+      String version = new String(buffer, 4, 4);
+      if (version.equalsIgnoreCase("V1.0"))
+        scriptName = Byteconvert.convertString(buffer, 640, 32);
+      else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2"))
+        scriptName = Byteconvert.convertString(buffer, 804, 32);
+      else if (version.equalsIgnoreCase("V2.2"))
+        scriptName = Byteconvert.convertString(buffer, 916, 32);
+      else if (version.equalsIgnoreCase("V9.0"))
+        scriptName = Byteconvert.convertString(buffer, 744, 32);
+      if (scriptName.equals("") || scriptName.equalsIgnoreCase("None"))
+        ;
+      // Apparently script name is the only thing that matters
+//        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
+      else
+        scriptNames.add(scriptName.toLowerCase().replaceAll(" ", ""));
+    }
   }
 
   private static void adjustEntryOffsets(AbstractStruct struct, int amount)
@@ -171,7 +157,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
         while (!crefile.getStructEntryAt(0).toString().equals("CRE "))
           crefile.list.remove(0);
-        convertToSemiStandard(crefile);
+//        convertToSemiStandard(crefile); // ToDo:Enable conversion again
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
         crefile.write(bos);
         bos.close();
@@ -223,16 +209,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     offsetStructs = copyStruct(crefile.list, newlist, indexStructs, offsetStructs, SpellMemorization.class);
 
     memspells_offset.setValue(offsetStructs);
-    // XXX: mem spells are not directly stored in crefile.list
-    // and added by addFlatList on the Spell Memorization entries
-    // (but the offsets are wrong, so we need to realign them with copyStruct)
-    List<StructEntry> trashlist = new ArrayList<StructEntry>();
-    for (int i = indexStructs; i < crefile.list.size(); i++) {
-      StructEntry entry = crefile.list.get(i);
-      if (entry instanceof SpellMemorization) {
-        offsetStructs = copyStruct(((SpellMemorization)entry).getList(), trashlist, 0, offsetStructs, MemorizedSpells.class);
-      }
-    }
+    offsetStructs = copyStruct(crefile.list, newlist, indexStructs, offsetStructs, MemorizedSpells.class);
 
     effects_offset.setValue(offsetStructs);
     offsetStructs =

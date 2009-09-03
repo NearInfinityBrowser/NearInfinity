@@ -4,7 +4,6 @@
 
 package infinity.gui;
 
-import infinity.NearInfinity;
 import infinity.datatype.ResourceRef;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
@@ -46,14 +45,8 @@ final class LinkButton extends JLabel implements MouseListener, ActionListener
 
   public void actionPerformed(ActionEvent e)
   {
-    String cmd = e.getActionCommand();
-    if ((cmd == null) || cmd.equals("OPEN_NEW")) {
-      new ViewFrame(((LinkButton)e.getSource()).getTopLevelAncestor(),
-                    ResourceFactory.getResource(entry));
-    }
-    else if (cmd.equals("OPEN")) {
-      NearInfinity.getInstance().showResourceEntry(entry);
-    }
+    new ViewFrame(((LinkButton)e.getSource()).getTopLevelAncestor(),
+                  ResourceFactory.getResource(entry));
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -63,13 +56,7 @@ final class LinkButton extends JLabel implements MouseListener, ActionListener
 
   public void mouseClicked(MouseEvent e)
   {
-    String cmd = "OPEN_NEW";
-    if ((e.getButton() == MouseEvent.BUTTON2)
-     || (e.getButton() == MouseEvent.BUTTON3)) {
-      cmd = "OPEN";
-    }
-
-    ActionEvent event = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, cmd);
+    ActionEvent event = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
     for (int i = 0; i < listeners.size(); i++)
       listeners.get(i).actionPerformed(event);
   }

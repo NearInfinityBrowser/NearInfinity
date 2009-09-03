@@ -540,7 +540,7 @@ public final class Decompiler
       else if (p.substring(0, 2).equals("O:"))
         code.append(object);
       else if (p.substring(0, 2).equals("P:"))
-        code.append(coord.replaceFirst(",", ".");   // for WeiDU compatability
+        code.append(coord);
       else if (p.substring(0, 2).equals("I:")) {
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);

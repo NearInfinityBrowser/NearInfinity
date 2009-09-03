@@ -15,7 +15,6 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.*;
-import infinity.util.Filewriter;
 import infinity.util.MassExporter;
 import infinity.util.StringResource;
 
@@ -54,7 +53,6 @@ public final class BrowserMenuBar extends JMenuBar
   private static final String OPTION_VIEWOREDITSHOWN = "ViewOrEditShown";
   private static final String OPTION_FONT = "Font";
   private static final String OPTION_BCSINDENT = "BcsIndent";
-  private static final String OPTION_TLKCHARSET = "TLKCharset";
   private final EditMenu editMenu;
   private final FileMenu fileMenu;
   private final GameMenu gameMenu;
@@ -65,7 +63,7 @@ public final class BrowserMenuBar extends JMenuBar
   private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
   private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
   private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors, optionAutoConvMUS;
-  private JCheckBoxMenuItem optionAutoConvWAV, optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
+  private JCheckBoxMenuItem optionAutoConvWAV, optionAutocheckBCS, optionCacheOverride;
 
   public static BrowserMenuBar getInstance()
   {
@@ -116,11 +114,6 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean autocheckBCS()
   {
     return optionAutocheckBCS.isSelected();
-  }
-
-  public boolean checkScriptNames()
-  {
-    return optionCheckScriptNames.isSelected();
   }
 
   public boolean cacheOverride()
@@ -233,7 +226,6 @@ public final class BrowserMenuBar extends JMenuBar
       if (selectBcsIndent[i].isSelected())
         selectedIndent = i;
     prefs.putInt(OPTION_BCSINDENT, selectedIndent);
-    prefs.put(OPTION_TLKCHARSET, StringResource.getCharset().name());
     gameMenu.storePreferences(prefs);
   }
 
@@ -243,7 +235,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private JMenu makeOptionsMenu(Preferences prefs, NearInfinity browser)
   {
-    final JMenu menu = new JMenu("Options");
+    JMenu menu = new JMenu("Options");
     menu.setMnemonic(KeyEvent.VK_O);
 
     optionAutoConvMUS =
@@ -369,46 +361,6 @@ public final class BrowserMenuBar extends JMenuBar
       scriptmenu.add(selectFont[i]);
       bg.add(selectFont[i]);
     }
-
-    final JMenu charsetmenu = new JMenu("TLK Charset");
-    menu.add(charsetmenu);
-    String defaultCharset = StringResource.getCharset().name();
-    String charset = prefs.get(OPTION_TLKCHARSET, defaultCharset);
-    if (! charset.equals(defaultCharset)) {
-      StringResource.setCharset(charset);
-    }
-    final JTextField tf = new JTextField(charset, 15);
-    tf.setMargin(new Insets(2, 2, 2, 2));
-    tf.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent event) {
-        try {
-          StringResource.setCharset(event.getActionCommand());
-
-          // XXX: don't know how to deselect the menu properly
-          charsetmenu.setPopupMenuVisible(false);
-          menu.setPopupMenuVisible(false);
-          menu.setSelected(false);
-
-          // re-read strings
-          ActionEvent refresh = new ActionEvent(tf, 0, "Refresh");
-          NearInfinity.getInstance().actionPerformed(refresh);
-        }
-        catch (IllegalArgumentException e) {
-          tf.setText(StringResource.getCharset().name());
-          JOptionPane.showMessageDialog(null, "Illegal charset or charset not supported",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    });
-    tf.addFocusListener(new FocusAdapter() {
-      public void focusLost(FocusEvent event) {
-        // only trigger when states differ
-        if (! tf.getText().equals(StringResource.getCharset().name())) {
-          tf.postActionEvent();
-        }
-      }
-    });
-    charsetmenu.add(tf);
 
     return menu;
   }
@@ -656,7 +608,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void resourceShown(Resource res)
     {
-      fileConvertCHR.setEnabled(res != null && res.getResourceEntry().getExtension().equalsIgnoreCase("CHR"));
+//      fileConvertCHR.setEnabled(res != null && res.getResourceEntry().getExtension().equalsIgnoreCase("CHR"));
       fileViewArea.setEnabled(res != null && res instanceof AreResource);
     }
   }
@@ -811,7 +763,6 @@ public final class BrowserMenuBar extends JMenuBar
     private final JMenuItem toolCheckResRef, toolIDSBrowser, toolDropZone, toolCheckCREInv;
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
     private final JMenuItem toolCheckStringUse, toolCheckFileUse, toolMassExport;
-    private final JMenuItem toolCheckEffectsIndex;
 //    private JMenuItem toolBatchJob;
     private final JCheckBoxMenuItem toolConsole, toolClipBoard;
 
@@ -880,10 +831,6 @@ public final class BrowserMenuBar extends JMenuBar
 
       toolCheckFileUse = makeMenuItem("Find Unused Files...", -1, Icons.getIcon("Find16.gif"), -1, this);
       add(toolCheckFileUse);
-
-      toolCheckEffectsIndex = makeMenuItem("Find Mis-indexed Effects", -1,
-                                           Icons.getIcon("Find16.gif"), -1, this);
-      add(toolCheckEffectsIndex);
 
       addSeparator();
 
@@ -1015,8 +962,6 @@ public final class BrowserMenuBar extends JMenuBar
         new ResourceUseChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolMassExport)
         new MassExporter();
-      else if (event.getSource() == toolCheckEffectsIndex)
-        new EffectsIndexChecker();
     }
   }
 
