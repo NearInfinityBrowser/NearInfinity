@@ -305,7 +305,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, 76, 4, "Weight"));
       list.add(new StringRef(buffer, 80, "General description"));
       list.add(new StringRef(buffer, 84, "Identified description"));
-      list.add(new ResourceRef(buffer, 88, "Carried icon", "BAM"));
+      list.add(new ResourceRef(buffer, 88, "Description image", "BAM"));
     }
     list.add(new DecNumber(buffer, 96, 4, "Enchantment"));
     SectionOffset abil_offset = new SectionOffset(buffer, 100, "Abilities offset",
@@ -317,7 +317,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     SectionOffset global_offset = new SectionOffset(buffer, 106, "Effects offset",
                                                     Effect.class);
     list.add(global_offset);
-    list.add(new Unknown(buffer, 110, 2));
+    list.add(new DecNumber(buffer, 110, 2, "Global effects index"));
     SectionCount global_count = new SectionCount(buffer, 112, 2, "# global effects",
                                                  Effect.class);
     list.add(global_count);

@@ -69,8 +69,8 @@ public final class ProResource extends AbstractStruct implements Resource
     HexNumber projtype = new HexNumber(buffer, offset + 8, 2, "Type");
     list.add(projtype);
     list.add(new DecNumber(buffer, offset + 10, 2, "Speed"));
-    list.add(new Flag(buffer, offset + 12, 2, "Behavior", s_behave));
-    list.add(new Unknown(buffer, offset + 14, 2));
+    list.add(new Flag(buffer, offset + 12, 4, "Behavior", s_behave));
+//    list.add(new Unknown(buffer, offset + 14, 2));
     list.add(new ResourceRef(buffer, offset + 16, "Sound 1", "WAV"));
     list.add(new ResourceRef(buffer, offset + 24, "Sound 2", "WAV"));
     list.add(new ResourceRef(buffer, offset + 32, "Sound 3", "WAV"));
@@ -125,8 +125,8 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ProRef(buffer, offset + 532, "Secondary projectile"));
     list.add(new DecNumber(buffer, offset + 534, 1, "Duration"));
     list.add(new HashBitmap(buffer, offset + 535, 1, "Explosion effect", s_proj));
-    list.add(new ColorValue(buffer, offset + 536, 1, "Explosion color"));
-    list.add(new Unknown(buffer, offset + 537, 1));
+    list.add(new ColorValue(buffer, offset + 536, 2, "Explosion color"));
+//    list.add(new Unknown(buffer, offset + 537, 1));
     list.add(new ProRef(buffer, offset + 538, "Explosion projectile"));
     list.add(new ResourceRef(buffer, offset + 540, "Explosion animation", "VVC"));
     list.add(new DecNumber(buffer, offset + 548, 2, "Cone width"));

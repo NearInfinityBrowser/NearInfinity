@@ -20,12 +20,12 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   private static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
                                           "Weather", "City", "Forest", "Dungeon",
                                           "Extended night", "Can rest"};
-  private static final String s_flag_torment[] = {"No flags set", "Hive", "Hive (night)", "Clerk's ward", "Lower ward",
+  private static final String s_flag_torment[] = {"No flags set", "Hive", "", "Clerk's ward", "Lower ward",
                                                   "Ravel's maze", "Baator", "Rubikon",
                                                   "Negative material plane", "Curst", "Carceri",
                                                   "Allow day/night"};
-  private static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area",
-                                           "Dead magic zone", "Dream area"};
+  private static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+                                           "Dream area"};
   private static final String s_atype_torment[] = {"Can rest", "Cannot save",
                                                    "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                    "Cannot save", "Can rest with permission"};
@@ -341,7 +341,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     SectionOffset offset_songs = new SectionOffset(buffer, offset + 188, "Songs offset",
                                                    Song.class);
     list.add(offset_songs);
-    SectionOffset offset_rest = new SectionOffset(buffer, offset + 192, "Rest spawn creatures offset",
+    SectionOffset offset_rest = new SectionOffset(buffer, offset + 192, "Rest encounters offset",
                                                   RestSpawn.class);
     list.add(offset_rest);
 

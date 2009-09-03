@@ -14,8 +14,8 @@ import java.io.OutputStream;
 
 public final class DlgResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
 {
-  private static final String sNonInt[] = {"Party dialogue, pausing", "Party dialogue, non-pausing",
-                                           "Non-party dialogue"};
+  private static final String sNonInt[] = {"Pausing dialogue", "Turn hostile",
+                                           "Escape area", "No override"};
   private SectionCount countState, countTrans, countStaTri, countTranTri, countAction;
   private SectionOffset offsetState, offsetTrans, offsetStaTri, offsetTranTri, offsetAction;
   private Viewer detailViewer;
@@ -118,7 +118,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
     list.add(countAction);
 
     if (offsetState.getValue() > 0x30)
-      list.add(new Bitmap(buffer, offset + 48, 4, "Dialogue type", sNonInt));
+      list.add(new Flag(buffer, offset + 48, 4, "Dialogue type", sNonInt));
 
     offset = offsetState.getValue();
     for (int i = 0; i < countState.getValue(); i++) {

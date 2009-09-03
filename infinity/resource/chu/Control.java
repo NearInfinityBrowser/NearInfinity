@@ -19,6 +19,7 @@ final class Control extends AbstractStruct // implements AddRemovable
                                             "Reduce size"};
   private static final String s_label[] = {"Center", "RGB color", "", "", "Left justify",
                                            "Right justify"};
+  private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
 
   Control(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
@@ -82,8 +83,8 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new DecNumber(buffer, offset + 30, 2, "Animation number"));
         list.add(new DecNumber(buffer, offset + 32, 2, "Frame number: Ungrabbed"));
         list.add(new DecNumber(buffer, offset + 34, 2, "Frame number: Grabbed"));
-        list.add(new DecNumber(buffer, offset + 36, 2, "Position: X"));
-        list.add(new DecNumber(buffer, offset + 38, 2, "Position: Y"));
+        list.add(new DecNumber(buffer, offset + 36, 2, "Knob position: X"));
+        list.add(new DecNumber(buffer, offset + 38, 2, "Knob position: Y"));
         list.add(new DecNumber(buffer, offset + 40, 2, "Step width"));
         list.add(new DecNumber(buffer, offset + 42, 2, "Step count"));
         list.add(new Unknown(buffer, offset + 44, 8));
@@ -93,15 +94,17 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new ResourceRef(buffer, offset + 14, "Background 1", "MOS"));
         list.add(new ResourceRef(buffer, offset + 22, "Background 2", "MOS"));
         list.add(new ResourceRef(buffer, offset + 30, "Background 3", "MOS"));
-        list.add(new ResourceRef(buffer, offset + 38, "Cursor", "BAM"));
-        list.add(new Unknown(buffer, offset + 46, 4));
-        list.add(new DecNumber(buffer, offset + 50, 2, "Position: X"));
-        list.add(new DecNumber(buffer, offset + 52, 2, "Position: Y"));
+        list.add(new ResourceRef(buffer, offset + 38, "Caret", "BAM"));
+        list.add(new DecNumber(buffer, offset + 46, 2, "Animation number"));
+        list.add(new DecNumber(buffer, offset + 48, 2, "Frame number"));
+        list.add(new DecNumber(buffer, offset + 50, 2, "Caret position: X"));
+        list.add(new DecNumber(buffer, offset + 52, 2, "Caret position: Y"));
         list.add(new Unknown(buffer, offset + 54, 4));
         list.add(new ResourceRef(buffer, offset + 58, "Font", "BAM"));
         list.add(new Unknown(buffer, offset + 66, 2));
-        list.add(new Unknown(buffer, offset + 68, 32));
-        list.add(new Unknown(buffer, offset + 100, 6));
+        list.add(new TextString(buffer, offset + 68, 32, "Initial text"));
+        list.add(new DecNumber(buffer, offset + 100, 2, "Field length"));
+        list.add(new Bitmap(buffer, offset + 102, 4, "Allowed case", s_case));
         offset += 106;
         break;
       case 5:

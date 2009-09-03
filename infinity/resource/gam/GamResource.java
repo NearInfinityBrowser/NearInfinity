@@ -160,7 +160,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       numKillVariable = new SectionCount(buffer, offset + 104, 4, "# kill variables", KillVariable.class);
       list.add(numKillVariable);
       list.add(new HexNumber(buffer, offset + 108, 4, "Bestiary offset"));
-      list.add(new ResourceRef(buffer, offset + 112, "Current area", "ARE"));
+      list.add(new ResourceRef(buffer, offset + 112, "Area", "ARE"));
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
@@ -182,7 +182,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 116, 4, "Game time (real seconds)"));
 //      list.add(new DecNumber(buffer, offset + 120, 4, "File size"));
       list.add(new SectionOffset(buffer, offset + 120, "Pocket plane locations offset", StoredLocation.class));
-      list.add(new SectionCount(buffer, offset + 124, 4, "# Pocket plane locations", StoredLocation.class));
+      list.add(new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class));
       list.add(new Unknown(buffer, offset + 128, 52));
     }
     else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)

@@ -24,8 +24,9 @@ abstract class AreaLink extends AbstractStruct implements AddRemovable
   {
     list.add(new DecNumber(buffer, offset, 4, "Target area entry"));
     list.add(new TextString(buffer, offset + 4, 32, "Target entrance"));
-    list.add(new DecNumber(buffer, offset + 36, 4, "Traveling time"));
-    list.add(new Unknown(buffer, offset + 40, 4));
+    list.add(new DecNumber(buffer, offset + 36, 4, "Distance scale"));
+    list.add(new Flag(buffer, offset + 40, 4, "Default entrance",
+                      new String[]{"No default set", "North", "East", "South", "West"}));
     list.add(new ResourceRef(buffer, offset + 44, "Random encounter area 1", "ARE"));
     list.add(new ResourceRef(buffer, offset + 52, "Random encounter area 2", "ARE"));
     list.add(new ResourceRef(buffer, offset + 60, "Random encounter area 3", "ARE"));

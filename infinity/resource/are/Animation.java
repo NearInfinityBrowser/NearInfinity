@@ -11,9 +11,9 @@ final class Animation extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_flag = {"Not shown", "Is shown", "No shadow", "Not light source",
                                           "Partial animation", "Synchronized draw", "",
-                                          "Not covered by wall", "", "Draw as background",
-                                          "Play all frames", "Recolored by palette", "Mirror Y axis",
-                                          "Don't remove in combat"};
+                                          "Not covered by wall", "Static animation",
+                                          "Draw as background", "Play all frames", "Recolored by palette",
+                                          "Mirror Y axis", "Don't remove in combat"};
 
   Animation() throws Exception
   {

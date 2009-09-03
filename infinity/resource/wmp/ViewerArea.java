@@ -47,9 +47,9 @@ final class ViewerArea extends JPanel implements ActionListener
 
     JPanel linkPanel = new JPanel(new GridLayout(2,2,6,6));
     linkPanel.add(linkPanelN);
-    linkPanel.add(linkPanelW);
-    linkPanel.add(linkPanelS);
     linkPanel.add(linkPanelE);
+    linkPanel.add(linkPanelS);
+    linkPanel.add(linkPanelW);
 
     JPanel leftPanel = new JPanel(new BorderLayout(0, 3));
     leftPanel.add(icon, BorderLayout.NORTH);

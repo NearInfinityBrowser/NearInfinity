@@ -6,6 +6,7 @@ package infinity.resource.itm;
 
 import infinity.datatype.*;
 import infinity.resource.*;
+import infinity.resource.spl.SplResource;
 
 import javax.swing.*;
 

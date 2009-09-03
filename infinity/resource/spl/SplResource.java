@@ -21,7 +21,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                              "Non-combat"};
   public static final String[] s_school = {"None", "Abjurer", "Conjurer", "Diviner", "Enchanter", "Illusionist", "Invoker",
                                            "Necromancer", "Transmuter", "Generalist"};
-  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
+//  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_priesttype = new LongIntegerHashMap<String>();
   private static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate"};
   private static final String[] s_anim = {"None", "None", "None", "None", "None", "None", "None", "None", "None",
@@ -44,15 +44,15 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 
   static
   {
-    m_wizardtype.put((long)0x0000, "None");
-    m_wizardtype.put((long)0x0040, "Alteration");
-    m_wizardtype.put((long)0x0080, "Divination");
-    m_wizardtype.put((long)0x0200, "Invocation");
-    m_wizardtype.put((long)0x0800, "Enchantment");
-    m_wizardtype.put((long)0x0900, "Conjuration");
-    m_wizardtype.put((long)0x1000, "Illusion");
-    m_wizardtype.put((long)0x2000, "Abjuration");
-    m_wizardtype.put((long)0x2400, "Necromancy");
+//    m_wizardtype.put((long)0x0000, "Schoolless");
+//    m_wizardtype.put((long)0x0040, "Alteration");
+//    m_wizardtype.put((long)0x0080, "Divination");
+//    m_wizardtype.put((long)0x0200, "Invocation");
+//    m_wizardtype.put((long)0x0800, "Enchantment");
+//    m_wizardtype.put((long)0x0900, "Conjuration");
+//    m_wizardtype.put((long)0x1000, "Illusion");
+//    m_wizardtype.put((long)0x2000, "Abjuration");
+//    m_wizardtype.put((long)0x2400, "Necromancy");
 
     m_priesttype.put((long)0x0000, "All priests");
     m_priesttype.put((long)0x4000, "Druid/Ranger");
@@ -201,6 +201,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     list.add(new Unknown(buffer, offset + 56, 2));
     list.add(new ResourceRef(buffer, offset + 58, "Spell icon", "BAM"));
     list.add(new Unknown(buffer, offset + 66, 14));
+//    list.add(new TextString(buffer, offset + 68, 8, "ResRef?"));
+//    list.add(new Unknown(buffer, offset + 76, 4));
     list.add(new StringRef(buffer, offset + 80, "Spell description"));
     list.add(new StringRef(buffer, offset + 84, "Identified description"));
     list.add(new Unknown(buffer, offset + 88, 8));
@@ -214,7 +216,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     SectionOffset global_offset = new SectionOffset(buffer, offset + 106, "Effects offset",
                                                     Effect.class);
     list.add(global_offset);
-    list.add(new Unknown(buffer, offset + 110, 2));
+    list.add(new DecNumber(buffer, offset + 110, 2, "Global effects index"));
     SectionCount global_count = new SectionCount(buffer, offset + 112, 2, "# global effects",
                                                  Effect.class);
     list.add(global_count);

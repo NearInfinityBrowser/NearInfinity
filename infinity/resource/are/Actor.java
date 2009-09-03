@@ -99,8 +99,9 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     list.add(new IdsBitmap(buffer, offset + 48, 4, "Animation", "ANIMATE.IDS"));
     list.add(new Bitmap(buffer, offset + 52, 2, "Orientation", s_orientation));
     list.add(new Unknown(buffer, offset + 54, 2));
-    list.add(new Unknown(buffer, offset + 56, 4));
-    list.add(new Unknown(buffer, offset + 60, 4));
+    list.add(new DecNumber(buffer, offset + 56, 4, "Expiry time"));
+    list.add(new DecNumber(buffer, offset + 60, 2, "Wander distance"));
+    list.add(new DecNumber(buffer, offset + 62, 2, "Movement distance"));
     list.add(new Flag(buffer, offset + 64, 4, "Present at", s_schedule));
     list.add(new DecNumber(buffer, offset + 68, 4, "# times talked to"));
     list.add(new ResourceRef(buffer, offset + 72, "Dialogue", "DLG"));

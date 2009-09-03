@@ -10,7 +10,8 @@ import infinity.resource.AddRemovable;
 
 final class ItemSale extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_itemflag = {"No flags set", "Identified", "Not stealable", "Stolen"};
+  private static final String[] s_itemflag = {"No flags set", "Identified", "Not stealable", "Stolen",
+                                              "Undroppable"};
   private static final String[] s_noyes = { "No", "Yes" };
 
   ItemSale() throws Exception

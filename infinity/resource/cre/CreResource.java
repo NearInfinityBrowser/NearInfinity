@@ -26,7 +26,11 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
                                           "Original class: Mage", "Original class: Cleric",
                                           "Original class: Thief", "Original class: Druid",
                                           "Original class: Ranger", "Fallen paladin", "Fallen ranger",
-                                          "Export allowed", "", "", "Moving between areas", "Been in party"};
+                                          "Export allowed", "Hide status", "", "Moving between areas", "Been in party",
+                                          "", "", "", "", "", "", "", "", "Allegiance tracking",
+                                          "General tracking", "Race tracking", "Class tracking",
+                                          "Specifics tracking", "Gender tracking", "Alignment tracking",
+                                          "Uninterruptible"};
   private static final String s_feats1[] = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor prof", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Conundrum", "Crippling strike",
@@ -346,24 +350,27 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       HexNumber structOffset = new HexNumber(buffer, offset + 40, 4, "CRE structure offset");
       list.add(structOffset);
       list.add(new HexNumber(buffer, offset + 44, 4, "CRE structure length"));
-//      list.add(new Unknown(buffer, offset + 48, structOffset.getValue() - 48));
-      list.add(new IdsBitmap(buffer, offset + 48, 2, "Quick weapon slot 1", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 50, 2, "Quick weapon slot 2", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 52, 2, "Quick weapon slot 3", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 54, 2, "Quick weapon slot 4", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 56, 2, "Show quick weapon 1?", m_slotmask));
-      list.add(new HashBitmap(buffer, offset + 58, 2, "Show quick weapon 2?", m_slotmask));
-      list.add(new HashBitmap(buffer, offset + 60, 2, "Show quick weapon 3?", m_slotmask));
-      list.add(new HashBitmap(buffer, offset + 62, 2, "Show quick weapon 4?", m_slotmask));
-      list.add(new ResourceRef(buffer, offset + 64, "Quick spell 1", "SPL"));
-      list.add(new ResourceRef(buffer, offset + 72, "Quick spell 2", "SPL"));
-      list.add(new ResourceRef(buffer, offset + 80, "Quick spell 3", "SPL"));
-      list.add(new IdsBitmap(buffer, offset + 88, 2, "Quick item slot 1", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 90, 2, "Quick item slot 2", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 92, 2, "Quick item slot 3", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 94, 2, "Show quick item 1?", m_slotmask));
-      list.add(new HashBitmap(buffer, offset + 96, 2, "Show quick item 2?", m_slotmask));
-      list.add(new HashBitmap(buffer, offset + 98, 2, "Show quick item 3?", m_slotmask));
+      if (version.toString().equalsIgnoreCase("V2.2"))
+        list.add(new Unknown(buffer, offset + 48, structOffset.getValue() - 48));
+      else {
+        list.add(new IdsBitmap(buffer, offset + 48, 2, "Quick weapon slot 1", "SLOTS.IDS"));
+        list.add(new IdsBitmap(buffer, offset + 50, 2, "Quick weapon slot 2", "SLOTS.IDS"));
+        list.add(new IdsBitmap(buffer, offset + 52, 2, "Quick weapon slot 3", "SLOTS.IDS"));
+        list.add(new IdsBitmap(buffer, offset + 54, 2, "Quick weapon slot 4", "SLOTS.IDS"));
+        list.add(new HashBitmap(buffer, offset + 56, 2, "Show quick weapon 1?", m_slotmask));
+        list.add(new HashBitmap(buffer, offset + 58, 2, "Show quick weapon 2?", m_slotmask));
+        list.add(new HashBitmap(buffer, offset + 60, 2, "Show quick weapon 3?", m_slotmask));
+        list.add(new HashBitmap(buffer, offset + 62, 2, "Show quick weapon 4?", m_slotmask));
+        list.add(new ResourceRef(buffer, offset + 64, "Quick spell 1", "SPL"));
+        list.add(new ResourceRef(buffer, offset + 72, "Quick spell 2", "SPL"));
+        list.add(new ResourceRef(buffer, offset + 80, "Quick spell 3", "SPL"));
+        list.add(new IdsBitmap(buffer, offset + 88, 2, "Quick item slot 1", "SLOTS.IDS"));
+        list.add(new IdsBitmap(buffer, offset + 90, 2, "Quick item slot 2", "SLOTS.IDS"));
+        list.add(new IdsBitmap(buffer, offset + 92, 2, "Quick item slot 3", "SLOTS.IDS"));
+        list.add(new HashBitmap(buffer, offset + 94, 2, "Show quick item 1?", m_slotmask));
+        list.add(new HashBitmap(buffer, offset + 96, 2, "Show quick item 2?", m_slotmask));
+        list.add(new HashBitmap(buffer, offset + 98, 2, "Show quick item 3?", m_slotmask));
+      }
       offset = structOffset.getValue();
       list.add(new TextString(buffer, offset, 4, "Signature 2"));
       version = new TextString(buffer, offset + 4, 4, "Version 2");
@@ -391,8 +398,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsFlag(buffer, offset + 24, 4, "Status", "STATE.IDS"));
     list.add(new DecNumber(buffer, offset + 28, 2, "Current HP"));
     list.add(new DecNumber(buffer, offset + 30, 2, "Maximum HP"));
-    list.add(new IdsBitmap(buffer, offset + 32, 2, "Animation", "ANIMATE.IDS"));
-    list.add(new Unknown(buffer, offset + 34, 2));
+    list.add(new IdsBitmap(buffer, offset + 32, 4, "Animation", "ANIMATE.IDS"));
+//    list.add(new Unknown(buffer, offset + 34, 2));
     list.add(new ColorValue(buffer, offset + 36, 1, "Metal color"));
     list.add(new ColorValue(buffer, offset + 37, 1, "Minor color"));
     list.add(new ColorValue(buffer, offset + 38, 1, "Major color"));
@@ -429,9 +436,12 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 87, 1, "Missile resistance"));
     list.add(new DecNumber(buffer, offset + 88, 1, "Magic damage resistance"));
 
-    list.add(new Unknown(buffer, offset + 89, 6));
+    list.add(new Unknown(buffer, offset + 89, 4));
+    list.add(new DecNumber(buffer, offset + 93, 1, "Fatigue"));
+    list.add(new DecNumber(buffer, offset + 94, 1, "Intoxication"));
     list.add(new DecNumber(buffer, offset + 95, 1, "Luck"));
-    list.add(new Unknown(buffer, offset + 96, 34));
+    list.add(new DecNumber(buffer, offset + 96, 1, "Turn undead level"));
+    list.add(new Unknown(buffer, offset + 97, 33));
 
     list.add(new DecNumber(buffer, offset + 130, 1, "Total level"));
     list.add(new DecNumber(buffer, offset + 131, 1, "Barbarian level"));
@@ -500,7 +510,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 541, 1, "Spellcraft"));
     list.add(new DecNumber(buffer, offset + 542, 1, "Use magic device"));
     list.add(new DecNumber(buffer, offset + 543, 1, "Wilderness lore"));
-    list.add(new Unknown(buffer, offset + 544, 51));
+    list.add(new Unknown(buffer, offset + 544, 50));
+    list.add(new DecNumber(buffer, offset + 594, 1, "Challenge rating"));
     list.add(new IdsBitmap(buffer, offset + 595, 1, "Favored enemy 1", "RACE.IDS"));
     list.add(new IdsBitmap(buffer, offset + 596, 1, "Favored enemy 2", "RACE.IDS"));
     list.add(new IdsBitmap(buffer, offset + 597, 1, "Favored enemy 3", "RACE.IDS"));
@@ -532,7 +543,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new ResourceRef(buffer, offset + 652, "Movement script", "BCS"));
     list.add(new Bitmap(buffer, offset + 660, 1, "Default visibility", s_visible));
     list.add(new Bitmap(buffer, offset + 661, 1, "Set extra death variable?", s_noyes));
-    list.add(new Unknown(buffer, offset + 662, 2));
+    list.add(new Bitmap(buffer, offset + 662, 1, "Increment kill count?", s_noyes));
+    list.add(new Unknown(buffer, offset + 663, 1));
     list.add(new DecNumber(buffer, offset + 664, 2, "Internal specifier 1"));
     list.add(new DecNumber(buffer, offset + 666, 2, "Internal specifier 2"));
     list.add(new DecNumber(buffer, offset + 668, 2, "Internal specifier 3"));
@@ -755,7 +767,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset, 2, "Helmet"));
     list.add(new DecNumber(buffer, offset + 2, 2, "Armor"));
     list.add(new DecNumber(buffer, offset + 4, 2, "Shield"));
-    list.add(new DecNumber(buffer, offset + 6, 2, "Gloves"));
+    list.add(new DecNumber(buffer, offset + 6, 2, "Gauntlets"));
     list.add(new DecNumber(buffer, offset + 8, 2, "Left ring"));
     list.add(new DecNumber(buffer, offset + 10, 2, "Right ring"));
     list.add(new DecNumber(buffer, offset + 12, 2, "Amulet"));
@@ -829,11 +841,11 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsFlag(buffer, offset + 24, 4, "Status", "STATE.IDS"));
     list.add(new DecNumber(buffer, offset + 28, 2, "Current HP"));
     list.add(new DecNumber(buffer, offset + 30, 2, "Maximum HP"));
-    list.add(new IdsBitmap(buffer, offset + 32, 2, "Animation", "ANIMATE.IDS"));
-    list.add(new Unknown(buffer, offset + 34, 2));
-    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1"))
-      list.add(new Unknown(buffer, offset + 36, 7));
-    else {
+    list.add(new IdsBitmap(buffer, offset + 32, 4, "Animation", "ANIMATE.IDS"));
+//    list.add(new Unknown(buffer, offset + 34, 2));
+//    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1"))
+//      list.add(new Unknown(buffer, offset + 36, 7));
+//    else {
       list.add(new ColorValue(buffer, offset + 36, 1, "Metal color"));
       list.add(new ColorValue(buffer, offset + 37, 1, "Minor color"));
       list.add(new ColorValue(buffer, offset + 38, 1, "Major color"));
@@ -841,7 +853,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new ColorValue(buffer, offset + 40, 1, "Leather color"));
       list.add(new ColorValue(buffer, offset + 41, 1, "Armor color"));
       list.add(new ColorValue(buffer, offset + 42, 1, "Hair color"));
-    }
+//    }
     DecNumber effect_flag = new DecNumber(buffer, offset + 43, 1, "Effect flag");
     list.add(effect_flag);
     list.add(new ResourceRef(buffer, offset + 44, "Small portrait", "BMP"));
@@ -878,14 +890,14 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 89, 1, "Resist crushing"));
     list.add(new DecNumber(buffer, offset + 90, 1, "Resist piercing"));
     list.add(new DecNumber(buffer, offset + 91, 1, "Resist missile"));
-    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-      list.add(new DecNumber(buffer, offset + 92, 1, "Unused proficiencies"));
-      list.add(new Unknown(buffer, offset + 93, 1));
-    }
-    else {
+//    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
+//      list.add(new DecNumber(buffer, offset + 92, 1, "Unused proficiencies"));
+//      list.add(new Unknown(buffer, offset + 93, 1));
+//    }
+//    else {
       list.add(new UnsignDecNumber(buffer, offset + 92, 1, "Detect illusions"));
       list.add(new UnsignDecNumber(buffer, offset + 93, 1, "Set traps"));
-    }
+//    }
     list.add(new DecNumber(buffer, offset + 94, 1, "Lore"));
     list.add(new UnsignDecNumber(buffer, offset + 95, 1, "Open locks"));
     list.add(new UnsignDecNumber(buffer, offset + 96, 1, "Move silently"));
@@ -912,16 +924,16 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 105, 1, "Axe proficiency"));
       list.add(new DecNumber(buffer, offset + 106, 1, "Club proficiency"));
       list.add(new DecNumber(buffer, offset + 107, 1, "Bow proficiency"));
-      list.add(new DecNumber(buffer, offset + 108, 1, "Extra proficiency 1"));
-      list.add(new DecNumber(buffer, offset + 109, 1, "Extra proficiency 2"));
-      list.add(new DecNumber(buffer, offset + 110, 1, "Extra proficiency 3"));
-      list.add(new DecNumber(buffer, offset + 111, 1, "Extra proficiency 4"));
-      list.add(new DecNumber(buffer, offset + 112, 1, "Extra proficiency 5"));
-      list.add(new DecNumber(buffer, offset + 113, 1, "Extra proficiency 6"));
-      list.add(new DecNumber(buffer, offset + 114, 1, "Extra proficiency 7"));
-      list.add(new DecNumber(buffer, offset + 115, 1, "Extra proficiency 8"));
-      list.add(new DecNumber(buffer, offset + 116, 1, "Extra proficiency 9"));
-      list.add(new Unknown(buffer, offset + 117, 6));
+//      list.add(new DecNumber(buffer, offset + 108, 1, "Extra proficiency 1"));
+//      list.add(new DecNumber(buffer, offset + 109, 1, "Extra proficiency 2"));
+//      list.add(new DecNumber(buffer, offset + 110, 1, "Extra proficiency 3"));
+//      list.add(new DecNumber(buffer, offset + 111, 1, "Extra proficiency 4"));
+//      list.add(new DecNumber(buffer, offset + 112, 1, "Extra proficiency 5"));
+//      list.add(new DecNumber(buffer, offset + 113, 1, "Extra proficiency 6"));
+//      list.add(new DecNumber(buffer, offset + 114, 1, "Extra proficiency 7"));
+//      list.add(new DecNumber(buffer, offset + 115, 1, "Extra proficiency 8"));
+//      list.add(new DecNumber(buffer, offset + 116, 1, "Extra proficiency 9"));
+      list.add(new Unknown(buffer, offset + 108, 15));
     }
     else if (version.equalsIgnoreCase("V9.0")) {
       list.add(new DecNumber(buffer, offset + 102, 1, "Large sword proficiency"));
@@ -1007,7 +1019,9 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 //      m_zoom.put(0xffffL, "Yes");
       list.add(new Unknown(buffer, offset + 616, 24));
       list.add(new HashBitmap(buffer, offset + 640, 4, "Is disguised?", m_zoom));
-      list.add(new Unknown(buffer, offset + 644, 16));
+      list.add(new Unknown(buffer, offset + 644, 8));
+      list.add(new Unknown(buffer, offset + 652, 4, "Overlays offset"));
+      list.add(new Unknown(buffer, offset + 656, 4, "Overlays size"));
       list.add(new DecNumber(buffer, offset + 660, 4, "XP second class"));
       list.add(new DecNumber(buffer, offset + 664, 4, "XP third class"));
       LongIntegerHashMap intMap = IdsMapCache.get("INTERNAL.IDS").getMap();
@@ -1061,7 +1075,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     else if (version.equalsIgnoreCase("V9.0")) {
       list.add(new Bitmap(buffer, offset + 616, 1, "Default visibility", s_visible));
       list.add(new Bitmap(buffer, offset + 617, 1, "Set extra death variable?", s_noyes));
-      list.add(new Unknown(buffer, offset + 618, 2));
+      list.add(new Bitmap(buffer, offset + 618, 1, "Increment kill count?", s_noyes));
+      list.add(new Unknown(buffer, offset + 619, 1));
       list.add(new DecNumber(buffer, offset + 620, 2, "Internal specifier 1"));
       list.add(new DecNumber(buffer, offset + 622, 2, "Internal specifier 2"));
       list.add(new DecNumber(buffer, offset + 624, 2, "Internal specifier 3"));
