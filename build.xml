@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Near Infinity" default="binary">
+    <target name="binary">
+        <javac srcdir="infinity" />
+        <jar destfile="NearInfinity.jar"
+             basedir="."
+             includes="infinity/**/*"
+             excludes="**/.*,**/*.java">
+            <manifest>
+                <attribute name="Main-Class" value="infinity.NearInfinity" />
+            </manifest>
+        </jar>
+    </target>
+    <target name="source">
+        <zip destfile="NearInfinity.zip"
+             basedir="."
+             includes="infinity/**/*"
+             excludes="**/.*,**/*.class" />
+    </target>
+</project>
