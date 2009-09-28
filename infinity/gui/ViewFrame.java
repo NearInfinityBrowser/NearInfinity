@@ -73,6 +73,9 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
   {
     if (viewable instanceof Closeable)
       ((Closeable)viewable).close();
+
+    this.viewable = null;
+    this.getContentPane().removeAll();
   }
 }
 
