@@ -147,8 +147,8 @@ final class ViewerArea extends JPanel implements ActionListener
       super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       AbstractStruct areaLink = (AbstractStruct)value;
       StructEntry entry = areaLink.getAttribute("Target entrance");
-      DecNumber targetIndex = (DecNumber)areaLink.getAttribute("Target area entry");
-      AreaEntry targetEntry = (AreaEntry)areaLink.getSuperStruct().getAttribute("Area entry " + targetIndex);
+      DecNumber targetIndex = (DecNumber)areaLink.getAttribute("Target area");
+      AreaEntry targetEntry = (AreaEntry)areaLink.getSuperStruct().getAttribute("Area " + targetIndex);
 
       StringBuffer name = new StringBuffer();
       if (targetEntry != null)

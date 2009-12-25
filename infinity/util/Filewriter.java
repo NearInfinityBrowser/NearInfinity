@@ -4,10 +4,14 @@
 
 package infinity.util;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 
 public final class Filewriter
 {
+
   public static void writeByte(OutputStream os, byte b) throws IOException
   {
     writeBytes(os, Byteconvert.convertBack(b));
@@ -47,7 +51,12 @@ public final class Filewriter
 
   public static void writeString(OutputStream os, String s, int length) throws IOException
   {
-    writeBytes(os, s.getBytes("ISO-8859-1")); // For NWN, no other conflicts?
+    writeString(os, s, length, Charset.forName("ISO-8859-1")); // For NWN, no other conflicts?
+  }
+
+  public static void writeString(OutputStream os, String s, int length, Charset charset) throws IOException
+  {
+    writeBytes(os, s.getBytes(charset));
     byte buffer[] = new byte[length - s.length()];
     if (buffer.length != 0)
       writeBytes(os, buffer);

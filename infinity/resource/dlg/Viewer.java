@@ -52,6 +52,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private State currentstate;
   private Transition currenttransition;
   private boolean alive = true;
+  private DlgResource undoDlg;
 
   Viewer(DlgResource dlg)
   {
@@ -142,15 +143,27 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     bundo.setEnabled(false);
   }
 
+  public void setUndoDlg(DlgResource dlg) {
+    this.undoDlg = dlg;
+    bundo.setEnabled(true);
+  }
+
 // --------------------- Begin Interface ActionListener ---------------------
 
   public void actionPerformed(ActionEvent event)
   {
     if (!alive) return;
     if (event.getSource() == bundo) {
+      if(lastStates.empty() && (undoDlg != null)) {
+        showExternState(undoDlg, -1, true);
+        return;
+      }
       State oldstate = lastStates.pop();
       Transition oldtrans = lastTransitions.pop();
-      bundo.setEnabled(lastStates.size() > 0);
+      if (lastStates.empty() && (undoDlg == null)) {
+        bundo.setEnabled(false);
+      }
+      //bundo.setEnabled(lastStates.size() > 0);
       if (oldstate != currentstate)
         showState(oldstate.getNumber());
       if (oldtrans != currenttransition)
@@ -201,17 +214,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         }
         else {
           DlgResource newdlg = (DlgResource)ResourceFactory.getResource(
-                  ResourceFactory.getInstance().getResourceEntry(next_dlg.toString()));
-          alive = false;
-          if (NearInfinity.getInstance().getViewable() == dlg)
-            NearInfinity.getInstance().setViewable(newdlg);
-          else {
-            ViewFrame frame = (ViewFrame)getTopLevelAncestor();
-            frame.setViewable(newdlg);
-          }
-          ((Viewer)newdlg.getDetailViewer()).showState(currenttransition.getNextDialogState());
-          ((Viewer)newdlg.getDetailViewer()).showTransition(
-                  ((Viewer)newdlg.getDetailViewer()).currentstate.getFirstTrans());
+              ResourceFactory.getInstance().getResourceEntry(next_dlg.toString()));
+          showExternState(newdlg, currenttransition.getNextDialogState(), false);
         }
       }
       if (alive) {
@@ -258,6 +262,108 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   }
 
 // --------------------- End Interface TableModelListener ---------------------
+
+  // for quickly jump to the corresponding state while only having a StructEntry
+  public void showStateWithStructEntry(StructEntry entry)
+  {
+    int stateNrToShow = 0;
+    int transNrToShow = 0;
+
+    // we can have states, triggers, transitions and actions
+    if (entry instanceof State) {
+      stateNrToShow = ((State) entry).getNumber();
+      transNrToShow = ((State) entry).getFirstTrans();
+    }
+    else if (entry instanceof Transition) {
+      int transnr = ((Transition) entry).getNumber();
+      stateNrToShow = findStateForTrans(transnr);
+      transNrToShow = transnr;
+    }
+    else if (entry instanceof StateTrigger) {
+      int triggerOffset = ((StateTrigger) entry).getOffset();
+      int nr = 0;
+      for (StateTrigger trig : staTriList) {
+        if (trig.getOffset() == triggerOffset)
+          break;
+        nr++;
+      }
+
+      for (State state : stateList) {
+        if (state.getTriggerIndex() == nr) {
+          stateNrToShow = state.getNumber();
+          transNrToShow = state.getFirstTrans();
+          break;
+        }
+      }
+    }
+    else if (entry instanceof ResponseTrigger) {
+      int triggerOffset = ((ResponseTrigger) entry).getOffset();
+      int nr = 0;
+      for (ResponseTrigger trig : transTriList) {
+        if (trig.getOffset() == triggerOffset)
+          break;
+        nr++;
+      }
+
+      for (Transition trans : transList) {
+        if (trans.getTriggerIndex() == nr) {
+          transNrToShow = trans.getNumber();
+          stateNrToShow = findStateForTrans(transNrToShow);
+        }
+      }
+    }
+    else if (entry instanceof Action) {
+      int actionOffset = ((Action) entry).getOffset();
+      int nr = 0;
+      for (Action action : actionList) {
+        if (action.getOffset() == actionOffset)
+          break;
+        nr++;
+      }
+
+      for (Transition trans : transList) {
+        if (trans.getActionIndex() == nr) {
+          transNrToShow = trans.getNumber();
+          stateNrToShow = findStateForTrans(transNrToShow);
+        }
+      }
+    }
+    else if (entry instanceof StringRef) {
+      // this can happen with the dlg search
+      // check all states and transitions
+      int strref = ((StringRef) entry).getValue();
+      boolean found = false;
+      for (State state : stateList) {
+        if (state.getResponse().getValue() == strref) {
+          stateNrToShow = state.getNumber();
+          transNrToShow = state.getFirstTrans();
+          found = true;
+        }
+      }
+      if (!found) {
+        for (Transition trans : transList) {
+          if (trans.getAssociatedText().getValue() == strref) {
+            transNrToShow = trans.getNumber();
+            stateNrToShow = findStateForTrans(transNrToShow);
+          }
+        }
+      }
+    }
+
+    showState(stateNrToShow);
+    showTransition(transNrToShow);
+  }
+
+  private int findStateForTrans(int transnr) {
+    for (State state : stateList) {
+      if ((transnr >= state.getFirstTrans())
+          && (transnr < (state.getFirstTrans() + state.getTransCount()))) {
+        return state.getNumber();
+      }
+    }
+    // default
+    return 0;
+  }
 
   private void showState(int nr)
   {
@@ -326,6 +432,31 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
   }
 
+  private void showExternState(DlgResource newdlg, int state, boolean isUndo) {
+
+    alive = false;
+    Container window = getTopLevelAncestor();
+    if (window instanceof ViewFrame && window.isVisible())
+      ((ViewFrame) window).setViewable(newdlg);
+    else
+      NearInfinity.getInstance().setViewable(newdlg);
+
+    Viewer newdlg_viewer = (Viewer) newdlg.getDetailViewer();
+    if (isUndo) {
+      newdlg_viewer.alive = true;
+      newdlg_viewer.repaint(); // only necessary when dlg is in extra window
+    }
+    else {
+      newdlg_viewer.setUndoDlg(this.dlg);
+      newdlg_viewer.showState(state);
+      newdlg_viewer.showTransition(newdlg_viewer.currentstate.getFirstTrans());
+    }
+
+    // make sure the viewer tab is selected
+    JTabbedPane parent = (JTabbedPane) newdlg_viewer.getParent();
+    parent.getModel().setSelectedIndex(parent.indexOfComponent(newdlg_viewer));
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
   private final class DlgPanel extends JPanel implements ActionListener
@@ -333,7 +464,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     private final JButton bView = new JButton(Icons.getIcon("Zoom16.gif"));
     private final JButton bGoto = new JButton(Icons.getIcon("RowInsertAfter16.gif"));
     private final JButton bPlay = new JButton(Icons.getIcon("Volume16.gif"));
-    private final JTextArea textArea = new JTextArea();
+    private final ScriptTextArea textArea = new ScriptTextArea();
     private final JLabel label = new JLabel();
     private final String title;
     private AbstractStruct struct;

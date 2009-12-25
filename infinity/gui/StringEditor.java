@@ -17,6 +17,7 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
@@ -359,6 +360,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
     public void run()
     {
+      Charset charset = StringResource.getCharset();
       ProgressMonitor progress = null;
       try {
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(stringfile));
@@ -395,7 +397,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
         RandomAccessFile ranfile = new RandomAccessFile(stringfile, "r");
         for (int i = 0; i < entries.length; i++) {
-          entries[i].readString(ranfile, entries_offset.getValue());
+          entries[i].readString(ranfile, entries_offset.getValue(), charset);
           progress.setProgress(i + 1 + entries_count.getValue());
           if (progress.isCanceled()) {
             entries = null;
@@ -504,6 +506,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
     public void run()
     {
+      Charset charset = StringResource.getCharset();
       bexport.setEnabled(false);
       bsave.setEnabled(false);
       breread.setEnabled(false);
@@ -554,11 +557,11 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
         for (int i = 0; i < entries.length; i++) {
           if (entries[i] != null)
-            entries[i].writeString(bos);
+            entries[i].writeString(bos, charset);
           progress.setProgress(i + 1 + entries_count.getValue());
         }
         for (int i = 0; i < added_entries.size(); i++) {
-          added_entries.get(i).writeString(bos);
+          added_entries.get(i).writeString(bos, charset);
           progress.setProgress(entries_count.getValue() + entries.length + i + 1);
         }
         bos.close();
@@ -633,10 +636,10 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       }
     }
 
-    public void readString(RandomAccessFile ranfile, int baseoffset) throws IOException
+    public void readString(RandomAccessFile ranfile, int baseoffset, Charset charset) throws IOException
     {
       ranfile.seek((long)(baseoffset + doffset));
-      string = Filereader.readString(ranfile, dlength);
+      string = Filereader.readString(ranfile, dlength, charset);
     }
 
     public int update(int newoffset)
@@ -675,9 +678,9 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       }
     }
 
-    public void writeString(OutputStream os) throws IOException
+    public void writeString(OutputStream os, Charset charset) throws IOException
     {
-      Filewriter.writeString(os, string, dlength);
+      Filewriter.writeString(os, string, dlength, charset);
     }
 
     private void setString(String newstring)

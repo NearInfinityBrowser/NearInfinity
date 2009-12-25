@@ -16,6 +16,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 {
   private static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   private static final String s_weather[] = {"No weather", "Raining", "Snowing"};
+  private static final String s_torment[] = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
+                                             "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
+                                             "Line", "None"};
 
   public GamResource(ResourceEntry entry) throws Exception
   {
@@ -83,7 +86,10 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
     list.add(version);
     list.add(new DecNumber(buffer, offset + 8, 4, "Game time (game seconds)"));
-    list.add(new Bitmap(buffer, offset + 12, 2, "Selected formation", s_formation));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+      list.add(new Bitmap(buffer, offset + 12, 2, "Selected formation", s_torment));
+    else
+      list.add(new Bitmap(buffer, offset + 12, 2, "Selected formation", s_formation));
     list.add(new DecNumber(buffer, offset + 14, 2, "Formation button 1"));
     list.add(new DecNumber(buffer, offset + 16, 2, "Formation button 2"));
     list.add(new DecNumber(buffer, offset + 18, 2, "Formation button 3"));
@@ -104,10 +110,10 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, "Unknown section count",
                                                   UnknownSection2.class);
     list.add(count_unknown);
-    SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, "Non-party NPCs offset",
+    SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, "Non-party characters offset",
                                                          NonPartyNPC.class);
     list.add(offset_nonpartynpc);
-    SectionCount count_nonpartynpc = new SectionCount(buffer, offset + 52, 4, "# non-party NPCs",
+    SectionCount count_nonpartynpc = new SectionCount(buffer, offset + 52, 4, "# non-party characters",
                                                       NonPartyNPC.class);
     list.add(count_nonpartynpc);
     SectionOffset offset_global = new SectionOffset(buffer, offset + 56, "Global variables offset",
@@ -125,7 +131,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
                                                      JournalEntry.class);
     list.add(offset_journal);
 
-    SectionOffset offKillvariable = null, offFamiliar = null, offIWD2 = null, offIWD = null, offLocation = null;
+    SectionOffset offKillvariable = null, offFamiliar = null, offIWD2 = null, offIWD = null;
+    SectionOffset offLocation = null, offRubikon = null, offBestiary = null;
     SectionCount numKillVariable = null, numIWD = null, numLocation = null;
 
     int gameid = ResourceFactory.getGameID();
@@ -152,15 +159,17 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 108, 72));
     }
     else if (gameid == ResourceFactory.ID_TORMENT) { // V1.1
-      list.add(new HexNumber(buffer, offset + 84, 4, "Maze offset"));
+      offRubikon = new SectionOffset(buffer, offset + 84, "Modron maze offset", Unknown.class);
+      list.add(offRubikon);
       list.add(new DecNumber(buffer, offset + 88, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 92, "Current area", "ARE"));
       offKillvariable = new SectionOffset(buffer, offset + 100, "Kill variables offset", KillVariable.class);
       list.add(offKillvariable);
       numKillVariable = new SectionCount(buffer, offset + 104, 4, "# kill variables", KillVariable.class);
       list.add(numKillVariable);
-      list.add(new HexNumber(buffer, offset + 108, 4, "Bestiary offset"));
-      list.add(new ResourceRef(buffer, offset + 112, "Area", "ARE"));
+      offBestiary = new SectionOffset(buffer, offset + 108, "Bestiary offset", Unknown.class);
+      list.add(offBestiary);
+      list.add(new ResourceRef(buffer, offset + 112, "Current area?", "ARE"));
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
@@ -219,6 +228,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         list.add(new UnknownSection2(this, buffer, offset + i * 20));
     }
 
+    if (offRubikon != null) { // Torment
+      offset = offRubikon.getValue();
+      if (offset > 0) {
+        list.add(new Unknown(buffer, offset, 1720, "Modron maze state"));
+        offset += 1720;
+      }
+    }
+
     offset = offset_global.getValue();
     for (int i = 0; i < count_global.getValue(); i++) {
       Variable var = new Variable(this, buffer, offset);
@@ -240,6 +257,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       JournalEntry ent = new JournalEntry(this, buffer, offset);
       offset += ent.getSize();
       list.add(ent);
+    }
+
+    if (offBestiary != null) { // Torment
+      offset = offBestiary.getValue();
+      if (offset > 0) {
+        list.add(new Unknown(buffer, offset, 260, "Bestiary"));
+        offset += 260;
+      }
     }
 
     if (offFamiliar != null) { // BG2

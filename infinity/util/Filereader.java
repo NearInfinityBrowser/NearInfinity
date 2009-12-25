@@ -5,6 +5,7 @@
 package infinity.util;
 
 import java.io.*;
+import java.nio.charset.Charset;
 
 public final class Filereader
 {
@@ -125,9 +126,14 @@ public final class Filereader
 
   public static String readString(RandomAccessFile ranfile, int length) throws IOException
   {
+    return readString(ranfile, length, Charset.forName("ISO-8859-1"));
+  }
+
+  public static String readString(RandomAccessFile ranfile, int length, Charset charset) throws IOException
+  {
     byte buffer[] = new byte[length];
     ranfile.readFully(buffer);
-    return new String(buffer);
+    return new String(buffer, charset);
   }
 
   public static String readString(InputStream is, int length) throws IOException

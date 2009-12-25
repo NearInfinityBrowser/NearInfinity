@@ -13,13 +13,18 @@ import java.util.List;
 
 public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
 {
+  private boolean sortValues = true;
   private final Comparator ignorecasecomparator = new IgnoreCaseComparator();
   private final DefaultListModel listmodel = new DefaultListModel();
   private final JList list;
   private final JTextField tfield = new JTextField(10);
 
-  public TextListPanel(List values)
+  public TextListPanel(List values) {
+    this(values, true);
+  }
+  public TextListPanel(List values, boolean sortValues)
   {
+    this.sortValues = sortValues;
     setValues(values);
     list = new JList(listmodel);
     list.setSelectedIndex(0);
@@ -116,7 +121,9 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
   public void setValues(List values)
   {
-    Collections.sort(values, ignorecasecomparator);
+    if (this.sortValues) {
+      Collections.sort(values, ignorecasecomparator);
+    }
     listmodel.clear();
     for (int i = 0; i < values.size(); i++)
       listmodel.addElement(values.get(i));

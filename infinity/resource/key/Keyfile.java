@@ -302,7 +302,6 @@ public final class Keyfile
       resourceicons.put("TXT", ICON_TEXT);
       resourceicons.put("RES", ICON_TEXT);
       resourceicons.put("BAF", ICON_SCRIPT);
-      resourceicons.put("BAK", ICON_TEXT);
     }
   }
 

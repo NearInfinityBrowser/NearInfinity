@@ -20,7 +20,6 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_slotmask = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
-  private static final LongIntegerHashMap<String> m_zoom = new LongIntegerHashMap<String>();
   private static final String s_flag[] = {"No flags set", "", "No corpse", "Permanent corpse",
                                           "Original class: Fighter",
                                           "Original class: Mage", "Original class: Cleric",
@@ -101,32 +100,43 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     m_colorPlacement.put((long)0xE2, "Hair (pulsate)");
     m_colorPlacement.put((long)0xE3, "Hair (hologram/pulsate)");
     m_colorPlacement.put((long)0x00, "Not used");
-
-    m_zoom.put(0L, "No");
-    m_zoom.put(65535L, "Yes");
   }
 
-  public static void addScriptName(Set<String> scriptNames, byte buffer[])
+  public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
+                                   ResourceEntry entry)
   {
-    String signature = new String(buffer, 0, 4);
-    String scriptName = "";
-    if (signature.equalsIgnoreCase("CRE ")) {
-      String version = new String(buffer, 4, 4);
-      if (version.equalsIgnoreCase("V1.0"))
-        scriptName = Byteconvert.convertString(buffer, 640, 32);
-      else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2"))
-        scriptName = Byteconvert.convertString(buffer, 804, 32);
-      else if (version.equalsIgnoreCase("V2.2"))
-        scriptName = Byteconvert.convertString(buffer, 916, 32);
-      else if (version.equalsIgnoreCase("V9.0"))
-        scriptName = Byteconvert.convertString(buffer, 744, 32);
-      if (scriptName.equals("") || scriptName.equalsIgnoreCase("None"))
-        ;
-      // Apparently script name is the only thing that matters
-//        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
-      else
-        scriptNames.add(scriptName.toLowerCase().replaceAll(" ", ""));
-    }
+    try {
+      byte[] buffer = entry.getResourceData();
+      String signature = new String(buffer, 0, 4);
+      String scriptName = "";
+      if (signature.equalsIgnoreCase("CRE ")) {
+        String version = new String(buffer, 4, 4);
+        if (version.equalsIgnoreCase("V1.0"))
+          scriptName = Byteconvert.convertString(buffer, 640, 32);
+        else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2"))
+          scriptName = Byteconvert.convertString(buffer, 804, 32);
+        else if (version.equalsIgnoreCase("V2.2"))
+          scriptName = Byteconvert.convertString(buffer, 916, 32);
+        else if (version.equalsIgnoreCase("V9.0"))
+          scriptName = Byteconvert.convertString(buffer, 744, 32);
+        if (scriptName.equals("") || scriptName.equalsIgnoreCase("None"))
+          return;
+        // Apparently script name is the only thing that matters
+  //        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
+        else {
+          scriptName = scriptName.toLowerCase().replaceAll(" ", "");
+          if (scriptNames.containsKey(scriptName)) {
+            Set<ResourceEntry> entries = scriptNames.get(scriptName);
+            entries.add(entry);
+          }
+          else {
+            Set<ResourceEntry> entries = new HashSet<ResourceEntry>();
+            entries.add(entry);
+            scriptNames.put(scriptName, entries);
+          }
+        }
+      }
+    } catch (Exception e) {}
   }
 
   private static void adjustEntryOffsets(AbstractStruct struct, int amount)
@@ -161,7 +171,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
         while (!crefile.getStructEntryAt(0).toString().equals("CRE "))
           crefile.list.remove(0);
-//        convertToSemiStandard(crefile); // ToDo:Enable conversion again
+        convertToSemiStandard(crefile);
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
         crefile.write(bos);
         bos.close();
@@ -213,7 +223,16 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     offsetStructs = copyStruct(crefile.list, newlist, indexStructs, offsetStructs, SpellMemorization.class);
 
     memspells_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.list, newlist, indexStructs, offsetStructs, MemorizedSpells.class);
+    // XXX: mem spells are not directly stored in crefile.list
+    // and added by addFlatList on the Spell Memorization entries
+    // (but the offsets are wrong, so we need to realign them with copyStruct)
+    List<StructEntry> trashlist = new ArrayList<StructEntry>();
+    for (int i = indexStructs; i < crefile.list.size(); i++) {
+      StructEntry entry = crefile.list.get(i);
+      if (entry instanceof SpellMemorization) {
+        offsetStructs = copyStruct(((SpellMemorization)entry).getList(), trashlist, 0, offsetStructs, MemorizedSpells.class);
+      }
+    }
 
     effects_offset.setValue(offsetStructs);
     offsetStructs =
@@ -350,9 +369,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       HexNumber structOffset = new HexNumber(buffer, offset + 40, 4, "CRE structure offset");
       list.add(structOffset);
       list.add(new HexNumber(buffer, offset + 44, 4, "CRE structure length"));
-      if (version.toString().equalsIgnoreCase("V2.2"))
-        list.add(new Unknown(buffer, offset + 48, structOffset.getValue() - 48));
-      else {
+      if (version.toString().equalsIgnoreCase("V1.0")) {
         list.add(new IdsBitmap(buffer, offset + 48, 2, "Quick weapon slot 1", "SLOTS.IDS"));
         list.add(new IdsBitmap(buffer, offset + 50, 2, "Quick weapon slot 2", "SLOTS.IDS"));
         list.add(new IdsBitmap(buffer, offset + 52, 2, "Quick weapon slot 3", "SLOTS.IDS"));
@@ -371,6 +388,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
         list.add(new HashBitmap(buffer, offset + 96, 2, "Show quick item 2?", m_slotmask));
         list.add(new HashBitmap(buffer, offset + 98, 2, "Show quick item 3?", m_slotmask));
       }
+      else
+        list.add(new Unknown(buffer, offset + 48, structOffset.getValue() - 48));
       offset = structOffset.getValue();
       list.add(new TextString(buffer, offset, 4, "Signature 2"));
       version = new TextString(buffer, offset + 4, 4, "Version 2");
@@ -398,8 +417,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsFlag(buffer, offset + 24, 4, "Status", "STATE.IDS"));
     list.add(new DecNumber(buffer, offset + 28, 2, "Current HP"));
     list.add(new DecNumber(buffer, offset + 30, 2, "Maximum HP"));
-    list.add(new IdsBitmap(buffer, offset + 32, 4, "Animation", "ANIMATE.IDS"));
-//    list.add(new Unknown(buffer, offset + 34, 2));
+    list.add(new IdsBitmap(buffer, offset + 32, 2, "Animation", "ANIMATE.IDS"));
+    list.add(new Unknown(buffer, offset + 34, 2));
     list.add(new ColorValue(buffer, offset + 36, 1, "Metal color"));
     list.add(new ColorValue(buffer, offset + 37, 1, "Minor color"));
     list.add(new ColorValue(buffer, offset + 38, 1, "Major color"));
@@ -534,7 +553,6 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 612, 1, "Morale"));
     list.add(new DecNumber(buffer, offset + 613, 1, "Morale break"));
     list.add(new DecNumber(buffer, offset + 614, 2, "Morale recovery"));
-//    list.add(new Unknown(buffer, offset + 615, 1));
     list.add(new IdsBitmap(buffer, offset + 616, 4, "Kit", "KIT.IDS"));
     list.add(new ResourceRef(buffer, offset + 620, "Override script", "BCS"));
     list.add(new ResourceRef(buffer, offset + 628, "Special script 2", "BCS"));
@@ -841,8 +859,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsFlag(buffer, offset + 24, 4, "Status", "STATE.IDS"));
     list.add(new DecNumber(buffer, offset + 28, 2, "Current HP"));
     list.add(new DecNumber(buffer, offset + 30, 2, "Maximum HP"));
-    list.add(new IdsBitmap(buffer, offset + 32, 4, "Animation", "ANIMATE.IDS"));
-//    list.add(new Unknown(buffer, offset + 34, 2));
+    list.add(new IdsBitmap(buffer, offset + 32, 2, "Animation", "ANIMATE.IDS"));
+    list.add(new Unknown(buffer, offset + 34, 2));
 //    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1"))
 //      list.add(new Unknown(buffer, offset + 36, 7));
 //    else {
@@ -890,14 +908,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 89, 1, "Resist crushing"));
     list.add(new DecNumber(buffer, offset + 90, 1, "Resist piercing"));
     list.add(new DecNumber(buffer, offset + 91, 1, "Resist missile"));
-//    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-//      list.add(new DecNumber(buffer, offset + 92, 1, "Unused proficiencies"));
+    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
+      list.add(new DecNumber(buffer, offset + 92, 1, "Unspent proficiencies"));
 //      list.add(new Unknown(buffer, offset + 93, 1));
-//    }
-//    else {
+    }
+    else
       list.add(new UnsignDecNumber(buffer, offset + 92, 1, "Detect illusions"));
-      list.add(new UnsignDecNumber(buffer, offset + 93, 1, "Set traps"));
-//    }
+    list.add(new UnsignDecNumber(buffer, offset + 93, 1, "Set traps"));
     list.add(new DecNumber(buffer, offset + 94, 1, "Lore"));
     list.add(new UnsignDecNumber(buffer, offset + 95, 1, "Open locks"));
     list.add(new UnsignDecNumber(buffer, offset + 96, 1, "Move silently"));
@@ -1018,7 +1035,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 //      m_zoom.put(0x0000L, "No");
 //      m_zoom.put(0xffffL, "Yes");
       list.add(new Unknown(buffer, offset + 616, 24));
-      list.add(new HashBitmap(buffer, offset + 640, 4, "Is disguised?", m_zoom));
+      list.add(new Unknown(buffer, offset + 640, 4));
       list.add(new Unknown(buffer, offset + 644, 8));
       list.add(new Unknown(buffer, offset + 652, 4, "Overlays offset"));
       list.add(new Unknown(buffer, offset + 656, 4, "Overlays size"));
@@ -1049,7 +1066,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
                                      "Increment team kills", "Invulnerable",
                                      "Good increment on death", "Law increment on death",
                                      "Lady increment on death", "Murder increment on death",
-                                     "Face dialogue target", "Call for help"}));
+                                     "Don't face speaker", "Call for help"}));
 //      list.add(new Unknown(buffer, offset + 730, 2));
       list.add(new IdsBitmap(buffer, offset + 732, 2, "Color 1", "CLOWNCLR.IDS"));
       list.add(new IdsBitmap(buffer, offset + 734, 2, "Color 2", "CLOWNCLR.IDS"));
@@ -1188,13 +1205,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
     offset = getExtraOffset() + offsetItemslots.getValue();
     if (version.equalsIgnoreCase("V1.2")) {
-      list.add(new DecNumber(buffer, offset, 2, "Right earring/lens"));
-      list.add(new DecNumber(buffer, offset + 2, 2, "Armor"));
+      list.add(new DecNumber(buffer, offset, 2, "Right earring"));
+      list.add(new DecNumber(buffer, offset + 2, 2, "Chest"));
       list.add(new DecNumber(buffer, offset + 4, 2, "Left tattoo"));
       list.add(new DecNumber(buffer, offset + 6, 2, "Hand"));
       list.add(new DecNumber(buffer, offset + 8, 2, "Left ring"));
       list.add(new DecNumber(buffer, offset + 10, 2, "Right ring"));
-      list.add(new DecNumber(buffer, offset + 12, 2, "Left earring/eyeball"));
+      list.add(new DecNumber(buffer, offset + 12, 2, "Left earring"));
       list.add(new DecNumber(buffer, offset + 14, 2, "Right tattoo (lower)"));
       list.add(new DecNumber(buffer, offset + 16, 2, "Wrist"));
       list.add(new DecNumber(buffer, offset + 18, 2, "Weapon 1"));

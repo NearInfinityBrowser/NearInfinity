@@ -261,6 +261,7 @@ public final class Decompiler
       if (entry != null)
         code.append(entry.getString());
       else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
+                           map.toString().equalsIgnoreCase("BITS.IDS") ||
                            map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
                            map.toString().equalsIgnoreCase("STATE.IDS"))) {
         if (nr < 0)
@@ -540,7 +541,7 @@ public final class Decompiler
       else if (p.substring(0, 2).equals("O:"))
         code.append(object);
       else if (p.substring(0, 2).equals("P:"))
-        code.append(coord);
+        code.append(coord.replaceFirst(",", "."));   // for WeiDU compatability
       else if (p.substring(0, 2).equals("I:")) {
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);

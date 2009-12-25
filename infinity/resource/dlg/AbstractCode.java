@@ -5,7 +5,9 @@
 package infinity.resource.dlg;
 
 import infinity.datatype.*;
+import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.ScriptTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.*;
@@ -28,7 +30,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   private final DecNumber off;
   private ButtonPopupMenu bError, bWarning;
   private JButton bUpdate, bCheck;
-  private JTextArea textArea;
+  private ScriptTextArea textArea;
   private SortedMap<Integer, String> errors, warnings;
   private String text;
 
@@ -110,7 +112,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
   public JComponent edit(ActionListener container)
   {
-    textArea = new JTextArea();
+    textArea = new ScriptTextArea();
     textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     String convertedText = text;
     int index = convertedText.indexOf((int)'\r');
@@ -129,7 +131,9 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     bCheck = new JButton("Compile Check", Icons.getIcon("Redo16.gif"));
     bCheck.addActionListener(this);
     bError = new ButtonPopupMenu("Errors (0)...", new JMenuItem[]{});
+    bError.setEnabled(false);
     bWarning = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[]{});
+    bWarning.setEnabled(false);
     bError.addItemListener(this);
     bWarning.addItemListener(this);
     bError.setIcon(Icons.getIcon("Up16.gif"));
@@ -169,7 +173,8 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
   public void select()
   {
-    bCheck.doClick();
+    if (BrowserMenuBar.getInstance().autocheckBCS())
+      bCheck.doClick();
   }
 
   public boolean updateValue(AbstractStruct struct)

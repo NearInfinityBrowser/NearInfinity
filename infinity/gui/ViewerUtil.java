@@ -244,6 +244,16 @@ public final class ViewerUtil
     public void tableChanged(TableModelEvent event)
     {
       if (event.getType() == TableModelEvent.DELETE) {
+
+        // go through the list and find what was deleted
+        List<StructEntry> structlist = struct.getList();
+        for (int i = 0; i < listModel.size(); i++) {
+          if (!structlist.contains(listModel.get(i))) {
+            listModel.remove(i);
+            i--;
+          }
+        }
+        /*
         // Ineffective - any better solutions?
         if (comp == null) {
           listModel.clear();
@@ -254,6 +264,7 @@ public final class ViewerUtil
           }
         }
         else {
+
           List<AbstractStruct> templist = new ArrayList<AbstractStruct>();
           for (int i = 0; i < struct.getRowCount(); i++) {
             StructEntry o = struct.getStructEntryAt(i);
@@ -262,9 +273,12 @@ public final class ViewerUtil
           }
           Collections.sort(templist, comp);
           listModel.clear();
-          for (int i = 0; i < templist.size(); i++)
+          for (int i = 0; i < templist.size(); i++) {
             listModel.addElement(templist.get(i));
+          }
         }
+        */
+
         if (listModel.size() > 0)
           list.setSelectedIndex(0);
         bOpen.setEnabled(listModel.size() > 0 && listModel.get(0) instanceof Viewable);

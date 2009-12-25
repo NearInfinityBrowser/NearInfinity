@@ -4,24 +4,39 @@
 
 package infinity.resource.bcs;
 
+import infinity.NearInfinity;
+import infinity.gui.StatusBar;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.AreResource;
 import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.IdsMap;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+
+import javax.swing.SwingWorker;
 
 public final class Compiler
 {
   private static Compiler compiler;
   private final IdsMap[] itype;
-  private final Set<String> scriptNamesCre = new HashSet<String>();
+  private final Map<String, Set<ResourceEntry>> scriptNamesCre =
+    new HashMap<String, Set<ResourceEntry>>();
   private final Set<String> scriptNamesAre = new HashSet<String>();
   private final SortedMap<Integer, String> errors = new TreeMap<Integer, String>();
   private final SortedMap<Integer, String> warnings = new TreeMap<Integer, String>();
   private final String emptyObject;
   private int linenr;
+  private boolean scriptNamesValid = false;
 
   public static Compiler getInstance()
   {
@@ -88,26 +103,72 @@ public final class Compiler
         IdsMapCache.get("GENDER.IDS"),
         IdsMapCache.get("ALIGNMEN.IDS")
       };
+
     emptyObject = compileObject(null, "");
 
-    scriptNamesCre.clear();
-    scriptNamesAre.clear();
-    List<ResourceEntry> files = ResourceFactory.getInstance().getResources("CRE");
-    for (int i = 0; i < files.size(); i++) {
-      ResourceEntry resourceEntry = files.get(i);
-      try {
-        CreResource.addScriptName(scriptNamesCre, resourceEntry.getResourceData());
-      } catch (Exception e) {
+    setupScriptNames();
+  }
+
+  private void setupScriptNames()
+  {
+    final StatusBar statusBar = NearInfinity.getInstance().getStatusBar();
+    final String oldMessage = statusBar.getMessage();
+    final String notification = "Gathering creature and area names ...";
+
+    // This can take some time, so its moved into a background job
+    SwingWorker<Object, Object> task = new SwingWorker<Object, Object>() {
+      protected Object doInBackground() {
+        scriptNamesCre.clear();
+        scriptNamesAre.clear();
+
+        List<ResourceEntry> files = ResourceFactory.getInstance().getResources("CRE");
+        for (int i = 0; i < files.size(); i++) {
+          ResourceEntry resourceEntry = files.get(i);
+          try {
+            CreResource.addScriptName(scriptNamesCre, resourceEntry);
+          }
+          catch (Exception e) {}
+
+        }
+
+        files = ResourceFactory.getInstance().getResources("ARE");
+        for (int i = 0; i < files.size(); i++) {
+          ResourceEntry resourceEntry = files.get(i);
+          try {
+            AreResource.addScriptNames(scriptNamesAre, resourceEntry.getResourceData());
+          }
+          catch (Exception e) {}
+        }
+
+        return null;
       }
-    }
-    files = ResourceFactory.getInstance().getResources("ARE");
-    for (int i = 0; i < files.size(); i++) {
-      ResourceEntry resourceEntry = files.get(i);
-      try {
-        AreResource.addScriptNames(scriptNamesAre, resourceEntry.getResourceData());
-      } catch (Exception e) {
+
+      protected void done() {
+        if (statusBar.getMessage().startsWith(notification)) {
+          statusBar.setMessage(oldMessage.trim());
+        }
+        scriptNamesValid = true;
       }
+    };
+
+    statusBar.setMessage(notification);
+    task.execute();
+  }
+
+  public boolean hasValidScriptNames() {
+    return scriptNamesValid;
+  }
+
+  public boolean hasScriptName(String scriptName) {
+    if (scriptNamesValid &&
+        scriptNamesCre.containsKey(scriptName.toLowerCase().replaceAll(" ", ""))) {
+      return true;
     }
+    return false;
+  }
+
+  public Set<ResourceEntry> getResForScriptName(String scriptName) {
+    return scriptNamesCre.get(scriptName.toLowerCase().replaceAll(" ", ""));
   }
 
   public String compile(String source)
@@ -199,11 +260,13 @@ public final class Compiler
   private void checkObjectString(String definition, String value)
   {
     String name = value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "");
-    if (name.equals("") || !(scriptNamesCre.contains(name) || scriptNamesAre.contains(name)))
-      warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
-//    else {
-//      System.out.println(definition + " - " + value + " OK");
-//    }
+    if (scriptNamesValid) {
+        if (name.equals("") || !(scriptNamesCre.containsKey(name) || scriptNamesAre.contains(name)))
+          warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
+//        else {
+//          System.out.println(definition + " - " + value + " OK");
+//        }
+    }
   }
 
   private void checkString(String function, String definition, String value)
@@ -226,15 +289,17 @@ public final class Compiler
           function.equalsIgnoreCase("NumDead(") ||
           function.equalsIgnoreCase("NumDeadGT(") ||
           function.equalsIgnoreCase("NumDeadLT(")) {
-        if (!scriptNamesCre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
-            IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
-          warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
+        if (scriptNamesValid) {
+          if (!scriptNamesCre.containsKey(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+              IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
+            warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
+        }
       }
     }
-    else if (function.equalsIgnoreCase("AttachTransitionToDoor(")) {
-      if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
-          IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
-        warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
+    else if (function.equalsIgnoreCase("AttachTransitionToDoor(") && scriptNamesValid) {
+        if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+            IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
+          warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
     }
 //    else if (definition.equalsIgnoreCase("S:Name*") || definition.equalsIgnoreCase("S:Column*")
 //             || definition.equalsIgnoreCase("S:Entry*") || definition.equalsIgnoreCase("S:Global*")
@@ -469,6 +534,9 @@ public final class Compiler
         return String.valueOf(nr);
       }
       else {
+      // XXX: What is the purpose of this?
+      // Maybe unsigned -> signed conversion?
+      // Why not simply cast it to (int)?
         long nr = Long.parseLong(value);
         if (nr >= 2147483648L) {
           nr -= 4294967296L;
@@ -863,7 +931,7 @@ public final class Compiler
       else if (definition.startsWith("O:"))
         object = compileObject(definition, parameter);
       else if (definition.startsWith("P:"))
-        point = parameter;
+        point = parameter.replaceFirst("\\.", ",");     // be consistent with WeiDU
       actParamCount++;
     }
     if (defParamCount > actParamCount) {

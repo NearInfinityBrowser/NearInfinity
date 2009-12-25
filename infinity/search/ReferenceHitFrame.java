@@ -8,6 +8,7 @@ import infinity.NearInfinity;
 import infinity.gui.*;
 import infinity.icon.Icons;
 import infinity.resource.*;
+import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 
@@ -68,9 +69,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
           if (row != -1) {
             Resource res = ResourceFactory.getResource((ResourceEntry)table.getValueAt(row, 0));
             new ViewFrame(frame, res);
-            if (res instanceof AbstractStruct)
-              ((AbstractStruct)res).getViewer().selectEntry(
-                      ((ReferenceHit)table.getTableItemAt(row)).getStructEntry().getOffset());
+            showEntryInViewer(row, res);
           }
         }
       }
@@ -93,16 +92,16 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
         if (parent instanceof ViewFrame && parent.isVisible()) {
           Resource res = ResourceFactory.getResource(entry);
           ((ViewFrame)parent).setViewable(res);
-          if (res instanceof AbstractStruct)
-            ((AbstractStruct)res).getViewer().selectEntry(
-                    ((ReferenceHit)table.getTableItemAt(row)).getStructEntry().getOffset());
+          showEntryInViewer(row, res);
+          if (res instanceof DlgResource)
+            ((ViewFrame) parent).toFront();
         }
         else {
           NearInfinity.getInstance().showResourceEntry(entry);
           Viewable viewable = NearInfinity.getInstance().getViewable();
-          if (viewable instanceof AbstractStruct)
-            ((AbstractStruct)viewable).getViewer().selectEntry(
-                    ((ReferenceHit)table.getTableItemAt(row)).getStructEntry().getOffset());
+          showEntryInViewer(row, viewable);
+          if (viewable instanceof DlgResource)
+            NearInfinity.getInstance().toFront();
         }
       }
     }
@@ -111,9 +110,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       if (row != -1) {
         Resource res = ResourceFactory.getResource((ResourceEntry)table.getValueAt(row, 0));
         new ViewFrame(this, res);
-        if (res instanceof AbstractStruct)
-          ((AbstractStruct)res).getViewer().selectEntry(
-                  ((ReferenceHit)table.getTableItemAt(row)).getStructEntry().getOffset());
+        showEntryInViewer(row, res);
       }
     }
     else if (event.getSource() == bsave) {
@@ -144,6 +141,23 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
           e.printStackTrace();
         }
       }
+    }
+  }
+
+  private void showEntryInViewer(int row, Viewable viewable) {
+    if (viewable instanceof DlgResource) {
+      DlgResource dlgRes = (DlgResource) viewable;
+      JComponent detailViewer = dlgRes.getDetailViewer();
+      JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
+      dlgRes.showStateWithStructEntry(
+          ((ReferenceHit)table.getTableItemAt(row)).getStructEntry());
+      // make sure we see the detail viewer
+      parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
+
+    }
+    else if (viewable instanceof AbstractStruct) {
+      ((AbstractStruct)viewable).getViewer().selectEntry(
+          ((ReferenceHit)table.getTableItemAt(row)).getStructEntry().getOffset());
     }
   }
 
