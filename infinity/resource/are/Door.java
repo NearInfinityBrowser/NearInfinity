@@ -64,7 +64,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 
   public int updateVertices(int offset, int number)
   {
-    // MÂ anta at antallet er riktig
+    // Må anta at antallet er riktig
     ((DecNumber)getAttribute("First vertex index (open)")).setValue(number);
     int count = ((DecNumber)getAttribute("# vertices (open)")).getValue();
     ((DecNumber)getAttribute("First vertex index (closed)")).setValue(number + count);
@@ -135,8 +135,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
                              OpenVertexImpeded.class));
     list.add(new SectionCount(buffer, offset + 78, 2, "# vertices (impeded, closed)", ClosedVertexImpeded.class));
     list.add(new DecNumber(buffer, offset + 80, 4, "First vertex index (impeded, closed)"));
-    list.add(new Unknown(buffer, offset + 84, 2));
-    list.add(new Unknown(buffer, offset + 86, 2));
+    list.add(new Unknown(buffer, offset + 84, 4));
+//    list.add(new Unknown(buffer, offset + 86, 2));
     list.add(new ResourceRef(buffer, offset + 88, "Opening sound", "WAV"));
     list.add(new ResourceRef(buffer, offset + 96, "Closing sound", "WAV"));
     list.add(new DecNumber(buffer, offset + 104, 4, "Cursor frame number"));
@@ -155,11 +155,11 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     list.add(new DecNumber(buffer, offset + 148, 2, "Close location: X"));
     list.add(new DecNumber(buffer, offset + 150, 2, "Close location: Y"));
     list.add(new StringRef(buffer, offset + 152, "Unlock message"));
-    list.add(new TextString(buffer, offset + 156, 32, "Travel trigger name"));
+    list.add(new TextString(buffer, offset + 156, 24, "Travel trigger name"));
 //    list.add(new Unknown(buffer, offset + 172, 8));
-    list.add(new StringRef(buffer, offset + 188, "Door name"));
-    list.add(new ResourceRef(buffer, offset + 192, "Dialogue", "DLG"));
-//    list.add(new Unknown(buffer, offset + 192, 8));
+    list.add(new StringRef(buffer, offset + 180, "Speaker name"));
+    list.add(new ResourceRef(buffer, offset + 184, "Dialogue", "DLG"));
+    list.add(new Unknown(buffer, offset + 192, 8));
     return offset + 200;
   }
 }

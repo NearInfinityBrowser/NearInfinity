@@ -182,11 +182,12 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     }
     else if (gameid == ResourceFactory.ID_TORMENT) {
       list.add(new DecNumber(buffer, offset + 40, 2, "Modal state"));
-      list.add(new Unknown(buffer, offset + 42, 98));
-      list.add(new IdsBitmap(buffer, offset + 140, 2, "Quick weapon slot 1", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 142, 2, "Quick weapon slot 2", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 144, 2, "Quick weapon slot 3", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 146, 2, "Quick weapon slot 4", "SLOTS.IDS"));
+      list.add(new DecNumber(buffer, offset + 42, 2, "Happiness"));
+      list.add(new Unknown(buffer, offset + 44, 96));
+      list.add(new DecNumber(buffer, offset + 140, 2, "Quick weapon slot 1"));
+      list.add(new DecNumber(buffer, offset + 142, 2, "Quick weapon slot 2"));
+      list.add(new DecNumber(buffer, offset + 144, 2, "Quick weapon slot 3"));
+      list.add(new DecNumber(buffer, offset + 146, 2, "Quick weapon slot 4"));
       list.add(new HashBitmap(buffer, offset + 148, 2, "Show quick weapon 1?", m_partyslot));
       list.add(new HashBitmap(buffer, offset + 150, 2, "Show quick weapon 2?", m_partyslot));
       list.add(new HashBitmap(buffer, offset + 152, 2, "Show quick weapon 3?", m_partyslot));
@@ -194,11 +195,11 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new ResourceRef(buffer, offset + 156, "Quick spell 1", "SPL"));
       list.add(new ResourceRef(buffer, offset + 164, "Quick spell 2", "SPL"));
       list.add(new ResourceRef(buffer, offset + 172, "Quick spell 3", "SPL"));
-      list.add(new IdsBitmap(buffer, offset + 180, 2, "Quick item slot 1", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 182, 2, "Quick item slot 2", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 184, 2, "Quick item slot 3", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 186, 2, "Quick item slot 4", "SLOTS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 188, 2, "Quick item slot 5", "SLOTS.IDS"));
+      list.add(new DecNumber(buffer, offset + 180, 2, "Quick item slot 1"));
+      list.add(new DecNumber(buffer, offset + 182, 2, "Quick item slot 2"));
+      list.add(new DecNumber(buffer, offset + 184, 2, "Quick item slot 3"));
+      list.add(new DecNumber(buffer, offset + 186, 2, "Quick item slot 4"));
+      list.add(new DecNumber(buffer, offset + 188, 2, "Quick item slot 5"));
       list.add(new HashBitmap(buffer, offset + 190, 2, "Show quick item 1?", m_partyslot));
       list.add(new HashBitmap(buffer, offset + 192, 2, "Show quick item 2?", m_partyslot));
       list.add(new HashBitmap(buffer, offset + 194, 2, "Show quick item 3?", m_partyslot));

@@ -16,12 +16,12 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
 
   AreaEntry() throws Exception
   {
-    super(null, "Area entry", new byte[240], 0);
+    super(null, "Area", new byte[240], 0);
   }
 
   AreaEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Area entry " + nr, buffer, offset);
+    super(superStruct, "Area " + nr, buffer, offset);
   }
 
   public AddRemovable[] getAddRemovables() throws Exception
@@ -42,8 +42,8 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Area content", "ARE"));
-    list.add(new TextString(buffer, offset + 8, 8, "Short name"));
-    list.add(new TextString(buffer, offset + 16, 32, "Long name"));
+    list.add(new TextString(buffer, offset + 8, 8, "Area name"));
+    list.add(new TextString(buffer, offset + 16, 32, "Script name"));
     list.add(new Flag(buffer, offset + 48, 4, "Flags", s_flag));
     list.add(new DecNumber(buffer, offset + 52, 4, "BAM animation number"));
     list.add(new DecNumber(buffer, offset + 56, 4, "Coordinate: X"));

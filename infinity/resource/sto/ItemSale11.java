@@ -33,7 +33,7 @@ final class ItemSale11 extends AbstractStruct implements AddRemovable
     list.add(new Flag(buffer, offset + 16, 4, "Flags", s_itemflag));
     list.add(new DecNumber(buffer, offset + 20, 4, "# in stock"));
     list.add(new Bitmap(buffer, offset + 24, 4, "Infinite supply?", s_noyes));
-    list.add(new StringRef(buffer, offset + 28, "Item trigger"));
+    list.add(new StringRef(buffer, offset + 28, "Sale trigger"));
     list.add(new Unknown(buffer, offset + 32, 44));
     list.add(new Unknown(buffer, offset + 76, 12));
     return offset + 88;

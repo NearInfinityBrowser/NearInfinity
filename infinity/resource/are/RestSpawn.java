@@ -21,7 +21,7 @@ final class RestSpawn extends AbstractStruct // implements AddRemovable
       list.add(new StringRef(buffer, offset + 32 + i * 4, "Creature " + (i + 1) + " string"));
     for (int i = 0; i < 10; i++)
       list.add(new SpawnResourceRef(buffer, offset + 72 + i * 8, "Creature " + (i + 1)));
-    list.add(new DecNumber(buffer, offset + 152, 2, "# creatures in list"));
+    list.add(new DecNumber(buffer, offset + 152, 2, "# creatures"));
     list.add(new DecNumber(buffer, offset + 154, 2, "Encounter difficulty"));
     list.add(new DecNumber(buffer, offset + 156, 4, "Creature duration"));
     list.add(new DecNumber(buffer, offset + 160, 2, "Creature wander distance"));

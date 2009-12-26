@@ -66,7 +66,7 @@ final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("General name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Identified name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Category"), gbl, gbc, true);
-    if (!itm.getAttribute("Version").toString().equalsIgnoreCase("V1.1")) {
+//    if (!itm.getAttribute("Version").toString().equalsIgnoreCase("V1.1")) {
       StructEntry s1 = itm.getAttribute("Minimum strength");
       StructEntry s2 = itm.getAttribute("Minimum strength bonus");
       gbc.weightx = 0.0;
@@ -87,7 +87,7 @@ final class Viewer extends JPanel
       ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Minimum intelligence"), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Minimum wisdom"), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Minimum charisma"), gbl, gbc, true);
-    }
+//    }
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Price"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Lore to identify"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute("Enchantment"), gbl, gbc, true);

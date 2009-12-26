@@ -152,8 +152,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 //    list.add(new ResourceRef(buffer, offset + 88, "Creature?", "CRE"));
     list.add(new Unknown(buffer, offset + 88, 32));
     list.add(new ResourceRef(buffer, offset + 120, "Key", "ITM"));
-    list.add(new Unknown(buffer, offset + 128, 2));
-    list.add(new Unknown(buffer, offset + 130, 2));
+    list.add(new Unknown(buffer, offset + 128, 4));
     list.add(new StringRef(buffer, offset + 132, "Lockpick string"));
     list.add(new Unknown(buffer, offset + 136, 56));
     return offset + 192;

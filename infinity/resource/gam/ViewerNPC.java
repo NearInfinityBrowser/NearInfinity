@@ -55,7 +55,7 @@ final class ViewerNPC extends JPanel
       gbl.setConstraints(tf1, gbc);
       panel.add(tf1);
     }
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Happiness"), gbl, gbc, true);
+//    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Happyness"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Selection state"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Party position"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Most powerful foe vanquished"), gbl, gbc, true);

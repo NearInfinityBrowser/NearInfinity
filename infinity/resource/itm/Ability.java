@@ -17,7 +17,8 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
   private static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
   private static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem"};
   private static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
-                                              "", "", "", "", "", "", "Hostile", "Recharge after resting"};
+                                              "", "", "", "", "", "", "Hostile", "Recharge after resting",
+                                              "", "", "", "", "Bypass armor", "Keen edge"};
 
   Ability() throws Exception
   {
@@ -50,35 +51,55 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new Bitmap(buffer, offset, 1, "Type", s_type));
-    list.add(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
-    list.add(new Bitmap(buffer, offset + 2, 1, "Ability location", s_abilityuse));
-    list.add(new Unknown(buffer, offset + 3, 1));
-    list.add(new ResourceRef(buffer, offset + 4, "Icon", "BAM"));
-    list.add(new Bitmap(buffer, offset + 12, 1, "Target", s_targettype));
-    list.add(new UnsignDecNumber(buffer, offset + 13, 1, "# targets"));
-    list.add(new DecNumber(buffer, offset + 14, 2, "Range (feet)"));
-    list.add(new Bitmap(buffer, offset + 16, 2, "Launcher required", s_launcher));
-    list.add(new DecNumber(buffer, offset + 18, 2, "Speed"));
-    list.add(new DecNumber(buffer, offset + 20, 2, "Bonus to hit"));
-    list.add(new DecNumber(buffer, offset + 22, 2, "Dice size"));
-    list.add(new DecNumber(buffer, offset + 24, 2, "# dice thrown"));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_TUTU) {
+      list.add(new Bitmap(buffer, offset, 1, "Type", s_type));
+      list.add(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
+      list.add(new Bitmap(buffer, offset + 2, 1, "Ability location", s_abilityuse));
+      list.add(new DecNumber(buffer, offset + 3, 1, "Alternate dice size"));
+      list.add(new ResourceRef(buffer, offset + 4, "Icon", "BAM"));
+      list.add(new Bitmap(buffer, offset + 12, 1, "Target", s_targettype));
+      list.add(new UnsignDecNumber(buffer, offset + 13, 1, "# targets"));
+      list.add(new DecNumber(buffer, offset + 14, 2, "Range (feet)"));
+      list.add(new Bitmap(buffer, offset + 16, 1, "Launcher required", s_launcher));
+      list.add(new DecNumber(buffer, offset + 17, 1, "Alternate # dice thrown"));
+      list.add(new DecNumber(buffer, offset + 18, 1, "Speed"));
+      list.add(new DecNumber(buffer, offset + 19, 1, "Alternate damage bonus"));
+      list.add(new DecNumber(buffer, offset + 20, 2, "Bonus to hit"));
+      list.add(new DecNumber(buffer, offset + 22, 1, "Dice size"));
+      list.add(new Bitmap(buffer, offset + 23, 1, "Primary type (school)", SplResource.s_school));
+      list.add(new DecNumber(buffer, offset + 24, 1, "# dice thrown"));
+      list.add(new Bitmap(buffer, offset + 25, 1, "Secondary type", SplResource.s_category));
+    }
+    else {
+      list.add(new Bitmap(buffer, offset, 1, "Type", s_type));
+      list.add(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
+      list.add(new Bitmap(buffer, offset + 2, 2, "Ability location", s_abilityuse));
+      list.add(new ResourceRef(buffer, offset + 4, "Icon", "BAM"));
+      list.add(new Bitmap(buffer, offset + 12, 2, "Target", s_targettype));
+      list.add(new DecNumber(buffer, offset + 14, 2, "Range (feet)"));
+      list.add(new Bitmap(buffer, offset + 16, 2, "Launcher required", s_launcher));
+      list.add(new DecNumber(buffer, offset + 18, 2, "Speed"));
+      list.add(new DecNumber(buffer, offset + 20, 2, "Bonus to hit"));
+      list.add(new DecNumber(buffer, offset + 22, 2, "Dice size"));
+      list.add(new DecNumber(buffer, offset + 24, 2, "# dice thrown"));
+    }
     list.add(new DecNumber(buffer, offset + 26, 2, "Damage bonus"));
     list.add(new Bitmap(buffer, offset + 28, 2, "Damage type", s_dmgtype));
     list.add(new SectionCount(buffer, offset + 30, 2, "# effects", Effect.class));
-    list.add(new DecNumber(buffer, offset + 32, 2, "Effects index"));
+    list.add(new DecNumber(buffer, offset + 32, 2, "First effect index"));
     list.add(new DecNumber(buffer, offset + 34, 2, "# charges"));
     list.add(new Bitmap(buffer, offset + 36, 2, "When drained", s_drain));
 //    list.add(new Unknown(buffer, offset + 37, 1));
-//    list.add(new Bitmap(buffer, offset + 38, 1, "Allow strength bonus?", s_yesno));
+    list.add(new Flag(buffer, offset + 38, 4, "Flags", s_recharge));
 //    list.add(new Bitmap(buffer, offset + 39, 1, "Item recharges?", s_recharge));
-    list.add(new Flag(buffer, offset + 38, 2, "Flags", s_recharge));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
-      list.add(
-              new Bitmap(buffer, offset + 40, 2, "Attack type",
-                         new String[]{"Normal", "Bypass armor", "Keen"}));
-    else
-      list.add(new Unknown(buffer, offset + 40, 2));
+//    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+//      list.add(
+//              new Bitmap(buffer, offset + 40, 2, "Attack type",
+//                         new String[]{"Normal", "Bypass armour", "Keen"}));
+//    else
+//      list.add(new Unknown(buffer, offset + 40, 2));
     if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
       list.add(new ProRef(buffer, offset + 42, "Projectile"));
     else

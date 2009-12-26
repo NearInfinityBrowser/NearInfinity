@@ -20,7 +20,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   private static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
                                           "Weather", "City", "Forest", "Dungeon",
                                           "Extended night", "Can rest"};
-  private static final String s_flag_torment[] = {"No flags set", "Hive", "", "Clerk's ward", "Lower ward",
+  private static final String s_flag_torment[] = {"Indoors", "Hive", "", "Clerk's ward", "Lower ward",
                                                   "Ravel's maze", "Baator", "Rubikon",
                                                   "Negative material plane", "Curst", "Carceri",
                                                   "Allow day/night"};
@@ -39,7 +39,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     // Actors
     if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT)
+        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
       addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 84),
                      (int)Byteconvert.convertShort(buffer, offset + 88), 272);
 
@@ -267,11 +268,11 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_actors = new SectionCount(buffer, offset + 88, 2, "# actors",
                                                  Actor.class);
     list.add(count_actors);
-    SectionCount count_itepoints = new SectionCount(buffer, offset + 90, 2, "# trigger points",
+    SectionCount count_itepoints = new SectionCount(buffer, offset + 90, 2, "# triggers",
                                                     ITEPoint.class);
     list.add(count_itepoints);
     SectionOffset offset_itepoints = new SectionOffset(buffer, offset + 92,
-                                                       "Trigger points offset",
+                                                       "Triggers offset",
                                                        ITEPoint.class);
     list.add(offset_itepoints);
     SectionOffset offset_spoints = new SectionOffset(buffer, offset + 96, "Spawn points offset",

@@ -10,6 +10,9 @@ import infinity.resource.ResourceFactory;
 
 final class Song extends AbstractStruct // implements AddRemovable
 {
+  private static final String[] s_reverb = {"None", "Small room", "Medium room",
+                                            "Large room", "Outside", "Dungeon"};
+
   Song(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
     super(superStruct, "Songs", buffer, offset);
@@ -30,6 +33,13 @@ final class Song extends AbstractStruct // implements AddRemovable
       list.add(new IdsBitmap(buffer, offset + 8, 4, "Victory song", "MUSICLIS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "MUSICLIS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 16, 4, "Defeat song", "MUSICLIS.IDS"));
+    }
+    else if (ResourceFactory.getInstance().resourceExists("SONGS.IDS")) {
+      list.add(new IdsBitmap(buffer, offset, 4, "Day song", "SONGS.IDS"));
+      list.add(new IdsBitmap(buffer, offset + 4, 4, "Night song", "SONGS.IDS"));
+      list.add(new Unknown(buffer, offset + 8, 4));
+      list.add(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "SONGS.IDS"));
+      list.add(new Unknown(buffer, offset + 16, 4));
     }
     else {
       list.add(new DecNumber(buffer, offset, 4, "Day song"));
@@ -65,6 +75,8 @@ final class Song extends AbstractStruct // implements AddRemovable
     }
     if (ResourceFactory.getInstance().resourceExists("REVERB.IDS"))
       list.add(new IdsBitmap(buffer, offset + 80, 4, "Reverb", "REVERB.IDS"));
+    else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+      list.add(new Bitmap(buffer, offset + 80, 4, "Reverb", s_reverb));
     else
       list.add(new Unknown(buffer, offset + 80, 4));
     list.add(new Unknown(buffer, offset + 84, 60));

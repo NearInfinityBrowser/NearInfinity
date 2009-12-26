@@ -88,27 +88,25 @@ public final class EffectFactory
     "Stories-bones-tell", "Magic missiles 1", "Magic missiles 2",
     "Magic missiles 3", "Magic missiles 4", "Magic missiles 5",
     "Magic missiles 6", "Magic missiles 7", "Magic missiles 8",
-    "Magic missiles 9", "Magic missiles 10", "Skull mob",
-    "One skull at the target", "Swarm curse", "Bees fly to target, no damage",
-    "Adder's kiss", "Ice knife", "Pacify", "Strength", "Ball lightning",
-    "Ball lightning 2", "Blood bridge", "Force missiles", "Improved strength",
-    "Shroud of shadows", "Cloudkill", "Howl of pandemonium", "Bladestorm",
-    "Elysium's fires", "Abyssal fury", "Horror", "Knock", "Hold undead",
-    "Missile of patience", "Elysium's tears",
+    "Magic missiles 9", "Magic missiles 10", "Skull mob", "Skull mob 2",
+    "Swarm curse", "Swarm curse 2", "Adder's kiss", "Ice knife", "Pacify",
+    "Strength", "Ball lightning", "Ball lightning 2", "Blood bridge",
+    "Force missiles", "Improved strength", "Shroud of shadows", "Cloudkill",
+    "Howl of pandemonium", "Bladestorm", "Elysium's fires", "Abyssal fury",
+    "Horror", "Knock", "Hold undead", "Missile of patience", "Elysium's tears",
     "Tasha's unbearable derisive laughter", "Axe of torment", "Blacksphere",
     "Cone of cold", "Desert hell", "Fire and ice", "Chain lightning storm",
     "Acid storm", "Stygian ice storm", "Meteor storm bombardment", "Deathbolt",
     "Ignus' fury", "Power word, blind", "Mechanus' cannon", "Celestial host",
-    "Rune of torment", "Blessing, scripture of steel", "Curse, seeking flames",
-    "", "Halo of lesser revelation", "Spiritual hammer", "Call lightning", "",
-    "Vampiric touch", "Confusion", "Power word, kill",
-    "Globe of invulnerability", "Nordom's crossbow bolts", "Raise dead",
-    "Innate fear ability", "Conflagration", "Traps projectile",
+    "Rune of torment", "Blessing", "Curse", "", "Halo of lesser revelation",
+    "Spiritual hammer", "Call lightning", "", "Vampiric touch", "Confusion",
+    "Power word, kill", "Globe of invulnerability", "Nordom's crossbow bolt",
+    "Raise dead", "Aura of fear", "Conflagration", "Special trap",
     "Ignus' fireball", "Tongues of flame 1", "Tongues of flame 2",
     "Tongues of flame 3", "Tongues of flame 4", "Tongues of flame 5",
     "Ignus' terror", "Infernal orb", "Fiery rain", "Elemental strike",
     "Reign of anger 1", "Reign of anger 2", "Reign of anger 3",
-    "Reign of anger 4", "Reign of anger 5", "Power of one", "Kiss",
+    "Reign of anger 4", "Reign of anger 5", "Power of one", "Succubus kiss",
     "Embalming"};
   private static final String s_visuals[] = {"None", "Hit abjuration",
     "Hit alteration", "Hit invocation", "Hit necromancy", "Hit conjuration",
@@ -218,7 +216,7 @@ public final class EffectFactory
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
           "Stealth bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
-          "Translucent", "Summon creature", "Unsummon creature",
+          "Translucency", "Summon creature", "Unsummon creature",
           "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
@@ -300,7 +298,7 @@ public final class EffectFactory
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
           "Stealth bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
-          "Translucent", "Summon creature", "Unsummon creature",
+          "Translucency", "Summon creature", "Unsummon creature",
           "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
@@ -388,7 +386,7 @@ public final class EffectFactory
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
           "Stealth bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
-          "Translucent", "Summon creature", "Unsummon creature",
+          "Translucency", "Summon creature", "Unsummon creature",
           "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
@@ -511,7 +509,7 @@ public final class EffectFactory
           "Slay", "Reverse alignment", "Change alignment", "Dispel effects",
           "Move silently bonus", "Casting failure", "Unknown (3D)",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
-          "Translucent", "Summon creature", "Unsummon creature",
+          "Translucency", "Summon creature", "Unsummon creature",
           "Nondetection", "Remove nondetection", "Change gender",
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
@@ -589,7 +587,7 @@ public final class EffectFactory
           "Melee weapon damage bonus", "Missile weapon damage bonus",
           "Remove feet circle", "Fist THAC0 bonus", "Fist damage bonus",
           "Change title", "Disable visual effects", "Immunity to backstab",
-          "Set persistent AI", "Unknown (126)", "Disable permanent death",
+          "Set persistent AI", "Set existence delay", "Disable permanent death",
           "Immunity to specific animation", "Immunity to turn undead",
           "Pocket plane", "Chaos shield effect", "Modify collision behavior",
           "Critical threat range bonus", "Can use any item",
@@ -667,7 +665,7 @@ public final class EffectFactory
           "Base attack bonus", "Slay", "Reverse alignment", "Change alignment",
           "Dispel effects", "Move silently bonus", "Casting failure", "Alchemy",
           "Bonus priest spells", "Infravision", "Remove infravision", "Blur",
-          "Translucent", "Summon creature", "Unsummon creature", "Nondetection",
+          "Translucency", "Summon creature", "Unsummon creature", "Nondetection",
           "Remove nondetection", "Change gender", "Change AI type",
           "Attack damage bonus", "Blindness", "Cure blindness",
           "Feeblemindedness", "Cure feeblemindedness", "Disease",
@@ -1067,7 +1065,7 @@ public final class EffectFactory
                        "Level 4", "Level 5", "Level 6", "Level 7"}));
         break;
 
-      case 0x42: // Translucent (CGameEffectTranslucent)
+      case 0x42: // Translucency (CGameEffectTranslucent)
         s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
         s.add(new Unknown(buffer, offset + 4, 4));
         break;
@@ -1505,9 +1503,9 @@ public final class EffectFactory
         case 0xC9: // Play BAM with effects
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
-            new String[]{"Cloak of warding", "Shield", "Black barbed shield",
+            new String[]{"Cloak of warding", "Shield", "Black-barbed shield",
                          "Pain mirror", "Guardian mantle", "",
-                         "Enoll eva's duplication", "Armor", "Antimagic shield",
+                         "Enoll eva's duplication", "Armor", "Antimagic shell",
                          "", "", "Flame walk", "Protection from evil",
                          "Conflagration", "Infernal shield",
                          "Submerge the will", "Balance in all things"}));
@@ -1735,7 +1733,6 @@ public final class EffectFactory
         case 0x123: // Disable visual effects (CGameEffectPreventSpellProtectionEffects)
         case 0x124: // Immunity to backstab (CGameEffectImmunityToBackstab)
         case 0x125: // Set persistent AI (CGameEffectPreventAISlowDown)
-        case 0x126: // Unknown (126) (CGameEffectExistanceDelayOverride)
         case 0x127: // Disable permanent death (CGameEffectNoPermanentDeath)
         case 0x129: // Immunity to turn undead (CGameEffectImmunityToTurnUndead)
         case 0x12C: // Modify collision behavior (CGameEffectNPCBump)
@@ -1783,7 +1780,7 @@ public final class EffectFactory
           if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
             s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
           else
-            s.add(new HexNumber(buffer, offset + 4, 4, "Projectile"));
+            s.add(new Bitmap(buffer, offset + 4, 4, "Projectile", s_projectile));
           break;
 
         case 0xC6: // Reflect specified effect (CGameEffectBounceEffect)
@@ -2067,6 +2064,11 @@ public final class EffectFactory
           s.add(new StringRef(buffer, offset, "Title"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Change where?",
             new String[]{"Records screen", "Class name"}));
+          break;
+
+        case 0x126: // Set existence delay (CGameEffectExistanceDelayOverride)
+          s.add(new Unknown(buffer, offset, 4));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Interval override"));
           break;
 
         case 0x128: // Immunity to specific animation (CGameEffectImmunityToVisualEffect)

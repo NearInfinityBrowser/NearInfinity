@@ -24,9 +24,9 @@ public final class WmpResource extends AbstractStruct implements Resource, HasDe
   public JComponent getDetailViewer()
   {
     JTabbedPane tabbedPane = new JTabbedPane();
-    int count = ((DecNumber)getAttribute("# map entries")).getValue();
+    int count = ((DecNumber)getAttribute("# maps")).getValue();
     for (int i = 0; i < count; i++) {
-      MapEntry entry = (MapEntry)getAttribute("Map entry " + i);
+      MapEntry entry = (MapEntry)getAttribute("Map " + i);
       tabbedPane.addTab(entry.getName(), entry.getDetailViewer());
     }
     return tabbedPane;
@@ -48,9 +48,9 @@ public final class WmpResource extends AbstractStruct implements Resource, HasDe
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
     list.add(new TextString(buffer, offset + 4, 4, "Version"));
-    SectionCount entry_count = new SectionCount(buffer, offset + 8, 4, "# map entries", MapEntry.class);
+    SectionCount entry_count = new SectionCount(buffer, offset + 8, 4, "# maps", MapEntry.class);
     list.add(entry_count);
-    SectionOffset entry_offset = new SectionOffset(buffer, offset + 12, "Map entries offset", MapEntry.class);
+    SectionOffset entry_offset = new SectionOffset(buffer, offset + 12, "Maps offset", MapEntry.class);
     list.add(entry_offset);
     offset = entry_offset.getValue();
     for (int i = 0; i < entry_count.getValue(); i++) {

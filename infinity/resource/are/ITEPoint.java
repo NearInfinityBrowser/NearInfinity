@@ -11,19 +11,19 @@ import infinity.resource.vertex.Vertex;
 public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
 {
   private static final String[] s_type = {"Proximity trigger", "Info trigger", "Travel trigger"};
-  private static final String[] s_flag = {"No flags set", "Trap undetectable", "Trap resets", "Party required", "Trap detectable",
+  private static final String[] s_flag = {"No flags set", "Locked", "Trap resets", "Party required", "Trap detectable",
                                           "", "", "Trap set off by NPC", "", "Trigger deactivated", "Cannot be passed by NPC",
                                           "Use activation point", "Connected to door"};
   private static final String[] s_yesno = {"No", "Yes"};
 
   public ITEPoint() throws Exception
   {
-    super(null, "Trigger point", new byte[196], 0);
+    super(null, "Trigger", new byte[196], 0);
   }
 
   public ITEPoint(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
-    super(superStruct, "Trigger point", buffer, offset);
+    super(superStruct, "Trigger", buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
@@ -103,13 +103,17 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     list.add(new ResourceRef(buffer, offset + 124, "Script", "BCS"));
     list.add(new DecNumber(buffer, offset + 132, 2, "Activation point: X"));
     list.add(new DecNumber(buffer, offset + 134, 2, "Activation point: Y"));
-    list.add(new Unknown(buffer, offset + 136, 4));
-    list.add(new Unknown(buffer, offset + 140, 4));
-    list.add(new Unknown(buffer, offset + 144, 44));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
-      list.add(new ResourceRef(buffer, offset + 188, "Activation dialogue", "DLG"));
+//    list.add(new DecNumber(buffer, offset + 136, 2, "Override box: Right"));
+//    list.add(new DecNumber(buffer, offset + 138, 2, "Override box: Bottom"));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      list.add(new Unknown(buffer, offset + 136, 44));
+      list.add(new DecNumber(buffer, offset + 180, 2, "Speaker point: X"));
+      list.add(new DecNumber(buffer, offset + 182, 2, "Speaker point: Y"));
+      list.add(new StringRef(buffer, offset + 184, "Speaker name"));
+      list.add(new ResourceRef(buffer, offset + 188, "Dialogue", "DLG"));
+    }
     else
-      list.add(new Unknown(buffer, offset + 188, 8));
+      list.add(new Unknown(buffer, offset + 136, 60));
 //      list.add(new ResourceRef(buffer, offset + 188, "Proximity trigger dialog", "DLG"));
     return offset + 196;
   }
