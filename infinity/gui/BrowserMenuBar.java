@@ -285,7 +285,7 @@ public final class BrowserMenuBar extends JMenuBar
       bg.add(selectBcsIndent[i]);
     }
 
-    JMenu showresrefmenu = new JMenu("Show ResourceRefs as");
+    JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
     menu.add(showresrefmenu);
     int selectedresref = prefs.getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
     showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
@@ -574,7 +574,7 @@ public final class BrowserMenuBar extends JMenuBar
       fileExport = makeMenuItem("Export...", KeyEvent.VK_E, Icons.getIcon("Export16.gif"), -1, this);
       fileExport.setEnabled(false);
       add(fileExport);
-      fileAddCopy = makeMenuItem("Add Copy of...", KeyEvent.VK_A, Icons.getIcon("Add16.gif"), -1, this);
+      fileAddCopy = makeMenuItem("Add Copy Of...", KeyEvent.VK_A, Icons.getIcon("Add16.gif"), -1, this);
       fileAddCopy.setEnabled(false);
       add(fileAddCopy);
       fileRename = makeMenuItem("Rename...", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
@@ -831,7 +831,7 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
-      JMenu checkMenu = new JMenu("Check Triggers & Actions for");
+      JMenu checkMenu = new JMenu("Check Triggers & Actions For");
       checkMenu.setIcon(Icons.getIcon("Refresh16.gif"));
       toolCheckAllDialog = new JMenuItem("All Dialogues");
       toolCheckAllDialog.addActionListener(this);
@@ -856,7 +856,7 @@ public final class BrowserMenuBar extends JMenuBar
       toolCheckResRef.setToolTipText("Reports resource references pointing to nonexistent files");
       add(toolCheckResRef);
 
-      JMenu findMenu = new JMenu("Find Unknown IDS References in");
+      JMenu findMenu = new JMenu("Find Unknown IDS References In");
       findMenu.setIcon(Icons.getIcon("Find16.gif"));
       toolCheckIDSBCSRef = new JMenuItem("BCS & BS Files");
       toolCheckIDSBCSRef.addActionListener(this);

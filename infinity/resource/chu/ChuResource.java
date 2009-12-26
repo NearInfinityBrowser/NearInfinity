@@ -42,13 +42,13 @@ public final class ChuResource extends AbstractStruct implements Resource //, Ha
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
     list.add(new TextString(buffer, offset + 4, 4, "Version"));
-    SectionCount numwindows = new SectionCount(buffer, offset + 8, 4, "# windows",
+    SectionCount numwindows = new SectionCount(buffer, offset + 8, 4, "# panels",
                                                Window.class);
     list.add(numwindows);
-    SectionOffset controlsoffset = new SectionOffset(buffer, offset + 12, "Controls table offset",
+    SectionOffset controlsoffset = new SectionOffset(buffer, offset + 12, "Controls offset",
                                                      Control.class);
     list.add(controlsoffset);
-    SectionOffset windowsoffset = new SectionOffset(buffer, offset + 16, "Window entries offset",
+    SectionOffset windowsoffset = new SectionOffset(buffer, offset + 16, "Panels offset",
                                                     Window.class);
     list.add(windowsoffset);
 

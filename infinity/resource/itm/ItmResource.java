@@ -38,20 +38,16 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Bullets", "Bows", "Daggers", "Clubs", "Slings", "Short swords",
            "Long swords", "Hammers", "Morning stars", "Flails", "Darts",
            "Axes", "Quarterstaves", "Crossbows", "Hand-to-hand weapons",
-           "Spears", "Halberds", "Bolts", "Cloaks and robes",
+           "Greatswords", "Halberds", "Bolts", "Cloaks and robes",
            "Copper commons", "Gems", "Wands", "Eyeballs", "Bracelets",
-           "Earrings", "Tattoos", "Lenses", "Teeth",
-           "Candles", "", "", "", "",
-           "Large shields", "", "Medium shields", "",
-           "", "", "Small shields", "",
-           "Telescopes", "Bottles", "Greatswords"};
+           "Earrings", "Tattoos", "Lenses", "Teeth"};
   private static final String[] s_flags =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Bow", "Silver", "Gold", "Stolen", "Conversable"};
   private static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
-           "Cursed", "Not copyable", "Magical", "", "Silver weapon", "Cold iron", "Steel", "Conversable",
-           "Pulsate"};
+           "Cursed", "Not copyable", "Magical", "", "Silver", "Cold iron", "Steel", "Conversable",
+           "Pulsating"};
   private static final String[] s_usability =
           {"None", "Chaotic", "Evil", "Good", "... Neutral", "Lawful",
            "Neutral ...", "Bard", "Cleric", "Cleric-Mage",
@@ -64,10 +60,10 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           {"None", "Chaotic", "Evil", "Good",
            "... Neutral", "Lawful", "Neutral ...", "Sensate",
            "Priest", "Godsman", "Anarchist", "Xaositect",
-           "Fighter", "No faction", "Fighter-Mage", "Dustman",
+           "Fighter", "Non-aligned", "Fighter-Mage", "Dustman",
            "Mercykiller", "Idep", "Figher-Thief", "Mage",
            "Mage-Thief", "Dak'kon", "Fall-From-Grace", "Thief",
-           "Vhailor", "Ingus", "Morte", "Nordom",
+           "Vhailor", "Ignus", "Morte", "Nordom",
            "Human", "Annah", "", "Nameless One", ""
           };
   private static final String[] s_usability20 =
@@ -242,20 +238,11 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       list.add(new Bitmap(buffer, 28, 2, "Category", s_categories11));
       list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability11));
       list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance",
-                              new String[]{"AX", "DD", "CL", "WH", "  ", "S1", "CB"},
-                              new String[]{"Axe", "Dagger", "Club", "Hammer", "None", "Karach",
-                                           "Crossbow"}));
-      list.add(new Bitmap(buffer, 36, 1, "Disable paper doll?", new String[]{"No", "Yes"}));
-      list.add(new Unknown(buffer, 37, 15));
-      list.add(new DecNumber(buffer, 52, 4, "Price"));
-      list.add(new DecNumber(buffer, 56, 2, "Maximum in stack"));
-      list.add(new ResourceRef(buffer, 58, "Icon", "BAM"));
-      list.add(new DecNumber(buffer, 66, 2, "Lore to identify"));
-      list.add(new ResourceRef(buffer, 68, "Ground icon", "BAM"));
-      list.add(new DecNumber(buffer, 76, 4, "Weight"));
-      list.add(new StringRef(buffer, 80, "General description"));
-      list.add(new StringRef(buffer, 84, "Identified description"));
-      list.add(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
+                              new String[]{"  ", "AX", "CB", "CL", "DD", "S1", "WH"},
+                              new String[]{"None", "Axe", "Crossbow", "Club", "Dagger",
+                                           "Sword", "Hammer"}));
+//      list.add(new Bitmap(buffer, 36, 1, "Disable paper doll?", new String[]{"No", "Yes"}));
+//      list.add(new Unknown(buffer, 37, 15));
     }
     else {
       list.add(new ResourceRef(buffer, 16, "Used up item", "ITM"));
@@ -266,47 +253,48 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       else
         list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability));
       list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag, s_anim));
-      list.add(new DecNumber(buffer, 36, 2, "Minimum level"));
-//      list.add(new Unknown(buffer, 37, 1));
-      list.add(new DecNumber(buffer, 38, 2, "Minimum strength"));
-//      list.add(new Unknown(buffer, 39, 1));
-      if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
-        // NB! Not in order
-        list.add(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
-        list.add(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
-        list.add(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
-        list.add(new Flag(buffer, 43, 1, "Unusable by (2/4)", s_kituse2));
-        list.add(new DecNumber(buffer, 44, 1, "Minimum dexterity"));
-        list.add(new Flag(buffer, 45, 1, "Unusable by (3/4)", s_kituse3));
-        list.add(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
-        list.add(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
-        list.add(new DecNumber(buffer, 48, 1, "Minimum constitution"));
-        list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
-      }
-      else {
-        list.add(new DecNumber(buffer, 40, 2, "Minimum strength bonus"));
-        list.add(new DecNumber(buffer, 42, 2, "Minimum intelligence"));
-        list.add(new DecNumber(buffer, 44, 2, "Minimum dexterity"));
-        list.add(new DecNumber(buffer, 46, 2, "Minimum wisdom"));
-        list.add(new DecNumber(buffer, 48, 2, "Minimum constitution"));
-//        list.add(new Unknown(buffer, 41, 1));
-//        list.add(new Unknown(buffer, 43, 1));
-//        list.add(new Unknown(buffer, 45, 1));
-//        list.add(new Unknown(buffer, 47, 1));
-//        list.add(new Unknown(buffer, 49, 1));
-      }
-      list.add(new DecNumber(buffer, 50, 2, "Minimum charisma"));
-//      list.add(new Unknown(buffer, 51, 1));
-      list.add(new DecNumber(buffer, 52, 4, "Price"));
-      list.add(new DecNumber(buffer, 56, 2, "Maximum in stack"));
-      list.add(new ResourceRef(buffer, 58, "Icon", "BAM"));
-      list.add(new DecNumber(buffer, 66, 2, "Lore to identify"));
-      list.add(new ResourceRef(buffer, 68, "Ground icon", "BAM"));
-      list.add(new DecNumber(buffer, 76, 4, "Weight"));
-      list.add(new StringRef(buffer, 80, "General description"));
-      list.add(new StringRef(buffer, 84, "Identified description"));
-      list.add(new ResourceRef(buffer, 88, "Description image", "BAM"));
     }
+    list.add(new DecNumber(buffer, 36, 2, "Minimum level"));
+    list.add(new DecNumber(buffer, 38, 2, "Minimum strength"));
+//    list.add(new Unknown(buffer, 39, 1));
+    if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
+      list.add(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
+      list.add(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
+      list.add(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
+      list.add(new Flag(buffer, 43, 1, "Unusable by (2/4)", s_kituse2));
+      list.add(new DecNumber(buffer, 44, 1, "Minimum dexterity"));
+      list.add(new Flag(buffer, 45, 1, "Unusable by (3/4)", s_kituse3));
+      list.add(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
+      list.add(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
+      list.add(new DecNumber(buffer, 48, 1, "Minimum constitution"));
+      list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
+    }
+    else {
+      list.add(new DecNumber(buffer, 40, 2, "Minimum strength bonus"));
+      list.add(new DecNumber(buffer, 42, 2, "Minimum intelligence"));
+      list.add(new DecNumber(buffer, 44, 2, "Minimum dexterity"));
+      list.add(new DecNumber(buffer, 46, 2, "Minimum wisdom"));
+      list.add(new DecNumber(buffer, 48, 2, "Minimum constitution"));
+//      list.add(new Unknown(buffer, 41, 1));
+//      list.add(new Unknown(buffer, 43, 1));
+//      list.add(new Unknown(buffer, 45, 1));
+//      list.add(new Unknown(buffer, 47, 1));
+//      list.add(new Unknown(buffer, 49, 1));
+    }
+    list.add(new DecNumber(buffer, 50, 2, "Minimum charisma"));
+//    list.add(new Unknown(buffer, 51, 1));
+    list.add(new DecNumber(buffer, 52, 4, "Price"));
+    list.add(new DecNumber(buffer, 56, 2, "Maximum in stack"));
+    list.add(new ResourceRef(buffer, 58, "Icon", "BAM"));
+    list.add(new DecNumber(buffer, 66, 2, "Lore to identify"));
+    list.add(new ResourceRef(buffer, 68, "Ground icon", "BAM"));
+    list.add(new DecNumber(buffer, 76, 4, "Weight"));
+    list.add(new StringRef(buffer, 80, "General description"));
+    list.add(new StringRef(buffer, 84, "Identified description"));
+    if (version.toString().equalsIgnoreCase("V1.1"))
+      list.add(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
+    else
+      list.add(new ResourceRef(buffer, 88, "Description image", "BAM"));
     list.add(new DecNumber(buffer, 96, 4, "Enchantment"));
     SectionOffset abil_offset = new SectionOffset(buffer, 100, "Abilities offset",
                                                   Ability.class);
@@ -317,14 +305,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     SectionOffset global_offset = new SectionOffset(buffer, 106, "Effects offset",
                                                     Effect.class);
     list.add(global_offset);
-    list.add(new DecNumber(buffer, 110, 2, "Global effects index"));
+    list.add(new DecNumber(buffer, 110, 2, "First effect index"));
     SectionCount global_count = new SectionCount(buffer, 112, 2, "# global effects",
                                                  Effect.class);
     list.add(global_count);
 
     if (version.toString().equalsIgnoreCase("V1.1")) {
       list.add(new ResourceRef(buffer, 114, "Dialogue", "DLG"));
-      list.add(new StringRef(buffer, 122, "Talking item name"));
+      list.add(new StringRef(buffer, 122, "Speaker name"));
       list.add(new IdsBitmap(buffer, 126, 2, "Weapon color", "CLOWNCLR.IDS"));
       list.add(new Unknown(buffer, 128, 26));
     }

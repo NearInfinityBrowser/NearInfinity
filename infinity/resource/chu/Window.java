@@ -18,12 +18,12 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   Window() throws Exception
   {
-    super(null, "Window", new byte[28], 0);
+    super(null, "Panel", new byte[28], 0);
   }
 
   Window(AbstractStruct superStruct, byte buffer[], int offset, int nr, int size) throws Exception
   {
-    super(superStruct, "Window " + nr, buffer, offset + (size - 28));
+    super(superStruct, "Panel " + nr, buffer, offset + (size - 28));
     if (size == 36) {
       list.add(0, new TextString(buffer, offset, 8, "Name"));
       setStartOffset(getOffset() - 8);
@@ -82,7 +82,7 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Window ID"));
+    list.add(new DecNumber(buffer, offset, 4, "Panel ID"));
     list.add(new DecNumber(buffer, offset + 4, 2, "Position: X"));
     list.add(new DecNumber(buffer, offset + 6, 2, "Position: Y"));
     list.add(new DecNumber(buffer, offset + 8, 2, "Width"));

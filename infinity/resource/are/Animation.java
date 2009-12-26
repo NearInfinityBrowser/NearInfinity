@@ -37,17 +37,15 @@ final class Animation extends AbstractStruct implements AddRemovable
     list.add(new Flag(buffer, offset + 52, 4, "Appearance", s_flag));
     list.add(new DecNumber(buffer, offset + 56, 2, "Location: Z"));
     list.add(new DecNumber(buffer, offset + 58, 2, "Translucency"));
-    list.add(new DecNumber(buffer, offset + 60, 2, "Start frame number"));
+    list.add(new Unknown(buffer, offset + 60, 2));
     list.add(new DecNumber(buffer, offset + 62, 1, "Loop probability"));
     list.add(new DecNumber(buffer, offset + 63, 1, "Start delay (frames)"));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
         ResourceFactory.getGameID() == ResourceFactory.ID_TUTU)
       list.add(new ResourceRef(buffer, offset + 64, "Palette", "BMP"));
-    else {
-      list.add(new Unknown(buffer, offset + 64, 4));
-      list.add(new Unknown(buffer, offset + 68, 4));
-    }
+    else
+      list.add(new Unknown(buffer, offset + 64, 8));
     list.add(new Unknown(buffer, offset + 72, 4));
     return offset + 76;
   }

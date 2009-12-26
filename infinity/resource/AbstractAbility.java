@@ -12,7 +12,7 @@ import java.io.OutputStream;
 public abstract class AbstractAbility extends AbstractStruct
 {
   protected static final String[] s_type = {"", "Melee", "Ranged", "Magical", "Launcher"};
-  protected static final String[] s_targettype = {"", "Living actor", "", "Dead actor",
+  protected static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
                                                   "Any point within range", "Caster", "",
                                                   "Caster (keep spell, no animation)"};
   protected static final String[] s_dmgtype = {"None", "Piercing", "Crushing", "Slashing", "Missile",
@@ -43,7 +43,7 @@ public abstract class AbstractAbility extends AbstractStruct
   {
     if (datatype instanceof Effect && getEffectsCount() >= 1) {
       SectionOffset effectOffset = (SectionOffset)getSuperStruct().getAttribute("Effects offset");
-      int effectIndex = ((DecNumber)getAttribute("Effects index")).getValue() + getEffectsCount() - 1;
+      int effectIndex = ((DecNumber)getAttribute("First effect index")).getValue() + getEffectsCount() - 1;
       datatype.setOffset(effectOffset.getValue() + effectIndex * 48);
     }
   }
@@ -55,7 +55,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public void incEffectsIndex(int value)
   {
-    ((DecNumber)getAttribute("Effects index")).incValue(value);
+    ((DecNumber)getAttribute("First effect index")).incValue(value);
   }
 
   public int readEffects(byte buffer[], int off) throws Exception
@@ -71,7 +71,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public void setEffectsIndex(int value)
   {
-    ((DecNumber)getAttribute("Effects index")).setValue(value);
+    ((DecNumber)getAttribute("First effect index")).setValue(value);
   }
 
   public void writeEffects(OutputStream os) throws IOException

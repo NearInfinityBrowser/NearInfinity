@@ -22,7 +22,7 @@ abstract class AreaLink extends AbstractStruct implements AddRemovable
 
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Target area entry"));
+    list.add(new DecNumber(buffer, offset, 4, "Target area"));
     list.add(new TextString(buffer, offset + 4, 32, "Target entrance"));
     list.add(new DecNumber(buffer, offset + 36, 4, "Distance scale"));
     list.add(new Flag(buffer, offset + 40, 4, "Default entrance",

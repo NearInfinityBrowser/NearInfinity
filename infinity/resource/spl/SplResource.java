@@ -205,8 +205,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 //    list.add(new Unknown(buffer, offset + 76, 4));
     list.add(new StringRef(buffer, offset + 80, "Spell description"));
     list.add(new StringRef(buffer, offset + 84, "Identified description"));
-    list.add(new Unknown(buffer, offset + 88, 8));
-    list.add(new Unknown(buffer, offset + 96, 4));
+//    list.add(new ResourceRef(buffer, offset + 88, 8, "Animation?", "BAM"));
+    list.add(new Unknown(buffer, offset + 88, 12));
     SectionOffset abil_offset = new SectionOffset(buffer, offset + 100, "Abilities offset",
                                                   Ability.class);
     list.add(abil_offset);
@@ -216,7 +216,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     SectionOffset global_offset = new SectionOffset(buffer, offset + 106, "Effects offset",
                                                     Effect.class);
     list.add(global_offset);
-    list.add(new DecNumber(buffer, offset + 110, 2, "Global effects index"));
+    list.add(new DecNumber(buffer, offset + 110, 2, "First effect index"));
     SectionCount global_count = new SectionCount(buffer, offset + 112, 2, "# global effects",
                                                  Effect.class);
     list.add(global_count);

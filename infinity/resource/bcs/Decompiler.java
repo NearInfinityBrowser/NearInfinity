@@ -261,6 +261,7 @@ public final class Decompiler
       if (entry != null)
         code.append(entry.getString());
       else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
+                           map.toString().equalsIgnoreCase("BITS.IDS") ||
                            map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
                            map.toString().equalsIgnoreCase("STATE.IDS"))) {
         if (nr < 0)

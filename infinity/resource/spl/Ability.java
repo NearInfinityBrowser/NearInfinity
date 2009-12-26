@@ -63,7 +63,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
     list.add(new DecNumber(buffer, offset + 26, 2, "Damage bonus"));
     list.add(new Bitmap(buffer, offset + 28, 2, "Damage type", s_dmgtype));
     list.add(new SectionCount(buffer, offset + 30, 2, "# effects", Effect.class));
-    list.add(new DecNumber(buffer, offset + 32, 2, "Effects index"));
+    list.add(new DecNumber(buffer, offset + 32, 2, "First effect index"));
     list.add(new DecNumber(buffer, offset + 34, 2, "# charges"));
     list.add(new Unknown(buffer, offset + 36, 2));
     if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
