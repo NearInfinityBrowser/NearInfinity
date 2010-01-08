@@ -15,6 +15,11 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
                                           "Detectable trap", "Door forced", "", "", "Door secret",
                                           "Secret door detected", "Can be looked through",
                                           "Uses key", "Sliding door"};
+  private static final String[] s_flag_iwd2 = {"No flags set", "Door open", "Door locked", "Trap resets",
+                                               "Detectable trap", "Door forced", "Cannot close", "Door located",
+                                               "Door secret", "Secret door detected", "Alternate lock string",
+                                               "Can be looked through", "Warn on activate", "Displayed warning",
+                                               "Door hidden", "Uses key"};
 
   public Door() throws Exception
   {
@@ -116,7 +121,10 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
     list.add(new TextString(buffer, offset + 32, 8, "Door ID"));
-    list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag_iwd2));
+    else
+      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
     list.add(new DecNumber(buffer, offset + 44, 4, "First vertex index (open)"));
     list.add(new SectionCount(buffer, offset + 48, 2, "# vertices (open)", OpenVertex.class));
     list.add(new SectionCount(buffer, offset + 50, 2, "# vertices (closed)", ClosedVertex.class));

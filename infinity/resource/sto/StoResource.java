@@ -18,8 +18,9 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   private static final String[] s_flag = {"Can only rest", "Can buy", "Can sell", "Can identify",
                                           "Can steal", "Can buy cures", "Can donate", "Can buy drinks",
                                           "", "", "Tavern quality 1", "Tavern quality 2", "Tavern quality 3"};
-  private static final String[] s_flag11 = {"Can only rest", "Can buy", "Can sell", "Can identify",
-                                            "Can steal", "Can donate", "Can buy cures", "Can buy drinks"};
+  private static final String[] s_flag9 = {"Can only rest", "Can buy", "Can sell", "Can identify",
+                                           "Can steal", "Can donate", "Can buy cures", "Can buy drinks",
+                                           "", "", "Tavern quality 1", "Tavern quality 2", "Tavern quality 3"};
   private static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
                                               "Can steal", "Can buy cures", "Can donate", "Can buy drinks",
                                               "", "", "Tavern quality 1", "Tavern quality 2",
@@ -76,13 +77,13 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     else if (version.toString().equalsIgnoreCase("V9.0")) {
       list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
       list.add(new StringRef(buffer, offset + 12, "Name"));
-      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag));
+      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag9));
     }
     else {
       list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type));
       list.add(new StringRef(buffer, offset + 12, "Name"));
       if (version.toString().equalsIgnoreCase("V1.1"))
-        list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag11));
+        list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag9));
       else
         list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag));
     }

@@ -44,8 +44,8 @@ public final class Song2daBitmap extends Datatype implements Editable
       e.printStackTrace();
     }
 
-    songNumber.put(0xFFFFFFFE, new SonglistEntry((long)-2, "Continue_area_music"));
-    songNumber.put(0xFFFFFFFF, new SonglistEntry((long)-1, "Continue_outside_music"));
+    songNumber.put(0xFFFFFFFE, new SonglistEntry((long)-2, "Continue area music"));
+    songNumber.put(0xFFFFFFFF, new SonglistEntry((long)-1, "Continue outside music"));
   }
 
   private static void parseSonglistLine(String s)

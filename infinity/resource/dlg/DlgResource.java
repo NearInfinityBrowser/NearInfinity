@@ -53,7 +53,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
   public void write(OutputStream os) throws IOException
   {
     offsetState.setValue(0x30);
-    if (list.size() >= 13 && getStructEntryAt(12).getName().equalsIgnoreCase("Dialogue type"))
+    if (list.size() >= 13 && getStructEntryAt(12).getName().equalsIgnoreCase("Threat response"))
       offsetState.setValue(0x34);
     offsetTrans.setValue(offsetState.getValue() + 0x10 * countState.getValue());
     offsetStaTri.setValue(offsetTrans.getValue() + 0x20 * countTrans.getValue());

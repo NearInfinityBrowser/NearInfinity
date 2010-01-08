@@ -26,11 +26,11 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Familiars", "Tattoos", "Lenses", "Bucklers",
            "Candles", "", "Clubs", "", "",
            "Large shields", "", "Medium shields", "Notes",
-           "", "", "Small shields", "",
-           "Telescopes", "Bottles", "Greatswords", "Containers",
+           "Rods", "Skulls", "Small shields", "",
+           "Telescopes", "Bottles", "Greatswords", "Bags",
            "Furs and pelts", "Leather armor", "Studded leather", "Chain mail",
            "Splint mail", "Plate mail", "Full plate", "Hide armor", "Robes",
-           "", "Bastard swords", "Scarves", "Food", "Hats", "Gauntlets"};
+           "Scale mail", "Bastard swords", "Scarves", "Rations", "Hats", "Gloves"};
   public static final String s_categories11[] =
           {"Miscellaneous", "Amulets and necklaces", "Armor", "Belts and girdles",
            "Boots", "Arrows", "Bracers and gauntlets", "Headgear",

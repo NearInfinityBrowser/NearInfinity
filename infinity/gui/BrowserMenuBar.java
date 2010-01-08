@@ -500,8 +500,10 @@ public final class BrowserMenuBar extends JMenuBar
         lastGameID.add(0, new Integer(oldGame));
         lastGamePath.add(0, oldFile);
       }
-      while (lastGameID.size() > 5)
+      while (lastGameID.size() > 5) {
+        lastGamePath.remove(lastGameID.size() - 1);
         lastGameID.remove(lastGameID.size() - 1);
+      }
       if (newIndex != 1 || oldGame != -1) {
         for (int i = 0; i < lastGameID.size(); i++) {
           gameLastGame[i].setText(
