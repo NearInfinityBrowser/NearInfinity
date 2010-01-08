@@ -282,7 +282,6 @@ public final class BamResource implements Resource, ActionListener, ItemListener
     bprevframe.setEnabled(selectedFrame > 0);
     bnextanim.setEnabled(selectedAnim + 1 < anims.length);
     bprevanim.setEnabled(selectedAnim > 0);
-
   }
 
 // -------------------------- INNER CLASSES --------------------------

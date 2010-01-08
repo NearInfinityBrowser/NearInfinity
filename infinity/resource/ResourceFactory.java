@@ -61,7 +61,7 @@ public final class ResourceFactory
   {
     String bgdirs[] = {"Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
                        "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave"};
-    String iwddirs[] = {"Music", "Characters", "Scripts", "Sounds", "Temp", "MPSave"};
+//    String iwddirs[] = {"Music", "Characters", "Scripts", "Sounds", "Temp", "MPSave"};
 
     games = new GameConfig[15];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
@@ -322,8 +322,11 @@ public final class ResourceFactory
 
       // Expansion pack detection
       if (currentGame == ID_ICEWIND && resourceExists("HOWDRAG.MVE"))
-        currentGame = ID_ICEWINDHOW;
       // Detect Trials of the Luremaster
+        if (resourceExists("AR9715.ARE"))
+          currentGame = ID_ICEWINDHOWTOT;
+        else
+          currentGame = ID_ICEWINDHOW;
       if (currentGame == ID_BG2 && resourceExists("SARADUSH.MVE"))
         currentGame = ID_BG2TOB;
       if (currentGame == ID_BG1 && resourceExists("DURLAG.MVE"))

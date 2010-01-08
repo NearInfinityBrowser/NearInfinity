@@ -92,8 +92,8 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
     list.add(new DecNumber(buffer, offset + 34, 2, "# charges"));
     list.add(new Bitmap(buffer, offset + 36, 2, "When drained", s_drain));
 //    list.add(new Unknown(buffer, offset + 37, 1));
+//    list.add(new Bitmap(buffer, offset + 38, 1, "Allow strength bonus?", s_yesno));
     list.add(new Flag(buffer, offset + 38, 4, "Flags", s_recharge));
-//    list.add(new Bitmap(buffer, offset + 39, 1, "Item recharges?", s_recharge));
 //    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
 //      list.add(
 //              new Bitmap(buffer, offset + 40, 2, "Attack type",

@@ -29,6 +29,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   private static final String s_atype_torment[] = {"Can rest", "Cannot save",
                                                    "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                    "Cannot save", "Can rest with permission"};
+  private static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
   {
@@ -237,7 +238,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     list.add(version);
     list.add(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
     list.add(new DecNumber(buffer, offset + 16, 4, "Last saved"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+    if (version.toString().equalsIgnoreCase("V9.1"))
+      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
+    else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
       list.add(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
     else
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));

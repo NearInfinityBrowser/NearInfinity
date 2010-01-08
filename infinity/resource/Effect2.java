@@ -13,7 +13,8 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 {
   private static final String s_itmflag[] = {"No flags set", "Add strength bonus", "Breakable",
                                               "", "", "", "", "", "", "", "", "Hostile",
-                                              "Recharge after resting"};
+                                              "Recharge after resting", "", "", "", "",
+                                              "Bypass armor", "Keen edge"};
   private static final String s_splflag[] = {"No flags set", "", "", "", "", "", "", "", "", "",
                                              "", "Hostile", "No LOS required", "", "Outdoors only",
                                              "Non-magical ability", "Trigger/Contingency"};

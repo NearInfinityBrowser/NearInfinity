@@ -17,7 +17,7 @@ public abstract class AbstractAbility extends AbstractStruct
                                                   "Caster (keep spell, no animation)"};
   protected static final String[] s_dmgtype = {"None", "Piercing", "Crushing", "Slashing", "Missile",
                                                "Fist", "Piercing or crushing", "Piercing or slashing",
-                                               "Crushing or slashing"};
+                                               "Crushing or slashing", "Missile (blunt)"};
 
   protected AbstractAbility(AbstractStruct superStruct, String name, byte buffer[], int offset)
           throws Exception
