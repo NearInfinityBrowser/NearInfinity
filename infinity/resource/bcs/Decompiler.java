@@ -318,9 +318,9 @@ public final class Decompiler
           coord = name;
           break;
         }
-      name = st.nextToken(); // IWD couldn't handle spaces in objstring
-      while (name.charAt(0) == '"' && !name.endsWith("OB"))
-        name = name + ' ' + st.nextToken();
+      name = st.nextToken(); // ToDo: IWD can't handle spaces in objstring
+      // this opens a fat can of stupid with Icewind2 (below); IWD2 still has
+      // problems decompiling from "dirty" BCS source (in source view)
     }
     if (name.endsWith("OB"))
       name = name.substring(0, name.length() - 2);
@@ -353,7 +353,7 @@ public final class Decompiler
       ids[index] = lookup(IdsMapCache.get("CLASS.IDS"), numbers[index++]);
       ids[index] = lookup(IdsMapCache.get("SPECIFIC.IDS"), numbers[index++]);
       ids[index] = lookup(IdsMapCache.get("GENDER.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("ALIGNMEN.IDS"), numbers[index++]);
+      ids[index] = lookup(IdsMapCache.get("ALIGN.IDS"), numbers[index++]);
     }
 
     IdsMap objectMap = IdsMapCache.get("OBJECT.IDS");
@@ -364,10 +364,10 @@ public final class Decompiler
       lookup(objectMap, numbers[index++]),
       lookup(objectMap, numbers[index++])};
 
-    if (numbersIndex == 15) {
-      ids[index - 5] = lookup(IdsMapCache.get("AVCLASS.IDS"), numbers[index++]);
-      ids[index - 5] = lookup(IdsMapCache.get("CLASSMSK.IDS"), numbers[index++]);
-    }
+//    if (numbersIndex == 15) {
+//      ids[index - 5] = lookup(IdsMapCache.get("AVCLASS.IDS"), numbers[index++]);
+//      ids[index - 5] = lookup(IdsMapCache.get("CLASSMSK.IDS"), numbers[index++]);
+//    }
 
     StringBuilder code = new StringBuilder();
     StringBuilder endcode = new StringBuilder();

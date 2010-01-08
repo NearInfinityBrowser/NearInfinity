@@ -134,7 +134,7 @@ public final class EffectFactory
     "Cause critical wounds", "Cause disease", "Hit poison", "Slay living",
     "Harm", "Destruction", "Exaltation", "Cloudburst", "Mold touch",
     "Lower resistance", "Cat's grace", "Soul eater", "Smashing wave",
-    "Suffocate", "Abi-dalzim's horrid wilting", "Mordenkainen's force missile",
+    "Suffocate", "Abi-dalzim's horrid wilting", "Mordenkainen's force missiles",
     "Vitriolic sphere", "Wailing virgin death", "Undead ward",
     "Wailing virgin hit", "Wylfden's death 1", "Wylfden's death 2",
     "Dragon's death 1", "Dragon's death 2", "Monster summoning circle",
@@ -157,7 +157,7 @@ public final class EffectFactory
     m_colorloc.put(1L, "Minor color");
     m_colorloc.put(2L, "Major color");
     m_colorloc.put(3L, "Skin color");
-    m_colorloc.put(4L, "Strap/Trimming");
+    m_colorloc.put(4L, "Strap/Leather");
     m_colorloc.put(5L, "Armor/Trimming");
     m_colorloc.put(6L, "Hair");
     m_colorloc.put(16L, "Weapon head/blade/staff major");
@@ -198,7 +198,7 @@ public final class EffectFactory
       case ResourceFactory.ID_DEMO:
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
-          "Charisma bonus", "Set item color", "Set color glow solid",
+          "Charisma bonus", "Set color", "Set color glow solid",
           "Set color glow pulse", "Constitution bonus", "Cure poison", "Damage",
           "Kill target", "Defrost", "Dexterity bonus", "Haste",
           "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
@@ -280,7 +280,7 @@ public final class EffectFactory
       case ResourceFactory.ID_TORMENT:
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
-          "Charisma bonus", "Set item color", "Set color glow solid",
+          "Charisma bonus", "Set color", "Set color glow solid",
           "Set color glow pulse", "Constitution bonus", "Cure poison", "Damage",
           "Kill target", "Defrost", "Dexterity bonus", "Haste",
           "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
@@ -368,7 +368,7 @@ public final class EffectFactory
       case ResourceFactory.ID_ICEWINDHOWTOT:
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
-          "Charisma bonus", "Set item color", "Set color glow solid",
+          "Charisma bonus", "Set color", "Set color glow solid",
           "Set color glow pulse", "Constitution bonus", "Cure poison", "Damage",
           "Kill target", "Defrost", "Dexterity bonus", "Haste",
           "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
@@ -491,7 +491,7 @@ public final class EffectFactory
       case ResourceFactory.ID_UNKNOWNGAME: // Default list
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
-          "Charisma bonus", "Set item color", "Set color glow solid",
+          "Charisma bonus", "Set color", "Set color glow solid",
           "Set color glow pulse", "Constitution bonus", "Cure poison", "Damage",
           "Kill target", "Defrost", "Dexterity bonus", "Haste",
           "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
@@ -648,7 +648,7 @@ public final class EffectFactory
       case ResourceFactory.ID_ICEWIND2:
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
-          "Charisma bonus", "Set item color", "Set color glow solid",
+          "Charisma bonus", "Set color", "Set color glow solid",
           "Set color glow pulse", "Constitution bonus", "Cure poison", "Damage",
           "Kill target", "Defrost", "Dexterity bonus", "Haste",
           "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
@@ -907,7 +907,7 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         break;
 
-      case 0x7: // Set item color (CGameEffectColorChange)
+      case 0x7: // Set color (CGameEffectColorChange)
         s.add(new ColorValue(buffer, offset, 4, "Color"));
         s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc));
         break;
@@ -939,7 +939,7 @@ public final class EffectFactory
       case 0xD: // Kill target (CGameEffectDeath)
         s.add(new Bitmap(buffer, offset, 4, "Display text?", s_yesno));
         s.add(new Flag(buffer, offset + 4, 4, "Death type",
-          new String[]{"Acid", "Burning", "Crushed", "Normal", "Chunked",
+          new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding",
                        "Stoned", "Freezing", "Exploding stoned",
                        "Exploding freezing", "Electrified", "Disintegration"}));
         break;
@@ -989,7 +989,7 @@ public final class EffectFactory
                        "Purple", "Red", "White", "Ice", "Stone", "Magenta",
                        "Orange"}));
         s.add(new Bitmap(buffer, offset + 4, 4, "Particle effect",
-          new String[]{"", "Explosion", "", "Shower"}));
+          new String[]{"", "Explosion", "Swirl", "Shower"}));
         break;
 
       case 0x2A: // Bonus wizard spells (CGameEffectSpellMemorizationMage)
@@ -1041,7 +1041,7 @@ public final class EffectFactory
         if (gameid == ResourceFactory.ID_ICEWIND2)
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment", "ALIGNMNT.IDS"));
         else
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment", "ALIGNMEN.IDS"));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment", "ALIGN.IDS"));
         break;
 
       case 0x3A: // Dispel effects (CGameEffectDispelEffects)
@@ -1102,7 +1102,7 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "From IDS file",
           new String[]{"EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
-                       "SPECIFIC.IDS", "GENDER.IDS", "ALIGNMEN.IDS"}));
+                       "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS"}));
         break;
 
       case 0x4E: // Disease (CGameEffectDisease)
@@ -1632,7 +1632,7 @@ public final class EffectFactory
                          "Antimagic shell", "Otiluke's resilient sphere",
                          "Protection from normal missiles", "Cloak of fear",
                          "Entropy shield", "Fire aura", "Frost aura",
-                         "Insect plague", "Storm shield", "Shield of lathander",
+                         "Insect plague", "Storm shell", "Shield of lathander",
                          "Greater shield of lathander", "Seven eyes"}));
           break;
 
@@ -2067,8 +2067,8 @@ public final class EffectFactory
           break;
 
         case 0x126: // Set existence delay (CGameEffectExistanceDelayOverride)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Interval override"));
+          s.add(new DecNumber(buffer, offset, 4, "Interval override"));
+          s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
         case 0x128: // Immunity to specific animation (CGameEffectImmunityToVisualEffect)

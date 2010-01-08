@@ -66,6 +66,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gender"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Alignment"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Kit"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Challenge rating"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Fortitude save"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Reflex save"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Will save"), gbl, gbc, true);
@@ -314,6 +315,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP value"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Total level"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("AC"), gbl, gbc, true);
 
     StructEntry s1 = cre.getAttribute("Current HP");

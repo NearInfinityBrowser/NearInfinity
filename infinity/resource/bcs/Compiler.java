@@ -78,7 +78,7 @@ public final class Compiler
         IdsMapCache.get("CLASS.IDS"),
         IdsMapCache.get("SPECIFIC.IDS"),
         IdsMapCache.get("GENDER.IDS"),
-        IdsMapCache.get("ALIGNMEN.IDS")
+        IdsMapCache.get("ALIGN.IDS")
       };
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
       itype = new IdsMap[]{
@@ -90,8 +90,8 @@ public final class Compiler
         IdsMapCache.get("GENDER.IDS"),
         IdsMapCache.get("ALIGNMNT.IDS"),
         IdsMapCache.get("CLASS.IDS"),
-        IdsMapCache.get("AVCLASS.IDS"),
-        IdsMapCache.get("CLASSMSK.IDS")
+//        IdsMapCache.get("AVCLASS.IDS"),
+//        IdsMapCache.get("CLASSMSK.IDS")
       };
     else
       itype = new IdsMap[]{
@@ -101,9 +101,8 @@ public final class Compiler
         IdsMapCache.get("CLASS.IDS"),
         IdsMapCache.get("SPECIFIC.IDS"),
         IdsMapCache.get("GENDER.IDS"),
-        IdsMapCache.get("ALIGNMEN.IDS")
+        IdsMapCache.get("ALIGN.IDS")
       };
-
     emptyObject = compileObject(null, "");
 
     setupScriptNames();

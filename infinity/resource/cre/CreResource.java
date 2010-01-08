@@ -410,7 +410,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   {
     list.add(new StringRef(buffer, offset, "Name"));
     list.add(new StringRef(buffer, offset + 4, "Tooltip"));
-    list.add(new Flag(buffer, offset + 8, 4, "Flags", new String[]{"No flags set"}));
+    list.add(new Flag(buffer, offset + 8, 4, "Flags", s_flag)); // ToDo: figure these out whenever
     list.add(new DecNumber(buffer, offset + 12, 4, "XP value"));
     list.add(new DecNumber(buffer, offset + 16, 4, "XP"));
     list.add(new DecNumber(buffer, offset + 20, 4, "Gold"));
@@ -595,12 +595,12 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Bard spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 946 + 4 * i,
-                                              "Bard" + (i + 1) + " spells offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1198 + 4 * i, 4, "Bard" + (i + 1) + " spells count");
+                                              "Bard spells " + (i + 1) + " offset", null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1198 + 4 * i, 4, "Bard spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Bard" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Bard spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -608,13 +608,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Cleric spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 982 + 4 * i,
-                                              "Cleric" + (i + 1) + " spells offset", null);
+                                              "Cleric spells " + (i + 1) + " offset", null);
       DecNumber s_count = new DecNumber(buffer, offset + 1234 + 4 * i, 4,
-                                        "Cleric" + (i + 1) + " spells count");
+                                        "Cleric spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Cleric" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Cleric spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -622,13 +622,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Druid spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1018 + 4 * i,
-                                              "Druid" + (i + 1) + " spells offset", null);
+                                              "Druid spells " + (i + 1) + " offset", null);
       DecNumber s_count = new DecNumber(buffer, offset + 1270 + 4 * i, 4,
-                                        "Druid" + (i + 1) + " spells count");
+                                        "Druid spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Druid" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Druid spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -636,13 +636,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Paladin spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1054 + 4 * i,
-                                              "Paladin" + (i + 1) + " spells offset", null);
+                                              "Paladin spells " + (i + 1) + " offset", null);
       DecNumber s_count = new DecNumber(buffer, offset + 1306 + 4 * i, 4,
-                                        "Paladin" + (i + 1) + " spells count");
+                                        "Paladin spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Paladin" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Paladin spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -650,13 +650,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Ranger spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1090 + 4 * i,
-                                              "Ranger" + (i + 1) + " spells offset", null);
+                                              "Ranger spells " + (i + 1) + " offset", null);
       DecNumber s_count = new DecNumber(buffer, offset + 1342 + 4 * i, 4,
-                                        "Ranger" + (i + 1) + " spells count");
+                                        "Ranger spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Ranger" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Ranger spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -664,13 +664,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Sorcerer spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1126 + 4 * i,
-                                              "Sorcerer" + (i + 1) + " spells offset", null);
+                                              "Sorcerer spells " + (i + 1) + " offset", null);
       DecNumber s_count = new DecNumber(buffer, offset + 1378 + 4 * i, 4,
-                                        "Sorcerer" + (i + 1) + " spells count");
+                                        "Sorcerer spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Sorcerer" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Sorcerer spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -678,13 +678,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Wizard spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1162 + 4 * i,
-                                              "Wizard" + (i + 1) + " spells offset", null);
+                                              "Wizard spells " + (i + 1) + " offset", null);
       DecNumber s_count = new DecNumber(buffer, offset + 1414 + 4 * i, 4,
-                                        "Wizard" + (i + 1) + " spells count");
+                                        "Wizard spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Wizard" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Wizard spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -692,13 +692,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     // Domain spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1450 + 4 * i,
-                                              "Domain" + (i + 1) + " spells offset", null);
+                                              "Domain spells " + (i + 1) + " offset", null);
       DecNumber s_count = new DecNumber(buffer, offset + 1486 + 4 * i, 4,
-                                        "Domain" + (i + 1) + " spells count");
+                                        "Domain spells " + (i + 1) + " count");
       list.add(s_off);
       list.add(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Domain" + (i + 1) + " spells", Iwd2Struct.TYPE_SPELL);
+                                        s_count, "Domain spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
       list.add(s);
 //      s_off.setStaticStruct(s);
     }
@@ -729,7 +729,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(shape_off);
     list.add(shape_num);
     AbstractStruct shape_str = new Iwd2Struct(this, buffer, getExtraOffset() + shape_off.getValue(),
-                                              shape_num, "Shape", Iwd2Struct.TYPE_SHAPE);
+                                              shape_num, "Shapes", Iwd2Struct.TYPE_SHAPE);
     list.add(shape_str);
 //    shape_off.setStaticStruct(shape_str);
 
@@ -912,8 +912,9 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 92, 1, "Unspent proficiencies"));
 //      list.add(new Unknown(buffer, offset + 93, 1));
     }
-    else
+    else {
       list.add(new UnsignDecNumber(buffer, offset + 92, 1, "Detect illusions"));
+    }
     list.add(new UnsignDecNumber(buffer, offset + 93, 1, "Set traps"));
     list.add(new DecNumber(buffer, offset + 94, 1, "Lore"));
     list.add(new UnsignDecNumber(buffer, offset + 95, 1, "Open locks"));
@@ -1067,6 +1068,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
                                      "Good increment on death", "Law increment on death",
                                      "Lady increment on death", "Murder increment on death",
                                      "Don't face speaker", "Call for help"}));
+//      list.add(new Flag(buffer, offset + 729, 1, "Attribute flags 2",
+//                        new String[]{"No flags set", "", "Invulnerable"}));
 //      list.add(new Unknown(buffer, offset + 730, 2));
       list.add(new IdsBitmap(buffer, offset + 732, 2, "Color 1", "CLOWNCLR.IDS"));
       list.add(new IdsBitmap(buffer, offset + 734, 2, "Color 2", "CLOWNCLR.IDS"));
