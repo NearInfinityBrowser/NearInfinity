@@ -68,8 +68,15 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
     list.add(new Unknown(buffer, offset + 36, 2));
     if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
       list.add(new ProRef(buffer, offset + 38, "Projectile"));
+    else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+      list.add(new Bitmap(buffer, offset + 38, 2, "Projectile", s_proj_pst));
+    else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
+             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
+             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
+             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+      list.add(new Bitmap(buffer, offset + 38, 2, "Projectile", s_proj_iwd));
     else
-      list.add(new DecNumber(buffer, offset + 38, 2, "Projectile"));
+      list.add(new Bitmap(buffer, offset + 38, 2, "Projectile", s_projectile));
     return offset + 40;
   }
 }

@@ -12,19 +12,16 @@ import javax.swing.*;
 
 public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
 {
-  private static final String[] s_type = {"Store", "Tavern", "Inn", "Temple"};
+//  private static final String[] s_type = {"Store", "Tavern", "Inn", "Temple"};
   private static final String[] s_type9 = {"Store", "Tavern", "Inn", "Temple", "Container"};
   private static final String[] s_type_bg2 = {"Store", "Tavern", "Inn", "Temple", "", "Container"};
-  private static final String[] s_flag = {"Can only rest", "Can buy", "Can sell", "Can identify",
-                                          "Can steal", "Can buy cures", "Can donate", "Can buy drinks",
-                                          "", "", "Tavern quality 1", "Tavern quality 2", "Tavern quality 3"};
-  private static final String[] s_flag9 = {"Can only rest", "Can buy", "Can sell", "Can identify",
-                                           "Can steal", "Can donate", "Can buy cures", "Can buy drinks",
-                                           "", "", "Tavern quality 1", "Tavern quality 2", "Tavern quality 3"};
+//  private static final String[] s_flag = {"Can't do anything", "Can buy", "Can sell", "Can identify",
+//                                          "Can steal", "Can buy cures", "Can donate",
+//                                          "Can buy drinks", "", "", "Quality Bit 0 (BAM)", "Quality Bit 1 (BAM)"};
   private static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
-                                              "Can steal", "Can buy cures", "Can donate", "Can buy drinks",
-                                              "", "", "Tavern quality 1", "Tavern quality 2",
-											  "Tavern quality 3", "Fence"};
+                                              "Can steal", "Can donate", "Can buy cures",
+                                              "Can buy drinks", "", "", "Tavern quality 1", "Tavern quality 2",
+											  "", "Fence"};
   private static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 
   public static String getSearchString(byte buffer[])
@@ -74,18 +71,15 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
       list.add(new StringRef(buffer, offset + 12, "Name"));
       list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
     }
-    else if (version.toString().equalsIgnoreCase("V9.0")) {
+//    else if (version.toString().equalsIgnoreCase("V9.0")) {
+//      list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
+//      list.add(new StringRef(buffer, offset + 12, "Name"));
+//      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag));
+//    }
+    else {
       list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
       list.add(new StringRef(buffer, offset + 12, "Name"));
-      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag9));
-    }
-    else {
-      list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type));
-      list.add(new StringRef(buffer, offset + 12, "Name"));
-      if (version.toString().equalsIgnoreCase("V1.1"))
-        list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag9));
-      else
-        list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag));
+      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
     }
     list.add(new DecNumber(buffer, offset + 20, 4, "Sell markup"));
     list.add(new DecNumber(buffer, offset + 24, 4, "Buy markup"));

@@ -13,14 +13,15 @@ import java.util.List;
 public final class EffectType extends Bitmap
 {
   public static final String s_dispel[] = {"No dispel/bypass resistance", "Dispel/Not bypass resistance",
-                                           "Not dispel/not bypass resistance", "Dispel/Bypass resistance"};
+                                           "Not dispel/bypass resistance", "Dispel/Bypass resistance"};
   private static final String s_target[] = {"None", "Self", "Preset target",
                                             "Party", "Everyone", "Everyone except party",
                                             "Caster group", "Target group", "Everyone except self", "Original caster"};
   private static final String s_duration[] = {"Instant/Limited", "Instant/Permanent until death",
                                               "Instant/While equipped", "Delay/Limited", "Delay/Permanent",
-                                              "Delay/While equipped", "", "", "", "Instant/Permanent",
-                                              "Trigger"};
+                                              "Delay/While equipped", "Limited after duration",
+                                              "Permanent after duration", "Equipped after duration",
+                                              "Instant/Permanent", "Trigger"};
   private int attr_length;
 
   public EffectType(byte buffer[], int offset, int length)

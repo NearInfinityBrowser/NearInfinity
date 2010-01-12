@@ -49,15 +49,15 @@ public final class VvcResource extends AbstractStruct implements Resource
     list.add(new DecNumber(buffer, offset + 92, 4, "Duration (frames)"));
     list.add(new Unknown(buffer, offset + 96, 4));
     list.add(new Unknown(buffer, offset + 100, 4));
-    list.add(new DecNumber(buffer, offset + 104, 4, "First BAM animation number"));
-    list.add(new DecNumber(buffer, offset + 108, 4, "Second BAM animation number"));
+    list.add(new DecNumber(buffer, offset + 104, 4, "First animation number"));
+    list.add(new DecNumber(buffer, offset + 108, 4, "Second animation number"));
     list.add(new Unknown(buffer, offset + 112, 4));
     list.add(new Unknown(buffer, offset + 116, 4));
     list.add(new ResourceRef(buffer, offset + 120, "Starting sound", "WAV"));
     list.add(new ResourceRef(buffer, offset + 128, "Duration sound", "WAV"));
     list.add(new Unknown(buffer, offset + 136, 4));
     list.add(new Unknown(buffer, offset + 140, 4));
-    list.add(new DecNumber(buffer, offset + 144, 4, "Third BAM animation number"));
+    list.add(new DecNumber(buffer, offset + 144, 4, "Third animation number"));
     list.add(new ResourceRef(buffer, offset + 148, "Ending sound", "WAV"));
     list.add(new Unknown(buffer, offset + 156, 336));
     return offset + 492;

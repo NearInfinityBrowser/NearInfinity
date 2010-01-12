@@ -62,7 +62,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("General"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Race"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Class"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Specific"), gbl, gbc, true);
+//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Specific"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gender"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Alignment"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Kit"), gbl, gbc, true);

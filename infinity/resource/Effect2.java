@@ -45,8 +45,8 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 40, 4, "Parameter 3"));
     list.add(new DecNumber(buffer, offset + 44, 4, "Parameter 4"));
     list.add(new Unknown(buffer, offset + 48, 8));
-    list.add(new TextString(buffer, offset + 56, 8, "Parameter 5"));
-    list.add(new Unknown(buffer, offset + 64, 8));
+    list.add(new TextString(buffer, offset + 56, 8, "Resource 2"));
+    list.add(new TextString(buffer, offset + 64, 8, "Resource 3"));
     list.add(new DecNumber(buffer, offset + 72, 4, "Caster location: X"));
     list.add(new DecNumber(buffer, offset + 76, 4, "Caster location: Y"));
     list.add(new DecNumber(buffer, offset + 80, 4, "Target location: X"));

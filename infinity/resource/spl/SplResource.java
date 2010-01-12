@@ -23,15 +23,17 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                            "Necromancer", "Transmuter", "Generalist"};
 //  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_priesttype = new LongIntegerHashMap<String>();
-  private static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate"};
-  private static final String[] s_anim = {"None", "None", "None", "None", "None", "None", "None", "None", "None",
-                                          "Necromancy", "Alteration", "Enchantment",
-                                          "Abjuration", "Illusion", "Conjuration",
-                                          "Invocation", "Divination", "Blue sparks", "Black sparks", "Blue sparks",
-                                          "Gold sparks", "Green sparks", "Magenta sparks", "Purple sparks", "Red sparks",
-                                          "White sparks", "Blue sparks", "Black sparks", "Blue sparks", "Gold sparks",
-                                          "Green sparks", "Magenta sparks", "Purple sparks", "Red sparks",
-                                          "White sparks"};
+  private static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate", "Bard song"};
+  private static final String[] s_anim = {"None", "Fire aqua", "Fire blue", "Fire gold", "Fire green",
+                                          "Fire magenta", "Fire purple", "Fire red", "Fire white",
+                                          "Necromancy", "Alteration", "Enchantment", "Abjuration",
+                                          "Illusion", "Conjuration", "Invocation", "Divination",
+                                          "Fountain aqua", "Fountain black", "Fountain blue", "Fountain gold",
+                                          "Fountain green", "Fountain magenta", "Fountain purple",
+                                          "Fountain red", "Fountain white", "Swirl aqua", "Swirl black",
+                                          "Swirl blue", "Swirl gold", "Swirl green",
+                                          "Swirl magenta", "Swirl purple", "Swirl red",
+                                          "Swirl white"};
   private static final String[] s_spellflag = {"No flags set", "", "", "", "", "", "", "", "",
                                                "", "", "Hostile",
                                                "No LOS required", "", "Outdoors only",
@@ -223,7 +225,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 
     if (version.toString().equalsIgnoreCase("V2.0")) {
       list.add(new DecNumber(buffer, offset + 114, 1, "Spell duration rounds/level"));
-      list.add(new DecNumber(buffer, offset + 115, 1, "Spell duration bonus"));
+      list.add(new DecNumber(buffer, offset + 115, 1, "Spell duration rounds base"));
       list.add(new Unknown(buffer, offset + 116, 14));
     }
 
