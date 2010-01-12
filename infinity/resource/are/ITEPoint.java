@@ -80,7 +80,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new Bitmap(buffer, offset + 32, 2, "Type of point", s_type));
+    list.add(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
     list.add(new DecNumber(buffer, offset + 34, 2, "Bounding box: Left"));
     list.add(new DecNumber(buffer, offset + 36, 2, "Bounding box: Top"));
     list.add(new DecNumber(buffer, offset + 38, 2, "Bounding box: Right"));
@@ -101,19 +101,31 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     list.add(new DecNumber(buffer, offset + 114, 2, "Launch point: Y"));
     list.add(new ResourceRef(buffer, offset + 116, "Key", "ITM")); // Key type?
     list.add(new ResourceRef(buffer, offset + 124, "Script", "BCS"));
-    list.add(new DecNumber(buffer, offset + 132, 2, "Activation point: X"));
-    list.add(new DecNumber(buffer, offset + 134, 2, "Activation point: Y"));
+//    list.add(new DecNumber(buffer, offset + 132, 2, "Override box: Left"));
+//    list.add(new DecNumber(buffer, offset + 134, 2, "Override box: Top"));
 //    list.add(new DecNumber(buffer, offset + 136, 2, "Override box: Right"));
 //    list.add(new DecNumber(buffer, offset + 138, 2, "Override box: Bottom"));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
-      list.add(new Unknown(buffer, offset + 136, 44));
+      list.add(new Unknown(buffer, offset + 132, 48));
       list.add(new DecNumber(buffer, offset + 180, 2, "Speaker point: X"));
       list.add(new DecNumber(buffer, offset + 182, 2, "Speaker point: Y"));
       list.add(new StringRef(buffer, offset + 184, "Speaker name"));
       list.add(new ResourceRef(buffer, offset + 188, "Dialogue", "DLG"));
     }
-    else
+    else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
+             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
+             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
+             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      list.add(new Unknown(buffer, offset + 132, 4));
+      list.add(new DecNumber(buffer, offset + 136, 4, "Alternate point: X"));
+      list.add(new DecNumber(buffer, offset + 140, 4, "Alternate point: Y"));
+      list.add(new Unknown(buffer, offset + 144, 52));
+    }
+    else {
+      list.add(new DecNumber(buffer, offset + 132, 2, "Activation point: X"));
+      list.add(new DecNumber(buffer, offset + 134, 2, "Activation point: Y"));
       list.add(new Unknown(buffer, offset + 136, 60));
+    }
 //      list.add(new ResourceRef(buffer, offset + 188, "Proximity trigger dialog", "DLG"));
     return offset + 196;
   }

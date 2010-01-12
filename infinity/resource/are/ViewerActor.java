@@ -78,11 +78,22 @@ final class ViewerActor extends JPanel
 
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Orientation"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Override script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Specific script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Class script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Race script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("General script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Default script"), gbl, gbc, true);
+    if (actor.getSuperStruct() != null &&
+        actor.getSuperStruct().getAttribute("Version").toString().equalsIgnoreCase("V9.1")) {
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Special 1 script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Team script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Special 2 script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Combat script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Special 3 script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Movement script"), gbl, gbc, true);
+    }
+    else {
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Specific script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Class script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Race script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("General script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Default script"), gbl, gbc, true);
+    }
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Dialogue"), gbl, gbc, true);
 
     return fieldPanel;
