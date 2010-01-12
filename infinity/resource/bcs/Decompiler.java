@@ -364,10 +364,10 @@ public final class Decompiler
       lookup(objectMap, numbers[index++]),
       lookup(objectMap, numbers[index++])};
 
-//    if (numbersIndex == 15) {
-//      ids[index - 5] = lookup(IdsMapCache.get("AVCLASS.IDS"), numbers[index++]);
-//      ids[index - 5] = lookup(IdsMapCache.get("CLASSMSK.IDS"), numbers[index++]);
-//    }
+    if (numbersIndex == 15) { // ToDo: whatweretheythinking?!
+      ids[index - 5] = lookup(IdsMapCache.get("AVCLASS.IDS"), numbers[index++]);
+      ids[index - 5] = lookup(IdsMapCache.get("CLASSMSK.IDS"), numbers[index++]);
+    }
 
     StringBuilder code = new StringBuilder();
     StringBuilder endcode = new StringBuilder();

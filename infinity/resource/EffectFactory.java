@@ -22,92 +22,6 @@ public final class EffectFactory
   private static final String s_yesno[] = {"Yes", "No"};
   private static final String s_noyes[] = {"No", "Yes"};
 
-  private static final String s_projectile[] = {"None", "Arrow",
-    "Arrow exploding", "Arrow flaming", "Arrow heavy", "Arrow shocking", "Axe",
-    "Axe exploding", "Axe flaming", "Axe heavy", "Axe shocking", "Bolt",
-    "Bolt exploding", "Bolt flaming", "Bolt heavy", "Bolt shocking", "Bullet",
-    "Bullet exploding", "Bullet flaming", "Bullet heavy", "Bullet shocking",
-    "Burning hands", "Call lightning BG", "Chromatic orb", "Cone of cold BG",
-    "Cone of fire", "Dagger", "Dagger exploding", "Dagger flaming",
-    "Dagger heavy", "Dagger shocking", "Dart", "Dart exploding", "Dart flaming",
-    "Dart heavy", "Dart shocking", "Magic missile BG", "Fireball",
-    "Ice fragments", "Chain lightning", "Skipping stone", "Sleep",
-    "Skeleton animation", "Smoke ball", "Smoke large", "Smoke small",
-    "Sparkle blue", "Sparkle gold", "Sparkle purple", "Sparkle ice",
-    "Sparkle stone", "Sparkle black", "Sparkle chromatic", "Sparkle red",
-    "Sparkle green", "Spear", "Spear exploding", "Spear flaming", "Spear heavy",
-    "Spear shocking", "Star sprite", "Stoned", "Web travel", "Web ground",
-    "Gaze", "Holy might", "Flame strike", "Magic missiles BG 1",
-    "Magic missiles BG 2", "Magic missiles BG 3", "Magic missiles BG 4",
-    "Magic missiles BG 5", "Magic missiles BG 6", "Magic missiles BG 7",
-    "Magic missiles BG 8", "Magic missiles BG 9", "Magic missiles BG 10",
-    "Magic missiles BG 11", "Invisible traveling", "Fire bolt",
-    "Call lightning chain 1", "Call lightning chain 2",
-    "Call lightning chain 3", "Call lightning chain 4",
-    "Call lightning chain 5", "Call lightning chain 6",
-    "Call lightning chain 7", "Call lightning chain 8",
-    "Call lightning chain 9", "Call lightning chain 10",
-    "Call lightning chain 11", "Fire storm", "Call lighting storm",
-    "Instant area effect", "Cloud", "Skull trap", "Color spray", "Ice storm",
-    "Fire wall", "Glyph", "Grease", "Flame arrow green", "Flame arrow blue",
-    "Fireball green", "Fireball blue", "Potion", "Potion exploding",
-    "Acid blob", "Agannazar's scorcher", "Travel door", "Glow necromancy",
-    "Glow alteration", "Glow enchantment", "Glow abjuration", "Glow illusion",
-    "Glow conjuration", "Glow invocation", "Glow divination",
-    "Hit necromancy air", "Hit necromancy earth", "Hit necromancy water",
-    "Hit alteration air", "Hit alteration earth", "Hit alteration water",
-    "Hit enchantment air", "Hit enchantment earth", "Hit enchantment water",
-    "Hit abjuration air", "Hit abjuration earth", "Hit abjuration water",
-    "Hit illusion air", "Hit illusion earth", "Hit illusion water",
-    "Hit conjuration air", "Hit conjuration earth", "Hit conjuration water",
-    "Hit invocation air", "Hit invocation earth", "Hit invocation water",
-    "Hit divination air", "Hit divination earth", "Hit divination water",
-    "Hit mushroom fire", "Hit mushroom gray", "Hit mushroom green",
-    "Hit shaft fire", "Hit shaft light", "Hit shaft white", "Sparkle area blue",
-    "Sparkle area gold", "Sparkle area purple", "Sparkle area ice",
-    "Sparkle area stone", "Sparkle area black", "Sparkle area chromatic",
-    "Sparkle area red", "Sparkle area green", "Instant area (party only)",
-    "Instant area (not party)", "Sparkle area blue (party only)",
-    "Sparkle area gold (party only)", "Sparkle area purple (party only)",
-    "Sparkle area ice (party only)", "Sparkle area stone (party only)",
-    "Sparkle area black (party only)", "Sparkle area chromatic (party only)",
-    "Sparkle area red (party only)", "Sparkle area green (party only)",
-    "Sparkle area blue (not party)", "Sparkle area gold (not party)",
-    "Sparkle area purple (not party)", "Sparkle area ice (not party)",
-    "Sparkle area stone (not party)", "Sparkle area black (not party)",
-    "Sparkle area chromatic (not party)", "Sparkle area red (not party)",
-    "Sparkle area green (not party)", "Sparkle area magenta (not party)",
-    "Sparkle area orange (not party)", "Sparkle area magenta (party only)",
-    "Sparkle area orange (party only)", "Sparkle area magenta",
-    "Sparkle area orange", "Sparkle magenta", "Sparkle orange",
-    "Non-sprite area", "Cloudkill BG", "Flame arrow ice", "Cow", "Hold",
-    "Scorcher ice", "Acid blob mustard", "Acid blob gray", "Acid blob ochre",
-    "Red holy might", "Hit necromancy area", "Hit alteration area",
-    "Hit enchantment area", "Hit abjuration area", "Hit illusion area",
-    "Hit conjuration area", "Hit invocation area", "Litany of curses",
-    "Stories-bones-tell", "Magic missiles 1", "Magic missiles 2",
-    "Magic missiles 3", "Magic missiles 4", "Magic missiles 5",
-    "Magic missiles 6", "Magic missiles 7", "Magic missiles 8",
-    "Magic missiles 9", "Magic missiles 10", "Skull mob", "Skull mob 2",
-    "Swarm curse", "Swarm curse 2", "Adder's kiss", "Ice knife", "Pacify",
-    "Strength", "Ball lightning", "Ball lightning 2", "Blood bridge",
-    "Force missiles", "Improved strength", "Shroud of shadows", "Cloudkill",
-    "Howl of pandemonium", "Bladestorm", "Elysium's fires", "Abyssal fury",
-    "Horror", "Knock", "Hold undead", "Missile of patience", "Elysium's tears",
-    "Tasha's unbearable derisive laughter", "Axe of torment", "Blacksphere",
-    "Cone of cold", "Desert hell", "Fire and ice", "Chain lightning storm",
-    "Acid storm", "Stygian ice storm", "Meteor storm bombardment", "Deathbolt",
-    "Ignus' fury", "Power word, blind", "Mechanus' cannon", "Celestial host",
-    "Rune of torment", "Blessing", "Curse", "", "Halo of lesser revelation",
-    "Spiritual hammer", "Call lightning", "", "Vampiric touch", "Confusion",
-    "Power word, kill", "Globe of invulnerability", "Nordom's crossbow bolt",
-    "Raise dead", "Aura of fear", "Conflagration", "Special trap",
-    "Ignus' fireball", "Tongues of flame 1", "Tongues of flame 2",
-    "Tongues of flame 3", "Tongues of flame 4", "Tongues of flame 5",
-    "Ignus' terror", "Infernal orb", "Fiery rain", "Elemental strike",
-    "Reign of anger 1", "Reign of anger 2", "Reign of anger 3",
-    "Reign of anger 4", "Reign of anger 5", "Power of one", "Succubus kiss",
-    "Embalming"};
   private static final String s_visuals[] = {"None", "Hit abjuration",
     "Hit alteration", "Hit invocation", "Hit necromancy", "Hit conjuration",
     "Hit enchantment", "Hit illusion", "Hit divination", "Armor",
@@ -195,7 +109,6 @@ public final class EffectFactory
     switch (ResourceFactory.getGameID()) {
       case ResourceFactory.ID_BG1:
       case ResourceFactory.ID_BG1TOTSC:
-      case ResourceFactory.ID_DEMO:
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
           "Charisma bonus", "Set color", "Set color glow solid",
@@ -1126,7 +1039,7 @@ public final class EffectFactory
         if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
         else
-          s.add(new Bitmap(buffer, offset + 4, 4, "Projectile", s_projectile));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
         break;
 
       case 0x62: // Regeneration (CGameEffectRegeneration)
@@ -1404,7 +1317,7 @@ public final class EffectFactory
           break;
 
         case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
-          s.add(new Unknown(buffer, offset, 4));
+          s.add(new DecNumber(buffer, offset, 4, "Amount"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
             new String[]{"Wizard", "Priest"}));
           break;
@@ -1573,8 +1486,33 @@ public final class EffectFactory
 
         case 0xCE: // Protection from spell
         case 0x122: // Display spell immunity string
+          final String s_cretype[] = {"Default", "Undead", "Not undead",
+            "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
+            "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
+            "Not fungus", "Huge creature", "Not huge creature", "Elf",
+            "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
+            "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
+            "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
+            "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
+            "Not undead or fungus", "Good", "Not good", "Neutral",
+            "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
+            "Same moral alignment as source",
+            "Not same moral alignment as source", "Source", "Not source",
+            "Water-dwelling", "Not water-dwelling", "Breathing",
+            "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
+            "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
+            "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
+            "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf",
+            "Not deaf", "Summoned creature", "Not summoned creature",
+            "Mind flayer", "Not mind flayer", "Silenced", "Not silenced",
+            "Intelligence less than", "Intelligence greater than",
+            "Intelligence less than or equal to",
+            "Intelligence greater than or equal to", "Skald", "Not skald",
+            "Near enemies", "Not near enemies", "Drow", "Not drow",
+            "Gray dwarf", "Not gray dwarf", "Daytime", "Not daytime", "Outdoor",
+            "Not outdoor", "Keg", "Not keg", "Outsider", "Not outsider"};
           s.add(new Unknown(buffer, offset, 4));
-          s.add(new HexNumber(buffer, offset + 4, 4, "Creature type"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
           restype = "SPL";
           break;
 
@@ -1780,7 +1718,7 @@ public final class EffectFactory
           if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
             s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
           else
-            s.add(new Bitmap(buffer, offset + 4, 4, "Projectile", s_projectile));
+            s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
           break;
 
         case 0xC6: // Reflect specified effect (CGameEffectBounceEffect)
@@ -2158,27 +2096,27 @@ public final class EffectFactory
         case 0xCE: // Protection from spell
         case 0x122: // Display spell immunity string
           final String s_cretype[] = {"Default", "Undead", "Not undead",
-            "Fire dwelling", "Not fire dwelling", "Humanoid", "Not humanoid",
+            "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
             "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
             "Not fungus", "Huge creature", "Not huge creature", "Elf",
             "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
             "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
-            "Blind", "Not blind", "Cold dwelling", "Not cold dwelling", "Golem",
+            "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
             "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
             "Not undead or fungus", "Good", "Not good", "Neutral",
             "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
             "Same moral alignment as source",
             "Not same moral alignment as source", "Source", "Not source",
-            "Water dwelling", "Not water dwelling", "Breathing",
+            "Water-dwelling", "Not water-dwelling", "Breathing",
             "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
             "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
             "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
             "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf",
             "Not deaf", "Summoned creature", "Not summoned creature",
             "Mind flayer", "Not mind flayer", "Silenced", "Not silenced",
-            "Intelligence less than amount", "Intelligence greater than amount",
-            "Intelligence less than or equal amount",
-            "Intelligence greater than or equal amount", "Skald", "Not skald",
+            "Intelligence less than", "Intelligence greater than",
+            "Intelligence less than or equal to",
+            "Intelligence greater than or equal to", "Skald", "Not skald",
             "Near enemies", "Not near enemies", "Drow", "Not drow",
             "Gray dwarf", "Not gray dwarf", "Daytime", "Not daytime", "Outdoor",
             "Not outdoor", "Keg", "Not keg", "Outsider", "Not outsider"};
@@ -2298,8 +2236,32 @@ public final class EffectFactory
           break;
 
         case 0x192: // Add effects list
+          final String s_applytype[] = {"Default", "Undead", "Not undead",
+            "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
+            "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
+            "Not fungus", "Huge creature", "Not huge creature", "Elf",
+            "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
+            "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
+            "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
+            "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
+            "Not undead or fungus", "Good", "Not good", "Neutral",
+            "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
+            "Same moral alignment as source",
+            "Not same moral alignment as source", "Source", "Not source",
+            "Water-dwelling", "Not water-dwelling", "Breathing",
+            "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
+            "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
+            "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
+            "Chaotic", "Not chaotic", "Orc", "Not orc", "Deaf", "Not deaf",
+            "Same alignment", "Not same alignment", "Allied and same alignment",
+            "Not allied and same alignment", "Hit points greater than",
+            "Hit points less than", "Drow", "Not drow", "Gray dwarf",
+            "Not gray dwarf", "Summoned creature", "Not summoned creature",
+            "Goblin", "Not goblin", "Giant", "Not giant", "Troll", "Not troll",
+            "Keg", "Not keg", "Human", "Not human", "Yuan-ti", "Not yuan-ti",
+            "Outsider", "Not outsider"};
           s.add(new Unknown(buffer, offset, 4));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Apply to type"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Apply to type", s_applytype));
           restype = "SPL";
           break;
 

@@ -563,14 +563,14 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new Bitmap(buffer, offset + 661, 1, "Set extra death variable?", s_noyes));
     list.add(new Bitmap(buffer, offset + 662, 1, "Increment kill count?", s_noyes));
     list.add(new Unknown(buffer, offset + 663, 1));
-    list.add(new DecNumber(buffer, offset + 664, 2, "Internal specifier 1"));
-    list.add(new DecNumber(buffer, offset + 666, 2, "Internal specifier 2"));
-    list.add(new DecNumber(buffer, offset + 668, 2, "Internal specifier 3"));
-    list.add(new DecNumber(buffer, offset + 670, 2, "Internal specifier 4"));
-    list.add(new DecNumber(buffer, offset + 672, 2, "Internal specifier 5"));
+    list.add(new DecNumber(buffer, offset + 664, 2, "Internal 1"));
+    list.add(new DecNumber(buffer, offset + 666, 2, "Internal 2"));
+    list.add(new DecNumber(buffer, offset + 668, 2, "Internal 3"));
+    list.add(new DecNumber(buffer, offset + 670, 2, "Internal 4"));
+    list.add(new DecNumber(buffer, offset + 672, 2, "Internal 5"));
     list.add(new TextString(buffer, offset + 674, 32, "Death variable (set)"));
     list.add(new TextString(buffer, offset + 706, 32, "Death variable (increment)"));
-    list.add(new Unknown(buffer, offset + 738, 2));
+    list.add(new Bitmap(buffer, offset + 738, 2, "Location saved?", s_noyes));
     list.add(new DecNumber(buffer, offset + 740, 2, "Saved location: X"));
     list.add(new DecNumber(buffer, offset + 742, 2, "Saved location: Y"));
     list.add(new DecNumber(buffer, offset + 744, 2, "Saved orientation"));
@@ -581,11 +581,11 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsBitmap(buffer, offset + 895, 1, "Class", "CLASS.IDS"));
     list.add(new IdsBitmap(buffer, offset + 896, 1, "Specific", "SPECIFIC.IDS"));
     list.add(new IdsBitmap(buffer, offset + 897, 1, "Gender", "GENDER.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 898, 1, "Functional specifier 1", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 899, 1, "Functional specifier 2", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 900, 1, "Functional specifier 3", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 901, 1, "Functional specifier 4", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 902, 1, "Functional specifier 5", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 898, 1, "Object spec 1", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 899, 1, "Object spec 2", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 900, 1, "Object spec 3", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 901, 1, "Object spec 4", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 902, 1, "Object spec 5", "OBJECT.IDS"));
     list.add(new IdsBitmap(buffer, offset + 903, 1, "Alignment", "ALIGNMNT.IDS"));
     list.add(new DecNumber(buffer, offset + 904, 2, "Global identifier"));
     list.add(new DecNumber(buffer, offset + 906, 2, "Local identifier"));
@@ -833,7 +833,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 96, 2, "Inventory 24"));
     list.add(new DecNumber(buffer, offset + 98, 2, "Magically created weapon"));
     list.add(new DecNumber(buffer, offset + 100, 2, "Weapon slot selected"));
-    list.add(new Unknown(buffer, offset + 102, 2));
+    list.add(new DecNumber(buffer, offset + 102, 2, "Weapon ability selected"));
 
     int endoffset = offset;
     for (int i = 0; i < list.size(); i++) {
@@ -1067,7 +1067,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
                                      "Increment team kills", "Invulnerable",
                                      "Good increment on death", "Law increment on death",
                                      "Lady increment on death", "Murder increment on death",
-                                     "Don't face speaker", "Call for help"}));
+                                     "Don't face speaker", "Call for help", "", "", "", "",
+                                     "", "", "", "", "", "", "", "", "", "", "Died"}));
 //      list.add(new Flag(buffer, offset + 729, 1, "Attribute flags 2",
 //                        new String[]{"No flags set", "", "Invulnerable"}));
 //      list.add(new Unknown(buffer, offset + 730, 2));
@@ -1097,14 +1098,14 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new Bitmap(buffer, offset + 617, 1, "Set extra death variable?", s_noyes));
       list.add(new Bitmap(buffer, offset + 618, 1, "Increment kill count?", s_noyes));
       list.add(new Unknown(buffer, offset + 619, 1));
-      list.add(new DecNumber(buffer, offset + 620, 2, "Internal specifier 1"));
-      list.add(new DecNumber(buffer, offset + 622, 2, "Internal specifier 2"));
-      list.add(new DecNumber(buffer, offset + 624, 2, "Internal specifier 3"));
-      list.add(new DecNumber(buffer, offset + 626, 2, "Internal specifier 4"));
-      list.add(new DecNumber(buffer, offset + 628, 2, "Internal specifier 5"));
+      list.add(new DecNumber(buffer, offset + 620, 2, "Internal 1"));
+      list.add(new DecNumber(buffer, offset + 622, 2, "Internal 2"));
+      list.add(new DecNumber(buffer, offset + 624, 2, "Internal 3"));
+      list.add(new DecNumber(buffer, offset + 626, 2, "Internal 4"));
+      list.add(new DecNumber(buffer, offset + 628, 2, "Internal 5"));
       list.add(new TextString(buffer, offset + 630, 32, "Death variable (set)"));
       list.add(new TextString(buffer, offset + 662, 32, "Death variable (increment)"));
-      list.add(new Unknown(buffer, offset + 694, 2));
+      list.add(new Bitmap(buffer, offset + 694, 2, "Location saved?", s_noyes));
       list.add(new DecNumber(buffer, offset + 696, 2, "Saved location: X"));
       list.add(new DecNumber(buffer, offset + 698, 2, "Saved location: Y"));
       list.add(new DecNumber(buffer, offset + 700, 2, "Saved orientation"));
@@ -1117,11 +1118,11 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsBitmap(buffer, offset + 619, 1, "Class", "CLASS.IDS"));
     list.add(new IdsBitmap(buffer, offset + 620, 1, "Specific", "SPECIFIC.IDS"));
     list.add(new IdsBitmap(buffer, offset + 621, 1, "Gender", "GENDER.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 622, 1, "Functional specifier 1", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 623, 1, "Functional specifier 2", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 624, 1, "Functional specifier 3", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 625, 1, "Functional specifier 4", "OBJECT.IDS"));
-    list.add(new IdsBitmap(buffer, offset + 626, 1, "Functional specifier 5", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 622, 1, "Object spec 1", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 623, 1, "Object spec 2", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 624, 1, "Object spec 3", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 625, 1, "Object spec 4", "OBJECT.IDS"));
+    list.add(new IdsBitmap(buffer, offset + 626, 1, "Object spec 5", "OBJECT.IDS"));
 //    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
 //        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB)
 //      list.add(new IdsBitmap(buffer, offset + 627, 1, "Alignment", "ALIGN.IDS"));

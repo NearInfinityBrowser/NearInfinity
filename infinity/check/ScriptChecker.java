@@ -103,7 +103,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
     errorTable = new SortableTable(new String[]{"Script", "Error message", "Line"},
                                    new Class[]{Object.class, Object.class, Integer.class},
                                    new int[]{120, 440, 50});
-    warningTable = new SortableTable(new String[]{"Script", "Warning message", "Line"},
+    warningTable = new SortableTable(new String[]{"Script", "Warning", "Line"},
                                      new Class[]{Object.class, Object.class, Integer.class},
                                      new int[]{120, 440, 50});
     for (int i = 0; i < scriptFiles.size(); i++) {

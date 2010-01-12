@@ -106,11 +106,20 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     list.add(new DecNumber(buffer, offset + 68, 4, "# times talked to"));
     list.add(new ResourceRef(buffer, offset + 72, "Dialogue", "DLG"));
     list.add(new ResourceRef(buffer, offset + 80, "Override script", "BCS"));
-    list.add(new ResourceRef(buffer, offset + 88, "General script", "BCS"));
-    list.add(new ResourceRef(buffer, offset + 96, "Class script", "BCS"));
-    list.add(new ResourceRef(buffer, offset + 104, "Race script", "BCS"));
-    list.add(new ResourceRef(buffer, offset + 112, "Default script", "BCS"));
-    list.add(new ResourceRef(buffer, offset + 120, "Specific script", "BCS"));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      list.add(new ResourceRef(buffer, offset + 88, "Special 3 script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 96, "Special 2 script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 104, "Combat script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 112, "Movement script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 120, "Team script", "BCS"));
+    }
+    else {
+      list.add(new ResourceRef(buffer, offset + 88, "General script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 96, "Class script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 104, "Race script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 112, "Default script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 120, "Specific script", "BCS"));
+    }
     if (buffer[offset + 128] == 0x2a)  // *
       list.add(new TextString(buffer, offset + 128, 8, "Character"));
     else
@@ -118,9 +127,8 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     HexNumber creOffset = new HexNumber(buffer, offset + 136, 4, "CRE structure offset");
     list.add(creOffset);
     list.add(new DecNumber(buffer, offset + 140, 4, "CRE structure size"));
-    if (getSuperStruct() != null &&
-        getSuperStruct().getAttribute("Version").toString().equalsIgnoreCase("V9.1")) {
-      list.add(new ResourceRef(buffer, offset + 144, "Script?", "BCS"));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      list.add(new ResourceRef(buffer, offset + 144, "Special script 1", "BCS"));
       list.add(new Unknown(buffer, offset + 152, 120));
     }
     else {

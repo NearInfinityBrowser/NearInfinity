@@ -32,7 +32,9 @@ final class SpawnPoint extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 116, 2, "# creatures"));
     list.add(new DecNumber(buffer, offset + 118, 2, "Encounter difficulty"));
     list.add(new DecNumber(buffer, offset + 120, 2, "Spawn delay"));
-    list.add(new Flag(buffer, offset + 122, 2, "Spawn method", new String[]{"No flags set", "Spawn until paused", "Disable after spawn", "Spawn paused"}));
+    list.add(new Flag(buffer, offset + 122, 2, "Spawn method",
+                      new String[]{"No flags set", "Spawn until paused", "Disable after spawn",
+                                   "Spawn paused"}));
     list.add(new DecNumber(buffer, offset + 124, 4, "Creature duration"));
     list.add(new DecNumber(buffer, offset + 128, 2, "Creature wander distance"));
     list.add(new DecNumber(buffer, offset + 130, 2, "Creature movement distance"));

@@ -90,8 +90,8 @@ public final class Compiler
         IdsMapCache.get("GENDER.IDS"),
         IdsMapCache.get("ALIGNMNT.IDS"),
         IdsMapCache.get("CLASS.IDS"),
-//        IdsMapCache.get("AVCLASS.IDS"),
-//        IdsMapCache.get("CLASSMSK.IDS")
+        IdsMapCache.get("AVCLASS.IDS"),
+        IdsMapCache.get("CLASSMSK.IDS")
       };
     else
       itype = new IdsMap[]{
@@ -282,14 +282,20 @@ public final class Compiler
         errors.put(new Integer(linenr), error);
       }
     }
-    else if (definition.equalsIgnoreCase("S:Name*")) {
-      if (function.equalsIgnoreCase("Dead(") ||
-          function.equalsIgnoreCase("Name(") ||
-          function.equalsIgnoreCase("NumDead(") ||
-          function.equalsIgnoreCase("NumDeadGT(") ||
-          function.equalsIgnoreCase("NumDeadLT(")) {
-        if (scriptNamesValid) {
+    else if (definition.equalsIgnoreCase("S:Name*")) { // ToDo: need CalledByName()?
+      if (scriptNamesValid) {
+        if (function.equalsIgnoreCase("Dead(") ||
+            function.equalsIgnoreCase("IsScriptName(") ||
+            function.equalsIgnoreCase("Name(") ||
+            function.equalsIgnoreCase("NumDead(") ||
+            function.equalsIgnoreCase("NumDeadGT(") ||
+            function.equalsIgnoreCase("NumDeadLT(")) {
           if (!scriptNamesCre.containsKey(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+              IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
+            warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
+        }
+        else if (function.equalsIgnoreCase("SetCorpseEnabled(")) {
+          if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
               IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
             warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
         }

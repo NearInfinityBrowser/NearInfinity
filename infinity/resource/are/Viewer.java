@@ -20,8 +20,8 @@ final class Viewer extends JPanel
 
     gbc.insets = new Insets(3, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area north"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area south"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area east"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area south"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area west"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("WED resource"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Rain probability"), gbl, gbc, true);
