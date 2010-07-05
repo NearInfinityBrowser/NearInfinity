@@ -15,7 +15,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
   private static final String[] s_yesno = {"No", "Yes"};
   private static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
   private static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
-  private static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem"};
+  private static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
   private static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
                                               "", "", "", "", "", "", "Hostile", "Recharge after resting",
                                               "", "", "", "", "Bypass armor", "Keen edge"};

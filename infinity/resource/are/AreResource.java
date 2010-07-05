@@ -262,7 +262,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
     list.add(new Unknown(buffer, offset + 82, 2));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      list.add(new Unknown(buffer, offset + 84, 16));
+      list.add(new DecNumber(buffer, offset + 84, 1, "Area difficulty 2"));
+      list.add(new DecNumber(buffer, offset + 85, 1, "Area difficulty 3"));
+      list.add(new Unknown(buffer, offset + 86, 14));
       offset += 16;
     }
     SectionOffset offset_actors = new SectionOffset(buffer, offset + 84, "Actors offset",
@@ -379,6 +381,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", "MVE"));
       list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", "MVE"));
       list.add(new Unknown(buffer, offset + 228, 56));
+    }
+    else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
+                                             AutomapNote.class);
+      list.add(offset_automapnote);
+      count_automapnote = new SectionCount(buffer, offset + 200, 4, "# automap notes",
+                                           AutomapNote.class);
+      list.add(count_automapnote);
+      list.add(new Unknown(buffer, offset + 204, 80));
     }
     else
       list.add(new Unknown(buffer, offset + 196, 88));

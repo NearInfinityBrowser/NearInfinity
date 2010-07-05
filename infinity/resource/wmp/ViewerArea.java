@@ -38,7 +38,7 @@ final class ViewerArea extends JPanel implements ActionListener
     JPanel infoPane = makeInfoPanel(areaEntry);
     JComponent icon = ViewerUtil.makeBamPanel(
             (ResourceRef)areaEntry.getSuperStruct().getAttribute("Map icons"),
-            ((DecNumber)areaEntry.getAttribute("BAM animation number")).getValue(),
+            ((DecNumber)areaEntry.getAttribute("Icon number")).getValue(),
             0);
     JPanel linkPanelN = ViewerUtil.makeListPanel("North links", areaEntry, AreaLinkNorth.class, "Target entrance");
     JPanel linkPanelS = ViewerUtil.makeListPanel("South links", areaEntry, AreaLinkSouth.class, "Target entrance");

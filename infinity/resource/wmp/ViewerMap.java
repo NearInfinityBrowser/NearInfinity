@@ -84,7 +84,7 @@ final class ViewerMap extends JPanel implements ListSelectionListener
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       AbstractStruct struct = (AbstractStruct)value;
       label.setText(struct.getAttribute("Name").toString());
-      DecNumber animNr = (DecNumber)struct.getAttribute("BAM animation number");
+      DecNumber animNr = (DecNumber)struct.getAttribute("Icon number");
       setIcon(null);
       if (icons != null)
         setIcon(new ImageIcon(icons.getFrame(icons.getFrameNr(animNr.getValue(), 0))));

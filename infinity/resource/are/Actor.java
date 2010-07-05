@@ -23,6 +23,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
                                       "15:30-16:29", "16:30-17:29", "17:30-18:29", "18:30-19:29",
                                       "19:30-20:29", "20:30-21:29", "21:30-22:29", "22:30-23:29",
                                       "23:30-00:29"};
+  private static final String[] s_diff = {"None", "Level 1", "Level 2", "Level 3"};
 
   public Actor() throws Exception
   {
@@ -95,7 +96,12 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 //    else
 //      list.add(new Bitmap(buffer, offset + 40, 4, "Is visible?", s_noyes));
     list.add(new Bitmap(buffer, offset + 44, 2, "Is spawned?", s_noyes));
-    list.add(new Unknown(buffer, offset + 46, 2));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      list.add(new Unknown(buffer, offset + 46, 1));
+      list.add(new Flag(buffer, offset + 47, 1, "Difficulty", s_diff));
+    }
+    else
+      list.add(new Unknown(buffer, offset + 46, 2));
     list.add(new IdsBitmap(buffer, offset + 48, 4, "Animation", "ANIMATE.IDS"));
     list.add(new Bitmap(buffer, offset + 52, 2, "Orientation", s_orientation));
     list.add(new Unknown(buffer, offset + 54, 2));
@@ -118,7 +124,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
       list.add(new ResourceRef(buffer, offset + 96, "Class script", "BCS"));
       list.add(new ResourceRef(buffer, offset + 104, "Race script", "BCS"));
       list.add(new ResourceRef(buffer, offset + 112, "Default script", "BCS"));
-      list.add(new ResourceRef(buffer, offset + 120, "Specific script", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 120, "Specifics script", "BCS"));
     }
     if (buffer[offset + 128] == 0x2a)  // *
       list.add(new TextString(buffer, offset + 128, 8, "Character"));
@@ -128,7 +134,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     list.add(creOffset);
     list.add(new DecNumber(buffer, offset + 140, 4, "CRE structure size"));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-      list.add(new ResourceRef(buffer, offset + 144, "Special script 1", "BCS"));
+      list.add(new ResourceRef(buffer, offset + 144, "Special 1 script", "BCS"));
       list.add(new Unknown(buffer, offset + 152, 120));
     }
     else {

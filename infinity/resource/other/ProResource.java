@@ -28,7 +28,7 @@ public final class ProResource extends AbstractStruct implements Resource
     "Not affecting enemies"};
   private static final String[] s_flags = {
     "No flags set", "Colored BAM", "Creates smoke", "", "Darken", "", "Casts shadow",
-    "Light spot enabled", "Translucent"
+    "Light spot enabled", "Translucent", "", "Blended"
   };
   private static final String[] s_behave = {"No flags set", "Show sparks", "3D traveling",
                                             "Loop sound 1", "Loop sound 2", "Ignore center"};
@@ -100,7 +100,7 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ColorValue(buffer, offset + 304, 1, "Smoke color 5"));
     list.add(new ColorValue(buffer, offset + 305, 1, "Smoke color 6"));
     list.add(new ColorValue(buffer, offset + 306, 1, "Smoke color 7"));
-    list.add(new HexNumber(buffer, offset + 307, 1, "Face target?"));
+    list.add(new DecNumber(buffer, offset + 307, 1, "# orientations"));
 //            new Flag(buffer, offset + 307, 1, "Aim to target",
 //                     new String[]{"No flags set", "", "", "Face target"}));
     list.add(new IdsBitmap(buffer, offset + 308, 2, "Smoke animation", "ANIMATE.IDS"));

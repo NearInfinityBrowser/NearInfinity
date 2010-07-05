@@ -85,12 +85,12 @@ public final class Compiler
         IdsMapCache.get("EA.IDS"),
         IdsMapCache.get("GENERAL.IDS"),
         IdsMapCache.get("RACE.IDS"),
-        IdsMapCache.get("SUBRACE.IDS"),
+        IdsMapCache.get("CLASS.IDS"),
         IdsMapCache.get("SPECIFIC.IDS"),
         IdsMapCache.get("GENDER.IDS"),
         IdsMapCache.get("ALIGNMNT.IDS"),
+        IdsMapCache.get("SUBRACE.IDS"),
         IdsMapCache.get("CLASS.IDS"),
-        IdsMapCache.get("AVCLASS.IDS"),
         IdsMapCache.get("CLASSMSK.IDS")
       };
     else
@@ -274,9 +274,11 @@ public final class Compiler
 //      System.out.println("Compiler.checkString: " + function + " " + definition + " " + value);
     if (value.equals("\"\"")) // ToDo: "" due to IWD2 decompiler bug?
       return;
-    if (definition.equalsIgnoreCase("S:Area*") ||
-        definition.equalsIgnoreCase("S:Area1*") ||
-        definition.equalsIgnoreCase("S:Area2*")) {
+    if (value.substring(1, value.length() - 1).length() > 32)
+      warnings.put(new Integer(linenr), "Invalid string length: " + definition + " - " + value);
+    else if (definition.equalsIgnoreCase("S:Area*") ||
+             definition.equalsIgnoreCase("S:Area1*") ||
+             definition.equalsIgnoreCase("S:Area2*")) {
       if (!isPossibleNamespace(value)) {
         String error = "Invalid area string: " + definition + " - " + value;
         errors.put(new Integer(linenr), error);

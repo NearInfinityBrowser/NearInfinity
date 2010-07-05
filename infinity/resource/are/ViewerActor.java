@@ -88,7 +88,7 @@ final class ViewerActor extends JPanel
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Movement script"), gbl, gbc, true);
     }
     else {
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Specific script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Specifics script"), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Class script"), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Race script"), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("General script"), gbl, gbc, true);

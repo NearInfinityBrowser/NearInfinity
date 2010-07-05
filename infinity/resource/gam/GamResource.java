@@ -197,7 +197,11 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)
       list.add(new Unknown(buffer, offset + 84, 4));
       list.add(new ResourceRef(buffer, offset + 88, "Current area?", "ARE"));
-      list.add(new Unknown(buffer, offset + 96, 8));
+      list.add(new Flag(buffer, offset + 96, 4, "Configuration",
+                        new String[]{"Normal windows", "Party AI disabled", "",
+                                     "", "", "Fullscreen mode", "Button bar hidden",
+                                     "Console hidden", "Automap notes hidden"}));
+      list.add(new Unknown(buffer, offset + 100, 4));
       if (version.toString().equalsIgnoreCase("V2.2")) {
         offIWD2 = new SectionOffset(buffer, offset + 104, "Unknown offset",
                                             UnknownSection.class);

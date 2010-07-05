@@ -88,7 +88,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     list.add(new DecNumber(buffer, offset + 42, 2, "# vertices"));
     list.add(new DecNumber(buffer, offset + 44, 4, "First vertex index"));
     list.add(new Unknown(buffer, offset + 48, 4));
-    list.add(new DecNumber(buffer, offset + 52, 4, "Cursor frame number"));
+    list.add(new DecNumber(buffer, offset + 52, 4, "Cursor number"));
     list.add(new ResourceRef(buffer, offset + 56, "Destination area", "ARE"));
     list.add(new TextString(buffer, offset + 64, 32, "Entrance name"));
     list.add(new Flag(buffer, offset + 96, 4, "Flags", s_flag));
@@ -116,7 +116,8 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-      list.add(new Unknown(buffer, offset + 132, 4));
+      list.add(new DecNumber(buffer, offset + 132, 2, "Override point: X"));
+      list.add(new DecNumber(buffer, offset + 134, 2, "Override point: Y"));
       list.add(new DecNumber(buffer, offset + 136, 4, "Alternate point: X"));
       list.add(new DecNumber(buffer, offset + 140, 4, "Alternate point: Y"));
       list.add(new Unknown(buffer, offset + 144, 52));
