@@ -152,9 +152,10 @@ public final class Viewer extends JPanel
       effectPanel = ViewerUtil.makeListPanel("Effects", cre, Effect.class, "Type");
     ResourceRef imageRef = (ResourceRef)cre.getAttribute("Large portrait");
     JComponent imagePanel;
-    if (imageRef.getResourceName().endsWith(".BAM"))
-      imagePanel = ViewerUtil.makeBamPanel(imageRef, 0);
-    else if (ResourceFactory.getInstance().resourceExists(imageRef.getResourceName()))
+//    if (imageRef.getResourceName().endsWith(".BAM"))
+//      imagePanel = ViewerUtil.makeBamPanel(imageRef, 0);
+    if (imageRef.getResourceName().endsWith(".BMP") &&
+        ResourceFactory.getInstance().resourceExists(imageRef.getResourceName()))
       imagePanel = ViewerUtil.makeImagePanel(imageRef);
     else
       imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute("Small portrait"));
@@ -316,7 +317,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP value"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Total level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("AC"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Armor class"), gbl, gbc, true);
 
     StructEntry s1 = cre.getAttribute("Current HP");
     StructEntry s2 = cre.getAttribute("Maximum HP");

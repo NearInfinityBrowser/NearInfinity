@@ -24,7 +24,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Spears", "Halberds", "Bolts", "Cloaks and robes",
            "Gold pieces", "Gems", "Wands", "Containers", "Books",
            "Familiars", "Tattoos", "Lenses", "Bucklers",
-           "Candles", "Child bodies", "Clubs", "Female bodies", "",
+           "Candles", "Child bodies", "Clubs", "Female bodies", "Keys (old)",
            "Large shields", "Male bodies", "Medium shields", "Notes",
            "Rods", "Skulls", "Small shields", "Spider bodies",
            "Telescopes", "Bottles", "Greatswords", "Bags",
@@ -43,7 +43,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Earrings", "Tattoos", "Lenses", "Teeth"};
   private static final String[] s_flags =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
-           "Cursed", "Not copyable", "Magical", "Bow", "Silver", "Gold", "Stolen", "Conversable"};
+           "Cursed", "Not copyable", "Magical", "Bow", "Silver", "Cold iron", "", "Conversable"};
   private static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "", "Silver", "Cold iron", "Steel", "Conversable",
@@ -55,13 +55,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Fighter-Mage", "Fighter-Cleric", "Fighter-Mage-Cleric",
            "Fighter-Mage-Thief", "Fighter-Thief", "Mage", "Mage-Thief",
            "Paladin", "Ranger", "Thief", "Elf", "Dwarf", "Half-Elf",
-           "Halfling", "Human", "Gnome", "Monk", "Druid", "Half-Orc"};
+           "Halfling", "Human", "Gnome", "Monk", "Druid"};
   private static final String[] s_usability11 =
           {"None", "Chaotic", "Evil", "Good",
            "... Neutral", "Lawful", "Neutral ...", "Sensate",
            "Priest", "Godsman", "Anarchist", "Xaositect",
            "Fighter", "Non-aligned", "Fighter-Mage", "Dustman",
-           "Mercykiller", "Idep", "Figher-Thief", "Mage",
+           "Mercykiller", "Indep", "Figher-Thief", "Mage",
            "Mage-Thief", "Dak'kon", "Fall-From-Grace", "Thief",
            "Vhailor", "Ignus", "Morte", "Nordom",
            "Human", "Annah", "", "Nameless One", ""
@@ -72,8 +72,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Rogue", "Sorcerer", "Wizard", "",
            "Chaotic", "Evil", "Good", "... Neutral",
            "Lawful", "Neutral ...", "", "",
-           "", "", "", "",
-           "Dwarf", "", "", ""
+           "", "", "", "Elf",
+           "Dwarf", "Half-elf", "Halfling", "Human", "Gnome"
           };
   private static final String[] s_kituse1 =
           {"None", "Cleric of talos", "Cleric of helm", "Cleric of lathander",
@@ -267,7 +267,10 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
       list.add(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
       list.add(new DecNumber(buffer, 48, 1, "Minimum constitution"));
-      list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
+      if (ResourceFactory.getInstance().resourceExists("PROFTYPE.IDS"))
+        list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "PROFTYPE.IDS"));
+      else
+        list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
     }
     else {
       list.add(new DecNumber(buffer, 40, 2, "Minimum strength bonus"));
