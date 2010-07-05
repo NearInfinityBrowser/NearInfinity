@@ -45,7 +45,7 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
     list.add(new TextString(buffer, offset + 8, 8, "Area name"));
     list.add(new TextString(buffer, offset + 16, 32, "Script name"));
     list.add(new Flag(buffer, offset + 48, 4, "Flags", s_flag));
-    list.add(new DecNumber(buffer, offset + 52, 4, "BAM animation number"));
+    list.add(new DecNumber(buffer, offset + 52, 4, "Icon number"));
     list.add(new DecNumber(buffer, offset + 56, 4, "Coordinate: X"));
     list.add(new DecNumber(buffer, offset + 60, 4, "Coordinate: Y"));
     list.add(new StringRef(buffer, offset + 64, "Name"));

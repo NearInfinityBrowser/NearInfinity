@@ -342,17 +342,14 @@ public final class Decompiler
     }
     ids[index] = lookup(IdsMapCache.get("GENERAL.IDS"), numbers[index++]);
     ids[index] = lookup(IdsMapCache.get("RACE.IDS"), numbers[index++]);
+    ids[index] = lookup(IdsMapCache.get("CLASS.IDS"), numbers[index++]);
+    ids[index] = lookup(IdsMapCache.get("SPECIFIC.IDS"), numbers[index++]);
+    ids[index] = lookup(IdsMapCache.get("GENDER.IDS"), numbers[index++]);
     if (numbersIndex == 15) {
-      ids[index] = lookup(IdsMapCache.get("SUBRACE.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("SPECIFIC.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("GENDER.IDS"), numbers[index++]);
       ids[index] = lookup(IdsMapCache.get("ALIGNMNT.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("CLASS.IDS"), numbers[index++]);
+      ids[index] = lookup(IdsMapCache.get("SUBRACE.IDS"), numbers[index++]);
     }
     else {
-      ids[index] = lookup(IdsMapCache.get("CLASS.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("SPECIFIC.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("GENDER.IDS"), numbers[index++]);
       ids[index] = lookup(IdsMapCache.get("ALIGN.IDS"), numbers[index++]);
     }
 
@@ -364,8 +361,8 @@ public final class Decompiler
       lookup(objectMap, numbers[index++]),
       lookup(objectMap, numbers[index++])};
 
-    if (numbersIndex == 15) { // ToDo: whatweretheythinking?!
-      ids[index - 5] = lookup(IdsMapCache.get("AVCLASS.IDS"), numbers[index++]);
+    if (numbersIndex == 15) {
+      ids[index - 5] = lookup(IdsMapCache.get("CLASS.IDS"), numbers[index++]);
       ids[index - 5] = lookup(IdsMapCache.get("CLASSMSK.IDS"), numbers[index++]);
     }
 

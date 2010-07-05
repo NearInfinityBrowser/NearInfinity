@@ -27,12 +27,12 @@ final class ProTrap extends AbstractStruct implements AddRemovable
     // Mac ToB doesn't save these right, so EFFs not handled
     list.add(new DecNumber(buffer, offset + 12, 2, "Effects list size"));
     list.add(new Unknown(buffer, offset + 14, 2, "Projectile"));
-    list.add(new Unknown(buffer, offset + 16, 2));
-    list.add(new Unknown(buffer, offset + 18, 2));
+    list.add(new DecNumber(buffer, offset + 16, 2, "Explosion frequency (frames)"));
+    list.add(new DecNumber(buffer, offset + 18, 2, "Duration"));
     list.add(new DecNumber(buffer, offset + 20, 2, "Location: X"));
     list.add(new DecNumber(buffer, offset + 22, 2, "Location: Y"));
-    list.add(new Unknown(buffer, offset + 24, 2));
-    list.add(new Unknown(buffer, offset + 26, 2));
+    list.add(new DecNumber(buffer, offset + 24, 2, "Location: Z"));
+    list.add(new DecNumber(buffer, offset + 26, 2, "Target"));
     return offset + 28;
   }
 }

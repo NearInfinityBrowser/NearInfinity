@@ -43,7 +43,7 @@ final class Ambient extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 128, 2, "# sounds"));
     list.add(new Unknown(buffer, offset + 130, 2));
     list.add(new DecNumber(buffer, offset + 132, 4, "Base interval"));
-    list.add(new DecNumber(buffer, offset + 136, 4, "Interval deviation"));
+    list.add(new DecNumber(buffer, offset + 136, 4, "Interval variation"));
     list.add(new Flag(buffer, offset + 140, 4, "Active at", Actor.s_schedule));
 //    list.add(new HexNumber(buffer, offset + 140, 4, "Day/night presence?"));
     list.add(new Flag(buffer, offset + 144, 4, "Flags", s_flag));

@@ -148,9 +148,9 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     list.add(new ResourceRef(buffer, offset + 72, "Trap script", "BCS"));
     list.add(new DecNumber(buffer, offset + 80, 4, "First vertex index"));
     list.add(new DecNumber(buffer, offset + 84, 2, "# vertices"));
-    list.add(new Unknown(buffer, offset + 86, 2));
+    list.add(new Unknown(buffer, offset + 86, 34));
 //    list.add(new ResourceRef(buffer, offset + 88, "Creature?", "CRE"));
-    list.add(new Unknown(buffer, offset + 88, 32));
+//    list.add(new Unknown(buffer, offset + 96, 24));
     list.add(new ResourceRef(buffer, offset + 120, "Key", "ITM"));
     list.add(new Unknown(buffer, offset + 128, 4));
     list.add(new StringRef(buffer, offset + 132, "Lockpick string"));

@@ -147,7 +147,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 //    list.add(new Unknown(buffer, offset + 86, 2));
     list.add(new ResourceRef(buffer, offset + 88, "Opening sound", "WAV"));
     list.add(new ResourceRef(buffer, offset + 96, "Closing sound", "WAV"));
-    list.add(new DecNumber(buffer, offset + 104, 4, "Cursor frame number"));
+    list.add(new DecNumber(buffer, offset + 104, 4, "Cursor number"));
     list.add(new DecNumber(buffer, offset + 108, 2, "Trap detection difficulty"));
     list.add(new DecNumber(buffer, offset + 110, 2, "Trap removal difficulty"));
     list.add(new Bitmap(buffer, offset + 112, 2, "Is trapped?", s_yesno));
