@@ -16,7 +16,7 @@ final class Control extends AbstractStruct // implements AddRemovable
                                           "Label", "Scroll bar"};
   private static final String s_button[] = {"Center", "Left justify", "Right justify",
                                             "Top justify", "Bottom justify", "Anchor",
-                                            "Reduce size"};
+                                            "Reduce size", "Don't wrap"};
   private static final String s_label[] = {"Center", "RGB color", "", "", "Left justify",
                                            "Right justify"};
   private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
@@ -87,7 +87,10 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new DecNumber(buffer, offset + 38, 2, "Knob position: Y"));
         list.add(new DecNumber(buffer, offset + 40, 2, "Step width"));
         list.add(new DecNumber(buffer, offset + 42, 2, "Step count"));
-        list.add(new Unknown(buffer, offset + 44, 8));
+        list.add(new DecNumber(buffer, offset + 44, 2, "Slider region: Top"));
+        list.add(new DecNumber(buffer, offset + 46, 2, "Slider region: Bottom"));
+        list.add(new DecNumber(buffer, offset + 48, 2, "Slider region: Left"));
+        list.add(new DecNumber(buffer, offset + 50, 2, "Slider region: Right"));
         offset += 52;
         break;
       case 3:

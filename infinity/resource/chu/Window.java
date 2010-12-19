@@ -15,6 +15,7 @@ import java.util.Collections;
 final class Window extends AbstractStruct // implements AddRemovable
 {
   private static final String hasb[] = {"No", "Yes"};
+  private static final String s_flag[] = {"No flags set", "Don't dim background"};
 
   Window() throws Exception
   {
@@ -91,7 +92,7 @@ final class Window extends AbstractStruct // implements AddRemovable
     list.add(new UnsignDecNumber(buffer, offset + 14, 2, "# controls"));
     list.add(new ResourceRef(buffer, offset + 16, "Background image", "MOS"));
     list.add(new UnsignDecNumber(buffer, offset + 24, 2, "First control index"));
-    list.add(new Unknown(buffer, offset + 26, 2));
+    list.add(new Flag(buffer, offset + 26, 2, "Flags", s_flag));
     return offset + 28;
   }
 }

@@ -18,7 +18,7 @@ public final class VvcResource extends AbstractStruct implements Resource
   private static final String s_tint[] = {"No flags set", "Not light source", "Light source", "Internal brightness", "Time stopped", "",
                                           "Internal gamma", "Non-reserved palette", "Full palette", "", "Dream palette"};
   private static final String s_seq[] = {"No flags set", "Looping", "Special lighting", "Modify for height", "Draw animation", "Custom palette",
-                                         "Purgeable", "Not covered by wall", "High-level brighten", "Mid-level brighten"};
+                                         "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};
   private static final String s_face[] = {"Use current", "Orbit parent", "Parent orientation", "", "Ignore orientation"};
   private static final String s_noyes[] = {"No", "Yes"};
 
@@ -50,7 +50,7 @@ public final class VvcResource extends AbstractStruct implements Resource
     list.add(new DecNumber(buffer, offset + 76, 4, "Position: Z"));
     list.add(new DecNumber(buffer, offset + 80, 4, "Center point: X"));
     list.add(new DecNumber(buffer, offset + 84, 4, "Center point: Y"));
-    list.add(new DecNumber(buffer, offset + 88, 4, "Light spot intensity"));
+    list.add(new DecNumber(buffer, offset + 88, 4, "Light spot brightness"));
     list.add(new DecNumber(buffer, offset + 92, 4, "Duration (frames)"));
     list.add(new Unknown(buffer, offset + 96, 8));
 //    list.add(new Unknown(buffer, offset + 100, 4));
