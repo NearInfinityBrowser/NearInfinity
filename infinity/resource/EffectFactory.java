@@ -216,7 +216,7 @@ public final class EffectFactory
           "Change AI type", "Attack damage bonus", "Blindness",
           "Cure blindness", "Feeblemindedness", "Cure feeblemindedness",
           "Disease", "Cure disease", "Deafness", "Cure deafness",
-          "Set AI script", "Immunity to projectile",
+          "Rush morte", "Immunity to projectile",
           "Magical fire resistance bonus", "Magical cold resistance bonus",
           "Slashing resistance bonus", "Crushing resistance bonus",
           "Piercing resistance bonus", "Missile resistance bonus",
@@ -968,12 +968,6 @@ public final class EffectFactory
                        "Gender", "Alignment"}));
         break;
 
-      case 0x52: // Set AI script (CGameEffectSetAIScript)
-        s.add(new Unknown(buffer, offset, 4));
-        s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
-        restype = "BCS";
-        break;
-
       case 0x53: // Immunity to projectile (CGameEffectImmunityToProjectile)
         s.add(new Unknown(buffer, offset, 4));
         if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
@@ -1286,6 +1280,12 @@ public final class EffectFactory
                          "Slow target"}));
           break;
 
+        case 0x52: // Set AI script (CGameEffectSetAIScript)
+          s.add(new Unknown(buffer, offset, 4));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+          restype = "BCS";
+          break;
+
         case 0x62: // Regeneration (CGameEffectRegeneration)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
@@ -1446,7 +1446,7 @@ public final class EffectFactory
           break;
 
         case 0xBA: // Set status
-          s.add(new Unknown(buffer, offset, 4));
+          s.add(new Bitmap(buffer, offset, 4, "Action", new String[]{"Clear", "Set"}));
           s.add(new IdsFlag(buffer, offset + 4, 4, "State", "STATE.IDS"));
           break;
 
@@ -1496,8 +1496,7 @@ public final class EffectFactory
           s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
           s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
           s.add(new Unknown(buffer, offset + 3, 1));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Flash type",
-            new String[]{"Delayed", "Instant"}));
+          s.add(new Unknown(buffer, offset + 4, 4));
           break;
 
         case 0xC3: // Tint screen
@@ -1505,12 +1504,7 @@ public final class EffectFactory
           s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
           s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
           s.add(new Unknown(buffer, offset + 3, 1));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Method",
-            new String[]{"Quick to dark then back", "",
-                         "Quick to dark then instant light", "",
-                         "Light to dark for duration", "", "", "", "No effect",
-                         "Very fast light to dark then back",
-                         "Instant dark duration then instant light"}));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Method"));
           break;
 
         case 0xC4: // Special spell hit
@@ -1652,6 +1646,12 @@ public final class EffectFactory
                          "1 damage per amount seconds", "Strength", "Dexterity",
                          "Constitution", "Intelligence", "Wisdom", "Charisma",
                          "Slow target", "Mold touch"}));
+          break;
+
+        case 0x52: // Set AI script
+          s.add(new Unknown(buffer, offset, 4));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+          restype = "BCS";
           break;
 
         case 0x62: // Regeneration
@@ -1990,6 +1990,12 @@ public final class EffectFactory
                          "Slow target"}));
           break;
 
+        case 0x52: // Set AI script (CGameEffectSetAIScript)
+          s.add(new Unknown(buffer, offset, 4));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+          restype = "BCS";
+          break;
+
         case 0x62: // Regeneration (CGameEffectRegeneration)
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
@@ -2207,7 +2213,8 @@ public final class EffectFactory
         case 0xEB: // Wing buffet (CGameEffectPushPull)
           s.add(new DecNumber(buffer, offset, 4, "Distance"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
-            new String[]{"", "", "Away from source", "", "Toward source"}));
+            new String[]{"", "Away from target point", "Away from source",
+                         "Toward target point", "Toward source"}));
           break;
 
         case 0xEC: // Project image (CGameEffectCopySelf)
@@ -2505,6 +2512,12 @@ public final class EffectFactory
                          "Constitution", "Intelligence", "Wisdom", "Charisma",
                          "Slow target", "Mold touch", "", "Contagion",
                          "Cloud of pestilence", "Dolorous decay"}));
+          break;
+
+        case 0x52: // Set AI script
+          s.add(new Unknown(buffer, offset, 4));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+          restype = "BCS";
           break;
 
         case 0x62: // Regeneration

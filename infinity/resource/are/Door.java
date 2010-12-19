@@ -12,8 +12,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 {
   private static final String[] s_yesno = {"No", "Yes"};
   private static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                          "Detectable trap", "Door forced", "", "", "Door secret",
-                                          "Secret door detected", "Can be looked through",
+                                          "Detectable trap", "Door forced", "Cannot close", "Door located",
+                                          "Door secret", "Secret door detected", "Can be looked through",
                                           "Uses key", "Sliding door"};
   private static final String[] s_flag_iwd2 = {"No flags set", "Door open", "Door locked", "Trap resets",
                                                "Detectable trap", "Door forced", "Cannot close", "Door located",

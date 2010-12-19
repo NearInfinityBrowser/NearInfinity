@@ -21,7 +21,7 @@ public final class EffectType extends Bitmap
                                               "Instant/While equipped", "Delay/Limited", "Delay/Permanent",
                                               "Delay/While equipped", "Limited after duration",
                                               "Permanent after duration", "Equipped after duration",
-                                              "Instant/Permanent", "Trigger"};
+                                              "Instant/Permanent", "Instant/Limited (ticks)"};
   private int attr_length;
 
   public EffectType(byte buffer[], int offset, int length)

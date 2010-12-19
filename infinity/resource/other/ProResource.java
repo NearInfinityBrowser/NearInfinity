@@ -27,12 +27,15 @@ public final class ProResource extends AbstractStruct implements Resource
     "No overlapping effects", "Secondary projectile", "Fragments", "Not affecting allies",
     "Not affecting enemies"};
   private static final String[] s_flags = {
-    "No flags set", "Colored BAM", "Creates smoke", "", "Darken", "", "Casts shadow",
-    "Light spot enabled", "Translucent", "", "Blended"
+    "No flags set", "Colored BAM", "Creates smoke", "", "Not light source", "Modify for height",
+    "Casts shadow", "Light spot enabled", "Translucent", "Mid-level brighten", "Blended"
   };
   private static final String[] s_behave = {"No flags set", "Show sparks", "3D traveling",
-                                            "Loop sound 1", "Loop sound 2", "Ignore center"};
-  private static final String[] s_areatype = {"Round", "", "", "Draw animation", "Cone-shaped"};
+                                            "Loop sound 1", "Loop sound 2", "Ignore center",
+                                            "Draw as background"};
+  private static final String[] s_areatype = {"Round", "Mage level duration", "Cleric level duration",
+                                              "Draw animation", "Cone-shaped", "Non-clipped explosion",
+                                              "Delayed explosion", "Skip first condition", "Single target"};
 
   static {
     s_proj.put(0L, "Fireball");
@@ -73,7 +76,7 @@ public final class ProResource extends AbstractStruct implements Resource
 //    list.add(new Unknown(buffer, offset + 14, 2));
     list.add(new ResourceRef(buffer, offset + 16, "Sound 1", "WAV"));
     list.add(new ResourceRef(buffer, offset + 24, "Sound 2", "WAV"));
-    list.add(new ResourceRef(buffer, offset + 32, "Sound 3", "WAV"));
+    list.add(new ResourceRef(buffer, offset + 32, "Source animation", "BAM"));
     list.add(new Bitmap(buffer, offset + 40, 4, "Particle color", s_color));
     list.add(new Unknown(buffer, offset + 44, 212));
     list.add(new Flag(buffer, offset + 256, 4, "Flags", s_flags));
@@ -107,9 +110,9 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ResourceRef(buffer, offset + 310, "Trailing animation 1", "BAM"));
     list.add(new ResourceRef(buffer, offset + 318, "Trailing animation 2", "BAM"));
     list.add(new ResourceRef(buffer, offset + 326, "Trailing animation 3", "BAM"));
-    list.add(new DecNumber(buffer, offset + 334, 2, "Tailing animation number 1"));
-    list.add(new DecNumber(buffer, offset + 336, 2, "Tailing animation number 2"));
-    list.add(new DecNumber(buffer, offset + 338, 2, "Tailing animation number 3"));
+    list.add(new DecNumber(buffer, offset + 334, 2, "Tailing animation delay 1"));
+    list.add(new DecNumber(buffer, offset + 336, 2, "Tailing animation delay 2"));
+    list.add(new DecNumber(buffer, offset + 338, 2, "Tailing animation delay 3"));
     list.add(new Unknown(buffer, offset + 340, 172));
     if (projtype.getValue() != 3)
       return offset + 512;
@@ -125,8 +128,8 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ProRef(buffer, offset + 532, "Secondary projectile"));
     list.add(new DecNumber(buffer, offset + 534, 1, "Duration"));
     list.add(new HashBitmap(buffer, offset + 535, 1, "Explosion effect", s_proj));
-    list.add(new ColorValue(buffer, offset + 536, 2, "Explosion color"));
-//    list.add(new Unknown(buffer, offset + 537, 1));
+    list.add(new ColorValue(buffer, offset + 536, 1, "Explosion color"));
+    list.add(new Unknown(buffer, offset + 537, 1));
     list.add(new ProRef(buffer, offset + 538, "Explosion projectile"));
     list.add(new ResourceRef(buffer, offset + 540, "Explosion animation", "VVC"));
     list.add(new DecNumber(buffer, offset + 548, 2, "Cone width"));
