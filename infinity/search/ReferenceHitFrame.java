@@ -11,6 +11,7 @@ import infinity.resource.*;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -116,7 +117,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     else if (event.getSource() == bsave) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save result");
-      chooser.setSelectedFile(new File("result.txt"));
+      chooser.setSelectedFile(new FileCI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
@@ -127,7 +128,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
           pw.println("Searched for: " + query);
           pw.println("Number of hits: " + table.getRowCount());
           for (int i = 0; i < table.getRowCount(); i++)

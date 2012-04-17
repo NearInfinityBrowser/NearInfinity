@@ -62,8 +62,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     getRootPane().setDefaultButton(bExport);
     bExport.setMnemonic('e');
     bCancel.setMnemonic('d');
-    if (new File(ResourceFactory.getRootDir(), "acm2wav.exe").exists() ||
-        new File("acm2wav.exe").exists())
+    if (new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe").exists() ||
+        new FileCI("acm2wav.exe").exists())
       ;
     else {
       cbConvertWAV.setSelected(false);
@@ -135,7 +135,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (event.getSource() == bExport) {
       selectedTypes = listTypes.getSelectedValues();
-      outputDir = new File(tfDirectory.getText());
+      outputDir = new FileCI(tfDirectory.getText());
       setVisible(false);
       new Thread(this).start();
     }
@@ -190,7 +190,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void export(ResourceEntry entry)
   {
     try {
-      File output = new File(outputDir, entry.toString());
+      File output = new FileCI(outputDir, entry.toString());
       if (output.exists() && !cbOverwrite.isSelected())
         return;
       if ((entry.getExtension().equalsIgnoreCase("IDS") ||
@@ -211,13 +211,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         byte data[] = entry.getResourceData();
         if (data[0] == -1)
           data = Decryptor.decrypt(data, 2, data.length).getBytes();
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
         Filewriter.writeBytes(bos, data);
         bos.close();
       }
       else if ((entry.getExtension().equalsIgnoreCase("BCS") ||
                 entry.getExtension().equalsIgnoreCase("BS")) && cbDecompile.isSelected()) {
-        output = new File(outputDir, entry.toString().substring(0, entry.toString().lastIndexOf(".")) +
+        output = new FileCI(outputDir, entry.toString().substring(0, entry.toString().lastIndexOf(".")) +
                                      ".BAF");
         if (output.exists() && !cbOverwrite.isSelected())
           return;
@@ -226,7 +226,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           if (data[0] == -1)
             data = Decryptor.decrypt(data, 2, data.length).getBytes();
           String script = Decompiler.decompile(new String(data), false);
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
           pw.println(script);
           pw.close();
         }
@@ -237,12 +237,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         String signature = new String(data, 0, 4);
         if (signature.equalsIgnoreCase("BAMC") || signature.equalsIgnoreCase("MOSC"))
           data = Compressor.decompress(data);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
         Filewriter.writeBytes(bos, data);
         bos.close();
       }
       else if (entry.getExtension().equalsIgnoreCase("CHR") && cbConvertCRE.isSelected()) {
-        output = new File(outputDir, entry.toString().substring(0, entry.toString().lastIndexOf(".")) +
+        output = new FileCI(outputDir, entry.toString().substring(0, entry.toString().lastIndexOf(".")) +
                                      ".CRE");
         if (output.exists() && !cbOverwrite.isSelected())
           return;
@@ -250,7 +250,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         java.util.List flatList = crefile.getFlatList();
         while (!flatList.get(0).toString().equals("CRE "))
           flatList.remove(0);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
         for (int i = 0; i < flatList.size(); i++)
           ((Writeable)flatList.get(i)).write(bos);
         bos.close();
@@ -260,15 +260,15 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         String signature = new String(data, 0, 4);
         if (signature.equalsIgnoreCase("WAVC")) {
           int channels = (int)Byteconvert.convertShort(data, 20);
-          File acmfile = new File(outputDir,
+          File acmfile = new FileCI(outputDir,
                                   entry.toString().substring(0, entry.toString().lastIndexOf((int)'.')) +
                                   ".ACM");
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(acmfile));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(acmfile));
           bos.write(data, 28, data.length - 28);
           bos.close();
-          File acm2wav = new File(ResourceFactory.getRootDir(), "acm2wav.exe");
+          File acm2wav = new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe");
           if (!acm2wav.exists())
-            acm2wav = new File("acm2wav.exe");
+            acm2wav = new FileCI("acm2wav.exe");
           if (!acm2wav.exists())
             return;
           if (channels == 1)
@@ -280,17 +280,17 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           acmfile.delete();
         }
         else {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
           Filewriter.writeBytes(bos, data);
           bos.close();
         }
       }
       else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExecutableMVE.isSelected()) {
-        output = new File(outputDir, entry.toString().substring(0, entry.toString().lastIndexOf(".")) +
+        output = new FileCI(outputDir, entry.toString().substring(0, entry.toString().lastIndexOf(".")) +
                                      ".exe");
         if (output.exists() && !cbOverwrite.isSelected())
           return;
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
         BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
         Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));
         stub.close();
@@ -311,7 +311,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         if (entry.getExtension().equalsIgnoreCase("TIS"))
           size *= entry.getResourceInfo()[1];
         if (size >= 0) {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
           while (size > 0) {
             int bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
             bos.write(buffer, 0, bytesRead);

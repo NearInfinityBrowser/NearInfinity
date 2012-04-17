@@ -15,9 +15,10 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.*;
-import infinity.util.Filewriter;
-import infinity.util.MassExporter;
-import infinity.util.StringResource;
+//import infinity.util.Filewriter;
+//import infinity.util.MassExporter;
+//import infinity.util.StringResource;
+import infinity.util.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -451,13 +452,14 @@ public final class BrowserMenuBar extends JMenuBar
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         int gameid = prefs.getInt(LASTGAME_IDS[i], -1);
         String gamepath = prefs.get(LASTGAME_PATH[i], null);
-        if (gameid != -1 && gamepath != null && new File(gamepath).exists()) {
+        if (gameid != -1 && gamepath != null && new FileCI(gamepath).exists()) {
           lastGameID.add(new Integer(gameid));
           lastGamePath.add(gamepath);
         }
       }
       for (int i = 0; i < lastGameID.size(); i++) {
-        gameLastGame[i] = new JMenuItem(i + 1 + " " + ResourceFactory.getGameName(lastGameID.get(i).intValue()));
+        gameLastGame[i] = new JMenuItem(i + 1 + " " + ResourceFactory.getGameName(lastGameID.get(i).intValue())
+					+ " @ " + lastGamePath.get(i));
         gameLastGame[i].setToolTipText(lastGamePath.get(i));
         gameLastGame[i].addActionListener(this);
         gameLastGame[i].setActionCommand("OpenOldGame");
@@ -506,8 +508,8 @@ public final class BrowserMenuBar extends JMenuBar
       }
       if (newIndex != 1 || oldGame != -1) {
         for (int i = 0; i < lastGameID.size(); i++) {
-          gameLastGame[i].setText(
-                  i + 1 + " " + ResourceFactory.getGameName(lastGameID.get(i).intValue()));
+          gameLastGame[i].setText(i + 1 + " " + ResourceFactory.getGameName(lastGameID.get(i).intValue())
+				  + " @ " + lastGamePath.get(i));
           gameLastGame[i].setToolTipText(lastGamePath.get(i));
           gameLastGame[i].setEnabled(true);
         }
@@ -541,7 +543,7 @@ public final class BrowserMenuBar extends JMenuBar
         for (int i = 0; i < gameLastGame.length; i++)
           if (event.getSource() == gameLastGame[i])
             selected = i;
-        File keyfile = new File(lastGamePath.get(selected));
+        File keyfile = new FileCI(lastGamePath.get(selected));
         if (!keyfile.exists())
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), lastGamePath.get(selected) +
                                                                     " could not be found",
@@ -624,7 +626,7 @@ public final class BrowserMenuBar extends JMenuBar
           return;
         if (!filename.toUpperCase().endsWith(entry.getExtension()))
           filename = filename + '.' + entry.getExtension();
-        if (new File(entry.getActualFile().getParentFile(), filename).exists()) {
+        if (new FileCI(entry.getActualFile().getParentFile(), filename).exists()) {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
           return;
@@ -689,8 +691,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      editString2.setEnabled(new File(ResourceFactory.getRootDir(), "dialogF.tlk").exists());
-      editVarVar.setEnabled(new File(ResourceFactory.getRootDir(), "VAR.VAR").exists());
+      editString2.setEnabled(new FileCI(ResourceFactory.getRootDir(), "dialogF.tlk").exists());
+      editVarVar.setEnabled(new FileCI(ResourceFactory.getRootDir(), "VAR.VAR").exists());
       if (editString2.isEnabled())
         editString2.setToolTipText("");
       else
@@ -718,7 +720,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = new File(ResourceFactory.getRootDir(), "dialogF.tlk");
+        File file = new FileCI(ResourceFactory.getRootDir(), "dialogF.tlk");
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
@@ -734,7 +736,7 @@ public final class BrowserMenuBar extends JMenuBar
         new ViewFrame(NearInfinity.getInstance(),
                       ResourceFactory.getResource(
                               new FileResourceEntry(
-                                      new File(ResourceFactory.getRootDir() + "/VAR.VAR"))));
+                                      new FileCI(ResourceFactory.getRootDir() + "/VAR.VAR"))));
       }
       else if (event.getSource() == editBIFF)
         new BIFFEditor();

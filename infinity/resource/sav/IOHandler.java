@@ -74,12 +74,12 @@ public final class IOHandler implements Writeable
   public List<FileResourceEntry> decompress() throws Exception
   {
     List<FileResourceEntry> entries = new ArrayList<FileResourceEntry>(fileentries.size());
-    tempfolder = new File(ResourceFactory.getRootDir(), '_' + entry.getTreeFolder());
+    tempfolder = new FileCI(ResourceFactory.getRootDir(), '_' + entry.getTreeFolder());
     tempfolder.mkdir();
     for (int i = 0; i < fileentries.size(); i++) {
       FileEntry fentry = fileentries.get(i);
-      File file = new File(tempfolder, fentry.toString());
-      OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+      File file = new FileCI(tempfolder, fentry.toString());
+      OutputStream os = new BufferedOutputStream(new FileOutputStreamCI(file));
       Filewriter.writeBytes(os, fentry.decompress());
       os.close();
       entries.add(new FileResourceEntry(file));

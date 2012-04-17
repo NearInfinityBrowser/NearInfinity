@@ -9,6 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.*;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -314,7 +315,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           return;
         if (!filename.toUpperCase().endsWith(entry.getExtension()))
           filename = filename + '.' + entry.getExtension();
-        if (new File(entry.getActualFile().getParentFile(), filename).exists()) {
+        if (new FileCI(entry.getActualFile().getParentFile(), filename).exists()) {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
           return;

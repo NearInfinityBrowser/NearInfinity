@@ -9,6 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -176,7 +177,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
       bExternalBrowse.setEnabled(false);
     }
     else if (event.getSource() == tfExternalName)
-      openExternalFile(new File(tfExternalName.getText()));
+      openExternalFile(new FileCI(tfExternalName.getText()));
     else if (event.getSource() == bExternalBrowse) {
       if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
         tfExternalName.setText(fc.getSelectedFile().toString());
@@ -194,7 +195,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
         new ViewFrame(this,
                       ResourceFactory.getResource((ResourceEntry)lpInternal.getSelectedValue()));
       else
-        openExternalFile(new File(tfExternalName.getText()));
+        openExternalFile(new FileCI(tfExternalName.getText()));
     }
   }
 

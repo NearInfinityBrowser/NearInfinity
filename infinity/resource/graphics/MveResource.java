@@ -10,8 +10,7 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.Closeable;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Filereader;
-import infinity.util.Filewriter;
+import infinity.util.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,8 +30,8 @@ public final class MveResource implements Resource, ActionListener, Closeable
     this.entry = entry;
     blocker.setBlocked(true);
     try {
-      moviefile = new File('_' + entry.toString() + ".exe");
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(moviefile));
+      moviefile = new FileCI('_' + entry.toString() + ".exe");
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(moviefile));
       // Write stub
       BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
       Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));

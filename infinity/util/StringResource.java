@@ -118,7 +118,7 @@ public final class StringResource
 
   private static void open() throws IOException
   {
-    file = new RandomAccessFile(ffile, "r");
+    file = new RandomAccessFileCI(ffile, "r");
     file.seek((long)0x00);
     String signature = Filereader.readString(file, 4);
     if (!signature.equalsIgnoreCase("TLK "))

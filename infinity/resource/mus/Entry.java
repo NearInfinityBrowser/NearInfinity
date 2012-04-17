@@ -6,6 +6,7 @@ package infinity.resource.mus;
 
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.sound.SoundUtilities;
+import infinity.util.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,12 +97,12 @@ public final class Entry
 
   private File getWavFile(String filename) throws IOException
   {
-    File acmfile = new File(entry.getActualFile().getParent() + File.separatorChar + dir +
+    File acmfile = new FileCI(entry.getActualFile().getParent() + File.separatorChar + dir +
                             File.separatorChar + dir + filename + ".acm");
     if (!acmfile.exists())
-      acmfile = new File(entry.getActualFile().getParentFile(), filename + ".acm");
+      acmfile = new FileCI(entry.getActualFile().getParentFile(), filename + ".acm");
     if (!acmfile.exists() && filename.toUpperCase().startsWith("MX"))
-      acmfile = new File(entry.getActualFile().getParent() + File.separatorChar + filename.substring(0, 6) +
+      acmfile = new FileCI(entry.getActualFile().getParent() + File.separatorChar + filename.substring(0, 6) +
                          File.separatorChar + filename + ".acm");
     if (!acmfile.exists())
       throw new IOException("Could not find " + filename);

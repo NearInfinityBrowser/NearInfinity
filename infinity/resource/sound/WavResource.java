@@ -11,8 +11,7 @@ import infinity.resource.Closeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.WavReferenceSearcher;
-import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,8 +52,8 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
         wavfile = entry.getActualFile();
       else {
         // In BIF
-        wavfile = new File(entry.toString());
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(wavfile));
+        wavfile = new FileCI(entry.toString());
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(wavfile));
         bos.write(data, 0, data.length);
         bos.close();
         fileCreated = true;
@@ -81,8 +80,8 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
         fileCreated = true;
       }
       else {
-        wavfile = new File(entry.toString());
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(wavfile));
+        wavfile = new FileCI(entry.toString());
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(wavfile));
         bos.write(data, 470, data.length - 470);
         bos.close();
         fileCreated = true;
@@ -127,18 +126,18 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     else if (event.getSource() == bexportConvert) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Export & Convert");
-      chooser.setSelectedFile(new File(entry.toString()));
+      chooser.setSelectedFile(new FileCI(entry.toString()));
       if (chooser.showDialog(panel, "Export") == JFileChooser.APPROVE_OPTION) {
         String filename = chooser.getSelectedFile().toString();
-        File acmfile = new File(filename.substring(0, filename.lastIndexOf('.')) + ".ACM");
+        File acmfile = new FileCI(filename.substring(0, filename.lastIndexOf('.')) + ".ACM");
         try {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(acmfile));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(acmfile));
           byte data[] = entry.getResourceData();
           bos.write(data, 28, data.length - 28);
           bos.close();
-          File acm2wav = new File(ResourceFactory.getRootDir(), "acm2wav.exe");
+          File acm2wav = new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe");
           if (!acm2wav.exists())
-            acm2wav = new File("acm2wav.exe");
+            acm2wav = new FileCI("acm2wav.exe");
           if (!acm2wav.exists())
             return;
           if (channels == 1)
@@ -260,8 +259,8 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     if (signature.equalsIgnoreCase("WAVC")) {
       bexportConvert = new JButton("Export & Convert...", Icons.getIcon("Export16.gif"));
       bexportConvert.addActionListener(this);
-      if (new File(ResourceFactory.getRootDir(), "acm2wav.exe").exists() ||
-          new File("acm2wav.exe").exists())
+      if (new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe").exists() ||
+          new FileCI("acm2wav.exe").exists())
         ;
       else {
         bexportConvert.setSelected(false);

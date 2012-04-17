@@ -22,9 +22,9 @@ public class GffResource implements Resource, Writeable
 
   public static void main(String args[]) throws Exception
   {
-    StringResource.init(new File(args[0]));
-    ResourceEntry file1 = new FileResourceEntry(new File(args[1]));
-    ResourceEntry file2 = new FileResourceEntry(new File(args[2]));
+    StringResource.init(new FileCI(args[0]));
+    ResourceEntry file1 = new FileResourceEntry(new FileCI(args[1]));
+    ResourceEntry file2 = new FileResourceEntry(new FileCI(args[2]));
     GffResource res1 = new GffResource(file1);
     GffResource res2 = new GffResource(file2);
     res1.topStruct.compare(res2.topStruct);

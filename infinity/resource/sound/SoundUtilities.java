@@ -5,8 +5,7 @@
 package infinity.resource.sound;
 
 import infinity.resource.ResourceFactory;
-import infinity.util.Byteconvert;
-import infinity.util.Filewriter;
+import infinity.util.*;
 
 import javax.sound.sampled.*;
 import java.io.*;
@@ -36,12 +35,12 @@ public final class SoundUtilities
 
   public static File convert(File acmfile, boolean isMono) throws IOException
   {
-    File wavfile = new File(acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
+    File wavfile = new FileCI(acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
     if (!wavfile.exists()) {
       if (acm2wav == null || !acm2wav.exists())
-        acm2wav = new File(ResourceFactory.getRootDir(), "acm2wav.exe");
+        acm2wav = new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe");
       if (!acm2wav.exists())
-        acm2wav = new File("acm2wav.exe");
+        acm2wav = new FileCI("acm2wav.exe");
       if (!acm2wav.exists())
         throw new IOException("acm2wav.exe not found");
       try {
@@ -57,10 +56,10 @@ public final class SoundUtilities
 
   public static File convert(byte data[], int offset, String filename, boolean isMono) throws IOException
   {
-    File wavfile = new File(filename.substring(0, filename.lastIndexOf((int)'.')) + ".WAV");
+    File wavfile = new FileCI(filename.substring(0, filename.lastIndexOf((int)'.')) + ".WAV");
     if (!wavfile.exists()) {
-      File acmfile = new File(filename.substring(0, filename.lastIndexOf((int)'.')) + ".ACM");
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(acmfile));
+      File acmfile = new FileCI(filename.substring(0, filename.lastIndexOf((int)'.')) + ".ACM");
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(acmfile));
       bos.write(data, offset, data.length - offset);
       bos.close();
       wavfile = convert(acmfile, isMono);
@@ -71,8 +70,8 @@ public final class SoundUtilities
 
   public static File convertADPCM(byte data[], int offset, String filename) throws IOException
   {
-    File pcmwav = new File(filename);
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(pcmwav));
+    File pcmwav = new FileCI(filename);
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamCI(pcmwav));
     offset += 0x0c;
     offset = fmt.read(data, offset);
     if (fmt.bits_sample != 4) {

@@ -10,7 +10,7 @@ import infinity.resource.*;
 import infinity.resource.Closeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
-import infinity.util.StructClipboard;
+import infinity.util.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -124,7 +124,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     else if (event.getSource() == bsaveconsole) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save console");
-      chooser.setSelectedFile(new File("nidebuglog.txt"));
+      chooser.setSelectedFile(new FileCI("nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
@@ -134,7 +134,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
           pw.println("Near Infinity Debug Log");
           pw.println(BrowserMenuBar.VERSION);
           pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));
