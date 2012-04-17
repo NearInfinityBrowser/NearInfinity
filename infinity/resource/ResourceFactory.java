@@ -59,8 +59,8 @@ public final class ResourceFactory
 
   static
   {
-    String bgdirs[] = {"Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
-                       "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave"};
+    String bgdirs[] = {"characters", "mpsave", "music", "portraits", "save", "screenshots",
+                       "scripts", "scrnshot", "sounds", "temp", "tempsave"};
 //    String iwddirs[] = {"Music", "Characters", "Scripts", "Sounds", "Temp", "MPSave"};
 
     games = new GameConfig[15];
