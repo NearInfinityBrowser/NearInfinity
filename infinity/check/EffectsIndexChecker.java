@@ -149,7 +149,7 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
       Object o = structList.get(i);
       if (o instanceof AbstractAbility) {
         AbstractAbility abil = (AbstractAbility) o;
-        int effectsIndex = ((DecNumber) abil.getAttribute("Effects index")).getValue();
+        int effectsIndex = ((DecNumber) abil.getAttribute("First effect index")).getValue();
         if (effectsIndex != expectedEffectsIndex) {
           hitFrame.addHit(entry, entry.getSearchString(), abil);
         }
