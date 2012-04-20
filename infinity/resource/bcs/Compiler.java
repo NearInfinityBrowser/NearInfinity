@@ -6,6 +6,7 @@ package infinity.resource.bcs;
 
 import infinity.NearInfinity;
 import infinity.gui.StatusBar;
+import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.AreResource;
 import infinity.resource.cre.CreResource;
@@ -105,7 +106,8 @@ public final class Compiler
       };
     emptyObject = compileObject(null, "");
 
-    setupScriptNames();
+    if (BrowserMenuBar.getInstance().checkScriptNames())
+        setupScriptNames();
   }
 
   private void setupScriptNames()

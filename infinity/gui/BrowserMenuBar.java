@@ -48,6 +48,7 @@ public final class BrowserMenuBar extends JMenuBar
   private static final String OPTION_AUTOCONVERT_WAV = "AutoconvertWAV";
   private static final String OPTION_AUTOCHECK_BCS = "AutocheckBCS";
   private static final String OPTION_CACHEOVERRIDE = "CacheOverride";
+  private static final String OPTION_CHECKSCRIPTNAMES = "CheckScriptNames";
   private static final String OPTION_SHOWOVERRIDES = "ShowOverridesIn";
   private static final String OPTION_SHOWRESREF = "ShowResRef";
   private static final String OPTION_LOOKANDFEEL = "LookAndFeel";
@@ -219,6 +220,7 @@ public final class BrowserMenuBar extends JMenuBar
     prefs.putBoolean(OPTION_AUTOCONVERT_WAV, optionAutoConvWAV.isSelected());
     prefs.putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
     prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
+    prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
     prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
     prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
     prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
@@ -269,6 +271,11 @@ public final class BrowserMenuBar extends JMenuBar
     optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
                                        "to discover new override files added while NI is open");
     menu.add(optionCacheOverride);
+    optionCheckScriptNames =
+    new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
+    optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
+                                          "but many features involving script names will be disabled.");
+    menu.add(optionCheckScriptNames);
 
 
     menu.addSeparator();
