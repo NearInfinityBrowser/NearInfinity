@@ -10,7 +10,10 @@ public final class Effect extends AbstractStruct implements AddRemovable
 {
   static final String s_savetype[] = {"No save", "Spell", "Breath weapon",
                                       "Paralyze/Poison/Death", "Rod/Staff/Wand",
-                                      "Petrify/Polymorph"};
+                                      "Petrify/Polymorph", "", "", "",
+                                      "", "", "", "", "", "", "", "",
+                                      "", "", "", "", "", "", "", "",
+                                      "Ex: bypass mirror image"};
   static final String s_savetype2[] = {"No save", "", "", "Fortitude", "Reflex",
                                        "Will"};
 

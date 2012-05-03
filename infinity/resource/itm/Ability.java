@@ -18,7 +18,8 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
   private static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
   private static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
                                               "", "", "", "", "", "", "Hostile", "Recharge after resting",
-                                              "", "", "", "", "Bypass armor", "Keen edge"};
+                                              "", "", "", "", "Bypass armor", "Keen edge", "", "", "", "", "", "",
+                                              "", "Ex: toggle backstab", "Ex: cannot target invisible"};
 
   Ability() throws Exception
   {
