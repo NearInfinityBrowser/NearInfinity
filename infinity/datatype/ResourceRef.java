@@ -132,7 +132,8 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bView = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
     bView.addActionListener(this);
-    bView.setEnabled(list.getSelectedValue() != null && list.getSelectedValue() != NONE);
+    bView.setEnabled(list.getSelectedValue() != null && list.getSelectedValue() != NONE
+                     && ((ResourceRefEntry)list.getSelectedValue()).entry != null);
     list.addListSelectionListener(this);
 
     GridBagLayout gbl = new GridBagLayout();
