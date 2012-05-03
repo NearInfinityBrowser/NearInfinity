@@ -179,7 +179,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbl.setConstraints(bpanel, gbc);
     pane.add(bpanel);
 
-    setSize(450, 450);
+    setSize(500, 450);
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

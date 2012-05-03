@@ -192,7 +192,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     pane.add(splith, BorderLayout.CENTER);
     pane.add(statusBar, BorderLayout.SOUTH);
 
-    setSize(prefs.getInt(WINDOW_SIZEX, 900), prefs.getInt(WINDOW_SIZEY, 700));
+    setSize(prefs.getInt(WINDOW_SIZEX, 930), prefs.getInt(WINDOW_SIZEY, 700));
 //    setSize(900, 700);
     int centerX = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth() - getSize().width >> 1;
     int centerY = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight() - getSize().height >> 1;
