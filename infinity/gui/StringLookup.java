@@ -46,7 +46,7 @@ final class StringLookup extends ChildFrame implements SearchClient
     gbl.setConstraints(findpanel, gbc);
     pane.add(findpanel);
 
-    setSize(500, 350);
+    setSize(540, 350);
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

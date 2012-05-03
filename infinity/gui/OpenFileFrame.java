@@ -153,7 +153,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
     gbl.setConstraints(cbStayOpen, gbc);
     pane.add(cbStayOpen);
 
-    setSize(300, 400);
+    setSize(330, 400);
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
