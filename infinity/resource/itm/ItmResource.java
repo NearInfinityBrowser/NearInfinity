@@ -44,7 +44,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   private static final String[] s_flags =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Bow", "Silver", "Cold iron", "", "Conversable", "", "", "", "",
-           "", "", "", "", "", "", "", "", "Ex: not dispellable in magical weapon slot", "Ex: toggle critical hit aversion"};
+           "", "", "", "", "", "", "", "", "Ex: undispellable", "Ex: toggle critical hits"};
   private static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "", "Silver", "Cold iron", "Steel", "Conversable",

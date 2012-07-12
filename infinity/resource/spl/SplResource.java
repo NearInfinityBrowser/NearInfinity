@@ -39,7 +39,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                                "No LOS required", "", "Outdoors only",
                                                "Non-magical ability", "Trigger/Contingency",
                                                "", "", "", "", "", "", "", "",
-                                               "Ex: can target invisible", "Ex: can be cast when silenced"};
+                                               "Ex: can target invisible", "Ex: castable when silenced"};
   private static final String[] s_exclude = { "None", "Chaotic priest", "Evil priest", "Good priest",
                                               "... Neutral priest", "Lawful priest", "Neutral ... priest",
                                               "Abjurer", "Conjurer", "Diviner", "Enchanter",
