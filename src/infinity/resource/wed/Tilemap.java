@@ -32,7 +32,7 @@ final class Tilemap extends AbstractStruct // implements AddRemovable
     list.add(new DecNumber(buffer, offset, 2, "Primary tile index"));
     list.add(new DecNumber(buffer, offset + 2, 2, "Primary tile count"));
     list.add(new DecNumber(buffer, offset + 4, 2, "Secondary tile index"));
-    list.add(new Unknown(buffer, offset + 6, 4, "Overlays drawn"));
+    list.add(new Unknown(buffer, offset + 6, 4));
 //    list.add(new Unknown(buffer, offset + 7, 3));
     return offset + 10;
   }

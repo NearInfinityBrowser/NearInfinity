@@ -27,7 +27,7 @@ final class ViewerArea extends JPanel implements ActionListener
     JPanel panel = new JPanel(gbl);
     gbc.insets = new Insets(3, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute("Name"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute("Area content"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute("Current area"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute("Loading image"), gbl, gbc, true);
     return panel;
   }

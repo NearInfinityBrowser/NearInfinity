@@ -41,8 +41,8 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
 
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Area content", "ARE"));
-    list.add(new TextString(buffer, offset + 8, 8, "Area name"));
+    list.add(new ResourceRef(buffer, offset, "Current area", "ARE"));
+    list.add(new ResourceRef(buffer, offset + 8, "Original area", "ARE"));
     list.add(new TextString(buffer, offset + 16, 32, "Script name"));
     list.add(new Flag(buffer, offset + 48, 4, "Flags", s_flag));
     list.add(new DecNumber(buffer, offset + 52, 4, "Icon number"));

@@ -67,7 +67,7 @@ abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRem
   {
     list.add(new DecNumber(buffer, offset, 4, "Vertex index"));
     list.add(new SectionCount(buffer, offset + 4, 4, "# vertices", Vertex.class));
-    list.add(new Unknown(buffer, offset + 8, 2, "Hole flags"));
+    list.add(new Unknown(buffer, offset + 8, 2));
 //    list.add(new Unknown(buffer, offset + 9, 1));
     list.add(new DecNumber(buffer, offset + 10, 2, "Minimum coordinate: X"));
     list.add(new DecNumber(buffer, offset + 12, 2, "Maximum coordinate: X"));

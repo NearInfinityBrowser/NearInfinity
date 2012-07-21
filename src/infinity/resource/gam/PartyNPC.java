@@ -16,7 +16,6 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 {
   private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
-  private static final LongIntegerHashMap<String> m_partyslot = new LongIntegerHashMap<String>();
   private static final String s_noyes[] = {"No", "Yes"};
 
   static {
@@ -32,9 +31,6 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     m_selected.put(0L, "Not selected");
     m_selected.put(1L, "Selected");
     m_selected.put(32768L, "Dead");
-
-    m_partyslot.put(0L, "Yes");
-    m_partyslot.put(65535L, "No");
   }
 
   PartyNPC() throws Exception
@@ -133,19 +129,19 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new IdsBitmap(buffer, offset + 142, 2, "Quick weapon slot 2", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 144, 2, "Quick weapon slot 3", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 146, 2, "Quick weapon slot 4", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 148, 2, "Show quick weapon 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 150, 2, "Show quick weapon 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 152, 2, "Show quick weapon 3?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 154, 2, "Show quick weapon 4?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 148, 2, "Quick weapon 1 ability"));
+      list.add(new DecNumber(buffer, offset + 150, 2, "Quick weapon 2 ability"));
+      list.add(new DecNumber(buffer, offset + 152, 2, "Quick weapon 3 ability"));
+      list.add(new DecNumber(buffer, offset + 154, 2, "Quick weapon 4 ability"));
       list.add(new ResourceRef(buffer, offset + 156, "Quick spell 1", "SPL"));
       list.add(new ResourceRef(buffer, offset + 164, "Quick spell 2", "SPL"));
       list.add(new ResourceRef(buffer, offset + 172, "Quick spell 3", "SPL"));
       list.add(new IdsBitmap(buffer, offset + 180, 2, "Quick item slot 1", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 182, 2, "Quick item slot 2", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 184, 2, "Quick item slot 3", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 186, 2, "Show quick item 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 188, 2, "Show quick item 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 190, 2, "Show quick item 3?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 186, 2, "Quick item 1 ability"));
+      list.add(new DecNumber(buffer, offset + 188, 2, "Quick item 2 ability"));
+      list.add(new DecNumber(buffer, offset + 190, 2, "Quick item 3 ability"));
       list.add(new TextString(buffer, offset + 192, 32, "Name"));
       list.add(new DecNumber(buffer, offset + 224, 4, "# times talked to"));
       offset = readCharStats(buffer, offset + 228);
@@ -161,19 +157,19 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new IdsBitmap(buffer, offset + 142, 2, "Quick weapon slot 2", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 144, 2, "Quick weapon slot 3", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 146, 2, "Quick weapon slot 4", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 148, 2, "Show quick weapon 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 150, 2, "Show quick weapon 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 152, 2, "Show quick weapon 3?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 154, 2, "Show quick weapon 4?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 148, 2, "Quick weapon 1 ability"));
+      list.add(new DecNumber(buffer, offset + 150, 2, "Quick weapon 2 ability"));
+      list.add(new DecNumber(buffer, offset + 152, 2, "Quick weapon 3 ability"));
+      list.add(new DecNumber(buffer, offset + 154, 2, "Quick weapon 4 ability"));
       list.add(new ResourceRef(buffer, offset + 156, "Quick spell 1", "SPL"));
       list.add(new ResourceRef(buffer, offset + 164, "Quick spell 2", "SPL"));
       list.add(new ResourceRef(buffer, offset + 172, "Quick spell 3", "SPL"));
       list.add(new IdsBitmap(buffer, offset + 180, 2, "Quick item slot 1", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 182, 2, "Quick item slot 2", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 184, 2, "Quick item slot 3", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 186, 2, "Show quick item 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 188, 2, "Show quick item 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 190, 2, "Show quick item 3?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 186, 2, "Quick item 1 ability"));
+      list.add(new DecNumber(buffer, offset + 188, 2, "Quick item 2 ability"));
+      list.add(new DecNumber(buffer, offset + 190, 2, "Quick item 3 ability"));
       list.add(new TextString(buffer, offset + 192, 32, "Name"));
       list.add(new DecNumber(buffer, offset + 224, 4, "# times talked to"));
       offset = readCharStats(buffer, offset + 228);
@@ -188,10 +184,10 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new DecNumber(buffer, offset + 142, 2, "Quick weapon slot 2"));
       list.add(new DecNumber(buffer, offset + 144, 2, "Quick weapon slot 3"));
       list.add(new DecNumber(buffer, offset + 146, 2, "Quick weapon slot 4"));
-      list.add(new HashBitmap(buffer, offset + 148, 2, "Show quick weapon 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 150, 2, "Show quick weapon 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 152, 2, "Show quick weapon 3?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 154, 2, "Show quick weapon 4?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 148, 2, "Quick weapon 1 ability"));
+      list.add(new DecNumber(buffer, offset + 150, 2, "Quick weapon 2 ability"));
+      list.add(new DecNumber(buffer, offset + 152, 2, "Quick weapon 3 ability"));
+      list.add(new DecNumber(buffer, offset + 154, 2, "Quick weapon 4 ability"));
       list.add(new ResourceRef(buffer, offset + 156, "Quick spell 1", "SPL"));
       list.add(new ResourceRef(buffer, offset + 164, "Quick spell 2", "SPL"));
       list.add(new ResourceRef(buffer, offset + 172, "Quick spell 3", "SPL"));
@@ -200,11 +196,11 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new DecNumber(buffer, offset + 184, 2, "Quick item slot 3"));
       list.add(new DecNumber(buffer, offset + 186, 2, "Quick item slot 4"));
       list.add(new DecNumber(buffer, offset + 188, 2, "Quick item slot 5"));
-      list.add(new HashBitmap(buffer, offset + 190, 2, "Show quick item 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 192, 2, "Show quick item 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 194, 2, "Show quick item 3?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 196, 2, "Show quick item 4?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 198, 2, "Show quick item 5?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 190, 2, "Quick item 1 ability"));
+      list.add(new DecNumber(buffer, offset + 192, 2, "Quick item 2 ability"));
+      list.add(new DecNumber(buffer, offset + 194, 2, "Quick item 3 ability"));
+      list.add(new DecNumber(buffer, offset + 196, 2, "Quick item 4 ability"));
+      list.add(new DecNumber(buffer, offset + 198, 2, "Quick item 5 ability"));
       list.add(new TextString(buffer, offset + 200, 32, "Name"));
       list.add(new DecNumber(buffer, offset + 232, 4, "# times talked to"));
       offset = readCharStats(buffer, offset + 236);
@@ -219,19 +215,19 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new IdsBitmap(buffer, offset + 142, 2, "Quick weapon slot 2", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 144, 2, "Quick weapon slot 3", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 146, 2, "Quick weapon slot 4", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 148, 2, "Show quick weapon 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 150, 2, "Show quick weapon 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 152, 2, "Show quick weapon 3?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 154, 2, "Show quick weapon 4?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 148, 2, "Quick weapon 1 ability"));
+      list.add(new DecNumber(buffer, offset + 150, 2, "Quick weapon 2 ability"));
+      list.add(new DecNumber(buffer, offset + 152, 2, "Quick weapon 3 ability"));
+      list.add(new DecNumber(buffer, offset + 154, 2, "Quick weapon 4 ability"));
       list.add(new ResourceRef(buffer, offset + 156, "Quick spell 1", "SPL"));
       list.add(new ResourceRef(buffer, offset + 164, "Quick spell 2", "SPL"));
       list.add(new ResourceRef(buffer, offset + 172, "Quick spell 3", "SPL"));
       list.add(new IdsBitmap(buffer, offset + 180, 2, "Quick item slot 1", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 182, 2, "Quick item slot 2", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 184, 2, "Quick item slot 3", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 186, 2, "Show quick item 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 188, 2, "Show quick item 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 190, 2, "Show quick item 3?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 186, 2, "Quick item 1 ability"));
+      list.add(new DecNumber(buffer, offset + 188, 2, "Quick item 2 ability"));
+      list.add(new DecNumber(buffer, offset + 190, 2, "Quick item 3 ability"));
       list.add(new TextString(buffer, offset + 192, 32, "Name"));
       list.add(new Unknown(buffer, offset + 224, 4));
       offset = readCharStats(buffer, offset + 228);
@@ -250,14 +246,14 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new IdsBitmap(buffer, offset + 150, 2, "Quick shield slot 3", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 152, 2, "Quick weapon slot 4", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 154, 2, "Quick shield slot 4", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 156, 2, "Show quick weapon 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 158, 2, "Show quick shield 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 160, 2, "Show quick weapon 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 162, 2, "Show quick shield 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 164, 2, "Show quick weapon 3?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 166, 2, "Show quick shield 3?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 168, 2, "Show quick weapon 4?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 170, 2, "Show quick shield 4?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 156, 2, "Quick weapon 1 ability"));
+      list.add(new DecNumber(buffer, offset + 158, 2, "Quick shield 1 ability"));
+      list.add(new DecNumber(buffer, offset + 160, 2, "Quick weapon 2 ability"));
+      list.add(new DecNumber(buffer, offset + 162, 2, "Quick shield 2 ability"));
+      list.add(new DecNumber(buffer, offset + 164, 2, "Quick weapon 3 ability"));
+      list.add(new DecNumber(buffer, offset + 166, 2, "Quick shield 3 ability"));
+      list.add(new DecNumber(buffer, offset + 168, 2, "Quick weapon 4 ability"));
+      list.add(new DecNumber(buffer, offset + 170, 2, "Quick shield 4 ability"));
       list.add(new ResourceRef(buffer, offset + 172, "Quick spell 1", "SPL"));
       list.add(new ResourceRef(buffer, offset + 180, "Quick spell 2", "SPL"));
       list.add(new ResourceRef(buffer, offset + 188, "Quick spell 3", "SPL"));
@@ -280,9 +276,9 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       list.add(new IdsBitmap(buffer, offset + 254, 2, "Quick item slot 1", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 256, 2, "Quick item slot 2", "SLOTS.IDS"));
       list.add(new IdsBitmap(buffer, offset + 258, 2, "Quick item slot 3", "SLOTS.IDS"));
-      list.add(new HashBitmap(buffer, offset + 260, 2, "Show quick item 1?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 262, 2, "Show quick item 2?", m_partyslot));
-      list.add(new HashBitmap(buffer, offset + 264, 2, "Show quick item 3?", m_partyslot));
+      list.add(new DecNumber(buffer, offset + 260, 2, "Quick item 1 ability"));
+      list.add(new DecNumber(buffer, offset + 262, 2, "Quick item 2 ability"));
+      list.add(new DecNumber(buffer, offset + 264, 2, "Quick item 3 ability"));
       list.add(new ResourceRef(buffer, offset + 266, "Quick ability 1", "SPL"));
       list.add(new ResourceRef(buffer, offset + 274, "Quick ability 2", "SPL"));
       list.add(new ResourceRef(buffer, offset + 282, "Quick ability 3", "SPL"));

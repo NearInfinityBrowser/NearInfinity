@@ -10,6 +10,8 @@ import infinity.resource.AddRemovable;
 
 final class TiledObject extends AbstractStruct implements AddRemovable
 {
+  private static final String s_flag[] = { "No flags set", "Secondary tile", "Can be looked through" };
+
   TiledObject() throws Exception
   {
     super(null, "Tiled object", new byte[108], 0);
@@ -23,12 +25,12 @@ final class TiledObject extends AbstractStruct implements AddRemovable
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new TextString(buffer, offset + 32, 8, "Resource?"));
-    list.add(new Unknown(buffer, offset + 40, 4));
-    list.add(new DecNumber(buffer, offset + 44, 4, "Primary search squares offset"));
-    list.add(new DecNumber(buffer, offset + 48, 4, "# primary search squares"));
-    list.add(new DecNumber(buffer, offset + 52, 4, "Secondary search squares offset"));
-    list.add(new DecNumber(buffer, offset + 56, 4, "# secondary search squares"));
+    list.add(new TextString(buffer, offset + 32, 8, "Tile ID"));
+    list.add(new Flag(buffer, offset + 40, 4, "Tile flags", s_flag));
+    list.add(new DecNumber(buffer, offset + 44, 4, "First vertex index (primary)"));
+    list.add(new DecNumber(buffer, offset + 48, 2, "# vertices (primary)"));
+    list.add(new DecNumber(buffer, offset + 50, 2, "# vertices (secondary)"));
+    list.add(new DecNumber(buffer, offset + 52, 4, "First vertex index (secondary)"));
     list.add(new Unknown(buffer, offset + 60, 48));
     return offset + 108;
   }

@@ -40,10 +40,10 @@ final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetai
     list.add(new ResourceRef(buffer, offset, "Map", "MOS"));
     list.add(new DecNumber(buffer, offset + 8, 4, "Width"));
     list.add(new DecNumber(buffer, offset + 12, 4, "Height"));
-    list.add(new Unknown(buffer, offset + 16, 4));
+    list.add(new DecNumber(buffer, offset + 16, 4, "Map ID"));
     list.add(new StringRef(buffer, offset + 20, "Name"));
-    list.add(new Unknown(buffer, offset + 24, 4));
-    list.add(new Unknown(buffer, offset + 28, 4));
+    list.add(new DecNumber(buffer, offset + 24, 4, "Center location: X"));
+    list.add(new DecNumber(buffer, offset + 28, 4, "Center location: Y"));
     SectionCount area_count = new SectionCount(buffer, offset + 32, 4, "# areas",
                                                AreaEntry.class);
     list.add(area_count);

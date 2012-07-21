@@ -10,7 +10,7 @@ import infinity.resource.AddRemovable;
 
 final class Ambient extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_flag = {"Disabled", "Enabled", "Disable environmental effects",
+  private static final String[] s_flag = {"Disabled", "Enabled", "Looping",
                                           "Ignore radius", "Play in random order", "High memory ambient"};
 
   Ambient() throws Exception
@@ -30,7 +30,9 @@ final class Ambient extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 34, 2, "Origin: Y"));
     list.add(new DecNumber(buffer, offset + 36, 2, "Radius"));
 //    list.add(new DecNumber(buffer, offset + 38, 2, "Height (3D)?"));
-    list.add(new Unknown(buffer, offset + 38, 8));
+    list.add(new Unknown(buffer, offset + 38, 2));
+    list.add(new DecNumber(buffer, offset + 40, 4, "Pitch variation"));
+    list.add(new DecNumber(buffer, offset + 44, 2, "Volume variation"));
     list.add(new DecNumber(buffer, offset + 46, 2, "Volume"));
     if (getSuperStruct() != null)
       for (int i = 0; i < 10; i++)

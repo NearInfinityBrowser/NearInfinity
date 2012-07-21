@@ -143,8 +143,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
                              OpenVertexImpeded.class));
     list.add(new SectionCount(buffer, offset + 78, 2, "# vertices (impeded, closed)", ClosedVertexImpeded.class));
     list.add(new DecNumber(buffer, offset + 80, 4, "First vertex index (impeded, closed)"));
-    list.add(new Unknown(buffer, offset + 84, 4));
-//    list.add(new Unknown(buffer, offset + 86, 2));
+    list.add(new DecNumber(buffer, offset + 84, 2, "Current HP"));
+    list.add(new DecNumber(buffer, offset + 86, 2, "Effective AC"));
     list.add(new ResourceRef(buffer, offset + 88, "Opening sound", "WAV"));
     list.add(new ResourceRef(buffer, offset + 96, "Closing sound", "WAV"));
     list.add(new DecNumber(buffer, offset + 104, 4, "Cursor number"));

@@ -84,6 +84,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 20, 4, "Sell markup"));
     list.add(new DecNumber(buffer, offset + 24, 4, "Buy markup"));
     list.add(new DecNumber(buffer, offset + 28, 4, "Depreciation rate"));
+//    list.add(new Unknown(buffer, offset + 30, 2));
     list.add(new DecNumber(buffer, offset + 32, 2, "Stealing difficulty"));
     if (version.toString().equalsIgnoreCase("V9.0"))
       list.add(new Unknown(buffer, offset + 34, 2));

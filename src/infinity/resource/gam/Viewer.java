@@ -26,7 +26,7 @@ final class Viewer extends JPanel
         ResourceFactory.getGameID() == ResourceFactory.ID_TUTU) // V2.0 - better check?
       ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (real seconds)"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Party gold"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Main area"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Master area"), gbl, gbc, true);
     return panel;
   }
 

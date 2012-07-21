@@ -15,7 +15,8 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
   public static final String[] s_orientation = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                  "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
   private static final String[] s_noyes = {"No", "Yes"};
-  private static final String[] s_yesno = {"CRE attached", "CRE not attached", "", "", "Override script name"};
+  private static final String[] s_yesno = {"CRE attached", "CRE not attached", "Has seen party",
+                                           "Toggle invulnerability", "Override script name"};
   static final String[] s_schedule = {"Not active", "00:30-01:29", "01:30-02:29", "02:30-03:29",
                                       "03:30-04:29", "04:30-05:29", "05:30-06:29", "06:30-07:29",
                                       "07:30-08:29", "08:30-09:29", "09:30-10:29", "10:30-11:29",
@@ -107,7 +108,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     list.add(new Unknown(buffer, offset + 54, 2));
     list.add(new DecNumber(buffer, offset + 56, 4, "Expiry time"));
     list.add(new DecNumber(buffer, offset + 60, 2, "Wander distance"));
-    list.add(new DecNumber(buffer, offset + 62, 2, "Movement distance"));
+    list.add(new DecNumber(buffer, offset + 62, 2, "Follow distance"));
     list.add(new Flag(buffer, offset + 64, 4, "Present at", s_schedule));
     list.add(new DecNumber(buffer, offset + 68, 4, "# times talked to"));
     list.add(new ResourceRef(buffer, offset + 72, "Dialogue", "DLG"));

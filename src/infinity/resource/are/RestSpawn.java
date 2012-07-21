@@ -25,7 +25,7 @@ final class RestSpawn extends AbstractStruct // implements AddRemovable
     list.add(new DecNumber(buffer, offset + 154, 2, "Encounter difficulty"));
     list.add(new DecNumber(buffer, offset + 156, 4, "Creature duration"));
     list.add(new DecNumber(buffer, offset + 160, 2, "Creature wander distance"));
-    list.add(new DecNumber(buffer, offset + 162, 2, "Creature movement distance"));
+    list.add(new DecNumber(buffer, offset + 162, 2, "Creature follow distance"));
     list.add(new DecNumber(buffer, offset + 164, 2, "Maximum spawned creatures"));
     list.add(new Bitmap(buffer, offset + 166, 2, "Is active?", new String[]{"No", "Yes"}));
     list.add(new DecNumber(buffer, offset + 168, 2, "Probability (day)"));

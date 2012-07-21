@@ -71,10 +71,14 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new ResourceRef(buffer, offset + 14, "Button", "BAM"));
         list.add(new UnsignDecNumber(buffer, offset + 22, 1, "Animation number"));
         list.add(new Flag(buffer, offset + 23, 1, "Text flags", s_button));
-        list.add(new DecNumber(buffer, offset + 24, 2, "Frame number: Unpressed"));
-        list.add(new DecNumber(buffer, offset + 26, 2, "Frame number: Pressed"));
-        list.add(new DecNumber(buffer, offset + 28, 2, "Frame number: Selected"));
-        list.add(new DecNumber(buffer, offset + 30, 2, "Frame number: Disabled"));
+        list.add(new DecNumber(buffer, offset + 24, 1, "Frame number: Unpressed"));
+        list.add(new DecNumber(buffer, offset + 25, 1, "Text anchor: Left"));
+        list.add(new DecNumber(buffer, offset + 26, 1, "Frame number: Pressed"));
+        list.add(new DecNumber(buffer, offset + 27, 1, "Text anchor: Right"));
+        list.add(new DecNumber(buffer, offset + 28, 1, "Frame number: Selected"));
+        list.add(new DecNumber(buffer, offset + 29, 1, "Text anchor: Top"));
+        list.add(new DecNumber(buffer, offset + 30, 1, "Frame number: Disabled"));
+        list.add(new DecNumber(buffer, offset + 31, 1, "Text anchor: Bottom"));
         offset += 32;
         break;
       case 2:
@@ -102,7 +106,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new DecNumber(buffer, offset + 48, 2, "Frame number"));
         list.add(new DecNumber(buffer, offset + 50, 2, "Caret position: X"));
         list.add(new DecNumber(buffer, offset + 52, 2, "Caret position: Y"));
-        list.add(new Unknown(buffer, offset + 54, 4));
+        list.add(new DecNumber(buffer, offset + 54, 4, "Text field ID"));
         list.add(new ResourceRef(buffer, offset + 58, "Font", "BAM"));
         list.add(new Unknown(buffer, offset + 66, 2));
         list.add(new TextString(buffer, offset + 68, 32, "Initial text"));

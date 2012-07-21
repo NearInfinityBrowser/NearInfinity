@@ -22,7 +22,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_school = {"None", "Abjurer", "Conjurer", "Diviner", "Enchanter", "Illusionist", "Invoker",
                                            "Necromancer", "Transmuter", "Generalist"};
 //  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
-  private static final LongIntegerHashMap<String> m_priesttype = new LongIntegerHashMap<String>();
+//  private static final LongIntegerHashMap<String> m_priesttype = new LongIntegerHashMap<String>();
   private static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate", "Bard song"};
   private static final String[] s_anim = {"None", "Fire aqua", "Fire blue", "Fire gold", "Fire green",
                                           "Fire magenta", "Fire purple", "Fire red", "Fire white",
@@ -36,13 +36,15 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                           "Swirl white"};
   private static final String[] s_spellflag = {"No flags set", "", "", "", "", "", "", "", "",
                                                "", "", "Hostile",
-                                               "No LOS required", "", "Outdoors only",
-                                               "Non-magical ability", "Trigger/Contingency"};
-  private static final String[] s_exclude = { "None", "Chaotic priest", "Evil priest", "Good priest",
-                                              "... Neutral priest", "Lawful priest", "Neutral ... priest",
+                                               "No LOS required", "Allow spotting", "Outdoors only",
+                                               "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
+  private static final String[] s_exclude = { "None", "Chaotic", "Evil", "Good",
+                                              "... Neutral", "Lawful", "Neutral ...",
                                               "Abjurer", "Conjurer", "Diviner", "Enchanter",
                                               "Illusionist", "Invoker", "Necromancer", "Transmuter",
-                                              "Generalist"};
+                                              "Generalist", "", "", "", "", "", "", "", "", "Elf",
+                                              "Dwarf", "Half-elf", "Halfling", "Human", "Gnome", "",
+                                              "Cleric", "Druid"};
 
   static
   {
@@ -56,9 +58,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 //    m_wizardtype.put((long)0x2000, "Abjuration");
 //    m_wizardtype.put((long)0x2400, "Necromancy");
 
-    m_priesttype.put((long)0x0000, "All priests");
-    m_priesttype.put((long)0x4000, "Druid/Ranger");
-    m_priesttype.put((long)0x8000, "Cleric/Paladin");
+//    m_priesttype.put((long)0x0000, "All priests");
+//    m_priesttype.put((long)0x4000, "Druid/Ranger");
+//    m_priesttype.put((long)0x8000, "Cleric/Paladin");
   }
 
   public static String getSearchString(byte buffer[])
@@ -189,26 +191,27 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     list.add(new ResourceRef(buffer, offset + 16, "Casting sound", "WAV"));
     list.add(new Flag(buffer, offset + 24, 4, "Flags", s_spellflag));
     list.add(new Bitmap(buffer, offset + 28, 2, "Spell type", s_spelltype));
-    list.add(new Flag(buffer, offset + 30, 2, "Exclusion flags", s_exclude));   // 0x1e
-    list.add(new HashBitmap(buffer, offset + 32, 2, "Priest type", m_priesttype));     // 0x20
+    list.add(new Flag(buffer, offset + 30, 4, "Exclusion flags", s_exclude));   // 0x1e
+//    list.add(new HashBitmap(buffer, offset + 32, 2, "Priest type", m_priesttype));     // 0x20
     list.add(new Bitmap(buffer, offset + 34, 2, "Casting animation", s_anim));  // 0x22
     list.add(new Unknown(buffer, offset + 36, 1));                                    // 0x23
     if (ResourceFactory.getInstance().resourceExists("SCHOOL.IDS"))
-      list.add(new IdsBitmap(buffer, offset + 37, 2, "Primary type (school)", "SCHOOL.IDS")); // 0x25
+      list.add(new IdsBitmap(buffer, offset + 37, 1, "Primary type (school)", "SCHOOL.IDS")); // 0x25
     else
-      list.add(new Bitmap(buffer, offset + 37, 2, "Primary type (school)", s_school)); // 0x25
+      list.add(new Bitmap(buffer, offset + 37, 1, "Primary type (school)", s_school)); // 0x25
+    list.add(new Unknown(buffer, offset + 38, 1));
     list.add(new Bitmap(buffer, offset + 39, 1, "Secondary type", s_category));       // 0x27
     list.add(new Unknown(buffer, offset + 40, 12));
     list.add(new DecNumber(buffer, offset + 52, 4, "Spell level"));
     list.add(new Unknown(buffer, offset + 56, 2));
     list.add(new ResourceRef(buffer, offset + 58, "Spell icon", "BAM"));
-    list.add(new Unknown(buffer, offset + 66, 14));
-//    list.add(new TextString(buffer, offset + 68, 8, "ResRef?"));
-//    list.add(new Unknown(buffer, offset + 76, 4));
+    list.add(new Unknown(buffer, offset + 66, 2));
+    list.add(new ResourceRef(buffer, offset + 68, "Ground icon", "BAM"));
+    list.add(new Unknown(buffer, offset + 76, 4));
     list.add(new StringRef(buffer, offset + 80, "Spell description"));
     list.add(new StringRef(buffer, offset + 84, "Identified description"));
-//    list.add(new ResourceRef(buffer, offset + 88, 8, "Animation?", "BAM"));
-    list.add(new Unknown(buffer, offset + 88, 12));
+    list.add(new ResourceRef(buffer, offset + 88, "Description image", "BAM"));
+    list.add(new Unknown(buffer, offset + 96, 4));
     SectionOffset abil_offset = new SectionOffset(buffer, offset + 100, "Abilities offset",
                                                   Ability.class);
     list.add(abil_offset);

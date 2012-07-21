@@ -45,11 +45,11 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 
   protected int read(byte buffer[], int offset) throws Exception
   {
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
     list.add(new Bitmap(buffer, offset, 1, "Type", s_type));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
       list.add(new Bitmap(buffer, offset + 1, 1, "Hostility", s_hostility));
-    else
-      list.add(new Unknown(buffer, offset + 1, 1));
+    } else
+      list.add(new Bitmap(buffer, offset, 2, "Type", s_type));
     list.add(new Bitmap(buffer, offset + 2, 2, "Ability location", s_abilityuse));
     list.add(new ResourceRef(buffer, offset + 4, "Icon", "BAM"));
     list.add(new Bitmap(buffer, offset + 12, 1, "Target", s_targettype));

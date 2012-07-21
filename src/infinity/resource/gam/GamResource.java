@@ -15,7 +15,9 @@ import java.io.OutputStream;
 public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
 {
   private static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
-  private static final String s_weather[] = {"No weather", "Raining", "Snowing"};
+  private static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
+                                             "Medium weather", "Light wind", "Medium wind", "Rare lightning",
+                                             "Regular lightning", "Storm increasing"};
   private static final String s_torment[] = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
                                              "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
                                              "Line", "None"};
@@ -104,10 +106,10 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_partynpc = new SectionCount(buffer, offset + 36, 4, "# party members",
                                                    PartyNPC.class);
     list.add(count_partynpc);
-    SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, "Unknown section offset",
+    SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, "Party inventory offset",
                                                      UnknownSection2.class);
     list.add(offset_unknown);
-    SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, "Unknown section count",
+    SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, "Party inventory count",
                                                   UnknownSection2.class);
     list.add(count_unknown);
     SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, "Non-party characters offset",
@@ -122,8 +124,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_global = new SectionCount(buffer, offset + 60, 4, "# global variables",
                                                  Variable.class);
     list.add(count_global);
-    list.add(new ResourceRef(buffer, offset + 64, "Main area", "ARE"));
-    list.add(new Unknown(buffer, offset + 72, 4));
+    list.add(new ResourceRef(buffer, offset + 64, "Current area", "ARE"));
+    list.add(new DecNumber(buffer, offset + 72, 4, "Current link"));
     SectionCount count_journal = new SectionCount(buffer, offset + 76, 4, "# journal entries",
                                                   JournalEntry.class);
     list.add(count_journal);
@@ -138,17 +140,17 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     int gameid = ResourceFactory.getGameID();
     if (gameid == ResourceFactory.ID_BG1 || gameid == ResourceFactory.ID_BG1TOTSC) { // V1.1
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      list.add(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
+      list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                                      "Largest text window"}));
-      list.add(new Unknown(buffer, offset + 100, 4));
+      list.add(new DecNumber(buffer, offset + 100, 4, "Save version"));
       list.add(new Unknown(buffer, offset + 104, 76));
     }
     else if (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
              gameid == ResourceFactory.ID_ICEWINDHOWTOT) { // V1.1
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      list.add(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
+      list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "", "Larger text window",
                                      "Largest text window"}));
@@ -162,7 +164,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       offRubikon = new SectionOffset(buffer, offset + 84, "Modron maze offset", Unknown.class);
       list.add(offRubikon);
       list.add(new DecNumber(buffer, offset + 88, 4, "Reputation"));
-      list.add(new ResourceRef(buffer, offset + 92, "Current area", "ARE"));
+      list.add(new ResourceRef(buffer, offset + 92, "Master area", "ARE"));
       offKillvariable = new SectionOffset(buffer, offset + 100, "Kill variables offset", KillVariable.class);
       list.add(offKillvariable);
       numKillVariable = new SectionCount(buffer, offset + 104, 4, "# kill variables", KillVariable.class);
@@ -175,12 +177,12 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
              gameid == ResourceFactory.ID_TUTU) { // V2.0
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      list.add(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
+      list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                                      "Largest text window", "", "Fullscreen mode", "Left pane hidden",
                                      "Right pane hidden", "Automap notes hidden"}));
-      list.add(new Unknown(buffer, offset + 100, 4));
+      list.add(new DecNumber(buffer, offset + 100, 4, "Save version"));
       offFamiliar = new SectionOffset(buffer, offset + 104, "Familiar info offset", Familiar.class);
       list.add(offFamiliar);
 //      list.add(new DecNumber(buffer, offset + 108, 4, "File size"));
@@ -196,7 +198,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
     else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)
       list.add(new Unknown(buffer, offset + 84, 4));
-      list.add(new ResourceRef(buffer, offset + 88, "Current area?", "ARE"));
+      list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "Party AI disabled", "",
                                      "", "", "Fullscreen mode", "Button bar hidden",

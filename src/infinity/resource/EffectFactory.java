@@ -2211,7 +2211,7 @@ public final class EffectFactory
           break;
 
         case 0xEB: // Wing buffet (CGameEffectPushPull)
-          s.add(new DecNumber(buffer, offset, 4, "Distance"));
+          s.add(new DecNumber(buffer, offset, 4, "Strength"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
             new String[]{"", "Away from target point", "Away from source",
                          "Toward target point", "Toward source"}));
@@ -2935,6 +2935,11 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset + 4, 4, "Enchantment to overcome"));
           break;
 
+        case 0x1B5: // Disguise
+          s.add(new IdsBitmap(buffer, offset, 4, "Animation", "ANIMATE.IDS"));
+          s.add(new Unknown(buffer, offset + 4, 4));
+          break;
+
         case 0x1BB: // Protection from arrows
           s.add(new Unknown(buffer, offset, 4));
           s.add(new Bitmap(buffer, offset + 4, 4, "Damage reduction",
@@ -2946,6 +2951,11 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Globe type",
             new String[]{"Minor globe of invulnerability",
                          "Globe of invulnerability"}));
+          break;
+
+        case 0x1C4: // Bane
+          s.add(new DecNumber(buffer, offset, 4, "Amount"));
+          s.add(new Unknown(buffer, offset + 4, 4));
           break;
       }
     }

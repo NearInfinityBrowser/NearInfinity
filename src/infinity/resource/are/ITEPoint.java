@@ -12,8 +12,9 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 {
   private static final String[] s_type = {"Proximity trigger", "Info trigger", "Travel trigger"};
   private static final String[] s_flag = {"No flags set", "Locked", "Trap resets", "Party required", "Trap detectable",
-                                          "", "", "Trap set off by NPC", "", "Trigger deactivated", "Cannot be passed by NPC",
-                                          "Use activation point", "Connected to door"};
+                                          "Trap set off by enemy", "Tutorial trigger", "Trap set off by NPC", "Trigger silent",
+                                          "Trigger deactivated", "Cannot be passed by NPC", "Use activation point",
+                                          "Connected to door"};
   private static final String[] s_yesno = {"No", "Yes"};
 
   public ITEPoint() throws Exception

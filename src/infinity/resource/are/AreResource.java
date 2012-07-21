@@ -30,6 +30,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                                    "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                    "Cannot save", "Can rest with permission"};
   private static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
+  private static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
   {
@@ -245,13 +246,13 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     else
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
     list.add(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
-    list.add(new Unknown(buffer, offset + 32, 4));
+    list.add(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
     list.add(new ResourceRef(buffer, offset + 36, "Area east", "ARE"));
-    list.add(new Unknown(buffer, offset + 44, 4));
+    list.add(new Flag(buffer, offset + 44, 4, "Edge flags east", s_edge));
     list.add(new ResourceRef(buffer, offset + 48, "Area south", "ARE"));
-    list.add(new Unknown(buffer, offset + 56, 4));
+    list.add(new Flag(buffer, offset + 56, 4, "Edge flags south", s_edge));
     list.add(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
-    list.add(new Unknown(buffer, offset + 68, 4));
+    list.add(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
       list.add(new Flag(buffer, offset + 72, 2, "Location", s_flag_torment));
     else
@@ -260,7 +261,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
     list.add(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
     list.add(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
-    list.add(new Unknown(buffer, offset + 82, 2));
+    list.add(new DecNumber(buffer, offset + 82, 2, "Wind speed"));
     if (version.toString().equalsIgnoreCase("V9.1")) {
       list.add(new DecNumber(buffer, offset + 84, 1, "Area difficulty 2"));
       list.add(new DecNumber(buffer, offset + 85, 1, "Area difficulty 3"));
@@ -315,10 +316,11 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     SectionOffset offset_variables = new SectionOffset(buffer, offset + 136, "Variables offset",
                                                        Variable.class);
     list.add(offset_variables);
-    SectionCount count_variables = new SectionCount(buffer, offset + 140, 4, "# variables",
+    SectionCount count_variables = new SectionCount(buffer, offset + 140, 2, "# variables",
                                                     Variable.class);
     list.add(count_variables);
-    list.add(new Unknown(buffer, offset + 144, 4));
+    list.add(new HexNumber(buffer, offset + 142, 2, "# object flags"));
+    list.add(new HexNumber(buffer, offset + 144, 4, "Object flags offset"));
     list.add(new ResourceRef(buffer, offset + 148, "Area script", "BCS"));
     SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, "Explored bitmap size",
                                                         Unknown.class);

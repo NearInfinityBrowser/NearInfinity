@@ -17,7 +17,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
     "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
   private static final String s_yesno[] = {"No", "Yes"};
-  private static final String s_flag[] = { "No flags set", "Locked", "", "", "Trap resets",
+  private static final String s_flag[] = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
                                            "", "Disabled" };
 
   public Container() throws Exception
@@ -148,7 +148,8 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     list.add(new ResourceRef(buffer, offset + 72, "Trap script", "BCS"));
     list.add(new DecNumber(buffer, offset + 80, 4, "First vertex index"));
     list.add(new DecNumber(buffer, offset + 84, 2, "# vertices"));
-    list.add(new Unknown(buffer, offset + 86, 34));
+    list.add(new DecNumber(buffer, offset + 86, 2, "Activation range"));
+    list.add(new TextString(buffer, offset + 88, 32, "Owner name"));
 //    list.add(new ResourceRef(buffer, offset + 88, "Creature?", "CRE"));
 //    list.add(new Unknown(buffer, offset + 96, 24));
     list.add(new ResourceRef(buffer, offset + 120, "Key", "ITM"));

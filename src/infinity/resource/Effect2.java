@@ -16,8 +16,8 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
                                               "Recharge after resting", "", "", "", "",
                                               "Bypass armor", "Keen edge"};
   private static final String s_splflag[] = {"No flags set", "", "", "", "", "", "", "", "", "",
-                                             "", "Hostile", "No LOS required", "", "Outdoors only",
-                                             "Non-magical ability", "Trigger/Contingency"};
+                                             "", "Hostile", "No LOS required", "Allow spotting", "Outdoors only",
+                                             "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
 
   public static void readCommon(List<StructEntry> list, byte[] buffer, int offset)
   {

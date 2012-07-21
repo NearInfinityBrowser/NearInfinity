@@ -10,7 +10,7 @@ import infinity.resource.AddRemovable;
 
 final class MemorizedSpells extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_mem = {"Spell already cast", "Spell memorized"};
+  private static final String[] s_mem = {"Spell already cast", "Spell memorized", "Spell disabled"};
 
   MemorizedSpells() throws Exception
   {

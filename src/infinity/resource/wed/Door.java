@@ -9,6 +9,8 @@ import infinity.resource.*;
 
 final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
+  private static final String[] s_yesno = {"No", "Yes"};
+
   Door() throws Exception
   {
     super(null, "Door", new byte[26], 0);
@@ -75,7 +77,7 @@ final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 8, "Name"));
-    list.add(new Unknown(buffer, offset + 8, 2));
+    list.add(new Bitmap(buffer, offset + 8, 2, "Is door?", s_yesno));
     DecNumber indexTileCell = new DecNumber(buffer, offset + 10, 2, "Tilemap lookup index");
     list.add(indexTileCell);
     SectionCount countTileCell = new SectionCount(buffer, offset + 12, 2, "# tilemap indexes",
