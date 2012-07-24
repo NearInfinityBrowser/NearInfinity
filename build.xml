@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Near Infinity" default="binary">
+<project name="NearInfinity" default="binary">
     <target name="binary">
-        <javac srcdir="infinity" />
+        <javac srcdir="src/infinity" />
         <jar destfile="NearInfinity.jar"
-             basedir="."
+             basedir="src"
              includes="infinity/**/*"
              excludes="**/.*,**/*.java">
             <manifest>
@@ -13,7 +13,7 @@
     </target>
     <target name="source">
         <zip destfile="NearInfinity.zip"
-             basedir="."
+             basedir="src"
              includes="infinity/**/*"
              excludes="**/.*,**/*.class" />
     </target>
