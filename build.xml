@@ -1,25 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="NearInfinity" default="binary">
     <target name="binary">
-        <javac srcdir="src/infinity" />
-        <jar destfile="NearInfinity.jar"
-             basedir="src"
-             includes="infinity/**/*"
-             excludes="**/.*,**/*.java">
-            <manifest>
-                <attribute name="Main-Class" value="infinity.NearInfinity" />
-            </manifest>
-        </jar>
+      <delete>
+        <fileset dir="." includes="**/*.class,NearInfinity.jar" />
+      </delete>
+      <javac srcdir="src/infinity" />
+      <jar destfile="NearInfinity.jar"
+           basedir="src"
+           includes="infinity/**/*"
+           excludes="**/.*,**/*.java">
+        <manifest>
+          <attribute name="Main-Class" value="infinity.NearInfinity" />
+        </manifest>
+      </jar>
     </target>
     <target name="source">
-        <zip destfile="NearInfinity.zip"
-             basedir="src"
-             includes="infinity/**/*"
-             excludes="**/.*,**/*.class" />
+      <zip destfile="NearInfinity.zip"
+           basedir="src"
+           includes="infinity/**/*"
+           excludes="**/.*,**/*.class" />
     </target>
     <target name="clean">
         <delete>
-            <fileset dir="." includes="**/*.class,NearInfinity.jar" />
+          <fileset dir="." includes="**/*.class,NearInfinity.jar" />
         </delete>
     </target>
 </project>
