@@ -23,7 +23,7 @@ final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Spell name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Spell type"), gbl, gbc, true);
 //    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Wizard school"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Priest type"), gbl, gbc, true);
+//    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Priest type"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Casting animation"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Primary type (school)"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Secondary type"), gbl, gbc, true);
