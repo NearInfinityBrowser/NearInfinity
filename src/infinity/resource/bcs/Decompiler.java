@@ -146,8 +146,10 @@ public final class Decompiler
             index += 4;
           }
         }
-        else if (newp != null) // ToDo: IWD2 bug?
-          comment = getResourceName(p, newp.substring(1, newp.length() - 1));
+        else if (newp != null) { // ToDo: IWD2 bug?
+          String function = action.getString().substring(0, action.getString().length() - 1);
+          comment = getResourceName(function, p, newp.substring(1, newp.length() - 1));
+        }
       }
       else if (p.substring(0, 2).equals("O:")) {
         while (objects[index_o++].equals("[ANYONE]") && index_o < 2)
@@ -532,7 +534,8 @@ public final class Decompiler
       String p = defParam.nextToken();
       if (p.substring(0, 2).equals("S:")) {
         String newp = strings[index_s++];
-        comment = getResourceName(p, newp.substring(1, newp.length() - 1));
+        String function = trigger.getString().substring(0, trigger.getString().length() - 1);
+        comment = getResourceName(function, p, newp.substring(1, newp.length() - 1));
         code.append(newp);
       }
       else if (p.substring(0, 2).equals("O:"))
@@ -557,7 +560,71 @@ public final class Decompiler
     return idsErrors;
   }
 
-  private static String getResourceName(String definition, String value)
+  public static String[] getResRefType(String function)
+  {
+    if (function.equalsIgnoreCase("HasItem") ||
+        function.equalsIgnoreCase("Contains") ||
+        function.equalsIgnoreCase("NumItems") ||
+        function.equalsIgnoreCase("NumItemsGT") ||
+        function.equalsIgnoreCase("NumItemsLT") ||
+        function.equalsIgnoreCase("NumItemsParty") ||
+        function.equalsIgnoreCase("NumItemsPartyGT") ||
+        function.equalsIgnoreCase("NumItemsPartyLT") ||
+        function.equalsIgnoreCase("HasItemEquiped") ||
+        function.equalsIgnoreCase("PartyHasItemIdentified") ||
+        function.equalsIgnoreCase("HasItemEquipedReal") ||
+        function.equalsIgnoreCase("Acquired") ||
+        function.equalsIgnoreCase("Unusable") ||
+        function.equalsIgnoreCase("CreateItem") ||
+        function.equalsIgnoreCase("GiveItemCreate") ||
+        function.equalsIgnoreCase("DestroyItem") ||
+        function.equalsIgnoreCase("TakePartyItemNum") ||
+        function.equalsIgnoreCase("CreateItemNumGlobal") ||
+        function.equalsIgnoreCase("CreateItemGlobal") ||
+        function.equalsIgnoreCase("PickUpItem")) {
+      return new String[] {".ITM"};
+    }
+    else if (function.equalsIgnoreCase("ChangeAnimation") ||
+             function.equalsIgnoreCase("ChangeAnimationNoEffect") ||
+             function.equalsIgnoreCase("CreateCreatureObject") ||
+             function.equalsIgnoreCase("CreateCreatureObjectDoor") ||
+             function.equalsIgnoreCase("CreateCreatureObjectOffScreen") ||
+             function.equalsIgnoreCase("CreateCreatureOffScreen") ||
+             function.equalsIgnoreCase("CreateCreatureAtLocation") ||
+             function.equalsIgnoreCase("CreateCreatureObjectCopy") ||
+             function.equalsIgnoreCase("CreateCreatureObjectOffset") ||
+             function.equalsIgnoreCase("CreateCreatureCopyPoint")) {
+      return new String[] {".CRE"};
+    }
+    else if (function.equalsIgnoreCase("AreaCheck") ||
+             function.equalsIgnoreCase("AreaCheckObject") ||
+             function.equalsIgnoreCase("RevealAreaOnMap") ||
+             function.equalsIgnoreCase("HideAreaOnMap") ||
+             function.equalsIgnoreCase("CopyGroundPilesTo") ||
+             function.equalsIgnoreCase("EscapeAreaObjectMove")) {
+      return new String[] {".ARE"};
+    }
+    else if (function.equalsIgnoreCase("G") ||
+             function.equalsIgnoreCase("GGT") ||
+             function.equalsIgnoreCase("GLT")) {
+      return new String[] {};
+    }
+    else if (function.equalsIgnoreCase("IncrementChapter") ||
+             function.equalsIgnoreCase("TakeItemListParty") ||
+             function.equalsIgnoreCase("TakeItemListPartyNum")) {
+      return new String[] {".2DA"};
+    }
+    else if (function.equalsIgnoreCase("StartMovie")) {
+      return new String[] {".MVE"};
+    }
+    else if (function.equalsIgnoreCase("AddSpecialAbility")) {
+      return new String[] {".SPL"};
+    }
+    return new String[] {".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
+                         ".MVE", ".SPL", ".DLG", ".VVC", ".BAM"};
+  }
+
+  private static String getResourceName(String function, String definition, String value)
   {
     if (value.length() > 8)
       return null;
@@ -592,9 +659,9 @@ public final class Decompiler
       entry = decompileStringCheck(value, new String[]{".SRC"});
     else if (definition.equalsIgnoreCase("S:Palette*"))
       entry = decompileStringCheck(value, new String[]{".BMP"});
-    else if (definition.equalsIgnoreCase("S:ResRef*")) // ToDo: Better check possible?
-      entry = decompileStringCheck(value, new String[]{".CRE", ".ITM", ".ARE", ".2DA", ".BCS", ".MVE",
-                                                       ".SPL", ".DLG"});
+    else if (definition.equalsIgnoreCase("S:ResRef*")) {
+      entry = decompileStringCheck(value, getResRefType(function));
+    }
     else if (definition.equalsIgnoreCase("S:Object*")) // ToDo: Better check possible?
       entry = decompileStringCheck(value, new String[]{".ITM", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:NewObject*")) // ToDo: Better check possible?
