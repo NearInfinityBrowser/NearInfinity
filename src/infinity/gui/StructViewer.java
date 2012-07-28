@@ -554,8 +554,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   {
     if (event.getType() == TableModelEvent.UPDATE) {
       StructEntry structEntry = struct.getStructEntryAt(event.getFirstRow());
-      if (structEntry instanceof Editable && structEntry.getOffset() == editable.getOffset() &&
-          structEntry != editable) {
+      if (structEntry instanceof Editable && (editable == null || (structEntry.getOffset() == editable.getOffset() &&
+                                                                   structEntry != editable))) {
         editable = (Editable)structEntry;
         editpanel.removeAll();
 
