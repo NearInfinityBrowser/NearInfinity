@@ -9,6 +9,7 @@ import infinity.gui.StatusBar;
 import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.AreResource;
+import infinity.resource.bcs.Decompiler;
 import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMap;
@@ -358,9 +359,8 @@ public final class Compiler
         resourceTypes = new String[]{".SRC"};
       else if (definition.equalsIgnoreCase("S:Palette*"))
         resourceTypes = new String[]{".BMP"};
-      else if (definition.equalsIgnoreCase("S:ResRef*")) // ToDo: Better check possible?
-        resourceTypes = new String[]{".CRE", ".ITM", ".ARE", ".2DA", ".BCS", ".MVE", ".SPL", ".DLG", ".VVC",
-                                     ".BAM"};
+      else if (definition.equalsIgnoreCase("S:ResRef*"))
+        resourceTypes = Decompiler.getResRefType(function.substring(0, function.length() - 1));
       else if (definition.equalsIgnoreCase("S:Object*")) // ToDo: Better check possible?
         resourceTypes = new String[]{".ITM", ".VVC", ".BAM"};
       else if (definition.equalsIgnoreCase("S:NewObject*")) // ToDo: Better check possible?

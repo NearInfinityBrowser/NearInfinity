@@ -4,6 +4,7 @@ import infinity.NearInfinity;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
+import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
@@ -220,9 +221,9 @@ public class ScriptTextArea extends JTextArea {
          || (definition.equalsIgnoreCase("S:Name*")
           && (function.equalsIgnoreCase("Dead")
            || function.equalsIgnoreCase("Name")
-           || function.equalsIgnoreCase("NumDead(")
-           || function.equalsIgnoreCase("NumDeadGT(")
-           || function.equalsIgnoreCase("NumDeadLT(")))) {
+           || function.equalsIgnoreCase("NumDead")
+           || function.equalsIgnoreCase("NumDeadGT")
+           || function.equalsIgnoreCase("NumDeadLT")))) {
           Compiler bcscomp = Compiler.getInstance();
           if (bcscomp.hasScriptName(token)) {
             Set<ResourceEntry> entries = bcscomp.getResForScriptName(token);
@@ -352,8 +353,7 @@ public class ScriptTextArea extends JTextArea {
       return new String[] { ".CRE", ".DLG", ".BCS", ".ITM" };
     }
     else if (definition.equalsIgnoreCase("S:ResRef*")) {
-      return new String[]{".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
-                          ".MVE", ".SPL", ".DLG", ".VVC", ".BAM"};
+      return Decompiler.getResRefType(function);
     }
 
     return new String[] {};
