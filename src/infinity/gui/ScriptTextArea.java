@@ -221,9 +221,9 @@ public class ScriptTextArea extends JTextArea {
          || (definition.equalsIgnoreCase("S:Name*")
           && (function.equalsIgnoreCase("Dead")
            || function.equalsIgnoreCase("Name")
-           || function.equalsIgnoreCase("NumDead(")
-           || function.equalsIgnoreCase("NumDeadGT(")
-           || function.equalsIgnoreCase("NumDeadLT(")))) {
+           || function.equalsIgnoreCase("NumDead")
+           || function.equalsIgnoreCase("NumDeadGT")
+           || function.equalsIgnoreCase("NumDeadLT")))) {
           Compiler bcscomp = Compiler.getInstance();
           if (bcscomp.hasScriptName(token)) {
             Set<ResourceEntry> entries = bcscomp.getResForScriptName(token);
