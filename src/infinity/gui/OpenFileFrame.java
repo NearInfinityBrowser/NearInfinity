@@ -177,7 +177,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
       bExternalBrowse.setEnabled(false);
     }
     else if (event.getSource() == tfExternalName)
-      openExternalFile(new FileCI(tfExternalName.getText()));
+      openExternalFile(new File(tfExternalName.getText())); //The use of File here is deliberate; there be bugs with FileCI
     else if (event.getSource() == bExternalBrowse) {
       if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
         tfExternalName.setText(fc.getSelectedFile().toString());
@@ -195,7 +195,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
         new ViewFrame(this,
                       ResourceFactory.getResource((ResourceEntry)lpInternal.getSelectedValue()));
       else
-        openExternalFile(new FileCI(tfExternalName.getText()));
+        openExternalFile(new File(tfExternalName.getText())); //The use of File here is deliberate; there be bugs with FileCI
     }
   }
 
