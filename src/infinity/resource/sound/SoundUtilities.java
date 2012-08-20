@@ -5,6 +5,7 @@
 package infinity.resource.sound;
 
 import infinity.resource.ResourceFactory;
+import infinity.resource.sound.AudioConverter;
 import infinity.util.Byteconvert;
 import infinity.util.Filewriter;
 
@@ -14,7 +15,6 @@ import java.io.*;
 public final class SoundUtilities
 {
   private static final AdpcmFmt fmt = new AdpcmFmt();
-  private static File acm2wav;
   private static final byte myData[] = new byte[8196]; // old value: 32769
   private static final int stepTable[] = {
     7, 8, 9, 10, 11, 12, 13, 14,
@@ -33,24 +33,15 @@ public final class SoundUtilities
   private AudioFormat audioFormat;
   private SourceDataLine dataLine;
   private boolean notstop = true, stopped = true;
+  private static AudioConverter converter;
 
   public static File convert(File acmfile, boolean isMono) throws IOException
   {
-    File wavfile = new File(acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
+    File wavfile = new File(acmfile.getAbsoluteFile().getParent() ,acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
     if (!wavfile.exists()) {
-      if (acm2wav == null || !acm2wav.exists())
-        acm2wav = new File(ResourceFactory.getRootDir(), "acm2wav.exe");
-      if (!acm2wav.exists())
-        acm2wav = new File("acm2wav.exe");
-      if (!acm2wav.exists())
-        throw new IOException("acm2wav.exe not found");
-      try {
-        if (isMono)
-          Runtime.getRuntime().exec('\"' + acm2wav.getAbsolutePath() + "\" \"" + acmfile + "\" -m").waitFor();
-        else
-          Runtime.getRuntime().exec('\"' + acm2wav.getAbsolutePath() + "\" \"" + acmfile + '\"').waitFor();
-      } catch (InterruptedException e) {
-      }
+      if (converter == null || !converter.converterExists())
+        converter = new AudioConverter();
+      converter.convert(acmfile, wavfile, isMono);
     }
     return wavfile;
   }
@@ -67,6 +58,13 @@ public final class SoundUtilities
       acmfile.delete();
     }
     return wavfile;
+  }
+
+  public static boolean converterExists()
+  {
+    if (converter == null || !converter.converterExists())
+      converter = new AudioConverter();
+    return converter.converterExists();
   }
 
   public static File convertADPCM(byte data[], int offset, String filename) throws IOException

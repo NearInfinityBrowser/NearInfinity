@@ -191,7 +191,7 @@ final class Viewer extends JPanel implements Runnable, ActionListener
           e.printStackTrace();
           JOptionPane.showMessageDialog(parent, "Error converting " + entry + '\n' + e.getMessage(),
                                         "Error", JOptionPane.ERROR_MESSAGE);
-          if (e.getMessage().equals("acm2wav.exe not found"))
+          if (e.getMessage().equals("Sound converter not found"))
             break;
         }
       blocker.setBlocked(false);
