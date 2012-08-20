@@ -42,6 +42,7 @@ public final class BrowserMenuBar extends JMenuBar
                                        new Font("SansSerif", Font.PLAIN, 12),
                                        new Font("Lucida", Font.PLAIN, 12)};
   private static final String BCSINDENT[] = {"  ", "    ", "\t"};
+  private static final String AUDIODECODERS[] = {"acm2wav.exe", "acmtool"};
   private static final String OPTION_SHOWOFFSETS = "ShowOffsets";
   private static final String OPTION_IGNOREOVERRIDE = "IgnoreOverride";
   private static final String OPTION_IGNOREREADERRORS = "IgnoreReadErrors";
@@ -57,6 +58,7 @@ public final class BrowserMenuBar extends JMenuBar
   private static final String OPTION_FONT = "Font";
   private static final String OPTION_BCSINDENT = "BcsIndent";
   private static final String OPTION_TLKCHARSET = "TLKCharset";
+  private static final String OPTION_AUDIODECODER = "AudioDecoder";
   private final EditMenu editMenu;
   private final FileMenu fileMenu;
   private final GameMenu gameMenu;
@@ -66,6 +68,7 @@ public final class BrowserMenuBar extends JMenuBar
   private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
   private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
   private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
+  private final JRadioButtonMenuItem selectAudioDecoder[] = new JRadioButtonMenuItem[AUDIODECODERS.length];
   private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors, optionAutoConvMUS;
   private JCheckBoxMenuItem optionAutoConvWAV, optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
 
@@ -142,6 +145,17 @@ public final class BrowserMenuBar extends JMenuBar
       if (selectBcsIndent[i].isSelected())
         return BCSINDENT[i];
     return BCSINDENT[2];
+  }
+
+  /**
+   * @since 2012-08-20
+   */
+  public String getAudioDecoder()
+  {
+    for (int i = 0; i < AUDIODECODERS.length; i++)
+      if (selectAudioDecoder[i].isSelected())
+        return AUDIODECODERS[i];
+    return AUDIODECODERS[0];
   }
 
   public int getDefaultStructView()
@@ -235,8 +249,13 @@ public final class BrowserMenuBar extends JMenuBar
     for (int i = 0; i < selectBcsIndent.length; i++)
       if (selectBcsIndent[i].isSelected())
         selectedIndent = i;
+    int audioDecoder = 0;
+    for (int i = 0; i < selectAudioDecoder.length; i++)
+      if (selectAudioDecoder[i].isSelected())
+        audioDecoder = i;
     prefs.putInt(OPTION_BCSINDENT, selectedIndent);
     prefs.put(OPTION_TLKCHARSET, StringResource.getCharset().name());
+    prefs.putInt(OPTION_AUDIODECODER, audioDecoder);
     gameMenu.storePreferences(prefs);
   }
 
@@ -408,6 +427,17 @@ public final class BrowserMenuBar extends JMenuBar
         }
       }
     });
+
+    final JMenu audioDecoderMenu = new JMenu("Sound Converter");
+    menu.add(audioDecoderMenu);
+    bg = new ButtonGroup();
+    int audioDecoder = prefs.getInt(OPTION_AUDIODECODER, 0);
+    for (int i = 0; i < AUDIODECODERS.length; i++) {
+      selectAudioDecoder[i] = new JRadioButtonMenuItem(AUDIODECODERS[i], i == audioDecoder);
+      audioDecoderMenu.add(selectAudioDecoder[i]);
+      bg.add(selectAudioDecoder[i]);
+    }
+
     tf.addFocusListener(new FocusAdapter() {
       public void focusLost(FocusEvent event) {
         // only trigger when states differ

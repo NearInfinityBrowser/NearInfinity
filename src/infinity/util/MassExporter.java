@@ -15,6 +15,7 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.MveResource;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.sound.SoundUtilities;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -62,13 +63,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     getRootPane().setDefaultButton(bExport);
     bExport.setMnemonic('e');
     bCancel.setMnemonic('d');
-    if (new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe").exists() ||
-        new FileCI("acm2wav.exe").exists())
+    if (SoundUtilities.converterExists())
       ;
     else {
       cbConvertWAV.setSelected(false);
       cbConvertWAV.setEnabled(false);
-      cbConvertWAV.setToolTipText("acm2wav.exe not found");
+      cbConvertWAV.setToolTipText("Sound converter not found");
     }
 
     JPanel leftPanel = new JPanel(new BorderLayout());
@@ -136,6 +136,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     if (event.getSource() == bExport) {
       selectedTypes = listTypes.getSelectedValues();
       outputDir = new FileCI(tfDirectory.getText());
+      outputDir.mkdirs();
       setVisible(false);
       new Thread(this).start();
     }
@@ -266,17 +267,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(acmfile));
           bos.write(data, 28, data.length - 28);
           bos.close();
-          File acm2wav = new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe");
-          if (!acm2wav.exists())
-            acm2wav = new FileCI("acm2wav.exe");
-          if (!acm2wav.exists())
+          if (!SoundUtilities.converterExists())
             return;
-          if (channels == 1)
-            Runtime.getRuntime().exec('\"' + acm2wav.getAbsolutePath() + "\" \"" + acmfile + "\" -m", null,
-                                      outputDir).waitFor();
           else
-            Runtime.getRuntime().exec('\"' + acm2wav.getAbsolutePath() + "\" \"" + acmfile + '\"', null,
-                                      outputDir).waitFor();
+            SoundUtilities.convert(acmfile, channels == 1);
           acmfile.delete();
         }
         else {

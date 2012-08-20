@@ -129,24 +129,8 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       chooser.setSelectedFile(new FileCI(entry.toString()));
       if (chooser.showDialog(panel, "Export") == JFileChooser.APPROVE_OPTION) {
         String filename = chooser.getSelectedFile().toString();
-        File acmfile = new FileCI(filename.substring(0, filename.lastIndexOf('.')) + ".ACM");
         try {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(acmfile));
-          byte data[] = entry.getResourceData();
-          bos.write(data, 28, data.length - 28);
-          bos.close();
-          File acm2wav = new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe");
-          if (!acm2wav.exists())
-            acm2wav = new FileCI("acm2wav.exe");
-          if (!acm2wav.exists())
-            return;
-          if (channels == 1)
-            Runtime.getRuntime().exec('\"' + acm2wav.getAbsolutePath() + "\" \"" + acmfile + "\" -m", null,
-                                      chooser.getSelectedFile().getParentFile()).waitFor();
-          else
-            Runtime.getRuntime().exec('\"' + acm2wav.getAbsolutePath() + "\" \"" + acmfile + '\"', null,
-                                      chooser.getSelectedFile().getParentFile()).waitFor();
-          acmfile.delete();
+          SoundUtilities.convert(entry.getResourceData(), 28, filename, channels == 1);
         } catch (Exception e) {
           JOptionPane.showMessageDialog(panel, "Error during conversion", "Error", JOptionPane.ERROR_MESSAGE);
           e.printStackTrace();
@@ -259,12 +243,11 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     if (signature.equalsIgnoreCase("WAVC")) {
       bexportConvert = new JButton("Export & Convert...", Icons.getIcon("Export16.gif"));
       bexportConvert.addActionListener(this);
-      if (new FileCI(ResourceFactory.getRootDir(), "acm2wav.exe").exists() ||
-          new FileCI("acm2wav.exe").exists())
+      if (SoundUtilities.converterExists())
         ;
       else {
         bexportConvert.setSelected(false);
-        bexportConvert.setToolTipText("acm2wav.exe not found");
+        bexportConvert.setToolTipText("Sound converter not found");
       }
       lowerpanel.add(bexportConvert);
     }
