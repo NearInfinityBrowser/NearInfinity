@@ -18,7 +18,7 @@ public class StreamDiscarder implements Runnable
    *
    * @param in the input stream to be read from
    */
-  public StreamDiscarder(InputStream in)
+  public void setStream(InputStream in)
   {
     this.in = in;
   }
