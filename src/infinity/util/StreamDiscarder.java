@@ -9,7 +9,7 @@ import java.io.IOException;
  * @author Fredrik Lindgren <lindgren.fredrik@gmail.com>
  * @since  2012-08-20
  */
-public class StreamDiscarder extends Thread
+public class StreamDiscarder implements Runnable
 {
   private InputStream in;
 

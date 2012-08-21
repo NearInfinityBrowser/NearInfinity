@@ -75,8 +75,8 @@ public class AudioConverter
       }
       else 
         return;
-      new StreamDiscarder(p.getErrorStream()).start();
-      new StreamDiscarder(p.getInputStream()).start();
+      new Thread(new StreamDiscarder(p.getErrorStream())).start();
+      new Thread(new StreamDiscarder(p.getInputStream())).start();
       p.waitFor();
     } catch (InterruptedException e) {}
   }
