@@ -20,6 +20,11 @@ public class AudioConverter
   private File acm2wav;
   private String decoder;
 
+  private static final StreamDiscarder outReader = new StreamDiscarder();
+  private static final StreamDiscarder errReader = new StreamDiscarder();
+  private static final Thread outThread = new Thread(outReader);
+  private static final Thread errThread = new Thread(errReader);
+
   /**
    * Retrieves the selected converter from the gui and binds it to an instance variable
    *
@@ -75,8 +80,10 @@ public class AudioConverter
       }
       else 
         return;
-      new Thread(new StreamDiscarder(p.getErrorStream())).start();
-      new Thread(new StreamDiscarder(p.getInputStream())).start();
+      outReader.setStream(p.getInputStream());
+      errReader.setStream(p.getErrorStream());
+      outThread.run();
+      errThread.run();
       p.waitFor();
     } catch (InterruptedException e) {}
   }
