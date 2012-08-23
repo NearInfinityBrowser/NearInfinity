@@ -21,12 +21,19 @@ import infinity.util.StringResource;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class StringUseChecker implements Runnable, ListSelectionListener, SearchClient
+public final class StringUseChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
   private static final Pattern NUMBERPATTERN = Pattern.compile("\\d+", Pattern.DOTALL);
   private static final String FILETYPES[] = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
@@ -35,6 +42,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   private JTextArea textArea;
   private SortableTable table;
   private boolean strUsed[];
+  private JMenuItem save;
 
   public StringUseChecker()
   {
@@ -106,6 +114,13 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
       textArea.setLineWrap(true);
       JScrollPane scrollText = new JScrollPane(textArea);
       resultFrame = new ChildFrame("Result", true);
+      save = new JMenuItem("Save");
+      save.addActionListener(this);
+      JMenu fileMenu = new JMenu("File");
+      fileMenu.add(save);
+      JMenuBar menuBar = new JMenuBar();
+      menuBar.add(fileMenu);
+      resultFrame.setJMenuBar(menuBar);
       resultFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
       JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", JLabel.CENTER);
       count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
@@ -132,6 +147,45 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
 // --------------------- End Interface Runnable ---------------------
 
+// --------------------- Begin Interface ActionListener ---------------------
+
+  public void actionPerformed(ActionEvent e)
+  {
+    if (e.getSource() == save) {
+      JFileChooser c = new JFileChooser(ResourceFactory.getRootDir());
+      c.setDialogTitle("Save result");
+      if (c.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
+        File output = c.getSelectedFile();
+        if (output.exists()) {
+          String[] options = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(resultFrame, output + "exists. Overwrite?",
+                                           "Save result",JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+            return;
+        }
+        try {
+          PrintWriter w = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          w.println("Searched for unused strings");
+          w.println("Number of hits: "  + table.getRowCount());
+          w.println("");
+          for (int i = 0; i < table.getRowCount(); i++) {
+            w.println("StringRef: " + table.getTableItemAt(i).getObjectAt(1) + " /* " +
+                      table.getTableItemAt(i).toString().replaceAll("\r\n", System.getProperty("line.separator")) +
+                      " */");
+          }
+          w.close();
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          ex.printStackTrace();
+        }
+      }
+    }
+  }
+
+// --------------------- End Interface ActionListener ---------------------
 
 // --------------------- Begin Interface SearchClient ---------------------
 
