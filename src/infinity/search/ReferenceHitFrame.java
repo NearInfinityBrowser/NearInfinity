@@ -128,7 +128,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output))); //FileWriter intentional
           pw.println("Searched for: " + query);
           pw.println("Number of hits: " + table.getRowCount());
           for (int i = 0; i < table.getRowCount(); i++)

@@ -164,7 +164,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
             return;
         }
         try {
-          PrintWriter w = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter w = new PrintWriter(new BufferedWriter(new FileWriter(output))); //FileWriter intentional
           w.println("Searched for unused strings");
           w.println("Number of hits: "  + table.getRowCount());
           w.println("");

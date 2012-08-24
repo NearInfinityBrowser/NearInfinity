@@ -134,7 +134,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output))); //FileWriter intentional
           pw.println("Near Infinity Debug Log");
           pw.println(BrowserMenuBar.VERSION);
           pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));

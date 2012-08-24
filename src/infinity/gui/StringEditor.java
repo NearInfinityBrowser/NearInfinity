@@ -465,7 +465,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           ProgressMonitor progress = new ProgressMonitor(editor, "Writing file...", null, 0,
                                                          entries_count.getValue());
           progress.setMillisToDecideToPopup(100);
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output))); //FileWriter intentional
           for (int i = 0; i < entries.length; i++) {
             if (entries[i] != null) {
               pw.println(i + ":");

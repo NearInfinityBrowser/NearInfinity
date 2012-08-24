@@ -133,7 +133,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output))); //FileWriter intentional
           pw.println("File corruption search");
           pw.println("Number of errors: " + table.getRowCount());
           for (int i = 0; i < table.getRowCount(); i++)
