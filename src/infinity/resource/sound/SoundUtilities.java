@@ -37,7 +37,7 @@ public final class SoundUtilities
 
   public static File convert(File acmfile, boolean isMono) throws IOException
   {
-    File wavfile = new FileCI(acmfile.getAbsoluteFile().getParent() ,acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
+    File wavfile = new FileCI(acmfile.getAbsoluteFile().getParentFile() ,acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
     if (!wavfile.exists()) {
       if (converter == null || !converter.converterExists())
         converter = new AudioConverter();
