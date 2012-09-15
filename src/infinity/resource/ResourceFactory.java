@@ -305,7 +305,7 @@ public final class ResourceFactory
       currentGame = ID_TUTU;
     else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
-    else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/TSRLOGO.wbm").exists())
+    else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/DEATHAND.wbm").exists())
    	  currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
 
     keyfile = new Keyfile(file, currentGame);
@@ -496,9 +496,9 @@ public final class ResourceFactory
     // Get resources from keyfile
     keyfile.addBIFFResourceEntries(treeModel);
     // dialog.tlk has moved in BGEE:
-    File dlg_file = new File(rootDir, DIALOGFILENAME);
+    File dlg_file = new File(rootDir + "/lang/en_US", DIALOGFILENAME); //otherwise we incorrectly load the one in rootdir, if it exists
     if (! dlg_file.exists()) {
-    	dlg_file = new File(rootDir + "/lang/en_US", DIALOGFILENAME);
+    	dlg_file = new File(rootDir, DIALOGFILENAME);
     }
     StringResource.init(dlg_file);
 
