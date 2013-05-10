@@ -571,6 +571,7 @@ public final class Decompiler
         function.equalsIgnoreCase("NumItemsPartyGT") ||
         function.equalsIgnoreCase("NumItemsPartyLT") ||
         function.equalsIgnoreCase("HasItemEquiped") ||
+        function.equalsIgnoreCase("PartyHasItem") ||
         function.equalsIgnoreCase("PartyHasItemIdentified") ||
         function.equalsIgnoreCase("HasItemEquipedReal") ||
         function.equalsIgnoreCase("Acquired") ||

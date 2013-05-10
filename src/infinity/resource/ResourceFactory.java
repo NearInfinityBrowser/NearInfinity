@@ -305,7 +305,7 @@ public final class ResourceFactory
       currentGame = ID_TUTU;
     else if (new FileCI(rootDir, "baldur.exe").exists() && new FileCI(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
-    else if (new FileCI(rootDir, "Baldur.exe").exists() && new FileCI(rootDir, "movies/TSRLOGO.wbm").exists())
+    else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/DEATHAND.wbm").exists())
    	  currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
 
     keyfile = new Keyfile(file, currentGame);
@@ -496,11 +496,11 @@ public final class ResourceFactory
     // Get resources from keyfile
     keyfile.addBIFFResourceEntries(treeModel);
     // dialog.tlk has moved in BGEE:
-    File dlg_file = new FileCI(rootDir, DIALOGFILENAME);
+    File path = new FileCI(rootDir, "/lang/en_US"); //this hack is to preserve behaviour; appending the subpath to rootDir in the first argument for
+                                                    //FileCI results in rootDir being lowercased as well, which is not desirable
+    File dlg_file = new FileCI(path, DIALOGFILENAME); //otherwise we incorrectly load the one in rootdir, if it exists
     if (! dlg_file.exists()) {
-        File path = new FileCI(rootDir, "/lang/en_US"); //this hack is to preserve behaviour; appending the subpath to rootDir in the first argument for
-                                                        //FileCI results in rootDir being lowercased as well, which is not desirable
-        dlg_file = new FileCI(path, DIALOGFILENAME);
+        dlg_file = new FileCI(rootDir, DIALOGFILENAME);
     }
     StringResource.init(dlg_file);
 
