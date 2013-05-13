@@ -60,32 +60,45 @@ public class AudioConverter
   public void convert(File acmfile, File wavfile, boolean isMono) throws IOException
   {
     try {
-      Process p;
-      Runtime rt = Runtime.getRuntime();
+      ProcessBuilder pb;
       if (decoder.equalsIgnoreCase(ACM2WAV)) {
-        if (isMono)
-          p = rt.exec("\"" + acm2wav.getAbsolutePath() + "\" \"" + acmfile.getPath() + "\" -m", null,
-                      wavfile.getAbsoluteFile().getParentFile());
-        else
-          p = rt.exec("\"" + acm2wav.getAbsolutePath() + "\" \"" + acmfile.getPath() + "\"", null,
-                      wavfile.getAbsoluteFile().getParentFile());
+        // acm2wav infile (-m) -> outfile in CWD
+        pb = new ProcessBuilder(acm2wav.getAbsolutePath(), acmfile.getPath());
+        if (isMono) {
+          appendArgument(pb, "-m");
+        }
+        pb.directory(wavfile.getAbsoluteFile().getParentFile());
       }
       else if (decoder.equalsIgnoreCase(ACMTOOL)) {
-        if (isMono)
-          //acmtool -d -m -o outfile infile
-          p = rt.exec("acmtool -d -m" + " -o " + wavfile.getPath() + " " + acmfile.getPath());
-        else
-          //atmtool -d -o outfile infile
-          p = rt.exec("acmtool -d" + " -o " + wavfile.getPath() + " " + acmfile.getPath());
+        // acmtool -d -o outfile (-m) infile
+        pb = new ProcessBuilder("acmtool", "-d", "-o" + wavfile.getPath());
+        if (isMono) {
+          appendArgument(pb, "-m");
+        }
+        appendArgument(pb, acmfile.getPath());
       }
-      else 
+      else
         return;
+      Process p = pb.start();
       outReader.setStream(p.getInputStream());
       errReader.setStream(p.getErrorStream());
       outThread.run();
       errThread.run();
       p.waitFor();
     } catch (InterruptedException e) {}
+  }
+
+  /**
+   * Appends an argument to a ProcessBuilder's list of arguments
+   *
+   * @param pb the ProcessBuilder whose command the argument should be appended to
+   * @param argument the argument that should be appended
+   */
+  private void appendArgument(ProcessBuilder pb, String argument)
+  {
+    java.util.List<String> command = pb.command();
+    command.add(argument);
+    pb.command(command);
   }
 
   /**

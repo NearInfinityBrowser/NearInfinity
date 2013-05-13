@@ -62,7 +62,8 @@ public final class MveResource implements Resource, ActionListener, Closeable
     if (event.getSource() == bplay) {
       blocker.setBlocked(true);
       try {
-        Process play = Runtime.getRuntime().exec(moviefile.getAbsolutePath());
+        ProcessBuilder pb = new ProcessBuilder(moviefile.getAbsolutePath());
+        Process play = pb.start();
         try {
           play.waitFor();
         } catch (InterruptedException e) {
@@ -108,6 +109,9 @@ public final class MveResource implements Resource, ActionListener, Closeable
   public JComponent makeViewer(ViewableContainer container)
   {
     bplay = new JButton("Play movie", Icons.getIcon("Play16.gif"));
+    if (!System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+      bplay.setEnabled(false);
+    }
     bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
     bexport.setMnemonic('e');
     bexport.addActionListener(this);

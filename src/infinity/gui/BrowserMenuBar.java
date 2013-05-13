@@ -1098,13 +1098,22 @@ public final class BrowserMenuBar extends JMenuBar
         {
           public void mouseClicked(MouseEvent event)
           {
+            if (!java.awt.Desktop.isDesktopSupported()) {
+              JOptionPane.showMessageDialog(NearInfinity.getInstance(), "I can't open an url on this system", "Attention",
+                                            JOptionPane.PLAIN_MESSAGE);
+            }
             try {
-              if (System.getProperty("os.name").toLowerCase().startsWith("mac os x"))
-                Runtime.getRuntime().exec("/usr/bin/open http://www.idi.ntnu.no/~joh/ni/");
-              else
-                Runtime.getRuntime().exec(
-                        "rundll32 url.dll,FileProtocolHandler http://www.idi.ntnu.no/~joh/ni/");
+              final java.net.URI url = new java.net.URI("http://www.idi.ntnu.no/~joh/ni/");
+              java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+              if (!desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
+                JOptionPane.showMessageDialog(NearInfinity.getInstance(), "I can't open an url on this system", "Attention",
+                                              JOptionPane.PLAIN_MESSAGE);
+              } else {
+                desktop.browse(url);
+              }
             } catch (IOException e) {
+              e.printStackTrace();
+            } catch (java.net.URISyntaxException e) {
               e.printStackTrace();
             }
           }
