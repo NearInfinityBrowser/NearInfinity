@@ -28,31 +28,34 @@ public final class MveResource implements Resource, ActionListener, Closeable
   public MveResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    blocker.setBlocked(true);
-    try {
-      moviefile = new FileCI('_' + entry.toString() + ".exe");
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(moviefile));
-      // Write stub
-      BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
-      Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));
-      stub.close();
-      // Append movie
-      int size = entry.getResourceInfo()[0];
-      InputStream is = entry.getResourceDataAsStream();
-      byte buffer[] = new byte[65536];
-      int bytesread = is.read(buffer);
-      while (size > 0) {
-        bos.write(buffer, 0, bytesread);
-        size -= bytesread;
-        bytesread = is.read(buffer, 0, Math.min(size, buffer.length));
+    if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+      blocker.setBlocked(true);
+      try {
+        moviefile = new FileCI('_' + entry.toString() + ".exe");
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(moviefile));
+        // Write stub
+        BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
+        Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));
+        stub.close();
+        // Append movie
+        int size = entry.getResourceInfo()[0];
+        InputStream is = entry.getResourceDataAsStream();
+        byte buffer[] = new byte[65536];
+        int bytesread = is.read(buffer);
+        while (size > 0) {
+          bos.write(buffer, 0, bytesread);
+          size -= bytesread;
+          bytesread = is.read(buffer, 0, Math.min(size, buffer.length));
+        }
+        is.close();
+        bos.close();
+      } catch (Exception e) {
+        blocker.setBlocked(false);
+        moviefile.delete();
+        throw e;
       }
-      is.close();
-      bos.close();
-    } catch (Exception e) {
       blocker.setBlocked(false);
-      throw e;
     }
-    blocker.setBlocked(false);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
