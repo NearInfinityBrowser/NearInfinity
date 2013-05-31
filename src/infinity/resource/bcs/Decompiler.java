@@ -622,7 +622,7 @@ public final class Decompiler
       return new String[] {".SPL"};
     }
     return new String[] {".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
-                         ".MVE", ".SPL", ".DLG", ".VVC", ".BAM"};
+                         ".MVE", ".SPL", ".DLG", ".VEF", ".VVC", ".BAM"};
   }
 
   private static String getResourceName(String function, String definition, String value)
@@ -631,7 +631,7 @@ public final class Decompiler
       return null;
     ResourceEntry entry = null;
     if (definition.equalsIgnoreCase("S:DialogFile*"))
-      entry = decompileStringCheck(value, new String[]{".DLG", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC"});
     else if (definition.equalsIgnoreCase("S:CutScene*") || definition.equalsIgnoreCase("S:ScriptFile*")
              || definition.equalsIgnoreCase("S:Script*"))
       entry = decompileStringCheck(value, new String[]{".BCS"});
@@ -643,7 +643,7 @@ public final class Decompiler
     else if (definition.equalsIgnoreCase("S:TextList*"))
       entry = decompileStringCheck(value, new String[]{".2DA"});
     else if (definition.equalsIgnoreCase("S:Effect*"))
-      entry = decompileStringCheck(value, new String[]{".BAM", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".BAM", ".VEF", ".VVC"});
     else if (definition.equalsIgnoreCase("S:Parchment*"))
       entry = decompileStringCheck(value, new String[]{".MOS"});
     else if (definition.equalsIgnoreCase("S:Spell*") || definition.equalsIgnoreCase("S:Res*"))
@@ -664,7 +664,7 @@ public final class Decompiler
       entry = decompileStringCheck(value, getResRefType(function));
     }
     else if (definition.equalsIgnoreCase("S:Object*")) // ToDo: Better check possible?
-      entry = decompileStringCheck(value, new String[]{".ITM", ".VVC", ".BAM"});
+      entry = decompileStringCheck(value, new String[]{".ITM", ".VEF", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:NewObject*")) // ToDo: Better check possible?
       entry = decompileStringCheck(value, new String[]{".CRE", ".DLG", ".BCS", ".ITM"});
 //    else

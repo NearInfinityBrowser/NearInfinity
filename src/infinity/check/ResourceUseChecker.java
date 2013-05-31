@@ -29,9 +29,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private static final Pattern RESREFPATTERN = Pattern.compile("\\w{3,8}");
   private static final String FILETYPES[] = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE",
                                              "DLG", "EFF", "INI", "ITM", "PRO", "SPL", "STO",
-                                             "VVC", "WED", "WMP"};
+                                             "VEF", "VVC", "WED", "WMP"};
   private static final String CHECKTYPES[] = {"ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
-                                              "TIS", "VVC", "WAV", "WED"};
+                                              "TIS", "VEF", "VVC", "WAV", "WED"};
   private final ChildFrame selectframe = new ChildFrame("Find unused files", true);
   private final JButton bstart = new JButton("Search", Icons.getIcon("Find16.gif"));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));

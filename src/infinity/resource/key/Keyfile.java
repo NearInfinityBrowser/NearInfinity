@@ -285,7 +285,8 @@ public final class Keyfile
       resourceicons.put("CHR", ICON_STRUCT);
       extmap.put(0x3fb, "VVC");
       resourceicons.put("VVC", ICON_STRUCT);
-      extmap.put(0x3fc, "VEF"); // ????????
+      extmap.put(0x3fc, "VEF");
+      resourceicons.put("VEF", ICON_STRUCT);
       extmap.put(0x3fd, "PRO");
       resourceicons.put("PRO", ICON_STRUCT);
       extmap.put(0x3fe, "BIO");
