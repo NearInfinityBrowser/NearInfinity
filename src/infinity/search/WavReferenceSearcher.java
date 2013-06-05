@@ -17,7 +17,7 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
   public WavReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
     super(targetEntry, new String[]{"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "ITM", "PRO",
-                                    "SPL", "STO", "VVC", "WED", "WMP"}, parent);
+                                    "SPL", "STO", "VEF", "VVC", "WED", "WMP"}, parent);
   }
 
   protected void search(ResourceEntry entry, Resource resource)

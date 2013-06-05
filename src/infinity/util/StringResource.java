@@ -14,7 +14,10 @@ public final class StringResource
   private static RandomAccessFile file;
   private static String version;
   private static int maxnr, startindex;
-  private static Charset charset = Charset.forName("windows-1252");
+  private static Charset cp1252Charset = Charset.forName("windows-1252");
+  private static Charset utf8Charset = Charset.forName("utf8");
+  private static Charset charset = cp1252Charset;
+  private static Charset usedCharset = charset;
 
   public static Charset getCharset() {
     return charset;
@@ -22,6 +25,7 @@ public final class StringResource
 
   public static void setCharset(String cs) {
     charset = Charset.forName(cs);
+    usedCharset = charset;
   }
 
   public static void close()
@@ -101,7 +105,7 @@ public final class StringResource
       int offset = startindex + Filereader.readInt(file);
       int length = Filereader.readInt(file);
       file.seek((long)offset);
-      return Filereader.readString(file, length, charset);
+      return Filereader.readString(file, length, usedCharset);
     } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
@@ -130,6 +134,16 @@ public final class StringResource
       file.seek((long)0x0C);
     maxnr = Filereader.readInt(file);
     startindex = Filereader.readInt(file);
+    /*
+     * This is a temporary and extremely hacky solution; a better
+     * solution would be to have a proper ID for BGEE and go by
+     * that (but I am too lazy to do that now). The issue is that
+     * BGEE uses UTF8 while the original editions use the
+     * windows-12** series.
+     */
+    if (new File(infinity.resource.ResourceFactory.getRootDir(), "/lang/en_us/dialog.tlk").exists()) {
+      usedCharset = utf8Charset;
+    }
   }
 
   private StringResource(){}

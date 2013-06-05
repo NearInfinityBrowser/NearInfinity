@@ -1099,20 +1099,21 @@ public final class BrowserMenuBar extends JMenuBar
             if (!java.awt.Desktop.isDesktopSupported()) {
               JOptionPane.showMessageDialog(NearInfinity.getInstance(), "I can't open an url on this system", "Attention",
                                             JOptionPane.PLAIN_MESSAGE);
-            }
-            try {
-              final java.net.URI url = new java.net.URI("http://www.idi.ntnu.no/~joh/ni/");
-              java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
-              if (!desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
-                JOptionPane.showMessageDialog(NearInfinity.getInstance(), "I can't open an url on this system", "Attention",
-                                              JOptionPane.PLAIN_MESSAGE);
-              } else {
-                desktop.browse(url);
+            } else {
+              try {
+                final java.net.URI url = new java.net.URI("http://www.idi.ntnu.no/~joh/ni/");
+                java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+                if (!desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
+                  JOptionPane.showMessageDialog(NearInfinity.getInstance(), "I can't open an url on this system", "Attention",
+                                                JOptionPane.PLAIN_MESSAGE);
+                } else {
+                  desktop.browse(url);
+                }
+              } catch (IOException e) {
+                e.printStackTrace();
+              } catch (java.net.URISyntaxException e) {
+                e.printStackTrace();
               }
-            } catch (IOException e) {
-              e.printStackTrace();
-            } catch (java.net.URISyntaxException e) {
-              e.printStackTrace();
             }
           }
         });
