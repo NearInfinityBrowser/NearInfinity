@@ -25,7 +25,7 @@ import java.util.List;
 public final class ResRefChecker extends ChildFrame implements ActionListener, Runnable
 {
   private static final String filetypes[] = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM", "PRO",
-                                             "SPL", "STO", "VVC", "WED", "WMP"};
+                                             "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
   private final JButton bstart = new JButton("Check", Icons.getIcon("Find16.gif"));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
   private final JButton binvert = new JButton("Invert", Icons.getIcon("Refresh16.gif"));

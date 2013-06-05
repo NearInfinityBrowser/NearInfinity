@@ -21,7 +21,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
   public ReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
     super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
-                                    "PRO", "SAV", "SPL", "STO", "VVC", "WED", "WMP"}, parent);
+                                    "PRO", "SAV", "SPL", "STO", "VEF", "VVC", "WED", "WMP"}, parent);
   }
 
   protected void search(ResourceEntry entry, Resource resource)

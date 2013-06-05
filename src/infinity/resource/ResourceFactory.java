@@ -29,6 +29,7 @@ import infinity.resource.spl.SplResource;
 import infinity.resource.src.SrcResource;
 import infinity.resource.sto.StoResource;
 import infinity.resource.var.VarResource;
+import infinity.resource.vef.VefResource;
 import infinity.resource.wed.WedResource;
 import infinity.resource.wmp.WmpResource;
 import infinity.resource.kotor.RimResource;
@@ -221,6 +222,8 @@ public final class ResourceFactory
           res = new ItmResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("EFF"))
           res = new EffResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("VEF"))
+            res = new VefResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("VVC"))
           res = new VvcResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("SRC"))
@@ -305,7 +308,7 @@ public final class ResourceFactory
       currentGame = ID_TUTU;
     else if (new FileCI(rootDir, "baldur.exe").exists() && new FileCI(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
-    else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/DEATHAND.wbm").exists())
+    else if (new FileCI(rootDir, "Baldur.exe").exists() && new FileCI(rootDir, "movies/DEATHAND.wbm").exists())
    	  currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
 
     keyfile = new Keyfile(file, currentGame);
