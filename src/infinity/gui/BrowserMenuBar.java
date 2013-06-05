@@ -31,7 +31,7 @@ import java.util.prefs.Preferences;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.33 w1.1.1 CI";
+  public static final String VERSION = "v1.33 w1.2.0 CI";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final int LOOKFEEL_JAVA = 0, LOOKFEEL_WINDOWS = 1, LOOKFEEL_MOTIF = 2, LOOKFEEL_PLASTICXP = 3;
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
