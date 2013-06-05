@@ -308,7 +308,7 @@ public final class ResourceFactory
       currentGame = ID_TUTU;
     else if (new FileCI(rootDir, "baldur.exe").exists() && new FileCI(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
-    else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/DEATHAND.wbm").exists())
+    else if (new FileCI(rootDir, "Baldur.exe").exists() && new FileCI(rootDir, "movies/DEATHAND.wbm").exists())
    	  currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
 
     keyfile = new Keyfile(file, currentGame);
