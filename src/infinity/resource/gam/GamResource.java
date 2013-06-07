@@ -134,8 +134,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     list.add(offset_journal);
 
     SectionOffset offKillvariable = null, offFamiliar = null, offIWD2 = null, offIWD = null;
-    SectionOffset offLocation = null, offRubikon = null, offBestiary = null;
-    SectionCount numKillVariable = null, numIWD = null, numLocation = null;
+    SectionOffset offLocation = null, offRubikon = null, offBestiary = null, offPocket = null;
+    SectionCount numKillVariable = null, numIWD = null, numLocation = null, numPocket = null;
 
     int gameid = ResourceFactory.getGameID();
     if (gameid == ResourceFactory.ID_BG1 || gameid == ResourceFactory.ID_BG1TOTSC) { // V1.1
@@ -192,8 +192,10 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(numLocation);
       list.add(new DecNumber(buffer, offset + 116, 4, "Game time (real seconds)"));
 //      list.add(new DecNumber(buffer, offset + 120, 4, "File size"));
-      list.add(new SectionOffset(buffer, offset + 120, "Pocket plane locations offset", StoredLocation.class));
-      list.add(new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class));
+      offPocket = new SectionOffset(buffer, offset + 120, "Pocket plane locations offset", StoredLocation.class);
+      list.add(offPocket);
+      numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
+      list.add(numPocket);
       list.add(new Unknown(buffer, offset + 128, 52));
     }
     else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)
@@ -312,6 +314,17 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
           list.add(location);
         }
       }
+    }
+
+    if (offPocket != null && numPocket != null) {  // BG2
+    	offset = offPocket.getValue();
+    	if (offset > 0) {
+    		for (int i = 0; i < numPocket.getValue(); i++) {
+    			StoredLocation location = new StoredLocation(this, "Pocket plane", buffer, offset);
+    			offset += location.getSize();
+    			list.add(location);
+    		}
+    	}
     }
 
     if (offset == 0)
