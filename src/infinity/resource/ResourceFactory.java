@@ -28,6 +28,8 @@ import infinity.resource.sound.WavResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.src.SrcResource;
 import infinity.resource.sto.StoResource;
+import infinity.resource.toh.TohResource;
+import infinity.resource.tot.TotResource;
 import infinity.resource.var.VarResource;
 import infinity.resource.vef.VefResource;
 import infinity.resource.wed.WedResource;
@@ -257,6 +259,10 @@ public final class ResourceFactory
           res = new VarResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("BAF"))
           res = new BafResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("TOH"))
+        	res = new TohResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("TOT"))
+        	res = new TotResource(entry);
         else
           res = new UnknownResource(entry);
       }
