@@ -8,7 +8,7 @@ import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 
-public final class TohResource extends AbstractStruct implements Resource, HasAddRemovable 
+public final class TohResource extends AbstractStruct implements Resource/*, HasAddRemovable*/ 
 {
 	public TohResource(ResourceEntry entry) throws Exception
 	{
@@ -16,12 +16,12 @@ public final class TohResource extends AbstractStruct implements Resource, HasAd
 	}
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
-
+/*
 	public AddRemovable[] getAddRemovables() throws Exception
 	{
 		return new AddRemovable[]{new StrRefEntry()};
 	}
-
+*/
 // --------------------- End Interface HasAddRemovable ---------------------
 
 	protected int read(byte[] buffer, int offset) throws Exception
@@ -32,7 +32,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasAd
 		SectionCount count_strref = new SectionCount(buffer, offset + 12, 4, "# strref entries", StrRefEntry.class);
 		list.add(count_strref);
 		list.add(new Unknown(buffer, offset + 16, 4));
-		
+
 		offset = 20;
 		for (int i = 0; i < count_strref.getValue(); i++) {
 			StrRefEntry entry = new StrRefEntry(this, buffer, offset, i + 1);
@@ -48,5 +48,4 @@ public final class TohResource extends AbstractStruct implements Resource, HasAd
 		}
 		return endoffset;
 	}
-
 }
