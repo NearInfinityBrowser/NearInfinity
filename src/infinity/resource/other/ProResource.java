@@ -8,10 +8,13 @@ import infinity.datatype.*;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.Byteconvert;
 import infinity.util.LongIntegerHashMap;
 
 public final class ProResource extends AbstractStruct implements Resource
 {
+  private static final LongIntegerHashMap<String> s_projtype = new LongIntegerHashMap<String>();
+  private static final LongIntegerHashMap<String> s_facetarget = new LongIntegerHashMap<String>();
   private static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
                                            "Green", "Purple", "Red", "White", "Ice",
                                            "Stone", "Magenta", "Orange"};
@@ -38,6 +41,15 @@ public final class ProResource extends AbstractStruct implements Resource
   private static final String[] s_trail = {"No flags set", "Draw at target", "Draw at source"};
 
   static {
+    s_projtype.put(1, "No BAM");
+    s_projtype.put(2, "Single target");
+    s_projtype.put(3, "Area of effect");
+
+    s_facetarget.put(1, "Do not face target");
+    s_facetarget.put(5, "Mirrored east (reduced)");
+    s_facetarget.put(9, "Mirrored east (full)");
+    s_facetarget.put(16, "Not mirrored (full)");
+
     s_proj.put(0L, "Fireball");
     s_proj.put(1L, "Stinking cloud");
     s_proj.put(2L, "Cloudkill");
@@ -69,8 +81,8 @@ public final class ProResource extends AbstractStruct implements Resource
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
     list.add(new TextString(buffer, offset + 4, 4, "Version"));
-    HexNumber projtype = new HexNumber(buffer, offset + 8, 2, "Type");
-    list.add(projtype);
+    short projtype = Byteconvert.convertShort(buffer, offset + 8);
+    list.add(new HashBitmap(buffer, offset + 8, 2, "Projectile type", s_projtype));
     list.add(new DecNumber(buffer, offset + 10, 2, "Speed"));
     list.add(new Flag(buffer, offset + 12, 4, "Behavior", s_behave));
 //    list.add(new Unknown(buffer, offset + 14, 2));
@@ -79,6 +91,9 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ResourceRef(buffer, offset + 32, "Source animation", "BAM"));
     list.add(new Bitmap(buffer, offset + 40, 4, "Particle color", s_color));
     list.add(new Unknown(buffer, offset + 44, 212));
+    if (projtype == 1)
+      return offset + 256;
+    // Single target & Area of effect
     list.add(new Flag(buffer, offset + 256, 4, "Flags", s_flags));
     list.add(new ResourceRef(buffer, offset + 260, "Projectile animation", "BAM"));
     list.add(new ResourceRef(buffer, offset + 268, "Shadow animation", "BAM"));
@@ -103,7 +118,7 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ColorValue(buffer, offset + 304, 1, "Smoke color 5"));
     list.add(new ColorValue(buffer, offset + 305, 1, "Smoke color 6"));
     list.add(new ColorValue(buffer, offset + 306, 1, "Smoke color 7"));
-    list.add(new DecNumber(buffer, offset + 307, 1, "# orientations"));
+    list.add(new HashBitmap(buffer, offset + 307, 1, "Face target granularity", s_facetarget));
 //            new Flag(buffer, offset + 307, 1, "Aim to target",
 //                     new String[]{"No flags set", "", "", "Face target"}));
     list.add(new IdsBitmap(buffer, offset + 308, 2, "Smoke animation", "ANIMATE.IDS"));
@@ -115,7 +130,7 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new DecNumber(buffer, offset + 338, 2, "Tailing animation delay 3"));
     list.add(new Flag(buffer, offset + 340, 4, "Trail flags", s_trail));
     list.add(new Unknown(buffer, offset + 344, 168));
-    if (projtype.getValue() != 3)
+    if (projtype == 2)
       return offset + 512;
     // Area of effect
     list.add(new Flag(buffer, offset + 512, 4, "Area flags", s_areaflags));
