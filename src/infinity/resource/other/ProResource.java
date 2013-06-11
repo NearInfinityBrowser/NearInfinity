@@ -88,7 +88,7 @@ public final class ProResource extends AbstractStruct implements Resource
 //    list.add(new Unknown(buffer, offset + 14, 2));
     list.add(new ResourceRef(buffer, offset + 16, "Fire sound", "WAV"));
     list.add(new ResourceRef(buffer, offset + 24, "Impact sound", "WAV"));
-    list.add(new ResourceRef(buffer, offset + 32, "Source animation", "BAM"));
+    list.add(new ResourceRef(buffer, offset + 32, "Source animation", new String[]{"VVC", "BAM"}));
     list.add(new Bitmap(buffer, offset + 40, 4, "Particle color", s_color));
     list.add(new Unknown(buffer, offset + 44, 212));
     if (projtype == 1)
@@ -148,7 +148,7 @@ public final class ProResource extends AbstractStruct implements Resource
     list.add(new ColorValue(buffer, offset + 536, 1, "Explosion color"));
     list.add(new Unknown(buffer, offset + 537, 1));
     list.add(new ProRef(buffer, offset + 538, "Explosion projectile"));
-    list.add(new ResourceRef(buffer, offset + 540, "Explosion animation", "VVC"));
+    list.add(new ResourceRef(buffer, offset + 540, "Explosion animation", new String[]{"VVC", "BAM"}));
     list.add(new DecNumber(buffer, offset + 548, 2, "Cone width"));
     list.add(new Unknown(buffer, offset + 550, 218));
     return offset + 768;
