@@ -16,18 +16,18 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 {
   private static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   private static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
-    "Medium weather", "Light wind", "Medium wind", "Rare lightning",
-    "Regular lightning", "Storm increasing"};
+                                             "Medium weather", "Light wind", "Medium wind", "Rare lightning",
+                                             "Regular lightning", "Storm increasing"};
   private static final String s_torment[] = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
-    "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
-    "Line", "None"};
+                                             "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
+                                             "Line", "None"};
 
   public GamResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
 
-  // --------------------- Begin Interface HasAddRemovable ---------------------
+// --------------------- Begin Interface HasAddRemovable ---------------------
 
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -38,10 +38,10 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       return new AddRemovable[]{new Variable(), new JournalEntry(), new NonPartyNPC()};
   }
 
-  // --------------------- End Interface HasAddRemovable ---------------------
+// --------------------- End Interface HasAddRemovable ---------------------
 
 
-  // --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasDetailViewer ---------------------
 
   public JComponent getDetailViewer()
   {
@@ -50,17 +50,17 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     return scroll;
   }
 
-  // --------------------- End Interface HasDetailViewer ---------------------
+// --------------------- End Interface HasDetailViewer ---------------------
 
 
-  // --------------------- Begin Interface Writeable ---------------------
+// --------------------- Begin Interface Writeable ---------------------
 
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
   }
 
-  // --------------------- End Interface Writeable ---------------------
+// --------------------- End Interface Writeable ---------------------
 
   protected void datatypeAdded(AddRemovable datatype)
   {
@@ -101,36 +101,36 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 28, 2, "# NPCs in party"));
     list.add(new Flag(buffer, offset + 30, 2, "Weather", s_weather));
     SectionOffset offset_partynpc = new SectionOffset(buffer, offset + 32, "Party members offset",
-        PartyNPC.class);
+                                                      PartyNPC.class);
     list.add(offset_partynpc);
     SectionCount count_partynpc = new SectionCount(buffer, offset + 36, 4, "# party members",
-        PartyNPC.class);
+                                                   PartyNPC.class);
     list.add(count_partynpc);
     SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, "Party inventory offset",
-        UnknownSection2.class);
+                                                     UnknownSection2.class);
     list.add(offset_unknown);
     SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, "Party inventory count",
-        UnknownSection2.class);
+                                                  UnknownSection2.class);
     list.add(count_unknown);
     SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, "Non-party characters offset",
-        NonPartyNPC.class);
+                                                         NonPartyNPC.class);
     list.add(offset_nonpartynpc);
     SectionCount count_nonpartynpc = new SectionCount(buffer, offset + 52, 4, "# non-party characters",
-        NonPartyNPC.class);
+                                                      NonPartyNPC.class);
     list.add(count_nonpartynpc);
     SectionOffset offset_global = new SectionOffset(buffer, offset + 56, "Global variables offset",
-        Variable.class);
+                                                    Variable.class);
     list.add(offset_global);
     SectionCount count_global = new SectionCount(buffer, offset + 60, 4, "# global variables",
-        Variable.class);
+                                                 Variable.class);
     list.add(count_global);
     list.add(new ResourceRef(buffer, offset + 64, "Current area", "ARE"));
     list.add(new DecNumber(buffer, offset + 72, 4, "Current link"));
     SectionCount count_journal = new SectionCount(buffer, offset + 76, 4, "# journal entries",
-        JournalEntry.class);
+                                                  JournalEntry.class);
     list.add(count_journal);
     SectionOffset offset_journal = new SectionOffset(buffer, offset + 80, "Journal entries offset",
-        JournalEntry.class);
+                                                     JournalEntry.class);
     list.add(offset_journal);
 
     SectionOffset offKillvariable = null, offFamiliar = null, offIWD2 = null, offIWD = null;
@@ -142,8 +142,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-          new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-      "Largest text window"}));
+               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
+                            "Largest text window"}));
       list.add(new DecNumber(buffer, offset + 100, 4, "Save version"));
       list.add(new Unknown(buffer, offset + 104, 76));
     }
@@ -152,9 +152,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-          new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-          "Largest text window", "", "Fullscreen mode", "Left pane hidden",
-          "Right pane hidden", "Unsupported"}));
+               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
+                            "Largest text window", "", "Fullscreen mode", "Left pane hidden",
+                            "Right pane hidden", "Unsupported"}));
       numIWD = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
       list.add(numIWD);
       offIWD = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
@@ -180,9 +180,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-          new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-          "Largest text window", "", "Fullscreen mode", "Left pane hidden",
-          "Right pane hidden", "Automap notes hidden"}));
+               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
+                            "Largest text window", "", "Fullscreen mode", "Left pane hidden",
+                            "Right pane hidden", "Automap notes hidden"}));
       list.add(new DecNumber(buffer, offset + 100, 4, "Save version"));
       offFamiliar = new SectionOffset(buffer, offset + 104, "Familiar info offset", Familiar.class);
       list.add(offFamiliar);
@@ -201,9 +201,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 84, 4));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-          new String[]{"Normal windows", "Party AI disabled", "",
-          "", "", "Fullscreen mode", "Button bar hidden",
-          "Console hidden", "Automap notes hidden"}));
+               new String[]{"Normal windows", "Party AI disabled", "",
+                            "", "", "Fullscreen mode", "Button bar hidden",
+                            "Console hidden", "Automap notes hidden"}));
       numIWD2 = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
       list.add(numIWD2);
       offIWD2 = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
@@ -290,7 +290,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         list.add(offEOS);
         offset += 4;
         int unknownSize = (offEOS.getValue() > buffer.length - 4) ?
-            buffer.length - offset - 4 : offEOS.getValue() - offset;
+                              buffer.length - offset - 4 : offEOS.getValue() - offset;
         list.add(new Unknown(buffer, offset, unknownSize, "Unknown structure"));
         offset += unknownSize;
         list.add(new Unknown(buffer, offset, 4));
@@ -350,8 +350,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       Object o = list.get(i);
       if (o instanceof PartyNPC)
         ((PartyNPC)o).updateCREOffset();
-      //      if (o instanceof Familiar)
-      //        ((Familiar)o).updateFilesize((DecNumber)getAttribute("File size"));
+//      if (o instanceof Familiar)
+//        ((Familiar)o).updateFilesize((DecNumber)getAttribute("File size"));
     }
   }
 }
