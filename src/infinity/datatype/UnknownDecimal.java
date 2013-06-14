@@ -46,17 +46,20 @@ public final class UnknownDecimal extends Unknown
 
   public String toString()
   {
-    StringBuffer sb = new StringBuffer(4 * data.length);
-    for (int i = 0; i < data.length; i++) {
-      String text = String.valueOf((int)Byteconvert.convertUnsignedByte(data, i));
-      for (int j = 0; j < 3 - text.length(); j++)
-        sb.append('0');
-      if (text.length() > 3)
-        text = text.substring(text.length() - 3);
-      sb.append(text).append(' ');
-    }
-    sb.append(' ');
-    return sb.toString();
+    if (data != null && data.length > 0) {
+      StringBuffer sb = new StringBuffer(4 * data.length);
+      for (int i = 0; i < data.length; i++) {
+        String text = String.valueOf((int)Byteconvert.convertUnsignedByte(data, i));
+        for (int j = 0; j < 3 - text.length(); j++)
+          sb.append('0');
+        if (text.length() > 3)
+          text = text.substring(text.length() - 3);
+        sb.append(text).append(' ');
+      }
+      sb.append(' ');
+      return sb.toString();
+    } else
+      return new String();
   }
 }
 

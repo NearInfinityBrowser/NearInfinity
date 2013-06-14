@@ -38,40 +38,45 @@ public class Unknown extends Datatype implements Editable
 
   public JComponent edit(ActionListener container)
   {
-    JButton bUpdate;
-    if (textArea == null) {
-      textArea = new JTextArea(15, 5);
-      textArea.setWrapStyleWord(true);
-      textArea.setLineWrap(true);
-      textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    if (data != null && data.length > 0) {
+      JButton bUpdate;
+      if (textArea == null) {
+        textArea = new JTextArea(15, 5);
+        textArea.setWrapStyleWord(true);
+        textArea.setLineWrap(true);
+        textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      }
+      String s = toString();
+      textArea.setText(s.substring(0, s.length() - 2));
+
+      bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+      bUpdate.addActionListener(container);
+      bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
+      JScrollPane scroll = new JScrollPane(textArea);
+
+      GridBagLayout gbl = new GridBagLayout();
+      GridBagConstraints gbc = new GridBagConstraints();
+      JPanel panel = new JPanel(gbl);
+
+      gbc.weightx = 1.0;
+      gbc.weighty = 1.0;
+      gbc.fill = GridBagConstraints.BOTH;
+      gbl.setConstraints(scroll, gbc);
+      panel.add(scroll);
+
+      gbc.weightx = 0.0;
+      gbc.fill = GridBagConstraints.NONE;
+      gbc.insets.left = 6;
+      gbl.setConstraints(bUpdate, gbc);
+      panel.add(bUpdate);
+
+      panel.setMinimumSize(DIM_BROAD);
+      panel.setPreferredSize(DIM_BROAD);
+      return panel;
+    } else {
+      JPanel panel = new JPanel();
+      return panel;
     }
-    String s = toString();
-    textArea.setText(s.substring(0, s.length() - 2));
-
-    bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
-    bUpdate.addActionListener(container);
-    bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
-    JScrollPane scroll = new JScrollPane(textArea);
-
-    GridBagLayout gbl = new GridBagLayout();
-    GridBagConstraints gbc = new GridBagConstraints();
-    JPanel panel = new JPanel(gbl);
-
-    gbc.weightx = 1.0;
-    gbc.weighty = 1.0;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbl.setConstraints(scroll, gbc);
-    panel.add(scroll);
-
-    gbc.weightx = 0.0;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.insets.left = 6;
-    gbl.setConstraints(bUpdate, gbc);
-    panel.add(bUpdate);
-
-    panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
-    return panel;
   }
 
   public void select()
@@ -117,17 +122,20 @@ public class Unknown extends Datatype implements Editable
 
   public String toString()
   {
-    StringBuffer sb = new StringBuffer(3 * data.length + 1);
-    for (final byte d : data) {
-      String text = Integer.toHexString((int)d);
-      if (text.length() == 1)
-        sb.append('0');
-      else if (text.length() > 2)
-        text = text.substring(text.length() - 2);
-      sb.append(text).append(' ');
-    }
-    sb.append('h');
-    return sb.toString();
+    if (data != null && data.length > 0) {
+      StringBuffer sb = new StringBuffer(3 * data.length + 1);
+      for (final byte d : data) {
+        String text = Integer.toHexString((int)d);
+        if (text.length() == 1)
+          sb.append('0');
+        else if (text.length() > 2)
+          text = text.substring(text.length() - 2);
+        sb.append(text).append(' ');
+      }
+      sb.append('h');
+      return sb.toString();
+    } else
+      return new String();
   }
 }
 
