@@ -26,7 +26,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
   public StringReferenceSearcher(int searchvalue, Component parent)
   {
     super(null, new String[]{"2DA", "ARE", "BCS", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "INI",
-                             "ITM", "SPL", "SRC", "STO", "WMP"}, parent);
+                             "ITM", "SPL", "SRC", "STO", "TOH", "WMP"}, parent);
     this.searchvalue = searchvalue;
   }
 
