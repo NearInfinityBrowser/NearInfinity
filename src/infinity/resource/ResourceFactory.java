@@ -260,9 +260,9 @@ public final class ResourceFactory
         else if (entry.getExtension().equalsIgnoreCase("BAF"))
           res = new BafResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("TOH"))
-        	res = new TohResource(entry);
+          res = new TohResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("TOT"))
-        	res = new TotResource(entry);
+          res = new TotResource(entry);
         else
           res = new UnknownResource(entry);
       }

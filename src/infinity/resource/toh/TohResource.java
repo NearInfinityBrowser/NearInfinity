@@ -8,44 +8,44 @@ import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 
-public final class TohResource extends AbstractStruct implements Resource/*, HasAddRemovable*/ 
+public final class TohResource extends AbstractStruct implements Resource/*, HasAddRemovable*/
 {
-	public TohResource(ResourceEntry entry) throws Exception
-	{
-		super(entry);
-	}
+  public TohResource(ResourceEntry entry) throws Exception
+  {
+    super(entry);
+  }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-/*
-	public AddRemovable[] getAddRemovables() throws Exception
-	{
-		return new AddRemovable[]{new StrRefEntry()};
-	}
-*/
-// --------------------- End Interface HasAddRemovable ---------------------
+  // --------------------- Begin Interface HasAddRemovable ---------------------
+  /*
+  public AddRemovable[] getAddRemovables() throws Exception
+  {
+    return new AddRemovable[]{new StrRefEntry()};
+  }
+   */
+  // --------------------- End Interface HasAddRemovable ---------------------
 
-	protected int read(byte[] buffer, int offset) throws Exception
-	{
-		list.add(new TextString(buffer, offset, 4, "Signature"));
-		list.add(new TextString(buffer, offset + 4, 4, "Version"));
-		list.add(new Unknown(buffer, offset + 8, 4));
-		SectionCount count_strref = new SectionCount(buffer, offset + 12, 4, "# strref entries", StrRefEntry.class);
-		list.add(count_strref);
-		list.add(new Unknown(buffer, offset + 16, 4));
+  protected int read(byte[] buffer, int offset) throws Exception
+  {
+    list.add(new TextString(buffer, offset, 4, "Signature"));
+    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    list.add(new Unknown(buffer, offset + 8, 4));
+    SectionCount count_strref = new SectionCount(buffer, offset + 12, 4, "# strref entries", StrRefEntry.class);
+    list.add(count_strref);
+    list.add(new Unknown(buffer, offset + 16, 4));
 
-		offset = 20;
-		for (int i = 0; i < count_strref.getValue(); i++) {
-			StrRefEntry entry = new StrRefEntry(this, buffer, offset, i + 1);
-			offset = entry.getEndOffset();
-			list.add(entry);
-		}
-		
-		int endoffset = offset;
-		for (int i = 0; i < list.size(); i++) {
-			StructEntry entry = list.get(i);
-			if (entry.getOffset() + entry.getSize() > endoffset)
-				endoffset = entry.getOffset() + entry.getSize();
-		}
-		return endoffset;
-	}
+    offset = 20;
+    for (int i = 0; i < count_strref.getValue(); i++) {
+      StrRefEntry entry = new StrRefEntry(this, buffer, offset, i + 1);
+      offset = entry.getEndOffset();
+      list.add(entry);
+    }
+
+    int endoffset = offset;
+    for (int i = 0; i < list.size(); i++) {
+      StructEntry entry = list.get(i);
+      if (entry.getOffset() + entry.getSize() > endoffset)
+        endoffset = entry.getOffset() + entry.getSize();
+    }
+    return endoffset;
+  }
 }
