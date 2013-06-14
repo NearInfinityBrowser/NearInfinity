@@ -504,7 +504,7 @@ public final class BIFFArchive
       return len - remainder;
     }
 
-    public int available() 
+    public int available()
     {
       return size;
     }

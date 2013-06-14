@@ -80,7 +80,7 @@ public final class GffExoLocString extends GffField
     Filewriter.writeInt(os, labels.indexOf(getLabel()));
     Filewriter.writeInt(os, fieldDataIndex);
 
-    // Size doesn't include the first 4 bytes 
+    // Size doesn't include the first 4 bytes
     System.arraycopy(Byteconvert.convertBack(getFieldDataSize() - 4), 0, fieldData, fieldDataIndex, 4);
     System.arraycopy(Byteconvert.convertBack(stringRef), 0, fieldData, fieldDataIndex + 4, 4);
     System.arraycopy(Byteconvert.convertBack(strings.keys().length), 0, fieldData, fieldDataIndex + 8, 4);

@@ -167,7 +167,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void run()
   {
     java.util.List<ResourceEntry> selectedFiles = new ArrayList<ResourceEntry>(1000);
-    for (final Object newVar : selectedTypes) 
+    for (final Object newVar : selectedTypes)
       selectedFiles.addAll(ResourceFactory.getInstance().getResources((String)newVar));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...", null,
                                                    0, selectedFiles.size());
