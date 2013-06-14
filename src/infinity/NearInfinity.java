@@ -84,7 +84,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } catch (Exception e) {
         JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
                                       JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();  
+        e.printStackTrace();
       }
     else {
       File newkeyfile = findKeyfile();

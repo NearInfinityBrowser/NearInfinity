@@ -166,7 +166,7 @@ public final class Keyfile
       extmap.put(0x7D2, "MDL"); // Aurora model - not supported
       extmap.put(0x7D9, "NSS");
       resourceicons.put("NSS", ICON_TEXT);
-      extmap.put(0x7DA, "NCS"); 
+      extmap.put(0x7DA, "NCS");
       resourceicons.put("NCS", ICON_SCRIPT);
       extmap.put(0x7DC, "ARE");
       resourceicons.put("ARE", ICON_STRUCT);
@@ -303,6 +303,8 @@ public final class Keyfile
       resourceicons.put("TXT", ICON_TEXT);
       resourceicons.put("RES", ICON_TEXT);
       resourceicons.put("BAF", ICON_SCRIPT);
+      resourceicons.put("TOH", ICON_STRUCT);
+      resourceicons.put("TOT", ICON_STRUCT);
     }
   }
 

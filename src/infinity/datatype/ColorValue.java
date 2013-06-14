@@ -146,7 +146,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
 
     JPanel cpanel = new JPanel();
     cpanel.setLayout(new GridLayout(1, colors.length));
-    for (final JLabel color : colors) 
+    for (final JLabel color : colors)
       cpanel.add(color);
 
     GridBagLayout gbl = new GridBagLayout();

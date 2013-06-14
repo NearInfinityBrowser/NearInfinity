@@ -83,7 +83,7 @@ public final class EffectType extends Bitmap
     else if (restype.equalsIgnoreCase("String"))
       list.add(new TextString(buffer, off, 8, "String"));
     else
-      list.add(new ResourceRef(buffer, off, "Resource", restype));
+      list.add(new ResourceRef(buffer, off, "Resource", restype.split(":")));
     off += 8;
     attr_length = off - attr_length;
     return off;
