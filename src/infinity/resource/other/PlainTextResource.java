@@ -39,7 +39,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   {
     this.entry = entry;
     byte data[] = entry.getResourceData();
-    if (data[0] == -1)
+    if (data != null && data.length > 1 && data[0] == -1)
       text = Decryptor.decrypt(data, 2, data.length);
     else
       text = new String(data);

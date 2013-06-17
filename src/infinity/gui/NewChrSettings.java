@@ -57,7 +57,7 @@ public final class NewChrSettings extends NewAbstractSettings
 
     JLabel label = new JLabel("Enter character name (max. 32 chars):");
     label.setLabelFor(tfName);
-    label.setDisplayedMnemonic(KeyEvent.VK_S);
+    label.setDisplayedMnemonic(KeyEvent.VK_E);
 
     JPanel panel = new JPanel(new GridBagLayout());
     Container pane = getContentPane();

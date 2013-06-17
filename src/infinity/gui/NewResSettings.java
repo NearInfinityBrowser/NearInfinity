@@ -106,10 +106,12 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   {
     getRootPane().setDefaultButton(null);   // prevent accidental file creation
 
-    JLabel strrefLabel = new JLabel("Select template:");
-
     cbStrref = new JComboBox<StrrefItem>(STRREF_ITEM.get(gameId));
     cbStrref.addKeyListener(this);
+
+    JLabel strrefLabel = new JLabel("Select template:");
+    strrefLabel.setLabelFor(cbStrref);
+    strrefLabel.setDisplayedMnemonic(KeyEvent.VK_S);
 
     updateButton = new JButton("Update text", Icons.getIcon("Refresh16.gif"));
     updateButton.setMnemonic(KeyEvent.VK_U);
@@ -123,8 +125,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
       taText.setCaretPosition(0);
     }
     JScrollPane scroll = new JScrollPane(taText);
-    // an ugly hack to set a proper default size
-    scroll.setPreferredSize(new Dimension(scroll.getPreferredSize().width, scroll.getPreferredSize().height*20));
+    scroll.setPreferredSize(new JTextArea(20, 60).getPreferredSize());
 
     JPanel panel = new JPanel(new GridBagLayout());
     Container pane = getContentPane();
@@ -259,7 +260,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     private void setText(String newText)
     {
       if (newText != null)
-        desc = newText;
+        desc = newText.replaceAll("\r", "");    // not sure if CR is supported
       else
         desc = "";
     }

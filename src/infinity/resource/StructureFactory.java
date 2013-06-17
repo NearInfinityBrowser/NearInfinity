@@ -178,11 +178,6 @@ public final class StructureFactory
     }
   }
 
-  private StructureFactory()
-  {
-    super();
-  }
-
   private ResourceStructure create2DA(int id) throws StructureException
   {
     if (id == ResourceFactory.ID_BG1 || id == ResourceFactory.ID_BG2 || id == ResourceFactory.ID_TORMENT ||
@@ -503,7 +498,7 @@ public final class StructureFactory
         ResourceStructure s_pro = new ResourceStructure();
         s_pro.add(ResourceStructure.ID_STRING, 4, "PRO ");        // Signature
         s_pro.add(ResourceStructure.ID_STRING, 4, "V1.0");        // Version
-        s_pro.add(ResourceStructure.ID_WORD, type);               // Projectile type (default: area effect)
+        s_pro.add(ResourceStructure.ID_WORD, type);               // Projectile type
         s_pro.add(ResourceStructure.ID_ARRAY, type*256 - 10);     // block of zeros
 
         return s_pro;
@@ -589,7 +584,7 @@ public final class StructureFactory
       final int[] ofs = {0x9c, 0x9c, 0xf0};
       final int[] count = {40, 40, 124};
       int idx = (id == ResourceFactory.ID_ICEWIND || id == ResourceFactory.ID_ICEWIND2) ? 2 :
-        (id == ResourceFactory.ID_TORMENT) ? 1 : 0;
+                (id == ResourceFactory.ID_TORMENT) ? 1 : 0;
       ResourceStructure s_sto = new ResourceStructure();
       s_sto.add(ResourceStructure.ID_STRING, 4, "STOR");          // Signature
       s_sto.add(ResourceStructure.ID_STRING, 4, version[idx]);    // Version
@@ -617,9 +612,9 @@ public final class StructureFactory
       s_vef.add(ResourceStructure.ID_STRING, 4, "VEF ");    // Signature
       s_vef.add(ResourceStructure.ID_STRING, 4, "V1.0");    // Version
       s_vef.add(ResourceStructure.ID_DWORD, 0x18);          // Component1 offset
-      s_vef.add(ResourceStructure.ID_DWORD);                // block of zeros
+      s_vef.add(ResourceStructure.ID_DWORD);                // zero
       s_vef.add(ResourceStructure.ID_DWORD, 0x18);          // Component2 offset
-      s_vef.add(ResourceStructure.ID_DWORD);                // block of zeros
+      s_vef.add(ResourceStructure.ID_DWORD);                // zero
 
       return s_vef;
     } else
@@ -688,8 +683,8 @@ public final class StructureFactory
       ResourceStructure s_wmp = new ResourceStructure();
       s_wmp.add(ResourceStructure.ID_STRING, 4, "WMAP");    // Signature
       s_wmp.add(ResourceStructure.ID_STRING, 4, "V1.0");    // Version
-      s_wmp.add(ResourceStructure.ID_DWORD);                // Worlmap entries count
-      s_wmp.add(ResourceStructure.ID_DWORD, 0x10);          // Worlmap entries offset
+      s_wmp.add(ResourceStructure.ID_DWORD);                // zero
+      s_wmp.add(ResourceStructure.ID_DWORD, 0x10);          // Worldmap entries offset
 
       return s_wmp;
     } else

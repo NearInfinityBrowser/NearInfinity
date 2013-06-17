@@ -32,6 +32,8 @@ public abstract class NewAbstractSettings extends JDialog implements ActionListe
 
     cancelButton = new JButton("Cancel");
     cancelButton.addActionListener(this);
+
+    accepted = false;
   }
 
   // public interface to resource-specific configuration data
