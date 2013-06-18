@@ -25,9 +25,13 @@ final class Familiar extends AbstractStruct
     list.add(new ResourceRef(buffer, offset + 48, "Chaotic good", "CRE"));
     list.add(new ResourceRef(buffer, offset + 56, "Chaotic neutral", "CRE"));
     list.add(new ResourceRef(buffer, offset + 64, "Chaotic evil", "CRE"));
-    list.add(new DecNumber(buffer, offset + 72, 4, "File size"));
-    list.add(new Unknown(buffer, offset + 76, 324));
-    return offset + 400;
+    HexNumber offEOS = new HexNumber(buffer, offset + 72, 4, "End of structure offset");
+    list.add(offEOS);
+    offset += 76;
+    int unknownSize = offEOS.getValue() > buffer.length ? buffer.length - offset : offEOS.getValue() - offset;
+    list.add(new Unknown(buffer, offset, unknownSize));
+    offset += unknownSize;
+    return offset;
   }
 
 

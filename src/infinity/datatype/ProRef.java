@@ -22,6 +22,7 @@ import java.util.List;
 
 public final class ProRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
+  private static final String NONE = "None";
   private final LongIntegerHashMap idsmap;
   private JButton bView;
   private TextListPanel list;
@@ -65,7 +66,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
       else
         items.add(new ProRefEntry(id + 1L, resourceEntry));
     }
-    items.add(new ProRefEntry(1L, "None"));
+    items.add(new ProRefEntry(1L, NONE));
     list = new TextListPanel(items);
     list.addMouseListener(new MouseAdapter()
     {
@@ -88,6 +89,8 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bView = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
     bView.addActionListener(this);
+    bView.setEnabled(list.getSelectedValue() != null &&
+                     !((ProRefEntry)list.getSelectedValue()).proref.toString().equals(NONE));
     list.addListSelectionListener(this);
 
     GridBagLayout gbl = new GridBagLayout();
@@ -140,7 +143,8 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
   public void valueChanged(ListSelectionEvent e)
   {
-    bView.setEnabled(list.getSelectedValue() != null);
+    bView.setEnabled(list.getSelectedValue() != null &&
+                     !((ProRefEntry)list.getSelectedValue()).proref.toString().equals(NONE));
   }
 
 // --------------------- End Interface ListSelectionListener ---------------------
@@ -160,7 +164,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     if (idsmap.containsKey(value - (long)1))
       return ResourceFactory.getInstance().getResourceEntry(((IdsMapEntry)idsmap.get(value - 1)).getString()
                                                             + ".PRO") + " (" + value + ')';
-    return "None (" + value + ')';
+    return NONE + " (" + value + ')';
   }
 
   public ResourceEntry getSelectedEntry()

@@ -9,6 +9,7 @@ import infinity.check.*;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructureFactory;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.ViewerGraphics;
 import infinity.resource.cre.CreResource;
@@ -136,6 +137,7 @@ public final class BrowserMenuBar extends JMenuBar
   public void gameLoaded(int oldGame, String oldFile)
   {
     gameMenu.gameLoaded(oldGame, oldFile);
+    fileMenu.gameLoaded();
     editMenu.gameLoaded();
   }
 
@@ -602,6 +604,61 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class FileMenu extends JMenu implements ActionListener
   {
+    private static final class ResInfo {
+      public final int[] supportedGames;
+      public final String label;
+      public final StructureFactory.ResType resId;
+
+      public ResInfo(StructureFactory.ResType id, String text) {
+        resId = id; label = text;
+        supportedGames = new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC, ResourceFactory.ID_TORMENT,
+                                   ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
+                                   ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2,
+                                   ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU};
+      }
+
+      public ResInfo(StructureFactory.ResType id, String text, int[] games) {
+        resId = id; label = text; supportedGames = (games != null) ? games : new int[]{};
+      }
+    }
+
+    private static final ResInfo RESOURCE[] = {
+        new ResInfo(StructureFactory.ResType.RES_2DA, "2DA"),
+        new ResInfo(StructureFactory.ResType.RES_ARE, "ARE"),
+        new ResInfo(StructureFactory.ResType.RES_BCS, "BCS"),
+        new ResInfo(StructureFactory.ResType.RES_BIO, "BIO",
+            new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU}),
+        new ResInfo(StructureFactory.ResType.RES_CHR, "CHR", new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
+                    ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU, ResourceFactory.ID_ICEWIND,
+                    ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2}),
+        new ResInfo(StructureFactory.ResType.RES_CRE, "CRE"),
+        new ResInfo(StructureFactory.ResType.RES_DLG, "DLG"),
+        new ResInfo(StructureFactory.ResType.RES_EFF, "EFF", new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
+                    ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU}),
+        new ResInfo(StructureFactory.ResType.RES_IDS, "IDS"),
+        new ResInfo(StructureFactory.ResType.RES_ITM, "ITM"),
+        new ResInfo(StructureFactory.ResType.RES_INI, "INI", new int[]{ResourceFactory.ID_TORMENT, ResourceFactory.ID_ICEWIND,
+                    ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2}),
+        new ResInfo(StructureFactory.ResType.RES_MUS, "MUS"),
+        new ResInfo(StructureFactory.ResType.RES_PRO, "PRO",
+            new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU}),
+        new ResInfo(StructureFactory.ResType.RES_RES, "RES", new int[]{ResourceFactory.ID_ICEWIND,
+                    ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2}),
+        new ResInfo(StructureFactory.ResType.RES_SPL, "SPL"),
+        new ResInfo(StructureFactory.ResType.RES_SRC, "SRC", new int[]{ResourceFactory.ID_TORMENT,
+                    ResourceFactory.ID_ICEWIND2}),
+        new ResInfo(StructureFactory.ResType.RES_STO, "STO"),
+        new ResInfo(StructureFactory.ResType.RES_VEF, "VEF", new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
+                    ResourceFactory.ID_TUTU}),
+        new ResInfo(StructureFactory.ResType.RES_VVC, "VVC", new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
+                    ResourceFactory.ID_TUTU}),
+        new ResInfo(StructureFactory.ResType.RES_WED, "WED"),
+        new ResInfo(StructureFactory.ResType.RES_WFX, "WFX", new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
+                    ResourceFactory.ID_TUTU}),
+        new ResInfo(StructureFactory.ResType.RES_WMAP, "WMAP"),
+    };
+
+    private final JMenu newFileMenu;
     private final JMenuItem fileOpenNew, fileExport, fileAddCopy, fileRename, fileDelete, fileConvertCHR, fileViewArea;
 
     private FileMenu()
@@ -609,6 +666,10 @@ public final class BrowserMenuBar extends JMenuBar
       super("File");
       setMnemonic(KeyEvent.VK_F);
 
+      newFileMenu = new JMenu("New Resource");
+      newFileMenu.setIcon(Icons.getIcon("New16.gif"));
+      newFileMenu.setMnemonic(KeyEvent.VK_N);
+      add(newFileMenu);
       fileOpenNew = makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.getIcon("Open16.gif"), -1, this);
       fileOpenNew.setEnabled(false);
       add(fileOpenNew);
@@ -634,6 +695,31 @@ public final class BrowserMenuBar extends JMenuBar
       fileViewArea = makeMenuItem("View Area (Experimental)", KeyEvent.VK_V, Icons.getIcon("Volume16.gif"), -1, this);
       fileViewArea.setEnabled(false);
       add(fileViewArea);
+    }
+
+    private void gameLoaded()
+    {
+      if (newFileMenu != null) {
+        newFileMenu.removeAll();
+
+        for (final ResInfo res : RESOURCE) {
+          boolean match = false;
+          for (final int game : res.supportedGames) {
+            if (game == ResourceFactory.getGameID()) {
+              match = true;
+              break;
+            }
+          }
+          if (match == true) {
+            JMenuItem newFile = new JMenuItem(res.label);
+            newFile.addActionListener(this);
+            newFile.setActionCommand(res.label);
+            newFile.setEnabled(true);
+            newFileMenu.add(newFile);
+          }
+        }
+        newFileMenu.setEnabled(newFileMenu.getItemCount() > 0);
+      }
     }
 
     public void actionPerformed(ActionEvent event)
@@ -683,6 +769,12 @@ public final class BrowserMenuBar extends JMenuBar
         NearInfinity.getInstance().removeViewable();
         ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
         entry.deleteFile();
+      } else {
+        for (final ResInfo res : RESOURCE) {
+          if (event.getActionCommand().equals(res.label)) {
+            StructureFactory.getInstance().newResource(res.resId, NearInfinity.getInstance());
+          }
+        }
       }
     }
 

@@ -30,7 +30,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private static final String TYPES[] = {"2DA", "ARE", "BAM", "BCS", "BIO", "BMP", "BS",
                                          "CHU", "CHR", "CRE", "DLG", "EFF", "GAM", "IDS",
                                          "INI", "ITM", "MOS", "MVE", "PLT", "PRO", "SRC",
-                                         "SPL", "STO", "TIS", "VEF", "VVC", "WAV", "WED", "WFX", "WMP"};
+                                         "SPL", "STO", "TOH", "TOT", "TIS", "VEF", "VVC",
+                                         "WAV", "WED", "WFX", "WMP"};
   private final JButton bExport = new JButton("Export", Icons.getIcon("Export16.gif"));
   private final JButton bCancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
   private final JButton bDirectory = new JButton(Icons.getIcon("Open16.gif"));
@@ -167,7 +168,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void run()
   {
     java.util.List<ResourceEntry> selectedFiles = new ArrayList<ResourceEntry>(1000);
-    for (final Object newVar : selectedTypes) 
+    for (final Object newVar : selectedTypes)
       selectedFiles.addAll(ResourceFactory.getInstance().getResources((String)newVar));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...", null,
                                                    0, selectedFiles.size());

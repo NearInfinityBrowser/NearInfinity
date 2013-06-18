@@ -307,7 +307,7 @@ public abstract class AbstractAbility extends AbstractStruct
     "Red dragon middle", "Fireball (just projectile)", "New hold necromancy",
     "Web (one person)", "Holy word (not party)", "Unholy word (not party)",
     "Power word, sleep", "MDK bullet", "Storm of vengeance", "Comet"};
-  
+
   protected AbstractAbility(AbstractStruct superStruct, String name, byte buffer[], int offset)
           throws Exception
   {
