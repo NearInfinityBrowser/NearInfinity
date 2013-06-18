@@ -602,25 +602,25 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class FileMenu extends JMenu implements ActionListener
   {
-    private final class ResInfo {
-      public final int[] flags;
+    private static final class ResInfo {
+      public final int[] supportedGames;
       public final String label;
-      public final StructureFactory.ResType id;
+      public final StructureFactory.ResType resId;
 
-      public ResInfo(StructureFactory.ResType resId, String labelText) {
-        id = resId; label = labelText;
-        flags = new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC, ResourceFactory.ID_TORMENT,
-                          ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT,
-                          ResourceFactory.ID_ICEWIND2, ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                          ResourceFactory.ID_TUTU};
+      public ResInfo(StructureFactory.ResType id, String text) {
+        resId = id; label = text;
+        supportedGames = new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC, ResourceFactory.ID_TORMENT,
+                                   ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
+                                   ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2,
+                                   ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU};
       }
 
-      public ResInfo(StructureFactory.ResType resId, String labelText, int[] gameFlags) {
-        id = resId; label = labelText; flags = gameFlags;
+      public ResInfo(StructureFactory.ResType id, String text, int[] games) {
+        resId = id; label = text; supportedGames = (games != null) ? games : new int[]{};
       }
     }
 
-    private final ResInfo RESOURCE[] = {
+    private static final ResInfo RESOURCE[] = {
         new ResInfo(StructureFactory.ResType.RES_2DA, "2DA"),
         new ResInfo(StructureFactory.ResType.RES_ARE, "ARE"),
         new ResInfo(StructureFactory.ResType.RES_BCS, "BCS"),
@@ -702,7 +702,7 @@ public final class BrowserMenuBar extends JMenuBar
 
         for (final ResInfo res : RESOURCE) {
           boolean match = false;
-          for (final int game : res.flags) {
+          for (final int game : res.supportedGames) {
             if (game == ResourceFactory.getGameID()) {
               match = true;
               break;
@@ -770,7 +770,7 @@ public final class BrowserMenuBar extends JMenuBar
       } else {
         for (final ResInfo res : RESOURCE) {
           if (event.getActionCommand().equals(res.label)) {
-            StructureFactory.getFactory().newResource(res.id, NearInfinity.getInstance());
+            StructureFactory.getInstance().newResource(res.resId, NearInfinity.getInstance());
           }
         }
       }

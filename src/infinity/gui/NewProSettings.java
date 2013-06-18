@@ -96,6 +96,7 @@ public final class NewProSettings extends NewAbstractSettings
     pack();
     setMinimumSize(getPreferredSize());
     setLocationRelativeTo(parent);
+    setCancelOnEscape(true);
     setVisible(true);
   }
 

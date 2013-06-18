@@ -98,6 +98,7 @@ public final class NewChrSettings extends NewAbstractSettings
     pack();
     setMinimumSize(getPreferredSize());
     setLocationRelativeTo(parent);
+    setCancelOnEscape(true);
     setVisible(true);
   }
 

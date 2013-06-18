@@ -58,7 +58,7 @@ public final class StructureFactory
   };
 
 
-  public static StructureFactory getFactory()
+  public static StructureFactory getInstance()
   {
     if (sfactory == null)
       sfactory = new StructureFactory();
@@ -68,8 +68,25 @@ public final class StructureFactory
   // Write a new resource of specified type to disk
   public void newResource(ResType type, Window parent)
   {
-    File savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
-    if (!savedir.exists())
+    // use most appropriate initial folder for each file type
+    File savedir = null;
+    switch (type) {
+      case RES_BIO:
+      case RES_CHR:
+      case RES_RES:
+        savedir = new File(ResourceFactory.getRootDir(), "Characters");
+        if (!savedir.exists())
+          savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+        break;
+      case RES_MUS:
+        savedir = new File(ResourceFactory.getRootDir(), "Music");
+        if (!savedir.exists())
+          savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+        break;
+       default:
+         savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+    }
+    if (savedir == null || !savedir.exists())
       savedir = ResourceFactory.getRootDir();
     JFileChooser fc = new JFileChooser(savedir);
     fc.setDialogTitle("Create new " + resExt.get(type) + " resource");
@@ -92,8 +109,7 @@ public final class StructureFactory
           ResourceStructure struct = createStructure(type, output.getName(), parent);
           if (struct != null) {
             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
-            if (!struct.isEmpty())
-              bos.write(struct.getBytes());
+            struct.write(bos);
             bos.close();
             JOptionPane.showMessageDialog(parent, "File " + output + " created successfully.",
                                           "Information", JOptionPane.INFORMATION_MESSAGE);
@@ -718,14 +734,12 @@ public final class StructureFactory
   }
 
 
-  // returns path without trailing path separator (except for root on unix-based filesystems)
+  // returns path without trailing path separator (except for root)
   private String extractFilePath(String fileName)
   {
     if (fileName.length() > 0) {
       int idx = fileName.lastIndexOf(File.separatorChar);
-      if (idx == fileName.length() - 1)
-        return fileName.substring(0, fileName.length() - 1);
-      else if (idx > 0)
+      if (idx > 0)
         return fileName.substring(0, idx);
     }
     return fileName;
@@ -734,10 +748,7 @@ public final class StructureFactory
   private String extractFileName(String fileName)
   {
     String[] s = fileName.split("[\\\\/]");
-    if (s.length > 0)
-      return s[s.length - 1];
-    else
-      return fileName;
+    return (s.length > 0) ? s[s.length - 1] : fileName;
   }
 
   // returns filename without extension
@@ -748,22 +759,16 @@ public final class StructureFactory
       int idx = name.lastIndexOf('.');
       if (idx >= 0)
         return name.substring(0, idx);
-      else
-        return name;
     }
-    return "";
+    return name;
   }
 
   // returns file extension without separator
   private String extractFileExt(String fileName)
   {
     String name = extractFileName(fileName);
-    if (name.length() > 0) {
-      int idx = name.lastIndexOf('.');
-      if (idx >= 0 && idx < name.length() - 1)
-        return name.substring(idx + 1, name.length());
-    }
-    return "";
+    String[] s = name.split("\\.");
+    return (s.length > 0) ? s[s.length - 1] : name;
   }
 
 
