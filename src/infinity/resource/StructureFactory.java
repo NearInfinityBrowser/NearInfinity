@@ -7,7 +7,6 @@ package infinity.resource;
 import java.awt.Window;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.EnumMap;
 
 import javax.swing.JFileChooser;
@@ -17,6 +16,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import infinity.gui.NewChrSettings;
 import infinity.gui.NewProSettings;
 import infinity.gui.NewResSettings;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
 import infinity.util.ResourceStructure;
 
 // Create different pre-initialized IE game resources from scratch and writing them to disk.
@@ -69,25 +70,25 @@ public final class StructureFactory
   public void newResource(ResType type, Window parent)
   {
     // use most appropriate initial folder for each file type
-    File savedir = null;
+    FileCI savedir = null;
     switch (type) {
       case RES_BIO:
       case RES_CHR:
       case RES_RES:
-        savedir = new File(ResourceFactory.getRootDir(), "Characters");
+        savedir = new FileCI(ResourceFactory.getRootDir(), "Characters");
         if (!savedir.exists())
-          savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+          savedir = new FileCI(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
       case RES_MUS:
-        savedir = new File(ResourceFactory.getRootDir(), "Music");
+        savedir = new FileCI(ResourceFactory.getRootDir(), "Music");
         if (!savedir.exists())
-          savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+          savedir = new FileCI(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
        default:
-         savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+         savedir = new FileCI(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
     }
     if (savedir == null || !savedir.exists())
-      savedir = ResourceFactory.getRootDir();
+      savedir = new FileCI(ResourceFactory.getRootDir(), "");
     JFileChooser fc = new JFileChooser(savedir);
     fc.setDialogTitle("Create new " + resExt.get(type) + " resource");
     fc.setFileFilter(new FileNameExtensionFilter(resExt.get(type) + " files", resExt.get(type).toLowerCase()));
@@ -108,7 +109,7 @@ public final class StructureFactory
         try {
           ResourceStructure struct = createStructure(type, output.getName(), parent);
           if (struct != null) {
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
             struct.write(bos);
             bos.close();
             JOptionPane.showMessageDialog(parent, "File " + output + " created successfully.",
