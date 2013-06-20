@@ -699,8 +699,18 @@ public final class StructureFactory
       ResourceStructure s_wmp = new ResourceStructure();
       s_wmp.add(ResourceStructure.ID_STRING, 4, "WMAP");    // Signature
       s_wmp.add(ResourceStructure.ID_STRING, 4, "V1.0");    // Version
-      s_wmp.add(ResourceStructure.ID_DWORD);                // zero
+      s_wmp.add(ResourceStructure.ID_DWORD, 1);             // Worldmap entries count
       s_wmp.add(ResourceStructure.ID_DWORD, 0x10);          // Worldmap entries offset
+
+      s_wmp.add(ResourceStructure.ID_RESREF);               // Background MOS
+      s_wmp.add(ResourceStructure.ID_ARRAY, 12);            // block of zeros
+      s_wmp.add(ResourceStructure.ID_STRREF, -1);           // Area name
+      s_wmp.add(ResourceStructure.ID_ARRAY, 12);            // block of zeros
+      s_wmp.add(ResourceStructure.ID_DWORD, 0x0c8);         // Area entries offset
+      s_wmp.add(ResourceStructure.ID_DWORD, 0x0c8);         // Area link entries offset
+      s_wmp.add(ResourceStructure.ID_DWORD);                // zero
+      s_wmp.add(ResourceStructure.ID_RESREF);               // Map icons
+      s_wmp.add(ResourceStructure.ID_ARRAY, 128);           // block of zeros
 
       return s_wmp;
     } else

@@ -603,20 +603,28 @@ public final class BrowserMenuBar extends JMenuBar
   private static final class FileMenu extends JMenu implements ActionListener
   {
     private static final class ResInfo {
-      public final int[] supportedGames;
       public final String label;
       public final StructureFactory.ResType resId;
+      private int supportedGames;
 
       public ResInfo(StructureFactory.ResType id, String text) {
-        resId = id; label = text;
-        supportedGames = new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC, ResourceFactory.ID_TORMENT,
-                                   ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
-                                   ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2,
-                                   ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU};
+        this(id, text, new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC, ResourceFactory.ID_TORMENT,
+                                 ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
+                                 ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2,
+                                 ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB, ResourceFactory.ID_TUTU});
       }
 
       public ResInfo(StructureFactory.ResType id, String text, int[] games) {
-        resId = id; label = text; supportedGames = (games != null) ? games : new int[]{};
+        resId = id;
+        label = text;
+        supportedGames = 0;
+        if (games != null)
+          for (final int g : games)
+            supportedGames |= 1 << g;
+      }
+
+      public boolean gameSupported(int game) {
+        return (game >= 0 && game < 32 && (supportedGames & (1 << game)) != 0);
       }
     }
 
@@ -701,14 +709,7 @@ public final class BrowserMenuBar extends JMenuBar
         newFileMenu.removeAll();
 
         for (final ResInfo res : RESOURCE) {
-          boolean match = false;
-          for (final int game : res.supportedGames) {
-            if (game == ResourceFactory.getGameID()) {
-              match = true;
-              break;
-            }
-          }
-          if (match == true) {
+          if (res.gameSupported(ResourceFactory.getGameID())) {
             JMenuItem newFile = new JMenuItem(res.label);
             newFile.addActionListener(this);
             newFile.setActionCommand(res.label);
