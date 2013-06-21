@@ -474,6 +474,7 @@ public final class BIFFArchive
       if (size == 0)
         return -1;
       if (blockIndex == block.decompSize) { // Read new block
+        block.getData(is, 0, block.decompSize);
         block = new BifcBlock(is);
         blockIndex = 0;
       }
@@ -491,6 +492,7 @@ public final class BIFFArchive
       int remainder = len;
       while (remainder > 0 && size > 0) {
         if (blockIndex == block.decompSize) { // Read new block
+          block.getData(is, 0, block.decompSize);
           block = new BifcBlock(is);
           blockIndex = 0;
         }
