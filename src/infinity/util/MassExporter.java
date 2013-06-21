@@ -136,7 +136,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (event.getSource() == bExport) {
       selectedTypes = listTypes.getSelectedValues();
-      outputDir = new FileCI(tfDirectory.getText());
+      outputDir = new File(tfDirectory.getText()); //File is used intentionally
       outputDir.mkdirs();
       setVisible(false);
       new Thread(this).start();
