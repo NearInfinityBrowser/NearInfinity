@@ -315,7 +315,7 @@ public final class ResourceFactory
     else if (new FileCI(rootDir, "baldur.exe").exists() && new FileCI(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
     else if (new FileCI(rootDir, "Baldur.exe").exists() && new FileCI(rootDir, "movies/DEATHAND.wbm").exists())
-   	  currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
+      currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
 
     keyfile = new Keyfile(file, currentGame);
     factory = this;
@@ -509,10 +509,9 @@ public final class ResourceFactory
                                                     //FileCI results in rootDir being lowercased as well, which is not desirable
     File dlg_file = new FileCI(path, DIALOGFILENAME); //otherwise we incorrectly load the one in rootdir, if it exists
     if (! dlg_file.exists()) {
-        dlg_file = new FileCI(rootDir, DIALOGFILENAME);
+      dlg_file = new FileCI(rootDir, DIALOGFILENAME);
     }
     StringResource.init(dlg_file);
-
 
     // Add other resources
     for (final String extraDir : games[currentGame].extraDirs) {

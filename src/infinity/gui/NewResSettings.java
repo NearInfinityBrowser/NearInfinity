@@ -71,6 +71,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   private JComboBox<StrrefItem> cbStrref;
   private JButton updateButton;
   private int gameId;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
+  private int lastStrref;
 
   private JTextArea taText;
   private ResConfig config;
@@ -108,6 +109,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
 
     cbStrref = new JComboBox<StrrefItem>(STRREF_ITEM.get(gameId));
     cbStrref.addKeyListener(this);
+    lastStrref = -1;
 
     JLabel strrefLabel = new JLabel("Select template:");
     strrefLabel.setLabelFor(cbStrref);
@@ -120,7 +122,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     taText = new JTextArea(1, 60);
     taText.setWrapStyleWord(true);
     taText.setLineWrap(true);
-    if (cbStrref.getSelectedItem() != null && cbStrref.getSelectedItem() instanceof StrrefItem) {
+    if (cbStrref.getSelectedItem() instanceof StrrefItem) {
       taText.setText(((StrrefItem)cbStrref.getSelectedItem()).getString());
       taText.setCaretPosition(0);
     }
@@ -205,11 +207,14 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == updateButton) {
-      Object obj = cbStrref.getSelectedItem();
-      if (obj != null && obj instanceof StrrefItem) {
-        taText.setText(((StrrefItem)obj).getString());
+      if (lastStrref == -1)
+        config.setText(taText.getText());
+      if (cbStrref.getSelectedItem() instanceof StrrefItem) {
+        StrrefItem obj = (StrrefItem)cbStrref.getSelectedItem();
+        taText.setText((obj.getStringId() == -1) ? config.getText() : obj.getString());
         taText.requestFocusInWindow();
         taText.setCaretPosition(0);
+        lastStrref = obj.getStringId();
       } else
         taText.setText("");
     }
