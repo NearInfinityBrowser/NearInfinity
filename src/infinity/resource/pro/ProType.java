@@ -39,7 +39,7 @@ public final class ProType extends HashBitmap
       if (getValue() == 3L) {         // area of effect
         StructEntry entry = struct.getList().get(struct.getList().size() - 1);
         try {
-          if (!(entry instanceof ProSingleType))
+          if (!(entry instanceof ProSingleType) && !(entry instanceof ProAreaType))
             struct.addDatatype(new ProSingleType(), struct.getList().size());
           entry = struct.getList().get(struct.getList().size() - 1);
           if (!(entry instanceof ProAreaType))
