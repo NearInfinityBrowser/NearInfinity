@@ -37,6 +37,16 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
+
 // --------------------- Begin Interface HasVertices ---------------------
 
   public void readVertices(byte buffer[], int offset) throws Exception

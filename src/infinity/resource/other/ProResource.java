@@ -11,6 +11,7 @@ import infinity.resource.key.ResourceEntry;
 import infinity.util.Byteconvert;
 import infinity.util.LongIntegerHashMap;
 
+// Superseded by infinity.resource.pro.ProResource2
 public final class ProResource extends AbstractStruct implements Resource
 {
   private static final LongIntegerHashMap<String> s_projtype = new LongIntegerHashMap<String>();

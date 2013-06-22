@@ -484,7 +484,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       Object selected = table.getModel().getValueAt(lsm.getMinSelectionIndex(), 1);
       miPaste.setEnabled(
               StructClipboard.getInstance().getContentType(struct) == StructClipboard.CLIPBOARD_ENTRIES);
-      bremove.setEnabled(selected instanceof AddRemovable);
+      bremove.setEnabled(selected instanceof AddRemovable && ((AddRemovable)selected).canRemove());
       bview.setEnabled(selected instanceof Viewable);
       ifindattribute.setEnabled(!(selected instanceof AbstractStruct));
       ifindstatereferences.setEnabled(selected instanceof State);

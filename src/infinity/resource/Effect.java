@@ -27,6 +27,15 @@ public final class Effect extends AbstractStruct implements AddRemovable
     super(superStruct, "Effect", buffer, offset);
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   protected int read(byte buffer[], int offset) throws Exception
   {
     EffectType type = new EffectType(buffer, offset, 2);

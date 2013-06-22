@@ -22,6 +22,7 @@ import infinity.resource.mus.MusResource;
 import infinity.resource.nwn.*;
 import infinity.resource.nwn.gff.GffResource;
 import infinity.resource.other.*;
+import infinity.resource.pro.ProResource2;
 import infinity.resource.sav.SavResource;
 import infinity.resource.sound.AcmResource;
 import infinity.resource.sound.WavResource;
@@ -248,7 +249,7 @@ public final class ResourceFactory
         else if (entry.getExtension().equalsIgnoreCase("WFX"))
           res = new WfxResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("PRO"))
-          res = new ProResource(entry);
+          res = new ProResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("WED"))
           res = new WedResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("GAM"))
