@@ -108,7 +108,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
     else if (event.getSource() == bcancel)
       selectframe.setVisible(false);
     else if (event.getSource() == binvert) {
-      for (final JCheckBox box : boxes) 
+      for (final JCheckBox box : boxes)
         box.setSelected(!box.isSelected());
     }
   }

@@ -71,7 +71,7 @@ public final class IdsBitmap extends Datatype implements Editable
     if (list == null) {
       long keys[] = idsmap.keys();
       List<IdsMapEntry> items = new ArrayList<IdsMapEntry>(keys.length);
-      for (final long key : keys) 
+      for (final long key : keys)
         items.add(idsmap.get(key));
       list = new TextListPanel(items);
       list.addMouseListener(new MouseAdapter()

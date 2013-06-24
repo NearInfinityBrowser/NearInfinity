@@ -21,6 +21,16 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
     super(superStruct, "Memorization info " + nr, buffer, offset);
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
+
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
   public AddRemovable[] getAddRemovables() throws Exception

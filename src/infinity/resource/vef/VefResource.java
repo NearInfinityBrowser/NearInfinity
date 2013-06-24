@@ -4,8 +4,6 @@
 
 package infinity.resource.vef;
 
-import java.awt.Component;
-
 import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;

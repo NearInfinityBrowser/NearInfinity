@@ -59,7 +59,7 @@ public final class FileResourceEntry extends ResourceEntry
     return new BufferedInputStream(new FileInputStreamCI(file));
   }
 
-  public int[] getResourceInfo(boolean ignoreoverride) 
+  public int[] getResourceInfo(boolean ignoreoverride)
   {
     return getLocalFileInfo(file);
   }

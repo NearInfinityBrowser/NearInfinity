@@ -42,6 +42,16 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
+
 // --------------------- Begin Interface HasVertices ---------------------
 
   public void readVertices(byte buffer[], int offset) throws Exception

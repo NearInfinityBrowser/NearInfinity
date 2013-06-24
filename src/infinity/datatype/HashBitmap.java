@@ -19,7 +19,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class HashBitmap extends Datatype implements Editable
+public class HashBitmap extends Datatype implements Editable
 {
   private final LongIntegerHashMap idsmap;
   private TextListPanel list;
@@ -125,6 +125,11 @@ public final class HashBitmap extends Datatype implements Editable
     if (o == null)
       return "Unknown - " + value;
     return idsmap.get(value).toString() + " - " + value;
+  }
+
+  public long getValue()
+  {
+    return value;
   }
 }
 

@@ -99,7 +99,7 @@ public final class ErfResource implements Resource, ActionListener, ListSelectio
     table = new SortableTable(new String[] { "", "Resource name" },
                               new Class[] { ImageIcon.class, String.class },
                               new int[] { 5, 300 });
-    for (final ERFKey key : keys) 
+    for (final ERFKey key : keys)
       table.addTableItem(key);
     table.tableComplete(1);
     table.getSelectionModel().addListSelectionListener(this);

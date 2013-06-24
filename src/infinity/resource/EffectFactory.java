@@ -488,7 +488,7 @@ public final class EffectFactory
           "Modify proficiencies", "Create contingency", "Wing buffet",
           "Project image", "Set image type", "Disintegrate", "Farsight",
           "Remove portrait icon", "Control creature", "Cure confusion",
-          "Drain item charges", "Drain wizard spells", "Unknown (F5)",
+          "Drain item charges", "Drain wizard spells", "Check for berserk",
           "Berserk effect", "Attack nearest creature", "Melee hit effect",
           "Ranged hit effect", "Maximum damage each hit", "Change bard song",
           "Set trap", "Set automap note", "Remove automap note",
@@ -701,7 +701,7 @@ public final class EffectFactory
           "Tortoise shell", "Blink", "Persistent using effects list",
           "Day blindness", "Damage reduction", "Disguise", "Heroic inspiration",
           "Prevent AI slowdown", "Barbarian rage", "Force slow", "Cleave",
-          "Protection from arrows", "Tenser's transformation", "Unknown (1BD)",
+          "Protection from arrows", "Tenser's transformation", "Slippery mind",
           "Smite evil", "Restoration", "Alicorn lance", "Call lightning",
           "Globe of invulnerability", "Lower resistance", "Bane",
           "Power attack", "Expertise", "Arterial strike", "Hamstring",
@@ -2138,7 +2138,7 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Play where?",
             new String[]{"Over target (unattached)", "Over target (attached)",
                          "At target point"}));
-          restype = "VVC";
+          restype = "VEF:VVC:BAM";
           break;
 
         case 0xD8: // Level drain (CGameEffectLevelDrain)
@@ -2349,7 +2349,7 @@ public final class EffectFactory
           break;
 
         case 0x128: // Immunity to specific animation (CGameEffectImmunityToVisualEffect)
-          restype = "VVC";
+          restype = "VEF:VVC:BAM";
           break;
 
         case 0x133: // Tracking (CGameEffectTracking)

@@ -34,17 +34,20 @@ final class ViewerMap extends JPanel implements ListSelectionListener
       if (iconEntry != null)
         icons = (BamResource)ResourceFactory.getResource(iconEntry);
     }
-    JLabel mapLabel = ViewerUtil.makeImagePanel((ResourceRef)wmpMap.getAttribute("Map"));
-    map = (BufferedImage)((ImageIcon)mapLabel.getIcon()).getImage();
-    JPanel areas = ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Name",
-                                            new WmpAreaListRenderer(icons), this);
-    JScrollPane mapScroll = new JScrollPane(mapLabel);
-    mapScroll.setBorder(BorderFactory.createEmptyBorder());
+    if (ResourceFactory.getInstance().resourceExists(((ResourceRef)wmpMap.getAttribute("Map")).getResourceName())) {
+      JLabel mapLabel = ViewerUtil.makeImagePanel((ResourceRef)wmpMap.getAttribute("Map"));
+      map = (BufferedImage)((ImageIcon)mapLabel.getIcon()).getImage();
+      JPanel areas = ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Name",
+                                              new WmpAreaListRenderer(icons), this);
+      JScrollPane mapScroll = new JScrollPane(mapLabel);
+      mapScroll.setBorder(BorderFactory.createEmptyBorder());
 
-    JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, areas);
-    split.setDividerLocation(NearInfinity.getInstance().getWidth() - 475);
-    setLayout(new BorderLayout());
-    add(split, BorderLayout.CENTER);
+      JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, areas);
+      split.setDividerLocation(NearInfinity.getInstance().getWidth() - 475);
+      setLayout(new BorderLayout());
+      add(split, BorderLayout.CENTER);
+    } else
+      map = null;
   }
 
 // --------------------- Begin Interface ListSelectionListener ---------------------

@@ -197,7 +197,7 @@ public final class BIFFWriter
     }
     for (final ResourceEntry resourceEntry : resources.keySet())
       Filewriter.writeBytes(os, resourceEntry.getResourceData(resources.get(resourceEntry).booleanValue()));
-    for (final ResourceEntry resourceEntry : tileresources.keySet()) 
+    for (final ResourceEntry resourceEntry : tileresources.keySet())
       Filewriter.writeBytes(os, resourceEntry.getResourceData(tileresources.get(resourceEntry).booleanValue()));
     os.close();
   }

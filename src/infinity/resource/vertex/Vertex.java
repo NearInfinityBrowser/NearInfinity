@@ -25,6 +25,15 @@ public class Vertex extends AbstractStruct implements AddRemovable
     super(superStruct, "Vertex " + nr, buffer, offset, 2);
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   public int read(byte buffer[], int offset)
   {
     list.add(new DecNumber(buffer, offset, 2, "X"));

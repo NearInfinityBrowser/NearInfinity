@@ -30,6 +30,16 @@ final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 
 // --------------------- End Interface HasAddRemovable ---------------------
 
+
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof RemovableDecNumber) {

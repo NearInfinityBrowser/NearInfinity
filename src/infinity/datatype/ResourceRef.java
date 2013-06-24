@@ -19,17 +19,21 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class ResourceRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
-  private final String type;
+  private final String type[];
+  private String curtype;
   String resname;
   private JButton bView;
   private TextListPanel list;
   private boolean wasNull;
   private byte buffer[];
+  private final Comparator<ResourceRefEntry> ignorecaseextcomparator = new IgnoreCaseExtComparator<ResourceRefEntry>();
 
   public ResourceRef(byte h_buffer[], int offset, String name, String type)
   {
@@ -38,15 +42,28 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public ResourceRef(byte h_buffer[], int offset, int length, String name, String type)
   {
+    this(h_buffer, offset, length, name, new String[]{type});
+  }
+
+  public ResourceRef(byte h_buffer[], int offset, String name, String[] type)
+  {
+    this(h_buffer, offset, 8, name, type);
+  }
+
+  public ResourceRef(byte h_buffer[], int offset, int length, String name, String[] type)
+  {
     super(offset, length, name);
-    this.type = type;
+    if (type == null || type.length == 0)
+      this.type = new String[]{""};
+    else
+      this.type = type;
+    curtype = type[0];
     buffer = ArrayUtil.getSubArray(h_buffer, offset, length);
     if (buffer[0] == 0x00 ||
-        buffer[0] == 0x4e && buffer[1] == 0x6f && buffer[2] == 0x6e && buffer[3] == 0x65) {
+        buffer[0] == 0x4e && buffer[1] == 0x6f && buffer[2] == 0x6e && buffer[3] == 0x65 && buffer[4] == 0x00) {
       resname = NONE;
       wasNull = true;
-    }
-    else {
+    } else {
       int max = buffer.length;
       for (int i = 0; i < buffer.length; i++) {
         if (buffer[i] == 0x00) {
@@ -60,6 +77,16 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     }
     if (resname.equalsIgnoreCase(NONE))
       resname = NONE;
+
+    // determine the correct file extension
+    if (!resname.equals(NONE)) {
+      for (int i = 0; i < type.length; i++) {
+        if (null != ResourceFactory.getInstance().getResourceEntry(resname + "." + type[i])) {
+          curtype = type[i];
+          break;
+        }
+      }
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -85,19 +112,28 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public JComponent edit(final ActionListener container)
   {
-    List<ResourceEntry> resourceList = ResourceFactory.getInstance().getResources(type);
-    List values = new ArrayList(1 + resourceList.size());
-    values.add(NONE);
-    for (int i = 0; i < resourceList.size(); i++) {
-      ResourceEntry entry = resourceList.get(i);
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN &&
-          entry.toString().length() <= 20)
-        values.add(new ResourceRefEntry(entry));
-      else if (entry.toString().length() <= 12 && isLegalEntry(entry))
-        values.add(new ResourceRefEntry(entry));
+    List<ResourceEntry> resourceList[] = new List[type.length];
+    int entrynum = 0;
+    for (int i = 0; i < type.length; i++) {
+      resourceList[i] = ResourceFactory.getInstance().getResources(type[i]);
+      entrynum += resourceList[i].size();
     }
-    addExtraEntries(values);
-    list = new TextListPanel(values);
+
+    List values = new ArrayList(1 + entrynum);
+    values.add(NONE);
+    for (int i = 0; i < type.length; i++) {
+      for (int j = 0; j < resourceList[i].size(); j++) {
+        ResourceEntry entry = resourceList[i].get(j);
+        if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN &&
+            entry.toString().length() <= 20)
+          values.add(new ResourceRefEntry(entry));
+        else if (entry.toString().length() <= 12 && isLegalEntry(entry))
+          values.add(new ResourceRefEntry(entry));
+      }
+      addExtraEntries(values);
+    }
+    Collections.sort(values, ignorecaseextcomparator);
+    list = new TextListPanel(values, false);
     list.addMouseListener(new MouseAdapter()
     {
       public void mouseClicked(MouseEvent event)
@@ -106,21 +142,25 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
           container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
       }
     });
-    ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resname + '.' + type);
-    if (entry == null) {
-      list.setSelectedValue(NONE, true);
-      for (int i = 0; i < values.size(); i++) {
-        Object o = values.get(i);
-        if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).name.equals(resname)) {
-          list.setSelectedValue(o, true);
-          break;
+
+    ResourceEntry entry = null;
+    for (int i = 0; i < type.length && entry == null; i++) {
+      entry = ResourceFactory.getInstance().getResourceEntry(resname + '.' + type[i]);
+      if (entry != null) {
+        for (int j = 0; j < values.size(); j++) {
+          Object o = values.get(j);
+          if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).entry == entry) {
+            list.setSelectedValue(o, true);
+            break;
+          }
         }
       }
     }
-    else {
-      for (int i = 0; i < values.size(); i++) {
-        Object o = values.get(i);
-        if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).entry == entry) {
+    if (entry == null) {
+      list.setSelectedValue(NONE, true);
+      for (int j = 0; j < values.size(); j++) {
+        Object o = values.get(j);
+        if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).name.equals(resname)) {
           list.setSelectedValue(o, true);
           break;
         }
@@ -180,13 +220,19 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       return true;
     }
     ResourceEntry entry = ((ResourceRefEntry)selected).entry;
-    if (entry == null)
+    if (entry == null) {
       resname = ((ResourceRefEntry)selected).name;
-    else {
-      int i = entry.toString().indexOf('.' + type.toUpperCase());
+    } else {
+      int i = -1;
+      for (int j = 0; j < type.length && i == -1; j++) {
+        i = entry.toString().indexOf('.' + type[j].toUpperCase());
+        if (i != -1) {
+          resname = entry.toString().substring(0, i);
+          curtype = type[j];
+        }
+      }
       if (i == -1)
         return false;
-      resname = entry.toString().substring(0, i);
     }
     return true;
   }
@@ -234,7 +280,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getResourceName()
   {
-    return new StringBuffer(resname).append('.').append(type).toString();
+    return new StringBuffer(resname).append('.').append(curtype).toString();
   }
 
   public String getSearchName()
@@ -247,12 +293,12 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getType()
   {
-    return type;
+    return curtype;
   }
 
   public boolean isLegalEntry(ResourceEntry entry)
   {
-    return true;
+    return entry.toString().lastIndexOf('.') != 0;
   }
 
   void addExtraEntries(List<ResourceRefEntry> entries)
@@ -288,6 +334,26 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     public String toString()
     {
       return name;
+    }
+  }
+
+  final class IgnoreCaseExtComparator<T> implements Comparator<T>
+  {
+    public int compare(T o1, T o2)
+    {
+      if (o1 != null && o2 != null) {
+        String s1 = o1.toString();
+        String s2 = o2.toString();
+        int i1 = s1.lastIndexOf('.') > 0 ? s1.lastIndexOf('.') : s1.length();
+        int i2 = s2.lastIndexOf('.') > 0 ? s2.lastIndexOf('.') : s2.length();
+        return s1.substring(0, i1).compareToIgnoreCase(s2.substring(0, i2));
+      } else
+        return 0;
+    }
+    
+    public boolean equals(Object obj)
+    {
+      return obj.equals(this);
     }
   }
 }
