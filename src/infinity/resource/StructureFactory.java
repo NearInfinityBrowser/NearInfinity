@@ -83,7 +83,8 @@ public final class StructureFactory
     if (savedir == null || !savedir.exists())
       savedir = ResourceFactory.getRootDir();
     JFileChooser fc = new JFileChooser(savedir);
-    fc.setDialogTitle("Create new " + resExt.get(type) + " resource");
+    String title = "Create new " + resExt.get(type) + " resource";
+    fc.setDialogTitle(title);
     fc.setFileFilter(new FileNameExtensionFilter(resExt.get(type) + " files", resExt.get(type).toLowerCase()));
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     fc.setSelectedFile(new File(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
@@ -92,10 +93,8 @@ public final class StructureFactory
       boolean fileExists = output.exists();
       if (fileExists) {
         final String options[] = {"Overwrite", "Cancel"};
-        if (JOptionPane.showOptionDialog(parent, output + "exists. Overwrite?",
-                                         "Create new " + resExt.get(type) + " resource",
-                                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                         null, options, options[0]) == 1)
+        if (JOptionPane.showOptionDialog(parent, output + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
+                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
           return;
       }
       try {
@@ -106,7 +105,7 @@ public final class StructureFactory
             struct.write(bos);
             bos.close();
             JOptionPane.showMessageDialog(parent, "File " + output + " created successfully.",
-                                          "Information", JOptionPane.INFORMATION_MESSAGE);
+                                          title, JOptionPane.INFORMATION_MESSAGE);
           } else
             unsupported();
         } catch (StructureException e) {
@@ -116,8 +115,7 @@ public final class StructureFactory
                                             "Error", JOptionPane.ERROR_MESSAGE);
               return;
             case CANCELLED_OPERATION:
-              JOptionPane.showMessageDialog(parent, "Operation cancelled!",
-                                            "Information", JOptionPane.INFORMATION_MESSAGE);
+              JOptionPane.showMessageDialog(parent, "Operation cancelled!", title, JOptionPane.INFORMATION_MESSAGE);
               return;
             default:
                throw e;
@@ -125,7 +123,7 @@ public final class StructureFactory
         }
       } catch (Exception e) {
         JOptionPane.showMessageDialog(parent, "Error while creating " + output.getName(),
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+                                      title, JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
       }
     }
@@ -232,11 +230,20 @@ public final class StructureFactory
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Animations offset
     s_are.add(ResourceStructure.ID_DWORD);                  // zero
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Tiled objects offset
-    s_are.add(ResourceStructure.ID_ARRAY, 8);               // block of zeros
-    s_are.add(ResourceStructure.ID_DWORD,
-        (id == ResourceFactory.ID_TORMENT) ? -1 : 0);       // Automap notes offset (except PST)
+    s_are.add(ResourceStructure.ID_DWORD, ofs, ofs);        // Song entries offset
+    s_are.add(ResourceStructure.ID_DWORD, ofs, ofs + 144);  // Rest interruptions offset
+    if (id == ResourceFactory.ID_TORMENT)                   // Automap notes offset (except PST)
+      s_are.add(ResourceStructure.ID_DWORD, -1);
+    else if (id == ResourceFactory.ID_BG2)                  // only BG2 actively uses automap notes in standalone ARE files
+      s_are.add(ResourceStructure.ID_DWORD, ofs, ofs + 372);
+    else
+      s_are.add(ResourceStructure.ID_DWORD, ofs, 0);
     s_are.add(ResourceStructure.ID_DWORD, 0);               // PST: Automap notes offset
-    s_are.add(ResourceStructure.ID_ARRAY, 80);              // block of zero
+    s_are.add(ResourceStructure.ID_ARRAY, 80);              // block of zeros
+    // Song section
+    s_are.add(ResourceStructure.ID_ARRAY, 144);             // block of zeros
+    // Rest interruptions section
+    s_are.add(ResourceStructure.ID_ARRAY, 228);             // block of zeros
 
     return s_are;
   }

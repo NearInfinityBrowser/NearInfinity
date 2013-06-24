@@ -78,15 +78,4 @@ public final class ProType extends HashBitmap
   }
 
 //--------------------- End Interface Editable ---------------------
-
-  // return size of the extended sections, depending on 'Projectile type'
-  public int getExtendedSize()
-  {
-    int v = (int)getValue();
-    if (v < 1)
-      v = 1;
-    if (v > 3)
-      v = 3;
-    return (v - 1) * 256;
-  }
 }

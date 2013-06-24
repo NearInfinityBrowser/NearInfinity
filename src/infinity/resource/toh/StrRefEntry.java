@@ -6,9 +6,8 @@ package infinity.resource.toh;
 
 import infinity.datatype.*;
 import infinity.resource.AbstractStruct;
-import infinity.resource.AddRemovable;
 
-final class StrRefEntry extends AbstractStruct implements AddRemovable
+final class StrRefEntry extends AbstractStruct
 {
   StrRefEntry() throws Exception
   {
@@ -24,15 +23,6 @@ final class StrRefEntry extends AbstractStruct implements AddRemovable
   {
     super(superStruct, name, buffer, offset);
   }
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
-  public boolean canRemove()
-  {
-    return true;
-  }
-
-//--------------------- End Interface AddRemovable ---------------------
 
   protected int read(byte[] buffer, int offset) throws Exception
   {

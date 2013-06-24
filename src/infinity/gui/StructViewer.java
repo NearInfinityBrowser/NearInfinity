@@ -228,9 +228,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       badd = new ButtonPopupMenu("Add...", menuItems);
       badd.setIcon(Icons.getIcon("Add16.gif"));
       badd.addItemListener(this);
-      bpanel.add(badd);
-      bpanel.add(bremove);
-      if (emptyTypes.length == 0)
+      if (emptyTypes.length > 0) {
+        bpanel.add(badd);
+        bpanel.add(bremove);
+      } else
         badd.setEnabled(false);
     }
     ifindattribute.setEnabled(false);

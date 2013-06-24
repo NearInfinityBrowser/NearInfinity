@@ -16,7 +16,7 @@ import infinity.resource.HasAddRemovable;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 
-public final class ProResource2 extends AbstractStruct implements Resource, HasAddRemovable
+public final class ProResource extends AbstractStruct implements Resource, HasAddRemovable
 {
   private static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
                                            "Green", "Purple", "Red", "White", "Ice",
@@ -25,7 +25,7 @@ public final class ProResource2 extends AbstractStruct implements Resource, HasA
                                             "Loop fire sound", "Loop impact sound", "Ignore center",
                                             "Draw as background"};
 
-  public ProResource2(ResourceEntry entry) throws Exception
+  public ProResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
