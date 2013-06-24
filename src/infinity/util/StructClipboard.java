@@ -138,6 +138,8 @@ public final class StructClipboard
       } catch (Exception e) {
         return CLIPBOARD_EMPTY;
       }
+      if (targetClasses == null)
+        targetClasses = new AddRemovable[0];
       for (int i = 0; i < contents.size(); i++) {
         Class c = contents.get(i).getClass();
         boolean found = false;

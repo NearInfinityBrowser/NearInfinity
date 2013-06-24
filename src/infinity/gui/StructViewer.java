@@ -657,6 +657,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         Object o = table.getModel().getValueAt(i, 1);
         if (!(o instanceof AddRemovable))
           isRemovable = false;
+        else
+          isRemovable = ((AddRemovable)o).canRemove();
         if (o instanceof AbstractStruct)
           isValue = false;
       }
@@ -674,8 +676,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (selected instanceof AddRemovable) {
         miCopyValue.setEnabled(false);
         miPasteValue.setEnabled(false);
-        miCut.setEnabled(true);
-        miCopy.setEnabled(true);
+        miCut.setEnabled(((AddRemovable)selected).canRemove());
+        miCopy.setEnabled(((AddRemovable)selected).canRemove());
       }
       else {
         miCopyValue.setEnabled(!(selected instanceof AbstractStruct));
