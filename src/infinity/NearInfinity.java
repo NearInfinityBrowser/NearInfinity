@@ -31,6 +31,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String WINDOW_SIZEY = "WindowSizeY";
   private static final String WINDOW_POSX = "WindowPosX";
   private static final String WINDOW_POSY = "WindowPosY";
+  private static final String WINDOW_STATE = "WindowState";
   private static final String LAST_GAMEDIR = "LastGameDir";
   private final JPanel containerpanel;
   private final ResourceTree tree;
@@ -85,7 +86,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } catch (Exception e) {
         JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
                                       JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();  
+        e.printStackTrace();
       }
     else {
       File newkeyfile = findKeyfile();
@@ -199,6 +200,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     int centerY = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight() - getSize().height >> 1;
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
     setVisible(true);
+    setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -392,6 +394,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_SIZEY, (int)getSize().getHeight());
     prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
     prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
+    prefs.putInt(WINDOW_STATE, getExtendedState());
     prefs.put(LAST_GAMEDIR, ResourceFactory.getRootDir().toString());
     BrowserMenuBar.getInstance().storePreferences();
   }

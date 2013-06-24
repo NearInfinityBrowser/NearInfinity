@@ -12,5 +12,14 @@ public final class RemovableDecNumber extends DecNumber implements AddRemovable
   {
     super(buffer, offset, length, name);
   }
+
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
 }
 

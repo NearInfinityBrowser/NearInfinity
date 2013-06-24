@@ -66,6 +66,15 @@ public final class Transition extends AbstractStruct implements AddRemovable
     return ((DecNumber)getAttribute("Trigger index")).getValue();
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Flags", s_flag));

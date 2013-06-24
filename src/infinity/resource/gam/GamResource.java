@@ -33,7 +33,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
       return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
-                                new NonPartyNPC()};
+        new NonPartyNPC()};
     else
       return new AddRemovable[]{new Variable(), new JournalEntry(), new NonPartyNPC()};
   }
@@ -134,26 +134,27 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     list.add(offset_journal);
 
     SectionOffset offKillvariable = null, offFamiliar = null, offIWD2 = null, offIWD = null;
-    SectionOffset offLocation = null, offRubikon = null, offBestiary = null;
-    SectionCount numKillVariable = null, numIWD = null, numLocation = null;
+    SectionOffset offLocation = null, offRubikon = null, offBestiary = null, offPocket = null;
+    SectionCount numKillVariable = null, numIWD2 = null, numIWD = null, numLocation = null, numPocket = null;
 
     int gameid = ResourceFactory.getGameID();
     if (gameid == ResourceFactory.ID_BG1 || gameid == ResourceFactory.ID_BG1TOTSC) { // V1.1
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-                        new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-                                     "Largest text window"}));
+               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
+                            "Largest text window"}));
       list.add(new DecNumber(buffer, offset + 100, 4, "Save version"));
       list.add(new Unknown(buffer, offset + 104, 76));
     }
     else if (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
-             gameid == ResourceFactory.ID_ICEWINDHOWTOT) { // V1.1
+        gameid == ResourceFactory.ID_ICEWINDHOWTOT) { // V1.1
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-                        new String[]{"Normal windows", "", "Larger text window",
-                                     "Largest text window"}));
+               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
+                            "Largest text window", "", "Fullscreen mode", "Left pane hidden",
+                            "Right pane hidden", "Unsupported"}));
       numIWD = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
       list.add(numIWD);
       offIWD = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
@@ -175,42 +176,38 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_TUTU) { // V2.0
+        gameid == ResourceFactory.ID_TUTU) { // V2.0
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-                        new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-                                     "Largest text window", "", "Fullscreen mode", "Left pane hidden",
-                                     "Right pane hidden", "Automap notes hidden"}));
+               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
+                            "Largest text window", "", "Fullscreen mode", "Left pane hidden",
+                            "Right pane hidden", "Automap notes hidden"}));
       list.add(new DecNumber(buffer, offset + 100, 4, "Save version"));
       offFamiliar = new SectionOffset(buffer, offset + 104, "Familiar info offset", Familiar.class);
       list.add(offFamiliar);
-//      list.add(new DecNumber(buffer, offset + 108, 4, "File size"));
       offLocation = new SectionOffset(buffer, offset + 108, "Stored locations offset", StoredLocation.class);
       list.add(offLocation);
       numLocation = new SectionCount(buffer, offset + 112, 4, "# stored locations", StoredLocation.class);
       list.add(numLocation);
       list.add(new DecNumber(buffer, offset + 116, 4, "Game time (real seconds)"));
-//      list.add(new DecNumber(buffer, offset + 120, 4, "File size"));
-      list.add(new SectionOffset(buffer, offset + 120, "Pocket plane locations offset", StoredLocation.class));
-      list.add(new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class));
+      offPocket = new SectionOffset(buffer, offset + 120, "Pocket plane locations offset", StoredLocation.class);
+      list.add(offPocket);
+      numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
+      list.add(numPocket);
       list.add(new Unknown(buffer, offset + 128, 52));
     }
     else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)
       list.add(new Unknown(buffer, offset + 84, 4));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
-                        new String[]{"Normal windows", "Party AI disabled", "",
-                                     "", "", "Fullscreen mode", "Button bar hidden",
-                                     "Console hidden", "Automap notes hidden"}));
-      list.add(new Unknown(buffer, offset + 100, 4));
-      if (version.toString().equalsIgnoreCase("V2.2")) {
-        offIWD2 = new SectionOffset(buffer, offset + 104, "Unknown offset",
-                                            UnknownSection.class);
-        list.add(offIWD2);
-      }
-      else
-        list.add(new Unknown(buffer, offset + 104, 4));
+               new String[]{"Normal windows", "Party AI disabled", "",
+                            "", "", "Fullscreen mode", "Button bar hidden",
+                            "Console hidden", "Automap notes hidden"}));
+      numIWD2 = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
+      list.add(numIWD2);
+      offIWD2 = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
+      list.add(offIWD2);
       list.add(new Unknown(buffer, offset + 108, 72));
     }
 
@@ -280,26 +277,42 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(familiar);
     }
 
-    if (offIWD2 != null) { // Icewind2
-      offset = offIWD2.getValue();
-      if (offset > 0) {
-        UnknownSection unknown = new UnknownSection(this, buffer, offset);
-        offset += unknown.getSize();
-        list.add(unknown);
+    if (offIWD2 != null && numIWD2 != null) { // Icewind2
+      // a leftover from BG2 Familiar Info structure?
+      if (numIWD2.getValue() > 0) {
+        offset = offIWD2.getValue();
+        for (int i = 0; i < numIWD2.getValue(); i++) {
+          UnknownSection3 unknown = new UnknownSection3(this, buffer, offset);
+          offset += unknown.getSize();
+          list.add(unknown);
+        }
+        HexNumber offEOS = new HexNumber(buffer, offset, 4, "End of unknown structure offset");
+        list.add(offEOS);
+        offset += 4;
+        int unknownSize = (offEOS.getValue() > buffer.length - 4) ?
+                              buffer.length - offset - 4 : offEOS.getValue() - offset;
+        list.add(new Unknown(buffer, offset, unknownSize, "Unknown structure"));
+        offset += unknownSize;
+        list.add(new Unknown(buffer, offset, 4));
+        offset += 4;
       }
     }
 
     if (numIWD != null && offIWD != null) { // Icewind
-      offset = offIWD.getValue();
-      if (offset > 0) {
+      // a leftover from BG2 Familiar Info structure?
+      if (numIWD.getValue() > 0) {
+        offset = offIWD.getValue();
         for (int i = 0; i < numIWD.getValue(); i++) {
           UnknownSection3 unknown = new UnknownSection3(this, buffer, offset);
           offset += unknown.getSize();
           list.add(unknown);
         }
-        list.add(new DecNumber(buffer, offset, 4, "File size"));
-        list.add(new Unknown(buffer, offset + 4, 324));
-        offset += 328;
+        HexNumber offEOS = new HexNumber(buffer, offset, 4, "End of unknown structure offset");
+        list.add(offEOS);
+        offset += 4;
+        int unknownSize = offEOS.getValue() > buffer.length ? buffer.length - offset : offEOS.getValue() - offset;
+        list.add(new Unknown(buffer, offset, unknownSize, "Unknown structure"));
+        offset += unknownSize;
       }
     }
 
@@ -308,6 +321,17 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       if (offset > 0) {
         for (int i = 0; i < numLocation.getValue(); i++) {
           StoredLocation location = new StoredLocation(this, buffer, offset);
+          offset += location.getSize();
+          list.add(location);
+        }
+      }
+    }
+
+    if (offPocket != null && numPocket != null) {  // BG2
+      offset = offPocket.getValue();
+      if (offset > 0) {
+        for (int i = 0; i < numPocket.getValue(); i++) {
+          StoredLocation location = new StoredLocation(this, "Pocket plane", buffer, offset);
           offset += location.getSize();
           list.add(location);
         }

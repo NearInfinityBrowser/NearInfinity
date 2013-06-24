@@ -44,17 +44,20 @@ public final class UnknownBinary extends Unknown
 
   public String toString()
   {
-    StringBuffer sb = new StringBuffer(9 * data.length + 1);
-    for (final byte d : data) {
-      String text = Integer.toBinaryString((int)d);
-      for (int j = 0; j < 8 - text.length(); j++)
-        sb.append('0');
-      if (text.length() > 8)
-        text = text.substring(text.length() - 8);
-      sb.append(text).append(' ');
-    }
-    sb.append('b');
-    return sb.toString();
+    if (data != null && data.length > 0) {
+      StringBuffer sb = new StringBuffer(9 * data.length + 1);
+      for (final byte d : data) {
+        String text = Integer.toBinaryString((int)d);
+        for (int j = 0; j < 8 - text.length(); j++)
+          sb.append('0');
+        if (text.length() > 8)
+          text = text.substring(text.length() - 8);
+        sb.append(text).append(' ');
+      }
+      sb.append('b');
+      return sb.toString();
+    } else
+      return new String();
   }
 }
 

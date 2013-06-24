@@ -22,12 +22,15 @@ import infinity.resource.mus.MusResource;
 import infinity.resource.nwn.*;
 import infinity.resource.nwn.gff.GffResource;
 import infinity.resource.other.*;
+import infinity.resource.pro.ProResource;
 import infinity.resource.sav.SavResource;
 import infinity.resource.sound.AcmResource;
 import infinity.resource.sound.WavResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.src.SrcResource;
 import infinity.resource.sto.StoResource;
+import infinity.resource.toh.TohResource;
+import infinity.resource.tot.TotResource;
 import infinity.resource.var.VarResource;
 import infinity.resource.vef.VefResource;
 import infinity.resource.wed.WedResource;
@@ -257,6 +260,10 @@ public final class ResourceFactory
           res = new VarResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("BAF"))
           res = new BafResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("TOH"))
+          res = new TohResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("TOT"))
+          res = new TotResource(entry);
         else
           res = new UnknownResource(entry);
       }
@@ -309,7 +316,7 @@ public final class ResourceFactory
     else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
     else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/DEATHAND.wbm").exists())
-   	  currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
+      currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
 
     keyfile = new Keyfile(file, currentGame);
     factory = this;
@@ -501,7 +508,7 @@ public final class ResourceFactory
     // dialog.tlk has moved in BGEE:
     File dlg_file = new File(rootDir + "/lang/en_US", DIALOGFILENAME); //otherwise we incorrectly load the one in rootdir, if it exists
     if (! dlg_file.exists()) {
-    	dlg_file = new File(rootDir, DIALOGFILENAME);
+      dlg_file = new File(rootDir, DIALOGFILENAME);
     }
     StringResource.init(dlg_file);
 

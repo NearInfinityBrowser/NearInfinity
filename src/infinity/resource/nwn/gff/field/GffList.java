@@ -59,7 +59,7 @@ public final class GffList extends GffField
 
   public Object getValue()
   {
-    return null;  
+    return null;
   }
 
   public void initStructs(GffStruct structArray[])

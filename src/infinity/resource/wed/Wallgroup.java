@@ -27,6 +27,15 @@ final class Wallgroup extends AbstractStruct implements AddRemovable
     return count + index;
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   public int read(byte buffer[], int offset)
   {
     list.add(new DecNumber(buffer, offset, 2, "Polygon index"));
