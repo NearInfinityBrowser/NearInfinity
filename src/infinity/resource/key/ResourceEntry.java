@@ -11,8 +11,7 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.itm.ItmResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
-import infinity.util.Byteconvert;
-import infinity.util.Filereader;
+import infinity.util.*;
 
 import javax.swing.*;
 import java.io.*;
@@ -25,7 +24,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   {
     if (file.getName().toUpperCase().endsWith(".TIS")) {
       try {
-        InputStream is = new BufferedInputStream(new FileInputStream(file));
+        InputStream is = new BufferedInputStream(new FileInputStreamCI(file));
         byte data[] = Filereader.readBytes(is, 24);
         is.close();
         if (!new String(data, 0, 4).equalsIgnoreCase("TIS ")) {

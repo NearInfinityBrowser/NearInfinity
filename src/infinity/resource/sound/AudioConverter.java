@@ -3,6 +3,7 @@ package infinity.resource.sound;
 
 import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
+import infinity.util.FileCI;
 import infinity.util.StreamDiscarder;
 
 import java.io.File;
@@ -36,9 +37,9 @@ public class AudioConverter
     String d = BrowserMenuBar.getInstance().getAudioDecoder();
     if (d.equalsIgnoreCase(ACM2WAV)) {
       if (acm2wav == null || !acm2wav.exists())
-        acm2wav = new File(ResourceFactory.getRootDir(), ACM2WAV);
+        acm2wav = new FileCI(ResourceFactory.getRootDir(), ACM2WAV);
       if (!acm2wav.exists())
-        acm2wav = new File(ACM2WAV);
+        acm2wav = new FileCI(ACM2WAV);
       if (acm2wav.exists())
         decoder = ACM2WAV;
     }

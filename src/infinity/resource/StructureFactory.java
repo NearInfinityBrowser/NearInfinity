@@ -7,7 +7,6 @@ package infinity.resource;
 import java.awt.Window;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.EnumMap;
 
 import javax.swing.JFileChooser;
@@ -17,6 +16,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import infinity.gui.NewChrSettings;
 import infinity.gui.NewProSettings;
 import infinity.gui.NewResSettings;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
 import infinity.util.ResourceStructure;
 
 // Create different pre-initialized IE game resources from scratch and writing them to disk.
@@ -72,22 +73,22 @@ public final class StructureFactory
       case RES_BIO:
       case RES_CHR:
       case RES_RES:
-        savedir = new File(ResourceFactory.getRootDir(), "Characters");
+        savedir = new FileCI(ResourceFactory.getRootDir(), "Characters");
         if (!savedir.exists())
-          savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+          savedir = new FileCI(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
       default:
         savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
     }
     if (savedir == null || !savedir.exists())
-      savedir = ResourceFactory.getRootDir();
+      savedir = new FileCI(ResourceFactory.getRootDir(), "");
     JFileChooser fc = new JFileChooser(savedir);
     String title = "Create new " + resExt.get(type) + " resource";
     fc.setDialogTitle(title);
     fc.setFileFilter(new FileNameExtensionFilter(resExt.get(type) + " files", resExt.get(type).toLowerCase()));
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    fc.setSelectedFile(new File(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
+    fc.setSelectedFile(new FileCI(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       File output = fc.getSelectedFile();
       boolean fileExists = output.exists();
@@ -101,7 +102,7 @@ public final class StructureFactory
         try {
           ResourceStructure struct = createStructure(type, output.getName(), parent);
           if (struct != null) {
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
             struct.write(bos);
             bos.close();
             JOptionPane.showMessageDialog(parent, "File " + output + " created successfully.",

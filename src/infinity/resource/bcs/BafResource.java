@@ -8,11 +8,10 @@ import infinity.resource.*;
 import infinity.resource.Closeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.BIFFResourceEntry;
-import infinity.util.Decryptor;
-import infinity.util.Filewriter;
 import infinity.gui.*;
 import infinity.icon.Icons;
 import infinity.search.TextResourceSearcher;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -150,11 +149,11 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         });
       }
       chooser.setSelectedFile(
-              new File(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BCS"));
+              new FileCI(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BCS"));
       int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
       if (returnval == JFileChooser.APPROVE_OPTION) {
         try {
-          PrintWriter pw = new PrintWriter(new FileOutputStream(chooser.getSelectedFile()));
+          PrintWriter pw = new PrintWriter(new FileOutputStreamCI(chooser.getSelectedFile()));
           pw.println(codeText.getText());
           pw.close();
           JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
@@ -181,7 +180,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-        new File(ResourceFactory.getRootDir(),
+        new FileCI(ResourceFactory.getRootDir(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();

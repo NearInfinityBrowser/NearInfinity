@@ -10,6 +10,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.FileResourceEntry;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -195,7 +196,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private SortedMap<Integer, String> compileFile(File file)
   {
     try {
-      BufferedReader br = new BufferedReader(new FileReader(file));
+      BufferedReader br = new BufferedReader(new FileReaderCI(file));
       StringBuffer source = new StringBuffer();
       String line = br.readLine();
       while (line != null) {
@@ -217,10 +218,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           filename += ".BS";
         File output;
         if (rbOrigDir.isSelected())
-          output = new File(file.getParent(), filename);
+          output = new FileCI(file.getParent(), filename);
         else
-          output = new File(tfOtherDir.getText(), filename);
-        PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          output = new FileCI(tfOtherDir.getText(), filename);
+        PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
         pw.print(compiled);
         pw.close();
       }
@@ -234,7 +235,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private boolean decompileFile(File file)
   {
     try {
-      BufferedReader br = new BufferedReader(new FileReader(file));
+      BufferedReader br = new BufferedReader(new FileReaderCI(file));
       StringBuffer code = new StringBuffer();
       String line = br.readLine();
       while (line != null) {
@@ -246,10 +247,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       filename = filename.substring(0, filename.lastIndexOf((int)'.')) + ".BAF";
       File output;
       if (rbOrigDir.isSelected())
-        output = new File(file.getParent(), filename);
+        output = new FileCI(file.getParent(), filename);
       else
-        output = new File(tfOtherDir.getText(), filename);
-      PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+        output = new FileCI(tfOtherDir.getText(), filename);
+      PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI(output)));
       pw.println(Decompiler.decompile(code.toString(), true));
       pw.close();
     } catch (IOException e) {

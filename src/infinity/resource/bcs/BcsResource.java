@@ -12,8 +12,7 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ScriptReferenceSearcher;
 import infinity.search.TextResourceSearcher;
-import infinity.util.Decryptor;
-import infinity.util.Filewriter;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -42,10 +41,10 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
   public static void main(String args[]) throws IOException
   {
-    new ResourceFactory(new File("CHITIN.KEY"));
+    new ResourceFactory(new FileCI("CHITIN.KEY"));
     List<ResourceEntry> bcsfiles = ResourceFactory.getInstance().getResources("BCS");
     bcsfiles.addAll(ResourceFactory.getInstance().getResources("BS"));
-    PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter("diff.txt")));
+    PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriterCI("diff.txt")));
     long start = System.currentTimeMillis();
     for (int i = bcsfiles.size() - 1; i >= 0; i--) {
       try {
@@ -100,7 +99,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     if (event.getSource() == bcompile) {
       try {
         if (DEBUG) {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("bcs_org.txt"));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI("bcs_org.txt"));
           write(bos);
           bos.close();
         }
@@ -111,7 +110,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
         sourceChanged = false;
         codeChanged = true;
         if (DEBUG) {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("bcs_new.txt"));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI("bcs_new.txt"));
           write(bos);
           bos.close();
         }
@@ -210,7 +209,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-        new File(ResourceFactory.getRootDir(),
+        new FileCI(ResourceFactory.getRootDir(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
@@ -321,11 +320,11 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
           });
         }
         chooser.setSelectedFile(
-                new File(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BAF"));
+                new FileCI(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BAF"));
         int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
         if (returnval == JFileChooser.APPROVE_OPTION) {
           try {
-            PrintWriter pw = new PrintWriter(new FileOutputStream(chooser.getSelectedFile()));
+            PrintWriter pw = new PrintWriter(new FileOutputStreamCI(chooser.getSelectedFile()));
             pw.println(sourceText.getText());
             pw.close();
             JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +

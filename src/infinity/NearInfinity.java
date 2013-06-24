@@ -12,8 +12,7 @@ import infinity.resource.bcs.Compiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.search.SearchFrame;
-import infinity.util.IdsMapCache;
-import infinity.util.StringResource;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -43,7 +42,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     JFileChooser chooser;
     if (ResourceFactory.getRootDir() == null)
-      chooser = new JFileChooser(new File("."));
+      chooser = new JFileChooser(new FileCI("."));
     else
       chooser = new JFileChooser(ResourceFactory.getRootDir());
     chooser.setDialogTitle("Open game: Locate keyfile");
@@ -129,10 +128,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setJMenuBar(menuBar);
 
     String lastDir = prefs.get(LAST_GAMEDIR, null);
-    if (new File(KEYFILENAME).exists())
-      new ResourceFactory(new File(KEYFILENAME));
-    else if (lastDir != null && new File(lastDir, KEYFILENAME).exists())
-      new ResourceFactory(new File(lastDir, KEYFILENAME));
+    if (new FileCI(KEYFILENAME).exists())
+      new ResourceFactory(new FileCI(KEYFILENAME));
+    else if (lastDir != null && new FileCI(lastDir, KEYFILENAME).exists())
+      new ResourceFactory(new FileCI(lastDir, KEYFILENAME));
     else {
       File key = findKeyfile();
       if (key == null)

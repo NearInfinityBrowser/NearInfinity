@@ -8,8 +8,7 @@ import infinity.gui.*;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -246,7 +245,7 @@ public final class ErfResource implements Resource, ActionListener, ListSelectio
 
     protected File getActualFile(boolean ignoreoverride)
     {
-      return new File(ResourceFactory.getRootDir(), toString());
+      return new FileCI(ResourceFactory.getRootDir(), toString());
     }
 
     public String toString()

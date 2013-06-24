@@ -9,6 +9,7 @@ import infinity.gui.*;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -121,7 +122,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     else if (event.getSource() == bsave) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save result");
-      chooser.setSelectedFile(new File("result.txt"));
+      chooser.setSelectedFile(new FileCI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
@@ -132,7 +133,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output))); //FileWriter intentional
           pw.println("File corruption search");
           pw.println("Number of errors: " + table.getRowCount());
           for (int i = 0; i < table.getRowCount(); i++)

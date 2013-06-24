@@ -363,7 +363,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       Charset charset = StringResource.getCharset();
       ProgressMonitor progress = null;
       try {
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(stringfile));
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStreamCI(stringfile));
         signature = Filereader.readString(bis, 4);
         version = Filereader.readString(bis, 4);
         if (version.equals("V1  "))
@@ -395,7 +395,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
         }
         bis.close();
 
-        RandomAccessFile ranfile = new RandomAccessFile(stringfile, "r");
+        RandomAccessFile ranfile = new RandomAccessFileCI(stringfile, "r");
         for (int i = 0; i < entries.length; i++) {
           entries[i].readString(ranfile, entries_offset.getValue(), charset);
           progress.setProgress(i + 1 + entries_count.getValue());
@@ -444,7 +444,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       badd.setEnabled(false);
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Export " + stringfile.getName());
-      chooser.setSelectedFile(new File("dialog.txt"));
+      chooser.setSelectedFile(new FileCI("dialog.txt"));
       int returnval = chooser.showSaveDialog(editor);
       if (returnval == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
@@ -465,7 +465,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           ProgressMonitor progress = new ProgressMonitor(editor, "Writing file...", null, 0,
                                                          entries_count.getValue());
           progress.setMillisToDecideToPopup(100);
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output))); //FileWriter intentional
           for (int i = 0; i < entries.length; i++) {
             if (entries[i] != null) {
               pw.println(i + ":");
@@ -528,7 +528,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
         }
 
         StringResource.close();
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(stringfile));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(stringfile));
         Filewriter.writeString(bos, signature, 4);
         Filewriter.writeString(bos, version, 4);
         unknown.write(bos);

@@ -12,7 +12,7 @@ import infinity.resource.Closeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.TextResourceSearcher;
-import infinity.util.Filewriter;
+import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -68,7 +68,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-        new File(ResourceFactory.getRootDir(),
+        new FileCI(ResourceFactory.getRootDir(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();

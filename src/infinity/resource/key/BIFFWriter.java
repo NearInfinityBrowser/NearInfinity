@@ -6,8 +6,7 @@ package infinity.resource.key;
 
 import infinity.gui.BIFFEditor;
 import infinity.resource.ResourceFactory;
-import infinity.util.ArrayUtil;
-import infinity.util.Filewriter;
+import infinity.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -33,7 +32,7 @@ public final class BIFFWriter
 
   private static void compressBIF(File biff, File compr, String uncrfilename) throws IOException
   {
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(compr));
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamCI(compr));
     Filewriter.writeString(os, "BIF ", 4);
     Filewriter.writeString(os, "V1.0", 4);
     Filewriter.writeInt(os, uncrfilename.length());
@@ -41,7 +40,7 @@ public final class BIFFWriter
     Filewriter.writeInt(os, (int)biff.length()); // Uncompressed length
     Filewriter.writeInt(os, 0); // Compressed length
     OutputStream dos = new DeflaterOutputStream(os);
-    InputStream is = new BufferedInputStream(new FileInputStream(biff));
+    InputStream is = new BufferedInputStream(new FileInputStreamCI(biff));
     byte buffer[] = new byte[32765];
     int bytesread = is.read(buffer, 0, buffer.length);
     while (bytesread != -1) {
@@ -52,7 +51,7 @@ public final class BIFFWriter
     dos.close();
     os.close();
     int comprsize = (int)compr.length() - (0x20 + uncrfilename.length());
-    RandomAccessFile ranfile = new RandomAccessFile(compr, "rw");
+    RandomAccessFile ranfile = new RandomAccessFileCI(compr, "rw");
     ranfile.seek((long)(0x10 + uncrfilename.length()));
     Filewriter.writeInt(ranfile, comprsize);
     ranfile.close();
@@ -60,11 +59,11 @@ public final class BIFFWriter
 
   private static void compressBIFC(File biff, File compr) throws Exception
   {
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(compr));
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamCI(compr));
     Filewriter.writeString(os, "BIFC", 4);
     Filewriter.writeString(os, "V1.0", 4);
     Filewriter.writeInt(os, (int)biff.length());
-    InputStream is = new BufferedInputStream(new FileInputStream(biff));
+    InputStream is = new BufferedInputStream(new FileInputStreamCI(biff));
     byte block[] = readBytes(is, 8192);
     while (block.length != 0) {
       byte compressed[] = compress(block);
@@ -108,7 +107,7 @@ public final class BIFFWriter
 
   public void write() throws Exception
   {
-    File dummyfile = new File(ResourceFactory.getRootDir(),
+    File dummyfile = new FileCI(ResourceFactory.getRootDir(),
                               "data" + File.separatorChar + "_dummy.bif");
     writeBIFF(dummyfile);
     ResourceFactory.getKeyfile().closeBIFFFile();
@@ -117,37 +116,37 @@ public final class BIFFWriter
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = new File(ResourceFactory.getRootDir(), bifentry.toString());
+        realfile = new FileCI(ResourceFactory.getRootDir(), bifentry.toString());
       else
         realfile.delete();
       dummyfile.renameTo(realfile);
     }
     else if (format == BIFFEditor.BIF) {
-      File compressedfile = new File(ResourceFactory.getRootDir(),
+      File compressedfile = new FileCI(ResourceFactory.getRootDir(),
                                      "data" + File.separatorChar + "_dummy.cbf");
       compressBIF(dummyfile, compressedfile, bifentry.toString());
       dummyfile.delete();
       // Delete both BIFF version if this exist
       String filename = ResourceFactory.getRootDir().toString() + bifentry.toString();
-      new File(filename).delete();
+      new FileCI(filename).delete();
       filename = filename.substring(0, filename.lastIndexOf(".")) + ".cbf";
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = new File(filename);
+        realfile = new FileCI(filename);
       else
         realfile.delete();
       compressedfile.renameTo(realfile);
     }
     else if (format == BIFFEditor.BIFC) {
-      File compressedfile = new File(ResourceFactory.getRootDir(),
+      File compressedfile = new FileCI(ResourceFactory.getRootDir(),
                                      "data" + File.separatorChar + "_dummy2.bif");
       compressBIFC(dummyfile, compressedfile);
       dummyfile.delete();
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = new File(ResourceFactory.getRootDir(), bifentry.toString());
+        realfile = new FileCI(ResourceFactory.getRootDir(), bifentry.toString());
       else
         realfile.delete();
       compressedfile.renameTo(realfile);
@@ -164,7 +163,7 @@ public final class BIFFWriter
 
   private void writeBIFF(File file) throws Exception
   {
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamCI(file));
     Filewriter.writeString(os, "BIFF", 4);
     Filewriter.writeString(os, "V1  ", 4);
     Filewriter.writeInt(os, resources.size());

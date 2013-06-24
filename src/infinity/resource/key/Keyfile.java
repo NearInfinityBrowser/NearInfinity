@@ -33,8 +33,8 @@ public final class Keyfile
   public static void main(String args[]) throws Exception
   {
     // Compare two keyfiles
-    Keyfile key1 = new Keyfile(new File(args[0]), ResourceFactory.ID_BG2TOB);
-    Keyfile key2 = new Keyfile(new File(args[1]), ResourceFactory.ID_BG2TOB);
+    Keyfile key1 = new Keyfile(new FileCI(args[0]), ResourceFactory.ID_BG2TOB);
+    Keyfile key2 = new Keyfile(new FileCI(args[1]), ResourceFactory.ID_BG2TOB);
     ResourceTreeModel model1 = new ResourceTreeModel();
     ResourceTreeModel model2 = new ResourceTreeModel();
     key1.addBIFFResourceEntries(model1);
@@ -329,7 +329,7 @@ public final class Keyfile
 
   public void addBIFFResourceEntries(ResourceTreeModel treemodel) throws Exception
   {
-    BufferedInputStream is = new BufferedInputStream(new FileInputStream(keyfile));
+    BufferedInputStream is = new BufferedInputStream(new FileInputStreamCI(keyfile));
     byte buffer[] = Filereader.readBytes(is, (int)keyfile.length());
     is.close();
 
@@ -463,7 +463,7 @@ public final class Keyfile
 
   public void write() throws IOException
   {
-    BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(keyfile));
+    BufferedOutputStream os = new BufferedOutputStream(new FileOutputStreamCI(keyfile));
     int bifoff = 0x18;
     int offset = bifoff + 0x0c * biffEntries.size();
     for (int i = 0; i < biffEntries.size(); i++)

@@ -152,7 +152,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     resourcename = resourcename.substring(0, resourcename.lastIndexOf(".")) + ".CRE";
     JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
     chooser.setDialogTitle("Convert CHR to CRE");
-    chooser.setSelectedFile(new File(resourcename));
+    chooser.setSelectedFile(new FileCI(resourcename));
     if (chooser.showSaveDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
       File output = chooser.getSelectedFile();
       if (output.exists()) {
@@ -167,7 +167,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
         while (!crefile.getStructEntryAt(0).toString().equals("CRE "))
           crefile.list.remove(0);
         convertToSemiStandard(crefile);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(output));
         crefile.write(bos);
         bos.close();
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + output,

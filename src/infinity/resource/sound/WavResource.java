@@ -11,8 +11,7 @@ import infinity.resource.Closeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.WavReferenceSearcher;
-import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,8 +52,8 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
         wavfile = entry.getActualFile();
       else {
         // In BIF
-        wavfile = new File(entry.toString());
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(wavfile));
+        wavfile = new FileCI(entry.toString());
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(wavfile));
         bos.write(data, 0, data.length);
         bos.close();
         fileCreated = true;
@@ -81,8 +80,8 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
         fileCreated = true;
       }
       else {
-        wavfile = new File(entry.toString());
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(wavfile));
+        wavfile = new FileCI(entry.toString());
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(wavfile));
         bos.write(data, 470, data.length - 470);
         bos.close();
         fileCreated = true;
@@ -127,7 +126,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     else if (event.getSource() == bexportConvert) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Export & Convert");
-      chooser.setSelectedFile(new File(entry.toString()));
+      chooser.setSelectedFile(new FileCI(entry.toString()));
       if (chooser.showDialog(panel, "Export") == JFileChooser.APPROVE_OPTION) {
         String filename = chooser.getSelectedFile().toString();
         try {

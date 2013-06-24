@@ -6,8 +6,8 @@ package infinity.resource.sound;
 
 import infinity.resource.ResourceFactory;
 import infinity.resource.sound.AudioConverter;
-import infinity.util.Byteconvert;
-import infinity.util.Filewriter;
+import infinity.util.*;
+
 
 import javax.sound.sampled.*;
 import java.io.*;
@@ -37,7 +37,7 @@ public final class SoundUtilities
 
   public static File convert(File acmfile, boolean isMono) throws IOException
   {
-    File wavfile = new File(acmfile.getAbsoluteFile().getParent() ,acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
+    File wavfile = new FileCI(acmfile.getAbsoluteFile().getParentFile() ,acmfile.getName().substring(0, acmfile.getName().lastIndexOf((int)'.')) + ".WAV");
     if (!wavfile.exists()) {
       if (converter == null || !converter.converterExists())
         converter = new AudioConverter();
@@ -48,10 +48,10 @@ public final class SoundUtilities
 
   public static File convert(byte data[], int offset, String filename, boolean isMono) throws IOException
   {
-    File wavfile = new File(filename.substring(0, filename.lastIndexOf((int)'.')) + ".WAV");
+    File wavfile = new FileCI(filename.substring(0, filename.lastIndexOf((int)'.')) + ".WAV");
     if (!wavfile.exists()) {
-      File acmfile = new File(filename.substring(0, filename.lastIndexOf((int)'.')) + ".ACM");
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(acmfile));
+      File acmfile = new FileCI(filename.substring(0, filename.lastIndexOf((int)'.')) + ".ACM");
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamCI(acmfile));
       bos.write(data, offset, data.length - offset);
       bos.close();
       wavfile = convert(acmfile, isMono);
@@ -69,8 +69,8 @@ public final class SoundUtilities
 
   public static File convertADPCM(byte data[], int offset, String filename) throws IOException
   {
-    File pcmwav = new File(filename);
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(pcmwav));
+    File pcmwav = new FileCI(filename);
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamCI(pcmwav));
     offset += 0x0c;
     offset = fmt.read(data, offset);
     if (fmt.bits_sample != 4) {

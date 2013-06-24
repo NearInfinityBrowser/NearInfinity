@@ -6,7 +6,7 @@ package infinity.resource.key;
 
 import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
-import infinity.util.Filereader;
+import infinity.util.*;
 
 import java.io.*;
 
@@ -48,7 +48,7 @@ public final class FileResourceEntry extends ResourceEntry
 
   public byte[] getResourceData(boolean ignoreoverride) throws IOException
   {
-    InputStream is = new BufferedInputStream(new FileInputStream(file));
+    InputStream is = new BufferedInputStream(new FileInputStreamCI(file));
     byte buffer[] = Filereader.readBytes(is, (int)file.length());
     is.close();
     return buffer;
@@ -56,7 +56,7 @@ public final class FileResourceEntry extends ResourceEntry
 
   public InputStream getResourceDataAsStream(boolean ignoreoverride) throws IOException
   {
-    return new BufferedInputStream(new FileInputStream(file));
+    return new BufferedInputStream(new FileInputStreamCI(file));
   }
 
   public int[] getResourceInfo(boolean ignoreoverride)
@@ -90,7 +90,7 @@ public final class FileResourceEntry extends ResourceEntry
 
   public void renameFile(String newname)
   {
-    File newFile = new File(file.getParentFile(), newname);
+    File newFile = new FileCI(file.getParentFile(), newname);
     file.renameTo(newFile);
     file = newFile;
   }

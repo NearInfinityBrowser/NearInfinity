@@ -25,11 +25,11 @@ public final class BIFFArchive
   BIFFArchive(File file) throws IOException
   {
     this.file = file;
-    InputStream is = new BufferedInputStream(new FileInputStream(file));
+    InputStream is = new BufferedInputStream(new FileInputStreamCI(file));
     signature = Filereader.readString(is, 4);
     if (signature.equals("BIFF")) {
       readBIFFHeader(is);
-      ranfile = new RandomAccessFile(file, "r");
+      ranfile = new RandomAccessFileCI(file, "r");
     }
     else if (signature.equals("BIF ")) {
       Filereader.readString(is, 4); // Version
@@ -121,7 +121,7 @@ public final class BIFFArchive
 
   private byte[] getBIFCResource(int offset, boolean isTile) throws IOException
   {
-    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
+    BufferedInputStream fis = new BufferedInputStream(new FileInputStreamCI(file));
     fis.skip((long)comprOff);
     int startoffset = biffEntryOff + offset;
 
@@ -203,7 +203,7 @@ public final class BIFFArchive
 
   private InputStream getBIFCResourceAsStream(int offset, boolean isTile) throws IOException
   {
-    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
+    BufferedInputStream fis = new BufferedInputStream(new FileInputStreamCI(file));
     fis.skip((long)comprOff);
     int startoffset = biffEntryOff + offset;
 
@@ -266,7 +266,7 @@ public final class BIFFArchive
 
   private int[] getBIFCResourceInfo(int offset, boolean isTile) throws IOException
   {
-    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
+    BufferedInputStream fis = new BufferedInputStream(new FileInputStreamCI(file));
     fis.skip((long)comprOff);
     int startoffset = biffEntryOff + offset;
 
@@ -335,7 +335,7 @@ public final class BIFFArchive
     Filereader.readInt(ranfile); // Locator
     int resoff = Filereader.readInt(ranfile);
 
-    InputStream is = new BufferedInputStream(new FileInputStream(file));
+    InputStream is = new BufferedInputStream(new FileInputStreamCI(file));
     is.skip((long)resoff);
 
     return is;
@@ -355,7 +355,7 @@ public final class BIFFArchive
 
   private byte[] getBIFResource(int offset, boolean isTile) throws IOException
   {
-    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+    BufferedInputStream bis = new BufferedInputStream(new FileInputStreamCI(file));
     bis.skip((long)comprOff);
 
     InflaterInputStream iis = new InflaterInputStream(bis);
@@ -394,7 +394,7 @@ public final class BIFFArchive
 
   private InputStream getBIFResourceAsStream(int offset, boolean isTile) throws IOException
   {
-    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+    BufferedInputStream bis = new BufferedInputStream(new FileInputStreamCI(file));
     bis.skip((long)comprOff);
 
     InflaterInputStream iis = new InflaterInputStream(bis);
@@ -419,7 +419,7 @@ public final class BIFFArchive
 
   private int[] getBIFResourceInfo(int offset, boolean isTile) throws IOException
   {
-    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+    BufferedInputStream bis = new BufferedInputStream(new FileInputStreamCI(file));
     bis.skip((long)comprOff);
 
     InflaterInputStream iis = new InflaterInputStream(bis);
