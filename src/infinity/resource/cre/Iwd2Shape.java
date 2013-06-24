@@ -20,6 +20,15 @@ public final class Iwd2Shape extends AbstractStruct implements AddRemovable
     super(superStruct, "Shape", buffer, offset);
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new IwdRef(buffer, offset, "ResRef", "LISTSHAP.2DA"));

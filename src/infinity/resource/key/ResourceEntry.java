@@ -33,7 +33,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           int tilecount = (int)file.length() / tilesize;
           return new int[]{tilecount, tilesize};
         }
-        return new int[]{Byteconvert.convertInt(data, 8), Byteconvert.convertInt(data, 20)};
+        return new int[]{Byteconvert.convertInt(data, 8), Byteconvert.convertInt(data, 12)};
       } catch (IOException e) {
         e.printStackTrace();
       }

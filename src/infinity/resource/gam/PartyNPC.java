@@ -66,6 +66,16 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
+
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
   public JComponent getDetailViewer()

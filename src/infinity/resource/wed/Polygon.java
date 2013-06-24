@@ -24,6 +24,16 @@ abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRem
 
 // --------------------- End Interface HasAddRemovable ---------------------
 
+
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {

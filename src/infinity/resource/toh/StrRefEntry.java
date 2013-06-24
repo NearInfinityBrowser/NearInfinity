@@ -6,9 +6,8 @@ package infinity.resource.toh;
 
 import infinity.datatype.*;
 import infinity.resource.AbstractStruct;
-import infinity.resource.AddRemovable;
 
-final class StrRefEntry extends AbstractStruct implements AddRemovable
+final class StrRefEntry extends AbstractStruct
 {
   StrRefEntry() throws Exception
   {

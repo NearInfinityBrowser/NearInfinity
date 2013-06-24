@@ -8,21 +8,12 @@ import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 
-public final class TohResource extends AbstractStruct implements Resource/*, HasAddRemovable*/
+public final class TohResource extends AbstractStruct implements Resource
 {
   public TohResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
-
-  // --------------------- Begin Interface HasAddRemovable ---------------------
-  /*
-  public AddRemovable[] getAddRemovables() throws Exception
-  {
-    return new AddRemovable[]{new StrRefEntry()};
-  }
-   */
-  // --------------------- End Interface HasAddRemovable ---------------------
 
   protected int read(byte[] buffer, int offset) throws Exception
   {

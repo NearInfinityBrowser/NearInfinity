@@ -40,6 +40,16 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
+
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
   public JComponent getDetailViewer()

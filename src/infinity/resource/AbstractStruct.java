@@ -352,6 +352,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     else
       index = getAddedPosition();
 
+    return addDatatype(addedEntry, index);
+  }
+
+  public int addDatatype(AddRemovable addedEntry, int index)
+  {
     // Increase count
     if (countmap.containsKey(addedEntry.getClass()))
       countmap.get(addedEntry.getClass()).incValue(1);
