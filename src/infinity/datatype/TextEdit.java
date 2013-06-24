@@ -17,39 +17,35 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.EnumMap;
 
 public final class TextEdit extends Datatype implements Editable
 {
-  // Ensures a size limit on byte level
-  private class FixedDocument extends PlainDocument
-  {
-    private int maxLength;
-    private JTextArea textArea;
+  public static enum EOLType {
+    UNIX, WINDOWS
+  }
 
-    FixedDocument(JTextArea text, int length)
-    {
-      super();
-      textArea = text;
-      maxLength = length >= 0 ? length : 0;
-    }
-
-    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException
-    {
-      if (str == null || textArea == null ||
-          textArea.getText().getBytes().length + str.getBytes().length > maxLength)
-        return;
-      super.insertString(offs, str, a);
-    }
+  private static final EnumMap<EOLType, String> EOL = new EnumMap<EOLType, String>(EOLType.class);
+  static {
+    EOL.put(EOLType.UNIX, "\n");
+    EOL.put(EOLType.WINDOWS, "\r\n");
   }
 
   JTextArea textArea;
   private byte[] bytes;
   private String text;
+  private EOLType eolType;
 
   public TextEdit(byte buffer[], int offset, int length, String name)
   {
+    this(buffer, offset, length, name, EOLType.UNIX);
+  }
+
+  public TextEdit(byte buffer[], int offset, int length, String name, EOLType eolType)
+  {
     super(offset, length, name);
     bytes = ArrayUtil.getSubArray(buffer, offset, length);
+    this.eolType = (eolType != null) ? eolType : EOLType.UNIX;
   }
 
   // --------------------- Begin Interface Editable ---------------------
@@ -117,14 +113,14 @@ public final class TextEdit extends Datatype implements Editable
   public String toString()
   {
     if (text == null)
-      text = Byteconvert.convertString(bytes, 0, bytes.length);
+      text = eolConvert(Byteconvert.convertString(bytes, 0, bytes.length), System.getProperty("line.separator"));
     return text;
   }
 
   public byte[] toArray()
   {
     if (text != null) {
-      byte[] buf = text.getBytes();
+      byte[] buf = eolConvert(text).getBytes();
       int imax = buf.length < bytes.length ? buf.length : bytes.length;
       for (int i = 0; i < imax; i++)
         bytes[i] = buf[i];
@@ -132,5 +128,46 @@ public final class TextEdit extends Datatype implements Editable
         bytes[i] = 0;
     }
     return bytes;
+  }
+
+  private String eolConvert(String s)
+  {
+    if (s != null && s.length() > 0)
+      return s.replaceAll("(\r\n|\n)", EOL.get(eolType));
+    else
+      return s;
+  }
+
+  private String eolConvert(String s, String eol)
+  {
+    if (s != null && s.length() > 0 && eol != null && eol.length() > 0)
+      return s.replaceAll("(\r\n|\n)", eol);
+    else
+      return s;
+  }
+
+
+//-------------------------- INNER CLASSES --------------------------
+
+  // Ensures a size limit on byte level
+  private class FixedDocument extends PlainDocument
+  {
+    private int maxLength;
+    private JTextArea textArea;
+
+    FixedDocument(JTextArea text, int length)
+    {
+      super();
+      textArea = text;
+      maxLength = length >= 0 ? length : 0;
+    }
+
+    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException
+    {
+      if (str == null || textArea == null ||
+          eolConvert(textArea.getText()).getBytes().length + eolConvert(str).getBytes().length > maxLength)
+        return;
+      super.insertString(offs, str, a);
+    }
   }
 }

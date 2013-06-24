@@ -20,6 +20,15 @@ final class ProTrap extends AbstractStruct implements AddRemovable
     super(superStruct, "Projectile trap", buffer, offset);
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Trap", "PRO"));

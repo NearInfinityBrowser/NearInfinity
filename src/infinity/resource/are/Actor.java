@@ -36,6 +36,16 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     super(superStruct, "Actor " + nr, buffer, offset);
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
+
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
   public AddRemovable[] getAddRemovables()

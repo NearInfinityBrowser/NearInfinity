@@ -28,6 +28,15 @@ class Variable extends AbstractStruct implements AddRemovable
     super(superStruct, s, b, o);
   }
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

@@ -461,10 +461,10 @@ public final class IntegerHashMap <V> implements Cloneable
 
   private abstract class HashIterator <E> implements Iterator<E>
   {
-    Entry<V> next;	// next entry to return
-    int expectedModCount;	// For fast-fail
-    int index;		// current slot
-    Entry<V> current;	// current entry
+    Entry<V> next;  // next entry to return
+    int expectedModCount; // For fast-fail
+    int index;    // current slot
+    Entry<V> current; // current entry
 
     HashIterator()
     {
