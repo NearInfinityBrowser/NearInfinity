@@ -8,21 +8,12 @@ import infinity.resource.*;
 import infinity.datatype.Unknown;
 import infinity.resource.key.ResourceEntry;
 
-public final class TotResource extends AbstractStruct implements Resource/*, HasAddRemovable*/
+public final class TotResource extends AbstractStruct implements Resource
 {
   public TotResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
-
-  // --------------------- Begin Interface HasAddRemovable ---------------------
-  /*
-  public AddRemovable[] getAddRemovables() throws Exception
-  {
-  return new AddRemovable[]{new StringEntry()};
-  }
-   */
-  // --------------------- End Interface HasAddRemovable ---------------------
 
   protected int read(byte[] buffer, int offset) throws Exception
   {
@@ -33,10 +24,9 @@ public final class TotResource extends AbstractStruct implements Resource/*, Has
         offset = entry.getEndOffset();
         list.add(entry);
       }
-    } else {
-      // Placeholder for empty structure
-      list.add(new Unknown(buffer, offset, 0, "(Empty)"));
-    }
+    } else
+      list.add(new Unknown(buffer, offset, 0, "(Empty)"));  // Placeholder for empty structure
+
     int endoffset = offset;
     for (int i = 0; i < list.size(); i++) {
       StructEntry entry = list.get(i);

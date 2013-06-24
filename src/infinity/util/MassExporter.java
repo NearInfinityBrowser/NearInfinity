@@ -14,6 +14,7 @@ import infinity.resource.bcs.Decompiler;
 import infinity.resource.cre.CreResource;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.MveResource;
+import infinity.resource.key.BIFFArchive;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.sound.SoundUtilities;
 
@@ -302,11 +303,20 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       else {
         InputStream is = entry.getResourceDataAsStream();
-        int size = entry.getResourceInfo()[0];
-        if (entry.getExtension().equalsIgnoreCase("TIS"))
-          size *= entry.getResourceInfo()[1];
+        int[] info = entry.getResourceInfo();
+        int size = info[0];
+        byte[] tileheader = null;
+        if (entry.getExtension().equalsIgnoreCase("TIS")) {
+          size *= info[1];
+          if (!entry.hasOverride())
+            tileheader = BIFFArchive.getTisHeader(info[0], info[1]);
+          else
+            size += 24;   // include header size
+        }
         if (size >= 0) {
           BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+          if (tileheader != null)
+            bos.write(tileheader);
           while (size > 0) {
             int bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
             bos.write(buffer, 0, bytesRead);

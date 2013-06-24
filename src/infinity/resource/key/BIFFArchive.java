@@ -10,6 +10,8 @@ import infinity.util.*;
 
 import javax.swing.*;
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.zip.*;
 
 public final class BIFFArchive
@@ -149,6 +151,7 @@ public final class BIFFArchive
     }
 
     int size;
+    byte[] tileheader = null;
 //    Byteconvert.convertInt(header, 0); // Locator
     int resoff = Byteconvert.convertInt(header, 4);
     if (!isTile) {
@@ -158,7 +161,9 @@ public final class BIFFArchive
     }
     else {
       int tilecount = Byteconvert.convertInt(header, 8);
-      size = tilecount * Byteconvert.convertInt(header, 12);
+      int tilesize = Byteconvert.convertInt(header, 12);
+      size = tilecount * tilesize;
+      tileheader = getTisHeader(tilecount, tilesize);
 //      Byteconvert.convertShort(header, 16); // Type
 //      Byteconvert.convertShort(header, 18); // Unknown
     }
@@ -176,12 +181,17 @@ public final class BIFFArchive
       block = new BifcBlock(fis);
     }
     // Data now starts inside block
-    byte buffer[] = new byte[size];
+    byte buffer[] = new byte[isTile ? size + tileheader.length : size];
     int index = 0;
+    int indexofs = 0;
+    if (isTile) {
+      System.arraycopy(tileheader, 0, buffer, 0, tileheader.length);
+      indexofs += tileheader.length;
+    }
     while (index < size) {
       int toread = Math.min(size - index, currentoffset + block.decompSize - (resoff + index));
       byte buffer2[] = block.getData(fis, resoff + index - currentoffset, toread);
-      System.arraycopy(buffer2, 0, buffer, index, buffer2.length);
+      System.arraycopy(buffer2, 0, buffer, index + indexofs, buffer2.length);
       index += buffer2.length;
       currentoffset += block.decompSize;
       if (index < size)
@@ -297,16 +307,25 @@ public final class BIFFArchive
     Filereader.readInt(ranfile); // Locator
     int resoff = Filereader.readInt(ranfile);
     int size = Filereader.readInt(ranfile);
-    if (isTile)
-      size *= Filereader.readInt(ranfile); // tilecount * tilesize
+    byte[] tileheader = null;
+    if (isTile) {
+      int tilesize = Filereader.readInt(ranfile);
+      tileheader = getTisHeader(size, tilesize);
+      size *= tilesize;
+    }
 //    Filereader.readShort(ranfile); // Type
 //    Filereader.readShort(ranfile); // Unknown
     if (size > 1000000)
       blocker.setBlocked(true);
 
-    byte buffer[] = new byte[size];
+    byte buffer[] = new byte[isTile ? size + tileheader.length : size];
+    int index = 0;
+    if (isTile) {
+      System.arraycopy(tileheader, 0, buffer, index, tileheader.length);
+      index += tileheader.length;
+    }
     ranfile.seek((long)resoff);
-    ranfile.readFully(buffer);
+    ranfile.readFully(buffer, index, size);
     return buffer;
   }
 
@@ -344,11 +363,13 @@ public final class BIFFArchive
     Filereader.readInt(iis); // Locator
     int resoff = Filereader.readInt(iis);
     int size;
+    byte[] tileheader = null;
     if (isTile) {
       int tilecount = Filereader.readInt(iis);
-      size = Filereader.readInt(iis);
-      size *= tilecount;
+      int tilesize = Filereader.readInt(iis);
+      size = tilecount * tilesize;
       offset += 4;
+      tileheader = getTisHeader(tilecount, tilesize);
     }
     else
       size = Filereader.readInt(iis);
@@ -359,7 +380,13 @@ public final class BIFFArchive
       blocker.setBlocked(true);
 
     iis.skip((long)(resoff - (biffEntryOff + offset + 16)));
-    byte buffer[] = Filereader.readBytes(iis, size);
+    byte buffer[] = new byte[isTile ? size + tileheader.length : size];
+    int index = 0;
+    if (isTile) {
+      System.arraycopy(tileheader, 0, buffer, index, tileheader.length);
+      index += tileheader.length;
+    }
+    System.arraycopy(Filereader.readBytes(iis, size), 0, buffer, index, size);
     iis.close();
     bis.close();
     return buffer;
@@ -419,6 +446,18 @@ public final class BIFFArchive
     numFiles = Filereader.readInt(is);
     Filereader.readInt(is); // Numtiles
     biffEntryOff = Filereader.readInt(is);
+  }
+
+  public static byte[] getTisHeader(int tilecount, int tilesize)
+  {
+    ByteBuffer buf = ByteBuffer.allocate(24);
+    buf.order(ByteOrder.LITTLE_ENDIAN);
+    buf.put(new String("TIS V1  ").getBytes(), 0, 8);
+    buf.putInt(tilecount);
+    buf.putInt(tilesize);
+    buf.putInt(0x18);
+    buf.putInt(64);
+    return buf.array();
   }
 
 // -------------------------- INNER CLASSES --------------------------

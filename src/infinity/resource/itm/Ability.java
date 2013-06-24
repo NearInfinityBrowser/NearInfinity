@@ -41,6 +41,16 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
+//--------------------- Begin Interface AddRemovable ---------------------
+
+  public boolean canRemove()
+  {
+    return true;
+  }
+
+//--------------------- End Interface AddRemovable ---------------------
+
+
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
   public JComponent getDetailViewer()
