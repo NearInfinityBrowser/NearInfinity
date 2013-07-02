@@ -525,17 +525,19 @@ public final class ResourceFactory
     if (overrideDir.exists()) {
       File overrideFiles[] = overrideDir.listFiles();
       for (final File overrideFile : overrideFiles) {
-        String filename = overrideFile.getName().toUpperCase();
-        ResourceEntry entry = getResourceEntry(filename);
-        if (entry == null) {
-          FileResourceEntry fileEntry = new FileResourceEntry(overrideFile, true);
-          treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder());
-        }
-        else if (entry instanceof BIFFResourceEntry) {
-          ((BIFFResourceEntry)entry).setOverride(true);
-          if (overrideInOverride) {
-            treeModel.removeResourceEntry(entry, entry.getExtension());
-            treeModel.addResourceEntry(new FileResourceEntry(overrideFile, true), OVERRIDEFOLDER);
+        if (!overrideFile.isDirectory()) {
+          String filename = overrideFile.getName().toUpperCase();
+          ResourceEntry entry = getResourceEntry(filename);
+          if (entry == null) {
+            FileResourceEntry fileEntry = new FileResourceEntry(overrideFile, true);
+            treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder());
+          }
+          else if (entry instanceof BIFFResourceEntry) {
+            ((BIFFResourceEntry)entry).setOverride(true);
+            if (overrideInOverride) {
+              treeModel.removeResourceEntry(entry, entry.getExtension());
+              treeModel.addResourceEntry(new FileResourceEntry(overrideFile, true), OVERRIDEFOLDER);
+            }
           }
         }
       }
