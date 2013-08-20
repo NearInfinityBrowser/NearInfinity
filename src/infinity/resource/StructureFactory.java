@@ -150,6 +150,7 @@ public final class StructureFactory
       case ResourceFactory.ID_BG2:
       case ResourceFactory.ID_BG2TOB:
       case ResourceFactory.ID_TUTU:
+      case ResourceFactory.ID_BGEE:
         game = ResourceFactory.ID_BG2;
         break;
       case ResourceFactory.ID_ICEWIND2:

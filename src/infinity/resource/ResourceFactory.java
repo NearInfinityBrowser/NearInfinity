@@ -51,6 +51,7 @@ public final class ResourceFactory
   public static final int ID_UNKNOWNGAME = 0, ID_BG1 = 1, ID_BG1TOTSC = 2, ID_TORMENT = 3, ID_ICEWIND = 4;
   public static final int ID_ICEWINDHOW = 5, ID_ICEWINDHOWTOT = 6, ID_BG2 = 7, ID_BG2TOB = 8, ID_NWN = 9;
   public static final int ID_ICEWIND2 = 10, ID_KOTOR = 11, ID_TUTU = 12, ID_DEMO = 13, ID_KOTOR2 = 14;
+  public static final int ID_BGEE = 15;
   private static File rootDir;
   private static final GameConfig[] games;
   private static Keyfile keyfile;
@@ -66,8 +67,9 @@ public final class ResourceFactory
     String bgdirs[] = {"Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
                        "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave"};
 //    String iwddirs[] = {"Music", "Characters", "Scripts", "Sounds", "Temp", "MPSave"};
+    String bgeeDirs[] = {"music", "scripts"};
 
-    games = new GameConfig[15];
+    games = new GameConfig[16];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
     games[ID_BG1] = new GameConfig("Baldur's Gate", "baldur.ini", bgdirs);
     games[ID_BG1TOTSC] = new GameConfig("Baldur's Gate - Tales of the Sword Coast", "baldur.ini", bgdirs);
@@ -92,6 +94,7 @@ public final class ResourceFactory
     games[ID_KOTOR2] = new GameConfig("Star Wars: Knights of the Old Republic 2", "swkotor2.ini",
                                      new String[]{"Lips", "Modules", "Rims", "Saves", "StreamMusic",
                                      "StreamSounds", "TexturePacks"});
+    games[ID_BGEE] = new GameConfig("Baldur's Gate - Enhanced Edition", bgeeDirs);
   }
 
   public static int getGameID()
@@ -316,7 +319,7 @@ public final class ResourceFactory
     else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
     else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/DEATHAND.wbm").exists())
-      currentGame = ID_BG2TOB;  // Placeholder for BGEE - so far we can get by with ToB configuration
+      currentGame = ID_BGEE;
 
     keyfile = new Keyfile(file, currentGame);
     factory = this;
@@ -344,47 +347,49 @@ public final class ResourceFactory
       if (currentGame == ID_BG1 && resourceExists("DURLAG.MVE"))
         currentGame = ID_BG1TOTSC;
 
-      File iniFile = new File(rootDir, games[currentGame].inifile);
-      List<File> dirList = new ArrayList<File>();
-      try {
-        BufferedReader br = new BufferedReader(new FileReader(iniFile));
-        String line = br.readLine();
-        while (line != null) {
-          if (line.length() > 5 && line.substring(3, 5).equals(":=")) {
-            line = line.substring(5);
-            int index = line.indexOf((int)';');
-            if (index != -1)
-              line = line.substring(0, index);
-            if (line.endsWith(":"))
-              line = line.replace(':', '/');
-            File dir;
-            // Try to handle Mac relative paths
-            if (line.startsWith("/"))
-              dir = new File(rootDir + line);
-            else
-              dir = new File(line);
-            if (dir.exists())
-              dirList.add(dir);
+      if (games[currentGame].inifile != null) {
+        File iniFile = new File(rootDir, games[currentGame].inifile);
+        List<File> dirList = new ArrayList<File>();
+        try {
+          BufferedReader br = new BufferedReader(new FileReader(iniFile));
+          String line = br.readLine();
+          while (line != null) {
+            if (line.length() > 5 && line.substring(3, 5).equals(":=")) {
+              line = line.substring(5);
+              int index = line.indexOf((int)';');
+              if (index != -1)
+                line = line.substring(0, index);
+              if (line.endsWith(":"))
+                line = line.replace(':', '/');
+              File dir;
+              // Try to handle Mac relative paths
+              if (line.startsWith("/"))
+                dir = new File(rootDir + line);
+              else
+                dir = new File(line);
+              if (dir.exists())
+                dirList.add(dir);
+            }
+            line = br.readLine();
           }
-          line = br.readLine();
+          br.close();
+        } catch (Exception e) {
+          e.printStackTrace();
+          dirList.clear();
         }
-        br.close();
-      } catch (Exception e) {
-        e.printStackTrace();
-        dirList.clear();
+        if (dirList.size() == 0) {
+          // Don't panic if an .ini-file cannot be found or contains errors
+          dirList.add(new File(rootDir, "CD1"));
+          dirList.add(new File(rootDir, "CD2"));
+          dirList.add(new File(rootDir, "CD3"));
+          dirList.add(new File(rootDir, "CD4"));
+          dirList.add(new File(rootDir, "CD5"));
+          dirList.add(new File(rootDir, "CD6"));
+        }
+        biffDirs = new File[dirList.size()];
+        for (int i = 0; i < dirList.size(); i++)
+          biffDirs[i] = dirList.get(i);
       }
-      if (dirList.size() == 0) {
-        // Don't panic if an .ini-file cannot be found or contains errors
-        dirList.add(new File(rootDir, "CD1"));
-        dirList.add(new File(rootDir, "CD2"));
-        dirList.add(new File(rootDir, "CD3"));
-        dirList.add(new File(rootDir, "CD4"));
-        dirList.add(new File(rootDir, "CD5"));
-        dirList.add(new File(rootDir, "CD6"));
-      }
-      biffDirs = new File[dirList.size()];
-      for (int i = 0; i < dirList.size(); i++)
-        biffDirs[i] = dirList.get(i);
     } catch (Exception e) {
       JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
                                     JOptionPane.ERROR_MESSAGE);
@@ -667,6 +672,13 @@ public final class ResourceFactory
     {
       this.name = name;
       this.inifile = inifile;
+      this.extraDirs = extraDirs;
+    }
+
+    private GameConfig(String name, String[] extraDirs)
+    {
+      this.name = name;
+      this.inifile = null;
       this.extraDirs = extraDirs;
     }
 

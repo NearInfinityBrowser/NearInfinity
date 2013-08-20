@@ -406,6 +406,7 @@ public final class EffectFactory
       case ResourceFactory.ID_BG2:
       case ResourceFactory.ID_BG2TOB:
       case ResourceFactory.ID_TUTU:
+      case ResourceFactory.ID_BGEE:
       case ResourceFactory.ID_UNKNOWNGAME: // Default list
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",

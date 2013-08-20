@@ -47,7 +47,8 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 4, 4, "Time (ticks)"));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_TUTU) {
+        ResourceFactory.getGameID() == ResourceFactory.ID_TUTU ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
       list.add(new UnsignDecNumber(buffer, offset + 8, 1, "Chapter"));
       list.add(new Unknown(buffer, offset + 9, 1));
       list.add(new Flag(buffer, offset + 10, 1, "Section", s_section));
