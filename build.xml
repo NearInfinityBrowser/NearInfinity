@@ -4,7 +4,8 @@
       <delete>
         <fileset dir="." includes="**/*.class,NearInfinity.jar" />
       </delete>
-      <javac srcdir="src/infinity" />
+      <javac srcdir="src/infinity"
+             includeantruntime="false" />
       <jar destfile="NearInfinity.jar"
            basedir="src"
            includes="infinity/**/*"
