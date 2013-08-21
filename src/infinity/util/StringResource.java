@@ -4,6 +4,8 @@
 
 package infinity.util;
 
+import infinity.resource.ResourceFactory;
+
 import javax.swing.*;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -134,14 +136,7 @@ public final class StringResource
       file.seek((long)0x0C);
     maxnr = Filereader.readInt(file);
     startindex = Filereader.readInt(file);
-    /*
-     * This is a temporary and extremely hacky solution; a better
-     * solution would be to have a proper ID for BGEE and go by
-     * that (but I am too lazy to do that now). The issue is that
-     * BGEE uses UTF8 while the original editions use the
-     * windows-12** series.
-     */
-    if (new FileCI(infinity.resource.ResourceFactory.getRootDir(), "/lang/en_us/dialog.tlk").exists()) {
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
       usedCharset = utf8Charset;
     }
   }

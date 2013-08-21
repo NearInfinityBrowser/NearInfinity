@@ -216,7 +216,9 @@ public final class ResourceFactory
                  entry.getExtension().equalsIgnoreCase("RES") ||
                  entry.getExtension().equalsIgnoreCase("INI") ||
                  entry.getExtension().equalsIgnoreCase("TXT") ||
-                 (entry.getExtension().equalsIgnoreCase("SRC") && getGameID() == ID_ICEWIND2))
+                 (entry.getExtension().equalsIgnoreCase("SRC") && getGameID() == ID_ICEWIND2) ||
+                 entry.getExtension().equalsIgnoreCase("SQL") ||
+                 entry.getExtension().equalsIgnoreCase("GUI"))
           res = new PlainTextResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MVE"))
           res = new MveResource(entry);
@@ -319,7 +321,7 @@ public final class ResourceFactory
       currentGame = ID_TUTU;
     else if (new FileCI(rootDir, "baldur.exe").exists() && new FileCI(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
-    else if (new FileCI(rootDir, "Baldur.exe").exists() && new FileCI(rootDir, "movies/DEATHAND.wbm").exists())
+    else if (new FileCI(rootDir, "movies/DEATHAND.wbm").exists())
       currentGame = ID_BGEE;
 
     keyfile = new Keyfile(file, currentGame);
