@@ -562,7 +562,12 @@ public final class Decompiler
 
   public static String[] getResRefType(String function)
   {
-    if (function.equalsIgnoreCase("HasItem") ||
+    if (function.equalsIgnoreCase("DropItem") ||
+        function.equalsIgnoreCase("EquipItem") ||
+        function.equalsIgnoreCase("GetItem") ||
+        function.equalsIgnoreCase("GiveItem") ||
+        function.equalsIgnoreCase("UseItem") ||
+        function.equalsIgnoreCase("HasItem") ||
         function.equalsIgnoreCase("Contains") ||
         function.equalsIgnoreCase("NumItems") ||
         function.equalsIgnoreCase("NumItemsGT") ||
@@ -587,14 +592,18 @@ public final class Decompiler
     }
     else if (function.equalsIgnoreCase("ChangeAnimation") ||
              function.equalsIgnoreCase("ChangeAnimationNoEffect") ||
+             function.equalsIgnoreCase("CreateCreature") ||
              function.equalsIgnoreCase("CreateCreatureObject") ||
+             function.equalsIgnoreCase("CreateCreatureImpassable") ||
+             function.equalsIgnoreCase("CreateCreatureDoor") ||
              function.equalsIgnoreCase("CreateCreatureObjectDoor") ||
              function.equalsIgnoreCase("CreateCreatureObjectOffScreen") ||
              function.equalsIgnoreCase("CreateCreatureOffScreen") ||
              function.equalsIgnoreCase("CreateCreatureAtLocation") ||
              function.equalsIgnoreCase("CreateCreatureObjectCopy") ||
              function.equalsIgnoreCase("CreateCreatureObjectOffset") ||
-             function.equalsIgnoreCase("CreateCreatureCopyPoint")) {
+             function.equalsIgnoreCase("CreateCreatureCopyPoint") ||
+             function.equalsIgnoreCase("CreateCreatureImpassableAllowOverlap")) {
       return new String[] {".CRE"};
     }
     else if (function.equalsIgnoreCase("AreaCheck") ||
@@ -620,6 +629,9 @@ public final class Decompiler
     }
     else if (function.equalsIgnoreCase("AddSpecialAbility")) {
       return new String[] {".SPL"};
+    }
+    else if (function.equalsIgnoreCase("CreateVisualEffect")) {
+      return new String[] {".VEF", ".VVC", ".BAM"};
     }
     return new String[] {".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
                          ".MVE", ".SPL", ".DLG", ".VEF", ".VVC", ".BAM"};
@@ -663,10 +675,12 @@ public final class Decompiler
     else if (definition.equalsIgnoreCase("S:ResRef*")) {
       entry = decompileStringCheck(value, getResRefType(function));
     }
-    else if (definition.equalsIgnoreCase("S:Object*")) // ToDo: Better check possible?
-      entry = decompileStringCheck(value, new String[]{".ITM", ".VEF", ".VVC", ".BAM"});
-    else if (definition.equalsIgnoreCase("S:NewObject*")) // ToDo: Better check possible?
-      entry = decompileStringCheck(value, new String[]{".CRE", ".DLG", ".BCS", ".ITM"});
+    else if (definition.equalsIgnoreCase("S:Object*")) {
+      entry = decompileStringCheck(value, getResRefType(function));
+    }
+    else if (definition.equalsIgnoreCase("S:NewObject*")) {
+      entry = decompileStringCheck(value, getResRefType(function));
+    }
 //    else
 //      System.out.println("Decompiler.getResourceName: " + definition + " - " + value);
     if (entry != null) {
