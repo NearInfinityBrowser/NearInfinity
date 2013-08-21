@@ -1905,7 +1905,8 @@ public final class EffectFactory
     // -----------------------
     else if (gameid == ResourceFactory.ID_BG2 ||
              gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_TUTU) {
+             gameid == ResourceFactory.ID_TUTU ||
+             gameid == ResourceFactory.ID_BGEE) {
       switch (effectType) {
         case 0x0: // AC bonus (CGameEffectAC)
           s.add(new DecNumber(buffer, offset, 4, "AC value"));
