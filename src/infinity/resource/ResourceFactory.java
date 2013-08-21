@@ -318,7 +318,7 @@ public final class ResourceFactory
       currentGame = ID_TUTU;
     else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
-    else if (new File(rootDir, "Baldur.exe").exists() && new File(rootDir, "movies/DEATHAND.wbm").exists())
+    else if (new File(rootDir, "movies/DEATHAND.wbm").exists())
       currentGame = ID_BGEE;
 
     keyfile = new Keyfile(file, currentGame);
