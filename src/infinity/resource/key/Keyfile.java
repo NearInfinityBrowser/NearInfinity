@@ -296,6 +296,16 @@ public final class Keyfile
       resourceicons.put("INI", ICON_TEXT);
       extmap.put(0x803, "SRC");
       resourceicons.put("SRC", ICON_STRUCT);
+      extmap.put(0x400, "FNT");
+      resourceicons.put("FNT", ICON_IMAGE);
+      extmap.put(0x401, "WBM");
+      resourceicons.put("WBM", ICON_MOVIE);
+      extmap.put(0x402, "GUI");
+      resourceicons.put("GUI", ICON_TEXT);
+      extmap.put(0x403, "SQL");
+      resourceicons.put("SQL", ICON_TEXT);
+      extmap.put(0x404, "PVRZ");
+      resourceicons.put("PVRZ", ICON_IMAGE);
 
       resourceicons.put("ACM", ICON_SOUND);
       resourceicons.put("MUS", ICON_SOUND);
