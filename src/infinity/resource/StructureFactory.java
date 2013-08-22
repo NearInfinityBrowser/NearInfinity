@@ -17,6 +17,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import infinity.gui.NewChrSettings;
 import infinity.gui.NewProSettings;
 import infinity.gui.NewResSettings;
+import infinity.util.NIFile;
 import infinity.util.ResourceStructure;
 
 // Create different pre-initialized IE game resources from scratch and writing them to disk.
@@ -72,16 +73,16 @@ public final class StructureFactory
       case RES_BIO:
       case RES_CHR:
       case RES_RES:
-        savedir = new File(ResourceFactory.getRootDir(), "Characters");
+        savedir = NIFile.getFile(ResourceFactory.getRootDirs(), "Characters");
         if (!savedir.exists())
-          savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+          savedir = NIFile.getFile(ResourceFactory.getRootDirs(), ResourceFactory.OVERRIDEFOLDER);
         break;
       default:
-        savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+        savedir = NIFile.getFile(ResourceFactory.getRootDirs(), ResourceFactory.OVERRIDEFOLDER);
         break;
     }
     if (savedir == null || !savedir.exists())
-      savedir = ResourceFactory.getRootDir();
+      savedir = ResourceFactory.getRootDirs()[0];
     JFileChooser fc = new JFileChooser(savedir);
     String title = "Create new " + resExt.get(type) + " resource";
     fc.setDialogTitle(title);

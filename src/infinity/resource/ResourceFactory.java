@@ -53,11 +53,13 @@ public final class ResourceFactory
   public static final int ID_ICEWIND2 = 10, ID_KOTOR = 11, ID_TUTU = 12, ID_DEMO = 13, ID_KOTOR2 = 14;
   public static final int ID_BGEE = 15;
   private static File rootDir;
+  private static File[] rootDirs;
   private static final GameConfig[] games;
   private static Keyfile keyfile;
   private static ResourceFactory factory;
   private static final String DIALOGFILENAME = "dialog.tlk";
   private static int currentGame;
+  private static String bgeeLang = "en_US";   // TODO: overwrite with user-defined language specifier
   private File[] biffDirs;
   private JFileChooser fc;
   private ResourceTreeModel treeModel;
@@ -67,7 +69,8 @@ public final class ResourceFactory
     String bgdirs[] = {"Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
                        "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave"};
 //    String iwddirs[] = {"Music", "Characters", "Scripts", "Sounds", "Temp", "MPSave"};
-    String bgeeDirs[] = {"movies", "music", "scripts"};
+    String bgeeDirs[] = {"Characters", "Movies", "MPsave", "Music", "Portraits", "Save", "Sounds",
+                         "ScrnShot", "Scripts", "Temp", "TempSave"};
 
     games = new GameConfig[16];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
@@ -286,14 +289,43 @@ public final class ResourceFactory
     return res;
   }
 
+  /**
+   * Attempts to find the user-profile game folder (supported by BG1EE)
+   */
+  public static File getUserRoot(int gameID)
+  {
+    if (gameID == ID_BGEE) {
+      String userPrefix = System.getProperty("user.home");
+      String userSuffix = null;
+      if (System.getProperty("os.name").contains("Windows")) {
+        userSuffix = File.separator + "My Documents" + File.separator + "Baldur's Gate - Enhanced Edition";
+      } else if (System.getProperty("os.name").contains("Mac")) {
+        userSuffix = File.separator + "Documents" + File.separator + "Baldur's Gate - Enhanced Edition";
+      } else if (System.getProperty("java.vendor").contains("Android")) {   // TODO: find proper Android signature
+        userSuffix = null;      // TODO: add Android support
+      } else if (System.getProperty("java.vendor").contains("iOS")) {       // TODO: find proper iPhone signature
+        userSuffix = null;      // TODO: add iOS support???
+      }
+      if (userSuffix != null)
+        return new File(userPrefix, userSuffix);
+    }
+    return null;
+  }
+
   public static File getRootDir()
   {
     return rootDir;
   }
 
+  public static File[] getRootDirs()
+  {
+    return rootDirs;
+  }
+
   public ResourceFactory(File file)
   {
-    rootDir = file.getAbsoluteFile().getParentFile();
+    rootDir = file.getAbsoluteFile().getParentFile();   // global application rootdir
+    rootDirs = new File[]{rootDir};                     // preliminary rootdir list
 
     // Main game detection
     currentGame = ID_UNKNOWNGAME;
@@ -323,6 +355,22 @@ public final class ResourceFactory
     else if (new File(rootDir, "movies/DEATHAND.wbm").exists())
       currentGame = ID_BGEE;
 
+    // Considering three different sources of resource files
+    // Note: The order of the root directories is important. NIFile will take the first one available.
+    // TODO: How to handle folders present in more than one root folder?
+    File userRoot = getUserRoot(currentGame);
+    File langRoot = NIFile.getFile(rootDir + File.separator + "lang" + File.separator + bgeeLang);
+    if (!langRoot.exists())
+      langRoot = null;
+    if (userRoot != null && langRoot != null)
+      rootDirs = new File[]{userRoot, langRoot, rootDir};
+    else if (userRoot != null && langRoot == null)
+      rootDirs = new File[]{userRoot, rootDir};
+    else if (userRoot == null && langRoot != null)
+      rootDirs = new File[]{langRoot, rootDir};
+    else
+      rootDirs = new File[]{rootDir};
+
     keyfile = new Keyfile(file, currentGame);
     factory = this;
 
@@ -350,7 +398,7 @@ public final class ResourceFactory
         currentGame = ID_BG1TOTSC;
 
       if (games[currentGame].inifile != null) {
-        File iniFile = new File(rootDir, games[currentGame].inifile);
+        File iniFile = NIFile.getFile(rootDirs, games[currentGame].inifile);
         List<File> dirList = new ArrayList<File>();
         try {
           BufferedReader br = new BufferedReader(new FileReader(iniFile));
@@ -366,9 +414,9 @@ public final class ResourceFactory
               File dir;
               // Try to handle Mac relative paths
               if (line.startsWith("/"))
-                dir = new File(rootDir + line);
+                dir = NIFile.getFile(rootDirs, line);
               else
-                dir = new File(line);
+                dir = NIFile.getFile(line);
               if (dir.exists())
                 dirList.add(dir);
             }
@@ -381,12 +429,12 @@ public final class ResourceFactory
         }
         if (dirList.size() == 0) {
           // Don't panic if an .ini-file cannot be found or contains errors
-          dirList.add(new File(rootDir, "CD1"));
-          dirList.add(new File(rootDir, "CD2"));
-          dirList.add(new File(rootDir, "CD3"));
-          dirList.add(new File(rootDir, "CD4"));
-          dirList.add(new File(rootDir, "CD5"));
-          dirList.add(new File(rootDir, "CD6"));
+          dirList.add(NIFile.getFile(rootDirs, "CD1"));
+          dirList.add(NIFile.getFile(rootDirs, "CD2"));
+          dirList.add(NIFile.getFile(rootDirs, "CD3"));
+          dirList.add(NIFile.getFile(rootDirs, "CD4"));
+          dirList.add(NIFile.getFile(rootDirs, "CD5"));
+          dirList.add(NIFile.getFile(rootDirs, "CD6"));
         }
         biffDirs = new File[dirList.size()];
         for (int i = 0; i < dirList.size(); i++)
@@ -463,7 +511,7 @@ public final class ResourceFactory
 
   public File getFile(String filename)
   {
-    File file = new File(rootDir, filename);
+    File file = NIFile.getFile(rootDirs, filename);
     if (file.exists())
       return file;
     for (final File biffDir : biffDirs) {
@@ -512,23 +560,22 @@ public final class ResourceFactory
 
     // Get resources from keyfile
     keyfile.addBIFFResourceEntries(treeModel);
-    // dialog.tlk has moved in BGEE:
-    File dlg_file = new File(rootDir + "/lang/en_US", DIALOGFILENAME); //otherwise we incorrectly load the one in rootdir, if it exists
-    if (! dlg_file.exists()) {
-      dlg_file = new File(rootDir, DIALOGFILENAME);
-    }
+    File dlg_file = NIFile.getFile(rootDirs, DIALOGFILENAME);
     StringResource.init(dlg_file);
 
     // Add other resources
     for (final String extraDir : games[currentGame].extraDirs) {
-      File directory = new File(rootDir, extraDir);
-      if (directory.exists())
-        treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), directory);
+      // XXX: ugly hack to support identical subfolders in multiple root directories
+      for (final File root: rootDirs) {
+        File directory = NIFile.getFile(root, extraDir);
+        if (directory.exists())
+          treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), directory);
+      }
     }
 
     boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
                                   BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
-    File overrideDir = new File(rootDir, OVERRIDEFOLDER);
+    File overrideDir = NIFile.getFile(rootDirs, OVERRIDEFOLDER);
     if (overrideDir.exists()) {
       File overrideFiles[] = overrideDir.listFiles();
       for (final File overrideFile : overrideFiles) {
@@ -581,9 +628,9 @@ public final class ResourceFactory
       else
         return;
     } while (filename == null);
-    File output = new File(rootDir, OVERRIDEFOLDER + File.separatorChar + filename);
+    File output = NIFile.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar + filename);
     if (entry.getExtension().equalsIgnoreCase("bs"))
-      output = new File(rootDir, "Scripts" + File.separatorChar + filename);
+      output = NIFile.getFile(rootDirs, "Scripts" + File.separatorChar + filename);
 
     if (output.exists()) {
       String options[] = {"Overwrite", "Cancel"};
@@ -621,8 +668,8 @@ public final class ResourceFactory
       return false;
     File output;
     if (entry instanceof BIFFResourceEntry) {
-      output = new File(rootDir, OVERRIDEFOLDER + File.separatorChar + entry.toString());
-      File override = new File(rootDir, OVERRIDEFOLDER + File.separatorChar);
+      output = NIFile.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar + entry.toString());
+      File override = NIFile.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar);
       if (!override.exists())
         override.mkdir();
       ((BIFFResourceEntry)entry).setOverride(true);

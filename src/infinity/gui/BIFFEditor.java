@@ -9,9 +9,11 @@ import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.*;
 import infinity.util.Filewriter;
+import infinity.util.NIFile;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -115,7 +117,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       List<ResourceEntry> overrideBif = overridetable.getValueList(BIFFEditorTable.TYPE_BIF);
       for (int i = 0; i < overrideBif.size(); i++) {
         ResourceEntry entry = overrideBif.get(i);
-        File file = new File(ResourceFactory.getRootDir(),
+        File file = NIFile.getFile(ResourceFactory.getRootDirs(),
                              ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
         OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
         Filewriter.writeBytes(os, entry.getResourceData(true));
@@ -156,7 +158,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     // 4: Delete old files from override
     for (int i = 0; i < tobif.size(); i++)
-      new File(ResourceFactory.getRootDir(),
+      NIFile.getFile(ResourceFactory.getRootDirs(),
                ResourceFactory.OVERRIDEFOLDER + File.separatorChar + tobif.get(i).toString()).delete();
     progress.setProgress(4, true);
 
@@ -164,7 +166,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     origbiflist.removeAll(biftable.getValueList(BIFFEditorTable.TYPE_BIF));
     origbiflist.removeAll(overridetable.getValueList(BIFFEditorTable.TYPE_BIF));
     for (int i = 0; i < origbiflist.size(); i++) {
-      File file = new File(ResourceFactory.getRootDir(),
+      File file = NIFile.getFile(ResourceFactory.getRootDirs(),
                            ResourceFactory.OVERRIDEFOLDER + File.separatorChar +
                            origbiflist.get(i).toString());
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
