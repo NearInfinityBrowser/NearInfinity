@@ -40,6 +40,8 @@ import infinity.resource.kotor.GlobalVarsResource;
 import infinity.util.*;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
+
 import java.awt.*;
 import java.io.*;
 import java.util.*;
@@ -295,19 +297,42 @@ public final class ResourceFactory
   public static File getUserRoot(int gameID)
   {
     if (gameID == ID_BGEE) {
-      String userPrefix = System.getProperty("user.home");
-      String userSuffix = null;
-      if (System.getProperty("os.name").contains("Windows")) {
-        userSuffix = File.separator + "My Documents" + File.separator + "Baldur's Gate - Enhanced Edition";
-      } else if (System.getProperty("os.name").contains("Mac")) {
-        userSuffix = File.separator + "Documents" + File.separator + "Baldur's Gate - Enhanced Edition";
-      } else if (System.getProperty("java.vendor").contains("Android")) {   // TODO: find proper Android signature
-        userSuffix = null;      // TODO: add Android support
-      } else if (System.getProperty("java.vendor").contains("iOS")) {       // TODO: find proper iPhone signature
-        userSuffix = null;      // TODO: add iOS support???
+      final String BGEE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
+      final String BGEE_DIR = "Baldur's Gate - Enhanced Edition";
+      File userDir = new File(BGEE_DOC_ROOT, BGEE_DIR);
+      if (!userDir.exists()) {
+        return userDir;
+      } else {
+        // fallback solution
+        String userPrefix = System.getProperty("user.home");
+        String userSuffix = null;
+        if (System.getProperty("os.name").contains("Windows")) {
+          try {
+            Process p = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v personal");
+            p.waitFor();
+            InputStream in = p.getInputStream();
+            byte[] b = new byte[in.available()];
+            in.read(b);
+            in.close();
+            String[] splitted = new String(b).split("\\s\\s+");
+            userPrefix = splitted[splitted.length-1];
+            userSuffix = BGEE_DIR;
+          } catch (Throwable t) {
+            return null;
+          }
+        } else if (System.getProperty("os.name").contains("Mac")) {
+          userSuffix = File.separator + "Documents" + File.separator + BGEE_DIR;
+        } else if (System.getProperty("java.vendor").contains("Android")) {   // TODO: find proper Android signature
+          userSuffix = null;      // TODO: add Android support
+        } else if (System.getProperty("java.vendor").contains("iOS")) {       // TODO: find proper iPhone signature
+          userSuffix = null;      // TODO: add iOS support???
+        }
+        if (userSuffix != null) {
+          userDir = new File(userPrefix, userSuffix);
+          if (userDir.exists())
+            return userDir;
+        }
       }
-      if (userSuffix != null)
-        return new File(userPrefix, userSuffix);
     }
     return null;
   }
@@ -357,7 +382,7 @@ public final class ResourceFactory
 
     // Considering three different sources of resource files
     // Note: The order of the root directories is important. NIFile will take the first one available.
-    // TODO: How to handle folders present in more than one root folder?
+    // TODO: How to handle duplicate folders present in more than one root folder?
     File userRoot = getUserRoot(currentGame);
     File langRoot = NIFile.getFile(rootDir + File.separator + "lang" + File.separator + bgeeLang);
     if (!langRoot.exists())
