@@ -13,7 +13,7 @@ public final class Effect extends AbstractStruct implements AddRemovable
                                       "Petrify/Polymorph", "", "", "",
                                       "", "", "", "", "", "", "", "",
                                       "", "", "", "", "", "", "", "",
-                                      "Ex: bypass mirror image"};
+                                      "Ex: bypass mirror image", "EE: ignore difficulty"};
   static final String s_savetype2[] = {"No save", "", "", "Fortitude", "Reflex",
                                        "Will"};
 
