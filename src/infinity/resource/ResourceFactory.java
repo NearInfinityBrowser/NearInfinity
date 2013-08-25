@@ -322,10 +322,6 @@ public final class ResourceFactory
           }
         } else if (System.getProperty("os.name").contains("Mac")) {
           userSuffix = File.separator + "Documents" + File.separator + BGEE_DIR;
-        } else if (System.getProperty("java.vendor").contains("Android")) {   // TODO: find proper Android signature
-          userSuffix = null;      // TODO: add Android support
-        } else if (System.getProperty("java.vendor").contains("iOS")) {       // TODO: find proper iPhone signature
-          userSuffix = null;      // TODO: add iOS support???
         }
         if (userSuffix != null) {
           userDir = new File(userPrefix, userSuffix);
@@ -382,7 +378,6 @@ public final class ResourceFactory
 
     // Considering three different sources of resource files
     // Note: The order of the root directories is important. NIFile will take the first one available.
-    // TODO: How to handle duplicate folders present in more than one root folder?
     File userRoot = getUserRoot(currentGame);
     File langRoot = NIFile.getFile(rootDir + File.separator + "lang" + File.separator + bgeeLang);
     if (!langRoot.exists())
@@ -590,7 +585,6 @@ public final class ResourceFactory
 
     // Add other resources
     for (final String extraDir : games[currentGame].extraDirs) {
-      // XXX: ugly hack to support identical subfolders in multiple root directories
       for (final File root: rootDirs) {
         File directory = NIFile.getFile(root, extraDir);
         if (directory.exists())
