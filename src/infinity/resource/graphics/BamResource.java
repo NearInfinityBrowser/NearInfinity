@@ -59,7 +59,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
       int paletteOffset = Byteconvert.convertInt(buffer, 0x10);
       int lookupOffset = Byteconvert.convertInt(buffer, 0x14);
 
-      palette = new Palette(buffer, paletteOffset, lookupOffset - paletteOffset);
+      palette = new Palette(buffer, paletteOffset, 1024);
 
       frames = new Frame[numberframes];
       for (int i = 0; i < numberframes; i++)
