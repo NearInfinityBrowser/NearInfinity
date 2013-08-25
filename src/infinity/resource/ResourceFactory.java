@@ -61,7 +61,7 @@ public final class ResourceFactory
   private static ResourceFactory factory;
   private static final String DIALOGFILENAME = "dialog.tlk";
   private static int currentGame;
-  private static String bgeeLang = "en_US";   // TODO: overwrite with user-defined language specifier
+  private static String bgeeLang;
   private File[] biffDirs;
   private JFileChooser fc;
   private ResourceTreeModel treeModel;
@@ -99,7 +99,7 @@ public final class ResourceFactory
     games[ID_KOTOR2] = new GameConfig("Star Wars: Knights of the Old Republic 2", "swkotor2.ini",
                                      new String[]{"Lips", "Modules", "Rims", "Saves", "StreamMusic",
                                      "StreamSounds", "TexturePacks"});
-    games[ID_BGEE] = new GameConfig("Baldur's Gate - Enhanced Edition", bgeeDirs);
+    games[ID_BGEE] = new GameConfig("Baldur's Gate - Enhanced Edition", "baldur.ini", bgeeDirs);
   }
 
   public static int getGameID()
@@ -379,6 +379,7 @@ public final class ResourceFactory
     // Considering three different sources of resource files
     // Note: The order of the root directories is important. NIFile will take the first one available.
     File userRoot = getUserRoot(currentGame);
+    fetchLanguage(userRoot);    // BGEE stores the currently used language in its inifile
     File langRoot = NIFile.getFile(rootDir + File.separator + "lang" + File.separator + bgeeLang);
     if (!langRoot.exists())
       langRoot = null;
@@ -417,53 +418,92 @@ public final class ResourceFactory
       if (currentGame == ID_BG1 && resourceExists("DURLAG.MVE"))
         currentGame = ID_BG1TOTSC;
 
-      if (games[currentGame].inifile != null) {
-        File iniFile = NIFile.getFile(rootDirs, games[currentGame].inifile);
-        List<File> dirList = new ArrayList<File>();
-        try {
-          BufferedReader br = new BufferedReader(new FileReader(iniFile));
-          String line = br.readLine();
-          while (line != null) {
-            if (line.length() > 5 && line.substring(3, 5).equals(":=")) {
-              line = line.substring(5);
-              int index = line.indexOf((int)';');
-              if (index != -1)
-                line = line.substring(0, index);
-              if (line.endsWith(":"))
-                line = line.replace(':', '/');
-              File dir;
-              // Try to handle Mac relative paths
-              if (line.startsWith("/"))
-                dir = NIFile.getFile(rootDirs, line);
-              else
-                dir = NIFile.getFile(line);
-              if (dir.exists())
-                dirList.add(dir);
-            }
-            line = br.readLine();
-          }
-          br.close();
-        } catch (Exception e) {
-          e.printStackTrace();
-          dirList.clear();
-        }
-        if (dirList.size() == 0) {
-          // Don't panic if an .ini-file cannot be found or contains errors
-          dirList.add(NIFile.getFile(rootDirs, "CD1"));
-          dirList.add(NIFile.getFile(rootDirs, "CD2"));
-          dirList.add(NIFile.getFile(rootDirs, "CD3"));
-          dirList.add(NIFile.getFile(rootDirs, "CD4"));
-          dirList.add(NIFile.getFile(rootDirs, "CD5"));
-          dirList.add(NIFile.getFile(rootDirs, "CD6"));
-        }
-        biffDirs = new File[dirList.size()];
-        for (int i = 0; i < dirList.size(); i++)
-          biffDirs[i] = dirList.get(i);
-      }
+      fetchBIFFDirs();
     } catch (Exception e) {
       JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
                                     JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
+    }
+  }
+
+  private void fetchBIFFDirs()
+  {
+    // fetching the CD folders in a game installation
+    if (currentGame != ID_BGEE && games[currentGame].inifile != null) {
+      File iniFile = NIFile.getFile(rootDirs, games[currentGame].inifile);
+      List<File> dirList = new ArrayList<File>();
+      try {
+        BufferedReader br = new BufferedReader(new FileReader(iniFile));
+        String line = br.readLine();
+        while (line != null) {
+          if (line.length() > 5 && line.substring(3, 5).equals(":=")) {
+            line = line.substring(5);
+            int index = line.indexOf((int)';');
+            if (index != -1)
+              line = line.substring(0, index);
+            if (line.endsWith(":"))
+              line = line.replace(':', '/');
+            File dir;
+            // Try to handle Mac relative paths
+            if (line.startsWith("/"))
+              dir = NIFile.getFile(rootDirs, line);
+            else
+              dir = NIFile.getFile(line);
+            if (dir.exists())
+              dirList.add(dir);
+          }
+          line = br.readLine();
+        }
+        br.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+        dirList.clear();
+      }
+      if (dirList.size() == 0) {
+        // Don't panic if an .ini-file cannot be found or contains errors
+        dirList.add(NIFile.getFile(rootDirs, "CD1"));
+        dirList.add(NIFile.getFile(rootDirs, "CD2"));
+        dirList.add(NIFile.getFile(rootDirs, "CD3"));
+        dirList.add(NIFile.getFile(rootDirs, "CD4"));
+        dirList.add(NIFile.getFile(rootDirs, "CD5"));
+        dirList.add(NIFile.getFile(rootDirs, "CD6"));
+      }
+      biffDirs = new File[dirList.size()];
+      for (int i = 0; i < dirList.size(); i++)
+        biffDirs[i] = dirList.get(i);
+    }
+  }
+
+  private void fetchLanguage(File iniRoot)
+  {
+    if (currentGame == ID_BGEE) {
+      bgeeLang = "en_US";   // using default language, if no language entry found
+
+      File iniFile = new File(iniRoot, games[currentGame].inifile);
+      if (iniFile != null) {
+        try {
+          BufferedReader br = new BufferedReader(new FileReader(iniFile));
+          String line = br.readLine();
+          while (line != null) {
+            if (line.contains("'Language'")) {
+              String[] entries = line.split(",");
+              if (entries.length == 3) {
+                String lang = entries[2].replace('\'', ' ').trim();
+                if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
+                  if (new File(rootDir, "lang" + File.separator + lang).exists()) {
+                    bgeeLang = lang;
+                    break;
+                  }
+                }
+              }
+            }
+            line = br.readLine();
+          }
+          br.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
     }
   }
 
