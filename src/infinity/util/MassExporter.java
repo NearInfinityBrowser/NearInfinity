@@ -9,6 +9,7 @@ import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.Writeable;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.cre.CreResource;
@@ -20,6 +21,7 @@ import infinity.resource.sound.SoundUtilities;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -29,10 +31,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
                                                               Runnable
 {
   private static final String TYPES[] = {"2DA", "ARE", "BAM", "BCS", "BIO", "BMP", "BS",
-                                         "CHU", "CHR", "CRE", "DLG", "EFF", "GAM", "IDS",
-                                         "INI", "ITM", "MOS", "MVE", "PLT", "PRO", "SRC",
-                                         "SPL", "STO", "TOH", "TOT", "TIS", "VEF", "VVC",
-                                         "WAV", "WED", "WFX", "WMP"};
+                                         "CHU", "CHR", "CRE", "DLG", "EFF", "FNT", "GAM",
+                                         "GUI", "IDS", "INI", "ITM", "MOS", "MVE", "PLT",
+                                         "PRO", "PVRZ", "SQL", "SRC", "SPL", "STO", "TOH",
+                                         "TOT", "TIS", "VEF", "VVC", "WAV", "WBM", "WED",
+                                         "WFX", "WMP"};
   private final JButton bExport = new JButton("Export", Icons.getIcon("Export16.gif"));
   private final JButton bCancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
   private final JButton bDirectory = new JButton(Icons.getIcon("Open16.gif"));
@@ -43,12 +46,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbDecompress = new JCheckBox("Decompress BAM/MOS", false);
   private final JCheckBox cbExecutableMVE = new JCheckBox("Make movies executable", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
+  private final JCheckBox cbDecompressPVRZ = new JCheckBox("Decompress PVRZ", false);
   private final JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
-  private final JList listTypes = new JList(TYPES);
+  private final JList<String> listTypes = new JList<String>(TYPES);
   private final JTextField tfDirectory = new JTextField(20);
   private final byte[] buffer = new byte[65536];
   private File outputDir;
-  private Object selectedTypes[];
+  private java.util.List<String> selectedTypes;
 
   public MassExporter()
   {
@@ -89,8 +93,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     bottomRightPanel.add(cbDecompile);
     bottomRightPanel.add(cbDecrypt);
     bottomRightPanel.add(cbDecompress);
+    bottomRightPanel.add(cbDecompressPVRZ);
     bottomRightPanel.add(cbExecutableMVE);
     bottomRightPanel.add(cbOverwrite);
+
+    // TODO: add support for PVRZ decompression
+    cbDecompressPVRZ.setEnabled(false);
+    cbDecompressPVRZ.setToolTipText("Not yet supported");
 
     JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     bottomPanel.add(bExport);
@@ -136,7 +145,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bExport) {
-      selectedTypes = listTypes.getSelectedValues();
+      selectedTypes = listTypes.getSelectedValuesList();
       outputDir = new File(tfDirectory.getText());
       outputDir.mkdirs();
       setVisible(false);
@@ -169,7 +178,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void run()
   {
     java.util.List<ResourceEntry> selectedFiles = new ArrayList<ResourceEntry>(1000);
-    for (final Object newVar : selectedTypes)
+    for (final String newVar : selectedTypes)
       selectedFiles.addAll(ResourceFactory.getInstance().getResources((String)newVar));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...", null,
                                                    0, selectedFiles.size());
@@ -250,7 +259,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         if (output.exists() && !cbOverwrite.isSelected())
           return;
         CreResource crefile = new CreResource(entry);
-        java.util.List flatList = crefile.getFlatList();
+        java.util.List<StructEntry> flatList = crefile.getFlatList();
         while (!flatList.get(0).toString().equals("CRE "))
           flatList.remove(0);
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
@@ -300,6 +309,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         }
         bos.close();
         is.close();
+      }
+      else if (entry.getExtension().equalsIgnoreCase("PVRZ") && cbDecompressPVRZ.isSelected()) {
+        // TODO: decompress PVRZ -> PVR
       }
       else {
         InputStream is = entry.getResourceDataAsStream();
