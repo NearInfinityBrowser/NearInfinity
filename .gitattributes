@@ -1,0 +1,6 @@
+*.java text diff=java
+*.xml text
+*.txt text
+
+mve.stub binary
+*.gif binary
