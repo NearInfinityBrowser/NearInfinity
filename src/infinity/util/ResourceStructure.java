@@ -322,15 +322,15 @@ public class ResourceStructure implements Cloneable
       switch (type) {
         case ID_BYTE:
           if (value != null)
-            buf.put((byte)value);
+            buf.put((Byte)value);
           break;
         case ID_WORD:
           if (value != null)
-            buf.putShort((short)value);
+            buf.putShort((Short)value);
           break;
         case ID_DWORD:
           if (value != null)
-            buf.putInt((int)value);
+            buf.putInt((Integer)value);
           break;
         case ID_RESREF:
         case ID_STRING:
