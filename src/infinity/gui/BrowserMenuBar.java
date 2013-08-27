@@ -16,12 +16,10 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.*;
-//import infinity.util.Filewriter;
-//import infinity.util.MassExporter;
-//import infinity.util.StringResource;
 import infinity.util.*;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -833,8 +831,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      editString2.setEnabled(new FileCI(ResourceFactory.getRootDir(), "dialogF.tlk").exists());
-      editVarVar.setEnabled(new FileCI(ResourceFactory.getRootDir(), "VAR.VAR").exists());
+      editString2.setEnabled(NIFile.getFile(ResourceFactory.getRootDirs(), "dialogF.tlk").exists());
+      editVarVar.setEnabled(NIFile.getFile(ResourceFactory.getRootDirs(), "VAR.VAR").exists());
       if (editString2.isEnabled())
         editString2.setToolTipText("");
       else
@@ -862,7 +860,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = new FileCI(ResourceFactory.getRootDir(), "dialogF.tlk");
+        File file = NIFile.getFile(ResourceFactory.getRootDirs(), "dialogF.tlk");
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
@@ -878,7 +876,7 @@ public final class BrowserMenuBar extends JMenuBar
         new ViewFrame(NearInfinity.getInstance(),
                       ResourceFactory.getResource(
                               new FileResourceEntry(
-                                      new FileCI(ResourceFactory.getRootDir() + "/VAR.VAR"))));
+                                      NIFile.getFile(ResourceFactory.getRootDirs(), "VAR.VAR"))));
       }
       else if (event.getSource() == editBIFF)
         new BIFFEditor();

@@ -13,11 +13,12 @@ import infinity.resource.dlg.AbstractCode;
 import infinity.resource.gam.GamResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.NIFile;
 
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -142,7 +143,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-        new FileCI(ResourceFactory.getRootDir(),
+            NIFile.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();

@@ -174,6 +174,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     statusBar = new StatusBar();
     ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
+    setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
     statusBar.setMessage(
             "Welcome to Near Infinity! - " +
             ResourceFactory.getGameName(ResourceFactory.getGameID()) +
@@ -217,6 +218,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         }
         ChildFrame.closeWindows();
         ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
+        setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
         statusBar.setMessage(
                 "Welcome to Near Infinity! - " +
                 ResourceFactory.getGameName(ResourceFactory.getGameID()) +
@@ -349,6 +351,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     removeViewable();
     ChildFrame.closeWindows();
     ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
+    setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
     statusBar.setMessage(
             "Welcome to Near Infinity! - " +
             ResourceFactory.getGameName(ResourceFactory.getGameID()) +

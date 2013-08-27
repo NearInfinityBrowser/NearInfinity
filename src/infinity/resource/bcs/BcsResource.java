@@ -12,11 +12,17 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ScriptReferenceSearcher;
 import infinity.search.TextResourceSearcher;
-import infinity.util.*;
+import infinity.util.Decryptor;
+import infinity.util.Filewriter;
+import infinity.util.NIFile;
+import infinity.util.FileCI;
+import infinity.util.FileWriterCI;
+import infinity.util.FileOutputStreamCI;
 
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -209,7 +215,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-        new FileCI(ResourceFactory.getRootDir(),
+        NIFile.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();

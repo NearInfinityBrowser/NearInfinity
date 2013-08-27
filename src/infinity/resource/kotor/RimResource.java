@@ -8,10 +8,13 @@ import infinity.gui.*;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.ArrayUtil;
+import infinity.util.Byteconvert;
+import infinity.util.NIFile;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -212,7 +215,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
     protected File getActualFile(boolean ignoreoverride)
     {
-      return new FileCI(ResourceFactory.getRootDir(), toString());
+      return NIFile.getFile(ResourceFactory.getRootDirs(), toString());
     }
 
     public String toString()

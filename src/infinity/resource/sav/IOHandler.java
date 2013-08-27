@@ -74,7 +74,7 @@ public final class IOHandler implements Writeable
   public List<FileResourceEntry> decompress() throws Exception
   {
     List<FileResourceEntry> entries = new ArrayList<FileResourceEntry>(fileentries.size());
-    tempfolder = new FileCI(ResourceFactory.getRootDir(), '_' + entry.getTreeFolder());
+    tempfolder = NIFile.getFile(ResourceFactory.getRootDirs(), '_' + entry.getTreeFolder());
     tempfolder.mkdir();
     for (int i = 0; i < fileentries.size(); i++) {
       FileEntry fentry = fileentries.get(i);
