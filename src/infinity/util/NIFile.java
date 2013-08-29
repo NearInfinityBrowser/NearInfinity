@@ -41,20 +41,21 @@ public class NIFile
   public static File getFile(String[] parentList, String child)
   {
     File file = null;
-    for (final String parent: parentList) {
-      File tmp = new File(parent, child);
-      if (tmp.exists()) {
-        file = tmp;
-        break;
+    if (parentList != null) {
+      for (final String parent: parentList) {
+        File tmp = new File(parent, child);
+        if (tmp.exists()) {
+          file = tmp;
+          break;
+        }
       }
     }
     if (file == null) {
-      if (parentList.length > 0) {
+      if (parentList != null && parentList.length > 0) {
         file = new File(parentList[0], child);
       } else
         throw new NullPointerException("Empty parent list");
     }
-
     return file;
   }
 
@@ -70,20 +71,21 @@ public class NIFile
   public static File getFile(File[] parentList, String child)
   {
     File file = null;
-    for (final File f: parentList) {
-      File tmp = new File(f, child);
-      if (tmp.exists()) {
-        file = tmp;
-        break;
+    if (parentList != null) {
+      for (final File f: parentList) {
+        File tmp = new File(f, child);
+        if (tmp.exists()) {
+          file = tmp;
+          break;
+        }
       }
     }
     if (file == null) {
-      if (parentList.length > 0) {
+      if (parentList != null && parentList.length > 0) {
         file = new File(parentList[0], child);
       } else
         throw new NullPointerException("Empty parent list");
     }
-
     return file;
   }
 }
