@@ -272,9 +272,11 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     if (offFamiliar != null) { // BG2
       offset = offFamiliar.getValue();
-      Familiar familiar = new Familiar(this, buffer, offset);
-      offset += familiar.getSize();
-      list.add(familiar);
+      if (offset > 0) {
+        Familiar familiar = new Familiar(this, buffer, offset);
+        offset += familiar.getSize();
+        list.add(familiar);
+      }
     }
 
     if (offIWD2 != null && numIWD2 != null) { // Icewind2
