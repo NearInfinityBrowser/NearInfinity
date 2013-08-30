@@ -54,8 +54,6 @@ public class AudioConverter
    * @param  acmfile the acm file to be converted
    * @param  wavfile the output file of the conversion
    * @param  isMono  whether the converter should force mono sound
-   * @throws IOException if an I/O error occurs
-   * @return void
    */
   public void convert(File acmfile, File wavfile, boolean isMono) throws IOException
   {
