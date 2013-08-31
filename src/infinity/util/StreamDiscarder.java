@@ -13,21 +13,11 @@ public class StreamDiscarder implements Runnable
 {
   private InputStream in;
 
-  /**
-   * Binds the argument stream to an instance variable
-   *
-   * @param in the input stream to be read from
-   */
   public void setStream(InputStream in)
   {
     this.in = in;
   }
 
-  /**
-   * Reads from the provided input stream
-   *
-   * @return void
-   */
   public void run()
   {
     try {
