@@ -514,7 +514,8 @@ public final class EffectFactory
           "Main hand THAC0 bonus", "Tracking", "Immunity to tracking",
           "Set variable", "Immunity to time stop", "Wish",
           "Immunity to sequester", "High-level ability", "Stoneskin protection",
-          "Remove animation", "Rest", "Haste 2"};
+          "Remove animation", "Rest", "Haste 2", "Unknown (13E)",
+          "Restrict item", "Change weather", "Remove effects by resource"};
         s_poricon = new String[]{"Charm", "Dire charm", "Rigid thinking",
           "Confused", "Berserk", "Intoxicated", "Poisoned", "Nauseated",
           "Blind", "Protection from evil", "Protection from petrification",
@@ -1901,7 +1902,7 @@ public final class EffectFactory
     }
 
     // -----------------------
-    // Baldur's Gate 2 & ToB Effects
+    // Baldur's Gate 2, ToB & BGEE Effects
     // -----------------------
     else if (gameid == ResourceFactory.ID_BG2 ||
              gameid == ResourceFactory.ID_BG2TOB ||
@@ -2191,11 +2192,21 @@ public final class EffectFactory
         case 0xE8: // Cast spell on condition (CGameEffectContingencyInstance)
           s.add(new Bitmap(buffer, offset, 4, "Target",
             new String[]{"Caster", "Last hit by", "Nearest enemy"}));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
-            new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                         "HP below 25%", "HP below 10%", "If helpless",
-                         "If poisoned", "Every round when attacked",
-                         "Every round when hit", "Every round"}));
+          if (gameid == ResourceFactory.ID_BGEE) {
+            s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
+              new String[]{"Target hit", "Enemy sighted", "HP below 50%",
+                           "HP below 25%", "HP below 10%", "If helpless",
+                           "If poisoned", "Every round when attacked",
+                           "Every round when hit", "Every round",
+                           "Actor killed", "Time of day"}));
+
+          } else {
+            s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
+              new String[]{"Target hit", "Enemy sighted", "HP below 50%",
+                           "HP below 25%", "HP below 10%", "If helpless",
+                           "If poisoned", "Every round when attacked",
+                           "Every round when hit", "Every round"}));
+          }
           restype = "SPL";
           break;
 
@@ -2250,7 +2261,11 @@ public final class EffectFactory
 
         case 0xF3: // Drain item charges (CGameEffectDrainChargeFromAllItems)
           s.add(new Bitmap(buffer, offset, 4, "Include weapons?", s_noyes));
-          s.add(new Unknown(buffer, offset + 4, 4));
+          if (gameid == ResourceFactory.ID_BGEE) {
+            s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
+          } else {
+            s.add(new Unknown(buffer, offset + 4, 4));
+          }
           break;
 
         case 0xF4: // Drain wizard spells (CGameEffectRemoveRandomSpell)
@@ -2371,6 +2386,23 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Haste type",
             new String[]{"Normal", "Improved", "Movement rate only"}));
           break;
+
+        case 0x13F: // Restrict item (BGEE)
+          s.add(new IDSTargetEffect(buffer, offset));
+          break;
+
+        case 0x140: // Change weather (BGEE)
+          s.add(new Bitmap(buffer, offset, 4, "Type",
+                           new String[]{"", "Rain", "Snow", "Nothing"}));
+          s.add(new Unknown(buffer, offset + 4, 4));
+          break;
+
+        case 0x141: // Remove effects by resource (BGEE)
+          s.add(new Unknown(buffer, offset, 4));
+          s.add(new Unknown(buffer, offset + 4, 4));
+          restype = "SPL";
+          break;
+
       }
     }
 
