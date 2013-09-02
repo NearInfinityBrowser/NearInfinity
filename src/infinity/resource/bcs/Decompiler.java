@@ -625,7 +625,11 @@ public final class Decompiler
       return new String[] {".2DA"};
     }
     else if (function.equalsIgnoreCase("StartMovie")) {
-      return new String[] {".MVE"};
+      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
+        return new String[] {".WBM"};
+      } else {
+        return new String[] {".MVE"};
+      }
     }
     else if (function.equalsIgnoreCase("AddSpecialAbility")) {
       return new String[] {".SPL"};
