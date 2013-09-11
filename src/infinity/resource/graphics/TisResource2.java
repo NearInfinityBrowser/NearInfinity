@@ -16,6 +16,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
+import infinity.util.Debugging;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -46,6 +47,9 @@ import javax.swing.event.ChangeListener;
 
 public class TisResource2 implements Resource, ActionListener, ChangeListener, KeyListener, Closeable
 {
+  // max. number of recommended active threads
+  private static final int THREADS_MAX = (int)(Math.ceil(Runtime.getRuntime().availableProcessors() * 1.25));
+
   private static final int DEFAULT_COLUMNS = 5;
 
   private final static JCheckBox cbGrid = new JCheckBox("Show Grid"); // show/hide frame around each tile
@@ -59,54 +63,11 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   private JButton bExport;              // "Export..." button
   private JPanel panel;                 // top-level panel of the viewer
 
-  /*
-  // single-threaded version
-  public static BufferedImage drawImage(ResourceEntry entry, int width, int height, int mapIndex,
-                                        int lookupIndex, Overlay overlay) throws Exception
-  {
-    TisDecoder decoder = new TisDecoder(entry);
-
-    Vector<TileInfo> tiles = new Vector<TileInfo>(width * height);
-    for (int ypos = 0; ypos < height; ypos++) {
-      for (int xpos = 0; xpos < width; xpos++) {
-        AbstractStruct wedtilemap = (AbstractStruct)overlay.getStructEntryAt(ypos*width + xpos + mapIndex);
-        int lookup = ((DecNumber)wedtilemap.getAttribute("Primary tile index")).getValue();
-        int tilenum = ((DecNumber)overlay.getStructEntryAt(lookup + lookupIndex)).getValue();
-        tiles.add(new TileInfo(xpos, ypos, tilenum));
-      }
-    }
-
-    BufferedImage image = new BufferedImage(width*decoder.info().tileWidth(),
-        height*decoder.info().tileHeight(),
-        BufferedImage.TYPE_INT_RGB);
-    ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.R8G8B8;
-    int tileWidth = decoder.info().tileWidth();
-    int tileHeight = decoder.info().tileHeight();
-    int[] tileBlock = new int[tileWidth*tileHeight];
-    for (int i = 0; i < tiles.size(); i++) {
-      TileInfo tile = tiles.get(i);
-
-      // decoding tile
-      ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tile.tilenum, colorFormat, false), 0,
-          tileBlock, 0, tileBlock.length);
-
-      // drawing tile
-      for (int y = 0; y < tileHeight; y++)
-        for (int x = 0; x < tileWidth; x++)
-          image.setRGB(tile.xpos*tileWidth + x, tile.ypos*tileHeight + y, tileBlock[y*tileWidth + x]);
-    }
-
-    return image;
-  }
-  */
 
   // multi-threaded version
   public static BufferedImage drawImage(ResourceEntry entry, int width, int height, int mapIndex,
                                         int lookupIndex, Overlay overlay) throws Exception
   {
-    // max. number of active threads
-    final int THREADS_MAX = (int)(Math.ceil(Runtime.getRuntime().availableProcessors() * 1.25));
-
     TisDecoder decoder = new TisDecoder(entry);
 
     // creating tile index map
@@ -135,7 +96,8 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     while (tilesFinished < tileCount) {
       // starting a couple of threads
       while (tilesStarted < tileCount && threadsRunning < THREADS_MAX) {
-        (new Thread(new TileDecoder(queue, decoder, tiles.get(tilesStarted), colorFormat))).start();
+        (new Thread(new TileDecoder(TileDecoder.OutputType.OUTPUT_RAW, queue, decoder,
+                                    tiles.get(tilesStarted), colorFormat))).start();
         tilesStarted++;
         threadsRunning++;
       }
@@ -168,9 +130,29 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
     try {
       blocker.setBlocked(true);
-      tileImages = new BufferedImage[decoder.info().tileCount()];
-      for (int idx = 0; idx < decoder.info().tileCount(); idx++)
-        loadTile(idx);
+      int tileCount = decoder.info().tileCount();
+      int threadsRunning = 0;
+      int tilesStarted = 0;
+      int tilesFinished = 0;
+      tileImages = new BufferedImage[tileCount];
+      LinkedBlockingQueue<TileInfo> queue = new LinkedBlockingQueue<TileInfo>();
+      while (tilesFinished < tileCount) {
+        // starting a couple of threads
+        while (tilesStarted < tileCount && threadsRunning < THREADS_MAX) {
+          (new Thread(new TileDecoder(TileDecoder.OutputType.OUTPUT_IMAGE, queue, decoder,
+                                      new TileInfo(0, 0, tilesStarted)))).start();
+          tilesStarted++;
+          threadsRunning++;
+        }
+
+        // storing decoded tiles if available
+        if (queue.peek() != null) {
+          TileInfo info = queue.poll();
+          tileImages[info.tilenum] = info.image;
+          threadsRunning--;
+          tilesFinished++;
+        }
+      }
       blocker.setBlocked(false);
     } catch (Exception e) {
       blocker.setBlocked(false);
@@ -356,37 +338,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- End Interface Viewable ---------------------
 
-  private void loadTile(int idx) throws Exception
-  {
-    if (decoder != null && tileImages != null) {
-      try {
-        if (idx >= 0 && idx < decoder.info().tileCount()) {
-          // preparations
-          ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.R8G8B8;
-          int tileWidth = decoder.info().tileWidth();
-          int tileHeight = decoder.info().tileHeight();
-          int[] block = new int[tileWidth*tileHeight];
-
-          // decoding tile
-          ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(idx, colorFormat, false), 0,
-                                     block, 0, block.length);
-
-          // drawing tile
-          BufferedImage img = new BufferedImage(tileWidth, tileHeight, BufferedImage.TYPE_INT_RGB);
-          for (int y = 0; y < tileHeight; y++)
-            for (int x = 0; x < tileWidth; x++)
-              img.setRGB(x, y, block[y*tileWidth + x]);
-
-          tileImages[idx] = img;
-          block = null;
-        }
-      } catch (Exception e) {
-        throw new Exception("Error loading tile #" + idx + ": " + e.getMessage());
-      }
-    }
-  }
-
-  private Dimension calcGridSize(int imageCount, int colSize)
+  private static Dimension calcGridSize(int imageCount, int colSize)
   {
     if (imageCount >= 0 && colSize > 0) {
       int rowSize = imageCount / colSize;
@@ -406,6 +358,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     private final int xpos, ypos; // coordinate in tile grid
     private final int tilenum;    // tile index from WED
     private int[] output;         // decoded pixel data of the tile
+    private BufferedImage image;  // decoded pixel data as image object
 
     private TileInfo(int xpos, int ypos, int tilenum)
     {
@@ -413,6 +366,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       this.ypos = ypos;
       this.tilenum = tilenum;
       this.output = null;
+      this.image = null;
     }
   }
 
@@ -420,14 +374,15 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   // decodes a single tile asynchronously
   private static class TileDecoder implements Runnable
   {
+    private enum OutputType { OUTPUT_RAW, OUTPUT_IMAGE }
     private final TisDecoder decoder;
     private final LinkedBlockingQueue<TileInfo> queue;
     private final TileInfo tileInfo;
     private final ColorConvert.ColorFormat outFormat;
+    private final OutputType outputType;
 
-    public TileDecoder(LinkedBlockingQueue<TileInfo> queue,
-                       TisDecoder decoder,
-                       TileInfo info,
+    public TileDecoder(OutputType outputType, LinkedBlockingQueue<TileInfo> queue,
+                       TisDecoder decoder, TileInfo info,
                        ColorConvert.ColorFormat fmt) throws Exception
     {
       if (queue == null || decoder == null || info == null ||
@@ -437,19 +392,81 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       this.decoder = decoder;
       tileInfo = info;
       outFormat = fmt;
+      this.outputType = outputType;
+    }
+
+    public TileDecoder(OutputType outputType, LinkedBlockingQueue<TileInfo> queue,
+                       TisDecoder decoder, TileInfo info) throws Exception
+    {
+      if (queue == null || decoder == null || info == null ||
+          info.tilenum < 0 || info.tilenum >= decoder.info().tileCount())
+        throw new Exception("Invalid arguments specified");
+      this.queue = queue;
+      this.decoder = decoder;
+      tileInfo = info;
+      outFormat = null;
+      this.outputType = outputType;
     }
 
     public void run()
+    {
+      switch (outputType) {
+        case OUTPUT_RAW:
+          decodeRaw();
+          break;
+        case OUTPUT_IMAGE:
+          decodeImage();
+          break;
+      }
+    }
+
+    private void decodeRaw()
     {
       tileInfo.output = new int[decoder.info().tileWidth()*decoder.info().tileHeight()];
       try {
         ColorConvert.BufferToColor(outFormat, decoder.decodeTile(tileInfo.tilenum, outFormat, false),
                                    0, tileInfo.output, 0, tileInfo.output.length);
+        storeItem();
       } catch (Exception e)
       {
         e.printStackTrace();
       }
+    }
 
+    private void decodeImage()
+    {
+      try {
+        if (tileInfo.tilenum >= 0 && tileInfo.tilenum < decoder.info().tileCount()) {
+          // preparations
+          ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.R8G8B8;
+          int tileWidth = decoder.info().tileWidth();
+          int tileHeight = decoder.info().tileHeight();
+          int[] block = new int[tileWidth*tileHeight];
+
+          // decoding tile
+          ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tileInfo.tilenum,
+                                     colorFormat, false), 0, block, 0, block.length);
+
+          // drawing tile
+          BufferedImage img = new BufferedImage(tileWidth, tileHeight, BufferedImage.TYPE_INT_RGB);
+          for (int y = 0; y < tileHeight; y++)
+            for (int x = 0; x < tileWidth; x++)
+              img.setRGB(x, y, block[y*tileWidth + x]);
+
+          block = null;
+          tileInfo.image = img;
+        } else
+          throw new Exception("Index out of bounds");
+      } catch (Exception e) {
+        System.err.println("Error loading tile #" + tileInfo.tilenum + ": " + e.getMessage());
+        e.printStackTrace();
+      }
+      storeItem();
+    }
+
+    // stores current TileInfo object in blocking queue
+    private void storeItem()
+    {
       int counter = 50;
       while (counter > 0) {
         try {
