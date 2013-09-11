@@ -4,7 +4,7 @@
 
 package infinity.resource.graphics;
 
-import infinity.resource.graphics.ColorConvert.ColorFormat;
+import infinity.resource.graphics.ColorConvert;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -20,12 +20,11 @@ public class PvrDecoder
 
   private PVRInfo info = null;
   private byte[] inBuffer = null;
-  private final ColorFormat inputFormat = ColorFormat.A8R8G8B8;
-  private ColorFormat outputFormat;
 
   /**
    * Constructor takes a buffer containing the whole PVR data.
    * @param buffer The buffer containing the whole PVR data.
+   * @throws Exception
    */
   public PvrDecoder(byte[] buffer) throws Exception
   {
@@ -39,6 +38,7 @@ public class PvrDecoder
    * Constructor takes a buffer containing the whole PVR data.
    * @param buffer The buffer containing the whole PVR data.
    * @param ofs Start offset into the buffer.
+   * @throws Exception
    */
   public PvrDecoder(byte[] buffer, int ofs) throws Exception
   {
@@ -53,8 +53,9 @@ public class PvrDecoder
    * @param fmt The color format of the decoded data.
    * @param asBMP If true, resulting data is in Windows BMP format.
    * @return A buffer containing the decoded PVR pixel data.
+   * @throws Exception
    */
-  public byte[] decode(ColorFormat fmt, boolean asBMP) throws Exception
+  public byte[] decode(ColorConvert.ColorFormat fmt, boolean asBMP) throws Exception
   {
     if (!empty()) {
       return decode(0, 0, info().width(), info().height(), fmt, asBMP);
@@ -71,8 +72,10 @@ public class PvrDecoder
    * @param fmt The color format of the decoded data.
    * @param asBMP If true, resulting data is in Windows BMP format.
    * @return A buffer containing the decoded PVR pixel data.
+   * @throws Exception
    */
-  public byte[] decode(int left, int top, int width, int height, ColorFormat fmt, boolean asBMP) throws Exception
+  public byte[] decode(int left, int top, int width, int height,
+                       ColorConvert.ColorFormat fmt, boolean asBMP) throws Exception
   {
     if (!empty()) {
       if (left < 0 || top < 0 || width < 0 || height < 0 ||
@@ -83,23 +86,21 @@ public class PvrDecoder
       if (info().channelType() != PVRInfo.ChannelType.UBYTE_NORM)
         throw new Exception("Channel type not supported");
 
-      outputFormat = fmt;
-
-      int outPixelSize = ColorConvert.ColorBits(outputFormat) >> 3;
+      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
       if (asBMP) {
         // decode into BMP format
-        byte[] bmpHeader = getBMPHeader(width, height);
+        byte[] bmpHeader = ColorConvert.CreateBMPHeader(width, height, fmt);
         if (bmpHeader == null)
           throw new Exception("Error creating BMP header");
         byte[] outBuffer = new byte[bmpHeader.length + width*height*outPixelSize];
         System.arraycopy(bmpHeader, 0, outBuffer, 0, bmpHeader.length);
         int outBufferOfs = bmpHeader.length;
-        if (decodeDXT1(outBuffer, outBufferOfs, left, top, width, height, true));
+        if (decodeDXT1(outBuffer, outBufferOfs, left, top, width, height, fmt, true));
           return outBuffer;
       } else {
         // decode into raw pixel data
         byte[] outBuffer = new byte[width*height*outPixelSize];
-        if (decodeDXT1(outBuffer, 0, left, top, width, height, false))
+        if (decodeDXT1(outBuffer, 0, left, top, width, height, fmt, false))
           return outBuffer;
       }
       return null;
@@ -111,12 +112,12 @@ public class PvrDecoder
    * Returns an interface to a PVR info structure.
    * @return PVR info structure
    */
-  public PVRInfo info() throws Exception
+  public PVRInfo info()
   {
     if (!empty())
       return info;
     else
-      throw new Exception(NOT_INITIALIZED);
+      return null;
   }
 
   private void init(byte[] buffer, int ofs) throws Exception
@@ -136,7 +137,6 @@ public class PvrDecoder
 
     inBuffer = new byte[info.dataSize()];
     System.arraycopy(buffer, ofs + info().headerSize(), inBuffer, 0, info().dataSize());
-    outputFormat = ColorFormat.A8R8G8B8;  // default output color format
   }
 
   private boolean empty()
@@ -145,75 +145,6 @@ public class PvrDecoder
       return info.empty();
     else
       return true;
-  }
-
-  private byte[] getBMPHeader(int width, int height) throws Exception
-  {
-    if (!empty()) {
-      if (width < 0 || height < 0)
-        throw new Exception("Invalid image dimensions specified");
-
-      // Only 32-bit color format accepted to simplify BMP conversion
-      switch (outputFormat) {
-        case A8R8G8B8:
-        case A8B8G8R8:
-        case R8G8B8A8:
-        case B8G8R8A8:
-          break;
-        default:
-          throw new Exception("Output pixel format is not supported.");
-      }
-
-      final int csRGB  = 0x206e6957;    // linear RGB color space ID
-      final int csSRGB = 0x73524742;    // sRGB color space ID
-
-      int[] colorFormat = ColorConvert.ColorDefinition(outputFormat);
-      int depth = ColorConvert.ColorBits(outputFormat);
-      int bpp = depth >> 3;
-      int[] mask = new int[4];
-      mask[0] = ((1 << colorFormat[2]) - 1) << colorFormat[3];
-      mask[1] = ((1 << colorFormat[4]) - 1) << colorFormat[5];
-      mask[2] = ((1 << colorFormat[6]) - 1) << colorFormat[7];
-      mask[3] = ((1 << colorFormat[0]) - 1) << colorFormat[1];
-      int bmpFileHeaderSize = 14;
-      int bmpInfoHeaderSize = 124;        // BITMAPV5HEADER size
-      int bmpHeaderSize = bmpFileHeaderSize + bmpInfoHeaderSize;
-      long bmpSize = bmpHeaderSize + width*height*bpp;    // complete header size + pixel data size
-      byte[] bmpHeader = new byte[bmpHeaderSize];
-      ByteBuffer bb = ByteBuffer.wrap(bmpHeader).order(ByteOrder.LITTLE_ENDIAN);
-      // BITMAP header
-      bb.putShort((short)0x4D42);         // BM
-      bb.putLong(bmpSize);                // total file size
-      bb.putInt(bmpHeaderSize);           // offset to pixel data block
-      // BITMAPV5HEADER
-      bb.putInt(bmpInfoHeaderSize);       // BITMAPV5HEADER size
-      bb.putInt(width);                   // width
-      bb.putInt(height);                  // height
-      bb.putShort((short)1);              // # planes
-      bb.putShort((short)depth);          // bpp
-      bb.putInt(3);                       // Compression method: BI_BITFIELDS
-      bb.putInt(width*height*bpp);        // image size in bytes
-      bb.putInt(2834);                    // X resolution in pixels/meter
-      bb.putInt(2834);                    // Y resolution in pixels/meter
-      bb.putInt(0);                       // # of palette entries
-      bb.putInt(0);                       // # of important colors
-      for (final int m: mask)             // color masks
-        bb.putInt(m);
-      if (info().colorSpace() == PVRInfo.ColorSpace.SRGB)
-        bb.putInt(csSRGB);                // type of color space: sRGB
-      else
-        bb.putInt(csRGB);                 // type of color space: linear RGB
-      bb.put(new byte[0x24]);             // unused
-      bb.putInt(0);                       // red gamma
-      bb.putInt(0);                       // green gamma
-      bb.putInt(0);                       // blue gamma
-      bb.putInt(8);                       // intent (LCS_GM_ABS_COLORIMETRIC)
-      bb.putInt(0);                       // profile data
-      bb.putInt(0);                       // profile size
-      bb.putInt(0);                       // reserved
-      return bmpHeader;
-    } else
-      throw new Exception(NOT_INITIALIZED);
   }
 
   /**
@@ -227,12 +158,14 @@ public class PvrDecoder
    * @param asBMP Write as BMP? (BMP is written upside down)
    * @return true if successful, false otherwise
    */
-  private boolean decodeDXT1(byte[] outBuffer, int ofs, int left, int top, int width, int height, boolean asBMP) throws Exception
+  private boolean decodeDXT1(byte[] outBuffer, int ofs,
+                             int left, int top, int width, int height,
+                             ColorConvert.ColorFormat fmt, boolean asBMP) throws Exception
   {
     if (outBuffer == null)
       throw new NullPointerException();
 
-    int outPixelSize = ColorConvert.ColorBits(outputFormat) >> 3;
+    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
     int size = width*height*outPixelSize;
     if (outBuffer.length - ofs < size)
       throw new Exception("Output buffer too small");
@@ -256,7 +189,7 @@ public class PvrDecoder
     for (int y = 0; y < alignedBlocksY; y++) {
       int inOfs = (((alignedTop >> 2) + y) * inBlocksX + (alignedLeft >> 2)) << 3;
       for (int x = 0; x < alignedBlocksX; x++, inOfs+=8) {
-        byte[] block = decodeDXT1Block(inBuffer, inOfs);
+        byte[] block = decodeDXT1Block(inBuffer, inOfs, fmt);
         if (block != null && block.length >= (outPixelSize << 4)) {
           int blockOfs = 0;
           int aOfs = ((y * alignedWidth + x) << 2) * outPixelSize;
@@ -302,8 +235,10 @@ public class PvrDecoder
    * @param ofs Start start offset into the input buffer
    * @return The decoded pixel data as a 4x4 32-bit color data block.
    */
-  private byte[] decodeDXT1Block(byte[] inBuffer, int ofs) throws Exception
+  private byte[] decodeDXT1Block(byte[] inBuffer, int ofs, ColorConvert.ColorFormat fmt) throws Exception
   {
+    final ColorConvert.ColorFormat inputFormat = ColorConvert.ColorFormat.A8R8G8B8;
+
     if (inBuffer == null)
       throw new NullPointerException();
     if (inBuffer.length + ofs < 8)
@@ -372,8 +307,8 @@ public class PvrDecoder
     }
 
     // converting pixels to output color format
-    byte[] outBuffer = new byte[16 * ColorConvert.ColorBits(outputFormat) >> 3];
-    ColorConvert.Convert(inputFormat, workingBuffer, 0, outputFormat, outBuffer, 0, 16);
+    byte[] outBuffer = new byte[16 * ColorConvert.ColorBits(fmt) >> 3];
+    ColorConvert.Convert(inputFormat, workingBuffer, 0, fmt, outBuffer, 0, 16);
 
     return outBuffer;
   }

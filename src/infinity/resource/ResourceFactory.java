@@ -203,7 +203,7 @@ public final class ResourceFactory
         if (entry.getExtension().equalsIgnoreCase("BAM"))
           res = new BamResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("TIS"))
-          res = new TisResource(entry);
+          res = new TisResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("BMP"))
           res = new BmpResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MOS"))
