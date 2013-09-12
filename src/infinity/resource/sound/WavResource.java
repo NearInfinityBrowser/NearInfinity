@@ -67,7 +67,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       channels = (int)Byteconvert.convertShort(data, 20);
       // 6 unknown bytes
 
-      if (BrowserMenuBar.getInstance().autoConvertWAV())
+      if (BrowserMenuBar.getInstance().autoConvertWAV() && SoundUtilities.converterExists())
         wavfile = SoundUtilities.convert(data, 28, '_' + entry.toString(), channels == 1);
       fileCreated = true;
     }
