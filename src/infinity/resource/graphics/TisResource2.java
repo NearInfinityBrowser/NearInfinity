@@ -16,7 +16,6 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
-import infinity.util.Debugging;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -306,7 +305,10 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     tileGrid.addImage(tileImages);
     tileGrid.setTileColor(Color.BLACK);
     // The formula for 'colSize' attempts to approximate the most commonly used aspect ratio found in TIS files
-    tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), (int)(Math.sqrt(tileGrid.getImageCount())*1.18)));
+    if (tileGrid.getImageCount() > 10)
+      tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), (int)(Math.sqrt(tileGrid.getImageCount())*1.18)));
+    else
+      tileGrid.setGridSize(new Dimension(tileGrid.getImageCount(), 1));
     tileGrid.setShowGrid(cbGrid.isSelected());
     slCols.setValue(tileGrid.getTileColumns());
     tfCols.setText(Integer.toString(tileGrid.getTileColumns()));
@@ -424,7 +426,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     {
       tileInfo.output = new int[decoder.info().tileWidth()*decoder.info().tileHeight()];
       try {
-        ColorConvert.BufferToColor(outFormat, decoder.decodeTile(tileInfo.tilenum, outFormat, false),
+        ColorConvert.BufferToColor(outFormat, decoder.decodeTile(tileInfo.tilenum, outFormat),
                                    0, tileInfo.output, 0, tileInfo.output.length);
         storeItem();
       } catch (Exception e)
@@ -444,8 +446,9 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
           int[] block = new int[tileWidth*tileHeight];
 
           // decoding tile
-          ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tileInfo.tilenum,
-                                     colorFormat, false), 0, block, 0, block.length);
+          ColorConvert.BufferToColor(colorFormat,
+                                     decoder.decodeTile(tileInfo.tilenum, colorFormat),
+                                     0, block, 0, block.length);
 
           // drawing tile
           BufferedImage img = new BufferedImage(tileWidth, tileHeight, BufferedImage.TYPE_INT_RGB);

@@ -40,6 +40,8 @@ final class ViewerMap extends JPanel implements ListSelectionListener
       JPanel areas = ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Name",
                                               new WmpAreaListRenderer(icons), this);
       JScrollPane mapScroll = new JScrollPane(mapLabel);
+      mapScroll.getVerticalScrollBar().setUnitIncrement(16);
+      mapScroll.getHorizontalScrollBar().setUnitIncrement(16);
       mapScroll.setBorder(BorderFactory.createEmptyBorder());
 
       JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, areas);

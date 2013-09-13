@@ -29,8 +29,8 @@ public class TisDecoder
   private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;  // cache for associated PVR resources
 
   /**
-   * Initialize this object using the TIS data provided in buffer.
-   * @param buffer Buffer containing the whole TIS file data.
+   * Initialize this object using the specified filename.
+   * @param tisName Filename of the TIS file
    * @throws Exception
    */
   public TisDecoder(String tisName) throws Exception
@@ -44,9 +44,8 @@ public class TisDecoder
   }
 
   /**
-   * Initialize this object using the TIS data provided in buffer.
-   * @param buffer Buffer containing the whole TIS file data.
-   * @param ofs Start offset into the buffer.
+   * Initialize this object using the specified resource entry.
+   * @param entry Resource entry structure of the TIS resource.
    * @throws Exception
    */
   public TisDecoder(ResourceEntry entry) throws Exception
@@ -72,17 +71,16 @@ public class TisDecoder
   }
 
   /**
-   * Decodes the currently loaded TIS file as either raw pixel data or Windows BMP using
+   * Decodes the currently loaded TIS file as raw pixel data using
    * the specified color format.<br>
    * <b>Note:</b> This method is thread-safe.
    * @param tilesX Number of tiles per line (if tilesX == 0, then tilesX = 1 assumed)
    * @param tilesY Number of tile lines (if tilesY == 0, then tilesY = tileCount / tilesX assumed)
    * @param fmt Color format of the output data
-   * @param asBMP If true, resulting data is in Windows BMP format (incl. BMP header).
    * @return A buffer containing the resulting image data.
    * @throws Exception
    */
-  public byte[] decode(int tilesX, int tilesY, ColorFormat fmt, boolean asBMP) throws Exception
+  public byte[] decode(int tilesX, int tilesY, ColorFormat fmt) throws Exception
   {
     if (!empty()) {
       if (tilesX < 0 || tilesY < 0)
@@ -100,52 +98,34 @@ public class TisDecoder
       int height = tilesY * info().tileHeight();
 
       int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      if (asBMP) {
-        // decode into BMP format
-        byte[] bmpHeader = ColorConvert.CreateBMPHeader(width, height, fmt);
-        byte[] outBuffer = new byte[bmpHeader.length + width*height*outPixelSize];
-        System.arraycopy(bmpHeader, 0, outBuffer, 0, bmpHeader.length);
-        if (decodeTIS(outBuffer, bmpHeader.length, tilesX, tilesY, fmt, true))
-          return outBuffer;
-      } else {
-        // decode into raw pixel format
-        byte[] outBuffer = new byte[width*height*outPixelSize];
-        if (decodeTIS(outBuffer, 0, tilesX, tilesY, fmt, false))
-          return outBuffer;
-      }
+      // decode into raw pixel format
+      byte[] outBuffer = new byte[width*height*outPixelSize];
+      if (decodeTIS(outBuffer, 0, tilesX, tilesY, fmt))
+        return outBuffer;
       return null;
     } else
       throw new Exception(NOT_INITIALIZED);
   }
 
   /**
-   * Decodes the specified tile of the currently loaded TIS file and returns it either as raw pixel data
-   * or Windows BMP using the specified color format.<br>
+   * Decodes the specified tile of the currently loaded TIS file and returns it as raw pixel data
+   * using the specified color format.<br>
    * <b>Note:</b> This method is thread-safe.
    * @param tileIndex The tile to extract (index starting at 0).
    * @param fmt Color format of the output data
-   * @param asBMP If true, resulting data is in Windows BMP format (incl. BMP header).
    * @return A buffer containing the resulting output data of the tile.
    * @throws Exception
    */
-  public byte[] decodeTile(int tileIndex, ColorFormat fmt, boolean asBMP) throws Exception
+  public byte[] decodeTile(int tileIndex, ColorFormat fmt) throws Exception
   {
     if (!empty()) {
       if (tileIndex < 0 || tileIndex > info().tileCount())
         throw new Exception("Tile index out of bounds");
 
       int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      if (asBMP) {
-        byte[] bmpHeader = ColorConvert.CreateBMPHeader(info().tileWidth(), info().tileHeight(), fmt);
-        byte[] outBuffer = new byte[bmpHeader.length + info().tileWidth()*info().tileHeight()*outPixelSize];
-        System.arraycopy(bmpHeader, 0, outBuffer, 0, bmpHeader.length);
-        if (decodeTISTile(outBuffer, bmpHeader.length, tileIndex, fmt, true))
-          return outBuffer;
-      } else {
-        byte[] outBuffer = new byte[info().tileWidth()*info().tileHeight()*outPixelSize];
-        if (decodeTISTile(outBuffer, 0, tileIndex, fmt, false))
-          return outBuffer;
-      }
+      byte[] outBuffer = new byte[info().tileWidth()*info().tileHeight()*outPixelSize];
+      if (decodeTISTile(outBuffer, 0, tileIndex, fmt))
+        return outBuffer;
       return null;
     } else
       throw new Exception(NOT_INITIALIZED);
@@ -218,7 +198,7 @@ public class TisDecoder
             if (data != null) {
               int size = Byteconvert.convertInt(data, 0);
               int marker = Byteconvert.convertShort(data, 4) & 0xffff;
-              if ((size & 0xff) != 0x34 && marker != 0x9c78)
+              if ((size & 0xff) != 0x34 || marker != 0x9c78)
                 throw new Exception("Invalid PVRZ resource: " + entry.getResourceName());
               data = Compressor.decompress(data, 0);
               PvrDecoder d = new PvrDecoder(data);
@@ -244,8 +224,8 @@ public class TisDecoder
     return pvrzBase + pvrzPage + ".PVRZ";
   }
 
-  // Decode tilesX*tilesY tiles into outBuffer, starting at ofs, optionally as BMP
-  private boolean decodeTIS(byte[] outBuffer, int ofs, int tilesX, int tilesY, ColorFormat fmt, boolean asBMP) throws Exception
+  // Decode tilesX*tilesY tiles into outBuffer, starting at ofs
+  private boolean decodeTIS(byte[] outBuffer, int ofs, int tilesX, int tilesY, ColorFormat fmt) throws Exception
   {
     if (!empty()) {
       if (outBuffer == null)
@@ -283,27 +263,13 @@ public class TisDecoder
         }
       }
 
-      // (optional) BMP post-processing
-      if (asBMP) {
-        byte[] line = new byte[outLineSize];
-        int ofsTop = ofs;
-        int ofsBottom = ofs + ((tilesY*info().tileHeight()) - 1)*outLineSize;
-        while (ofsTop < ofsBottom) {
-          System.arraycopy(outBuffer, ofsTop, line, 0, outLineSize);
-          System.arraycopy(outBuffer, ofsBottom, outBuffer, ofsTop, outLineSize);
-          System.arraycopy(line, 0, outBuffer, ofsBottom, outLineSize);
-          ofsTop += outLineSize;
-          ofsBottom -= outLineSize;
-        }
-      }
-
       return true;
     } else
       throw new Exception(NOT_INITIALIZED);
   }
 
-  // Decode the single tile tileIdx into outBuffer, starting at ofs, optionally as BMP.
-  private boolean decodeTISTile(byte[] outBuffer, int ofs, int tileIdx, ColorFormat fmt, boolean asBMP) throws Exception
+  // Decode the single tile tileIdx into outBuffer, starting at ofs
+  private boolean decodeTISTile(byte[] outBuffer, int ofs, int tileIdx, ColorFormat fmt) throws Exception
   {
     if (!empty()) {
       if (outBuffer == null)
@@ -329,20 +295,6 @@ public class TisDecoder
       else
         throw new Exception("Error decoding tile #" + tileIdx);
 
-      // (optional) BMP post-processing
-      if (asBMP) {
-        int outLineSize = info().tileWidth()*outPixelSize;
-        byte[] line = new byte[outLineSize];
-        int ofsTop = ofs;
-        int ofsBottom = ofs + (info().tileHeight() - 1)*outLineSize;
-        while (ofsTop < ofsBottom) {
-          System.arraycopy(outBuffer, ofsTop, line, 0, outLineSize);
-          System.arraycopy(outBuffer, ofsBottom, outBuffer, ofsTop, outLineSize);
-          System.arraycopy(line, 0, outBuffer, ofsBottom, outLineSize);
-          ofsTop += outLineSize;
-          ofsBottom -= outLineSize;
-        }
-      }
       return true;
     } else
       throw new Exception(NOT_INITIALIZED);
@@ -386,11 +338,10 @@ public class TisDecoder
     int xPos = bb.getInt();
     int yPos = bb.getInt();
 
-    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    byte[] block = new byte[info().tileWidth()*info().tileHeight()*outPixelSize];
-
     if (page < 0) {
       // special case: fill with black pixels
+      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
+      byte[] block = new byte[info().tileWidth()*info().tileHeight()*outPixelSize];
       byte[] outPixel = new byte[outPixelSize];
       ColorConvert.Convert(ColorConvert.ColorFormat.A8R8G8B8, new byte[]{0, 0, 0, (byte)255}, 0,
                            fmt, outPixel, 0, 1);
@@ -404,7 +355,7 @@ public class TisDecoder
       // extract data block from associated PVR file
       PvrDecoder decoder = getPVR(page);
       if (decoder != null) {
-        return decoder.decode(xPos, yPos, info().tileWidth(), info().tileHeight(), fmt, false);
+        return decoder.decode(xPos, yPos, info().tileWidth(), info().tileHeight(), fmt);
       } else
         throw new Exception("Error while decoding PVR tile");
     }

@@ -17,25 +17,28 @@ import infinity.util.Byteconvert;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-public class PvrzResource implements Resource, ItemListener
+public class PvrzResource implements Resource, ActionListener
 {
   private final ResourceEntry entry;
   private BufferedImage image;
   private PvrDecoder decoder;
-  private ButtonPopupMenu bExport;
-  private JMenuItem iExport, iBMP;
+  private ButtonPopupMenu mnuExport;
+  private JMenuItem miExport, miBMP;
   private JPanel panel;
 
   public PvrzResource(ResourceEntry entry) throws Exception
@@ -61,29 +64,32 @@ public class PvrzResource implements Resource, ItemListener
     blocker.setBlocked(false);
   }
 
-//--------------------- Begin Interface ItemListener ---------------------
+//--------------------- Begin Interface ActionListener ---------------------
 
-  public void itemStateChanged(ItemEvent event)
+  public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bExport) {
-      if (bExport.getSelectedItem() == iExport) {
-        // export as original PVRZ
-        ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
-      } else if (bExport.getSelectedItem() == iBMP) {
-        try {
-          String fileName = entry.toString().replace(".PVRZ", ".BMP");
+    if (event.getSource() == miExport) {
+      // export as original PVRZ
+      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    } else if (event.getSource() == miBMP) {
+      try {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        String fileName = entry.toString().replace(".PVRZ", ".BMP");
+        if (ImageIO.write(image, "bmp", os)) {
           ResourceFactory.getInstance().exportResource(entry,
-                                                       decoder.decode(ColorConvert.ColorFormat.R8G8B8, true),
-                                                       fileName,
-                                                       panel.getTopLevelAncestor());
-        } catch (Exception e) {
-          e.printStackTrace();
+              os.toByteArray(), fileName, panel.getTopLevelAncestor());
+        } else {
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+                                        "Error while exporting " + entry, "Error",
+                                        JOptionPane.ERROR_MESSAGE);
         }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
   }
 
-//--------------------- End Interface ItemListener ---------------------
+//--------------------- End Interface ActionListener ---------------------
 
 //--------------------- Begin Interface Resource ---------------------
 
@@ -99,17 +105,20 @@ public class PvrzResource implements Resource, ItemListener
 
   public JComponent makeViewer(ViewableContainer container)
   {
-    iExport = new JMenuItem("original");
-    iBMP = new JMenuItem("as BMP");
-    bExport = new ButtonPopupMenu("Export...", new JMenuItem[]{iExport, iBMP});
-    bExport.addItemListener(this);
-    bExport.setIcon(Icons.getIcon("Export16.gif"));
-    bExport.setMnemonic('e');
+    miExport = new JMenuItem("original");
+    miExport.addActionListener(this);
+    miBMP = new JMenuItem("as BMP");
+    miBMP.addActionListener(this);
+    mnuExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miBMP});
+    mnuExport.setIcon(Icons.getIcon("Export16.gif"));
+    mnuExport.setMnemonic('e');
     JScrollPane scroll = new JScrollPane(new JLabel(new ImageIcon(image)));
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+    scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
     JPanel bPanel = new JPanel();
     bPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    bPanel.add(bExport);
+    bPanel.add(mnuExport);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
@@ -136,7 +145,7 @@ public class PvrzResource implements Resource, ItemListener
   {
     decoder = new PvrDecoder(buffer);
     ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.R8G8B8;
-    byte[] imageData = decoder.decode(outputFormat, false);
+    byte[] imageData = decoder.decode(outputFormat);
     image = new BufferedImage(decoder.info().width(), decoder.info().height(), BufferedImage.TYPE_INT_RGB);
     int imgOfs = 0;
     int pixelSize = ColorConvert.ColorBits(outputFormat) >> 3;

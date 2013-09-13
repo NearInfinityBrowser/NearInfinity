@@ -207,7 +207,7 @@ public final class ResourceFactory
         else if (entry.getExtension().equalsIgnoreCase("BMP"))
           res = new BmpResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MOS"))
-          res = new MosResource(entry);
+          res = new MosResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("WAV"))
           res = new WavResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("ACM"))

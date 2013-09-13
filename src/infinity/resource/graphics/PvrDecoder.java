@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Decodes a PVR file, specified as byte array into either raw pixel data or a Windows BMP file.<br>
+ * Decodes a PVR file, specified as byte array into either raw pixel data.<br>
  * <b>Note:</b> Only DXT1 compression supported.
  * @author argent77
  */
@@ -49,33 +49,31 @@ public class PvrDecoder
   }
 
   /**
-   * Decodes the currently loaded PVR data into either a raw data format or Windows BMP format.
+   * Decodes the currently loaded PVR data into a raw data format.
    * @param fmt The color format of the decoded data.
-   * @param asBMP If true, resulting data is in Windows BMP format.
    * @return A buffer containing the decoded PVR pixel data.
    * @throws Exception
    */
-  public byte[] decode(ColorConvert.ColorFormat fmt, boolean asBMP) throws Exception
+  public byte[] decode(ColorConvert.ColorFormat fmt) throws Exception
   {
     if (!empty()) {
-      return decode(0, 0, info().width(), info().height(), fmt, asBMP);
+      return decode(0, 0, info().width(), info().height(), fmt);
     } else
       throw new Exception(NOT_INITIALIZED);
   }
 
   /**
-   * Decodes a block of pixels of the currently loaded PVR data into either a raw data format or Windows BMP format.
+   * Decodes a block of pixels of the currently loaded PVR data into a raw data format.
    * @param left left-most x coordinate of the pixel block
    * @param top top-most y coordinate of the pixel block
    * @param width width in pixels
    * @param height height in pixels
    * @param fmt The color format of the decoded data.
-   * @param asBMP If true, resulting data is in Windows BMP format.
    * @return A buffer containing the decoded PVR pixel data.
    * @throws Exception
    */
   public byte[] decode(int left, int top, int width, int height,
-                       ColorConvert.ColorFormat fmt, boolean asBMP) throws Exception
+                       ColorConvert.ColorFormat fmt) throws Exception
   {
     if (!empty()) {
       if (left < 0 || top < 0 || width < 0 || height < 0 ||
@@ -87,22 +85,9 @@ public class PvrDecoder
         throw new Exception("Channel type not supported");
 
       int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      if (asBMP) {
-        // decode into BMP format
-        byte[] bmpHeader = ColorConvert.CreateBMPHeader(width, height, fmt);
-        if (bmpHeader == null)
-          throw new Exception("Error creating BMP header");
-        byte[] outBuffer = new byte[bmpHeader.length + width*height*outPixelSize];
-        System.arraycopy(bmpHeader, 0, outBuffer, 0, bmpHeader.length);
-        int outBufferOfs = bmpHeader.length;
-        if (decodeDXT1(outBuffer, outBufferOfs, left, top, width, height, fmt, true));
-          return outBuffer;
-      } else {
-        // decode into raw pixel data
-        byte[] outBuffer = new byte[width*height*outPixelSize];
-        if (decodeDXT1(outBuffer, 0, left, top, width, height, fmt, false))
-          return outBuffer;
-      }
+      byte[] outBuffer = new byte[width*height*outPixelSize];
+      if (decodeDXT1(outBuffer, 0, left, top, width, height, fmt))
+        return outBuffer;
       return null;
     } else
       throw new Exception(NOT_INITIALIZED);
@@ -155,12 +140,11 @@ public class PvrDecoder
    * @param top top-most y coordinate of the pixel block
    * @param width width of the pixel block
    * @param height height of the pixel block
-   * @param asBMP Write as BMP? (BMP is written upside down)
    * @return true if successful, false otherwise
    */
   private boolean decodeDXT1(byte[] outBuffer, int ofs,
                              int left, int top, int width, int height,
-                             ColorConvert.ColorFormat fmt, boolean asBMP) throws Exception
+                             ColorConvert.ColorFormat fmt) throws Exception
   {
     if (outBuffer == null)
       throw new NullPointerException();
@@ -170,8 +154,7 @@ public class PvrDecoder
     if (outBuffer.length - ofs < size)
       throw new Exception("Output buffer too small");
 
-    // 1. decoding DXT1 data
-    // 1.1. calculating block dimensions, aligned to a multiple of 4
+    // 1. calculating block dimensions, aligned to a multiple of 4
     int alignedLeft = ((left & 3) != 0) ? (left & ~3) : left;
     int alignedTop = ((top & 3) != 0) ? (top & ~3) : top;
     int alignedWidth = width + left - alignedLeft;
@@ -181,7 +164,7 @@ public class PvrDecoder
     if ((alignedHeight & 3) != 0)
       alignedHeight = (alignedHeight & ~3) + 4;
 
-    // 1.2. decoding aligned data block
+    // 2. decoding aligned data block
     byte[] alignedBuffer = new byte[alignedHeight*alignedWidth*outPixelSize];
     int inBlocksX = info().width() >> 2;        // # blocks per line of input image
     int alignedBlocksX = alignedWidth >> 2;     // # blocks per line of aligned image block
@@ -202,7 +185,7 @@ public class PvrDecoder
       }
     }
 
-    // 1.3. copying data block of specified size to output buffer
+    // 3. copying data block of specified size to output buffer
     int aOfs = ((top - alignedTop) * alignedWidth + (left - alignedLeft)) * outPixelSize;
     int aLength = alignedWidth * outPixelSize;
     int outOfs = ofs;
@@ -211,20 +194,6 @@ public class PvrDecoder
       System.arraycopy(alignedBuffer, aOfs, outBuffer, outOfs, outLength);
       aOfs += aLength;
       outOfs += outLength;
-    }
-
-    // 2. (optional) BMP post-processing
-    if (asBMP) {
-      byte[] line = new byte[outLength];
-      int ofsTop = ofs;
-      int ofsBottom = ofs + ((height - 1) * outLength);
-      while (ofsTop < ofsBottom) {
-        System.arraycopy(outBuffer, ofsTop, line, 0, outLength);
-        System.arraycopy(outBuffer, ofsBottom, outBuffer, ofsTop, outLength);
-        System.arraycopy(line, 0, outBuffer, ofsBottom, outLength);
-        ofsTop += outLength;
-        ofsBottom -= outLength;
-      }
     }
     return true;
   }
