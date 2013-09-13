@@ -382,8 +382,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
       list.add(count_protrap);
-      list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", "MVE"));
-      list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", "MVE"));
+      final String movieExt = ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ?
+        "WBM" : "MVE";
+      list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
+      list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
       list.add(new Unknown(buffer, offset + 228, 56));
     }
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {

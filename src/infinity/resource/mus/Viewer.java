@@ -165,7 +165,7 @@ final class Viewer extends JPanel implements Runnable, ActionListener
       entries[i] = new Entry(mus.getResourceEntry(), dir, entries, tokenizer.nextToken().trim(), i);
       listModel.addElement(entries[i]);
     }
-    if (BrowserMenuBar.getInstance().autoConvertMUS())
+    if (BrowserMenuBar.getInstance().autoConvertMUS() && SoundUtilities.converterExists())
       new Thread(new Convert(getTopLevelAncestor())).start();
   }
 

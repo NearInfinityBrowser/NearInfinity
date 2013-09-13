@@ -1157,7 +1157,11 @@ public final class EffectFactory
         break;
 
       case 0x98: // Play movie (CGameEffectPlayMovie)
-        restype = "MVE";
+        if (gameid == ResourceFactory.ID_BGEE) {
+          restype = "WBM";
+        } else {
+          restype = "MVE";
+        }
         break;
 
       case 0x9F: // Mirror image effect (CGameEffectMirrorImageRun)

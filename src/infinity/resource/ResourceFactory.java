@@ -226,6 +226,8 @@ public final class ResourceFactory
           res = new PlainTextResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MVE"))
           res = new MveResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("WBM"))
+          res = new WbmResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("PLT"))
           res = new PltResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("BCS") ||
