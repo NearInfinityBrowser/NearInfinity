@@ -9,11 +9,13 @@ import infinity.datatype.*;
 import infinity.gui.*;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
-import infinity.resource.graphics.TisResource;
+import infinity.resource.graphics.TisResource2;
+import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.Container;
 import java.awt.image.*;
@@ -26,6 +28,12 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
   public ViewerGraphics(AreResource areaFile)
   {
     super("Area Viewer: " + areaFile.getName(), true);
+
+    if ((NearInfinity.getInstance().getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH)
+      setExtendedState(Frame.MAXIMIZED_BOTH);
+    else
+      setExtendedState(Frame.NORMAL);
+
     this.areaFile = areaFile;
     new Thread(this).start();
   }
@@ -37,10 +45,15 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     try {
       ResourceRef wedRef = (ResourceRef)areaFile.getAttribute("WED resource");
-      WedResource wedFile = new WedResource(
-              ResourceFactory.getInstance().getResourceEntry(wedRef.getResourceName()));
+      ResourceEntry wedEntry = ResourceFactory.getInstance().getResourceEntry(wedRef.getResourceName());
+      if (wedEntry == null)
+        throw new NullPointerException("Resource " + wedRef.getResourceName() + " does not exist.");
+      WedResource wedFile = new WedResource(wedEntry);
       Overlay overlay = (Overlay)wedFile.getAttribute("Overlay");
       ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
+      ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
+      if (tisEntry == null)
+        throw new NullPointerException("Resource " + tisRef.getResourceName() + " does not exist.");
       int width = ((DecNumber)overlay.getAttribute("Width")).getValue();
       int height = ((DecNumber)overlay.getAttribute("Height")).getValue();
       int mapOffset = ((HexNumber)overlay.getAttribute("Tilemap offset")).getValue();
@@ -55,27 +68,21 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
       }
 
       blocker.setBlocked(true);
-//      TisResource tisFile = new TisResource(ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName()));
-//      BufferedImage image = tisFile.drawImage(width, height, mapIndex, lookupIndex, overlay);
-//      tisFile.close();
-      BufferedImage image = TisResource.drawImage(
-              ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName()),
-              width, height, mapIndex, lookupIndex, overlay);
+      BufferedImage image = TisResource2.drawImage(tisEntry, width, height,
+                                                   mapIndex, lookupIndex, overlay);
 
       Container pane = getContentPane();
       pane.setLayout(new BorderLayout());
       label = new JLabel(new ImageIcon(image));
-      pane.add(new JScrollPane(label), BorderLayout.CENTER);
+      JScrollPane scroll = new JScrollPane(label);
+      scroll.getVerticalScrollBar().setUnitIncrement(16);
+      scroll.getHorizontalScrollBar().setUnitIncrement(16);
+      pane.add(scroll, BorderLayout.CENTER);
       setSize(NearInfinity.getInstance().getSize());
       Center.center(this, NearInfinity.getInstance().getBounds());
       blocker.setBlocked(false);
       setVisible(true);
-    } catch (Exception e) {
-      e.printStackTrace();
-      blocker.setBlocked(false);
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), e.toString(), "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-    } catch (OutOfMemoryError e) {
+    } catch (Throwable e) {
       e.printStackTrace();
       blocker.setBlocked(false);
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), e.toString(), "Error",

@@ -54,7 +54,7 @@ public final class ResourceFactory
   public static final int ID_ICEWINDHOW = 5, ID_ICEWINDHOWTOT = 6, ID_BG2 = 7, ID_BG2TOB = 8, ID_NWN = 9;
   public static final int ID_ICEWIND2 = 10, ID_KOTOR = 11, ID_TUTU = 12, ID_DEMO = 13, ID_KOTOR2 = 14;
   public static final int ID_BGEE = 15;
-  private static File rootDir;
+  private static File rootDir, langRoot, userRoot;
   private static File[] rootDirs;
   private static final GameConfig[] games;
   private static Keyfile keyfile;
@@ -203,11 +203,11 @@ public final class ResourceFactory
         if (entry.getExtension().equalsIgnoreCase("BAM"))
           res = new BamResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("TIS"))
-          res = new TisResource(entry);
+          res = new TisResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("BMP"))
           res = new BmpResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MOS"))
-          res = new MosResource(entry);
+          res = new MosResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("WAV"))
           res = new WavResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("ACM"))
@@ -276,6 +276,8 @@ public final class ResourceFactory
           res = new TohResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("TOT"))
           res = new TotResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("PVRZ") && getGameID() == ID_BGEE)
+          res = new PvrzResource(entry);
         else
           res = new UnknownResource(entry);
       }
@@ -340,6 +342,16 @@ public final class ResourceFactory
     return rootDir;
   }
 
+  public static File getTLKRoot()
+  {
+    return (langRoot != null) ? langRoot : rootDir;
+  }
+
+  public static File getUserRoot()
+  {
+    return (userRoot != null) ? userRoot : rootDir;
+  }
+
   public static File[] getRootDirs()
   {
     return rootDirs;
@@ -380,17 +392,17 @@ public final class ResourceFactory
 
     // Considering three different sources of resource files
     // Note: The order of the root directories is important. NIFile will take the first one available.
-    File userRoot = getUserRoot(currentGame);
-    fetchLanguage(userRoot);    // BGEE stores the currently used language in its inifile
-    File langRoot = NIFile.getFile(rootDir + File.separator + "lang" + File.separator + bgeeLang);
+    userRoot = getUserRoot(currentGame);
+    bgeeLang = fetchLanguage(userRoot);   // BGEE stores the currently used language in its inifile
+    langRoot = NIFile.getFile(rootDir, "lang" + File.separator + bgeeLang);
     if (!langRoot.exists())
       langRoot = null;
     if (userRoot != null && langRoot != null)
-      rootDirs = new File[]{userRoot, langRoot, rootDir};
+      rootDirs = new File[]{rootDir, userRoot, langRoot};
     else if (userRoot != null && langRoot == null)
-      rootDirs = new File[]{userRoot, rootDir};
+      rootDirs = new File[]{rootDir, userRoot};
     else if (userRoot == null && langRoot != null)
-      rootDirs = new File[]{langRoot, rootDir};
+      rootDirs = new File[]{rootDir, langRoot};
     else
       rootDirs = new File[]{rootDir};
 
@@ -476,13 +488,16 @@ public final class ResourceFactory
     }
   }
 
-  private void fetchLanguage(File iniRoot)
+  private String fetchLanguage(File iniRoot)
   {
-    if (currentGame == ID_BGEE) {
-      bgeeLang = "en_US";   // using default language, if no language entry found
+    final String langDefault = "en_US";   // using default language, if no language entry found
 
-      File iniFile = new File(iniRoot, games[currentGame].inifile);
-      if (iniFile != null) {
+    if (currentGame == ID_BGEE) {
+      String iniFileName = games[currentGame].inifile;
+      if (iniFileName == null || iniFileName.isEmpty())
+        iniFileName = "baldur.ini";
+      File iniFile = new File(iniRoot, iniFileName);
+      if (iniFile.exists()) {
         try {
           BufferedReader br = new BufferedReader(new FileReader(iniFile));
           String line = br.readLine();
@@ -493,8 +508,7 @@ public final class ResourceFactory
                 String lang = entries[2].replace('\'', ' ').trim();
                 if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
                   if (new File(rootDir, "lang" + File.separator + lang).exists()) {
-                    bgeeLang = lang;
-                    break;
+                    return lang;
                   }
                 }
               }
@@ -503,10 +517,12 @@ public final class ResourceFactory
           }
           br.close();
         } catch (IOException e) {
-          e.printStackTrace();
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error parsing " + iniFileName +
+                                        ". Using language defaults.", "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
     }
+    return langDefault;
   }
 
   public void exportResource(ResourceEntry entry, Component parent)
@@ -622,7 +638,7 @@ public final class ResourceFactory
 
     // Get resources from keyfile
     keyfile.addBIFFResourceEntries(treeModel);
-    File dlg_file = NIFile.getFile(rootDirs, DIALOGFILENAME);
+    File dlg_file = new File(getTLKRoot(), DIALOGFILENAME);
     StringResource.init(dlg_file);
 
     // Add other resources

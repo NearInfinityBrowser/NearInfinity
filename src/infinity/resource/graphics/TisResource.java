@@ -20,6 +20,10 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
+/**
+ * @deprecated
+ * Replaced by TisResource2.
+ */
 public final class TisResource implements Resource, ActionListener, Closeable
 {
   private static final int ROWS = 5, COLS = 7;

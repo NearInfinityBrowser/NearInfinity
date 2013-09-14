@@ -68,7 +68,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     STRREF_ITEM.get(3).add(new StrrefItem(19430, "Biography of a wizard"));
   }
 
-  private JComboBox<StrrefItem> cbStrref;
+  private JComboBox cbStrref;
   private JButton updateButton;
   private int gameId;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
   private int lastStrref;
@@ -107,7 +107,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   {
     getRootPane().setDefaultButton(null);   // prevent accidental file creation
 
-    cbStrref = new JComboBox<StrrefItem>(STRREF_ITEM.get(gameId));
+    cbStrref = new JComboBox(STRREF_ITEM.get(gameId));
     cbStrref.addKeyListener(this);
     lastStrref = -1;
 

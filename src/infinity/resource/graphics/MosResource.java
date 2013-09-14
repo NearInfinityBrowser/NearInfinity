@@ -15,6 +15,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 
+/**
+ * @deprecated
+ * Replaced by MosResource2.
+ */
 public final class MosResource implements Resource, ActionListener
 {
   private final ResourceEntry entry;
