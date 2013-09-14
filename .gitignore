@@ -1,4 +1,5 @@
 *.class
 *.jar
 /bin
+/build
 /.settings
