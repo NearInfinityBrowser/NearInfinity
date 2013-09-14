@@ -126,8 +126,8 @@ public final class ViewerUtil
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         if (resource instanceof BmpResource)
           label.setIcon(new ImageIcon(((BmpResource)resource).getImage()));
-        else if (resource instanceof MosResource)
-          label.setIcon(new ImageIcon(((MosResource)resource).getImage()));
+        else if (resource instanceof MosResource2)
+          label.setIcon(new ImageIcon(((MosResource2)resource).getImage()));
         return label;
       }
     }

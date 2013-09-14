@@ -28,8 +28,14 @@ public final class Compressor
 
   public static byte[] decompress(byte buffer[]) throws IOException
   {
-    byte result[] = new byte[Byteconvert.convertInt(buffer, 8)];
-    inflater.setInput(buffer, 12, buffer.length - 12);
+    return decompress(buffer, 8);
+  }
+
+  public static byte[] decompress(byte buffer[], int ofs) throws IOException
+  {
+    byte result[] = new byte[Byteconvert.convertInt(buffer, ofs)];
+    ofs += 4;
+    inflater.setInput(buffer, ofs, buffer.length - ofs);
     try {
       inflater.inflate(result);
     } catch (DataFormatException e) {

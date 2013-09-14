@@ -47,11 +47,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbExecutableMVE = new JCheckBox("Make movies executable", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
   private final JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
-  private final JList<String> listTypes = new JList<String>(TYPES);
+  private final JList listTypes = new JList(TYPES);
   private final JTextField tfDirectory = new JTextField(20);
   private final byte[] buffer = new byte[65536];
   private File outputDir;
-  private java.util.List<String> selectedTypes;
+  private Object[] selectedTypes;
 
   public MassExporter()
   {
@@ -139,7 +139,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bExport) {
-      selectedTypes = listTypes.getSelectedValuesList();
+      selectedTypes = listTypes.getSelectedValues();
       outputDir = new File(tfDirectory.getText()); //File is used intentionally
       outputDir.mkdirs();
       setVisible(false);
@@ -172,8 +172,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void run()
   {
     java.util.List<ResourceEntry> selectedFiles = new ArrayList<ResourceEntry>(1000);
-    for (final String newVar : selectedTypes)
-      selectedFiles.addAll(ResourceFactory.getInstance().getResources(newVar));
+    for (final Object newVar : selectedTypes)
+      selectedFiles.addAll(ResourceFactory.getInstance().getResources((String)newVar));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...", null,
                                                    0, selectedFiles.size());
     progress.setMillisToDecideToPopup(100);
