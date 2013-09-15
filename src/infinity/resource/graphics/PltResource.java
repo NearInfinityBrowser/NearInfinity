@@ -7,9 +7,11 @@ package infinity.resource.graphics;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.other.UnknownResource;
 import infinity.util.Byteconvert;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -23,11 +25,22 @@ public final class PltResource implements Resource, ActionListener
   private JComboBox cbColorBMP;
   private JLabel imageLabel;
   private JPanel panel;
+  private Resource externalResource;
 
   public PltResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
     buffer = entry.getResourceData();
+
+    // checking actual data type
+    String s = new String(buffer, 0, 4);
+    if (s.equals("PLT ")) {
+      externalResource = null;
+    } else if (s.equals("BAMC") || s.equals("BAM ")) {
+      externalResource = new BamResource(entry);
+    } else {
+      externalResource = new UnknownResource(entry);
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -57,36 +70,40 @@ public final class PltResource implements Resource, ActionListener
 
   public JComponent makeViewer(ViewableContainer container)
   {
-    cbColorBMP = new JComboBox();
-    cbColorBMP.addItem("None");
-    List<ResourceEntry> bmps = ResourceFactory.getInstance().getResources("BMP");
-    for (int i = 0; i < bmps.size(); i++) {
-      Object o = bmps.get(i);
-      if (o.toString().startsWith("PLT"))
-        cbColorBMP.addItem(o);
+    if (externalResource == null) {
+      cbColorBMP = new JComboBox();
+      cbColorBMP.addItem("None");
+      List<ResourceEntry> bmps = ResourceFactory.getInstance().getResources("BMP");
+      for (int i = 0; i < bmps.size(); i++) {
+        Object o = bmps.get(i);
+        if (o.toString().startsWith("PLT"))
+          cbColorBMP.addItem(o);
+      }
+      cbColorBMP.setEditable(false);
+      cbColorBMP.setSelectedIndex(0);
+      cbColorBMP.addActionListener(this);
+
+      bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
+      bexport.setMnemonic('e');
+      bexport.addActionListener(this);
+      imageLabel = new JLabel(new ImageIcon(getImage()));
+      JScrollPane scroll = new JScrollPane(imageLabel);
+
+      JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+      bpanel.add(new JLabel("Colors: "));
+      bpanel.add(cbColorBMP);
+      bpanel.add(bexport);
+
+      panel = new JPanel();
+      panel.setLayout(new BorderLayout());
+      panel.add(scroll, BorderLayout.CENTER);
+      panel.add(bpanel, BorderLayout.SOUTH);
+      scroll.setBorder(BorderFactory.createLoweredBevelBorder());
+
+      return panel;
+    } else {
+      return externalResource.makeViewer(container);
     }
-    cbColorBMP.setEditable(false);
-    cbColorBMP.setSelectedIndex(0);
-    cbColorBMP.addActionListener(this);
-
-    bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bexport.setMnemonic('e');
-    bexport.addActionListener(this);
-    imageLabel = new JLabel(new ImageIcon(getImage()));
-    JScrollPane scroll = new JScrollPane(imageLabel);
-
-    JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(new JLabel("Colors: "));
-    bpanel.add(cbColorBMP);
-    bpanel.add(bexport);
-
-    panel = new JPanel();
-    panel.setLayout(new BorderLayout());
-    panel.add(scroll, BorderLayout.CENTER);
-    panel.add(bpanel, BorderLayout.SOUTH);
-    scroll.setBorder(BorderFactory.createLoweredBevelBorder());
-
-    return panel;
   }
 
 // --------------------- End Interface Viewable ---------------------
