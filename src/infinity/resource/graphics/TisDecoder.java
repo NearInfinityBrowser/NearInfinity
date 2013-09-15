@@ -242,15 +242,16 @@ public class TisDecoder
       int inBufferOfs = info().headerSize();
       int tileLineSize = info().tileWidth()*outPixelSize;
       int outLineSize = tilesX*info().tileWidth()*outPixelSize;
+      byte[] tileBuffer = new byte[tileSize];
+      boolean bRet = true;
       for (int ty = 0; ty < tilesY; ty++) {
         for (int tx = 0; tx < tilesX; tx++, tileIdx++, inBufferOfs+=info().tileSize()) {
           // for each tile...
-          byte[] tileBuffer;
           // ...decompress...
           if (info().type() == TisInfo.TisType.PALETTE)
-            tileBuffer = decodeTISTileInPlace(tisBuffer, inBufferOfs, fmt);
+            bRet &= decodeTISTileInPlace(tisBuffer, inBufferOfs, tileBuffer, 0, fmt);
           else
-            tileBuffer = decodeTISTilePVRZ(tisBuffer, inBufferOfs, fmt);
+            bRet &= decodeTISTilePVRZ(tisBuffer, inBufferOfs, tileBuffer, 0, fmt);
           if (tileBuffer != null) {
             // ...and copy to output buffer
             int tileOfs = 0;    // current offset into tile buffer
@@ -263,7 +264,7 @@ public class TisDecoder
         }
       }
 
-      return true;
+      return bRet;
     } else
       throw new Exception(NOT_INITIALIZED);
   }
@@ -284,80 +285,74 @@ public class TisDecoder
         throw new Exception("Output buffer too small");
 
       // Decoding a single tile is trivial
-      byte[] tileBuffer;
+      boolean bRet = false;
       if (info().type() == TisInfo.TisType.PALETTE)
-        tileBuffer = decodeTISTileInPlace(tisBuffer, inBufferOfs, fmt);
+        bRet = decodeTISTileInPlace(tisBuffer, inBufferOfs, outBuffer, ofs, fmt);
       else
-        tileBuffer = decodeTISTilePVRZ(tisBuffer, inBufferOfs, fmt);
+        bRet = decodeTISTilePVRZ(tisBuffer, inBufferOfs, outBuffer, ofs, fmt);
 
-      if (tileBuffer != null)
-        System.arraycopy(tileBuffer, 0, outBuffer, ofs, tileBuffer.length);
-      else
-        throw new Exception("Error decoding tile #" + tileIdx);
-
-      return true;
+      return bRet;
     } else
       throw new Exception(NOT_INITIALIZED);
   }
 
-  private byte[] decodeTISTileInPlace(byte[] buffer, int ofs, ColorFormat fmt) throws Exception
+  private boolean decodeTISTileInPlace(byte[] inBuffer, int inOfs, byte[] outBuffer, int outOfs, ColorFormat fmt) throws Exception
   {
-    if (buffer == null)
+    if (inBuffer == null || outBuffer == null)
       throw new NullPointerException();
-    if (buffer.length - ofs < info().tileSize())
-      throw new Exception("Buffer size too small");
+    if (inBuffer.length - inOfs < info().tileSize())
+      throw new Exception("Input buffer size too small");
 
-    byte[] palette = new byte[1024];
-    System.arraycopy(buffer, ofs, palette, 0, 1024);
-    ofs += 1024;
+    ColorConvert.ColorFormat inFormat = ColorConvert.ColorFormat.A8R8G8B8;
+    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
+    if (outBuffer.length - outOfs < info().tileWidth()*info.tileHeight()*outPixelSize)
+      throw new Exception("Output buffer size too small");
+
+    byte[] palette = new byte[256*outPixelSize];
+    for (int i = 0; i < 256; i++)
+      inBuffer[inOfs+(i << 2)+3] = (byte)0xff;    // fixing alpha value
+    if (ColorConvert.Convert(inFormat, inBuffer, inOfs, fmt, palette, 0, 256) != 256)
+      return false;
+    inOfs += 1024;
 
     int tileLength = info().tileWidth()*info().tileHeight();
-    ColorConvert.ColorFormat inFormat = ColorConvert.ColorFormat.A8R8G8B8;
-    int inPixelSize = ColorConvert.ColorBits(inFormat) >> 3;
-    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    byte[] workingBuffer = new byte[tileLength*inPixelSize];
     for (int i = 0; i < tileLength; i++)
-      System.arraycopy(palette, (buffer[ofs+i] & 0xff) << 2, workingBuffer, i*inPixelSize, inPixelSize);
+      System.arraycopy(palette, (inBuffer[inOfs+i] & 0xff)*outPixelSize, outBuffer, outOfs + i*outPixelSize, outPixelSize);
 
-    byte[] block = new byte[tileLength*outPixelSize];
-    if (ColorConvert.Convert(inFormat, workingBuffer, 0, fmt, block, 0, tileLength) == tileLength)
-      return block;
-    else
-      throw new Exception("Error decoding pixel data");
+    return true;
   }
 
-  private byte[] decodeTISTilePVRZ(byte[] buffer, int ofs, ColorFormat fmt) throws Exception
+  private boolean decodeTISTilePVRZ(byte[] inBuffer, int inOfs, byte[] outBuffer, int outOfs, ColorFormat fmt) throws Exception
   {
-    if (buffer == null)
+    if (inBuffer == null)
       throw new NullPointerException();
-    if (buffer.length - ofs < info().tileSize())
+    if (inBuffer.length - inOfs < info().tileSize())
       throw new Exception("Buffer size too small");
 
-    ByteBuffer bb = ByteBuffer.wrap(buffer, ofs, info().tileSize()).order(ByteOrder.LITTLE_ENDIAN);
-    int page = bb.getInt();
-    int xPos = bb.getInt();
-    int yPos = bb.getInt();
+    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
+    if (outBuffer.length - outOfs < info().tileWidth()*info.tileHeight()*outPixelSize)
+      throw new Exception("Output buffer size too small");
 
+    int page = Byteconvert.convertInt(inBuffer, inOfs);
     if (page < 0) {
       // special case: fill with black pixels
-      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      byte[] block = new byte[info().tileWidth()*info().tileHeight()*outPixelSize];
       byte[] outPixel = new byte[outPixelSize];
       ColorConvert.Convert(ColorConvert.ColorFormat.A8R8G8B8, new byte[]{0, 0, 0, (byte)255}, 0,
                            fmt, outPixel, 0, 1);
-      int blockOfs = 0;
-      while (blockOfs < block.length) {
-        System.arraycopy(outPixel, 0, block, blockOfs, outPixel.length);
-        blockOfs += outPixel.length;
-      }
-      return block;
+      for (int i = 0; i < info().tileWidth()*info().tileHeight(); i++)
+        System.arraycopy(outPixel, 0, outBuffer, outOfs + i*outPixelSize, outPixelSize);;
+      return true;
     } else {
       // extract data block from associated PVR file
+      int xPos = Byteconvert.convertInt(inBuffer, inOfs+4);
+      int yPos = Byteconvert.convertInt(inBuffer, inOfs+8);
       PvrDecoder decoder = getPVR(page);
       if (decoder != null) {
-        return decoder.decode(xPos, yPos, info().tileWidth(), info().tileHeight(), fmt);
+        System.arraycopy(decoder.decode(xPos, yPos, info().tileWidth(), info().tileHeight(), fmt),
+                         0, outBuffer, outOfs, info().tileWidth()*info().tileHeight()*outPixelSize);
+        return true;
       } else
-        throw new Exception("Error while decoding PVR tile");
+        return false;
     }
   }
 
