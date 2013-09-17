@@ -6,16 +6,21 @@ package infinity.resource.cre;
 
 import infinity.NearInfinity;
 import infinity.datatype.*;
+import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.*;
 
 import javax.swing.*;
+
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 
 public final class CreResource extends AbstractStruct implements Resource, HasAddRemovable, AddRemovable,
-                                                                 HasDetailViewer
+                                                                 HasDetailViewer, ActionListener
 {
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
@@ -96,6 +101,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     m_colorPlacement.put((long)0xE3, "Hair (hologram/pulsate)");
     m_colorPlacement.put((long)0x00, "Not used");
   }
+
+  private JButton btnChrConvert;
 
   public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
                                    ResourceEntry entry)
@@ -370,6 +377,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
     list.add(version);
     if (signature.toString().equalsIgnoreCase("CHR ")) {
+      enableCHRExport();
       list.add(new TextString(buffer, offset + 8, 32, "Character name"));
       HexNumber structOffset = new HexNumber(buffer, offset + 40, 4, "CRE structure offset");
       list.add(structOffset);
@@ -1442,5 +1450,25 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
         offsetMemSpells.incValue(size);
     }
   }
+
+  void enableCHRExport()
+  {
+    btnChrConvert = new JButton("Convert to CRE...", Icons.getIcon("Redo16.gif"));
+    btnChrConvert.addActionListener(this);
+    ArrayList<Component> list = new ArrayList<Component>();
+    list.add(btnChrConvert);
+    setExtraComponents(list);
+  }
+
+//--------------------- Begin Interface ActionListener ---------------------
+
+  public void actionPerformed(ActionEvent event)
+  {
+    if (event.getSource() == btnChrConvert) {
+      CreResource.convertCHRtoCRE(getResourceEntry());
+    }
+  }
+
+//--------------------- End Interface ActionListener ---------------------
 }
 
