@@ -816,7 +816,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      editString2.setEnabled(new File(ResourceFactory.getTLKRoot(), "dialogF.tlk").exists());
+      editString2.setEnabled(new FileCI(ResourceFactory.getTLKRoot(), "dialogF.tlk").exists());
       editVarVar.setEnabled(NIFile.getFile(ResourceFactory.getRootDirs(), "VAR.VAR").exists());
       if (editString2.isEnabled())
         editString2.setToolTipText("");
@@ -845,7 +845,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = new File(ResourceFactory.getTLKRoot(), "dialogF.tlk");
+        File file = new FileCI(ResourceFactory.getTLKRoot(), "dialogF.tlk");
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);

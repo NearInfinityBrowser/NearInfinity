@@ -638,7 +638,7 @@ public final class ResourceFactory
 
     // Get resources from keyfile
     keyfile.addBIFFResourceEntries(treeModel);
-    File dlg_file = new File(getTLKRoot(), DIALOGFILENAME);
+    File dlg_file = new FileCI(getTLKRoot(), DIALOGFILENAME);
     StringResource.init(dlg_file);
 
     // Add other resources
