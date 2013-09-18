@@ -301,8 +301,11 @@ public final class BamResource implements Resource, ActionListener, ItemListener
         frameDataOffset -= (long)Math.pow((double)2, (double)31);
       }
 
-      if (height < 1 || width < 1)
+      if (height < 1 || width < 1) {
+        image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        image.setRGB(0, 0, 0x00ff00);
         return;
+      }
       byte imagedata[] = new byte[height * width];
       if (!rle)
         imagedata = ArrayUtil.getSubArray(buffer, (int)frameDataOffset, imagedata.length);

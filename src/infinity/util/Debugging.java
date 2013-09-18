@@ -29,7 +29,7 @@ public class Debugging
   public static void timerShow(String msg, TimeFormat fmt)
   {
     if (msg != null && !msg.isEmpty())
-      System.out.println("[" + msg + "] " + toTimeFormat(fmt, System.nanoTime() - timeBase));
+      System.out.println("[" + msg + "] " + toTimeFormatString(fmt, System.nanoTime() - timeBase));
     else
       System.out.println(toTimeFormatString(fmt, System.nanoTime() - timeBase));
     timerReset();

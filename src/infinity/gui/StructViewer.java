@@ -56,6 +56,7 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.ByteArrayOutputStream;
+import java.util.Collection;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -120,6 +121,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private JTabbedPane tabbedPane;
 
   public StructViewer(AbstractStruct struct)
+  {
+    this(struct, null);
+  }
+
+  public StructViewer(AbstractStruct struct, Collection<Component> extraComponents)
   {
     this.struct = struct;
     struct.addTableModelListener(this);
@@ -257,6 +263,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       bsave.addActionListener(this);
       bpanel.add(bexport);
       bpanel.add(bsave);
+    }
+    if (extraComponents != null) {
+      for (final Component c: extraComponents)
+        bpanel.add(c);
     }
 
     JScrollPane scrollTable = new JScrollPane(table);

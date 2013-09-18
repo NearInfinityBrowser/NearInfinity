@@ -195,9 +195,9 @@ public class ColorConvert
 
     int inPixelSize = ColorBits(inFormat) >> 3;
     int outPixelSize = ColorBits(outFormat) >> 3;
-    if ((inBuffer.length - inOfs) > (count * inPixelSize))
+    if ((inBuffer.length - inOfs) < (count * inPixelSize))
       count = (inBuffer.length - inOfs) / inPixelSize;
-    if ((outBuffer.length - outOfs) > (count * outPixelSize))
+    if ((outBuffer.length - outOfs) < (count * outPixelSize))
       count = (outBuffer.length - outOfs) / outPixelSize;
     if (count < 0)
       count = 0;
