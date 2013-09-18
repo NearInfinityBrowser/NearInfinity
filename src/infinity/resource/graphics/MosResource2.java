@@ -21,8 +21,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -37,9 +35,6 @@ import javax.swing.JScrollPane;
 
 public class MosResource2 implements Resource, ActionListener, Closeable
 {
-  // max. number of recommended active threads
-  private static final int THREADS_MAX = (int)(Math.ceil(Runtime.getRuntime().availableProcessors() * 1.25));
-
   private final ResourceEntry entry;
   private BufferedImage image;
   private MosDecoder decoder;
@@ -88,7 +83,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
       }
     } else if (event.getSource() == miExportBMP) {
       try {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ByteArrayOutputStream os = new ByteArrayOutputStream(image.getWidth()*image.getHeight()*3+256);
         String fileName = entry.toString().replace(".MOS", ".BMP");
         if (ImageIO.write(image, "bmp", os)) {
           ResourceFactory.getInstance().exportResource(entry,
@@ -99,6 +94,8 @@ public class MosResource2 implements Resource, ActionListener, Closeable
                                         "Error while exporting " + entry, "Error",
                                         JOptionPane.ERROR_MESSAGE);
         }
+        os.close();
+        os = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -122,7 +119,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
   {
     image = null;
     decoder = null;
-    System.gc();    // XXX: There have to be better ways to free resources from memory
+    System.gc();
   }
 
 //--------------------- End Interface Closeable ---------------------
@@ -193,107 +190,36 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
   private void setImage() throws Exception
   {
+    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    blocker.setBlocked(true);
     if (decoder != null) {
       compressed = decoder.info().isCompressed();
-
       if (decoder.info().blockCount() > 0) {
-        ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.R8G8B8;
+        int blockCount = decoder.info().blockCount();
+        ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.A8R8G8B8;
         image = new BufferedImage(decoder.info().width(), decoder.info().height(), BufferedImage.TYPE_INT_RGB);
-        int threadsRunning = 0;
-        int blocksStarted = 0;
-        int blocksFinished = 0;
-        LinkedBlockingQueue<BlockInfo> queue = new LinkedBlockingQueue<BlockInfo>();
-        while (blocksFinished < decoder.info().blockCount()) {
-          // starting a couple of threads
-          while (blocksStarted < decoder.info().blockCount() && threadsRunning < THREADS_MAX) {
-            (new Thread(new BlockDecoder(queue, decoder, new BlockInfo(blocksStarted), outputFormat))).start();
-            blocksStarted++;
-            threadsRunning++;
-          }
 
-          // drawing decoded blocks if available
-          if (queue.peek() != null) {
-            BlockInfo info = queue.poll();
-            MosDecoder.BlockInfo bi = decoder.info().blockInfo(info.index);
-            for (int y = 0; y < bi.height(); y++) {
-              for (int x = 0; x < bi.width(); x++) {
-                image.setRGB(bi.x() + x, bi.y() + y, info.output[y*bi.width()+x]);
-              }
-            }
-            info.output = null;
-            threadsRunning--;
-            blocksFinished++;
-          }
+        for (int blockIdx = 0; blockIdx < blockCount; blockIdx++) {
+          MosDecoder.BlockInfo bi = decoder.info().blockInfo(blockIdx);
+          int blockSize = bi.width()*bi.height();
+          int[] block = new int[blockSize];
+          // decoding block
+          ColorConvert.BufferToColor(outputFormat, decoder.decodeBlock(blockIdx, outputFormat),
+                                    0, block, 0, blockSize);
+
+          // drawing block
+          image.setRGB(bi.x(), bi.y(), bi.width(), bi.height(), block, 0, bi.width());
         }
-      } else
+        blocker.setBlocked(false);
+      } else {
+        blocker.setBlocked(false);
         throw new Exception("No image data available");
-
-    } else
-      throw new Exception("MOS decoder not initialized");
-  }
-
-
-//-------------------------- INNER CLASSES --------------------------
-
-  // stores information about a single MOS data block
-  private static final class BlockInfo
-  {
-    private final int index;
-    private int[] output;
-
-    private BlockInfo(int blockIndex)
-    {
-      this.index = blockIndex;
-      this.output = null;
-    }
-  }
-
-  // decodes a single data block asynchronously
-  private static class BlockDecoder implements Runnable
-  {
-    private LinkedBlockingQueue<BlockInfo> queue;
-    private MosDecoder decoder;
-    private BlockInfo blockInfo;
-    private ColorConvert.ColorFormat outFormat;
-
-    public BlockDecoder(LinkedBlockingQueue<BlockInfo> queue, MosDecoder decoder, BlockInfo info,
-                        ColorConvert.ColorFormat fmt) throws Exception
-    {
-      if (queue == null || decoder == null || info == null)
-        throw new NullPointerException();
-      this.queue = queue;
-      this.decoder = decoder;
-      this.blockInfo = info;
-      this.outFormat = fmt;
-    }
-
-    public void run()
-    {
-      try {
-        MosDecoder.BlockInfo bi = decoder.info().blockInfo(blockInfo.index);
-        blockInfo.output = new int[bi.width()*bi.height()];
-        ColorConvert.BufferToColor(outFormat, decoder.decodeBlock(blockInfo.index, outFormat),
-                                  0, blockInfo.output, 0, blockInfo.output.length);
-
-        int counter = 50;
-        while (counter > 0) {
-          try {
-            queue.offer(blockInfo, 10, TimeUnit.MILLISECONDS);
-            counter = 0;
-          } catch (InterruptedException e) {
-            counter--;
-            if (counter == 0) {
-              System.err.println("Error putting MOS data block into queue");
-              e.printStackTrace();
-            }
-          }
-        }
-
-      } catch (Exception e) {
-        System.err.println("Error decoding MOS data block #" + blockInfo.index);
-        e.printStackTrace();
       }
-    }
 
+    } else {
+      blocker.setBlocked(false);
+      throw new Exception("MOS decoder not initialized");
+    }
   }
+
 }

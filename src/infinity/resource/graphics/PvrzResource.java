@@ -83,6 +83,8 @@ public class PvrzResource implements Resource, ActionListener
                                         "Error while exporting " + entry, "Error",
                                         JOptionPane.ERROR_MESSAGE);
         }
+        os.close();
+        os = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -144,20 +146,14 @@ public class PvrzResource implements Resource, ActionListener
   private void setImage(byte[] buffer) throws Exception
   {
     decoder = new PvrDecoder(buffer);
-    ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.R8G8B8;
-    byte[] imageData = decoder.decode(outputFormat);
-    image = new BufferedImage(decoder.info().width(), decoder.info().height(), BufferedImage.TYPE_INT_RGB);
-    int imgOfs = 0;
-    int pixelSize = ColorConvert.ColorBits(outputFormat) >> 3;
-    for (int y = 0; y < decoder.info().height(); y++) {
-      for (int x = 0; x < decoder.info().width(); x++) {
-        int color = ((imageData[imgOfs+2] & 0xff) << 16) |
-                     ((imageData[imgOfs+1] & 0xff) << 8) |
-                     (imageData[imgOfs] & 0xff);
-        image.setRGB(x, y, color);
-        imgOfs += pixelSize;
-      }
-    }
+    ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.A8R8G8B8;
+    int imgWidth = decoder.info().width();
+    int imgHeight = decoder.info().height();
+    int imgSize = imgWidth*imgHeight;
+    int[] block = new int[imgSize];
+    ColorConvert.BufferToColor(outputFormat, decoder.decode(outputFormat), 0, block, 0, imgSize);
+    image = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
+    image.setRGB(0, 0, imgWidth, imgHeight, block, 0, imgWidth);
   }
 
 }

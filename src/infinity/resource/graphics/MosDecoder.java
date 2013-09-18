@@ -199,18 +199,16 @@ public class MosDecoder
       throw new Exception("MOS data block too small");
 
     ColorConvert.ColorFormat inFormat = ColorConvert.ColorFormat.A8R8G8B8;
-    int inPixelSize = ColorConvert.ColorBits(inFormat) >> 3;
     int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    int pixelCount= info.width*info.height;
-    byte[] workingBuffer = new byte[pixelCount*inPixelSize];
-    for (int i = 0; i < pixelCount; i++)
-      System.arraycopy(info.palette, (info.data[i] & 0xff)*inPixelSize, workingBuffer, i*inPixelSize, inPixelSize);
+    byte[] palette = new byte[256*outPixelSize];
+    ColorConvert.Convert(inFormat, info.palette, 0, fmt, palette, 0, 256);
 
+    int pixelCount= info.width*info.height;
     byte[] outBuffer = new byte[pixelCount*outPixelSize];
-    if (ColorConvert.Convert(inFormat, workingBuffer, 0, fmt, outBuffer, 0, pixelCount) == pixelCount)
-      return outBuffer;
-    else
-      throw new Exception("Error decoding pixel data");
+    for (int i = 0; i < pixelCount; i++)
+      System.arraycopy(palette, (info.data[i] & 0xff)*outPixelSize, outBuffer, i*outPixelSize, outPixelSize);
+
+    return outBuffer;
   }
 
   // Decodes a PVRZ-based MOS chunk
@@ -428,6 +426,8 @@ public class MosDecoder
         for (final BlockInfo info: tiles) {
           info.palette = new byte[1024];
           header.get(info.palette, 0, 1024);
+          for (int i = 0; i < 256; i++)
+            info.palette[(i << 2)+3] = (byte)0xff;    // fixing alpha value
         }
 
         // initializing tile data
