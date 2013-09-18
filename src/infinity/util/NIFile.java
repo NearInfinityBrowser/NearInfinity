@@ -33,7 +33,7 @@ public class NIFile
 
   /**
    * Returns an abstract pathname from the first existing full pathname consisting of an entry from parentList and
-   * child. If no existing pathname can been found, then the first parentList entry will be used to create an abstract
+   * child. If no existing pathname can been found, then the last parentList entry will be used to create an abstract
    * pathname.
    * @param parentList List of potential pathnames to use.
    * @param child The child pathname string.
@@ -54,7 +54,7 @@ public class NIFile
     }
     if (file == null) {
       if (parentList != null && parentList.length > 0) {
-        file = new FileCI(parentList[0], child);
+        file = new FileCI(parentList[parentList.length - 1], child);
       } else
         throw new NullPointerException("Empty parent list");
     }
@@ -63,7 +63,7 @@ public class NIFile
 
   /**
    * Creates an abstract pathname from the first existing full pathname consisting of an entry from parentList and
-   * child. If no existing pathname can been found, then the first parentList entry will be used to create an abstract
+   * child. If no existing pathname can been found, then the last parentList entry will be used to create an abstract
    * pathname.
    * @param parentList List of potential abstract pathnames to use.
    * @param child The child pathname string.
@@ -84,7 +84,7 @@ public class NIFile
     }
     if (file == null) {
       if (parentList != null && parentList.length > 0) {
-        file = new FileCI(parentList[0], child);
+        file = new FileCI(parentList[parentList.length - 1], child);
       } else
         throw new NullPointerException("Empty parent list");
     }
