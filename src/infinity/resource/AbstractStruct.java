@@ -19,6 +19,7 @@ import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
 
+import java.awt.Component;
 import java.io.*;
 import java.util.*;
 
@@ -35,6 +36,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   private StructViewer viewer;
   private boolean structChanged;
   private int startoffset, endoffset, extraoffset;
+  private Collection<Component> viewerComponents = null;
 
   private static void adjustEntryOffsets(AbstractStruct superStruct, AbstractStruct modifiedStruct,
                                          AddRemovable datatype, int amount)
@@ -266,7 +268,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public JComponent makeViewer(ViewableContainer container)
   {
     if (viewer == null)
-      viewer = new StructViewer(this);
+      viewer = new StructViewer(this, viewerComponents);
     return viewer;
   }
 
@@ -684,6 +686,12 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       sb.append(datatype.getName()).append(": ").append(datatype.toString()).append('\n');
     }
     return sb.toString();
+  }
+
+  public void setExtraComponents(Collection<Component> list)
+  {
+    // List of components to be added to the bottom panel of the StructView component
+    viewerComponents = list;
   }
 
   private void addFlatList(List<StructEntry> flatList)

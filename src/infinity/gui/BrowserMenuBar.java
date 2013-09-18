@@ -677,7 +677,7 @@ public final class BrowserMenuBar extends JMenuBar
     };
 
     private final JMenu newFileMenu;
-    private final JMenuItem fileOpenNew, fileExport, fileAddCopy, fileRename, fileDelete, fileConvertCHR, fileViewArea;
+    private final JMenuItem fileOpenNew, fileExport, fileAddCopy, fileRename, fileDelete;
 
     private FileMenu()
     {
@@ -703,16 +703,6 @@ public final class BrowserMenuBar extends JMenuBar
       fileDelete = makeMenuItem("Delete", KeyEvent.VK_D, Icons.getIcon("Delete16.gif"), -1, this);
       fileDelete.setEnabled(false);
       add(fileDelete);
-
-      addSeparator();
-
-      fileConvertCHR =
-      makeMenuItem("Convert CHR to CRE...", KeyEvent.VK_C, Icons.getIcon("Redo16.gif"), -1, this);
-      fileConvertCHR.setEnabled(false);
-      add(fileConvertCHR);
-      fileViewArea = makeMenuItem("View Area (Experimental)", KeyEvent.VK_V, Icons.getIcon("Volume16.gif"), -1, this);
-      fileViewArea.setEnabled(false);
-      add(fileViewArea);
     }
 
     private void gameLoaded()
@@ -735,11 +725,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     public void actionPerformed(ActionEvent event)
     {
-      if (event.getSource() == fileConvertCHR)
-        CreResource.convertCHRtoCRE(((Resource)NearInfinity.getInstance().getViewable()).getResourceEntry());
-      else if (event.getSource() == fileViewArea)
-        new ViewerGraphics((AreResource)NearInfinity.getInstance().getViewable());
-      else if (event.getSource() == fileOpenNew) {
+      if (event.getSource() == fileOpenNew) {
         Resource res = ResourceFactory.getResource(
                 NearInfinity.getInstance().getResourceTree().getSelected());
         if (res != null)
@@ -800,8 +786,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void resourceShown(Resource res)
     {
-      fileConvertCHR.setEnabled(res != null && res.getResourceEntry().getExtension().equalsIgnoreCase("CHR"));
-      fileViewArea.setEnabled(res != null && res instanceof AreResource);
+      // not used anymore
     }
   }
 
