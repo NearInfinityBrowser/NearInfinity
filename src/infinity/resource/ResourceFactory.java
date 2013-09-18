@@ -398,11 +398,11 @@ public final class ResourceFactory
     if (!langRoot.exists())
       langRoot = null;
     if (userRoot != null && langRoot != null)
-      rootDirs = new File[]{rootDir, userRoot, langRoot};
+      rootDirs = new File[]{langRoot, userRoot, rootDir};
     else if (userRoot != null && langRoot == null)
-      rootDirs = new File[]{rootDir, userRoot};
+      rootDirs = new File[]{userRoot, rootDir};
     else if (userRoot == null && langRoot != null)
-      rootDirs = new File[]{rootDir, langRoot};
+      rootDirs = new File[]{langRoot, rootDir};
     else
       rootDirs = new File[]{rootDir};
 
