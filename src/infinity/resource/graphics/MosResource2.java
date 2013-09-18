@@ -40,7 +40,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
   private MosDecoder decoder;
   private ButtonPopupMenu mnuExport;
   private JMenuItem miExport, miExport2, miExportBMP;
-  private JButton btnFind;
+  private JButton bFind;
   private JPanel panel;
   private boolean compressed;
 
@@ -64,7 +64,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == btnFind) {
+    if (event.getSource() == bFind) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
@@ -128,9 +128,9 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
   public JComponent makeViewer(ViewableContainer container)
   {
-    btnFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
-    btnFind.setMnemonic('f');
-    btnFind.addActionListener(this);
+    bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
+    bFind.setMnemonic('f');
+    bFind.addActionListener(this);
 
     miExport = new JMenuItem("original");
     miExport.setMnemonic('o');
@@ -165,7 +165,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    buttonPanel.add(btnFind);
+    buttonPanel.add(bFind);
     buttonPanel.add(mnuExport);
 
     panel = new JPanel(new BorderLayout());

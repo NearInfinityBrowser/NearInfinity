@@ -9,6 +9,7 @@ import infinity.datatype.*;
 import infinity.gui.*;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
+import infinity.resource.graphics.TisDecoder;
 import infinity.resource.graphics.TisResource2;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
@@ -24,6 +25,27 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
 {
   private final AreResource areaFile;
   private JLabel label;
+
+  public static boolean IsValid(AreResource are)
+  {
+    if (are != null) {
+      ResourceRef wedRef = (ResourceRef)are.getAttribute("WED resource");
+      ResourceEntry wedEntry = ResourceFactory.getInstance().getResourceEntry(wedRef.getResourceName());
+      if (wedEntry != null) {
+        try {
+          WedResource wedFile = new WedResource(wedEntry);
+          Overlay overlay = (Overlay)wedFile.getAttribute("Overlay");
+          ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
+          ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
+          if (tisEntry != null)
+            return true;
+        } catch (Exception e) {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
 
   public ViewerGraphics(AreResource areaFile)
   {
@@ -68,8 +90,16 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
       }
 
       blocker.setBlocked(true);
-      BufferedImage image = TisResource2.drawImage(tisEntry, width, height,
-                                                   mapIndex, lookupIndex, overlay);
+      TisDecoder decoder = new TisDecoder(tisEntry);
+      BufferedImage image = new BufferedImage(width*decoder.info().tileWidth(),
+                                              height*decoder.info().tileHeight(),
+                                              BufferedImage.TYPE_INT_RGB);
+      if (!TisResource2.drawImage(image, decoder, width, height, mapIndex, lookupIndex, overlay, true)) {
+        image = null;
+        decoder = null;
+        throw new Exception("Error creating area map");
+      }
+      decoder = null;
 
       Container pane = getContentPane();
       pane.setLayout(new BorderLayout());
