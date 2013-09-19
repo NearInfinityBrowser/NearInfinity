@@ -489,7 +489,7 @@ public final class BrowserMenuBar extends JMenuBar
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         int gameid = prefs.getInt(LASTGAME_IDS[i], -1);
         String gamepath = prefs.get(LASTGAME_PATH[i], null);
-        if (gameid != -1 && gamepath != null && new FileCI(gamepath).exists()) {
+        if (gameid != -1 && gamepath != null && new File(gamepath).exists()) { // File is used intentionally
           lastGameID.add(new Integer(gameid));
           lastGamePath.add(gamepath);
         }
@@ -580,7 +580,7 @@ public final class BrowserMenuBar extends JMenuBar
         for (int i = 0; i < gameLastGame.length; i++)
           if (event.getSource() == gameLastGame[i])
             selected = i;
-        File keyfile = new FileCI(lastGamePath.get(selected));
+        File keyfile = new File(lastGamePath.get(selected)); // File is used intentionally
         if (!keyfile.exists())
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), lastGamePath.get(selected) +
                                                                     " could not be found",
