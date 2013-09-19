@@ -176,7 +176,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_TUTU || gameid == ResourceFactory.ID_BGEE) { // V2.0
+             gameid == ResourceFactory.ID_BGEE) { // V2.0
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
