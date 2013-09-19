@@ -40,7 +40,6 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
           ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_TUTU ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ? new byte[352] :
           ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? new byte[360] :
           ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ? new byte[832] : new byte[384],
@@ -160,7 +159,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       offset += 8;
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_TUTU || gameid == ResourceFactory.ID_BGEE) {
+             gameid == ResourceFactory.ID_BGEE) {
       list.add(new IdsBitmap(buffer, offset + 40, 2, "Modal state", "MODAL.IDS"));
       list.add(new DecNumber(buffer, offset + 42, 2, "Happiness"));
       list.add(new Unknown(buffer, offset + 44, 96));
