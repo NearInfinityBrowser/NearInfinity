@@ -94,7 +94,7 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
       BufferedImage image = new BufferedImage(width*decoder.info().tileWidth(),
                                               height*decoder.info().tileHeight(),
                                               BufferedImage.TYPE_INT_RGB);
-      if (!TisResource2.drawImage(image, decoder, width, height, mapIndex, lookupIndex, overlay, true)) {
+      if (!TisResource2.drawImage(image, decoder, width, height, mapIndex, lookupIndex, overlay, false)) {
         image = null;
         decoder = null;
         throw new Exception("Error creating area map");
