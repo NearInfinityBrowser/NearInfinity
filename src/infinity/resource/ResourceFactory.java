@@ -278,6 +278,8 @@ public final class ResourceFactory
           res = new TotResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("PVRZ") && getGameID() == ID_BGEE)
           res = new PvrzResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("FNT") && getGameID() == ID_BGEE)
+          res = new FntResource(entry);
         else
           res = new UnknownResource(entry);
       }

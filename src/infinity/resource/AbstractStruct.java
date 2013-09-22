@@ -267,8 +267,10 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   // begin - implements Viewable
   public JComponent makeViewer(ViewableContainer container)
   {
-    if (viewer == null)
+    if (viewer == null) {
       viewer = new StructViewer(this, viewerComponents);
+      viewerInitialized(viewer);
+    }
     return viewer;
   }
 
@@ -705,6 +707,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       else
         flatList.add(o);
     }
+  }
+
+  // To be overriden by subclasses
+  protected void viewerInitialized(StructViewer viewer)
+  {
   }
 
   // To be overriden by subclasses

@@ -6,6 +6,8 @@ package infinity.resource.cre;
 
 import infinity.NearInfinity;
 import infinity.datatype.*;
+import infinity.gui.ButtonPopupMenu;
+import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
@@ -14,13 +16,13 @@ import infinity.util.*;
 import javax.swing.*;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.*;
 import java.util.*;
 
 public final class CreResource extends AbstractStruct implements Resource, HasAddRemovable, AddRemovable,
-                                                                 HasDetailViewer, ActionListener
+                                                                 HasDetailViewer, ItemListener
 {
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
@@ -102,7 +104,9 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     m_colorPlacement.put((long)0x00, "Not used");
   }
 
-  private JButton btnChrConvert;
+  private boolean isChr;
+  private JMenuItem miExport, miConvert;
+  private ButtonPopupMenu bExport;
 
   public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
                                    ResourceEntry entry)
@@ -281,11 +285,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   public CreResource(ResourceEntry entry) throws Exception
   {
     super(entry);
+    isChr = entry.getExtension().equalsIgnoreCase("CHR");
   }
 
   public CreResource(AbstractStruct superStruct, String name, byte data[], int startoffset) throws Exception
   {
     super(superStruct, name, data, startoffset);
+    isChr = new String(data, startoffset, 4).equalsIgnoreCase("CHR ");
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
@@ -377,7 +383,6 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
     list.add(version);
     if (signature.toString().equalsIgnoreCase("CHR ")) {
-      enableCHRExport();
       list.add(new TextString(buffer, offset + 8, 32, "Character name"));
       HexNumber structOffset = new HexNumber(buffer, offset + 40, 4, "CRE structure offset");
       list.add(structOffset);
@@ -1451,24 +1456,53 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
-  void enableCHRExport()
+  protected void viewerInitialized(StructViewer viewer)
   {
-    btnChrConvert = new JButton("Convert to CRE...", Icons.getIcon("Redo16.gif"));
-    btnChrConvert.addActionListener(this);
-    ArrayList<Component> list = new ArrayList<Component>();
-    list.add(btnChrConvert);
-    setExtraComponents(list);
-  }
+    if (isChr) {
+      JPanel panel = viewer.getButtonPanel();
+      Component[] components = panel.getComponents();
+      if (components != null) {
+        for (int i = 0; i < components.length; i++) {
+          if (components[i] instanceof AbstractButton &&
+              ((AbstractButton)components[i]).getActionCommand().equals(StructViewer.CMD_EXPORT)) {
+            AbstractButton button = (AbstractButton)components[i];
+            // updating component list
+            miExport = new JMenuItem("original");
+            miExport.setToolTipText(button.getToolTipText());
+            miConvert = new JMenuItem("as CRE");
+            bExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miConvert});
+            bExport.setIcon(Icons.getIcon("Export16.gif"));
+            bExport.addItemListener(this);
+            button.removeActionListener(viewer);
+            components[i] = bExport;
 
-//--------------------- Begin Interface ActionListener ---------------------
-
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() == btnChrConvert) {
-      CreResource.convertCHRtoCRE(getResourceEntry());
+            // adding updated list of components to the panel
+            viewer.getButtonPanel().removeAll();
+            for (final Component c: components) {
+              panel.add(c);
+            }
+            viewer.validate();
+            break;
+          }
+        }
+      }
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+//--------------------- Begin Interface ItemListener ---------------------
+
+  public void itemStateChanged(ItemEvent event)
+  {
+    if (event.getSource() == bExport) {
+      JMenuItem item = bExport.getSelectedItem();
+      if (item == miExport) {
+        ResourceFactory.getInstance().exportResource(getResourceEntry(), NearInfinity.getInstance());
+      } else if (item == miConvert) {
+        convertCHRtoCRE(getResourceEntry());
+      }
+    }
+  }
+
+//--------------------- End Interface ItemListener ---------------------
 }
 
