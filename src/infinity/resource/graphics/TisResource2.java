@@ -61,40 +61,43 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   private JPanel panel;                   // top-level panel of the viewer
 
 
-  public static BufferedImage drawImage(ResourceEntry entry, int width, int height, int mapIndex,
-                                             int lookupIndex, Overlay overlay) throws Exception
+  public static boolean drawImage(BufferedImage image, TisDecoder decoder, int width, int height,
+                                  int mapIndex, int lookupIndex, Overlay overlay, boolean secondary)
+                                      throws Exception
   {
-    TisDecoder decoder = new TisDecoder(entry);
-
-    // creating tile index map
-    List<TileInfo> tiles = new ArrayList<TileInfo>(width * height);
-    for (int ypos = 0; ypos < height; ypos++) {
-      for (int xpos = 0; xpos < width; xpos++) {
-        AbstractStruct wedtilemap = (AbstractStruct)overlay.getStructEntryAt(ypos*width + xpos + mapIndex);
-        int lookup = ((DecNumber)wedtilemap.getAttribute("Primary tile index")).getValue();
-        int tilenum = ((DecNumber)overlay.getStructEntryAt(lookup + lookupIndex)).getValue();
-        tiles.add(new TileInfo(xpos, ypos, tilenum));
+    if (image != null && decoder != null) {
+      // creating tile index map
+      List<TileInfo> tiles = new ArrayList<TileInfo>(width * height);
+      for (int ypos = 0; ypos < height; ypos++) {
+        for (int xpos = 0; xpos < width; xpos++) {
+          AbstractStruct wedtilemap = (AbstractStruct)overlay.getStructEntryAt(ypos*width + xpos + mapIndex);
+          int tilenum;
+          int lookupPrimary = ((DecNumber)wedtilemap.getAttribute("Primary tile index")).getValue();
+          int lookupSecondary = ((DecNumber)wedtilemap.getAttribute("Secondary tile index")).getValue();
+          if (secondary && lookupSecondary != -1)
+            tilenum = lookupSecondary;
+          else
+            tilenum = ((DecNumber)overlay.getStructEntryAt(lookupPrimary + lookupIndex)).getValue();
+          tiles.add(new TileInfo(xpos, ypos, tilenum));
+        }
       }
+
+      ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.A8R8G8B8;
+      int tileWidth = decoder.info().tileWidth();
+      int tileHeight = decoder.info().tileHeight();
+      int[] tileBlock = new int[tileWidth*tileHeight];
+      for (final TileInfo tile: tiles) {
+        // decoding tile
+        ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tile.tilenum, colorFormat), 0,
+                                   tileBlock, 0, tileBlock.length);
+
+        // drawing tile
+        image.setRGB(tile.xpos*tileWidth, tile.ypos*tileHeight, tileWidth, tileHeight,
+                     tileBlock, 0, tileWidth);
+      }
+      return true;
     }
-
-    BufferedImage image = new BufferedImage(width*decoder.info().tileWidth(),
-                                            height*decoder.info().tileHeight(),
-                                            BufferedImage.TYPE_INT_ARGB);
-    ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.A8R8G8B8;
-    int tileWidth = decoder.info().tileWidth();
-    int tileHeight = decoder.info().tileHeight();
-    int[] tileBlock = new int[tileWidth*tileHeight];
-    for (final TileInfo tile: tiles) {
-      // decoding tile
-      ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tile.tilenum, colorFormat), 0,
-                                 tileBlock, 0, tileBlock.length);
-
-      // drawing tile
-      image.setRGB(tile.xpos*tileWidth, tile.ypos*tileHeight, tileWidth, tileHeight,
-                   tileBlock, 0, tileWidth);
-    }
-
-    return image;
+    return false;
   }
 
 
