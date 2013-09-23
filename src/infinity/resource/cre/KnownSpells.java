@@ -17,9 +17,9 @@ final class KnownSpells extends AbstractStruct implements AddRemovable
     super(null, "Known spell", new byte[12], 0);
   }
 
-  KnownSpells(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  KnownSpells(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Known spell", buffer, offset);
+    super(superStruct, "Known spell " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

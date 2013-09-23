@@ -19,9 +19,9 @@ final class ItemSale extends AbstractStruct implements AddRemovable
     super(null, "Item for sale", new byte[28], 0);
   }
 
-  ItemSale(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  ItemSale(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Item for sale", buffer, offset);
+    super(superStruct, "Item for sale " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

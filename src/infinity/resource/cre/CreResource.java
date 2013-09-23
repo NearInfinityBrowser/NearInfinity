@@ -880,13 +880,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     offset = getExtraOffset() + effects_offset.getValue();
     if (effect_flag.getValue() == 1)
       for (int i = 0; i < effects_count.getValue(); i++) {
-        Effect2 eff = new Effect2(this, buffer, offset);
+        Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
     else
       for (int i = 0; i < effects_count.getValue(); i++) {
-        Effect eff = new Effect(this, buffer, offset);
+        Effect eff = new Effect(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
@@ -1291,7 +1291,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
     offset = getExtraOffset() + offsetKnownSpells.getValue();
     for (int i = 0; i < countKnownSpells.getValue(); i++) {
-      KnownSpells known = new KnownSpells(this, buffer, offset);
+      KnownSpells known = new KnownSpells(this, buffer, offset, i);
       offset = known.getEndOffset();
       list.add(known);
     }
@@ -1307,13 +1307,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     offset = getExtraOffset() + offsetEffects.getValue();
     if (effect_flag.getValue() == 1)
       for (int i = 0; i < countEffects.getValue(); i++) {
-        Effect2 eff = new Effect2(this, buffer, offset);
+        Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
     else
       for (int i = 0; i < countEffects.getValue(); i++) {
-        Effect eff = new Effect(this, buffer, offset);
+        Effect eff = new Effect(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
@@ -1481,7 +1481,6 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
             for (final Component c: components) {
               panel.add(c);
             }
-            viewer.validate();
             break;
           }
         }

@@ -18,9 +18,9 @@ class Variable extends AbstractStruct implements AddRemovable
     super(null, "Variable", new byte[84], 0);
   }
 
-  Variable(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Variable(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Variable", buffer, offset);
+    super(superStruct, "Variable " + number, buffer, offset);
   }
 
   Variable(AbstractStruct superStruct, String s, byte b[], int o) throws Exception

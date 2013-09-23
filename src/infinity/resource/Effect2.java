@@ -80,9 +80,9 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     super(null, "Effect", new byte[264], 0);
   }
 
-  public Effect2(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public Effect2(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Effect", buffer, offset);
+    super(superStruct, "Effect " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

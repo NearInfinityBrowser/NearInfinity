@@ -7,18 +7,18 @@ package infinity.resource.wed;
 import infinity.datatype.*;
 import infinity.resource.*;
 
-final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
+public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
   private static final String[] s_yesno = {"No", "Yes"};
 
-  Door() throws Exception
+  public Door() throws Exception
   {
     super(null, "Door", new byte[26], 0);
   }
 
-  Door(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public Door(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Door", buffer, offset);
+    super(superStruct, "Door " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------

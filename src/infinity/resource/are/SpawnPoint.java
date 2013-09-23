@@ -17,9 +17,9 @@ final class SpawnPoint extends AbstractStruct implements AddRemovable
     super(null, "Spawn point", new byte[200], 0);
   }
 
-  SpawnPoint(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  SpawnPoint(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Spawn point", buffer, offset);
+    super(superStruct, "Spawn point " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

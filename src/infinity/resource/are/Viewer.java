@@ -43,7 +43,7 @@ final class Viewer extends JPanel implements ActionListener
     JButton bView = new JButton("View Area", Icons.getIcon("Volume16.gif"));
     bView.setActionCommand(CMD_VIEWAREA);
     bView.addActionListener(this);
-    bView.setEnabled(ViewerGraphics.IsValid(are));
+    bView.setEnabled(AreaViewer.IsValid(are));
     fieldBasePanel.add(bView, BorderLayout.PAGE_END);
 
     return fieldBasePanel;
@@ -77,7 +77,7 @@ final class Viewer extends JPanel implements ActionListener
   public void actionPerformed(ActionEvent event)
   {
     if (event.getActionCommand().equals(CMD_VIEWAREA)) {
-      new ViewerGraphics(are);
+      new AreaViewer(this, are);
     }
   }
 

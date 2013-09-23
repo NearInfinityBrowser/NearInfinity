@@ -21,9 +21,9 @@ final class Control extends AbstractStruct // implements AddRemovable
                                            "Right justify"};
   private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
 
-  Control(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Control(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Control", buffer, offset);
+    super(superStruct, "Control " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface StructEntry ---------------------

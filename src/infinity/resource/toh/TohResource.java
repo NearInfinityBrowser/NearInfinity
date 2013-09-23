@@ -26,7 +26,7 @@ public final class TohResource extends AbstractStruct implements Resource
 
     offset = 20;
     for (int i = 0; i < count_strref.getValue(); i++) {
-      StrRefEntry entry = new StrRefEntry(this, buffer, offset, i + 1);
+      StrRefEntry entry = new StrRefEntry(this, buffer, offset, i);
       offset = entry.getEndOffset();
       list.add(entry);
     }

@@ -9,9 +9,9 @@ import infinity.resource.AbstractStruct;
 
 public final class Overlay extends AbstractStruct // implements AddRemovable, HasAddRemovable
 {
-  public Overlay(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public Overlay(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Overlay", buffer, offset);
+    super(superStruct, "Overlay " + number, buffer, offset);
   }
 
   public void updateOffsets(int offset, int size)

@@ -17,9 +17,9 @@ final class TiledObject extends AbstractStruct implements AddRemovable
     super(null, "Tiled object", new byte[108], 0);
   }
 
-  TiledObject(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  TiledObject(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Tiled object", buffer, offset);
+    super(superStruct, "Tiled object " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

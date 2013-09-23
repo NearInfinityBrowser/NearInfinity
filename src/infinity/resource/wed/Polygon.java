@@ -8,9 +8,9 @@ import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.vertex.Vertex;
 
-abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
+public abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
-  Polygon(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
+  public Polygon(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
   {
     super(superStruct, name, buffer, offset, 8);
   }

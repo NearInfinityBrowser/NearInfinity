@@ -20,9 +20,9 @@ final class Animation extends AbstractStruct implements AddRemovable
     super(null, "Animation", new byte[76], 0);
   }
 
-  Animation(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Animation(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Animation", buffer, offset);
+    super(superStruct, "Animation " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

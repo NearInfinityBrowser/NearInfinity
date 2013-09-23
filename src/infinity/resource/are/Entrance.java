@@ -15,9 +15,9 @@ final class Entrance extends AbstractStruct implements AddRemovable
     super(null, "Entrance", new byte[104], 0);
   }
 
-  Entrance(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Entrance(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Entrance", buffer, offset);
+    super(superStruct, "Entrance " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

@@ -118,7 +118,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetOverlays.getValue();
     for (int i = 0; i < countOverlays.getValue(); i++) {
-      Overlay overlay = new Overlay(this, buffer, offset);
+      Overlay overlay = new Overlay(this, buffer, offset, i);
       offset = overlay.getEndOffset();
       list.add(overlay);
     }
@@ -151,7 +151,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetDoors.getValue();
     for (int i = 0; i < countDoors.getValue(); i++) {
-      Door door = new Door(this, buffer, offset);
+      Door door = new Door(this, buffer, offset, i);
       offset = door.getEndOffset();
       door.readVertices(buffer, offsetVertices.getValue());
       list.add(door);

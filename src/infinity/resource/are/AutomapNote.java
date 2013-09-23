@@ -19,9 +19,9 @@ final class AutomapNote extends AbstractStruct implements AddRemovable
     super(null, "Automap note", new byte[52], 0);
   }
 
-  AutomapNote(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  AutomapNote(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Automap note", buffer, offset);
+    super(superStruct, "Automap note " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

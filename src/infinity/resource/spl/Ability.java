@@ -19,9 +19,9 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
     super(null, "Spell ability", new byte[40], 0);
   }
 
-  Ability(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Ability(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Spell ability", buffer, offset);
+    super(superStruct, "Spell ability " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------

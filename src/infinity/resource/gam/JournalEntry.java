@@ -27,9 +27,9 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
     super(null, "Journal entry", new byte[12], 0);
   }
 
-  JournalEntry(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  JournalEntry(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Journal entry", buffer, offset);
+    super(superStruct, "Journal entry " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
