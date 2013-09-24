@@ -385,8 +385,6 @@ public final class ResourceFactory
     else if (new File(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
              (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "Config.exe").exists()))
       currentGame = ID_BG1;
-    else if (new File(rootDir, "bg1tutu.exe").exists())
-      currentGame = ID_TUTU;
     else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "chitin.ini").exists())
       currentGame = ID_DEMO;
     else if (new File(rootDir, "movies/DEATHAND.wbm").exists())
@@ -400,11 +398,11 @@ public final class ResourceFactory
     if (!langRoot.exists())
       langRoot = null;
     if (userRoot != null && langRoot != null)
-      rootDirs = new File[]{rootDir, userRoot, langRoot};
+      rootDirs = new File[]{langRoot, userRoot, rootDir};
     else if (userRoot != null && langRoot == null)
-      rootDirs = new File[]{rootDir, userRoot};
+      rootDirs = new File[]{userRoot, rootDir};
     else if (userRoot == null && langRoot != null)
-      rootDirs = new File[]{rootDir, langRoot};
+      rootDirs = new File[]{langRoot, rootDir};
     else
       rootDirs = new File[]{rootDir};
 

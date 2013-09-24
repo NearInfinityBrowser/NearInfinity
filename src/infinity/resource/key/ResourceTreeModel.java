@@ -75,15 +75,9 @@ public final class ResourceTreeModel implements TreeModel
     File files[] = directory.listFiles();
     if (files.length == 0)
       return;
-    ResourceTreeFolder folder = null;
-    String folderName = directory.getName();
-    if (folders.containsKey(folderName)) {
-      folder = getFolder(folderName);
-    } else {
-      folder = new ResourceTreeFolder(parentFolder, folderName);
-      folders.put(folderName, folder);
-      parentFolder.addFolder(folder);
-    }
+    ResourceTreeFolder folder = new ResourceTreeFolder(parentFolder, directory.getName());
+    folders.put(directory.getName(), folder);
+    parentFolder.addFolder(folder);
     for (final File file : files) {
       if (file.isDirectory())
         addDirectory(folder, file);

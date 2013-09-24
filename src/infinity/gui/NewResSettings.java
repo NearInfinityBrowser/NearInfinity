@@ -185,7 +185,6 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     switch (ResourceFactory.getGameID()) {
       case ResourceFactory.ID_BG2:
       case ResourceFactory.ID_BG2TOB:
-      case ResourceFactory.ID_TUTU:
       case ResourceFactory.ID_BGEE:
         gameId = 1;
         break;

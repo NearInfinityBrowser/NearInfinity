@@ -16,7 +16,6 @@ final class NonPartyNPC extends PartyNPC
           ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_TUTU ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ? new byte[352] :
           ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? new byte[360] :
           ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ? new byte[832] : new byte[384],
