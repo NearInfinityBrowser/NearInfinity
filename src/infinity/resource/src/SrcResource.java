@@ -30,7 +30,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
     list.add(entry_count);
     offset += 4;
     for (int i = 0; i < entry_count.getValue(); i++) {
-      Entry entry = new Entry(this, buffer, offset);
+      Entry entry = new Entry(this, buffer, offset, i);
       list.add(entry);
       offset = entry.getEndOffset();
     }

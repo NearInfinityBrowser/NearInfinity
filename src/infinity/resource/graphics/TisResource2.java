@@ -396,12 +396,12 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     } catch (Exception e) {
       e.printStackTrace();
       NearInfinity.getInstance().setCursor(null);
-      if (tileImages == null) {
+      if (tileImages == null)
         tileImages = new ArrayList<Image>();
+      if (tileImages.isEmpty())
         tileImages.add(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
-      }
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                    "Error loading TIS resource: " + entry.getResourceName(),
+                                    "Error while loading TIS resource: " + entry.getResourceName(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
   }

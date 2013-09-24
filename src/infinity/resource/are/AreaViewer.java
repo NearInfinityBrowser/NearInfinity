@@ -312,6 +312,15 @@ public final class AreaViewer extends ChildFrame
   {
     if (event.getSource() == lTileset) {
       setAreaLocation(event.getPoint());
+    } else if (event.getSource() instanceof AbstractLayerItem) {
+      // forwarding mouse event to continue displaying cursor position information when hovering over layer items
+      AbstractLayerItem item = (AbstractLayerItem)event.getSource();
+      MouseEvent newEvent =
+          new MouseEvent(lTileset, event.getID(), event.getWhen(), event.getModifiers(),
+                         event.getX() + item.getX(), event.getY() + item.getY(),
+                         event.getXOnScreen(), event.getYOnScreen(),
+                         event.getClickCount(), event.isPopupTrigger(), event.getButton());
+      lTileset.dispatchEvent(newEvent);
     }
   }
 
@@ -691,6 +700,7 @@ public final class AreaViewer extends ChildFrame
       item.setHighlightedIcon(icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -765,6 +775,7 @@ public final class AreaViewer extends ChildFrame
       item.setFilled(true);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -825,6 +836,7 @@ public final class AreaViewer extends ChildFrame
       item.setHighlightedIcon(icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -902,6 +914,7 @@ public final class AreaViewer extends ChildFrame
       item.setFilled(true);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -962,6 +975,7 @@ public final class AreaViewer extends ChildFrame
       item.setHighlightedIcon(icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -1043,6 +1057,7 @@ public final class AreaViewer extends ChildFrame
       item.setFilled(true);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -1058,6 +1073,7 @@ public final class AreaViewer extends ChildFrame
       item.setFilled(true);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -1123,6 +1139,7 @@ public final class AreaViewer extends ChildFrame
       item.setHighlightedIcon(icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -1210,6 +1227,7 @@ public final class AreaViewer extends ChildFrame
         item.setHighlightedIcon(icon[1]);
         item.addActionListener(this);
         item.addLayerItemListener(this);
+        item.addMouseMotionListener(this);
         list.add(item);
         item.setVisible(false);
         lTileset.add(item);
@@ -1341,6 +1359,7 @@ public final class AreaViewer extends ChildFrame
         item.setFilled(true);
         item.addActionListener(this);
         item.addLayerItemListener(this);
+        item.addMouseMotionListener(this);
         list.add(item);
         item.setVisible(false);
         lTileset.add(item);
@@ -1414,6 +1433,7 @@ public final class AreaViewer extends ChildFrame
       item.setHighlightedIcon(icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
@@ -1474,6 +1494,7 @@ public final class AreaViewer extends ChildFrame
       item.setHighlightedIcon(icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseMotionListener(this);
       list.add(item);
       item.setVisible(false);
       lTileset.add(item);
