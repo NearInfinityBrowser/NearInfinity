@@ -17,7 +17,6 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
-import infinity.util.ArrayUtil;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -39,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
@@ -182,7 +182,6 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   public TisResource2(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    decoder = new TisDecoder(entry);
     initTileset();
   }
 
@@ -368,11 +367,14 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- End Interface Viewable ---------------------
 
-  private void initTileset() throws Exception
+  private void initTileset()
   {
     try {
-      // preparations
       NearInfinity.getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+      decoder = new TisDecoder(entry);
+
+      // preparations
       int tileCount = decoder.info().tileCount();
       tileImages = new ArrayList<Image>(tileCount);
       ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.A8R8G8B8;
@@ -392,10 +394,15 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       }
       NearInfinity.getInstance().setCursor(null);
     } catch (Exception e) {
+      e.printStackTrace();
       NearInfinity.getInstance().setCursor(null);
-      if (tileImages == null)
+      if (tileImages == null) {
         tileImages = new ArrayList<Image>();
-      throw e;
+        tileImages.add(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
+      }
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                    "Error loading TIS resource: " + entry.getResourceName(),
+                                    "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -461,7 +468,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     private final int xpos, ypos;   // coordinate in tile grid
     private final int tilenum;      // primary tile index from WED
     private final int tilenumAlt;   // secondary tile index from WED
-    private final int overlayIndex; // index of additional overlay to address
+    private final int[] overlayIndices; // index of additional overlays to address
 
     public TileInfo(int xpos, int ypos, int tilenum)
     {
@@ -469,7 +476,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       this.ypos = ypos;
       this.tilenum = tilenum;
       this.tilenumAlt = -1;
-      this.overlayIndex = 0;
+      this.overlayIndices = null;
     }
 
     public TileInfo(int xpos, int ypos, int tilenum, int tilenumAlt)
@@ -478,7 +485,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       this.ypos = ypos;
       this.tilenum = tilenum;
       this.tilenumAlt = tilenumAlt;
-      this.overlayIndex = 0;
+      this.overlayIndices = null;
     }
 
     public TileInfo(int xpos, int ypos, int tilenum, int tilenumAlt, int overlayMask)
@@ -487,14 +494,22 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       this.ypos = ypos;
       this.tilenum = tilenum;
       this.tilenumAlt = tilenumAlt;
-      for (int i = 0; i < 32; i++) {
+
+      // calculating additional overlays
+      int mcount = 0;
+      int[] mindices = new int[8];
+      for (int i = 0; i < 8; i++) {
         if ((overlayMask & (1 << i)) != 0) {
-          overlayMask = i;
+          mindices[mcount] = i;
+          mcount++;
           break;
         }
       }
-      this.overlayIndex = overlayMask;
+      if (mcount > 0) {
+        this.overlayIndices = new int[mcount];
+        System.arraycopy(mindices, 0, this.overlayIndices, 0, mcount);
+      } else
+        this.overlayIndices = null;
     }
   }
-
 }

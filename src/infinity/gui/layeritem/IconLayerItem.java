@@ -19,7 +19,7 @@ import infinity.gui.layeritem.LayerItemEvent.ItemState;
 import infinity.resource.Viewable;
 
 /**
- *
+ * Represents a game resource structure visually as a bitmap icon.
  * @author argent77
  */
 public class IconLayerItem extends AbstractLayerItem implements LayerItemListener
@@ -29,31 +29,66 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   private EnumMap<ItemState, Icon> icons;
   private JLabel label;
 
+  /**
+   * Initialize object with default settings.
+   */
   public IconLayerItem()
   {
     this(null, null, null, null, null);
   }
 
+  /**
+   * Initialize object with the specified map location.
+   * @param location Map location
+   */
   public IconLayerItem(Point location)
   {
     this(location, null, null, null, null);
   }
 
+  /**
+   * Initialize object with a specific map location and an associated viewable object.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   */
   public IconLayerItem(Point location, Viewable viewable)
   {
     this(location, viewable, null, null, null);
   }
 
+  /**
+   * Initialize object with a specific map location, associated Viewable and an additional text message.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param msg An arbitrary text message
+   */
   public IconLayerItem(Point location, Viewable viewable, String msg)
   {
     this(location, viewable, msg, null, null);
   }
 
+  /**
+   * Initialize object with a specific map location, associated Viewable, an additional text message
+   * and an icon for the visual representation.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param msg An arbitrary text message
+   * @param icon The icon to display
+   */
   public IconLayerItem(Point location, Viewable viewable, String msg, Icon icon)
   {
     this(location, viewable, msg, icon, null);
   }
 
+  /**
+   * Initialize object with a specific map location, associated Viewable, an additional text message,
+   * an icon for the visual representation and a locical center position within the icon.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param msg An arbitrary text message
+   * @param icon The icon to display
+   * @param center Logical center position within the icon
+   */
   public IconLayerItem(Point location, Viewable viewable, String msg, Icon icon, Point center)
   {
     super(location, viewable, msg);
@@ -107,11 +142,19 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     setIcon(ItemState.HIGHLIGHTED, icon);
   }
 
+  /**
+   * Sets the logical center of the icon.
+   * @return The logical center of the icon
+   */
   public Point getCenterPosition()
   {
     return getLocationOffset();
   }
 
+  /**
+   * Sets the logical center of the icon.
+   * @param center The center position within the icon
+   */
   public void setCenterPosition(Point center)
   {
     if (center == null)

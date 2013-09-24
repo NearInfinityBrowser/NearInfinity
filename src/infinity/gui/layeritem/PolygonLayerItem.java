@@ -22,7 +22,7 @@ import infinity.gui.layeritem.LayerItemEvent.ItemState;
 import infinity.resource.Viewable;
 
 /**
- *
+ * Represents a game resource structure visually as a polygon.
  * @author argent77
  */
 public class PolygonLayerItem extends AbstractLayerItem implements LayerItemListener
@@ -36,26 +36,52 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   private JLabel label;
   private boolean stroked, filled;
 
+  /**
+   * Initialize object with default settings.
+   */
   public PolygonLayerItem()
   {
     this(null, null, null, null);
   }
 
+  /**
+   * Initialize object with the specified map location.
+   * @param location Map location
+   */
   public PolygonLayerItem(Point location)
   {
     this(location, null, null);
   }
 
+  /**
+   * Initialize object with a specific map location and an associated viewable object.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   */
   public PolygonLayerItem(Point location, Viewable viewable)
   {
     this(location, viewable, null, null);
   }
 
+  /**
+   * Initialize object with a specific map location, associated Viewable and an additional text message.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param msg An arbitrary text message
+   */
   public PolygonLayerItem(Point location, Viewable viewable, String msg)
   {
     this(location, viewable, msg, null);
   }
 
+  /**
+   * Initialize object with a specific map location, associated Viewable, an additional text message
+   * and a polygon for the visual representation.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param msg An arbitrary text message
+   * @param poly The polygon to display
+   */
   public PolygonLayerItem(Point location, Viewable viewable, String msg, Polygon poly)
   {
     super(location, viewable, msg);
@@ -71,30 +97,41 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
     addLayerItemListener(this);
   }
 
+  /**
+   * Returns the associated polygon.
+   * @return The associated polygon
+   */
   public Polygon getPolygon()
   {
     return polygon;
   }
 
+  /**
+   * Sets a new polygon.
+   * @param poly The new polygon
+   */
   public void setPolygon(Polygon poly)
   {
     polygon = (poly != null) ? poly : new Polygon();
     updatePolygon();
   }
 
+  /**
+   * Returns the stroke color.
+   * @return Stroke color
+   */
   public Color getStrokeColor()
   {
     return getStrokeColor(ItemState.NORMAL);
   }
 
+  /**
+   * Returns the stroke color in highlighted state.
+   * @return Stroke color in highlighted state
+   */
   public Color getHighlightedStrokeColor()
   {
     return getStrokeColor(ItemState.HIGHLIGHTED);
-  }
-
-  public Color getSelectedStrokeColor()
-  {
-    return getStrokeColor(ItemState.SELECTED);
   }
 
   /**
@@ -116,27 +153,21 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   }
 
   /**
-   * Sets the stroke color of the polygon in the selected state.
-   * @param c The stroke color of the polygon in the selected state.
+   * Returns the fill color of the polygon.
+   * @return Fill color
    */
-  public void setSelectedStrokeColor(Color c)
-  {
-    setStrokeColor(ItemState.SELECTED, c);
-  }
-
   public Color getFillColor()
   {
     return getFillColor(ItemState.NORMAL);
   }
 
+  /**
+   * Returns the fill color of the polygon in the highlighted state.
+   * @return The fill color of the polygon in the highlighted state.
+   */
   public Color getHighlightedFillColor()
   {
     return getFillColor(ItemState.HIGHLIGHTED);
-  }
-
-  public Color getSelectedFillColor()
-  {
-    return getFillColor(ItemState.SELECTED);
   }
 
   /**
@@ -158,19 +189,18 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   }
 
   /**
-   * Sets the fill color of the polygon in the selected state.
-   * @param c The fill color of the polygon in the selected state.
+   * Returns whether the polygon should have a stroked outline.
+   * @return true if the polygon is drawn with a stroked outline, false otherwise.
    */
-  public void setSelectedFillColor(Color c)
-  {
-    setFillColor(ItemState.SELECTED, c);
-  }
-
   public boolean getStroked()
   {
     return stroked;
   }
 
+  /**
+   * Specify whether the polygon should be drawn with a stroked outline.
+   * @param b If true, the polygon will be drawn with a stroked outline
+   */
   public void setStroked(boolean b)
   {
     if (b != stroked) {
@@ -179,11 +209,19 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
     }
   }
 
+  /**
+   * Returns whether the polygon should be filled with a specific color.
+   * @return true if the polygon is drawn filled, false otherwise.
+   */
   public boolean getFilled()
   {
     return filled;
   }
 
+  /**
+   * Specify whether the polygon should be filled with a specific color.
+   * @param b If true, the polygon will be filled with a specific color.
+   */
   public void setFilled(boolean b)
   {
     if (b != filled) {
@@ -273,7 +311,6 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
       BufferedImage img = new BufferedImage(rect.x + rect.width, rect.y + rect.height, BufferedImage.TYPE_INT_ARGB);
       Graphics2D graphics = img.createGraphics();
       if (graphics != null) {
-        graphics.setColor(new Color(-1, true));
         if (filled) {
           graphics.setColor(fillColors.get(state));
           graphics.fillPolygon(polygon);

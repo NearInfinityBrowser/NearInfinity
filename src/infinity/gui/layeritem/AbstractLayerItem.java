@@ -34,21 +34,39 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   private Point location;
   private Point center;
 
+  /**
+   * Initialize object with default settings.
+   */
   public AbstractLayerItem()
   {
     this(null);
   }
 
+  /**
+   * Initialize object with the specified map location.
+   * @param location Map location
+   */
   public AbstractLayerItem(Point location)
   {
     this(location, null);
   }
 
+  /**
+   * Initialize object with a specific map location and an associated viewable object.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   */
   public AbstractLayerItem(Point location, Viewable viewable)
   {
     this(location, viewable, null);
   }
 
+  /**
+   * Initialize object with a specific map location, associated Viewable and an additional text message.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param msg An arbitrary text message
+   */
   public AbstractLayerItem(Point location, Viewable viewable, String msg)
   {
     this.actionListener = new Vector<ActionListener>();

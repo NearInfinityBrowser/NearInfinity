@@ -26,8 +26,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -48,7 +46,6 @@ import javax.swing.SpringLayout;
 import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
-import infinity.datatype.HexNumber;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.RemovableDecNumber;
 import infinity.datatype.ResourceRef;
@@ -80,6 +77,7 @@ import infinity.resource.tot.StringEntry;
 import infinity.resource.tot.TotResource;
 import infinity.resource.vertex.Vertex;
 import infinity.resource.wed.Overlay;
+import infinity.resource.wed.Tilemap;
 import infinity.resource.wed.WedResource;
 
 /**
@@ -358,16 +356,10 @@ public final class AreaViewer extends ChildFrame
     initMap();
     advanceProgressMonitor("Loading actors");
     initLayerActor();
-    advanceProgressMonitor("Loading triggers");
-    initLayerTrigger();
     advanceProgressMonitor("Loading entrances");
     initLayerEntrance();
-    advanceProgressMonitor("Loading containers");
-    initLayerContainer();
     advanceProgressMonitor("Loading ambient sounds");
     initLayerAmbient();
-    advanceProgressMonitor("Loading doors");
-    initLayerDoor();
     advanceProgressMonitor("Loading animations");
     initLayerAnimation();
     advanceProgressMonitor("Loading automap notes");
@@ -376,6 +368,12 @@ public final class AreaViewer extends ChildFrame
     initLayerProTrap();
     advanceProgressMonitor("Loading spawn points");
     initLayerSpawnPoint();
+    advanceProgressMonitor("Loading triggers");
+    initLayerTrigger();
+    advanceProgressMonitor("Loading containers");
+    initLayerContainer();
+    advanceProgressMonitor("Loading doors");
+    initLayerDoor();
     advanceProgressMonitor("Loading map transitions");
     initLayerTransition();
     advanceProgressMonitor("Creating GUI");
@@ -521,13 +519,15 @@ public final class AreaViewer extends ChildFrame
     return false;
   }
 
-  private void setLayerEnabled(Layers layer, boolean enable)
+  private void setLayerEnabled(Layers layer, boolean enable, String toolTipText)
   {
     if (layer != null && LayerButton.containsKey(layer)) {
       JCheckBox cb = LayerButton.get(layer);
       if (!enable && cb.isSelected())
         cb.setSelected(false);
       cb.setEnabled(enable);
+      if (enable && toolTipText != null && !toolTipText.isEmpty())
+        cb.setToolTipText(toolTipText);
     }
   }
 
@@ -639,10 +639,10 @@ public final class AreaViewer extends ChildFrame
             if (actor != null)
               listActors.add(actor);
           }
-          setLayerEnabled(Layers.ACTOR, !listActors.isEmpty());
+          setLayerEnabled(Layers.ACTOR, !listActors.isEmpty(), listActors.size() + " actors available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.ACTOR, !listActors.isEmpty());
+          setLayerEnabled(Layers.ACTOR, !listActors.isEmpty(), listActors.size() + " actors available");
           return;
         }
       }
@@ -722,10 +722,12 @@ public final class AreaViewer extends ChildFrame
             if (ite != null)
               listTriggers.add(ite);
           }
-          setLayerEnabled(Layers.TRIGGER, !listTriggers.isEmpty());
+          setLayerEnabled(Layers.TRIGGER, !listTriggers.isEmpty(),
+                          listTriggers.size() + " triggers available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.TRIGGER, !listTriggers.isEmpty());
+          setLayerEnabled(Layers.TRIGGER, !listTriggers.isEmpty(),
+                          listTriggers.size() + " triggers available");
           return;
         }
       }
@@ -733,31 +735,27 @@ public final class AreaViewer extends ChildFrame
 
     // initializing trigger layer items
     String[] type = new String[]{" (Proximity trigger)", " (Info trigger)", " (Travel trigger)"};
-    Color[] color = new Color[]{new Color(0xC0600000, true), new Color(0xC0800000, true),
+    Color[] color = new Color[]{new Color(0xFF400000, true), new Color(0xFF400000, true),
                                 new Color(0xC0800000, true), new Color(0xC0C00000, true)};
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listTriggers.size());
     for (final ITEPoint trigger: listTriggers) {
-      Rectangle rect = new Rectangle(0, 0, 0, 0);
       String msg;
       Polygon poly = new Polygon();
       try {
-        rect.x = ((DecNumber)trigger.getAttribute("Bounding box: Left")).getValue();
-        rect.y = ((DecNumber)trigger.getAttribute("Bounding box: Top")).getValue();
-        rect.width = ((DecNumber)trigger.getAttribute("Bounding box: Right")).getValue() - rect.x;
-        rect.height = ((DecNumber)trigger.getAttribute("Bounding box: Bottom")).getValue() - rect.y;
         msg = ((TextString)trigger.getAttribute("Name")).toString();
         msg = msg + type[((Bitmap)trigger.getAttribute("Type")).getValue()];
         int vnum = ((DecNumber)trigger.getAttribute("# vertices")).getValue();
         for (int i = 0; i < vnum; i++) {
           Vertex vertex = ((Vertex)trigger.getAttribute("Vertex " + Integer.toString(i)));
           if (vertex != null) {
-            poly.addPoint(((DecNumber)vertex.getAttribute("X")).getValue() - rect.x,
-                          ((DecNumber)vertex.getAttribute("Y")).getValue() - rect.y);
+            poly.addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
+                          ((DecNumber)vertex.getAttribute("Y")).getValue());
           }
         }
       } catch (Throwable e) {
         msg = new String();
       }
+      Rectangle rect = normalizePolygon(poly);
       PolygonLayerItem item = new PolygonLayerItem(new Point(rect.x, rect.y), trigger, msg, poly);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
@@ -798,10 +796,12 @@ public final class AreaViewer extends ChildFrame
             if (entrance != null)
               listEntrances.add(entrance);
           }
-          setLayerEnabled(Layers.ENTRANCE, !listEntrances.isEmpty());
+          setLayerEnabled(Layers.ENTRANCE, !listEntrances.isEmpty(),
+                          listEntrances.size() + " entrances available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.ENTRANCE, !listEntrances.isEmpty());
+          setLayerEnabled(Layers.ENTRANCE, !listEntrances.isEmpty(),
+                          listEntrances.size() + " entrances available");
           return;
         }
       }
@@ -857,10 +857,12 @@ public final class AreaViewer extends ChildFrame
             if (container != null)
               listContainers.add(container);
           }
-          setLayerEnabled(Layers.CONTAINER, !listContainers.isEmpty());
+          setLayerEnabled(Layers.CONTAINER, !listContainers.isEmpty(),
+                          listContainers.size() + " containers available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.CONTAINER, !listContainers.isEmpty());
+          setLayerEnabled(Layers.CONTAINER, !listContainers.isEmpty(),
+                          listContainers.size() + " containers available");
           return;
         }
       }
@@ -870,31 +872,27 @@ public final class AreaViewer extends ChildFrame
     String[] type = new String[]{" (Unknown)", " (Bag)", " (Chest)", " (Drawer)", " (Pile)",
                                  " (Table)", " (Shelf)", " (Altar)", " (Invisible)",
                                  " (Spellbook)", " (Body)", " (Barrel)", " (Crate)"};
-    Color[] color = new Color[]{new Color(0xC0006060, true), new Color(0xC0008080, true),
+    Color[] color = new Color[]{new Color(0xFF004040, true), new Color(0xFF004040, true),
                                 new Color(0xC0008080, true), new Color(0xC000C0C0, true)};
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listContainers.size());
     for (final infinity.resource.are.Container container: listContainers) {
-      Rectangle rect = new Rectangle(0, 0, 0, 0);
       String msg;
       Polygon poly = new Polygon();
       try {
-        rect.x = ((DecNumber)container.getAttribute("Bounding box: Left")).getValue();
-        rect.y = ((DecNumber)container.getAttribute("Bounding box: Top")).getValue();
-        rect.width = ((DecNumber)container.getAttribute("Bounding box: Right")).getValue() - rect.x;
-        rect.height = ((DecNumber)container.getAttribute("Bounding box: Bottom")).getValue() - rect.y;
         msg = ((TextString)container.getAttribute("Name")).toString();
         msg = msg + type[((Bitmap)container.getAttribute("Type")).getValue()];
         int vnum = ((DecNumber)container.getAttribute("# vertices")).getValue();
         for (int i = 0; i < vnum; i++) {
           Vertex vertex = ((Vertex)container.getAttribute("Vertex " + Integer.toString(i)));
           if (vertex != null) {
-            poly.addPoint(((DecNumber)vertex.getAttribute("X")).getValue() - rect.x,
-                          ((DecNumber)vertex.getAttribute("Y")).getValue() - rect.y);
+            poly.addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
+                          ((DecNumber)vertex.getAttribute("Y")).getValue());
           }
         }
       } catch (Throwable e) {
         msg = new String();
       }
+      Rectangle rect = normalizePolygon(poly);
       PolygonLayerItem item = new PolygonLayerItem(new Point(rect.x, rect.y), container, msg, poly);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
@@ -935,10 +933,12 @@ public final class AreaViewer extends ChildFrame
             if (ambient != null)
               listAmbients.add(ambient);
           }
-          setLayerEnabled(Layers.AMBIENT, !listAmbients.isEmpty());
+          setLayerEnabled(Layers.AMBIENT, !listAmbients.isEmpty(),
+                          listAmbients.size() + " ambient sounds available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.AMBIENT, !listAmbients.isEmpty());
+          setLayerEnabled(Layers.AMBIENT, !listAmbients.isEmpty(),
+                          listAmbients.size() + " ambient sounds available");
           return;
         }
       }
@@ -993,54 +993,48 @@ public final class AreaViewer extends ChildFrame
             if (door != null)
               listDoors.add(door);
           }
-          setLayerEnabled(Layers.DOOR, !listDoors.isEmpty());
+          setLayerEnabled(Layers.DOOR, !listDoors.isEmpty(),
+                          listDoors.size() + " doors available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.DOOR, !listDoors.isEmpty());
+          setLayerEnabled(Layers.DOOR, !listDoors.isEmpty(),
+                          listDoors.size() + " doors available");
           return;
         }
       }
     }
 
     // initializing door layer items
-    Color[] color = new Color[]{new Color(0xC0600060, true), new Color(0xC0800080, true),
+    Color[] color = new Color[]{new Color(0xFF400040, true), new Color(0xFF400040, true),
                                 new Color(0xC0800080, true), new Color(0xC0C000C0, true)};
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(2*listDoors.size());
     for (final Door door: listDoors) {
-      Rectangle[] rect = new Rectangle[]{new Rectangle(0, 0, 0, 0), new Rectangle(0, 0, 0, 0)};
       Polygon[] poly = new Polygon[]{new Polygon(), new Polygon()};
       String msg;
       try {
-        rect[0].x = ((DecNumber)door.getAttribute("Bounding box (open): Left")).getValue();
-        rect[0].y = ((DecNumber)door.getAttribute("Bounding box (open): Top")).getValue();
-        rect[0].width = ((DecNumber)door.getAttribute("Bounding box (open): Right")).getValue() - rect[0].x;
-        rect[0].height = ((DecNumber)door.getAttribute("Bounding box (open): Bottom")).getValue() - rect[0].y;
-        rect[1].x = ((DecNumber)door.getAttribute("Bounding box (closed): Left")).getValue();
-        rect[1].y = ((DecNumber)door.getAttribute("Bounding box (closed): Top")).getValue();
-        rect[1].width = ((DecNumber)door.getAttribute("Bounding box (closed): Right")).getValue() - rect[1].x;
-        rect[1].height = ((DecNumber)door.getAttribute("Bounding box (closed): Bottom")).getValue() - rect[1].y;
         msg = ((TextString)door.getAttribute("Name")).toString();
         int vnum1 = ((DecNumber)door.getAttribute("# vertices (open)")).getValue();
         for (int i = 0; i < vnum1; i++) {
           Vertex vertex = ((Vertex)door.getAttribute("Open vertex " + Integer.toString(i)));
           if (vertex != null) {
-            poly[0].addPoint(((DecNumber)vertex.getAttribute("X")).getValue() - rect[0].x,
-                          ((DecNumber)vertex.getAttribute("Y")).getValue() - rect[0].y);
+            poly[0].addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
+                          ((DecNumber)vertex.getAttribute("Y")).getValue());
           }
         }
         int vnum2 = ((DecNumber)door.getAttribute("# vertices (closed)")).getValue();
         for (int i = 0; i < vnum2; i++) {
           Vertex vertex = ((Vertex)door.getAttribute("Closed vertex " + Integer.toString(i)));
           if (vertex != null) {
-            poly[1].addPoint(((DecNumber)vertex.getAttribute("X")).getValue() - rect[1].x,
-                          ((DecNumber)vertex.getAttribute("Y")).getValue() - rect[1].y);
+            poly[1].addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
+                          ((DecNumber)vertex.getAttribute("Y")).getValue());
           }
         }
       } catch (Throwable e) {
         msg = new String();
       }
       // adding opened door item
-      PolygonLayerItem item = new PolygonLayerItem(new Point(rect[0].x, rect[0].y), door, msg + " (Open)", poly[0]);
+      Rectangle rect = normalizePolygon(poly[0]);
+      PolygonLayerItem item = new PolygonLayerItem(new Point(rect.x, rect.y), door, msg + " (Open)", poly[0]);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
       item.setFillColor(color[2]);
@@ -1054,7 +1048,8 @@ public final class AreaViewer extends ChildFrame
       lTileset.add(item);
       item.setItemLocation(item.getMapLocation());
       // adding closed door item
-      item = new PolygonLayerItem(new Point(rect[1].x, rect[1].y), door, msg + " (Closed)", poly[1]);
+      rect = normalizePolygon(poly[1]);
+      item = new PolygonLayerItem(new Point(rect.x, rect.y), door, msg + " (Closed)", poly[1]);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
       item.setFillColor(color[2]);
@@ -1099,10 +1094,12 @@ public final class AreaViewer extends ChildFrame
             if (anim != null)
               listAnimations.add(anim);
           }
-          setLayerEnabled(Layers.ANIMATION, !listAnimations.isEmpty());
+          setLayerEnabled(Layers.ANIMATION, !listAnimations.isEmpty(),
+                          listAnimations.size() + " animations available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.ANIMATION, !listAnimations.isEmpty());
+          setLayerEnabled(Layers.ANIMATION, !listAnimations.isEmpty(),
+                          listAnimations.size() + " animations available");
           return;
         }
       }
@@ -1164,21 +1161,25 @@ public final class AreaViewer extends ChildFrame
               if (automap != null)
                 listAutomapNotesPST.add(automap);
             }
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotesPST.isEmpty());
+            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotesPST.isEmpty(),
+                            listAutomapNotesPST.size() + " automap notes available");
           } else {
             for (int i = 0; i < count; i++) {
               AutomapNote automap = ((AutomapNote)are.getAttribute("Automap note " + i));
               if (automap != null)
                 listAutomapNotes.add(automap);
             }
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotes.isEmpty());
+            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotes.isEmpty(),
+                            listAutomapNotes.size() + " automap notes available");
           }
         } catch (Exception e) {
           e.printStackTrace();
           if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotesPST.isEmpty());
+            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotesPST.isEmpty(),
+                            listAutomapNotesPST.size() + " automap notes available");
           } else {
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotes.isEmpty());
+            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotes.isEmpty(),
+                            listAutomapNotes.size() + " automap notes available");
           }
           return;
         }
@@ -1306,11 +1307,12 @@ public final class AreaViewer extends ChildFrame
         }
       }
     }
-    setLayerEnabled(Layers.TRANSITION, !listTransitions.isEmpty());
+    setLayerEnabled(Layers.TRANSITION, !listTransitions.isEmpty(),
+                    listTransitions.size() + " map transitions available");
 
     // initializing transition layer items
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listTransitions.size());
-    Color[] color = new Color[]{new Color(0xC0606000, true), new Color(0xC0808000, true),
+    Color[] color = new Color[]{new Color(0xFF404000, true), new Color(0xFF404000, true),
         new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
     Dimension mapDim = getMapSize(getCurrentMap());
     mapDim.width *= getTisDecoder().info().tileWidth();
@@ -1377,10 +1379,12 @@ public final class AreaViewer extends ChildFrame
             if (trap != null)
               listProTraps.add(trap);
           }
-          setLayerEnabled(Layers.PROTRAP, !listProTraps.isEmpty());
+          setLayerEnabled(Layers.PROTRAP, !listProTraps.isEmpty(),
+                          listProTraps.size() + " projectile traps available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.PROTRAP, !listProTraps.isEmpty());
+          setLayerEnabled(Layers.PROTRAP, !listProTraps.isEmpty(),
+                          listProTraps.size() + " projectile traps available");
           return;
         }
       }
@@ -1441,10 +1445,12 @@ public final class AreaViewer extends ChildFrame
             if (sp != null)
               listSpawnPoints.add(sp);
           }
-          setLayerEnabled(Layers.SPAWNPOINT, !listSpawnPoints.isEmpty());
+          setLayerEnabled(Layers.SPAWNPOINT, !listSpawnPoints.isEmpty(),
+                          listSpawnPoints.size() + " spawn points available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.SPAWNPOINT, !listSpawnPoints.isEmpty());
+          setLayerEnabled(Layers.SPAWNPOINT, !listSpawnPoints.isEmpty(),
+                          listSpawnPoints.size() + " spawn points available");
           return;
         }
       }
@@ -1484,6 +1490,17 @@ public final class AreaViewer extends ChildFrame
   private DayNight getCurrentMap()
   {
     return currentMap;
+  }
+
+  // Translates polygon to top-left corner and returns original bounding box
+  private Rectangle normalizePolygon(Polygon poly)
+  {
+    if (poly != null) {
+      Rectangle r = poly.getBounds();
+      poly.translate(-r.x, -r.y);
+      return r;
+    }
+    return new Rectangle();
   }
 
   // Draws the complete map
@@ -1621,27 +1638,28 @@ public final class AreaViewer extends ChildFrame
           throw new Exception("TIS resource not found: " + tisRef.getResourceName());
         int width = ((DecNumber)ovl.getAttribute("Width")).getValue();
         int height = ((DecNumber)ovl.getAttribute("Height")).getValue();
-        int mapOfs = ((HexNumber)ovl.getAttribute("Tilemap offset")).getValue();
-        int lookupOfs = ((HexNumber)ovl.getAttribute("Tilemap lookup offset")).getValue();
 
         ArrayList<TisResource2.TileInfo> listTiles = new ArrayList<TisResource2.TileInfo>(width*height);
-        int curMapOfs = mapOfs;
-        int tilemapSize = 0x0a;
-        for (int idx = 0;
-             idx < width*height && curMapOfs < lookupOfs;
-             idx++, curMapOfs += tilemapSize) {
-          ByteBuffer bb = ByteBuffer.wrap(buffer, curMapOfs, tilemapSize).order(ByteOrder.LITTLE_ENDIAN);
-          int pti = bb.getShort();    // primary tile index
-          bb.getShort();              // primary tile count
-          int sti = bb.getShort();    // secondary tile index
-          int mask = bb.getInt();     // overlay mask
-          int tileIdx = 0, tileIdxAlt = -1;
-          if (pti < width*height) {
-            tileIdx = ((DecNumber)ovl.getAttribute("Tilemap index " + Integer.toString(pti))).getValue();
-          } else {
-            tileIdx = pti;
+        int tileNum = width*height;
+        for (int idx = 0; idx < tileNum; idx++) {
+          int mask, tileIdx, tileIdxAlt;
+          try {
+            Tilemap tm = ((Tilemap)ovl.getAttribute("Tilemap " + idx));
+            int pti = ((DecNumber)tm.getAttribute("Primary tile index")).getValue();
+            int sti = ((DecNumber)tm.getAttribute("Secondary tile index")).getValue();
+            Flag f = (Flag)tm.getAttribute("Draw Overlays");
+            mask = 0;
+            for (int i = 0; i < 8; i++) {
+              if (f.isFlagSet(i))
+                mask |= (1 << i);
+            }
+            tileIdx = ((DecNumber)ovl.getAttribute("Tilemap index " + pti)).getValue();
+            tileIdxAlt = sti;
+          } catch (Exception e) {
+            tileIdx = idx;
+            tileIdxAlt = -1;
+            mask = 0;
           }
-          tileIdxAlt = sti;
           TisResource2.TileInfo info = new TisResource2.TileInfo(idx % width, idx / width, tileIdx, tileIdxAlt, mask);
           listTiles.add(info);
         }
