@@ -455,7 +455,7 @@ public final class Keyfile
 
   public int getExtensionType(String extension)
   {
-    int keys[] = extmap.keys();
+    int[] keys = extmap.keys();
     for (int type : keys) {
       if (extmap.get(type).equalsIgnoreCase(extension))
         return type;

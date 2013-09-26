@@ -23,8 +23,7 @@ public class StreamDiscarder implements Runnable
     try {
       InputStreamReader r = new InputStreamReader(in);
       BufferedReader b = new BufferedReader(r);
-      String s = null;
-      while ((s = b.readLine()) != null) {}
+      while (b.readLine() != null) {}
     } catch (IOException e) {
       e.printStackTrace();
     }

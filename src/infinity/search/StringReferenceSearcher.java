@@ -88,7 +88,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSave(ResourceEntry entry, SavResource savfile)
   {
-    List entries = savfile.getFileHandler().getFileEntries();
+    List<ResourceEntry> entries = (List<ResourceEntry>)savfile.getFileHandler().getFileEntries();
     for (int i = 0; i < entries.size(); i++) {
       ResourceEntry saventry = (ResourceEntry)entries.get(i);
       Resource resource = ResourceFactory.getResource(saventry);

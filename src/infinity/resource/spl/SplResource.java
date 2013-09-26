@@ -7,7 +7,6 @@ package infinity.resource.spl;
 import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.LongIntegerHashMap;
 
 import javax.swing.*;
 import java.io.IOException;

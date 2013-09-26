@@ -26,7 +26,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     partyOrder.put(4L, "Slot 5");
     partyOrder.put(5L, "Slot 6");
 //    partyOrder.put(0x8000L, "In party, dead");
-    partyOrder.put(0xffff, "Not in party");
+    partyOrder.put(new Long(0xffff), "Not in party");
 
     m_selected.put(0L, "Not selected");
     m_selected.put(1L, "Selected");

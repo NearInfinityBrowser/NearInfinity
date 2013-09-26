@@ -14,15 +14,17 @@ import java.util.List;
 public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
 {
   private boolean sortValues = true;
-  private final Comparator ignorecasecomparator = new IgnoreCaseComparator();
+  private final Comparator<Object> ignorecasecomparator = new IgnoreCaseComparator();
   private final DefaultListModel listmodel = new DefaultListModel();
   private final JList list;
   private final JTextField tfield = new JTextField(10);
 
-  public TextListPanel(List values) {
+  public TextListPanel(List<? extends Object> values)
+  {
     this(values, true);
   }
-  public TextListPanel(List values, boolean sortValues)
+
+  public TextListPanel(List<? extends Object> values, boolean sortValues)
   {
     this.sortValues = sortValues;
     setValues(values);
@@ -119,7 +121,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     tfield.setText(value.toString());
   }
 
-  public void setValues(List values)
+  public void setValues(List<? extends Object> values)
   {
     if (this.sortValues) {
       Collections.sort(values, ignorecasecomparator);
@@ -148,7 +150,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class IgnoreCaseComparator implements Comparator
+  private static final class IgnoreCaseComparator implements Comparator<Object>
   {
     private IgnoreCaseComparator()
     {

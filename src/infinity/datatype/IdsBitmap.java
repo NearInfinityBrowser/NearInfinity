@@ -11,6 +11,7 @@ import infinity.resource.AbstractStruct;
 import infinity.util.*;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -42,10 +43,10 @@ public final class IdsBitmap extends Datatype implements Editable
   public IdsBitmap(byte buffer[], int offset, int length, String name, String resource, int idsStart)
   {
     super(offset, length, name);
-    LongIntegerHashMap orgmap = IdsMapCache.get(resource).getMap();
+    LongIntegerHashMap<IdsMapEntry> orgmap = IdsMapCache.get(resource).getMap();
     idsmap = new LongIntegerHashMap<IdsMapEntry>();
 
-    long keys[] = orgmap.keys();
+    long[] keys = orgmap.keys();
     for (final long id : keys) {
       if (id >= idsStart) {
         IdsMapEntry entry = (IdsMapEntry)orgmap.get(id);
@@ -69,7 +70,7 @@ public final class IdsBitmap extends Datatype implements Editable
   public JComponent edit(final ActionListener container)
   {
     if (list == null) {
-      long keys[] = idsmap.keys();
+      long[] keys = idsmap.keys();
       List<IdsMapEntry> items = new ArrayList<IdsMapEntry>(keys.length);
       for (final long key : keys)
         items.add(idsmap.get(key));

@@ -18,7 +18,7 @@ public final class StructClipboard
   private static StructClipboard clip;
   private final List<ChangeListener> listeners = new ArrayList<ChangeListener>();
   private final List<StructEntry> contents = new ArrayList<StructEntry>();
-  private Class contentsClass;
+  private Class<? extends StructEntry> contentsClass;
   private boolean hasValues = true;
 
   public static StructClipboard getInstance()
@@ -28,13 +28,13 @@ public final class StructClipboard
     return clip;
   }
 
-  private static void pasteSubStructures(AbstractStruct targetStruct, List substructures)
+  private static void pasteSubStructures(AbstractStruct targetStruct, List<? extends StructEntry> substructures)
   {
     for (int i = 0; i < substructures.size(); i++) {
       AddRemovable pasteEntry = (AddRemovable)substructures.get(i);
       if (pasteEntry instanceof HasAddRemovable) {
         AbstractStruct pasteStruct = (AbstractStruct)pasteEntry;
-        List subsubstructures = pasteStruct.removeAllRemoveables();
+        List<AddRemovable> subsubstructures = pasteStruct.removeAllRemoveables();
         targetStruct.addDatatype(pasteEntry);
         pasteSubStructures(pasteStruct, subsubstructures);
       }
@@ -141,7 +141,7 @@ public final class StructClipboard
       if (targetClasses == null)
         targetClasses = new AddRemovable[0];
       for (int i = 0; i < contents.size(); i++) {
-        Class c = contents.get(i).getClass();
+        Class<? extends StructEntry> c = contents.get(i).getClass();
         boolean found = false;
         for (final AddRemovable targetClass : targetClasses) {
           if (targetClass != null && c.equals(targetClass.getClass()))
@@ -162,7 +162,7 @@ public final class StructClipboard
         AddRemovable pasteEntry = (AddRemovable)contents.get(i).clone();
         if (pasteEntry instanceof HasAddRemovable) {
           ((HasAddRemovable)pasteEntry).getAddRemovables();
-          List substructures = ((AbstractStruct)pasteEntry).removeAllRemoveables();
+          List<AddRemovable> substructures = ((AbstractStruct)pasteEntry).removeAllRemoveables();
           lastIndex = targetStruct.addDatatype(pasteEntry);
           pasteSubStructures((AbstractStruct)pasteEntry, substructures);
         }

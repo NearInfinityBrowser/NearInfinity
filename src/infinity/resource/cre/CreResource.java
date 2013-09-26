@@ -255,7 +255,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   }
 
   private static int copyStruct(List<StructEntry> oldlist, List<StructEntry> newlist,
-                                int indexStructs, int offsetStructs, Class copyClass)
+                                int indexStructs, int offsetStructs,
+                                Class<? extends StructEntry> copyClass)
   {
     for (int i = indexStructs; i < oldlist.size(); i++) {
       StructEntry structEntry = oldlist.get(i);
@@ -568,7 +569,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 141, 1, "Wizard level"));
     list.add(new Unknown(buffer, offset + 142, 22));
 
-    LongIntegerHashMap sndmap = null;
+    LongIntegerHashMap<IdsMapEntry> sndmap = null;
     if (ResourceFactory.getInstance().resourceExists("SOUNDOFF.IDS"))
       sndmap = IdsMapCache.get("SOUNDOFF.IDS").getMap();
     if (sndmap != null) {
@@ -1095,7 +1096,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 122, 1, "Undead level"));
     list.add(new DecNumber(buffer, offset + 123, 1, "Tracking"));
     list.add(new TextString(buffer, offset + 124, 32, "Target"));
-    LongIntegerHashMap sndmap = null;
+    LongIntegerHashMap<IdsMapEntry> sndmap = null;
     if (ResourceFactory.getInstance().resourceExists("SNDSLOT.IDS"))
       sndmap = IdsMapCache.get("SNDSLOT.IDS").getMap();
     else if (ResourceFactory.getInstance().resourceExists("SOUNDOFF.IDS"))
@@ -1160,7 +1161,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 656, 4, "Overlays size"));
       list.add(new DecNumber(buffer, offset + 660, 4, "XP second class"));
       list.add(new DecNumber(buffer, offset + 664, 4, "XP third class"));
-      LongIntegerHashMap intMap = IdsMapCache.get("INTERNAL.IDS").getMap();
+      LongIntegerHashMap<IdsMapEntry> intMap = IdsMapCache.get("INTERNAL.IDS").getMap();
       for (int i = 0; i < 10; i++) {
         if (intMap.containsKey((long)i))
           list.add(

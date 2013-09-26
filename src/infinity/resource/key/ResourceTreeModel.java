@@ -119,7 +119,7 @@ public final class ResourceTreeModel implements TreeModel
 
   public TreePath getPathToNode(ResourceEntry entry)
   {
-    List path = new ArrayList(4);
+    List<Object> path = new ArrayList<Object>(4);
     path.add(entry);
     ResourceTreeFolder parent = folders.get(entry.getTreeFolder());
     while (parent != null) {

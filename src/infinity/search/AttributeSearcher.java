@@ -30,7 +30,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
   private final JRadioButton rbless = new JRadioButton("Less than");
   private final JRadioButton rbgreater = new JRadioButton("Greater than");
   private final JTextField tfinput = new JTextField("", 15);
-  private final List files;
+  private final List<ResourceEntry> files;
   private final StructEntry structEntry;
 
   public AttributeSearcher(AbstractStruct struct, StructEntry structEntry, Component parent)
@@ -175,7 +175,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
       ResourceEntry entry = (ResourceEntry)files.get(i);
       AbstractStruct resource = (AbstractStruct)ResourceFactory.getResource(entry);
       if (resource != null) {
-        List flatList = resource.getFlatList();
+        List<StructEntry> flatList = resource.getFlatList();
         for (int j = 0; j < flatList.size(); j++) {
           StructEntry searchEntry = (StructEntry)flatList.get(j);
           if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass() ||

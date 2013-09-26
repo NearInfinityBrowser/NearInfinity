@@ -13,6 +13,7 @@ import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -22,7 +23,7 @@ import java.util.List;
 
 public final class IwdRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
-  private final LongIntegerHashMap idsmap;
+  private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
   private TextListPanel list;
   private long value;
@@ -55,10 +56,10 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
   public JComponent edit(final ActionListener container)
   {
-    long keys[] = idsmap.keys();
+    long[] keys = idsmap.keys();
     List<SplRefEntry> items = new ArrayList<SplRefEntry>(keys.length);
     for (long id : keys) {
-      String resourcename = ((IdsMapEntry)idsmap.get(id)).getString() + ".SPL";
+      String resourcename = idsmap.get(id).getString() + ".SPL";
       ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourcename);
       if (entry != null)
         items.add(new SplRefEntry(id, entry));
@@ -155,7 +156,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
   public String toString()
   {
     if (idsmap.containsKey(value)) {
-      String resourcename = ((IdsMapEntry)idsmap.get(value)).getString() + ".SPL";
+      String resourcename = idsmap.get(value).getString() + ".SPL";
       ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourcename);
       if (entry == null)
         return "None (" + value + ')';
@@ -166,7 +167,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class SplRefEntry implements Comparable
+  private static final class SplRefEntry implements Comparable<SplRefEntry>
   {
     private final long val;
     private final ResourceEntry splref;
@@ -182,7 +183,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
       return splref.toString() + " (" + splref.getSearchString() + ')';
     }
 
-    public int compareTo(Object o)
+    public int compareTo(SplRefEntry o)
     {
       return splref.toString().compareTo(o.toString());
     }

@@ -16,7 +16,6 @@ import infinity.resource.key.ResourceEntry;
 import infinity.util.NIFile;
 
 import javax.swing.*;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
 
 import java.awt.Component;
@@ -25,12 +24,12 @@ import java.util.*;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
 {
-  private static final boolean CONSISTENCY_CHECK = false;
-  private static final boolean DEBUG_MESSAGES = false;
+//  private static final boolean CONSISTENCY_CHECK = false;
+//  private static final boolean DEBUG_MESSAGES = false;
   protected List<StructEntry> list;
   private AbstractStruct superStruct;
-  private Map<Class, SectionCount> countmap;
-  private Map<Class, SectionOffset> offsetmap;
+  private Map<Class<? extends StructEntry>, SectionCount> countmap;
+  private Map<Class<? extends StructEntry>, SectionOffset> offsetmap;
   private ResourceEntry entry;
   private String name;
   private StructViewer viewer;
@@ -47,8 +46,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
           structEntry.getOffset() == datatype.getOffset() && structEntry != datatype &&
           structEntry != modifiedStruct) {
         structEntry.setOffset(structEntry.getOffset() + amount);
-        if (DEBUG_MESSAGES && superStruct.getSuperStruct() == null && structEntry instanceof AbstractStruct)
-          System.out.println("Adjusting " + structEntry.getName() + " by " + amount);
+//        if (DEBUG_MESSAGES && superStruct.getSuperStruct() == null && structEntry instanceof AbstractStruct)
+//          System.out.println("Adjusting " + structEntry.getName() + " by " + amount);
       }
       if (structEntry instanceof AbstractStruct)
         adjustEntryOffsets((AbstractStruct)structEntry, modifiedStruct, datatype, amount);
@@ -63,8 +62,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         SectionOffset sOffset = (SectionOffset)o;
         if (sOffset.getValue() + superStruct.getExtraOffset() > datatype.getOffset()) {
           sOffset.incValue(amount);
-          if (DEBUG_MESSAGES)
-            System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
+//          if (DEBUG_MESSAGES)
+//            System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
         }
         else if (sOffset.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
           if (amount > 0 &&
@@ -72,15 +71,16 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                 ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 &&
                 superStruct instanceof CreResource)) {
             sOffset.incValue(amount);
-            if (DEBUG_MESSAGES)
-              System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
+//            if (DEBUG_MESSAGES)
+//              System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
           }
         }
       }
     }
   }
 
-  private static void getStructsOfClass(AbstractStruct struct, Class cl, List<StructEntry> container)
+  private static void getStructsOfClass(AbstractStruct struct, Class<? extends StructEntry> cl,
+                                        List<StructEntry> container)
   {
     for (int i = 0; i < struct.list.size(); i++) {
       if (struct.list.get(i).getClass() == cl)
@@ -389,9 +389,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         }
       }
     }
-    if (DEBUG_MESSAGES)
-      System.out.println(
-              "Added " + addedEntry.getName() + " at " + Integer.toHexString(addedEntry.getOffset()));
+//    if (DEBUG_MESSAGES)
+//      System.out.println(
+//              "Added " + addedEntry.getName() + " at " + Integer.toHexString(addedEntry.getOffset()));
     if (addedEntry instanceof AbstractStruct) {
       AbstractStruct addedStruct = (AbstractStruct)addedEntry;
       addedStruct.realignStructOffsets();
@@ -416,8 +416,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       superStruct.datatypeAddedInChild(this, addedEntry);
     setStructChanged(true);
     fireTableRowsInserted(index, index);
-    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
-      topStruct.testStruct();
+//    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
+//      topStruct.testStruct();
     return index;
   }
 
@@ -567,8 +567,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     if (topStruct instanceof Resource)
       topStruct.endoffset -= removedEntry.getSize();
-    if (DEBUG_MESSAGES)
-      System.out.println("Removing: " + removedEntry.getName());
+//    if (DEBUG_MESSAGES)
+//      System.out.println("Removing: " + removedEntry.getName());
     adjustEntryOffsets(topStruct, this, removedEntry, -removedEntry.getSize());
     adjustSectionOffsets(topStruct, removedEntry, -removedEntry.getSize());
     datatypeRemoved(removedEntry);
@@ -576,8 +576,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       superStruct.datatypeRemovedInChild(this, removedEntry);
     fireTableRowsDeleted(index, index);
     setStructChanged(true);
-    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
-      topStruct.testStruct();
+//    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
+//      topStruct.testStruct();
   }
 
   public byte[] removeFromList(StructEntry startFromEntry, int numBytes) throws IOException
@@ -770,8 +770,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   private void initAddStructMaps()
   {
-    countmap = new HashMap<Class, SectionCount>();
-    offsetmap = new HashMap<Class, SectionOffset>();
+    countmap = new HashMap<Class<? extends StructEntry>, SectionCount>();
+    offsetmap = new HashMap<Class<? extends StructEntry>, SectionOffset>();
     for (int i = 0; i < list.size(); i++) {
       Object o = list.get(i);
       if (o instanceof SectionOffset) {

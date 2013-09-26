@@ -182,9 +182,9 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + i * 2, 2, "Wall polygon index " + i));
 
     int endoffset = offset;
-    List flatList = getFlatList();
+    List<StructEntry> flatList = getFlatList();
     for (int i = 0; i < flatList.size(); i++) {
-      StructEntry entry = (StructEntry)flatList.get(i);
+      StructEntry entry = flatList.get(i);
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

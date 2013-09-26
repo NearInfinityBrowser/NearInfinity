@@ -304,9 +304,6 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         bos.close();
         is.close();
       }
-      else if (false && entry.getExtension().equalsIgnoreCase("PVRZ") && cbDecompress.isSelected()) {
-        // TODO: decompress PVRZ -> PVR
-      }
       else {
         InputStream is = entry.getResourceDataAsStream();
         int[] info = entry.getResourceInfo();

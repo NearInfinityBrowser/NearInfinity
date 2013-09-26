@@ -508,6 +508,7 @@ public final class ResourceFactory
                 String lang = entries[2].replace('\'', ' ').trim();
                 if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
                   if (new File(rootDir, "lang" + File.separator + lang).exists()) {
+                    br.close();
                     return lang;
                   }
                 }

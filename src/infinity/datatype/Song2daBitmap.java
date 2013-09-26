@@ -13,6 +13,7 @@ import infinity.resource.other.PlainTextResource;
 import infinity.util.*;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -44,8 +45,8 @@ public final class Song2daBitmap extends Datatype implements Editable
       e.printStackTrace();
     }
 
-    songNumber.put(0xFFFFFFFE, new SonglistEntry((long)-2, "Continue area music"));
-    songNumber.put(0xFFFFFFFF, new SonglistEntry((long)-1, "Continue outside music"));
+    songNumber.put(new Long(0xFFFFFFFE), new SonglistEntry((long)-2, "Continue area music"));
+    songNumber.put(new Long(0xFFFFFFFF), new SonglistEntry((long)-1, "Continue outside music"));
   }
 
   private static void parseSonglistLine(String s)
@@ -97,12 +98,12 @@ public final class Song2daBitmap extends Datatype implements Editable
 
   public JComponent edit(final ActionListener container)
   {
-    LongIntegerHashMap idsmap = songNumber;
+    LongIntegerHashMap<SonglistEntry> idsmap = songNumber;
     if (list == null) {
-      long keys[] = idsmap.keys();
+      long[] keys = idsmap.keys();
       List<SonglistEntry> items = new ArrayList<SonglistEntry>(keys.length);
       for (long id : keys) {
-        items.add((SonglistEntry)idsmap.get(id));
+        items.add(idsmap.get(id));
       }
       list = new TextListPanel(items);
       list.addMouseListener(new MouseAdapter()

@@ -20,8 +20,8 @@ import java.util.List;
 
 public final class ViewerUtil
 {
-  public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl, GridBagConstraints gbc,
-                                       boolean endline)
+  public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl,
+                                       GridBagConstraints gbc, boolean endline)
   {
     if (entry == null)
       return;
@@ -134,20 +134,22 @@ public final class ViewerUtil
     return new JLabel("No " + imageRef.getName().toLowerCase(), JLabel.CENTER);
   }
 
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class listClass,
-                                     String attrName)
+  public static JPanel makeListPanel(String title, AbstractStruct struct,
+                                     Class<? extends StructEntry> listClass, String attrName)
   {
     return new StructListPanel(title, struct, listClass, attrName, null, null);
   }
 
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class listClass,
+  public static JPanel makeListPanel(String title, AbstractStruct struct,
+                                     Class<? extends StructEntry> listClass,
                                      String attrName, ListCellRenderer renderer)
   {
     return new StructListPanel(title, struct, listClass, attrName, renderer, null);
   }
 
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class listClass, String attrName, ListCellRenderer renderer,
-                                     ListSelectionListener listener)
+  public static JPanel makeListPanel(String title, AbstractStruct struct,
+                                     Class<? extends StructEntry> listClass, String attrName,
+                                     ListCellRenderer renderer, ListSelectionListener listener)
   {
     return new StructListPanel(title, struct, listClass, attrName, renderer, listener);
   }
@@ -174,13 +176,14 @@ public final class ViewerUtil
   private static final class StructListPanel extends JPanel implements TableModelListener, ActionListener
   {
     private final AbstractStruct struct;
-    private final Class listClass;
+    private final Class<? extends StructEntry> listClass;
     private final JList list;
     private final DefaultListModel listModel = new DefaultListModel();
     private final JButton bOpen = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
     private Comparator<AbstractStruct> comp;
 
-    private StructListPanel(String title, AbstractStruct struct, Class listClass, String attrName,
+    private StructListPanel(String title, AbstractStruct struct,
+                            Class<? extends StructEntry> listClass, String attrName,
                             ListCellRenderer renderer, ListSelectionListener listener)
     {
       super(new BorderLayout(0, 3));

@@ -16,7 +16,7 @@ public class ChildFrame extends JFrame
   private static final List<ChildFrame> windows = new ArrayList<ChildFrame>();
   private final boolean closeOnInvisible;
 
-  public static void closeWindow(Class frameClass)
+  public static void closeWindow(Class<ChildFrame> frameClass)
   {
     for (Iterator<ChildFrame> i = windows.iterator(); i.hasNext();) {
       ChildFrame frame = i.next();
@@ -54,7 +54,7 @@ public class ChildFrame extends JFrame
     }
   }
 
-  public static ChildFrame getFirstFrame(Class frameClass)
+  public static ChildFrame getFirstFrame(Class<? extends ChildFrame> frameClass)
   {
     for (int i = 0; i < windows.size(); i++) {
       ChildFrame frame = windows.get(i);
@@ -64,7 +64,7 @@ public class ChildFrame extends JFrame
     return null;
   }
 
-  public static List<ChildFrame> getFrames(Class frameClass)
+  public static List<ChildFrame> getFrames(Class<? extends ChildFrame> frameClass)
   {
     List<ChildFrame> frames = new ArrayList<ChildFrame>();
     for (int i = 0; i < windows.size(); i++) {

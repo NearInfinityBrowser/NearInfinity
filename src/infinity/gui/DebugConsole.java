@@ -194,7 +194,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
           int counter = 0;
-          Stack stack = new Stack();
+          Stack<Object> stack = new Stack<Object>();
           stack.push(treeModel.getRoot());
           while (!stack.empty()) {
             Object node = stack.pop();
@@ -249,7 +249,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
           int counter = 0;
-          Stack stack = new Stack();
+          Stack<Object> stack = new Stack<Object>();
           stack.push(treeModel.getRoot());
           while (!stack.empty()) {
             Object node = stack.pop();
@@ -318,7 +318,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
           int counter = 0;
-          Stack stack = new Stack();
+          Stack<Object> stack = new Stack<Object>();
           stack.push(treeModel.getRoot());
           while (!stack.empty()) {
             Object node = stack.pop();

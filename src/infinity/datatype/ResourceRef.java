@@ -33,7 +33,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   private TextListPanel list;
   private boolean wasNull;
   private byte buffer[];
-  private final Comparator<ResourceRefEntry> ignorecaseextcomparator = new IgnoreCaseExtComparator<ResourceRefEntry>();
+  private final Comparator<Object> ignorecaseextcomparator = new IgnoreCaseExtComparator<Object>();
 
   public ResourceRef(byte h_buffer[], int offset, String name, String type)
   {
@@ -119,7 +119,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       entrynum += resourceList[i].size();
     }
 
-    List values = new ArrayList(1 + entrynum);
+    List<Object> values = new ArrayList<Object>(1 + entrynum);
     values.add(NONE);
     for (int i = 0; i < type.length; i++) {
       for (int j = 0; j < resourceList[i].size(); j++) {
@@ -301,7 +301,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     return entry.toString().lastIndexOf('.') != 0;
   }
 
-  void addExtraEntries(List<ResourceRefEntry> entries)
+  void addExtraEntries(List<Object> entries)
   {
   }
 
@@ -350,7 +350,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       } else
         return 0;
     }
-    
+
     public boolean equals(Object obj)
     {
       return obj.equals(this);
