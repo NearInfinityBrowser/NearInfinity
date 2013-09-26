@@ -49,7 +49,7 @@ public final class IdsBitmap extends Datatype implements Editable
     long[] keys = orgmap.keys();
     for (final long id : keys) {
       if (id >= idsStart) {
-        IdsMapEntry entry = (IdsMapEntry)orgmap.get(id);
+        IdsMapEntry entry = orgmap.get(id);
         long newid = id - (long)idsStart;
         idsmap.put(newid, new IdsMapEntry(newid, entry.getString(), entry.getParameters()));
       }

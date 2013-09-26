@@ -12,7 +12,7 @@ public final class IdsFlag extends Flag
   {
     super(buffer, offset, length, name);
     LongIntegerHashMap<IdsMapEntry> idsmap = IdsMapCache.get(resource).getMap();
-    nodesc = idsmap.get(0).getString();
+    nodesc = idsmap.get(0L).getString();
     table = new String[8 * length];
     for (int i = 0; i < table.length; i++)
       table[i] = idsmap.get((long)Math.pow(2, i)).getString();
