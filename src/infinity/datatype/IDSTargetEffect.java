@@ -57,8 +57,8 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
         values.add(getString(i));
       fileList = new TextListPanel(values);
       fileList.addListSelectionListener(this);
-      long keys[] = idsMap.keys();
-      List items = new ArrayList(keys.length);
+      long[] keys = idsMap.keys();
+      List<Object> items = new ArrayList<Object>(keys.length);
       for (long id : keys) {
         Object value = idsMap.get(id);
         if (value instanceof IdsMapEntry)
@@ -181,8 +181,8 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     else
       idsMap = new LongIntegerHashMap<IdsMapEntry>();
 
-    long keys[] = idsMap.keys();
-    List items = new ArrayList(keys.length);
+    long[] keys = idsMap.keys();
+    List<Object> items = new ArrayList<Object>(keys.length);
     for (long id : keys) {
       Object value = idsMap.get(id);
       if (value instanceof IdsMapEntry)

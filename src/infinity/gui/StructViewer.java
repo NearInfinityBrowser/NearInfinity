@@ -104,7 +104,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
   public static final String UPDATE_VALUE       = "UpdateValue";
 
-  private static Class lastNameStruct, lastIndexStruct;
+  private static Class<? extends StructEntry> lastNameStruct, lastIndexStruct;
   private static String lastName;
   private static int lastIndex;
   private final AbstractStruct struct;

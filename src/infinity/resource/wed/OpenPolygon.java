@@ -6,14 +6,14 @@ package infinity.resource.wed;
 
 import infinity.resource.AbstractStruct;
 
-final class OpenPolygon extends Polygon
+public final class OpenPolygon extends Polygon
 {
-  OpenPolygon() throws Exception
+  public OpenPolygon() throws Exception
   {
     super(null, "Open polygon", new byte[18], 0);
   }
 
-  OpenPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public OpenPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "Open polygon " + nr, buffer, offset);
   }

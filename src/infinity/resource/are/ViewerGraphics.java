@@ -21,6 +21,7 @@ import java.awt.*;
 import java.awt.Container;
 import java.awt.image.*;
 
+@Deprecated
 public final class ViewerGraphics extends ChildFrame implements Runnable
 {
   private final AreResource areaFile;
@@ -34,7 +35,7 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
       if (wedEntry != null) {
         try {
           WedResource wedFile = new WedResource(wedEntry);
-          Overlay overlay = (Overlay)wedFile.getAttribute("Overlay");
+          Overlay overlay = (Overlay)wedFile.getAttribute("Overlay 0");
           ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
           ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
           if (tisEntry != null)
@@ -71,7 +72,7 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
       if (wedEntry == null)
         throw new NullPointerException("Resource " + wedRef.getResourceName() + " does not exist.");
       WedResource wedFile = new WedResource(wedEntry);
-      Overlay overlay = (Overlay)wedFile.getAttribute("Overlay");
+      Overlay overlay = (Overlay)wedFile.getAttribute("Overlay 0");
       ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
       ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
       if (tisEntry == null)

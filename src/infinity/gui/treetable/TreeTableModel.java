@@ -8,7 +8,7 @@ public interface TreeTableModel extends TreeModel
   /**
    * Returns the type for column number <code>column</code>.
    */
-  Class getColumnClass(int column);
+  Class<? extends Object> getColumnClass(int column);
   /**
    * Returns the number ofs availible column.
    */

@@ -81,7 +81,7 @@ public final class IdsMap
     return entry.toString();
   }
 
-  public List getAllValues()
+  public List<IdsMapEntry> getAllValues()
   {
     List<IdsMapEntry> list = new ArrayList<IdsMapEntry>(idEntryMap.values());
     list.addAll(overflow);

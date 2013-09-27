@@ -4,7 +4,6 @@
 
 package infinity.resource.sound;
 
-import infinity.resource.ResourceFactory;
 import infinity.resource.sound.AudioConverter;
 import infinity.util.*;
 
@@ -75,6 +74,7 @@ public final class SoundUtilities
     offset = fmt.read(data, offset);
     if (fmt.bits_sample != 4) {
       System.out.println("ADPCM: " + fmt.bits_sample + " bits/sample not supported");
+      os.close();
       throw new IOException();
     }
     while (!new String(data, offset, 4).equals("data"))

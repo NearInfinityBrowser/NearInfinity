@@ -15,9 +15,9 @@ final class Drink extends AbstractStruct implements AddRemovable
     super(null, "Drink", new byte[20], 0);
   }
 
-  Drink(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Drink(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Drink", buffer, offset);
+    super(superStruct, "Drink " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

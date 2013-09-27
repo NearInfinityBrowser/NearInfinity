@@ -17,8 +17,8 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
                                                          "Journal"};
 
   static {
-    chapter.put(0x1f, "From talk override");
-    chapter.put(0xff, "From dialog.tlk");
+    chapter.put(new Long(0x1f), "From talk override");
+    chapter.put(new Long(0xff), "From dialog.tlk");
   }
 
 
@@ -27,9 +27,9 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
     super(null, "Journal entry", new byte[12], 0);
   }
 
-  JournalEntry(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  JournalEntry(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Journal entry", buffer, offset);
+    super(superStruct, "Journal entry " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

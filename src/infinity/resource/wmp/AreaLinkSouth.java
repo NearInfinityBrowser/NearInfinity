@@ -13,8 +13,8 @@ class AreaLinkSouth extends AreaLink
     super("South link");
   }
 
-  AreaLinkSouth(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  AreaLinkSouth(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, buffer, offset, "South link");
+    super(superStruct, buffer, offset, "South link " + number);
   }
 }

@@ -400,49 +400,49 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_actors.getValue();
     for (int i = 0; i < count_actors.getValue(); i++) {
-      Actor actor = new Actor(this, buffer, offset, i + 1);
+      Actor actor = new Actor(this, buffer, offset, i);
       offset = actor.getEndOffset();
       list.add(actor);
     }
 
     offset = offset_itepoints.getValue();
     for (int i = 0; i < count_itepoints.getValue(); i++) {
-      ITEPoint ite = new ITEPoint(this, buffer, offset);
+      ITEPoint ite = new ITEPoint(this, buffer, offset, i);
       offset = ite.getEndOffset();
       list.add(ite);
     }
 
     offset = offset_spoints.getValue();
     for (int i = 0; i < count_spoints.getValue(); i++) {
-      SpawnPoint sp = new SpawnPoint(this, buffer, offset);
+      SpawnPoint sp = new SpawnPoint(this, buffer, offset, i);
       offset = sp.getEndOffset();
       list.add(sp);
     }
 
     offset = offset_entrances.getValue();
     for (int i = 0; i < count_entrances.getValue(); i++) {
-      Entrance ent = new Entrance(this, buffer, offset);
+      Entrance ent = new Entrance(this, buffer, offset, i);
       offset = ent.getEndOffset();
       list.add(ent);
     }
 
     offset = offset_containers.getValue();
     for (int i = 0; i < count_containers.getValue(); i++) {
-      Container con = new Container(this, buffer, offset, i + 1);
+      Container con = new Container(this, buffer, offset, i);
       offset = con.getEndOffset();
       list.add(con);
     }
 
     offset = offset_ambients.getValue();
     for (int i = 0; i < count_ambients.getValue(); i++) {
-      Ambient ambi = new Ambient(this, buffer, offset, i + 1);
+      Ambient ambi = new Ambient(this, buffer, offset, i);
       offset = ambi.getEndOffset();
       list.add(ambi);
     }
 
     offset = offset_variables.getValue();
     for (int i = 0; i < count_variables.getValue(); i++) {
-      Variable var = new Variable(this, buffer, offset);
+      Variable var = new Variable(this, buffer, offset, i);
       offset = var.getEndOffset();
       list.add(var);
     }
@@ -453,21 +453,21 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_doors.getValue();
     for (int i = 0; i < count_doors.getValue(); i++) {
-      Door door = new Door(this, buffer, offset, i + 1);
+      Door door = new Door(this, buffer, offset, i);
       offset = door.getEndOffset();
       list.add(door);
     }
 
     offset = offset_animations.getValue();
     for (int i = 0; i < count_animations.getValue(); i++) {
-      Animation anim = new Animation(this, buffer, offset);
+      Animation anim = new Animation(this, buffer, offset, i);
       offset = anim.getEndOffset();
       list.add(anim);
     }
 
     offset = offset_tiledobjects.getValue();
     for (int i = 0; i < count_tiledobjects.getValue(); i++) {
-      TiledObject tile = new TiledObject(this, buffer, offset);
+      TiledObject tile = new TiledObject(this, buffer, offset, i);
       offset = tile.getEndOffset();
       list.add(tile);
     }
@@ -476,14 +476,14 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       offset = offset_automapnote.getValue();
       if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
         for (int i = 0; i < count_automapnote.getValue(); i++) {
-          AutomapNotePST note = new AutomapNotePST(this, buffer, offset);
+          AutomapNotePST note = new AutomapNotePST(this, buffer, offset, i);
           offset = note.getEndOffset();
           list.add(note);
         }
       }
       else {
         for (int i = 0; i < count_automapnote.getValue(); i++) {
-          AutomapNote note = new AutomapNote(this, buffer, offset);
+          AutomapNote note = new AutomapNote(this, buffer, offset, i);
           offset = note.getEndOffset();
           list.add(note);
         }
@@ -493,7 +493,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (offset_protrap != null) { // BG2
       offset = offset_protrap.getValue();
       for (int i = 0; i < count_protrap.getValue(); i++) {
-        ProTrap trap = new ProTrap(this, buffer, offset);
+        ProTrap trap = new ProTrap(this, buffer, offset, i);
         offset = trap.getEndOffset();
         list.add(trap);
       }

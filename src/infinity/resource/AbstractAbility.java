@@ -351,7 +351,7 @@ public abstract class AbstractAbility extends AbstractStruct
   {
     int effect_count = ((SectionCount)getAttribute("# effects")).getValue();
     for (int i = 0; i < effect_count; i++) {
-      Effect eff = new Effect(this, buffer, off);
+      Effect eff = new Effect(this, buffer, off, i);
       off = eff.getEndOffset();
       list.add(eff);
     }

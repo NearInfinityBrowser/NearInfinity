@@ -7,7 +7,6 @@ package infinity.resource.spl;
 import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.LongIntegerHashMap;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -237,14 +236,14 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     offset = abil_offset.getValue();
     Ability abilities[] = new Ability[abil_count.getValue()];
     for (int i = 0; i < abilities.length; i++) {
-      abilities[i] = new Ability(this, buffer, offset);
+      abilities[i] = new Ability(this, buffer, offset, i);
       list.add(abilities[i]);
       offset = abilities[i].getEndOffset();
     }
 
     int offset2 = global_offset.getValue();
     for (int i = 0; i < global_count.getValue(); i++) {
-      Effect eff = new Effect(this, buffer, offset2);
+      Effect eff = new Effect(this, buffer, offset2, i);
       offset2 = eff.getEndOffset();
       list.add(eff);
     }

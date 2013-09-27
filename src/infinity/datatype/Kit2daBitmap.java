@@ -13,6 +13,7 @@ import infinity.resource.other.PlainTextResource;
 import infinity.util.*;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -98,14 +99,14 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
   public JComponent edit(final ActionListener container)
   {
-    LongIntegerHashMap idsmap = kitsNumber;
+    LongIntegerHashMap<KitlistEntry> idsmap = kitsNumber;
     if (useUnusable)
       idsmap = kitsUnusable;
     if (list == null) {
-      long keys[] = idsmap.keys();
+      long[] keys = idsmap.keys();
       List<KitlistEntry> items = new ArrayList<KitlistEntry>(keys.length);
       for (long id : keys) {
-        items.add((KitlistEntry)idsmap.get(id));
+        items.add(idsmap.get(id));
       }
       list = new TextListPanel(items);
       list.addMouseListener(new MouseAdapter()

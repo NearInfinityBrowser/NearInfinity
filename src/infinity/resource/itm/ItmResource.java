@@ -334,7 +334,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 
     int offset2 = global_offset.getValue();
     for (int i = 0; i < global_count.getValue(); i++) {
-      Effect eff = new Effect(this, buffer, offset2);
+      Effect eff = new Effect(this, buffer, offset2, i);
       offset2 = eff.getEndOffset();
       list.add(eff);
     }

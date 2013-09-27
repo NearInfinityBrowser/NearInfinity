@@ -320,7 +320,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private final class MyDropTargetListener implements DropTargetListener, Runnable
   {
     private final Component component;
-    private java.util.List files;
+    private java.util.List<File> files;
 
     private MyDropTargetListener(Component component)
     {
@@ -351,7 +351,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       }
       try {
         event.acceptDrop(DnDConstants.ACTION_COPY);
-        files = (java.util.List)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+        files = (java.util.List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
         e.printStackTrace();
         event.dropComplete(false);

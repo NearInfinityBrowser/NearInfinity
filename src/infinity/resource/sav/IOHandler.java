@@ -63,11 +63,11 @@ public final class IOHandler implements Writeable
     tempfolder = null;
   }
 
-  public void compress(List entries) throws Exception
+  public void compress(List<? extends ResourceEntry> entries) throws Exception
   {
     fileentries.clear();
     for (int i = 0; i < entries.size(); i++)
-      fileentries.add(new FileEntry((ResourceEntry)entries.get(i)));
+      fileentries.add(new FileEntry(entries.get(i)));
     close();
   }
 
@@ -87,7 +87,7 @@ public final class IOHandler implements Writeable
     return entries;
   }
 
-  public List getFileEntries()
+  public List<? extends ResourceEntry> getFileEntries()
   {
     return fileentries;
   }

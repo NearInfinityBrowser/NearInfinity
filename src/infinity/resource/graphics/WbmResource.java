@@ -4,7 +4,6 @@ package infinity.resource.graphics;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
-import infinity.resource.Viewable;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 

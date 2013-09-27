@@ -148,7 +148,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_drinks.getValue();
     for (int i = 0; i < count_drinks.getValue(); i++) {
-      Drink drink = new Drink(this, buffer, offset);
+      Drink drink = new Drink(this, buffer, offset, i);
       offset = drink.getEndOffset();
       list.add(drink);
     }
@@ -156,14 +156,14 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     offset = offset_sale.getValue();
     if (version.toString().equals("V1.0") || version.toString().equals("V9.0")) {
       for (int i = 0; i < count_sale.getValue(); i++) {
-        ItemSale sale = new ItemSale(this, buffer, offset);
+        ItemSale sale = new ItemSale(this, buffer, offset, i);
         offset = sale.getEndOffset();
         list.add(sale);
       }
     }
     else if (version.toString().equals("V1.1")) {
       for (int i = 0; i < count_sale.getValue(); i++) {
-        ItemSale11 sale = new ItemSale11(this, buffer, offset);
+        ItemSale11 sale = new ItemSale11(this, buffer, offset, i);
         offset = sale.getEndOffset();
         list.add(sale);
       }
@@ -171,14 +171,14 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_cures.getValue();
     for (int i = 0; i < count_cures.getValue(); i++) {
-      Cure cure = new Cure(this, buffer, offset);
+      Cure cure = new Cure(this, buffer, offset, i);
       offset = cure.getEndOffset();
       list.add(cure);
     }
 
     offset = offset_purchased.getValue();
     for (int i = 0; i < count_purchased.getValue(); i++) {
-      Purchases pur = new Purchases(buffer, offset);
+      Purchases pur = new Purchases(buffer, offset, i);
       offset += pur.getSize();
       list.add(pur);
     }

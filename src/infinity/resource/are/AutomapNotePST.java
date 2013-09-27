@@ -17,9 +17,9 @@ final class AutomapNotePST extends AbstractStruct implements AddRemovable
     super(null, "Automap note", new byte[532], 0);
   }
 
-  AutomapNotePST(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  AutomapNotePST(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Automap note", buffer, offset);
+    super(superStruct, "Automap note " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

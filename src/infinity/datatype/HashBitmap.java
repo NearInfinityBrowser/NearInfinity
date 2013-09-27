@@ -12,6 +12,7 @@ import infinity.util.Byteconvert;
 import infinity.util.LongIntegerHashMap;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -21,14 +22,14 @@ import java.util.List;
 
 public class HashBitmap extends Datatype implements Editable
 {
-  private final LongIntegerHashMap idsmap;
+  private final LongIntegerHashMap<String> idsmap;
   private TextListPanel list;
   private long value;
 
-  public HashBitmap(byte buffer[], int offset, int length, String name, LongIntegerHashMap idsmap)
+  public HashBitmap(byte buffer[], int offset, int length, String name, LongIntegerHashMap<String> idsmap)
   {
     super(offset, length, name);
-    this.idsmap = new LongIntegerHashMap(idsmap);
+    this.idsmap = new LongIntegerHashMap<String>(idsmap);
 
     if (length == 4)
       value = Byteconvert.convertUnsignedInt(buffer, offset);
@@ -45,7 +46,7 @@ public class HashBitmap extends Datatype implements Editable
   public JComponent edit(final ActionListener container)
   {
     if (list == null) {
-      long keys[] = idsmap.keys();
+      long[] keys = idsmap.keys();
       List<String> items = new ArrayList<String>(keys.length);
       for (long id : keys) {
         if (idsmap.containsKey(id))
@@ -61,7 +62,7 @@ public class HashBitmap extends Datatype implements Editable
         }
       });
     }
-    Object selected = idsmap.get(value);
+    String selected = idsmap.get(value);
     if (selected != null)
       list.setSelectedValue(selected.toString() + " - " + value, true);
 

@@ -214,7 +214,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
 
   private final class MyDropTargetListener implements DropTargetListener, Runnable
   {
-    private List files;
+    private List<File> files;
 
     private MyDropTargetListener()
     {
@@ -244,7 +244,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
       }
       try {
         event.acceptDrop(DnDConstants.ACTION_COPY);
-        files = (List)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+        files = (List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
         e.printStackTrace();
         event.dropComplete(false);

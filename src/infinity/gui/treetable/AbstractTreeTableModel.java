@@ -63,7 +63,7 @@ public abstract class AbstractTreeTableModel implements TreeTableModel
   // Default impelmentations for methods in the TreeTableModel interface.
   //
 
-  public Class getColumnClass(int column) { return Object.class; }
+  public Class<? extends Object> getColumnClass(int column) { return Object.class; }
 
   /**
    * By default, make the column with the Tree in it the only editable one.

@@ -54,7 +54,7 @@ final class Window extends AbstractStruct // implements AddRemovable
     controlsoffset += (int)(first * (long)8);
     int endoffset = controlsoffset;
     for (int i = 0; i < numctrl; i++) {
-      Control control = new Control(this, buffer, controlsoffset);
+      Control control = new Control(this, buffer, controlsoffset, i);
       controlsoffset = control.getEndOffset();
       endoffset = control.readControl(buffer);
       list.add(control);

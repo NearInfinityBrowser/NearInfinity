@@ -10,7 +10,7 @@ import java.util.Map;
 
 public final class Icons
 {
-  private static final Map<String, ImageIcon> ICONMAP = new HashMap<String, ImageIcon>(50);
+  private static final Map<String, ImageIcon> ICONMAP = new HashMap<String, ImageIcon>(100);
 
   public static ImageIcon getIcon(String name)
   {

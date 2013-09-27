@@ -29,7 +29,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
   private JButton bcompress, bdecompress, bedit, bdelete, bexport;
   private JList filelist;
   private JPanel panel;
-  private List entries;
+  private List<? extends ResourceEntry> entries;
 
   public SavResource(ResourceEntry entry) throws Exception
   {

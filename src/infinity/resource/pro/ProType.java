@@ -17,9 +17,9 @@ public final class ProType extends HashBitmap
   private static final LongIntegerHashMap<String> s_projtype = new LongIntegerHashMap<String>();
 
   static {
-    s_projtype.put(1, "No BAM");
-    s_projtype.put(2, "Single target");
-    s_projtype.put(3, "Area of effect");
+    s_projtype.put(new Long(1), "No BAM");
+    s_projtype.put(new Long(2), "Single target");
+    s_projtype.put(new Long(3), "Area of effect");
   }
 
 

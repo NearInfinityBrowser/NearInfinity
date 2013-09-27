@@ -22,9 +22,9 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     super(null, "Trigger", new byte[196], 0);
   }
 
-  public ITEPoint(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public ITEPoint(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Trigger", buffer, offset);
+    super(superStruct, "Trigger " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------

@@ -80,7 +80,7 @@ final class TreeTableModelAdapter extends AbstractTableModel
 
 // --------------------- End Interface TableModel ---------------------
 
-  public Class getColumnClass(int column)
+  public Class<? extends Object> getColumnClass(int column)
   {
     return treeTableModel.getColumnClass(column);
   }

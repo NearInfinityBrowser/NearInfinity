@@ -38,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
@@ -61,6 +62,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   private JPanel panel;                   // top-level panel of the viewer
 
 
+  @Deprecated
   public static boolean drawImage(BufferedImage image, TisDecoder decoder, int width, int height,
                                   int mapIndex, int lookupIndex, Overlay overlay, boolean secondary)
                                       throws Exception
@@ -71,14 +73,13 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       for (int ypos = 0; ypos < height; ypos++) {
         for (int xpos = 0; xpos < width; xpos++) {
           AbstractStruct wedtilemap = (AbstractStruct)overlay.getStructEntryAt(ypos*width + xpos + mapIndex);
-          int tilenum;
+          int tilenum, tilenumAlt = -1;
           int lookupPrimary = ((DecNumber)wedtilemap.getAttribute("Primary tile index")).getValue();
           int lookupSecondary = ((DecNumber)wedtilemap.getAttribute("Secondary tile index")).getValue();
-          if (secondary && lookupSecondary != -1)
-            tilenum = lookupSecondary;
-          else
-            tilenum = ((DecNumber)overlay.getStructEntryAt(lookupPrimary + lookupIndex)).getValue();
-          tiles.add(new TileInfo(xpos, ypos, tilenum));
+          if (lookupSecondary != -1)
+            tilenumAlt = lookupSecondary;
+          tilenum = ((DecNumber)overlay.getStructEntryAt(lookupPrimary + lookupIndex)).getValue();
+          tiles.add(new TileInfo(xpos, ypos, tilenum, tilenumAlt));
         }
       }
 
@@ -88,7 +89,8 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       int[] tileBlock = new int[tileWidth*tileHeight];
       for (final TileInfo tile: tiles) {
         // decoding tile
-        ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tile.tilenum, colorFormat), 0,
+        int tileIdx = (secondary && tile.tilenumAlt != -1) ? tile.tilenumAlt : tile.tilenum;
+        ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tileIdx, colorFormat), 0,
                                    tileBlock, 0, tileBlock.length);
 
         // drawing tile
@@ -100,11 +102,86 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     return false;
   }
 
+  public static boolean drawTiles(BufferedImage image, TisDecoder decoder,
+                                  int tilesX, int tilesY, List<TileInfo> tileInfo)
+  {
+    if (image != null && decoder != null && tileInfo != null) {
+      ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.R8G8B8;
+      int tileWidth = decoder.info().tileWidth();
+      int tileHeight = decoder.info().tileHeight();
+      int width = tilesX * tileWidth;
+      int height = tilesY * tileHeight;
+      if (image.getWidth() >= width && image.getHeight() >= height) {
+        int[] tileBlock = new int[tileWidth*tileHeight];
+        for (final TileInfo tile: tileInfo) {
+          // decoding tile
+          try {
+            ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tile.tilenum, colorFormat),
+                                       0, tileBlock, 0, tileBlock.length);
+          } catch (Exception e) {
+            for (int i = 0; i < tileBlock.length; i++)
+              tileBlock[i] = 0;
+          }
+
+          // drawing tile
+          image.setRGB(tile.xpos*tileWidth, tile.ypos*tileHeight, tileWidth, tileHeight,
+                       tileBlock, 0, tileWidth);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean drawDoorTiles(BufferedImage image, TisDecoder decoder,
+                                      int tilesX, int tilesY, List<TileInfo> tileInfo,
+                                      List<Integer> doorIndices, boolean drawClosed)
+  {
+    if (image != null && decoder != null && tileInfo != null && doorIndices != null) {
+      ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.R8G8B8;
+      int tileWidth = decoder.info().tileWidth();
+      int tileHeight = decoder.info().tileHeight();
+      int width = tilesX * tileWidth;
+      int height = tilesY * tileHeight;
+      if (image.getWidth() >= width && image.getHeight() >= height) {
+        int[] tileBlock = new int[tileWidth*tileHeight];
+        for (final int index: doorIndices) {
+          // search for correct tileinfo object
+          TileInfo tile = tileInfo.get(index);
+          if (tile.tilenum != index) {
+            // search for correct tileinfo object
+            for (TileInfo ti: tileInfo) {
+              if (ti.tilenum == index) {
+                tile = ti;
+                break;
+              }
+            }
+          }
+
+          // decoding tile
+          int tileIdx = (drawClosed && tile.tilenumAlt != -1) ? tile.tilenumAlt : tile.tilenum;
+          try {
+            ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tileIdx, colorFormat),
+                                       0, tileBlock, 0, tileBlock.length);
+          } catch (Exception e) {
+            for (int i = 0; i < tileBlock.length; i++)
+              tileBlock[i] = 0;
+          }
+
+          // drawing tile
+          image.setRGB(tile.xpos*tileWidth, tile.ypos*tileHeight, tileWidth, tileHeight,
+                       tileBlock, 0, tileWidth);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   public TisResource2(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    decoder = new TisDecoder(entry);
     initTileset();
   }
 
@@ -290,11 +367,14 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- End Interface Viewable ---------------------
 
-  private void initTileset() throws Exception
+  private void initTileset()
   {
     try {
-      // preparations
       NearInfinity.getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+      decoder = new TisDecoder(entry);
+
+      // preparations
       int tileCount = decoder.info().tileCount();
       tileImages = new ArrayList<Image>(tileCount);
       ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.A8R8G8B8;
@@ -314,10 +394,15 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       }
       NearInfinity.getInstance().setCursor(null);
     } catch (Exception e) {
+      e.printStackTrace();
       NearInfinity.getInstance().setCursor(null);
       if (tileImages == null)
         tileImages = new ArrayList<Image>();
-      throw e;
+      if (tileImages.isEmpty())
+        tileImages.add(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                    "Error while loading TIS resource: " + entry.getResourceName(),
+                                    "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -353,7 +438,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
         }
         if (wedEntry != null) {
           WedResource wedResource = new WedResource(wedEntry);
-          Overlay overlay = (Overlay)wedResource.getAttribute("Overlay");
+          Overlay overlay = (Overlay)wedResource.getAttribute("Overlay 0");
           ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
           ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
           if (tisEntry != null) {
@@ -378,17 +463,53 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 //-------------------------- INNER CLASSES --------------------------
 
   // stores information about a single tile only
-  private static final class TileInfo
+  public static final class TileInfo
   {
-    private final int xpos, ypos; // coordinate in tile grid
-    private final int tilenum;    // tile index from WED
+    private final int xpos, ypos;   // coordinate in tile grid
+    private final int tilenum;      // primary tile index from WED
+    private final int tilenumAlt;   // secondary tile index from WED
+    private final int[] overlayIndices; // index of additional overlays to address
 
-    private TileInfo(int xpos, int ypos, int tilenum)
+    public TileInfo(int xpos, int ypos, int tilenum)
     {
       this.xpos = xpos;
       this.ypos = ypos;
       this.tilenum = tilenum;
+      this.tilenumAlt = -1;
+      this.overlayIndices = null;
+    }
+
+    public TileInfo(int xpos, int ypos, int tilenum, int tilenumAlt)
+    {
+      this.xpos = xpos;
+      this.ypos = ypos;
+      this.tilenum = tilenum;
+      this.tilenumAlt = tilenumAlt;
+      this.overlayIndices = null;
+    }
+
+    public TileInfo(int xpos, int ypos, int tilenum, int tilenumAlt, int overlayMask)
+    {
+      this.xpos = xpos;
+      this.ypos = ypos;
+      this.tilenum = tilenum;
+      this.tilenumAlt = tilenumAlt;
+
+      // calculating additional overlays
+      int mcount = 0;
+      int[] mindices = new int[8];
+      for (int i = 0; i < 8; i++) {
+        if ((overlayMask & (1 << i)) != 0) {
+          mindices[mcount] = i;
+          mcount++;
+          break;
+        }
+      }
+      if (mcount > 0) {
+        this.overlayIndices = new int[mcount];
+        System.arraycopy(mindices, 0, this.overlayIndices, 0, mcount);
+      } else
+        this.overlayIndices = null;
     }
   }
-
 }

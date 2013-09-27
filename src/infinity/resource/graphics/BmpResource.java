@@ -38,28 +38,34 @@ public final class BmpResource implements Resource, ActionListener
     Byteconvert.convertShort(data, 26); // Planes
     int bitcount = (int)Byteconvert.convertShort(data, 28);
     int compression = Byteconvert.convertInt(data, 30);
-    if (compression != 0)
-      throw new Exception("Compressed BMP files not supported");
-    Byteconvert.convertInt(data, 34); // Comprsize
-    Byteconvert.convertInt(data, 38); // Xpixprm
-    Byteconvert.convertInt(data, 42); // Ypixprm
-    Byteconvert.convertInt(data, 46); // Colorsused
-    Byteconvert.convertInt(data, 50); // Colorsimp
+    if ((compression == 0 || compression == 3) && bitcount <= 32) {
+      Byteconvert.convertInt(data, 34); // Comprsize
+      Byteconvert.convertInt(data, 38); // Xpixprm
+      Byteconvert.convertInt(data, 42); // Ypixprm
+      int colsUsed = Byteconvert.convertInt(data, 46); // Colorsused
+      Byteconvert.convertInt(data, 50); // Colorsimp
 
-    if (bitcount <= 8)
-      palette = new Palette(data, 54, 4 * (int)Math.pow((double)2, (double)bitcount));
+      if (bitcount <= 8) {
+        if (colsUsed == 0)
+          colsUsed = 1 << bitcount;
+        int palSize = 4 * colsUsed;
+        palette = new Palette(data, rasteroff - palSize, palSize);
+      }
 
-    int bytesprline = bitcount * width / 8;
-    int padded = 4 - bytesprline % 4;
-    if (padded == 4)
-      padded = 0;
+      int bytesprline = bitcount * width / 8;
+      int padded = 4 - bytesprline % 4;
+      if (padded == 4)
+        padded = 0;
 
-    image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-    int offset = rasteroff;
-    for (int y = height - 1; y >= 0; y--) {
-      setPixels(data, offset, bitcount, bytesprline, y, palette);
-      offset += bytesprline + padded;
-    }
+      int pixelType = (bitcount < 32) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+      image = new BufferedImage(width, height, pixelType);
+      int offset = rasteroff;
+      for (int y = height - 1; y >= 0; y--) {
+        setPixels(data, offset, bitcount, bytesprline, y, palette);
+        offset += bytesprline + padded;
+      }
+    } else
+      throw new Exception("Unsupported BMP format");
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -143,6 +149,13 @@ public final class BmpResource implements Resource, ActionListener
     else if (bitcount == 24) {
       for (int x = 0; x < width / 3; x++) {
         byte[] color = {data[offset + 3 * x], data[offset + 3 * x + 1], data[offset + 3 * x + 2], 0};
+        image.setRGB(x, y, Byteconvert.convertInt(color, 0));
+      }
+    }
+    else if (bitcount == 32) {
+      for (int x = 0; x < width / 4; x++) {
+        byte[] color = {data[offset + 4 * x], data[offset + 4 * x + 1],
+            data[offset + 4 * x + 2], data[offset + 4 * x + 3]};
         image.setRGB(x, y, Byteconvert.convertInt(color, 0));
       }
     }

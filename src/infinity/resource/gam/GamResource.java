@@ -241,7 +241,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_global.getValue();
     for (int i = 0; i < count_global.getValue(); i++) {
-      Variable var = new Variable(this, buffer, offset);
+      Variable var = new Variable(this, buffer, offset, i);
       offset += var.getSize();
       list.add(var);
     }
@@ -249,7 +249,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (offKillvariable != null) { // Torment
       offset = offKillvariable.getValue();
       for (int i = 0; i < numKillVariable.getValue(); i++) {
-        KillVariable kvar = new KillVariable(this, buffer, offset);
+        KillVariable kvar = new KillVariable(this, buffer, offset, i);
         offset += kvar.getSize();
         list.add(kvar);
       }
@@ -257,7 +257,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_journal.getValue();
     for (int i = 0; i < count_journal.getValue(); i++) {
-      JournalEntry ent = new JournalEntry(this, buffer, offset);
+      JournalEntry ent = new JournalEntry(this, buffer, offset, i);
       offset += ent.getSize();
       list.add(ent);
     }

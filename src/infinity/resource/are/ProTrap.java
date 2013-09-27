@@ -15,9 +15,9 @@ final class ProTrap extends AbstractStruct implements AddRemovable
     super(null, "Projectile trap", new byte[28], 0);
   }
 
-  ProTrap(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  ProTrap(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Projectile trap", buffer, offset);
+    super(superStruct, "Projectile trap " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

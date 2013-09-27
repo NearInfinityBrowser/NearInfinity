@@ -40,12 +40,11 @@ final class Viewer extends JPanel implements ActionListener
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Lightning probability"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area script"), gbl, gbc, true);
 
-    if (ViewerGraphics.IsValid(are)) {
-      JButton bView = new JButton("View Area", Icons.getIcon("Volume16.gif"));
-      bView.setActionCommand(CMD_VIEWAREA);
-      bView.addActionListener(this);
-      fieldBasePanel.add(bView, BorderLayout.PAGE_END);
-    }
+    JButton bView = new JButton("View Area", Icons.getIcon("Volume16.gif"));
+    bView.setActionCommand(CMD_VIEWAREA);
+    bView.addActionListener(this);
+    bView.setEnabled(AreaViewer.IsValid(are));
+    fieldBasePanel.add(bView, BorderLayout.PAGE_END);
 
     return fieldBasePanel;
   }
@@ -78,7 +77,7 @@ final class Viewer extends JPanel implements ActionListener
   public void actionPerformed(ActionEvent event)
   {
     if (event.getActionCommand().equals(CMD_VIEWAREA)) {
-      new ViewerGraphics(are);
+      new AreaViewer(this, are);
     }
   }
 

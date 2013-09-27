@@ -145,7 +145,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       return column == 1;
     }
 
-    public Class getColumnClass(int columnIndex)
+    public Class<? extends Object> getColumnClass(int columnIndex)
     {
       if (columnIndex == 0)
         return String.class;
@@ -191,7 +191,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       return column == 1;
     }
 
-    public Class getColumnClass(int columnIndex)
+    public Class<? extends Object> getColumnClass(int columnIndex)
     {
       if (columnIndex == 0)
         return String.class;

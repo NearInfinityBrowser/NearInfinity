@@ -79,25 +79,25 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
     DecNumber northCount = (DecNumber)getAttribute("# links (north)");
     int offset = linkOffset.getValue() + northStart.getValue() * 216;
     for (int i = 0; i < northCount.getValue(); i++)
-      list.add(new AreaLinkNorth(this, buffer, offset + i * 216));
+      list.add(new AreaLinkNorth(this, buffer, offset + i * 216, i));
 
     DecNumber westStart = (DecNumber)getAttribute("First link (west)");
     DecNumber westCount = (DecNumber)getAttribute("# links (west)");
     offset = linkOffset.getValue() + westStart.getValue() * 216;
     for (int i = 0; i < westCount.getValue(); i++)
-      list.add(new AreaLinkWest(this, buffer, offset + i * 216));
+      list.add(new AreaLinkWest(this, buffer, offset + i * 216, i));
 
     DecNumber southStart = (DecNumber)getAttribute("First link (south)");
     DecNumber southCount = (DecNumber)getAttribute("# links (south)");
     offset = linkOffset.getValue() + southStart.getValue() * 216;
     for (int i = 0; i < southCount.getValue(); i++)
-      list.add(new AreaLinkSouth(this, buffer, offset + i * 216));
+      list.add(new AreaLinkSouth(this, buffer, offset + i * 216, i));
 
     DecNumber eastStart = (DecNumber)getAttribute("First link (east)");
     DecNumber eastCount = (DecNumber)getAttribute("# links (east)");
     offset = linkOffset.getValue() + eastStart.getValue() * 216;
     for (int i = 0; i < eastCount.getValue(); i++)
-      list.add(new AreaLinkEast(this, buffer, offset + i * 216));
+      list.add(new AreaLinkEast(this, buffer, offset + i * 216, i));
   }
 }
 

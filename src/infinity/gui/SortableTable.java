@@ -20,7 +20,7 @@ public final class SortableTable extends JTable
   private boolean sortAscending;
   private int sortByColumn;
 
-  public SortableTable(String[] columnNames, Class[] columnClasses, int[] columnWidths)
+  public SortableTable(String[] columnNames, Class<? extends Object>[] columnClasses, int[] columnWidths)
   {
     tableModel = new SortableTableModel(columnNames, columnClasses);
     setModel(tableModel);
@@ -109,10 +109,10 @@ public final class SortableTable extends JTable
   {
     private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
     private final List<TableItem> tableItems = new ArrayList<TableItem>();
-    private final Class[] columnClasses;
+    private final Class<? extends Object>[] columnClasses;
     private final String[] columnNames;
 
-    private SortableTableModel(String[] columnNames, Class[] columnClasses)
+    private SortableTableModel(String[] columnNames, Class<? extends Object>[] columnClasses)
     {
       this.columnNames = columnNames;
       this.columnClasses = columnClasses;
@@ -144,7 +144,7 @@ public final class SortableTable extends JTable
         listeners.get(i).tableChanged(event);
     }
 
-    public Class getColumnClass(int columnIndex)
+    public Class<? extends Object> getColumnClass(int columnIndex)
     {
       return columnClasses[columnIndex];
     }

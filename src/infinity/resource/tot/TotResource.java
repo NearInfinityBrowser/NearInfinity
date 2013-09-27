@@ -19,7 +19,7 @@ public final class TotResource extends AbstractStruct implements Resource
   {
     if (buffer != null && buffer.length > 0) {
       // TODO: fetch number of valid string entries from associated TOH resource
-      for (int i = 1; offset + 524 <= buffer.length; i++) {
+      for (int i = 0; offset + 524 <= buffer.length; i++) {
         StringEntry entry = new StringEntry(this, buffer, offset, i);
         offset = entry.getEndOffset();
         list.add(entry);

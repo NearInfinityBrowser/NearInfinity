@@ -13,6 +13,7 @@ import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.util.List;
 public final class ProRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
-  private final LongIntegerHashMap idsmap;
+  private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
   private TextListPanel list;
   private long value;
@@ -56,10 +57,10 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
   public JComponent edit(final ActionListener container)
   {
-    long keys[] = idsmap.keys();
+    long[] keys = idsmap.keys();
     List<ProRefEntry> items = new ArrayList<ProRefEntry>(keys.length);
     for (long id : keys) {
-      String resourcename = ((IdsMapEntry)idsmap.get(id)).getString() + ".PRO";
+      String resourcename = idsmap.get(id).getString() + ".PRO";
       ResourceEntry resourceEntry = ResourceFactory.getInstance().getResourceEntry(resourcename);
       if (resourceEntry == null)
         System.err.println("Could not find " + resourcename + " (key = " + id + ")");
@@ -162,7 +163,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   public String toString()
   {
     if (idsmap.containsKey(value - (long)1))
-      return ResourceFactory.getInstance().getResourceEntry(((IdsMapEntry)idsmap.get(value - 1)).getString()
+      return ResourceFactory.getInstance().getResourceEntry(idsmap.get(value - 1).getString()
                                                             + ".PRO") + " (" + value + ')';
     return NONE + " (" + value + ')';
   }
@@ -177,7 +178,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class ProRefEntry implements Comparable
+  private static final class ProRefEntry implements Comparable<ProRefEntry>
   {
     private final long val;
     private final Object proref;
@@ -193,7 +194,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
       return proref.toString() + " (" + val + ')';
     }
 
-    public int compareTo(Object o)
+    public int compareTo(ProRefEntry o)
     {
       return proref.toString().compareTo(o.toString());
     }

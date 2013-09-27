@@ -7,19 +7,19 @@ package infinity.resource.toh;
 import infinity.datatype.*;
 import infinity.resource.AbstractStruct;
 
-final class StrRefEntry extends AbstractStruct
+public final class StrRefEntry extends AbstractStruct
 {
-  StrRefEntry() throws Exception
+  public StrRefEntry() throws Exception
   {
     super(null, "StrRef entry", new byte[28], 0);
   }
 
-  StrRefEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public StrRefEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "StrRef entry " + nr, buffer, offset);
   }
 
-  StrRefEntry(AbstractStruct superStruct, String name, byte[] buffer, int offset) throws Exception
+  public StrRefEntry(AbstractStruct superStruct, String name, byte[] buffer, int offset) throws Exception
   {
     super(superStruct, name, buffer, offset);
   }
