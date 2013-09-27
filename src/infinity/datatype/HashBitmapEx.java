@@ -10,7 +10,6 @@ import infinity.resource.AbstractStruct;
 import infinity.util.LongIntegerHashMap;
 
 /**
- * TODO: move functionality to Datatype
  * Adds UpdateListener callback support to the HashBitmap class
  * @author argent77
  *

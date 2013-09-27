@@ -3148,6 +3148,7 @@ public final class EffectFactory
     }
 
     // setting Resource field
+    // TODO: outsource opcode specific changes into separate method
     if (restype == null) {
       if ((gameid == ResourceFactory.ID_BG2 ||
           gameid == ResourceFactory.ID_BG2TOB ||
@@ -3192,6 +3193,7 @@ public final class EffectFactory
     offset += 16;
 
     // setting Parameter 2.5 field
+    // TODO: outsource opcode specific changes into separate method
     if (gameid == ResourceFactory.ID_BG2 ||
         gameid == ResourceFactory.ID_BG2TOB ||
         gameid == ResourceFactory.ID_BGEE) {
@@ -3225,7 +3227,7 @@ public final class EffectFactory
    * @return A map containing table indices and structure offsets, starting with the opcode field.
    * @throws Exception If struct doesn't contain a valid effect structure.
    */
-  public EnumMap<EffectEntry, Integer> getEffectStructure(AbstractStruct struct) throws Exception
+  public static EnumMap<EffectEntry, Integer> getEffectStructure(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
       EffectType effType = (EffectType)struct.getAttribute("Type");
@@ -3234,7 +3236,7 @@ public final class EffectFactory
         boolean isV1 = (effType.getSize() == 2);
         int ofsOpcode = effType.getOffset();
         int idxOpcode = struct.getIndexOf(struct.getAttribute(ofsOpcode));
-        if (isV1 && struct.getSize() >= 0x30) {
+        if (isV1 && struct.getSize() >= ofsOpcode + 0x30) {
           // EFF V1.0
           map.put(EffectEntry.IDX_OPCODE, idxOpcode);
           map.put(EffectEntry.OFS_OPCODE, ofsOpcode);
@@ -3269,7 +3271,7 @@ public final class EffectFactory
           map.put(EffectEntry.IDX_SPECIAL, idxOpcode + 15);
           map.put(EffectEntry.OFS_SPECIAL, ofsOpcode + 0x2C);
           return map;
-        } else if (!isV1 && struct.getSize() >= 0x100) {
+        } else if (!isV1 && struct.getSize() >= ofsOpcode + 0x100) {
           // EFF V2.0
           map.put(EffectEntry.IDX_OPCODE, idxOpcode);
           map.put(EffectEntry.OFS_OPCODE, ofsOpcode);
@@ -3365,7 +3367,7 @@ public final class EffectFactory
    * @return The entry at the specified index
    * @throws Exception If one or more arguments are invalid.
    */
-  public StructEntry getEntry(AbstractStruct struct, int entryIndex) throws Exception
+  public static StructEntry getEntry(AbstractStruct struct, int entryIndex) throws Exception
   {
     if (struct != null) {
       if (entryIndex >= 0 && entryIndex < struct.getList().size()) {
@@ -3381,7 +3383,7 @@ public final class EffectFactory
    * @param entry The structure entry to fetch data from.
    * @return Data as byte array.
    */
-  public byte[] getEntryData(StructEntry entry)
+  public static byte[] getEntryData(StructEntry entry)
   {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     if (entry != null) {
@@ -3400,7 +3402,7 @@ public final class EffectFactory
    * @param entryIndex The index of the structure entry within struct
    * @return Data as byte array
    */
-  public byte[] getEntryData(AbstractStruct struct, int entryIndex)
+  public static byte[] getEntryData(AbstractStruct struct, int entryIndex)
   {
     StructEntry entry = null;
     if (struct != null && entryIndex >= 0 && entryIndex < struct.getList().size())
@@ -3416,7 +3418,7 @@ public final class EffectFactory
    * @param entryOffset The absolute offset of the data entry.
    * @param newEntry The new entry which replaces the old one.
    */
-  public void replaceEntry(AbstractStruct struct, int entryIndex, int entryOffset,
+  public static void replaceEntry(AbstractStruct struct, int entryIndex, int entryOffset,
                            StructEntry newEntry) throws Exception
   {
     if (struct != null && newEntry != null) {
@@ -3430,5 +3432,111 @@ public final class EffectFactory
         throw new Exception("Index or offset are out of bounds");
     } else
       throw new Exception("Invalid arguments specified");
+  }
+
+  /**
+   * Central hub for dynamic opcode specific modifications of effect structures.
+   * @param struct The effect structure to update.
+   * @return true if fields within the effect structure have been updated, false otherwise.
+   * @throws Exception If the argument doesn't specify a valid effect structure.
+   */
+  public static boolean updateOpcode(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+      EffectType effType = (EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE));
+      if (effType != null) {
+        int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+        switch (opcode) {
+          case 232:     // Cast spell on condition
+            return updateOpcode232(struct);
+          case 319:     // Item Usability
+            return updateOpcode319(struct);
+        }
+      }
+    }
+    return false;
+  }
+
+
+  // Effect type "Cast spell on condition" (232/0xE8)
+  private static boolean updateOpcode232(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      int gameID = ResourceFactory.getGameID();
+      if (gameID == ResourceFactory.ID_BG2 ||
+          gameID == ResourceFactory.ID_BG2TOB ||
+          gameID == ResourceFactory.ID_BGEE) {
+        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
+          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+          if (opcode == 232) {   // effect type "Cast spell on condition" (232/0xE8)
+            int param2 = ((BitmapEx)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
+            if (param2 == 13) {
+              // Special = Time of day
+              replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
+                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
+                                         0, 4, "Time of day", "TIMEODAY.IDS"));
+            } else {
+              // Special = Unused
+              replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
+                           new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
+                                         0, 4, "Unused"));
+            }
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  // Effect type "Item Usability" (319/0x13F).
+  private static boolean updateOpcode319(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      int gameID = ResourceFactory.getGameID();
+      if (gameID == ResourceFactory.ID_BG2 ||
+          gameID == ResourceFactory.ID_BG2TOB ||
+          gameID == ResourceFactory.ID_BGEE) {
+        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
+          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+          if (opcode == 319) {
+            long param2 = ((HashBitmapEx)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
+            if (param2 == 10L) {
+              // Param1 = Actor's name as Strref
+              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                           new StringRef(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                         0, "Actor name"));
+            } else if (param2 >= 2 && param2 < 10) {
+              // Param1 = IDS entry
+              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                         0, 4, "IDS entry", EffectFactory.m_itemids.get(param2)));
+            } else {
+              // Param1 = Unused
+              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                           new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                         0, 4, "Unused"));
+            }
+
+            if (param2 == 11L) {
+              // Resource = Actor's script name
+              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
+                           new TextString(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
+                                          0, 8, "Script name"));
+            } else {
+              // Resource = Unused
+              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
+                           new Unknown(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
+                                       0, 8, "Unused"));
+            }
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 }

@@ -9,7 +9,6 @@ import infinity.resource.AbstractStruct;
 import java.util.Vector;
 
 /**
- * TODO: move functionality to Datatype
  * Adds UpdateListener callback support to the Bitmap class.
  * @author argent77
  */
