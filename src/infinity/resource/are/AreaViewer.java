@@ -79,6 +79,7 @@ import infinity.resource.vertex.Vertex;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.Tilemap;
 import infinity.resource.wed.WedResource;
+import infinity.util.FileCI;
 
 /**
  * The Area Viewer shows a selected map with its associated items, such as actors, triggers or
@@ -1251,8 +1252,8 @@ public final class AreaViewer extends ChildFrame
               if (srcStrref > 0) {
                 String filePath = are.getResourceEntry().getActualFile().toString();
                 filePath = filePath.replace(are.getResourceEntry().getResourceName(), "");
-                File tohFile = new File(filePath + "DEFAULT.TOH");
-                File totFile = new File(filePath + "DEFAULT.TOT");
+                File tohFile = new FileCI(filePath + "DEFAULT.TOH");
+                File totFile = new FileCI(filePath + "DEFAULT.TOT");
                 if (tohFile.exists() && totFile.exists()) {
                   FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                   FileResourceEntry totEntry = new FileResourceEntry(totFile);
