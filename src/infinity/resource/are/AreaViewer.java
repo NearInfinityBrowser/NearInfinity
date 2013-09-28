@@ -99,22 +99,22 @@ public final class AreaViewer extends ChildFrame
   // Identifies location of the area transitions
   private static enum AreaEdge { NORTH, EAST, SOUTH, WEST }
 
-  private static EnumMap<Layers, JCheckBox> LayerButton =
-      new EnumMap<Layers, JCheckBox>(Layers.class);
-
+  // Tracks the current layer item state
+  private static EnumMap<Layers, Boolean> LayerButtonState =
+      new EnumMap<Layers, Boolean>(Layers.class);
   static {
-    LayerButton.put(Layers.ACTOR, new JCheckBox("Actors"));
-    LayerButton.put(Layers.TRIGGER, new JCheckBox("Triggers"));
-    LayerButton.put(Layers.ENTRANCE, new JCheckBox("Entrances"));
-    LayerButton.put(Layers.CONTAINER, new JCheckBox("Containers"));
-    LayerButton.put(Layers.AMBIENT, new JCheckBox("Ambient Sounds"));
-    LayerButton.put(Layers.AMBIENTRANGE, new JCheckBox("Ambient Sound Radius"));
-    LayerButton.put(Layers.DOOR, new JCheckBox("Doors"));
-    LayerButton.put(Layers.ANIMATION, new JCheckBox("Background Animations"));
-    LayerButton.put(Layers.AUTOMAP, new JCheckBox("Automap Notes"));
-    LayerButton.put(Layers.SPAWNPOINT, new JCheckBox("Spawn Points"));
-    LayerButton.put(Layers.PROTRAP, new JCheckBox("Projectile Traps"));
-    LayerButton.put(Layers.TRANSITION, new JCheckBox("Map Transitions"));
+    LayerButtonState.put(Layers.ACTOR, false);
+    LayerButtonState.put(Layers.TRIGGER, false);
+    LayerButtonState.put(Layers.ENTRANCE, false);
+    LayerButtonState.put(Layers.CONTAINER, false);
+    LayerButtonState.put(Layers.AMBIENT, false);
+    LayerButtonState.put(Layers.AMBIENTRANGE, false);
+    LayerButtonState.put(Layers.DOOR, false);
+    LayerButtonState.put(Layers.ANIMATION, false);
+    LayerButtonState.put(Layers.AUTOMAP, false);
+    LayerButtonState.put(Layers.SPAWNPOINT, false);
+    LayerButtonState.put(Layers.PROTRAP, false);
+    LayerButtonState.put(Layers.TRANSITION, false);
   }
 
 
@@ -131,6 +131,8 @@ public final class AreaViewer extends ChildFrame
   private DayNight currentMap = null;
   private TisDecoder tisDecoder;
 
+  private EnumMap<Layers, JCheckBox> layerButton =
+      new EnumMap<Layers, JCheckBox>(Layers.class);
   private EnumMap<Layers, List<AbstractLayerItem>> layerItems =
       new EnumMap<Layers, List<AbstractLayerItem>>(Layers.class);
 
@@ -220,35 +222,35 @@ public final class AreaViewer extends ChildFrame
 
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getItemSelectable() == LayerButton.get(Layers.ACTOR)) {
-      enableLayerActor(LayerButton.get(Layers.ACTOR).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.TRIGGER)) {
-      enableLayerTrigger(LayerButton.get(Layers.TRIGGER).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.ENTRANCE)) {
-      enableLayerEntrance(LayerButton.get(Layers.ENTRANCE).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.CONTAINER)) {
-      enableLayerContainer(LayerButton.get(Layers.CONTAINER).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.AMBIENT)) {
-      enableLayerAmbient(LayerButton.get(Layers.AMBIENT).isSelected());
-      enableLayerAmbientRange(LayerButton.get(Layers.AMBIENT).isSelected() && LayerButton.get(Layers.AMBIENTRANGE).isSelected());
-      LayerButton.get(Layers.AMBIENTRANGE).setEnabled(LayerButton.get(Layers.AMBIENT).isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.AMBIENTRANGE)) {
-      enableLayerAmbientRange(LayerButton.get(Layers.AMBIENTRANGE).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.DOOR)) {
-      enableLayerDoor(LayerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.ANIMATION)) {
-      enableLayerAnimation(LayerButton.get(Layers.ANIMATION).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.AUTOMAP)) {
-      enableLayerAutomap(LayerButton.get(Layers.AUTOMAP).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.TRANSITION)) {
-      enableLayerTransition(LayerButton.get(Layers.TRANSITION).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.SPAWNPOINT)) {
-      enableLayerSpawnPoint(LayerButton.get(Layers.SPAWNPOINT).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.PROTRAP)) {
-      enableLayerProTrap(LayerButton.get(Layers.PROTRAP).isSelected());
+    if (event.getItemSelectable() == layerButton.get(Layers.ACTOR)) {
+      enableLayerActor(layerButton.get(Layers.ACTOR).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.TRIGGER)) {
+      enableLayerTrigger(layerButton.get(Layers.TRIGGER).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.ENTRANCE)) {
+      enableLayerEntrance(layerButton.get(Layers.ENTRANCE).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.CONTAINER)) {
+      enableLayerContainer(layerButton.get(Layers.CONTAINER).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENT)) {
+      enableLayerAmbient(layerButton.get(Layers.AMBIENT).isSelected());
+      layerButton.get(Layers.AMBIENTRANGE).setEnabled(layerButton.get(Layers.AMBIENT).isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
+      enableLayerAmbientRange(layerButton.get(Layers.AMBIENT).isSelected() && layerButton.get(Layers.AMBIENTRANGE).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENTRANGE)) {
+      enableLayerAmbientRange(layerButton.get(Layers.AMBIENTRANGE).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.DOOR)) {
+      enableLayerDoor(layerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.ANIMATION)) {
+      enableLayerAnimation(layerButton.get(Layers.ANIMATION).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.AUTOMAP)) {
+      enableLayerAutomap(layerButton.get(Layers.AUTOMAP).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.TRANSITION)) {
+      enableLayerTransition(layerButton.get(Layers.TRANSITION).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.SPAWNPOINT)) {
+      enableLayerSpawnPoint(layerButton.get(Layers.SPAWNPOINT).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.PROTRAP)) {
+      enableLayerProTrap(layerButton.get(Layers.PROTRAP).isSelected());
     } else if (event.getItemSelectable() == cbDrawClosed) {
       setDoorState(getCurrentMap(), drawDoorsClosed());
-      enableLayerDoor(LayerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
+      enableLayerDoor(layerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
     }
   }
 
@@ -334,9 +336,6 @@ public final class AreaViewer extends ChildFrame
 
   protected void windowClosing() throws Exception
   {
-    for (Layers layer: Layers.values())
-      removeLayer(layer);
-
     lTileset.setIcon(null);
     mapImage = null;
     tisDecoder = null;
@@ -406,8 +405,8 @@ public final class AreaViewer extends ChildFrame
     pVisual.add(cbDrawClosed);
 
     // Assembling Layers group box
-    JPanel pLayers = createGroupBox("Layers: ", new GridLayout(LayerButton.size(), 1));
-    for (final JCheckBox cb: LayerButton.values())
+    JPanel pLayers = createGroupBox("Layers: ", new GridLayout(layerButton.size(), 1));
+    for (final JCheckBox cb: layerButton.values())
       pLayers.add(cb);
 
     // Assembling Information box
@@ -486,20 +485,19 @@ public final class AreaViewer extends ChildFrame
     Center.center(this, NearInfinity.getInstance().getBounds());
 
     // first time layer initialization
-    enableLayerActor(LayerButton.get(Layers.ACTOR).isSelected());
-    enableLayerTrigger(LayerButton.get(Layers.TRIGGER).isSelected());
-    enableLayerEntrance(LayerButton.get(Layers.ENTRANCE).isSelected());
-    enableLayerContainer(LayerButton.get(Layers.CONTAINER).isSelected());
-    enableLayerAmbient(LayerButton.get(Layers.AMBIENT).isSelected());
-    enableLayerAmbientRange(LayerButton.get(Layers.AMBIENT).isSelected() && LayerButton.get(Layers.AMBIENTRANGE).isSelected());
-    LayerButton.get(Layers.AMBIENTRANGE).setEnabled(LayerButton.get(Layers.AMBIENT).isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
-    enableLayerDoor(LayerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
-    enableLayerAnimation(LayerButton.get(Layers.ANIMATION).isSelected());
-    enableLayerAutomap(LayerButton.get(Layers.AUTOMAP).isSelected());
-    enableLayerTransition(LayerButton.get(Layers.TRANSITION).isSelected());
-    enableLayerProTrap(LayerButton.get(Layers.PROTRAP).isSelected());
-    enableLayerSpawnPoint(LayerButton.get(Layers.SPAWNPOINT).isSelected());
-    advanceProgressMonitor("Showing GUI");
+    layerButton.get(Layers.ACTOR).setSelected(LayerButtonState.get(Layers.ACTOR));
+    layerButton.get(Layers.TRIGGER).setSelected(LayerButtonState.get(Layers.TRIGGER));
+    layerButton.get(Layers.ENTRANCE).setSelected(LayerButtonState.get(Layers.ENTRANCE));
+    layerButton.get(Layers.CONTAINER).setSelected(LayerButtonState.get(Layers.CONTAINER));
+    layerButton.get(Layers.AMBIENTRANGE).setSelected(LayerButtonState.get(Layers.AMBIENTRANGE));
+    layerButton.get(Layers.AMBIENTRANGE).setEnabled(LayerButtonState.get(Layers.AMBIENT) && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
+    layerButton.get(Layers.AMBIENT).setSelected(LayerButtonState.get(Layers.AMBIENT));
+    layerButton.get(Layers.DOOR).setSelected(LayerButtonState.get(Layers.DOOR));
+    layerButton.get(Layers.ANIMATION).setSelected(LayerButtonState.get(Layers.ANIMATION));
+    layerButton.get(Layers.AUTOMAP).setSelected(LayerButtonState.get(Layers.AUTOMAP));
+    layerButton.get(Layers.TRANSITION).setSelected(LayerButtonState.get(Layers.TRANSITION));
+    layerButton.get(Layers.PROTRAP).setSelected(LayerButtonState.get(Layers.PROTRAP));
+    layerButton.get(Layers.SPAWNPOINT).setSelected(LayerButtonState.get(Layers.SPAWNPOINT));
 
     setVisible(true);
   }
@@ -514,33 +512,42 @@ public final class AreaViewer extends ChildFrame
 
   private void addLayer(Layers layer)
   {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      JCheckBox cb = LayerButton.get(layer);
-      cb.addItemListener(this);
-      cb.setEnabled(false);
-    }
-  }
-
-  private void removeLayer(Layers layer)
-  {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      JCheckBox cb = LayerButton.get(layer);
-      cb.removeItemListener(this);
+    if (layer != null) {
+      JCheckBox cb = null;
+      switch (layer) {
+        case ACTOR:         cb = new JCheckBox("Actors"); break;
+        case TRIGGER:       cb = new JCheckBox("Triggers"); break;
+        case ENTRANCE:      cb = new JCheckBox("Entrances"); break;
+        case CONTAINER:     cb = new JCheckBox("Containers"); break;
+        case AMBIENT:       cb = new JCheckBox("Ambient Sounds"); break;
+        case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Radius"); break;
+        case DOOR:          cb = new JCheckBox("Doors"); break;
+        case ANIMATION:     cb = new JCheckBox("Background Animations"); break;
+        case AUTOMAP:       cb = new JCheckBox("Automap Notes"); break;
+        case SPAWNPOINT:    cb = new JCheckBox("Spawn Points"); break;
+        case PROTRAP:       cb = new JCheckBox("Projectile Traps"); break;
+        case TRANSITION:    cb = new JCheckBox("Map Transitions"); break;
+      }
+      if (cb != null) {
+        layerButton.put(layer, cb);
+        cb.addItemListener(this);
+        cb.setEnabled(false);
+      }
     }
   }
 
   private boolean isLayerEnabled(Layers layer)
   {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      return LayerButton.get(layer).isEnabled();
+    if (layer != null && layerButton.containsKey(layer)) {
+      return layerButton.get(layer).isEnabled();
     }
     return false;
   }
 
   private void setLayerEnabled(Layers layer, boolean enable, String toolTipText)
   {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      JCheckBox cb = LayerButton.get(layer);
+    if (layer != null && layerButton.containsKey(layer)) {
+      JCheckBox cb = layerButton.get(layer);
       if (!enable && cb.isSelected())
         cb.setSelected(false);
       cb.setEnabled(enable);
@@ -720,6 +727,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerActor(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.ACTOR), enable);
+    LayerButtonState.put(Layers.ACTOR, enable);
   }
 
   private void initLayerTrigger()
@@ -792,6 +800,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerTrigger(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.TRIGGER), enable);
+    LayerButtonState.put(Layers.TRIGGER, enable);
   }
 
   private void initLayerEntrance()
@@ -850,6 +859,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerEntrance(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.ENTRANCE), enable);
+    LayerButtonState.put(Layers.ENTRANCE, enable);
   }
 
   private void initLayerContainer()
@@ -925,6 +935,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerContainer(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.CONTAINER), enable);
+    LayerButtonState.put(Layers.CONTAINER, enable);
   }
 
   private void initLayerAmbient()
@@ -983,6 +994,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerAmbient(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.AMBIENT), enable);
+    LayerButtonState.put(Layers.AMBIENT, enable);
   }
 
   private void initLayerAmbientRange()
@@ -1064,6 +1076,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerAmbientRange(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.AMBIENTRANGE), enable);
+    LayerButtonState.put(Layers.AMBIENTRANGE, enable);
   }
 
   private void initLayerDoor()
@@ -1164,6 +1177,7 @@ public final class AreaViewer extends ChildFrame
       showLayerItem(list.get((i << 1) + ((ofs + 1) & 1)), false);
       showLayerItem(list.get((i << 1) + ofs), enable);
     }
+    LayerButtonState.put(Layers.DOOR, enable);
   }
 
   private void initLayerAnimation()
@@ -1222,6 +1236,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerAnimation(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.ANIMATION), enable);
+    LayerButtonState.put(Layers.ANIMATION, enable);
   }
 
   private void initLayerAutomap()
@@ -1364,6 +1379,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerAutomap(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.AUTOMAP), enable);
+    LayerButtonState.put(Layers.AUTOMAP, enable);
   }
 
   private void initLayerTransition()
@@ -1432,6 +1448,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerTransition(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.TRANSITION), enable);
+    LayerButtonState.put(Layers.TRANSITION, enable);
   }
 
   private void initLayerProTrap()
@@ -1502,6 +1519,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerProTrap(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.PROTRAP), enable);
+    LayerButtonState.put(Layers.PROTRAP, enable);
   }
 
   private void initLayerSpawnPoint()
@@ -1560,6 +1578,7 @@ public final class AreaViewer extends ChildFrame
   private void enableLayerSpawnPoint(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.SPAWNPOINT), enable);
+    LayerButtonState.put(Layers.SPAWNPOINT, enable);
   }
 
   private DayNight getCurrentMap()
