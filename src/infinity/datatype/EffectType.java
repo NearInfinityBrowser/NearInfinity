@@ -76,7 +76,11 @@ public final class EffectType extends Bitmap implements UpdateListener
       list.add(new DecNumber(buffer, off + 4, 4, "Power"));
       off += 8;
     }
-    off = EffectFactory.getFactory().makeEffectStruct(this, buffer, off, list, getValue(), isV1);
+    try {
+      off = EffectFactory.getFactory().makeEffectStruct(this, buffer, off, list, getValue(), isV1);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     attr_length = off - attr_length;
     return off;
   }
