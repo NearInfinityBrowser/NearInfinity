@@ -17,7 +17,7 @@ import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.MveResource;
 import infinity.resource.key.BIFFArchive;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.sound.SoundUtilities;
+import infinity.resource.sound.AudioFactory;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -68,13 +68,6 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     getRootPane().setDefaultButton(bExport);
     bExport.setMnemonic('e');
     bCancel.setMnemonic('d');
-    if (SoundUtilities.converterExists())
-      ;
-    else {
-      cbConvertWAV.setSelected(false);
-      cbConvertWAV.setEnabled(false);
-      cbConvertWAV.setToolTipText("Sound converter not found");
-    }
 
     JPanel leftPanel = new JPanel(new BorderLayout());
     leftPanel.add(new JLabel("File types to export:"), BorderLayout.NORTH);
@@ -262,26 +255,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         bos.close();
       }
       else if (entry.getExtension().equalsIgnoreCase("WAV") && cbConvertWAV.isSelected()) {
-        byte data[] = entry.getResourceData();
-        String signature = new String(data, 0, 4);
-        if (signature.equalsIgnoreCase("WAVC")) {
-          int channels = (int)Byteconvert.convertShort(data, 20);
-          File acmfile = new File(outputDir,
-                                  entry.toString().substring(0, entry.toString().lastIndexOf((int)'.')) +
-                                  ".ACM");
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(acmfile));
-          bos.write(data, 28, data.length - 28);
-          bos.close();
-          if (!SoundUtilities.converterExists())
-            return;
-          else
-            SoundUtilities.convert(acmfile, channels == 1);
-          acmfile.delete();
-        }
-        else {
+        byte[] buffer = AudioFactory.convertAudio(entry);
+        if (buffer != null) {
           BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
-          Filewriter.writeBytes(bos, data);
+          Filewriter.writeBytes(bos, buffer);
           bos.close();
+          buffer = null;
         }
       }
       else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExecutableMVE.isSelected()) {

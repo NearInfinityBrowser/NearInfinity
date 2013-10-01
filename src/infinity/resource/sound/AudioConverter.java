@@ -1,3 +1,6 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
 
 package infinity.resource.sound;
 
@@ -13,6 +16,7 @@ import java.io.IOException;
  * @author Fredrik Lindgren <lindgren.fredrik@gmail.com>
  * @since  2012-08-20
  */
+@Deprecated
 public class AudioConverter
 {
   public static final String ACM2WAV = "acm2wav.exe";

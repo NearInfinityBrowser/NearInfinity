@@ -24,7 +24,7 @@ import infinity.resource.nwn.gff.GffResource;
 import infinity.resource.other.*;
 import infinity.resource.pro.ProResource;
 import infinity.resource.sav.SavResource;
-import infinity.resource.sound.AcmResource;
+import infinity.resource.sound.SoundResource;
 import infinity.resource.sound.WavResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.src.SrcResource;
@@ -208,10 +208,9 @@ public final class ResourceFactory
           res = new BmpResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MOS"))
           res = new MosResource2(entry);
-        else if (entry.getExtension().equalsIgnoreCase("WAV"))
-          res = new WavResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("ACM"))
-          res = new AcmResource(entry);
+        else if (entry.getExtension().equalsIgnoreCase("WAV") ||
+                 entry.getExtension().equalsIgnoreCase("ACM"))
+          res = new SoundResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MUS"))
           res = new MusResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("IDS") ||
