@@ -112,18 +112,18 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public JComponent edit(final ActionListener container)
   {
-    List<ResourceEntry> resourceList[] = new List[type.length];
+    List<List<ResourceEntry>> resourceList = new ArrayList<List<ResourceEntry>>(type.length);
     int entrynum = 0;
     for (int i = 0; i < type.length; i++) {
-      resourceList[i] = ResourceFactory.getInstance().getResources(type[i]);
-      entrynum += resourceList[i].size();
+      resourceList.add(ResourceFactory.getInstance().getResources(type[i]));
+      entrynum += resourceList.get(i).size();
     }
 
     List<Object> values = new ArrayList<Object>(1 + entrynum);
     values.add(NONE);
     for (int i = 0; i < type.length; i++) {
-      for (int j = 0; j < resourceList[i].size(); j++) {
-        ResourceEntry entry = resourceList[i].get(j);
+      for (int j = 0; j < resourceList.get(i).size(); j++) {
+        ResourceEntry entry = resourceList.get(i).get(j);
         if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN &&
             entry.toString().length() <= 20)
           values.add(new ResourceRefEntry(entry));

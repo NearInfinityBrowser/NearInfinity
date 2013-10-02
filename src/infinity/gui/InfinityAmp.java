@@ -9,7 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.mus.Entry2;
+import infinity.resource.mus.Entry;
 import infinity.resource.sound.AudioBuffer;
 import infinity.resource.sound.AudioPlayer;
 
@@ -55,7 +55,7 @@ public final class InfinityAmp extends ChildFrame
   private final JList selectedMusList;
   private final JTextField tfNowPlaying = new JTextField(10);
   private final AudioPlayer player = new AudioPlayer();
-  private List<Entry2> entryList = new ArrayList<Entry2>();
+  private List<Entry> entryList = new ArrayList<Entry>();
   private boolean keepPlaying = true;
 
   public InfinityAmp()
@@ -192,7 +192,7 @@ public final class InfinityAmp extends ChildFrame
  {
    keepPlaying = false;
    player.stopPlay();
-   Entry2.clearCache();
+   Entry.clearCache();
  }
 
 //--------------------- End Interface Closeable ---------------------
@@ -263,9 +263,9 @@ public final class InfinityAmp extends ChildFrame
      int count = Integer.valueOf(tokenizer.nextToken().trim()).intValue();
      entryList.clear();
      for (int i = 0; i < count; i++) {
-       entryList.add(new Entry2(musEntry, dir, entryList, tokenizer.nextToken().trim(), i));
+       entryList.add(new Entry(musEntry, dir, entryList, tokenizer.nextToken().trim(), i));
      }
-     for (final Entry2 entry : entryList) {
+     for (final Entry entry : entryList) {
        entry.init();
      }
 

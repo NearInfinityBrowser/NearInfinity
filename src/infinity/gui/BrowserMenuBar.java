@@ -40,12 +40,9 @@ public final class BrowserMenuBar extends JMenuBar
                                        new Font("SansSerif", Font.PLAIN, 12),
                                        new Font("Lucida", Font.PLAIN, 12)};
   private static final String BCSINDENT[] = {"  ", "    ", "\t"};
-  private static final String AUDIODECODERS[] = {"acm2wav.exe", "acmtool"};
   private static final String OPTION_SHOWOFFSETS = "ShowOffsets";
   private static final String OPTION_IGNOREOVERRIDE = "IgnoreOverride";
   private static final String OPTION_IGNOREREADERRORS = "IgnoreReadErrors";
-  private static final String OPTION_AUTOCONVERT_MUS = "AutoconvertMUS";
-  private static final String OPTION_AUTOCONVERT_WAV = "AutoconvertWAV";
   private static final String OPTION_AUTOCHECK_BCS = "AutocheckBCS";
   private static final String OPTION_CACHEOVERRIDE = "CacheOverride";
   private static final String OPTION_CHECKSCRIPTNAMES = "CheckScriptNames";
@@ -56,7 +53,6 @@ public final class BrowserMenuBar extends JMenuBar
   private static final String OPTION_FONT = "Font";
   private static final String OPTION_BCSINDENT = "BcsIndent";
   private static final String OPTION_TLKCHARSET = "TLKCharset";
-  private static final String OPTION_AUDIODECODER = "AudioDecoder";
   private final EditMenu editMenu;
   private final FileMenu fileMenu;
   private final GameMenu gameMenu;
@@ -66,9 +62,8 @@ public final class BrowserMenuBar extends JMenuBar
   private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
   private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
   private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
-  private final JRadioButtonMenuItem selectAudioDecoder[] = new JRadioButtonMenuItem[AUDIODECODERS.length];
-  private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors, optionAutoConvMUS;
-  private JCheckBoxMenuItem optionAutoConvWAV, optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
+  private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
+  private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
 
   public static BrowserMenuBar getInstance()
   {
@@ -106,16 +101,6 @@ public final class BrowserMenuBar extends JMenuBar
     menuBar = this;
   }
 
-  public boolean autoConvertMUS()
-  {
-    return optionAutoConvMUS.isSelected();
-  }
-
-  public boolean autoConvertWAV()
-  {
-    return optionAutoConvWAV.isSelected();
-  }
-
   public boolean autocheckBCS()
   {
     return optionAutocheckBCS.isSelected();
@@ -144,17 +129,6 @@ public final class BrowserMenuBar extends JMenuBar
       if (selectBcsIndent[i].isSelected())
         return BCSINDENT[i];
     return BCSINDENT[2];
-  }
-
-  /**
-   * @since 2012-08-20
-   */
-  public String getAudioDecoder()
-  {
-    for (int i = 0; i < AUDIODECODERS.length; i++)
-      if (selectAudioDecoder[i].isSelected())
-        return AUDIODECODERS[i];
-    return AUDIODECODERS[0];
   }
 
   public int getDefaultStructView()
@@ -230,8 +204,6 @@ public final class BrowserMenuBar extends JMenuBar
     prefs.putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
     prefs.putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
     prefs.putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
-    prefs.putBoolean(OPTION_AUTOCONVERT_MUS, optionAutoConvMUS.isSelected());
-    prefs.putBoolean(OPTION_AUTOCONVERT_WAV, optionAutoConvWAV.isSelected());
     prefs.putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
     prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
     prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
@@ -248,13 +220,8 @@ public final class BrowserMenuBar extends JMenuBar
     for (int i = 0; i < selectBcsIndent.length; i++)
       if (selectBcsIndent[i].isSelected())
         selectedIndent = i;
-    int audioDecoder = 0;
-    for (int i = 0; i < selectAudioDecoder.length; i++)
-      if (selectAudioDecoder[i].isSelected())
-        audioDecoder = i;
     prefs.putInt(OPTION_BCSINDENT, selectedIndent);
     prefs.put(OPTION_TLKCHARSET, StringResource.getCharset().name());
-    prefs.putInt(OPTION_AUDIODECODER, audioDecoder);
     gameMenu.storePreferences(prefs);
   }
 
@@ -267,12 +234,6 @@ public final class BrowserMenuBar extends JMenuBar
     final JMenu menu = new JMenu("Options");
     menu.setMnemonic(KeyEvent.VK_O);
 
-    optionAutoConvMUS =
-    new JCheckBoxMenuItem("Autoconvert MUS", prefs.getBoolean(OPTION_AUTOCONVERT_MUS, true));
-    menu.add(optionAutoConvMUS);
-    optionAutoConvWAV =
-    new JCheckBoxMenuItem("Autoconvert WAV", prefs.getBoolean(OPTION_AUTOCONVERT_WAV, true));
-    menu.add(optionAutoConvWAV);
     optionIgnoreOverride =
     new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
     menu.add(optionIgnoreOverride);
@@ -426,16 +387,6 @@ public final class BrowserMenuBar extends JMenuBar
         }
       }
     });
-
-    final JMenu audioDecoderMenu = new JMenu("Sound Converter");
-    menu.add(audioDecoderMenu);
-    bg = new ButtonGroup();
-    int audioDecoder = prefs.getInt(OPTION_AUDIODECODER, 0);
-    for (int i = 0; i < AUDIODECODERS.length; i++) {
-      selectAudioDecoder[i] = new JRadioButtonMenuItem(AUDIODECODERS[i], i == audioDecoder);
-      audioDecoderMenu.add(selectAudioDecoder[i]);
-      bg.add(selectAudioDecoder[i]);
-    }
 
     tf.addFocusListener(new FocusAdapter() {
       public void focusLost(FocusEvent event) {
@@ -1121,9 +1072,9 @@ public final class BrowserMenuBar extends JMenuBar
         bcsframe.setVisible(true);
       }
       else if (event.getSource() == toolCheckAllDialog)
-        new DialogCheker(false);
+        new DialogChecker(false);
       else if (event.getSource() == toolCheckOverrideDialog)
-        new DialogCheker(true);
+        new DialogChecker(true);
       else if (event.getSource() == toolCheckResRef)
         new ResRefChecker();
       else if (event.getSource() == toolCheckCREInv)

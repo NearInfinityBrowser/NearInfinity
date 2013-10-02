@@ -4,7 +4,6 @@
 
 package infinity.resource.sound;
 
-import infinity.gui.BrowserMenuBar;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.Closeable;
@@ -69,7 +68,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       channels = (int)DynamicArray.getShort(data, 20);
       // 6 unknown bytes
 
-      if (BrowserMenuBar.getInstance().autoConvertWAV() && SoundUtilities.converterExists())
+      if (SoundUtilities.converterExists())
         wavfile = SoundUtilities.convert(data, 28, '_' + entry.toString(), channels == 1);
       fileCreated = true;
     }
@@ -210,12 +209,12 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       bstop.addActionListener(this);
       bplay.setEnabled(wavfile != null);
       bstop.setEnabled(false);
-      if (!BrowserMenuBar.getInstance().autoConvertWAV() && wavfile == null) {
-        bconvert = new JButton("Convert", Icons.getIcon("Refresh16.gif"));
-        bconvert.addActionListener(this);
-        bplay.setEnabled(false);
-        bplay.setToolTipText("You must convert file before playback is possible");
-      }
+//      if (!BrowserMenuBar.getInstance().autoConvertWAV() && wavfile == null) {
+//        bconvert = new JButton("Convert", Icons.getIcon("Refresh16.gif"));
+//        bconvert.addActionListener(this);
+//        bplay.setEnabled(false);
+//        bplay.setToolTipText("You must convert file before playback is possible");
+//      }
 
       gbl.setConstraints(bplay, gbc);
       buttonpanel.add(bplay);

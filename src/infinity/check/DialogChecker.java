@@ -12,15 +12,17 @@ import infinity.resource.bcs.Compiler;
 import infinity.resource.dlg.*;
 import infinity.resource.dlg.Action;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
-public final class DialogCheker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
+public final class DialogChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
   private final boolean checkOnlyOverride;
   private ChildFrame resultFrame;
@@ -28,7 +30,7 @@ public final class DialogCheker implements Runnable, ActionListener, ListSelecti
   private JTabbedPane tabbedPane;
   private SortableTable errorTable, warningTable;
 
-  public DialogCheker(boolean checkOnlyOverride)
+  public DialogChecker(boolean checkOnlyOverride)
   {
     this.checkOnlyOverride = checkOnlyOverride;
     new Thread(this).start();
@@ -109,12 +111,17 @@ public final class DialogCheker implements Runnable, ActionListener, ListSelecti
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Checking dialogue triggers & actions...", null, 0,
                                                    dlgFiles.size());
-    errorTable = new SortableTable(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"},
-                                   new Class[]{Object.class, Object.class, Object.class, Integer.class},
-                                   new int[]{50, 100, 350, 10});
-    warningTable = new SortableTable(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"},
-                                     new Class[]{Object.class, Object.class, Object.class, Integer.class},
-                                     new int[]{50, 100, 350, 10});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(4);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
+    colClasses.add(Integer.class);
+    errorTable = new SortableTable(
+        ArrayUtil.toList(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"}),
+        colClasses, ArrayUtil.toList(new Integer[]{50, 100, 350, 10}));
+    warningTable = new SortableTable(
+        ArrayUtil.toList(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"}),
+        colClasses, ArrayUtil.toList(new Integer[]{50, 100, 350, 10}));
+
     for (int i = 0; i < dlgFiles.size(); i++) {
       ResourceEntry entry = dlgFiles.get(i);
       try {

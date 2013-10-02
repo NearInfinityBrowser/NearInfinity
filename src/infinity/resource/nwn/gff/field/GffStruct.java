@@ -26,7 +26,7 @@ public final class GffStruct extends GffField
     fieldCount = DynamicArray.getInt(buffer, offset + 8);
   }
 
-  public List getChildren()
+  public List<GffField> getChildren()
   {
     return fields;
   }

@@ -18,6 +18,8 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ErfResource implements Resource, ActionListener, ListSelectionListener
 {
@@ -99,9 +101,11 @@ public final class ErfResource implements Resource, ActionListener, ListSelectio
 
   public JComponent makeViewer(ViewableContainer container)
   {
-    table = new SortableTable(new String[] { "", "Resource name" },
-                              new Class[] { ImageIcon.class, String.class },
-                              new int[] { 5, 300 });
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
+    colClasses.add(ImageIcon.class); colClasses.add(String.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"", "Resource name"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{5, 300}));
+
     for (final ERFKey key : keys)
       table.addTableItem(key);
     table.tableComplete(1);

@@ -386,11 +386,6 @@ import javax.swing.SwingConstants;
     setCurrentIcon(getItemState());
   }
 
-  private Icon getCurrentIcon()
-  {
-    return label.getIcon();
-  }
-
   private void setCurrentIcon(ItemState state)
   {
     if (state != null && icons.containsKey(state)) {
