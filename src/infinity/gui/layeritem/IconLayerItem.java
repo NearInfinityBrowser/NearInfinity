@@ -240,7 +240,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     }
   }
 
-//--------------------- Begin Interface Runnable ---------------------
+//--------------------- Begin Interface LayerItemListener ---------------------
 
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -249,6 +249,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     }
   }
 
-//--------------------- End Interface Runnable ---------------------
+//--------------------- End Interface LayerItemListener ---------------------
 
 }

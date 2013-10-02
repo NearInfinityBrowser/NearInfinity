@@ -24,6 +24,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.gui.layeritem.LayerItemEvent;
 import infinity.gui.layeritem.LayerItemListener;
-import infinity.gui.layeritem.PolygonLayerItem;
+import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
@@ -90,8 +91,8 @@ public final class AreaViewer extends ChildFrame
   implements Runnable, ActionListener, ItemListener, LayerItemListener, ComponentListener, MouseMotionListener
 {
   // Identifies the respective layers
-  private static enum Layers { ACTOR, TRIGGER, ENTRANCE, CONTAINER, AMBIENT, DOOR, ANIMATION,
-                               AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION }
+  private static enum Layers { ACTOR, TRIGGER, ENTRANCE, CONTAINER, AMBIENT, AMBIENTRANGE, DOOR,
+                               ANIMATION, AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION }
 
   // Identifies the respective WED resources
   private static enum DayNight { DAY, NIGHT }
@@ -99,21 +100,22 @@ public final class AreaViewer extends ChildFrame
   // Identifies location of the area transitions
   private static enum AreaEdge { NORTH, EAST, SOUTH, WEST }
 
-  private static EnumMap<Layers, JCheckBox> LayerButton =
-      new EnumMap<Layers, JCheckBox>(Layers.class);
-
+  // Tracks the current layer item state
+  private static EnumMap<Layers, Boolean> LayerButtonState =
+      new EnumMap<Layers, Boolean>(Layers.class);
   static {
-    LayerButton.put(Layers.ACTOR, new JCheckBox("Actors"));
-    LayerButton.put(Layers.TRIGGER, new JCheckBox("Triggers"));
-    LayerButton.put(Layers.ENTRANCE, new JCheckBox("Entrances"));
-    LayerButton.put(Layers.CONTAINER, new JCheckBox("Containers"));
-    LayerButton.put(Layers.AMBIENT, new JCheckBox("Ambient Sounds"));
-    LayerButton.put(Layers.DOOR, new JCheckBox("Doors"));
-    LayerButton.put(Layers.ANIMATION, new JCheckBox("Background Animations"));
-    LayerButton.put(Layers.AUTOMAP, new JCheckBox("Automap Notes"));
-    LayerButton.put(Layers.SPAWNPOINT, new JCheckBox("Spawn Points"));
-    LayerButton.put(Layers.PROTRAP, new JCheckBox("Projectile Traps"));
-    LayerButton.put(Layers.TRANSITION, new JCheckBox("Map Transitions"));
+    LayerButtonState.put(Layers.ACTOR, false);
+    LayerButtonState.put(Layers.TRIGGER, false);
+    LayerButtonState.put(Layers.ENTRANCE, false);
+    LayerButtonState.put(Layers.CONTAINER, false);
+    LayerButtonState.put(Layers.AMBIENT, false);
+    LayerButtonState.put(Layers.AMBIENTRANGE, false);
+    LayerButtonState.put(Layers.DOOR, false);
+    LayerButtonState.put(Layers.ANIMATION, false);
+    LayerButtonState.put(Layers.AUTOMAP, false);
+    LayerButtonState.put(Layers.SPAWNPOINT, false);
+    LayerButtonState.put(Layers.PROTRAP, false);
+    LayerButtonState.put(Layers.TRANSITION, false);
   }
 
 
@@ -130,6 +132,8 @@ public final class AreaViewer extends ChildFrame
   private DayNight currentMap = null;
   private TisDecoder tisDecoder;
 
+  private EnumMap<Layers, JCheckBox> layerButton =
+      new EnumMap<Layers, JCheckBox>(Layers.class);
   private EnumMap<Layers, List<AbstractLayerItem>> layerItems =
       new EnumMap<Layers, List<AbstractLayerItem>>(Layers.class);
 
@@ -185,7 +189,7 @@ public final class AreaViewer extends ChildFrame
     else
       setExtendedState(Frame.NORMAL);
 
-    initProgressMonitor(parent, "Initializing " + are.getName(), 14, 0, 0);
+    initProgressMonitor(parent, "Initializing " + are.getName(), 15, 0, 0);
     new Thread(this).start();
   }
 
@@ -219,31 +223,35 @@ public final class AreaViewer extends ChildFrame
 
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getItemSelectable() == LayerButton.get(Layers.ACTOR)) {
-      enableLayerActor(LayerButton.get(Layers.ACTOR).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.TRIGGER)) {
-      enableLayerTrigger(LayerButton.get(Layers.TRIGGER).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.ENTRANCE)) {
-      enableLayerEntrance(LayerButton.get(Layers.ENTRANCE).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.CONTAINER)) {
-      enableLayerContainer(LayerButton.get(Layers.CONTAINER).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.AMBIENT)) {
-      enableLayerAmbient(LayerButton.get(Layers.AMBIENT).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.DOOR)) {
-      enableLayerDoor(LayerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.ANIMATION)) {
-      enableLayerAnimation(LayerButton.get(Layers.ANIMATION).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.AUTOMAP)) {
-      enableLayerAutomap(LayerButton.get(Layers.AUTOMAP).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.TRANSITION)) {
-      enableLayerTransition(LayerButton.get(Layers.TRANSITION).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.SPAWNPOINT)) {
-      enableLayerSpawnPoint(LayerButton.get(Layers.SPAWNPOINT).isSelected());
-    } else if (event.getItemSelectable() == LayerButton.get(Layers.PROTRAP)) {
-      enableLayerProTrap(LayerButton.get(Layers.PROTRAP).isSelected());
+    if (event.getItemSelectable() == layerButton.get(Layers.ACTOR)) {
+      enableLayerActor(layerButton.get(Layers.ACTOR).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.TRIGGER)) {
+      enableLayerTrigger(layerButton.get(Layers.TRIGGER).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.ENTRANCE)) {
+      enableLayerEntrance(layerButton.get(Layers.ENTRANCE).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.CONTAINER)) {
+      enableLayerContainer(layerButton.get(Layers.CONTAINER).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENT)) {
+      enableLayerAmbient(layerButton.get(Layers.AMBIENT).isSelected());
+      layerButton.get(Layers.AMBIENTRANGE).setEnabled(layerButton.get(Layers.AMBIENT).isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
+      enableLayerAmbientRange(layerButton.get(Layers.AMBIENT).isSelected() && layerButton.get(Layers.AMBIENTRANGE).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENTRANGE)) {
+      enableLayerAmbientRange(layerButton.get(Layers.AMBIENTRANGE).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.DOOR)) {
+      enableLayerDoor(layerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.ANIMATION)) {
+      enableLayerAnimation(layerButton.get(Layers.ANIMATION).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.AUTOMAP)) {
+      enableLayerAutomap(layerButton.get(Layers.AUTOMAP).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.TRANSITION)) {
+      enableLayerTransition(layerButton.get(Layers.TRANSITION).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.SPAWNPOINT)) {
+      enableLayerSpawnPoint(layerButton.get(Layers.SPAWNPOINT).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.PROTRAP)) {
+      enableLayerProTrap(layerButton.get(Layers.PROTRAP).isSelected());
     } else if (event.getItemSelectable() == cbDrawClosed) {
       setDoorState(getCurrentMap(), drawDoorsClosed());
-      enableLayerDoor(LayerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
+      enableLayerDoor(layerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
     }
   }
 
@@ -329,17 +337,13 @@ public final class AreaViewer extends ChildFrame
 
   protected void windowClosing() throws Exception
   {
-    for (Layers layer: Layers.values())
-      removeLayer(layer);
-
-    BufferedImage img = (BufferedImage)mapImage.getImage();
-    if (img != null) {
-      img.flush();
-      img = null;
-    }
     lTileset.setIcon(null);
     mapImage = null;
     tisDecoder = null;
+    layerItems.clear();
+    layerItems = null;
+    dayNightTiles.clear();
+    dayNightTiles = null;
     dispose();
     System.gc();
   }
@@ -386,6 +390,8 @@ public final class AreaViewer extends ChildFrame
     initLayerDoor();
     advanceProgressMonitor("Loading map transitions");
     initLayerTransition();
+    advanceProgressMonitor("Loading ambient sound ranges");
+    initLayerAmbientRange();
     advanceProgressMonitor("Creating GUI");
 
     // assembling Visual State group box
@@ -400,8 +406,8 @@ public final class AreaViewer extends ChildFrame
     pVisual.add(cbDrawClosed);
 
     // Assembling Layers group box
-    JPanel pLayers = createGroupBox("Layers: ", new GridLayout(LayerButton.size(), 1));
-    for (final JCheckBox cb: LayerButton.values())
+    JPanel pLayers = createGroupBox("Layers: ", new GridLayout(layerButton.size(), 1));
+    for (final JCheckBox cb: layerButton.values())
       pLayers.add(cb);
 
     // Assembling Information box
@@ -480,18 +486,19 @@ public final class AreaViewer extends ChildFrame
     Center.center(this, NearInfinity.getInstance().getBounds());
 
     // first time layer initialization
-    enableLayerActor(LayerButton.get(Layers.ACTOR).isSelected());
-    enableLayerTrigger(LayerButton.get(Layers.TRIGGER).isSelected());
-    enableLayerEntrance(LayerButton.get(Layers.ENTRANCE).isSelected());
-    enableLayerContainer(LayerButton.get(Layers.CONTAINER).isSelected());
-    enableLayerAmbient(LayerButton.get(Layers.AMBIENT).isSelected());
-    enableLayerDoor(LayerButton.get(Layers.DOOR).isSelected(), drawDoorsClosed());
-    enableLayerAnimation(LayerButton.get(Layers.ANIMATION).isSelected());
-    enableLayerAutomap(LayerButton.get(Layers.AUTOMAP).isSelected());
-    enableLayerTransition(LayerButton.get(Layers.TRANSITION).isSelected());
-    enableLayerProTrap(LayerButton.get(Layers.PROTRAP).isSelected());
-    enableLayerSpawnPoint(LayerButton.get(Layers.SPAWNPOINT).isSelected());
-    advanceProgressMonitor("Showing GUI");
+    layerButton.get(Layers.ACTOR).setSelected(LayerButtonState.get(Layers.ACTOR));
+    layerButton.get(Layers.TRIGGER).setSelected(LayerButtonState.get(Layers.TRIGGER));
+    layerButton.get(Layers.ENTRANCE).setSelected(LayerButtonState.get(Layers.ENTRANCE));
+    layerButton.get(Layers.CONTAINER).setSelected(LayerButtonState.get(Layers.CONTAINER));
+    layerButton.get(Layers.AMBIENTRANGE).setSelected(LayerButtonState.get(Layers.AMBIENTRANGE));
+    layerButton.get(Layers.AMBIENTRANGE).setEnabled(LayerButtonState.get(Layers.AMBIENT) && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
+    layerButton.get(Layers.AMBIENT).setSelected(LayerButtonState.get(Layers.AMBIENT));
+    layerButton.get(Layers.DOOR).setSelected(LayerButtonState.get(Layers.DOOR));
+    layerButton.get(Layers.ANIMATION).setSelected(LayerButtonState.get(Layers.ANIMATION));
+    layerButton.get(Layers.AUTOMAP).setSelected(LayerButtonState.get(Layers.AUTOMAP));
+    layerButton.get(Layers.TRANSITION).setSelected(LayerButtonState.get(Layers.TRANSITION));
+    layerButton.get(Layers.PROTRAP).setSelected(LayerButtonState.get(Layers.PROTRAP));
+    layerButton.get(Layers.SPAWNPOINT).setSelected(LayerButtonState.get(Layers.SPAWNPOINT));
 
     setVisible(true);
   }
@@ -506,33 +513,42 @@ public final class AreaViewer extends ChildFrame
 
   private void addLayer(Layers layer)
   {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      JCheckBox cb = LayerButton.get(layer);
-      cb.addItemListener(this);
-      cb.setEnabled(false);
-    }
-  }
-
-  private void removeLayer(Layers layer)
-  {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      JCheckBox cb = LayerButton.get(layer);
-      cb.removeItemListener(this);
+    if (layer != null) {
+      JCheckBox cb = null;
+      switch (layer) {
+        case ACTOR:         cb = new JCheckBox("Actors"); break;
+        case TRIGGER:       cb = new JCheckBox("Triggers"); break;
+        case ENTRANCE:      cb = new JCheckBox("Entrances"); break;
+        case CONTAINER:     cb = new JCheckBox("Containers"); break;
+        case AMBIENT:       cb = new JCheckBox("Ambient Sounds"); break;
+        case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Radius"); break;
+        case DOOR:          cb = new JCheckBox("Doors"); break;
+        case ANIMATION:     cb = new JCheckBox("Background Animations"); break;
+        case AUTOMAP:       cb = new JCheckBox("Automap Notes"); break;
+        case SPAWNPOINT:    cb = new JCheckBox("Spawn Points"); break;
+        case PROTRAP:       cb = new JCheckBox("Projectile Traps"); break;
+        case TRANSITION:    cb = new JCheckBox("Map Transitions"); break;
+      }
+      if (cb != null) {
+        layerButton.put(layer, cb);
+        cb.addItemListener(this);
+        cb.setEnabled(false);
+      }
     }
   }
 
   private boolean isLayerEnabled(Layers layer)
   {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      return LayerButton.get(layer).isEnabled();
+    if (layer != null && layerButton.containsKey(layer)) {
+      return layerButton.get(layer).isEnabled();
     }
     return false;
   }
 
   private void setLayerEnabled(Layers layer, boolean enable, String toolTipText)
   {
-    if (layer != null && LayerButton.containsKey(layer)) {
-      JCheckBox cb = LayerButton.get(layer);
+    if (layer != null && layerButton.containsKey(layer)) {
+      JCheckBox cb = layerButton.get(layer);
       if (!enable && cb.isSelected())
         cb.setSelected(false);
       cb.setEnabled(enable);
@@ -649,10 +665,8 @@ public final class AreaViewer extends ChildFrame
             if (actor != null)
               listActors.add(actor);
           }
-          setLayerEnabled(Layers.ACTOR, !listActors.isEmpty(), listActors.size() + " actors available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.ACTOR, !listActors.isEmpty(), listActors.size() + " actors available");
           return;
         }
       }
@@ -708,11 +722,13 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.ACTOR, list);
+    setLayerEnabled(Layers.ACTOR, !list.isEmpty(), list.size() + " actors available");
   }
 
   private void enableLayerActor(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.ACTOR), enable);
+    LayerButtonState.put(Layers.ACTOR, enable);
   }
 
   private void initLayerTrigger()
@@ -733,12 +749,8 @@ public final class AreaViewer extends ChildFrame
             if (ite != null)
               listTriggers.add(ite);
           }
-          setLayerEnabled(Layers.TRIGGER, !listTriggers.isEmpty(),
-                          listTriggers.size() + " triggers available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.TRIGGER, !listTriggers.isEmpty(),
-                          listTriggers.size() + " triggers available");
           return;
         }
       }
@@ -767,7 +779,7 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       Rectangle rect = normalizePolygon(poly);
-      PolygonLayerItem item = new PolygonLayerItem(new Point(rect.x, rect.y), trigger, msg, poly);
+      ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), trigger, msg, poly);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
       item.setFillColor(color[2]);
@@ -783,11 +795,13 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.TRIGGER, list);
+    setLayerEnabled(Layers.TRIGGER, !list.isEmpty(), list.size() + " triggers available");
   }
 
   private void enableLayerTrigger(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.TRIGGER), enable);
+    LayerButtonState.put(Layers.TRIGGER, enable);
   }
 
   private void initLayerEntrance()
@@ -808,12 +822,8 @@ public final class AreaViewer extends ChildFrame
             if (entrance != null)
               listEntrances.add(entrance);
           }
-          setLayerEnabled(Layers.ENTRANCE, !listEntrances.isEmpty(),
-                          listEntrances.size() + " entrances available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.ENTRANCE, !listEntrances.isEmpty(),
-                          listEntrances.size() + " entrances available");
           return;
         }
       }
@@ -844,11 +854,13 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.ENTRANCE, list);
+    setLayerEnabled(Layers.ENTRANCE, !list.isEmpty(), list.size() + " entrances available");
   }
 
   private void enableLayerEntrance(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.ENTRANCE), enable);
+    LayerButtonState.put(Layers.ENTRANCE, enable);
   }
 
   private void initLayerContainer()
@@ -870,12 +882,8 @@ public final class AreaViewer extends ChildFrame
             if (container != null)
               listContainers.add(container);
           }
-          setLayerEnabled(Layers.CONTAINER, !listContainers.isEmpty(),
-                          listContainers.size() + " containers available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.CONTAINER, !listContainers.isEmpty(),
-                          listContainers.size() + " containers available");
           return;
         }
       }
@@ -906,7 +914,7 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       Rectangle rect = normalizePolygon(poly);
-      PolygonLayerItem item = new PolygonLayerItem(new Point(rect.x, rect.y), container, msg, poly);
+      ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), container, msg, poly);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
       item.setFillColor(color[2]);
@@ -922,11 +930,13 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.CONTAINER, list);
+    setLayerEnabled(Layers.CONTAINER, !list.isEmpty(), list.size() + " containers available");
   }
 
   private void enableLayerContainer(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.CONTAINER), enable);
+    LayerButtonState.put(Layers.CONTAINER, enable);
   }
 
   private void initLayerAmbient()
@@ -947,12 +957,8 @@ public final class AreaViewer extends ChildFrame
             if (ambient != null)
               listAmbients.add(ambient);
           }
-          setLayerEnabled(Layers.AMBIENT, !listAmbients.isEmpty(),
-                          listAmbients.size() + " ambient sounds available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.AMBIENT, !listAmbients.isEmpty(),
-                          listAmbients.size() + " ambient sounds available");
           return;
         }
       }
@@ -983,11 +989,95 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.AMBIENT, list);
+    setLayerEnabled(Layers.AMBIENT, !list.isEmpty(), list.size() + " ambient sounds available");
   }
 
   private void enableLayerAmbient(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.AMBIENT), enable);
+    LayerButtonState.put(Layers.AMBIENT, enable);
+  }
+
+  private void initLayerAmbientRange()
+  {
+    addLayer(Layers.AMBIENTRANGE);
+
+
+    // initializing ambient sound objects
+    ArrayList<Ambient> listAmbients = new ArrayList<Ambient>();
+    SectionOffset so = (SectionOffset)are.getAttribute("Ambients offset");
+    SectionCount sc = (SectionCount)are.getAttribute("# ambients");
+    if (so != null && sc != null) {
+      int baseOfs = so.getValue();
+      int count = sc.getValue();
+      if (baseOfs > 0 && count > 0) {
+        try {
+          for (int i = 0; i < count; i++) {
+            Ambient ambient = ((Ambient)are.getAttribute("Ambient " + i));
+            if (ambient != null)
+              listAmbients.add(ambient);
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          return;
+        }
+      }
+    }
+
+    // initializing ambient sound layer items
+    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listAmbients.size());
+    Color[] color = new Color[]{new Color(0xFF000080, true), new Color(0xFF000080, true),
+                                new Color(0x00204080, true), new Color(0x004060C0, true)};
+    for (final Ambient ambient: listAmbients) {
+      String msg;
+      Point location = new Point(0, 0);
+      Ellipse2D.Float circle = null;
+      int radius = 0;
+      int volume = 0;
+      try {
+        location.x = ((DecNumber)ambient.getAttribute("Origin: X")).getValue();
+        location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
+        radius = ((DecNumber)ambient.getAttribute("Radius")).getValue();
+        volume = ((DecNumber)ambient.getAttribute("Volume")).getValue();
+        msg = ((TextString)ambient.getAttribute("Name")).toString();
+        boolean global = ((Flag)ambient.getAttribute("Flags")).isFlagSet(2);
+        if (!global && radius > 0) {
+          circle = new Ellipse2D.Float(0, 0, (float)(2*radius), (float)(2*radius));
+          float alphaF = (float)volume / 100.0f * 255.0f;
+          int alphaNorm = ((int)Math.max(10.0f, alphaF*0.5f) & 0xff);
+          int alphaHigh = ((int)Math.min(255.0f, alphaF*0.5f) & 0xff);
+          color[2] = new Color(color[2].getRGB() | (alphaNorm << 24), true);
+          color[3] = new Color(color[3].getRGB() | (alphaHigh << 24), true);
+        }
+      } catch (Throwable e) {
+        msg = new String();
+      }
+      if (circle != null) {
+        ShapedLayerItem item = new ShapedLayerItem(location, ambient, msg, circle, new Point(radius, radius));
+        item.setStrokeColor(color[0]);
+        item.setHighlightedStrokeColor(color[1]);
+        item.setFillColor(color[2]);
+        item.setHighlightedFillColor(color[3]);
+        item.setStroked(true);
+        item.setFilled(true);
+        item.addActionListener(this);
+        item.addLayerItemListener(this);
+        item.addMouseMotionListener(this);
+        list.add(item);
+        item.setVisible(false);
+        lTileset.add(item);
+        item.setItemLocation(item.getMapLocation());
+      }
+    }
+    layerItems.put(Layers.AMBIENTRANGE, list);
+    setLayerEnabled(Layers.AMBIENTRANGE, !list.isEmpty(),
+                    list.size() + " ambient sounds with local radius available");
+  }
+
+  private void enableLayerAmbientRange(boolean enable)
+  {
+    showAllLayerItems(layerItems.get(Layers.AMBIENTRANGE), enable);
+    LayerButtonState.put(Layers.AMBIENTRANGE, enable);
   }
 
   private void initLayerDoor()
@@ -1008,12 +1098,8 @@ public final class AreaViewer extends ChildFrame
             if (door != null)
               listDoors.add(door);
           }
-          setLayerEnabled(Layers.DOOR, !listDoors.isEmpty(),
-                          listDoors.size() + " doors available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.DOOR, !listDoors.isEmpty(),
-                          listDoors.size() + " doors available");
           return;
         }
       }
@@ -1049,7 +1135,7 @@ public final class AreaViewer extends ChildFrame
       }
       // adding opened door item
       Rectangle rect = normalizePolygon(poly[0]);
-      PolygonLayerItem item = new PolygonLayerItem(new Point(rect.x, rect.y), door, msg + " (Open)", poly[0]);
+      ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg + " (Open)", poly[0]);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
       item.setFillColor(color[2]);
@@ -1065,7 +1151,7 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
       // adding closed door item
       rect = normalizePolygon(poly[1]);
-      item = new PolygonLayerItem(new Point(rect.x, rect.y), door, msg + " (Closed)", poly[1]);
+      item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg + " (Closed)", poly[1]);
       item.setStrokeColor(color[0]);
       item.setHighlightedStrokeColor(color[1]);
       item.setFillColor(color[2]);
@@ -1081,6 +1167,7 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.DOOR, list);
+    setLayerEnabled(Layers.DOOR, !listDoors.isEmpty(), listDoors.size() + " doors available");
   }
 
   private void enableLayerDoor(boolean enable, boolean isClosed)
@@ -1091,6 +1178,7 @@ public final class AreaViewer extends ChildFrame
       showLayerItem(list.get((i << 1) + ((ofs + 1) & 1)), false);
       showLayerItem(list.get((i << 1) + ofs), enable);
     }
+    LayerButtonState.put(Layers.DOOR, enable);
   }
 
   private void initLayerAnimation()
@@ -1111,12 +1199,8 @@ public final class AreaViewer extends ChildFrame
             if (anim != null)
               listAnimations.add(anim);
           }
-          setLayerEnabled(Layers.ANIMATION, !listAnimations.isEmpty(),
-                          listAnimations.size() + " animations available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.ANIMATION, !listAnimations.isEmpty(),
-                          listAnimations.size() + " animations available");
           return;
         }
       }
@@ -1147,11 +1231,13 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.ANIMATION, list);
+    setLayerEnabled(Layers.ANIMATION, !list.isEmpty(), list.size() + " animations available");
   }
 
   private void enableLayerAnimation(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.ANIMATION), enable);
+    LayerButtonState.put(Layers.ANIMATION, enable);
   }
 
   private void initLayerAutomap()
@@ -1179,26 +1265,15 @@ public final class AreaViewer extends ChildFrame
               if (automap != null)
                 listAutomapNotesPST.add(automap);
             }
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotesPST.isEmpty(),
-                            listAutomapNotesPST.size() + " automap notes available");
           } else {
             for (int i = 0; i < count; i++) {
               AutomapNote automap = ((AutomapNote)are.getAttribute("Automap note " + i));
               if (automap != null)
                 listAutomapNotes.add(automap);
             }
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotes.isEmpty(),
-                            listAutomapNotes.size() + " automap notes available");
           }
         } catch (Exception e) {
           e.printStackTrace();
-          if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotesPST.isEmpty(),
-                            listAutomapNotesPST.size() + " automap notes available");
-          } else {
-            setLayerEnabled(Layers.AUTOMAP, !listAutomapNotes.isEmpty(),
-                            listAutomapNotes.size() + " automap notes available");
-          }
           return;
         }
       }
@@ -1299,11 +1374,13 @@ public final class AreaViewer extends ChildFrame
       }
     }
     layerItems.put(Layers.AUTOMAP, list);
+    setLayerEnabled(Layers.AUTOMAP, !list.isEmpty(), list.size() + " automap notes available");
   }
 
   private void enableLayerAutomap(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.AUTOMAP), enable);
+    LayerButtonState.put(Layers.AUTOMAP, enable);
   }
 
   private void initLayerTransition()
@@ -1326,8 +1403,6 @@ public final class AreaViewer extends ChildFrame
         }
       }
     }
-    setLayerEnabled(Layers.TRANSITION, !listTransitions.isEmpty(),
-                    listTransitions.size() + " map transitions available");
 
     // initializing transition layer items
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listTransitions.size());
@@ -1350,8 +1425,8 @@ public final class AreaViewer extends ChildFrame
         poly.addPoint(rectMap.get(edge).width, 0);
         poly.addPoint(rectMap.get(edge).width, rectMap.get(edge).height);
         poly.addPoint(0, rectMap.get(edge).height);
-        PolygonLayerItem item = new PolygonLayerItem(new Point(rectMap.get(edge).x, rectMap.get(edge).y),
-                                                     resource, msg, poly);
+        ShapedLayerItem item = new ShapedLayerItem(new Point(rectMap.get(edge).x, rectMap.get(edge).y),
+                                                   resource, msg, poly);
         item.setStrokeColor(color[0]);
         item.setHighlightedStrokeColor(color[1]);
         item.setFillColor(color[2]);
@@ -1368,11 +1443,13 @@ public final class AreaViewer extends ChildFrame
       }
     }
     layerItems.put(Layers.TRANSITION, list);
+    setLayerEnabled(Layers.TRANSITION, !list.isEmpty(), list.size() + " map transitions available");
   }
 
   private void enableLayerTransition(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.TRANSITION), enable);
+    LayerButtonState.put(Layers.TRANSITION, enable);
   }
 
   private void initLayerProTrap()
@@ -1399,12 +1476,8 @@ public final class AreaViewer extends ChildFrame
             if (trap != null)
               listProTraps.add(trap);
           }
-          setLayerEnabled(Layers.PROTRAP, !listProTraps.isEmpty(),
-                          listProTraps.size() + " projectile traps available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.PROTRAP, !listProTraps.isEmpty(),
-                          listProTraps.size() + " projectile traps available");
           return;
         }
       }
@@ -1441,11 +1514,13 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.PROTRAP, list);
+    setLayerEnabled(Layers.PROTRAP, !list.isEmpty(), list.size() + " projectile traps available");
   }
 
   private void enableLayerProTrap(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.PROTRAP), enable);
+    LayerButtonState.put(Layers.PROTRAP, enable);
   }
 
   private void initLayerSpawnPoint()
@@ -1466,12 +1541,8 @@ public final class AreaViewer extends ChildFrame
             if (sp != null)
               listSpawnPoints.add(sp);
           }
-          setLayerEnabled(Layers.SPAWNPOINT, !listSpawnPoints.isEmpty(),
-                          listSpawnPoints.size() + " spawn points available");
         } catch (Exception e) {
           e.printStackTrace();
-          setLayerEnabled(Layers.SPAWNPOINT, !listSpawnPoints.isEmpty(),
-                          listSpawnPoints.size() + " spawn points available");
           return;
         }
       }
@@ -1502,11 +1573,13 @@ public final class AreaViewer extends ChildFrame
       item.setItemLocation(item.getMapLocation());
     }
     layerItems.put(Layers.SPAWNPOINT, list);
+    setLayerEnabled(Layers.SPAWNPOINT, !list.isEmpty(), list.size() + " spawn points available");
   }
 
   private void enableLayerSpawnPoint(boolean enable)
   {
     showAllLayerItems(layerItems.get(Layers.SPAWNPOINT), enable);
+    LayerButtonState.put(Layers.SPAWNPOINT, enable);
   }
 
   private DayNight getCurrentMap()

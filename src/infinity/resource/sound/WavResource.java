@@ -18,6 +18,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
+@Deprecated
 public final class WavResource implements Resource, ActionListener, Closeable, Runnable
 {
   private final ResourceEntry entry;
