@@ -197,7 +197,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
       if (decoder.info().blockCount() > 0) {
         int blockCount = decoder.info().blockCount();
         ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.A8R8G8B8;
-        image = new BufferedImage(decoder.info().width(), decoder.info().height(), BufferedImage.TYPE_INT_RGB);
+        image = ColorConvert.createCompatibleImage(decoder.info().width(), decoder.info().height(), false);
 
         for (int blockIdx = 0; blockIdx < blockCount; blockIdx++) {
           MosDecoder.BlockInfo bi = decoder.info().blockInfo(blockIdx);

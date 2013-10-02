@@ -127,7 +127,7 @@ public final class PltResource implements Resource, ActionListener
     int width = DynamicArray.getInt(buffer, 16);
     int height = DynamicArray.getInt(buffer, 20);
     int offset = 24;
-    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    BufferedImage image = ColorConvert.createCompatibleImage(width, height, false);
     for (int y = height - 1; y >= 0; y--) {
       for (int x = 0; x < width; x++) {
         short colorIndex = DynamicArray.getUnsignedByte(buffer, offset++);

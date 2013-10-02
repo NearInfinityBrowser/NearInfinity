@@ -15,9 +15,9 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -27,6 +27,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 
 public class Viewer extends JPanel implements Runnable, ActionListener
@@ -34,16 +35,15 @@ public class Viewer extends JPanel implements Runnable, ActionListener
   private final DefaultListModel listModel = new DefaultListModel();
   private final JList list = new JList(listModel);
   private final AudioPlayer player = new AudioPlayer();
-  private final List<Entry> entryList = new ArrayList<Entry>();
+  private final List<Entry> entryList = new Vector<Entry>();
 
   private JLabel playList;
   private JButton bPlay, bEnd, bStop;
-  private boolean play, end, closed;
+  private boolean play, end, closed = false;
 
 
   public Viewer(MusResource mus)
   {
-    closed = false;
     initGUI();
     loadMusResource(mus);
   }
@@ -116,16 +116,24 @@ public class Viewer extends JPanel implements Runnable, ActionListener
   {
     setClosed(true);
     stopPlay();
-//    Entry2.clearCache();
   }
 
   // Creates a new music list and loads all associated soundtracks
-  public void loadMusResource(MusResource mus)
+  public void loadMusResource(final MusResource mus)
   {
-    new Thread(new MusLoader(mus)).start();
+    if (mus != null) {
+      // Parse and load soundtracks in a separate thread
+      (new SwingWorker<Boolean, Void>() {
+        @Override
+        public Boolean doInBackground()
+        {
+          return parseMusFile(mus);
+        }
+      }).execute();
+    }
   }
 
-  private synchronized void parseMusFile(MusResource mus)
+  private boolean parseMusFile(MusResource mus)
   {
     if (!isClosed()) {
       stopPlay();
@@ -137,14 +145,16 @@ public class Viewer extends JPanel implements Runnable, ActionListener
       entryList.clear();
       int count = Integer.valueOf(tokenizer.nextToken().trim()).intValue();
       for (int i = 0; i < count; i++) {
-        if (isClosed()) return;
+        if (isClosed()) return false;
         Entry entry = new Entry(mus.getResourceEntry(), dir, entryList, tokenizer.nextToken().trim(), i);
         entryList.add(entry);
         listModel.addElement(entry);
       }
+      list.setSelectedIndex(0);
+      validate();
 
       for (final Entry entry: entryList) {
-        if (isClosed()) return;
+        if (isClosed()) return false;
         try {
           entry.init();
         } catch (Exception e) {
@@ -157,9 +167,9 @@ public class Viewer extends JPanel implements Runnable, ActionListener
       boolean enable = (!entryList.isEmpty() && entryList.get(0).getAudioBuffer() != null);
       bPlay.setEnabled(enable);
       list.setEnabled(enable);
-      list.repaint();
-      list.setSelectedIndex(0);
+      return true;
     }
+    return false;
   }
 
 
@@ -218,33 +228,8 @@ public class Viewer extends JPanel implements Runnable, ActionListener
     }
   }
 
-  private boolean isClosed()
+  private synchronized boolean isClosed()
   {
     return closed;
-  }
-
-//-------------------------- INNER CLASSES --------------------------
-
-  private class MusLoader implements Runnable
-  {
-    private final MusResource mus;
-
-    private MusLoader(MusResource mus)
-    {
-      this.mus = mus;
-    }
-
-    public void run()
-    {
-      try {
-        if (mus != null && mus.getViewer() != null ) {
-          mus.getViewer().parseMusFile(mus);
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(mus.getViewer().getTopLevelAncestor(), e.getMessage(), "Error",
-                                      JOptionPane.ERROR_MESSAGE);
-      }
-    }
   }
 }

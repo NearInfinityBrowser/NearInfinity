@@ -15,6 +15,7 @@ import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -302,7 +303,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
       }
 
       if (height < 1 || width < 1) {
-        image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        image = ColorConvert.createCompatibleImage(1, 1, false);
         image.setRGB(0, 0, 0x00ff00);
         return;
       }
@@ -324,7 +325,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
           }
         }
       }
-      image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+      image = ColorConvert.createCompatibleImage(width, height, false);
       for (int h_idx = 0; h_idx < height; h_idx++)
         for (int w_idx = 0; w_idx < width; w_idx++)
           image.setRGB(w_idx, h_idx, palette.getColor((int)imagedata[h_idx * width + w_idx]));

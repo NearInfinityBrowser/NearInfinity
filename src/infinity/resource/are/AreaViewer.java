@@ -68,6 +68,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.datatype.Bitmap;
 import infinity.resource.cre.CreResource;
+import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.TisDecoder;
 import infinity.resource.graphics.TisResource2;
 import infinity.resource.key.FileResourceEntry;
@@ -352,19 +353,6 @@ public final class AreaViewer extends ChildFrame
   }
 
 //--------------------- End Interface MouseMotionListener ---------------------
-
-  protected void windowClosing() throws Exception
-  {
-    lTileset.setIcon(null);
-    mapImage = null;
-    tisDecoder = null;
-    layerItems.clear();
-    layerItems = null;
-    dayNightTiles.clear();
-    dayNightTiles = null;
-    dispose();
-    System.gc();
-  }
 
   private void initGui()
   {
@@ -894,7 +882,9 @@ public final class AreaViewer extends ChildFrame
       try {
         location.x = ((DecNumber)entrance.getAttribute("Location: X")).getValue();
         location.y = ((DecNumber)entrance.getAttribute("Location: Y")).getValue();
-        msg = ((TextString)entrance.getAttribute("Name")).toString();
+        int o = ((Bitmap)entrance.getAttribute("Orientation")).getValue();
+        msg = ((TextString)entrance.getAttribute("Name")).toString() +
+              " (" + Actor.s_orientation[o] + ")";
       } catch (Throwable e) {
         msg = new String();
       }
@@ -1614,8 +1604,6 @@ public final class AreaViewer extends ChildFrame
 
 
     // initializing door polygon layer items
-    final String[] s_flags = new String[]{"Shade wall", "Semi transparent", "Hovering wall",
-                                          "Cover animations", "Unknown", "Unknown", "Unknown", "Is door"};
     Color[] color = new Color[]{new Color(0xFF603080, true), new Color(0xFF603080, true),
                                 new Color(0x80A050C0, true), new Color(0xC0C060D0, true)};
     ArrayList<AbstractLayerItem> listDoor = new ArrayList<AbstractLayerItem>(2*listDoorPoly.size());
@@ -1637,7 +1625,8 @@ public final class AreaViewer extends ChildFrame
           if (numOpen > i) {
             dp[0] = (infinity.resource.wed.Polygon)door.getAttribute("Open polygon " + i);
             if (dp[0] != null) {
-              msg2[0] = msg + " " + createFlags((Flag)dp[0].getAttribute("Polygon flags"), s_flags) +
+              msg2[0] = msg + " " + createFlags((Flag)dp[0].getAttribute("Polygon flags"),
+                                                 infinity.resource.wed.Polygon.s_flags) +
                         " (Open)";
               int numVertices = ((SectionCount)dp[0].getAttribute("# vertices")).getValue();
               for (int j = 0; j < numVertices; j++) {
@@ -1654,7 +1643,8 @@ public final class AreaViewer extends ChildFrame
           if (numClosed > i) {
             dp[1] = (infinity.resource.wed.Polygon)door.getAttribute("Closed polygon " + i);
             if (dp[1] != null) {
-              msg2[1] = msg + " " + createFlags((Flag)dp[1].getAttribute("Polygon flags"), s_flags) +
+              msg2[1] = msg + " " + createFlags((Flag)dp[1].getAttribute("Polygon flags"),
+                                                infinity.resource.wed.Polygon.s_flags) +
                         " (Closed)";
               int numVertices = ((SectionCount)dp[1].getAttribute("# vertices")).getValue();
               for (int j = 0; j < numVertices; j++) {
@@ -1703,7 +1693,8 @@ public final class AreaViewer extends ChildFrame
       String msg;
       Polygon poly = new Polygon();
       try {
-        msg = "Wall polygon #" + count + " " + createFlags((Flag)wp.getAttribute("Polygon flags"), s_flags);
+        msg = "Wall polygon #" + count + " " + createFlags((Flag)wp.getAttribute("Polygon flags"),
+                                                           infinity.resource.wed.Polygon.s_flags);
         int numVertices = ((SectionCount)wp.getAttribute("# vertices")).getValue();
         for (int i = 0; i < numVertices; i++) {
           Vertex vertex = ((Vertex)wp.getAttribute("Vertex " + i));
@@ -1765,7 +1756,7 @@ public final class AreaViewer extends ChildFrame
     return new Rectangle();
   }
 
-  // Helps to create a string representation of flags
+  // Helps to create a string representation of flags (index 0=no flags set)
   private static String createFlags(Flag flags, String[] flagsDesc)
   {
     if (flags != null) {
@@ -1782,8 +1773,8 @@ public final class AreaViewer extends ChildFrame
         for (int i = 0; i < flags.getSize() * 8; i++) {
           if (flags.isFlagSet(i)) {
             numFlags--;
-            if (flagsDesc != null && i < flagsDesc.length) {
-              sb.append(flagsDesc[i]);
+            if (flagsDesc != null && i+1 < flagsDesc.length) {
+              sb.append(flagsDesc[i+1]);
             } else {
               sb.append("Bit " + i);
             }
@@ -1794,6 +1785,8 @@ public final class AreaViewer extends ChildFrame
         }
         sb.append("]");
         return sb.toString();
+      } else if (flagsDesc != null && flagsDesc.length > 0) {
+        return "[" + flagsDesc[0] + "]";
       }
     }
     return "[No flags]";
@@ -1816,7 +1809,7 @@ public final class AreaViewer extends ChildFrame
         BufferedImage img = (BufferedImage)mapImage.getImage();
         if (img == null || img.getWidth() != mapDim.width || img.getHeight() != mapDim.height) {
           // creating new image object
-          img = new BufferedImage(mapDim.width, mapDim.height, BufferedImage.TYPE_INT_RGB);
+          img = ColorConvert.createCompatibleImage(mapDim.width, mapDim.height, false);
           mapImage.setImage(img);
         } else if (img != null) {
           img.flush();

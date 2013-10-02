@@ -13,6 +13,7 @@ import infinity.util.DynamicArray;
 import infinity.util.Filereader;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -37,7 +38,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
 
 //  public BufferedImage drawImage(int width, int height, int mapIndex, int lookupIndex, Overlay overlay)
 //  {
-//    BufferedImage image = new BufferedImage(width * tilesize, height * tilesize, BufferedImage.TYPE_INT_RGB);
+//    BufferedImage image = ColorConvert.createCompatibleImage(width * tilesize, height * tilesize, false);
 //    for (int xpos = 0; xpos < width; xpos++) {
 //      for (int ypos = height - 1; ypos >= 0; ypos--) {
 //        AbstractStruct wedtilemap = (AbstractStruct)overlay.getStructEntryAt(ypos * width + xpos + mapIndex);
@@ -89,7 +90,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
     }
 
     Collections.sort(tiles);
-    BufferedImage image = new BufferedImage(width * tilesize, height * tilesize, BufferedImage.TYPE_INT_RGB);
+    BufferedImage image = ColorConvert.createCompatibleImage(width * tilesize, height * tilesize, false);
     TileInfo lastTile = null;
     for (int i = 0; i < tiles.size(); i++) {
       TileInfo tile = tiles.get(i);
@@ -254,7 +255,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
       return null;
     int paletteOffset = offset;
     offset += 4 * 256;
-    BufferedImage tile = new BufferedImage(tilesize, tilesize, BufferedImage.TYPE_INT_RGB);
+    BufferedImage tile = ColorConvert.createCompatibleImage(tilesize, tilesize, false);
     for (int y = 0; y < tilesize; y++)
       for (int x = 0; x < tilesize; x++)
         tile.setRGB(x, y, Palette.getColor(imagedata, paletteOffset, imagedata[offset++]));

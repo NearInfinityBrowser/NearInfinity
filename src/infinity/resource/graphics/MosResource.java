@@ -11,6 +11,7 @@ import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -64,7 +65,7 @@ public final class MosResource implements Resource, ActionListener
         offset += 4;
       }
 
-    image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    image = ColorConvert.createCompatibleImage(width, height, false);
     int xoff = 0, yoff = 0;
     for (int y = 0; y < rows; y++) {
       int h = Math.min(64, height - yoff);

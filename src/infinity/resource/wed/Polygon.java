@@ -10,7 +10,7 @@ import infinity.resource.vertex.Vertex;
 
 public abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
-  private static final String[] s_flags = { "No flags set", "Shade wall", "Semi transparent",
+  public static final String[] s_flags = { "No flags set", "Shade wall", "Semi transparent",
                                             "Hovering wall", "Cover animations", "Unknown",
                                             "Unknown", "Unknown", "Is door" };
 

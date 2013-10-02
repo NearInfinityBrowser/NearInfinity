@@ -36,12 +36,11 @@ public final class FntResource extends AbstractStruct implements Resource, Close
     if (resName.lastIndexOf('.') > 0)
       resName = resName.substring(0, resName.lastIndexOf('.'));
 
-    byte[] b = new byte[16];
+    byte[] b = new byte[8];
     System.arraycopy(resName.getBytes(), 0, b, 0, resName.length());
-    System.arraycopy(resName.getBytes(), 0, b, 8, resName.length());
     list.add(new DecNumber(buffer, startoffset, 4, "# extra letters"));
     list.add(new ResourceRef(b, 0, "Letters", "BAM"));
-    list.add(new ResourceRef(b, 8, "Extra letters", "BMP"));
+    list.add(new ResourceRef(b, 0, "Extra letters", "BMP"));
     return buffer.length;
   }
 

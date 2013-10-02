@@ -152,7 +152,7 @@ public class PvrzResource implements Resource, ActionListener
     int imgSize = imgWidth*imgHeight;
     int[] block = new int[imgSize];
     ColorConvert.BufferToColor(outputFormat, decoder.decode(outputFormat), 0, block, 0, imgSize);
-    image = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
+    image = ColorConvert.createCompatibleImage(imgWidth, imgHeight, false);
     image.setRGB(0, 0, imgWidth, imgHeight, block, 0, imgWidth);
   }
 

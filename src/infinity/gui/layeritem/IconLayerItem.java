@@ -18,6 +18,7 @@ import javax.swing.SwingConstants;
 import sun.awt.image.ToolkitImage;
 import infinity.gui.layeritem.LayerItemEvent.ItemState;
 import infinity.resource.Viewable;
+import infinity.resource.graphics.ColorConvert;
 
 /**
  * Represents a game resource structure visually as a bitmap icon.
@@ -25,7 +26,7 @@ import infinity.resource.Viewable;
  */
 public class IconLayerItem extends AbstractLayerItem implements LayerItemListener
 {
-  private static final Icon DefaultIcon = new ImageIcon(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
+  private static final Icon DefaultIcon = new ImageIcon(ColorConvert.createCompatibleImage(1, 1, true));
 
   private EnumMap<ItemState, Icon> icons;
   private JLabel label;

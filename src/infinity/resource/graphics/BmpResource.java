@@ -11,6 +11,7 @@ import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -57,8 +58,7 @@ public final class BmpResource implements Resource, ActionListener
       if (padded == 4)
         padded = 0;
 
-      int pixelType = (bitcount < 32) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-      image = new BufferedImage(width, height, pixelType);
+      image = ColorConvert.createCompatibleImage(width, height, bitcount >= 32);
       int offset = rasteroff;
       for (int y = height - 1; y >= 0; y--) {
         setPixels(data, offset, bitcount, bytesprline, y, palette);

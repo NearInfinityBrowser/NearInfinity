@@ -6,6 +6,7 @@ package infinity.gui.layeritem;
 
 import infinity.gui.layeritem.LayerItemEvent.ItemState;
 import infinity.resource.Viewable;
+import infinity.resource.graphics.ColorConvert;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -346,7 +347,7 @@ import javax.swing.SwingConstants;
       Rectangle rect = shape.getBounds();
       if (rect.isEmpty())
         rect.width = rect.height = 1;
-      BufferedImage img = new BufferedImage(rect.x + rect.width, rect.y + rect.height, BufferedImage.TYPE_INT_ARGB);
+      BufferedImage img = ColorConvert.createCompatibleImage(rect.x + rect.width, rect.y + rect.height, true);
       Graphics2D graphics = img.createGraphics();
       if (graphics != null) {
         if (filled) {
@@ -360,7 +361,7 @@ import javax.swing.SwingConstants;
       }
       return new ImageIcon(img);
     } else {
-      return new ImageIcon(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
+      return new ImageIcon(ColorConvert.createCompatibleImage(1, 1, true));
     }
   }
 

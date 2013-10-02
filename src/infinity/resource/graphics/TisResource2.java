@@ -388,7 +388,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
                                    0, block, 0, block.length);
 
         // drawing tile
-        BufferedImage img = new BufferedImage(tileWidth, tileHeight, BufferedImage.TYPE_INT_RGB);
+        BufferedImage img = ColorConvert.createCompatibleImage(tileWidth, tileHeight, false);
         img.setRGB(0, 0, tileWidth, tileHeight, block, 0, tileWidth);
         tileImages.add(img);
       }
@@ -399,7 +399,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       if (tileImages == null)
         tileImages = new ArrayList<Image>();
       if (tileImages.isEmpty())
-        tileImages.add(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
+        tileImages.add(ColorConvert.createCompatibleImage(1, 1, false));
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                     "Error while loading TIS resource: " + entry.getResourceName(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
