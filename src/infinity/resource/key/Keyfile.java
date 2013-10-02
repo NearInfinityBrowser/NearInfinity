@@ -356,12 +356,8 @@ public final class Keyfile
     int resoff = Byteconvert.convertInt(buffer, 20);
 
     biffEntries = new ArrayList<BIFFEntry>(numbif);
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_DEMO)
-      for (int i = 0; i < numbif; i++)
-        biffEntries.add(new BIFFEntry(i, buffer, bifoff + 8 * i, true));
-    else
-      for (int i = 0; i < numbif; i++)
-        biffEntries.add(new BIFFEntry(i, buffer, bifoff + 12 * i));
+    for (int i = 0; i < numbif; i++)
+      biffEntries.add(new BIFFEntry(i, buffer, bifoff + 12 * i));
 
     if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN ||
         ResourceFactory.getGameID() == ResourceFactory.ID_KOTOR ||
