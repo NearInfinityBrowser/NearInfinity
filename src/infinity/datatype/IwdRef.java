@@ -32,7 +32,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
   {
     super(offset, 4, name);
     idsmap = IdsMapCache.get(idsfile).getMap();
-    value = Byteconvert.convertUnsignedInt(buffer, offset);
+    value = DynamicArray.getUnsignedInt(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------

@@ -12,7 +12,7 @@ import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.WavReferenceSearcher;
 import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,7 +38,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     byte data[] = entry.getResourceData();
     signature = new String(data, 0, 4);
     if (signature.equals("RIFF")) {
-      if (Byteconvert.convertShort(data, 20) == 0x11) { // IMA ADPCM
+      if (DynamicArray.getShort(data, 20) == 0x11) { // IMA ADPCM
         wavfile = SoundUtilities.convertADPCM(data, 0, entry.toString());
         fileCreated = true;
       }
@@ -63,10 +63,10 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     }
     else if (signature.equals("WAVC")) {
       new String(data, 4, 4); // Version
-      Byteconvert.convertInt(data, 8); // Unc_length
-      Byteconvert.convertInt(data, 12); // Com_length
+      DynamicArray.getInt(data, 8); // Unc_length
+      DynamicArray.getInt(data, 12); // Com_length
       // 4 unknown bytes
-      channels = (int)Byteconvert.convertShort(data, 20);
+      channels = (int)DynamicArray.getShort(data, 20);
       // 6 unknown bytes
 
       if (BrowserMenuBar.getInstance().autoConvertWAV() && SoundUtilities.converterExists())
@@ -77,7 +77,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       mp3data = ArrayUtil.getSubArray(data, 8, data.length - 8);
     }
     else if (data.length > 480 && new String(data, 470, 4).equals("RIFF")) {
-      if (Byteconvert.convertShort(data, 470 + 20) == 0x11) { // IMA ADPCM
+      if (DynamicArray.getShort(data, 470 + 20) == 0x11) { // IMA ADPCM
         wavfile = SoundUtilities.convertADPCM(data, 470, entry.toString());
         fileCreated = true;
       }

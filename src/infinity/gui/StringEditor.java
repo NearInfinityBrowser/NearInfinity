@@ -601,13 +601,13 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
       if (version.equals("V1  ")) {
         data = ArrayUtil.getSubArray(buffer, offset, 18);
-        doffset = Byteconvert.convertInt(buffer, offset + 18);
-        dlength = Byteconvert.convertInt(buffer, offset + 22);
+        doffset = DynamicArray.getInt(buffer, offset + 18);
+        dlength = DynamicArray.getInt(buffer, offset + 22);
       }
       else if (version.equals("V3.0")) {
         data = ArrayUtil.getSubArray(buffer, offset, 40);
-        doffset = Byteconvert.convertInt(buffer, offset + 28);
-        dlength = Byteconvert.convertInt(buffer, offset + 32);
+        doffset = DynamicArray.getInt(buffer, offset + 28);
+        dlength = DynamicArray.getInt(buffer, offset + 32);
       }
       return offset + entry_size;
     }

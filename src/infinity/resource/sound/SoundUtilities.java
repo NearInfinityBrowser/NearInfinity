@@ -5,7 +5,7 @@
 package infinity.resource.sound;
 
 import infinity.resource.sound.AudioConverter;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
 import javax.sound.sampled.*;
@@ -79,8 +79,8 @@ public final class SoundUtilities
       throw new IOException();
     }
     while (!new String(data, offset, 4).equals("data"))
-      offset += 8 + Byteconvert.convertInt(data, offset + 4);
-    int data_length = Byteconvert.convertInt(data, offset + 4);
+      offset += 8 + DynamicArray.getInt(data, offset + 4);
+    int data_length = DynamicArray.getInt(data, offset + 4);
     offset += 8;
     Filewriter.writeString(os, "RIFF", 4);
     Filewriter.writeInt(os,
@@ -105,8 +105,8 @@ public final class SoundUtilities
   private static void decodeADPCM(byte data[], byte pcm[], int offset, AdpcmFmt fmt)
   {
     for (int channel = 0; channel < fmt.num_channels; channel++) {
-      short last_sample = Byteconvert.convertShort(data, 4 * channel + offset);
-      byte step_index = Byteconvert.convertByte(data, 4 * channel + offset + 2);
+      short last_sample = DynamicArray.getShort(data, 4 * channel + offset);
+      byte step_index = DynamicArray.getByte(data, 4 * channel + offset + 2);
       pcm[2 * channel] = (byte)(last_sample & 0xff);
       pcm[1 + 2 * channel] = (byte)(last_sample >> 8 & 0xff);
       for (int index = 0; index < fmt.samples_block / 2; index++) {
@@ -220,15 +220,15 @@ public final class SoundUtilities
     private int read(byte data[], int offset)
     {
       id = new String(data, offset, 4);
-      chunk_size = Byteconvert.convertInt(data, offset + 4);
-//      compr_code = Byteconvert.convertShort(data, offset + 8);
-      num_channels = Byteconvert.convertShort(data, offset + 10);
-      sample_rate = Byteconvert.convertInt(data, offset + 12);
-//      bytes_sec = Byteconvert.convertInt(data, offset + 16);
-      block_align = Byteconvert.convertShort(data, offset + 20);
-      bits_sample = Byteconvert.convertShort(data, offset + 22);
-//      extra_bytes = Byteconvert.convertShort(data, offset + 24);
-      samples_block = Byteconvert.convertUnsignedShort(data, offset + 26);
+      chunk_size = DynamicArray.getInt(data, offset + 4);
+//      compr_code = DynamicArray.getShort(data, offset + 8);
+      num_channels = DynamicArray.getShort(data, offset + 10);
+      sample_rate = DynamicArray.getInt(data, offset + 12);
+//      bytes_sec = DynamicArray.getInt(data, offset + 16);
+      block_align = DynamicArray.getShort(data, offset + 20);
+      bits_sample = DynamicArray.getShort(data, offset + 22);
+//      extra_bytes = DynamicArray.getShort(data, offset + 24);
+      samples_block = DynamicArray.getUnsignedShort(data, offset + 26);
       return offset + 8 + chunk_size;
     }
 

@@ -9,7 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.NIFile;
 
 import javax.swing.*;
@@ -34,9 +34,9 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
     String fileType = new String(buffer, 0, 4);
     String fileVersion = new String(buffer, 4, 4);
-    int unknown1 = Byteconvert.convertInt(buffer, 8);
-    int entryCount = Byteconvert.convertInt(buffer, 12);
-    int offsetToKeyList = Byteconvert.convertInt(buffer, 16);
+    int unknown1 = DynamicArray.getInt(buffer, 8);
+    int entryCount = DynamicArray.getInt(buffer, 12);
+    int offsetToKeyList = DynamicArray.getInt(buffer, 16);
     // unused bytes ?
 
     keys = new RimKeyEntry[entryCount];
@@ -156,11 +156,11 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
     private RimKeyEntry(byte buffer[], int offset)
     {
-      resRef = Byteconvert.convertString(buffer, offset, 16);
-      resType = Byteconvert.convertInt(buffer, offset + 16);
-      resID = Byteconvert.convertInt(buffer, offset + 20);
-      offsetToResource = Byteconvert.convertInt(buffer, offset + 24);
-      resourceSize = Byteconvert.convertInt(buffer, offset + 28);
+      resRef = DynamicArray.getString(buffer, offset, 16);
+      resType = DynamicArray.getInt(buffer, offset + 16);
+      resID = DynamicArray.getInt(buffer, offset + 20);
+      offsetToResource = DynamicArray.getInt(buffer, offset + 24);
+      resourceSize = DynamicArray.getInt(buffer, offset + 28);
     }
 
     public Object getObjectAt(int columnIndex)

@@ -6,7 +6,7 @@ package infinity.resource.graphics;
 
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -146,8 +146,8 @@ public class MosDecoder
           if (entry != null) {
             byte[] data = entry.getResourceData();
             if (data != null) {
-              int size = Byteconvert.convertInt(data, 0);
-              int marker = Byteconvert.convertShort(data, 4) & 0xffff;
+              int size = DynamicArray.getInt(data, 0);
+              int marker = DynamicArray.getShort(data, 4) & 0xffff;
               if ((size & 0xff) != 0x34 || marker != 0x9c78)
                 throw new Exception("Invalid PVRZ resource: " + entry.getResourceName());
               data = Compressor.decompress(data, 0);

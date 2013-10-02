@@ -8,7 +8,7 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,12 +42,12 @@ public final class MosResource implements Resource, ActionListener
     else if (!signature.equalsIgnoreCase("MOS "))
       throw new Exception("Unsupported MOS file: " + signature);
 
-    int width = (int)Byteconvert.convertShort(data, 8);
-    int height = (int)Byteconvert.convertShort(data, 10);
-    int columns = (int)Byteconvert.convertShort(data, 12);
-    int rows = (int)Byteconvert.convertShort(data, 14);
-    Byteconvert.convertInt(data, 16); // Blocksize
-    int paloffset = Byteconvert.convertInt(data, 20);
+    int width = (int)DynamicArray.getShort(data, 8);
+    int height = (int)DynamicArray.getShort(data, 10);
+    int columns = (int)DynamicArray.getShort(data, 12);
+    int rows = (int)DynamicArray.getShort(data, 14);
+    DynamicArray.getInt(data, 16); // Blocksize
+    int paloffset = DynamicArray.getInt(data, 20);
 
     int offset = paloffset;
     Palette palettes[][] = new Palette[columns][rows];
@@ -60,7 +60,7 @@ public final class MosResource implements Resource, ActionListener
     int tileoffsets[][] = new int[columns][rows];
     for (int y = 0; y < rows; y++)
       for (int x = 0; x < columns; x++) {
-        tileoffsets[x][y] = Byteconvert.convertInt(data, offset);
+        tileoffsets[x][y] = DynamicArray.getInt(data, offset);
         offset += 4;
       }
 

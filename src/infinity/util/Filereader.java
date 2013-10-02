@@ -50,19 +50,19 @@ public final class Filereader
   public static int readInt(RandomAccessFile ranfile) throws IOException
   {
     ranfile.readFully(buffer4);
-    return Byteconvert.convertInt(buffer4, 0);
+    return DynamicArray.getInt(buffer4, 0);
   }
 
   public static int readInt(InputStream is) throws IOException
   {
-    return Byteconvert.convertInt(readBytes(is, 4), 0);
+    return DynamicArray.getInt(readBytes(is, 4), 0);
   }
 
 // --Recycle Bin START (21.10.03 21:45):
 //  public static long readUnsignedInt(RandomAccessFile ranfile) throws IOException
 //  {
 //    ranfile.readFully(buffer4);
-//    long value = (long)Byteconvert.convertInt(buffer4, 0);
+//    long value = (long)DynamicArray.getInt(buffer4, 0);
 //    if (value < 0)
 //      value += 4294967296L;
 //    return value;
@@ -72,32 +72,32 @@ public final class Filereader
   public static short readShort(RandomAccessFile ranfile) throws IOException
   {
     ranfile.readFully(buffer2);
-    return Byteconvert.convertShort(buffer2, 0);
+    return DynamicArray.getShort(buffer2, 0);
   }
 
 // --Recycle Bin START (21.10.03 21:45):
 //  public static byte readByte(InputStream is) throws IOException
 //  {
-//    return Byteconvert.convertByte(readBytes(is, 1), 0);
+//    return DynamicArray.getByte(readBytes(is, 1), 0);
 //  }
 // --Recycle Bin STOP (21.10.03 21:45)
 
   public static short readShort(InputStream is) throws IOException
   {
-    return Byteconvert.convertShort(readBytes(is, 2), 0);
+    return DynamicArray.getShort(readBytes(is, 2), 0);
   }
 
 // --Recycle Bin START (21.10.03 21:45):
 //  public static long readLong(InputStream is) throws IOException
 //  {
-//    return Byteconvert.convertLong(readBytes(is, 8), 0);
+//    return DynamicArray.getLong(readBytes(is, 8), 0);
 //  }
 // --Recycle Bin STOP (21.10.03 21:45)
 
 // --Recycle Bin START (21.10.03 21:45):
 //  public static int readUnsignedByte(InputStream is) throws IOException
 //  {
-//    int value = (int)Byteconvert.convertByte(readBytes(is, 1), 0);
+//    int value = (int)DynamicArray.getByte(readBytes(is, 1), 0);
 //    if (value < 0)
 //      value += 256;
 //    return value;
@@ -107,7 +107,7 @@ public final class Filereader
 // --Recycle Bin START (21.10.03 21:45):
 //  public static int readUnsignedShort(InputStream is) throws IOException
 //  {
-//    int value = (int)Byteconvert.convertShort(readBytes(is, 2), 0);
+//    int value = (int)DynamicArray.getShort(readBytes(is, 2), 0);
 //    if (value < 0)
 //      value += 65536;
 //    return value;
@@ -117,7 +117,7 @@ public final class Filereader
 // --Recycle Bin START (21.10.03 21:45):
 //  public static long readUnsignedInt(InputStream is) throws IOException
 //  {
-//    long value = (long)Byteconvert.convertInt(readBytes(is, 4), 0);
+//    long value = (long)DynamicArray.getInt(readBytes(is, 4), 0);
 //    if (value < 0)
 //      value += 4294967296L;
 //    return value;
@@ -139,7 +139,7 @@ public final class Filereader
   public static String readString(InputStream is, int length) throws IOException
   {
     byte buffer[] = readBytes(is, length);
-    return Byteconvert.convertString(buffer, 0, length);
+    return DynamicArray.getString(buffer, 0, length);
   }
 
   private Filereader(){}

@@ -7,7 +7,7 @@ package infinity.resource.graphics;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.ColorConvert.ColorFormat;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -196,8 +196,8 @@ public class TisDecoder
           if (entry != null) {
             byte[] data = entry.getResourceData();
             if (data != null) {
-              int size = Byteconvert.convertInt(data, 0);
-              int marker = Byteconvert.convertShort(data, 4) & 0xffff;
+              int size = DynamicArray.getInt(data, 0);
+              int marker = DynamicArray.getShort(data, 4) & 0xffff;
               if ((size & 0xff) != 0x34 || marker != 0x9c78)
                 throw new Exception("Invalid PVRZ resource: " + entry.getResourceName());
               data = Compressor.decompress(data, 0);
@@ -333,7 +333,7 @@ public class TisDecoder
     if (outBuffer.length - outOfs < info().tileWidth()*info.tileHeight()*outPixelSize)
       throw new Exception("Output buffer size too small");
 
-    int page = Byteconvert.convertInt(inBuffer, inOfs);
+    int page = DynamicArray.getInt(inBuffer, inOfs);
     if (page < 0) {
       // special case: fill with black pixels
       byte[] outPixel = new byte[outPixelSize];
@@ -344,8 +344,8 @@ public class TisDecoder
       return true;
     } else {
       // extract data block from associated PVR file
-      int xPos = Byteconvert.convertInt(inBuffer, inOfs+4);
-      int yPos = Byteconvert.convertInt(inBuffer, inOfs+8);
+      int xPos = DynamicArray.getInt(inBuffer, inOfs+4);
+      int yPos = DynamicArray.getInt(inBuffer, inOfs+8);
       PvrDecoder decoder = getPVR(page);
       if (decoder != null) {
         System.arraycopy(decoder.decode(xPos, yPos, info().tileWidth(), info().tileHeight(), fmt),

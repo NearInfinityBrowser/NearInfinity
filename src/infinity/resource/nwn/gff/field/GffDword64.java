@@ -17,9 +17,9 @@ public final class GffDword64 extends GffField
   public GffDword64(byte buffer[], int fieldOffset, int labelOffset, int fieldDataOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    int dataOrDataOffset = Byteconvert.convertInt(buffer, fieldOffset + 8);
+    int dataOrDataOffset = DynamicArray.getInt(buffer, fieldOffset + 8);
 
-    value = Byteconvert.convertLong(buffer, fieldDataOffset + dataOrDataOffset); // ToDo: Unsigned
+    value = DynamicArray.getLong(buffer, fieldDataOffset + dataOrDataOffset); // ToDo: Unsigned
   }
 
   public int getFieldDataSize()
@@ -49,7 +49,7 @@ public final class GffDword64 extends GffField
     Filewriter.writeInt(os, 6);
     Filewriter.writeInt(os, labels.indexOf(getLabel()));
     Filewriter.writeInt(os, fieldDataIndex);
-    byte b[] = Byteconvert.convertBack(value); // ToDo: Unsigned
+    byte b[] = DynamicArray.convertLong(value); // ToDo: Unsigned
     System.arraycopy(b, 0, fieldData, fieldDataIndex, b.length);
     return fieldDataIndex + b.length;
   }

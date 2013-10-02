@@ -12,7 +12,7 @@ import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
 import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,12 +52,12 @@ public final class BamResource implements Resource, ActionListener, ItemListener
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
-      int numberframes = (int)Byteconvert.convertShort(buffer, 0x08);
-      int numberanims = (int)Byteconvert.convertUnsignedByte(buffer, 0x0a);
+      int numberframes = (int)DynamicArray.getShort(buffer, 0x08);
+      int numberanims = (int)DynamicArray.getUnsignedByte(buffer, 0x0a);
       transparent = buffer[0x0b];
-      int frameOffset = Byteconvert.convertInt(buffer, 0x0c);
-      int paletteOffset = Byteconvert.convertInt(buffer, 0x10);
-      int lookupOffset = Byteconvert.convertInt(buffer, 0x14);
+      int frameOffset = DynamicArray.getInt(buffer, 0x0c);
+      int paletteOffset = DynamicArray.getInt(buffer, 0x10);
+      int lookupOffset = DynamicArray.getInt(buffer, 0x14);
 
       palette = new Palette(buffer, paletteOffset, 1024);
 
@@ -75,7 +75,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
 
       lookupTable = new int[lookupCount];
       for (int i = 0; i < lookupCount; i++)
-        lookupTable[i] = (int)Byteconvert.convertShort(buffer, lookupOffset + i * 2);
+        lookupTable[i] = (int)DynamicArray.getShort(buffer, lookupOffset + i * 2);
     } catch (Error err) {
       blocker.setBlocked(false);
       err.printStackTrace();
@@ -290,11 +290,11 @@ public final class BamResource implements Resource, ActionListener, ItemListener
 
     private Frame(byte buffer[], int offset)
     {
-      int width = (int)Byteconvert.convertShort(buffer, offset);
-      int height = (int)Byteconvert.convertShort(buffer, offset + 0x02);
-//      int xcoord = Byteconvert.convertShort(buffer, offset + 0x04);
-//      int ycoord = Byteconvert.convertShort(buffer, offset + 0x06);
-      long frameDataOffset = Byteconvert.convertUnsignedInt(buffer, offset + 0x08);
+      int width = (int)DynamicArray.getShort(buffer, offset);
+      int height = (int)DynamicArray.getShort(buffer, offset + 0x02);
+//      int xcoord = DynamicArray.getShort(buffer, offset + 0x04);
+//      int ycoord = DynamicArray.getShort(buffer, offset + 0x06);
+      long frameDataOffset = DynamicArray.getUnsignedInt(buffer, offset + 0x08);
       boolean rle = true;
       if (frameDataOffset > Math.pow((double)2, (double)31)) {
         rle = false;
@@ -338,8 +338,8 @@ public final class BamResource implements Resource, ActionListener, ItemListener
 
     private Anim(byte buffer[], int offset)
     {
-      frameCount = (int)Byteconvert.convertShort(buffer, offset);
-      lookupIndex = (int)Byteconvert.convertShort(buffer, offset + 0x02);
+      frameCount = (int)DynamicArray.getShort(buffer, offset);
+      lookupIndex = (int)DynamicArray.getShort(buffer, offset + 0x02);
     }
 
     private int getMaxLookup()

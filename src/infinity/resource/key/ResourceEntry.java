@@ -11,7 +11,7 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.itm.ItmResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.Filereader;
 
 import javax.swing.*;
@@ -33,7 +33,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           int tilecount = (int)file.length() / tilesize;
           return new int[]{tilecount, tilesize};
         }
-        return new int[]{Byteconvert.convertInt(data, 8), Byteconvert.convertInt(data, 12)};
+        return new int[]{DynamicArray.getInt(data, 8), DynamicArray.getInt(data, 12)};
       } catch (IOException e) {
         e.printStackTrace();
       }

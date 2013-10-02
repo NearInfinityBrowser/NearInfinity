@@ -17,7 +17,7 @@ public final class GffDword extends GffField
   public GffDword(byte buffer[], int fieldOffset, int labelOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    value = Byteconvert.convertUnsignedInt(buffer, fieldOffset + 8);
+    value = DynamicArray.getUnsignedInt(buffer, fieldOffset + 8);
   }
 
   public String toString()

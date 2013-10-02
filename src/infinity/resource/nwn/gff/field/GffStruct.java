@@ -4,7 +4,7 @@
 
 package infinity.resource.nwn.gff.field;
 
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
 import java.util.List;
@@ -21,9 +21,9 @@ public final class GffStruct extends GffField
 
   public GffStruct(byte buffer[], int offset)
   {
-    id = Byteconvert.convertInt(buffer, offset);
-    dataOrDataOffset = Byteconvert.convertInt(buffer, offset + 4);
-    fieldCount = Byteconvert.convertInt(buffer, offset + 8);
+    id = DynamicArray.getInt(buffer, offset);
+    dataOrDataOffset = DynamicArray.getInt(buffer, offset + 4);
+    fieldCount = DynamicArray.getInt(buffer, offset + 8);
   }
 
   public List getChildren()
@@ -83,7 +83,7 @@ public final class GffStruct extends GffField
       fields.add(fieldArray[dataOrDataOffset]);
     else {
       for (int i = 0; i < fieldCount; i++)
-        fields.add(fieldArray[Byteconvert.convertInt(buffer, fieldIndicesOffset + dataOrDataOffset + i * 4)]);
+        fields.add(fieldArray[DynamicArray.getInt(buffer, fieldIndicesOffset + dataOrDataOffset + i * 4)]);
     }
   }
 

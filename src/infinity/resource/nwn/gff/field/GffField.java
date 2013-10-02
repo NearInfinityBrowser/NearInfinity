@@ -4,7 +4,7 @@
 
 package infinity.resource.nwn.gff.field;
 
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.util.List;
 import java.util.Collections;
@@ -24,8 +24,8 @@ public abstract class GffField
   GffField(byte buffer[], int fieldOffset, int labelOffset)
   {
     // type is already read
-    int labelIndex = Byteconvert.convertInt(buffer, fieldOffset + 4);
-    label = Byteconvert.convertString(buffer, labelOffset + labelIndex * 16, 16);
+    int labelIndex = DynamicArray.getInt(buffer, fieldOffset + 4);
+    label = DynamicArray.getString(buffer, labelOffset + labelIndex * 16, 16);
   }
 
   public void addNestedFields(List<GffStruct> structs, List fields, List<GffList> lists)

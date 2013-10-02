@@ -350,10 +350,10 @@ public final class Keyfile
                                     JOptionPane.ERROR_MESSAGE);
       throw new IOException();
     }
-    int numbif = Byteconvert.convertInt(buffer, 8);
-    int numres = Byteconvert.convertInt(buffer, 12);
-    int bifoff = Byteconvert.convertInt(buffer, 16);
-    int resoff = Byteconvert.convertInt(buffer, 20);
+    int numbif = DynamicArray.getInt(buffer, 8);
+    int numres = DynamicArray.getInt(buffer, 12);
+    int bifoff = DynamicArray.getInt(buffer, 16);
+    int resoff = DynamicArray.getInt(buffer, 20);
 
     biffEntries = new ArrayList<BIFFEntry>(numbif);
     if (ResourceFactory.getGameID() == ResourceFactory.ID_DEMO)

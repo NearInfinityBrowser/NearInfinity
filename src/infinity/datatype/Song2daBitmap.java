@@ -69,11 +69,11 @@ public final class Song2daBitmap extends Datatype implements Editable
       parseSonglist();
 
     if (length == 4)
-      value = Byteconvert.convertInt(buffer, offset);
+      value = DynamicArray.getInt(buffer, offset);
     else if (length == 2)
-      value = (long)Byteconvert.convertShort(buffer, offset);
+      value = (long)DynamicArray.getShort(buffer, offset);
     else if (length == 1)
-      value = (long)Byteconvert.convertByte(buffer, offset);
+      value = (long)DynamicArray.getByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }
@@ -85,11 +85,11 @@ public final class Song2daBitmap extends Datatype implements Editable
       parseSonglist();
 
     if (length == 4)
-      value = Byteconvert.convertInt(buffer, offset);
+      value = DynamicArray.getInt(buffer, offset);
     else if (length == 2)
-      value = (long)Byteconvert.convertShort(buffer, offset);
+      value = (long)DynamicArray.getShort(buffer, offset);
     else if (length == 1)
-      value = (long)Byteconvert.convertByte(buffer, offset);
+      value = (long)DynamicArray.getByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }

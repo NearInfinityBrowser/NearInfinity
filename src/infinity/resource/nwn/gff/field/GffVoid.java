@@ -17,9 +17,9 @@ public final class GffVoid extends GffField
   public GffVoid(byte buffer[], int fieldOffset, int labelOffset, int fieldDataOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    int dataOrDataOffset = Byteconvert.convertInt(buffer, fieldOffset + 8);
+    int dataOrDataOffset = DynamicArray.getInt(buffer, fieldOffset + 8);
 
-    int size = Byteconvert.convertInt(buffer, fieldDataOffset + dataOrDataOffset);
+    int size = DynamicArray.getInt(buffer, fieldDataOffset + dataOrDataOffset);
     data = ArrayUtil.getSubArray(buffer, fieldDataOffset + dataOrDataOffset + 4, size);
   }
 
@@ -55,7 +55,7 @@ public final class GffVoid extends GffField
     Filewriter.writeInt(os, labels.indexOf(getLabel()));
     Filewriter.writeInt(os, fieldDataIndex);
 
-    System.arraycopy(Byteconvert.convertBack(data.length), 0, fieldData, fieldDataIndex, 4);
+    System.arraycopy(DynamicArray.convertInt(data.length), 0, fieldData, fieldDataIndex, 4);
     System.arraycopy(data, 0, fieldData, fieldDataIndex + 4, data.length);
     return fieldDataIndex + 4 + data.length;
   }

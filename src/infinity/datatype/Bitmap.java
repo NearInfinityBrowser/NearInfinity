@@ -8,7 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,11 +29,11 @@ public class Bitmap extends Datatype implements Editable
     super(offset, length, name);
     this.table = table;
     if (length == 4)
-      value = Byteconvert.convertInt(buffer, offset);
+      value = DynamicArray.getInt(buffer, offset);
     else if (length == 2)
-      value = (int)Byteconvert.convertShort(buffer, offset);
+      value = (int)DynamicArray.getShort(buffer, offset);
     else if (length == 1)
-      value = (int)Byteconvert.convertByte(buffer, offset);
+      value = (int)DynamicArray.getByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }

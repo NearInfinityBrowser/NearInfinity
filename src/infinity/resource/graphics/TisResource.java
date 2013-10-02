@@ -9,7 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.Filereader;
 
 import javax.swing.*;
@@ -124,10 +124,10 @@ public final class TisResource implements Resource, ActionListener, Closeable
     imagedata = entry.getResourceData();
     String signature = new String(imagedata, 0, 4);
 //    new String(ArrayUtil.getSubArray(imagedata, 4, 4)); // Version
-//    Byteconvert.convertInt(imagedata, 8); // Tilecount
-//    Byteconvert.convertInt(imagedata, 12); // Unknown
-    tileoffset = Byteconvert.convertInt(imagedata, 16);
-    tilesize = Byteconvert.convertInt(imagedata, 20);
+//    DynamicArray.getInt(imagedata, 8); // Tilecount
+//    DynamicArray.getInt(imagedata, 12); // Unknown
+    tileoffset = DynamicArray.getInt(imagedata, 16);
+    tilesize = DynamicArray.getInt(imagedata, 20);
     if (!signature.equalsIgnoreCase("TIS ")) {
       // Due to bug in Keyfile?
       tileoffset = 0;

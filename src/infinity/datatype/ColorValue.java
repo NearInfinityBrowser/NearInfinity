@@ -9,7 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.BmpResource;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -67,11 +67,11 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
   {
     super(offset, length, name);
     if (length == 4)
-      number = Byteconvert.convertInt(buffer, offset);
+      number = DynamicArray.getInt(buffer, offset);
     else if (length == 2)
-      number = (int)Byteconvert.convertShort(buffer, offset);
+      number = (int)DynamicArray.getShort(buffer, offset);
     else if (length == 1)
-      number = (int)Byteconvert.convertByte(buffer, offset);
+      number = (int)DynamicArray.getByte(buffer, offset);
     else
       throw new IllegalArgumentException();
     if (number < 0)

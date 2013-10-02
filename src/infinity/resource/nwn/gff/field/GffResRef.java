@@ -17,10 +17,10 @@ public final class GffResRef extends GffField
   public GffResRef(byte buffer[], int fieldOffset, int labelOffset, int fieldDataOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    int dataOrDataOffset = Byteconvert.convertInt(buffer, fieldOffset + 8);
+    int dataOrDataOffset = DynamicArray.getInt(buffer, fieldOffset + 8);
 
     int size = (int)buffer[fieldDataOffset + dataOrDataOffset];
-    resRef = Byteconvert.convertString(buffer, fieldDataOffset + dataOrDataOffset + 1, size);
+    resRef = DynamicArray.getString(buffer, fieldDataOffset + dataOrDataOffset + 1, size);
   }
 
   public int getFieldDataSize()

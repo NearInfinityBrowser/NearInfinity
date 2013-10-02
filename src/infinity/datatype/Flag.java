@@ -6,7 +6,7 @@ package infinity.datatype;
 
 import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,11 +27,11 @@ public class Flag extends Datatype implements Editable, ActionListener
   {
     super(offset, length, name);
     if (length == 4)
-      value = (long)Byteconvert.convertInt(buffer, offset);
+      value = (long)DynamicArray.getInt(buffer, offset);
     else if (length == 2)
-      value = (long)Byteconvert.convertShort(buffer, offset);
+      value = (long)DynamicArray.getShort(buffer, offset);
     else if (length == 1)
-      value = (long)Byteconvert.convertByte(buffer, offset);
+      value = (long)DynamicArray.getByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }
