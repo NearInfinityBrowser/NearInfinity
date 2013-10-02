@@ -1,0 +1,271 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
+package infinity.resource.sound;
+
+import infinity.NearInfinity;
+import infinity.gui.ButtonPopupMenu;
+import infinity.icon.Icons;
+import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
+import infinity.resource.key.ResourceEntry;
+import infinity.search.WavReferenceSearcher;
+
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+/**
+ * Handles all kinds of supported single track audio files.
+ * @author argent77
+ */
+public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
+{
+  private final ResourceEntry entry;
+  private final AudioPlayer player = new AudioPlayer();
+
+  private AudioBuffer audioBuffer = null;
+  private JButton bPlay, bStop, bFind;
+  private JMenuItem miExport, miConvert;
+  private ButtonPopupMenu bpmExport;
+  private JPanel panel;
+  private boolean isWAV, isReference, isClosed;
+
+  public SoundResource(ResourceEntry entry) throws Exception
+  {
+    this.entry = entry;
+    isWAV = false;
+    isReference = false;
+    isClosed = false;
+  }
+
+//--------------------- Begin Interface ActionListener ---------------------
+
+  public void actionPerformed(ActionEvent event)
+  {
+    if (event.getSource() == bPlay) {
+      new Thread(this).start();
+    } else if (event.getSource() == bStop) {
+      bStop.setEnabled(false);
+      player.stopPlay();
+      bPlay.setEnabled(true);
+    } else if (event.getSource() == bFind) {
+      new WavReferenceSearcher(entry, panel.getTopLevelAncestor());
+    }
+  }
+
+//--------------------- End Interface ActionListener ---------------------
+
+//--------------------- Begin Interface ItemListener ---------------------
+
+  public void itemStateChanged(ItemEvent event)
+  {
+    if (event.getSource() == bpmExport) {
+      if (bpmExport.getSelectedItem() == miExport) {
+        ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      } else if (bpmExport.getSelectedItem() == miConvert) {
+        String fileName = entry.toString();
+        if (fileName.lastIndexOf('.') > 0)
+          fileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".WAV";
+        ResourceFactory.getInstance().exportResource(entry, audioBuffer.getAudioData(),
+                                                     fileName, panel.getTopLevelAncestor());
+      }
+    }
+  }
+
+//--------------------- End Interface ItemListener ---------------------
+
+//--------------------- Begin Interface Closeable ---------------------
+
+  public void close() throws Exception
+  {
+    setClosed(true);
+    if (player != null) {
+      player.stopPlay();
+    }
+  }
+
+//--------------------- End Interface Closeable ---------------------
+
+//--------------------- Begin Interface Resource ---------------------
+
+  public ResourceEntry getResourceEntry()
+  {
+    return entry;
+  }
+
+//--------------------- End Interface Resource ---------------------
+
+//--------------------- Begin Interface Runnable ---------------------
+
+  public void run()
+  {
+    bPlay.setEnabled(false);
+    bStop.setEnabled(true);
+    if (audioBuffer != null) {
+      try {
+        player.play(audioBuffer);
+      } catch (Exception e) {
+        JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+        player.stopPlay();
+      }
+    }
+    bStop.setEnabled(false);
+    bPlay.setEnabled(true);
+  }
+
+//--------------------- End Interface Runnable ---------------------
+
+//--------------------- Begin Interface Viewable ---------------------
+
+  public JComponent makeViewer(ViewableContainer container)
+  {
+    JPanel buttonPanel = new JPanel();
+    GridBagLayout gbl = new GridBagLayout();
+    GridBagConstraints gbc = new GridBagConstraints();
+    buttonPanel.setLayout(gbl);
+    gbc.insets = new Insets(3, 3, 3, 3);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+
+    bPlay = new JButton(Icons.getIcon("Play16.gif"));
+    bPlay.addActionListener(this);
+    gbl.setConstraints(bPlay, gbc);
+    buttonPanel.add(bPlay);
+    bStop = new JButton(Icons.getIcon("Stop16.gif"));
+    bStop.addActionListener(this);
+    bStop.setEnabled(false);
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbl.setConstraints(bStop, gbc);
+    buttonPanel.add(bStop);
+
+    JPanel centerPanel = new JPanel(new BorderLayout());
+    centerPanel.add(buttonPanel, BorderLayout.CENTER);
+
+    JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+    if (isReference) {
+      // only available for WAV resource types
+      bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
+      bFind.setMnemonic('f');
+      bFind.addActionListener(this);
+      bottomPanel.add(bFind);
+    }
+
+    miExport = new JMenuItem("original");
+    miConvert = new JMenuItem("as WAV");
+    miConvert.setEnabled(!isWAV);
+    bpmExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miConvert});
+    bpmExport.setMnemonic('e');
+    bpmExport.addItemListener(this);
+    bpmExport.setIcon(Icons.getIcon("Export16.gif"));
+    bottomPanel.add(bpmExport);
+
+    panel = new JPanel(new BorderLayout());
+    panel.add(centerPanel, BorderLayout.CENTER);
+    panel.add(bottomPanel, BorderLayout.PAGE_END);
+    centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
+
+    loadSoundResource();
+
+    return panel;
+  }
+
+  // Returns the top level container associated with this viewer
+  private Container getContainer()
+  {
+    if (panel != null) {
+      return panel.getTopLevelAncestor();
+    } else
+      return NearInfinity.getInstance();
+  }
+
+  private void loadSoundResource()
+  {
+    setLoaded(false);
+    new Thread(new SoundLoader(this, entry)).start();
+  }
+
+  private synchronized void setLoaded(boolean b)
+  {
+    if (bPlay != null) {
+      bPlay.setEnabled(b);
+    }
+    if (bFind != null) {
+      bFind.setEnabled(b);
+    }
+    if (bpmExport != null) {
+      bpmExport.setEnabled(b);
+    }
+  }
+
+  private synchronized void setClosed(boolean b)
+  {
+    if (b != isClosed) {
+      isClosed = b;
+    }
+  }
+
+  private boolean isClosed()
+  {
+    return isClosed;
+  }
+
+  private synchronized void setAudio(AudioBuffer buffer)
+  {
+    if (buffer != null && !isClosed()) {
+      audioBuffer = buffer;
+      isWAV = (audioBuffer instanceof WavBuffer);
+      isReference = (entry.getExtension().compareToIgnoreCase("WAV") == 0);
+      setLoaded(true);
+    }
+  }
+
+//--------------------- End Interface Viewable ---------------------
+
+//-------------------------- INNER CLASSES --------------------------
+
+  private class SoundLoader implements Runnable
+  {
+    private final SoundResource res;
+    private final ResourceEntry entry;
+
+    private SoundLoader(SoundResource res, ResourceEntry entry)
+    {
+      this.res = res;
+      this.entry = entry;
+    }
+
+    public void run()
+    {
+      try {
+        AudioBuffer.AudioOverride override = null;
+        // ignore # channels in ACM headers
+        if (entry.getExtension().equalsIgnoreCase("ACM"))
+          override = AudioBuffer.AudioOverride.overrideChannels(2);
+        res.setAudio(AudioFactory.getAudioBuffer(entry, override));
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(res.getContainer(), e.getMessage(), "Error",
+                                      JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+}

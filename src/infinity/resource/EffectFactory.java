@@ -4,18 +4,93 @@
 
 package infinity.resource;
 
-import infinity.datatype.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.EnumMap;
+import java.util.List;
+
+import infinity.datatype.Bitmap;
+import infinity.datatype.BitmapEx;
+import infinity.datatype.ColorValue;
+import infinity.datatype.Datatype;
+import infinity.datatype.DecNumber;
+import infinity.datatype.EffectType;
+import infinity.datatype.Flag;
+import infinity.datatype.HashBitmap;
+import infinity.datatype.HashBitmapEx;
+import infinity.datatype.IDSTargetEffect;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.IdsFlag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
+import infinity.datatype.UpdateListener;
 import infinity.resource.are.Actor;
 import infinity.resource.spl.SplResource;
+import infinity.util.Byteconvert;
 import infinity.util.LongIntegerHashMap;
-
-import java.util.List;
 
 public final class EffectFactory
 {
   private static EffectFactory efactory;
   private final String s_poricon[];
   private String s_effname[];
+
+  /**
+   * Used in conjunction with <code>getEffectStructure</code> to address specific fields within
+   * an effect structure.
+   */
+  public static enum EffectEntry {
+    // EFF all versions
+    // table index            abs. structure offset
+    IDX_OPCODE,               OFS_OPCODE,
+    IDX_TARGET,               OFS_TARGET,
+    IDX_POWER,                OFS_POWER,
+    IDX_PARAM1,               OFS_PARAM1,
+    IDX_PARAM2,               OFS_PARAM2,
+    IDX_TIMING,               OFS_TIMING,
+    IDX_RESISTANCE,           OFS_RESISTANCE,
+    IDX_DURATION,             OFS_DURATION,
+    IDX_PROBABILITY1,         OFS_PROBABILITY1,
+    IDX_PROBABILITY2,         OFS_PROBABILITY2,
+    IDX_RESOURCE,             OFS_RESOURCE,
+    IDX_DICETHROWN,           OFS_DICETHROWN,
+    IDX_DICESIDES,            OFS_DICESIDES,
+    IDX_SAVETYPE,             OFS_SAVETYPE,
+    IDX_SAVEBONUS,            OFS_SAVEBONUS,
+    IDX_SPECIAL,              OFS_SPECIAL,
+    // EFF V2.0 only
+    // table index            abs. structure offset
+    IDX_PRIMARYTYPE,          OFS_PRIMARYTYPE,
+    IDX_UNKNOWN040,           OFS_UNKNOWN040,
+    IDX_PARENTLOWESTLEVEL,    OFS_PARENTLOWESTLEVEL,
+    IDX_PARENTHIGHESTLEVEL,   OFS_PARENTHIGHESTLEVEL,
+    IDX_PARAM3,               OFS_PARAM3,
+    IDX_PARAM4,               OFS_PARAM4,
+    IDX_RESOURCE2,            OFS_RESOURCE2,
+    IDX_RESOURCE3,            OFS_RESOURCE3,
+    IDX_UNKNOWN068,           OFS_UNKNOWN068,
+    IDX_UNKNOWN06C,           OFS_UNKNOWN06C,
+    IDX_CASTERX,              OFS_CASTERX,
+    IDX_CASTERY,              OFS_CASTERY,
+    IDX_TARGETX,              OFS_TARGETX,
+    IDX_TARGETY,              OFS_TARGETY,
+    IDX_PARENTRESOURCETYPE,   OFS_PARENTRESOURCETYPE,
+    IDX_PARENTRESOURCE,       OFS_PARENTRESOURCE,
+    IDX_PARENTRESOURCEFLAGS,  OFS_PARENTRESOURCEFLAGS,
+    IDX_PROJECTILE,           OFS_PROJECTILE,
+    IDX_PARENTRESOURCESLOT,   OFS_PARENTRESOURCESLOT,
+    IDX_VARIABLE,             OFS_VARIABLE,
+    IDX_CASTERLEVEL,          OFS_CASTERLEVEL,
+    IDX_FIRSTAPPLY,           OFS_FIRSTAPPLY,
+    IDX_SECONDARYTYPE,        OFS_SECONDARYTYPE,
+    IDX_UNKNOWN0C4,           OFS_UNKNOWN0C4,
+  }
+
+  // contains IDS mappings for BGEE's opcode 319 "Item Usability"
+  public static final LongIntegerHashMap<String> m_itemids = new LongIntegerHashMap<String>();
 
   private static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
   private static final String s_inctype[] = {"Increment", "Set", "Set % of"};
@@ -66,7 +141,32 @@ public final class EffectFactory
     "Conjuration", "Divination", "Enchantment", "Illusion", "Evocation",
     "Necromancy", "Alteration", "Generalist"};
 
+  private static final String s_duration[] = {"Instant/Limited", "Instant/Permanent until death",
+     "Instant/While equipped", "Delay/Limited", "Delay/Permanent",
+     "Delay/While equipped", "Limited after duration",
+     "Permanent after duration", "Equipped after duration",
+     "Instant/Permanent", "Instant/Limited (ticks)"};
+
+  static final String s_savetype[] = {"No save", "Spell", "Breath weapon",
+    "Paralyze/Poison/Death", "Rod/Staff/Wand",
+    "Petrify/Polymorph", "", "", "",
+    "", "", "", "", "", "", "", "",
+    "", "", "", "", "", "", "", "",
+    "Ex: bypass mirror image", "EE: ignore difficulty"};
+  static final String s_savetype2[] = {"No save", "", "", "Fortitude", "Reflex", "Will"};
+
   static {
+    m_itemids.put(2L, "EA.IDS");
+    m_itemids.put(3L, "GENERAL.IDS");
+    m_itemids.put(4L, "RACE.IDS");
+    m_itemids.put(5L, "CLASS.IDS");
+    m_itemids.put(6L, "SPECIFIC.IDS");
+    m_itemids.put(7L, "GENDER.IDS");
+    m_itemids.put(8L, "ALIGN.IDS");
+    m_itemids.put(9L, "KIT.IDS");
+    m_itemids.put(10L, "Actor's name");
+    m_itemids.put(11L, "Actor's script name");
+
     m_colorloc.put(0L, "Belt/Amulet");
     m_colorloc.put(1L, "Minor color");
     m_colorloc.put(2L, "Major color");
@@ -103,7 +203,329 @@ public final class EffectFactory
     efactory = null;
   }
 
-  private EffectFactory()
+  /**
+   * Creates and returns an index/offset map of the current effect structure which can be used
+   * to address specific fields within the effect.
+   * @param struct The effect structure to map.
+   * @return A map containing table indices and structure offsets, starting with the opcode field.
+   * @throws Exception If struct doesn't contain a valid effect structure.
+   */
+  public static EnumMap<EffectEntry, Integer> getEffectStructure(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      EffectType effType = (EffectType)struct.getAttribute("Type");
+      if (effType != null) {
+        EnumMap<EffectEntry, Integer> map = new EnumMap<EffectFactory.EffectEntry, Integer>(EffectEntry.class);
+        boolean isV1 = (effType.getSize() == 2);
+        int ofsOpcode = effType.getOffset();
+        int idxOpcode = struct.getIndexOf(struct.getAttribute(ofsOpcode));
+        if (isV1 && struct.getSize() >= ofsOpcode + 0x30) {
+          // EFF V1.0
+          map.put(EffectEntry.IDX_OPCODE, idxOpcode);
+          map.put(EffectEntry.OFS_OPCODE, ofsOpcode);
+          map.put(EffectEntry.IDX_TARGET, idxOpcode + 1);
+          map.put(EffectEntry.OFS_TARGET, ofsOpcode + 0x02);
+          map.put(EffectEntry.IDX_POWER, idxOpcode + 2);
+          map.put(EffectEntry.OFS_POWER, ofsOpcode + 0x03);
+          map.put(EffectEntry.IDX_PARAM1, idxOpcode + 3);
+          map.put(EffectEntry.OFS_PARAM1, ofsOpcode + 0x04);
+          map.put(EffectEntry.IDX_PARAM2, idxOpcode + 4);
+          map.put(EffectEntry.OFS_PARAM2, ofsOpcode + 0x08);
+          map.put(EffectEntry.IDX_TIMING, idxOpcode + 5);
+          map.put(EffectEntry.OFS_TIMING, ofsOpcode + 0x0C);
+          map.put(EffectEntry.IDX_RESISTANCE, idxOpcode + 6);
+          map.put(EffectEntry.OFS_RESISTANCE, ofsOpcode + 0x0D);
+          map.put(EffectEntry.IDX_DURATION, idxOpcode + 7);
+          map.put(EffectEntry.OFS_DURATION, ofsOpcode + 0x0E);
+          map.put(EffectEntry.IDX_PROBABILITY1, idxOpcode + 8);
+          map.put(EffectEntry.OFS_PROBABILITY1, ofsOpcode + 0x12);
+          map.put(EffectEntry.IDX_PROBABILITY2, idxOpcode + 9);
+          map.put(EffectEntry.OFS_PROBABILITY2, ofsOpcode + 0x13);
+          map.put(EffectEntry.IDX_RESOURCE, idxOpcode + 10);
+          map.put(EffectEntry.OFS_RESOURCE, ofsOpcode + 0x14);
+          map.put(EffectEntry.IDX_DICETHROWN, idxOpcode + 11);
+          map.put(EffectEntry.OFS_DICETHROWN, ofsOpcode + 0x1C);
+          map.put(EffectEntry.IDX_DICESIDES, idxOpcode + 12);
+          map.put(EffectEntry.OFS_DICESIDES, ofsOpcode + 0x20);
+          map.put(EffectEntry.IDX_SAVETYPE, idxOpcode + 13);
+          map.put(EffectEntry.OFS_SAVETYPE, ofsOpcode + 0x24);
+          map.put(EffectEntry.IDX_SAVEBONUS, idxOpcode + 14);
+          map.put(EffectEntry.OFS_SAVEBONUS, ofsOpcode + 0x28);
+          map.put(EffectEntry.IDX_SPECIAL, idxOpcode + 15);
+          map.put(EffectEntry.OFS_SPECIAL, ofsOpcode + 0x2C);
+          return map;
+        } else if (!isV1 && struct.getSize() >= ofsOpcode + 0x100) {
+          // EFF V2.0
+          map.put(EffectEntry.IDX_OPCODE, idxOpcode);
+          map.put(EffectEntry.OFS_OPCODE, ofsOpcode);
+          map.put(EffectEntry.IDX_TARGET, idxOpcode + 1);
+          map.put(EffectEntry.OFS_TARGET, ofsOpcode + 0x04);
+          map.put(EffectEntry.IDX_POWER, idxOpcode + 2);
+          map.put(EffectEntry.OFS_POWER, ofsOpcode + 0x08);
+          map.put(EffectEntry.IDX_PARAM1, idxOpcode + 3);
+          map.put(EffectEntry.OFS_PARAM1, ofsOpcode + 0x0C);
+          map.put(EffectEntry.IDX_PARAM2, idxOpcode + 4);
+          map.put(EffectEntry.OFS_PARAM2, ofsOpcode + 0x10);
+          map.put(EffectEntry.IDX_TIMING, idxOpcode + 5);
+          map.put(EffectEntry.OFS_TIMING, ofsOpcode + 0x14);
+          map.put(EffectEntry.IDX_DURATION, idxOpcode + 6);
+          map.put(EffectEntry.OFS_DURATION, ofsOpcode + 0x18);
+          map.put(EffectEntry.IDX_PROBABILITY1, idxOpcode + 7);
+          map.put(EffectEntry.OFS_PROBABILITY1, ofsOpcode + 0x1C);
+          map.put(EffectEntry.IDX_PROBABILITY2, idxOpcode + 8);
+          map.put(EffectEntry.OFS_PROBABILITY2, ofsOpcode + 0x1E);
+          map.put(EffectEntry.IDX_RESOURCE, idxOpcode + 9);
+          map.put(EffectEntry.OFS_RESOURCE, ofsOpcode + 0x20);
+          map.put(EffectEntry.IDX_DICETHROWN, idxOpcode + 10);
+          map.put(EffectEntry.OFS_DICETHROWN, ofsOpcode + 0x28);
+          map.put(EffectEntry.IDX_DICESIDES, idxOpcode + 11);
+          map.put(EffectEntry.OFS_DICESIDES, ofsOpcode + 0x2C);
+          map.put(EffectEntry.IDX_SAVETYPE, idxOpcode + 12);
+          map.put(EffectEntry.OFS_SAVETYPE, ofsOpcode + 0x30);
+          map.put(EffectEntry.IDX_SAVEBONUS, idxOpcode + 13);
+          map.put(EffectEntry.OFS_SAVEBONUS, ofsOpcode + 0x34);
+          map.put(EffectEntry.IDX_SPECIAL, idxOpcode + 14);
+          map.put(EffectEntry.OFS_SPECIAL, ofsOpcode + 0x38);
+          map.put(EffectEntry.IDX_PRIMARYTYPE, idxOpcode + 15);
+          map.put(EffectEntry.OFS_PRIMARYTYPE, ofsOpcode + 0x3C);
+          map.put(EffectEntry.IDX_UNKNOWN040, idxOpcode + 16);
+          map.put(EffectEntry.OFS_UNKNOWN040, ofsOpcode + 0x40);
+          map.put(EffectEntry.IDX_PARENTLOWESTLEVEL, idxOpcode + 17);
+          map.put(EffectEntry.OFS_PARENTLOWESTLEVEL, ofsOpcode + 0x44);
+          map.put(EffectEntry.IDX_PARENTHIGHESTLEVEL, idxOpcode + 18);
+          map.put(EffectEntry.OFS_PARENTHIGHESTLEVEL, ofsOpcode + 0x48);
+          map.put(EffectEntry.IDX_RESISTANCE, idxOpcode + 19);
+          map.put(EffectEntry.OFS_RESISTANCE, ofsOpcode + 0x4C);
+          map.put(EffectEntry.IDX_PARAM3, idxOpcode + 20);
+          map.put(EffectEntry.OFS_PARAM3, ofsOpcode + 0x50);
+          map.put(EffectEntry.IDX_PARAM4, idxOpcode + 21);
+          map.put(EffectEntry.OFS_PARAM4, ofsOpcode + 0x54);
+          map.put(EffectEntry.IDX_RESOURCE2, idxOpcode + 22);
+          map.put(EffectEntry.OFS_RESOURCE2, ofsOpcode + 0x58);
+          map.put(EffectEntry.IDX_RESOURCE3, idxOpcode + 23);
+          map.put(EffectEntry.OFS_RESOURCE3, ofsOpcode + 0x60);
+          map.put(EffectEntry.IDX_UNKNOWN068, idxOpcode + 24);
+          map.put(EffectEntry.OFS_UNKNOWN068, ofsOpcode + 0x68);
+          map.put(EffectEntry.IDX_UNKNOWN06C, idxOpcode + 25);
+          map.put(EffectEntry.OFS_UNKNOWN06C, ofsOpcode + 0x6C);
+          map.put(EffectEntry.IDX_CASTERX, idxOpcode + 26);
+          map.put(EffectEntry.OFS_CASTERX, ofsOpcode + 0x70);
+          map.put(EffectEntry.IDX_CASTERY, idxOpcode + 27);
+          map.put(EffectEntry.OFS_CASTERY, ofsOpcode + 0x74);
+          map.put(EffectEntry.IDX_TARGETX, idxOpcode + 28);
+          map.put(EffectEntry.OFS_TARGETX, ofsOpcode + 0x78);
+          map.put(EffectEntry.IDX_TARGETY, idxOpcode + 29);
+          map.put(EffectEntry.OFS_TARGETY, ofsOpcode + 0x7C);
+          map.put(EffectEntry.IDX_PARENTRESOURCETYPE, idxOpcode + 30);
+          map.put(EffectEntry.OFS_PARENTRESOURCETYPE, ofsOpcode + 0x80);
+          map.put(EffectEntry.IDX_PARENTRESOURCE, idxOpcode + 31);
+          map.put(EffectEntry.OFS_PARENTRESOURCE, ofsOpcode + 0x84);
+          map.put(EffectEntry.IDX_PARENTRESOURCEFLAGS, idxOpcode + 32);
+          map.put(EffectEntry.OFS_PARENTRESOURCEFLAGS, ofsOpcode + 0x8C);
+          map.put(EffectEntry.IDX_PROJECTILE, idxOpcode + 33);
+          map.put(EffectEntry.OFS_PROJECTILE, ofsOpcode + 0x90);
+          map.put(EffectEntry.IDX_PARENTRESOURCESLOT, idxOpcode + 34);
+          map.put(EffectEntry.OFS_PARENTRESOURCESLOT, ofsOpcode + 0x94);
+          map.put(EffectEntry.IDX_VARIABLE, idxOpcode + 35);
+          map.put(EffectEntry.OFS_VARIABLE, ofsOpcode + 0x98);
+          map.put(EffectEntry.IDX_CASTERLEVEL, idxOpcode + 36);
+          map.put(EffectEntry.OFS_CASTERLEVEL, ofsOpcode + 0xb8);
+          map.put(EffectEntry.IDX_FIRSTAPPLY, idxOpcode + 37);
+          map.put(EffectEntry.OFS_FIRSTAPPLY, ofsOpcode + 0xbc);
+          map.put(EffectEntry.IDX_SECONDARYTYPE, idxOpcode + 38);
+          map.put(EffectEntry.OFS_SECONDARYTYPE, ofsOpcode + 0xc0);
+          map.put(EffectEntry.IDX_UNKNOWN0C4, idxOpcode + 39);
+          map.put(EffectEntry.OFS_UNKNOWN0C4, ofsOpcode + 0xc4);
+          return map;
+        }
+      }
+    }
+    throw new Exception("Invalid effect structure specified");
+  }
+
+  /**
+   * Returns the StructEntry object at the specified index. Use in conjunction with getEffectStructure.
+   * @param struct The structure that contains the requested entry.
+   * @param entryIndex The index of the requested entry.
+   * @return The entry at the specified index
+   * @throws Exception If one or more arguments are invalid.
+   */
+  public static StructEntry getEntry(AbstractStruct struct, int entryIndex) throws Exception
+  {
+    if (struct != null) {
+      if (entryIndex >= 0 && entryIndex < struct.getList().size()) {
+        return struct.getList().get(entryIndex);
+      } else
+        throw new Exception("Index out of bounds");
+    } else
+      throw new Exception("Invalid arguments specified");
+  }
+
+  /**
+   * Returns the data associated with the specified structure entry.
+   * @param entry The structure entry to fetch data from.
+   * @return Data as byte array.
+   */
+  public static byte[] getEntryData(StructEntry entry)
+  {
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    if (entry != null) {
+      try {
+        entry.write(os);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return os.toByteArray();
+  }
+
+  /**
+   * Convenience function to retrieve data associated with a structure entry within struct.
+   * @param struct The structure that contains the structure entry
+   * @param entryIndex The index of the structure entry within struct
+   * @return Data as byte array
+   */
+  public static byte[] getEntryData(AbstractStruct struct, int entryIndex)
+  {
+    StructEntry entry = null;
+    if (struct != null && entryIndex >= 0 && entryIndex < struct.getList().size())
+      entry = struct.getList().get(entryIndex);
+
+    return getEntryData(entry);
+  }
+
+  /**
+   * Replaces a data entry in struct with the specified new entry.
+   * @param struct The struct which contains the entry specified by entryIndex and entryOffset.
+   * @param entryIndex The index of the entry within struct.
+   * @param entryOffset The absolute offset of the data entry.
+   * @param newEntry The new entry which replaces the old one.
+   */
+  public static void replaceEntry(AbstractStruct struct, int entryIndex, int entryOffset,
+                           StructEntry newEntry) throws Exception
+  {
+    if (struct != null && newEntry != null) {
+      List<StructEntry> list = struct.getList();
+      if (list != null && entryIndex >= 0 && entryIndex < list.size() &&
+          entryOffset >= struct.getOffset() && entryOffset < struct.getOffset() + struct.getSize()) {
+        newEntry.setOffset(entryOffset);
+        list.remove(entryIndex);
+        list.add(entryIndex, newEntry);
+      } else
+        throw new Exception("Index or offset are out of bounds");
+    } else
+      throw new Exception("Invalid arguments specified");
+  }
+
+  /**
+   * Central hub for dynamic opcode specific modifications of effect structures.
+   * @param struct The effect structure to update.
+   * @return true if fields within the effect structure have been updated, false otherwise.
+   * @throws Exception If the argument doesn't specify a valid effect structure.
+   */
+  public static boolean updateOpcode(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+      EffectType effType = (EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE));
+      if (effType != null) {
+        int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+        switch (opcode) {
+          case 232:     // Cast spell on condition
+            return updateOpcode232(struct);
+          case 319:     // Item Usability
+            return updateOpcode319(struct);
+        }
+      }
+    }
+    return false;
+  }
+
+
+  // Effect type "Cast spell on condition" (232/0xE8)
+  private static boolean updateOpcode232(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      int gameID = ResourceFactory.getGameID();
+      if (gameID == ResourceFactory.ID_BG2 ||
+          gameID == ResourceFactory.ID_BG2TOB ||
+          gameID == ResourceFactory.ID_BGEE) {
+        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
+          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+          if (opcode == 232) {   // effect type "Cast spell on condition" (232/0xE8)
+            int param2 = ((Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
+            if (param2 == 13) {
+              // Special = Time of day
+              replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
+                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
+                                         0, 4, "Time of day", "TIMEODAY.IDS"));
+            } else {
+              // Special = Unused
+              replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
+                           new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
+                                         0, 4, "Unused"));
+            }
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  // Effect type "Item Usability" (319/0x13F).
+  private static boolean updateOpcode319(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      int gameID = ResourceFactory.getGameID();
+      if (gameID == ResourceFactory.ID_BG2 ||
+          gameID == ResourceFactory.ID_BG2TOB ||
+          gameID == ResourceFactory.ID_BGEE) {
+        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
+          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+          if (opcode == 319) {
+            long param2 = ((HashBitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
+            if (param2 == 10L) {
+              // Param1 = Actor's name as Strref
+              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                           new StringRef(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                         0, "Actor name"));
+            } else if (param2 >= 2 && param2 < 10) {
+              // Param1 = IDS entry
+              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                         0, 4, "IDS entry", EffectFactory.m_itemids.get(param2)));
+            } else {
+              // Param1 = Unused
+              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                           new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                         0, 4, "Unused"));
+            }
+
+            if (param2 == 11L) {
+              // Resource = Actor's script name
+              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
+                           new TextString(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
+                                          0, 8, "Script name"));
+            } else {
+              // Resource = Unused
+              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
+                           new Unknown(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
+                                       0, 8, "Unused"));
+            }
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+
+
+  public EffectFactory()
   {
     s_effname = null;
     switch (ResourceFactory.getGameID()) {
@@ -761,15 +1183,79 @@ public final class EffectFactory
     return s_effname;
   }
 
-  public String makeEffectStruct(byte buffer[], int offset, List<StructEntry> s, int effectType)
+  public int makeEffectStruct(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                              int effectType, boolean isV1) throws Exception
   {
-    String restype = null;
+    if (buffer != null && offset >= 0 && s != null && effectType >= 0) {
+      int param1 = Byteconvert.convertInt(buffer, offset);
+      int param2 = Byteconvert.convertInt(buffer, offset + 4);
+
+      // setting param1 & param2
+      String restype = makeEffectParams(parent, buffer, offset, s, effectType, isV1);
+      offset += 8;
+
+      // setting common fields #1 ("Timing mode" ... "Probability2")
+      offset = makeEffectCommon1(buffer, offset, s, isV1);
+
+      // setting Resource field
+      offset = makeEffectResource(parent, buffer, offset, s, effectType, restype, param1, param2);
+
+      // setting common fields #2 ("Dice" ... "Save bonus")
+      offset = makeEffectCommon2(buffer, offset, s, isV1);
+
+      // setting Parameter 2.5 field
+      offset = makeEffectParam25(parent, buffer, offset, s, effectType, restype, param1, param2);
+
+      return offset;
+    } else
+      throw new Exception("Invalid parameters specified");
+  }
+
+
+  private String makeEffectParams(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                  int effectType, boolean isV1)
+  {
     final int initSize = s.size();
     final int gameid = ResourceFactory.getGameID();
 
-    // -----------------------
-    // Infinity Engine Effects
-    // -----------------------
+    // Processing effects common to all supported game engines
+    String restype = makeEffectParamsGeneric(parent, buffer, offset, s, effectType, isV1);
+
+    // Processing game specific effects
+    if (s.size() == initSize) {
+      if (gameid == ResourceFactory.ID_BG1 ||
+          gameid == ResourceFactory.ID_BG1TOTSC) {
+        restype = makeEffectParamsBG1(parent, buffer, offset, s, effectType, isV1);
+      } else if (gameid == ResourceFactory.ID_TORMENT) {
+        restype = makeEffectParamsPST(parent, buffer, offset, s, effectType, isV1);
+      } else if (gameid == ResourceFactory.ID_ICEWIND ||
+                 gameid == ResourceFactory.ID_ICEWINDHOW ||
+                 gameid == ResourceFactory.ID_ICEWINDHOWTOT) {
+        restype = makeEffectParamsIWD(parent, buffer, offset, s, effectType, isV1);
+      } else if (gameid == ResourceFactory.ID_BG2 ||
+                 gameid == ResourceFactory.ID_BG2TOB ||
+                 gameid == ResourceFactory.ID_BGEE) {
+        restype = makeEffectParamsBG2(parent, buffer, offset, s, effectType, isV1);
+      } else if (gameid == ResourceFactory.ID_ICEWIND2) {
+        restype = makeEffectParamsIWD2(parent, buffer, offset, s, effectType, isV1);
+      }
+    }
+
+    // failsafe initialization
+    if (s.size() == initSize) {
+      s.add(new Unknown(buffer, offset, 4));
+      s.add(new Unknown(buffer, offset + 4, 4));
+    }
+
+    return restype;
+  }
+
+  private String makeEffectParamsGeneric(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                         int effectType, boolean isV1)
+  {
+    String restype = null;
+    int gameid = ResourceFactory.getGameID();
+
     switch (effectType) {
       case 0x5: // Charm creature (CGameEffectCharm)
         s.add(new IdsBitmap(buffer, offset, 4, "Creature type", "GENERAL.IDS"));
@@ -1198,1808 +1684,1942 @@ public final class EffectFactory
         break;
     }
 
-    if (s.size() != initSize)
-      return restype;
-
-    // ---------------
-    // Baldur's Gate I & TotSC Effects
-    // ---------------
-    if (gameid == ResourceFactory.ID_BG1 ||
-        gameid == ResourceFactory.ID_BG1TOTSC) {
-      switch (effectType) {
-        case 0x0: // AC bonus (CGameEffectAC)
-          s.add(new DecNumber(buffer, offset, 4, "AC value"));
-          s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
-          break;
-
-        case 0x1: // Modify attacks per round (CGameEffectAttackNo)
-          s.add(new Bitmap(buffer, offset, 4, "Value",
-            new String[]{"0 attacks per round", "1 attack per round",
-                         "2 attacks per round", "3 attacks per round",
-                         "4 attacks per round", "5 attacks per round",
-                         "1 attack per 2 rounds", "3 attacks per 2 rounds",
-                         "5 attacks per 2 rounds", "7 attacks per 2 rounds",
-                         "9 attacks per 2 rounds"}));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0xC: // Damage (CGameEffectDamage)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
-            new String[]{"Normal", "Set to value", "Set to %"}));
-          s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
-          break;
-
-        case 0xF: // Dexterity bonus (CGameEffectDEX)
-        case 0x16: // Luck bonus (CGameEffectLuck)
-        case 0x2C: // Strength bonus (CGameEffectSTR)
-        case 0x49: // Attack damage bonus (CGameEffectDamageMod)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0x11: // Current HP bonus (CGameEffectHeal)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
-            new String[]{"Increment", "Set", "Increment % of"}));
-          s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
-            new String[]{"No flags set", "Raise dead"}));
-          break;
-
-        case 0x19: // Poison (CGameEffectPoison)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
-            new String[]{"1 damage per second", "1 damage per second",
-                         "Amount damage per second",
-                         "1 damage per amount seconds",
-                         "Variable per amount seconds"}));
-          break;
-
-        case 0x3C: // Casting failure (CGameEffectCastingFailure)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
-            new String[]{"Wizard", "Priest", "Innate"}));
-          break;
-
-        case 0x42: // Translucency (CGameEffectTranslucent)
-          s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x43: // Summon creature (CGameEffectSummon)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Allegiance",
-            new String[]{"Match target", "Match target", "From CRE file",
-                         "Match target", "From CRE file", "Hostile"}));
-          restype = "CRE";
-          break;
-
-        case 0x4E: // Disease (CGameEffectDisease)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
-            new String[]{"1 damage per second", "1 damage per second",
-                         "Amount damage per second",
-                         "1 damage per amount seconds", "Strength", "Dexterity",
-                         "Constitution", "Intelligence", "Wisdom", "Charisma",
-                         "Slow target"}));
-          break;
-
-        case 0x52: // Set AI script (CGameEffectSetAIScript)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
-          restype = "BCS";
-          break;
-
-        case 0x62: // Regeneration (CGameEffectRegeneration)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
-            new String[]{"1 HP per second", "1 HP per second",
-                         "Amount HP per second", "1 HP per amount seconds",
-                         "Variable per amount seconds"}));
-          break;
-
-        case 0x83: // Chant (non-cumulative) (CGameEffectNon_CumulativeChant)
-        case 0xBD: // Increase casting speed factor (CGameEffectMentalSpeed)
-        case 0xBE: // Increase attack speed factor (CGameEffectPhysicalSpeed)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x90: // Disable button (CGameEffectDisableButton)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
-          break;
-
-        case 0x91: // Disable spellcasting (CGameEffectDisableSpellType)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Wizard", "Priest", "Innate"}));
-          break;
-
-        case 0xBA: // Move creature (CGameEffectJumpToArea)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", Actor.s_orientation));
-          restype = "ARE";
-          break;
-
-        case 0xBB: // Set local variable (CGameEffectSetLocalVariable)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "String";
-          break;
-
-        case 0xBC: // Increase spells cast per round (CGameEffectAuraCleansing)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
-          break;
-
-        case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Wizard", "Priest"}));
-          break;
-      }
-    }
-
-    // ---------------
-    // Planescape: Torment Effects
-    // ---------------
-    else if (gameid == ResourceFactory.ID_TORMENT) {
-      switch (effectType) {
-        case 0x0: // AC bonus
-          s.add(new DecNumber(buffer, offset, 4, "AC value"));
-          s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
-          break;
-
-        case 0x1: // Modify attacks per round
-          s.add(new Bitmap(buffer, offset, 4, "Value",
-            new String[]{"0 attacks per round", "1 attack per round",
-                         "2 attacks per round", "3 attacks per round",
-                         "4 attacks per round", "5 attacks per round",
-                         "1 attack per 2 rounds", "3 attacks per 2 rounds",
-                         "5 attacks per 2 rounds", "7 attacks per 2 rounds",
-                         "9 attacks per 2 rounds"}));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0xC: // Damage
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
-            new String[]{"Normal", "Set to value", "Set to %"}));
-          s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
-          break;
-
-        case 0xF: // Dexterity bonus
-        case 0x16: // Luck bonus
-        case 0x2C: // Strength bonus
-        case 0x49: // Attack damage bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0x11: // Current HP bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
-            new String[]{"Increment", "Set", "Increment % of"}));
-          s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
-            new String[]{"No flags set", "Raise dead"}));
-          break;
-
-        case 0x19: // Poison
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
-            new String[]{"1 damage per second", "1 damage per second",
-                         "Amount damage per second",
-                         "1 damage per amount seconds",
-                         "Variable per amount seconds"}));
-          break;
-
-        case 0x3C: // Casting failure
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
-            new String[]{"Wizard", "Priest", "Innate"}));
-          break;
-
-        case 0x42: // Translucency
-          s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x43: // Summon creature
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Allegiance",
-            new String[]{"Match target", "Match target", "From CRE file",
-                         "Match target", "From CRE file", "Hostile"}));
-          restype = "CRE";
-          break;
-
-        case 0x4E: // Disease
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
-            new String[]{"1 damage per second", "1 damage per second",
-                         "Amount damage per second",
-                         "1 damage per amount seconds", "Strength", "Dexterity",
-                         "Constitution", "Intelligence", "Wisdom", "Charisma",
-                         "Slow target"}));
-          break;
-
-        case 0x62: // Regeneration
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
-            new String[]{"1 HP per second", "1 HP per second",
-                         "Amount HP per second", "1 HP per amount seconds",
-                         "Variable per amount seconds"}));
-          break;
-
-        case 0x83: // Chant (non-cumulative)
-        case 0xCB: // Curse
-        case 0xCC: // Prayer
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x90: // Disable button
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
-          break;
-
-        case 0x91: // Disable spellcasting
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Wizard", "Priest", "Innate"}));
-          break;
-
-        case 0xBA: // Set status
-          s.add(new Bitmap(buffer, offset, 4, "Action", new String[]{"Clear", "Set"}));
-          s.add(new IdsFlag(buffer, offset + 4, 4, "State", "STATE.IDS"));
-          break;
-
-        case 0xBB: // Play BAM file (single/dual)
-          s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
-          s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
-          s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
-          s.add(new Unknown(buffer, offset + 3, 1));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "BAM";
-          break;
-
-        case 0xBC: // Play BAM file
-        case 0xBD: // Play BAM file 2
-        case 0xBE: // Play BAM file 3
-        case 0xBF: // Play BAM file 4
-          final LongIntegerHashMap<String> m_playbam = new LongIntegerHashMap<String>();
-          m_playbam.put(0L, "Non-sticky, not 3D");
-          m_playbam.put(1L, "Random placement, not 3D");
-          m_playbam.put(528384L, "Sticky, 3D");
-          m_playbam.put(1179648L, "RGB transparent");
-          m_playbam.put(1183744L, "RGB transparent, 3D, sticky");
-          m_playbam.put(3280896L, "RGB transparent, 3D");
-          s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
-          s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
-          s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
-          s.add(new Unknown(buffer, offset + 3, 1));
-          s.add(new HashBitmap(buffer, offset + 4, 4, "Properties", m_playbam));
-          restype = "BAM";
-          break;
-
-        case 0xC0: // Hit point transfer
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Direction",
-            new String[]{"Source to target", "Target to source", "Swap HP",
-                         "Caster to target"}));
-          s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
-          break;
-
-        case 0xC1: // Shake screen
-          s.add(new DecNumber(buffer, offset, 4, "Strength"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xC2: // Flash screen
-          s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
-          s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
-          s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
-          s.add(new Unknown(buffer, offset + 3, 1));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xC3: // Tint screen
-          s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
-          s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
-          s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
-          s.add(new Unknown(buffer, offset + 3, 1));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Method"));
-          break;
-
-        case 0xC4: // Special spell hit
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
-            new String[]{"Adder's kiss", "Ball lightning", "Fizzle"}));
-          break;
-
-        case 0xC9: // Play BAM with effects
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
-            new String[]{"Cloak of warding", "Shield", "Black-barbed shield",
-                         "Pain mirror", "Guardian mantle", "",
-                         "Enoll eva's duplication", "Armor", "Antimagic shell",
-                         "", "", "Flame walk", "Protection from evil",
-                         "Conflagration", "Infernal shield",
-                         "Submerge the will", "Balance in all things"}));
-          restype = "BAM";
-          break;
-
-        case 0xCD: // Move view to target
-          s.add(new DecNumber(buffer, offset, 4, "Speed"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xCE: // Embalm
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Embalming type",
-            new String[]{"Normal", "Greater"}));
-          break;
-      }
-    }
-
-    // ---------------
-    // Icewind Dale & HoW Effects
-    // ---------------
-    else if (gameid == ResourceFactory.ID_ICEWIND ||
-             gameid == ResourceFactory.ID_ICEWINDHOW ||
-             gameid == ResourceFactory.ID_ICEWINDHOWTOT) {
-      switch (effectType) {
-        case 0x0: // AC bonus
-          s.add(new DecNumber(buffer, offset, 4, "AC value"));
-          s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
-          break;
-
-        case 0x1: // Modify attacks per round
-        case 0x16: // Luck bonus
-        case 0x17: // Morale bonus
-        case 0xEE: // All saving throws bonus
-        case 0x10A: // Movement rate modifier
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0x3: // Berserk
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Berserk type",
-            new String[]{"Normal", "Blood rage"}));
-          break;
-
-        case 0xC: // Damage
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
-            new String[]{"Normal", "Set to value", "Set to %", "Percentage"}));
-          s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
-          break;
-
-        case 0xF: // Dexterity bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Set", "Set % of", "Cat's grace"}));
-          break;
-
-        case 0x11: // Current HP bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
-            new String[]{"Increment", "Set", "Increment % of"}));
-          s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
-            new String[]{"No flags set", "Raise dead"}));
-          break;
-
-        case 0x19: // Poison
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
-            new String[]{"1 damage per second", "1 damage per second",
-                         "Amount damage per second",
-                         "1 damage per amount seconds",
-                         "Variable per amount seconds"}));
-          break;
-
-        case 0x2C: // Strength bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Set", "Set % of", "Wizard strength"}));
-          break;
-
-        case 0x27: // Sleep
-        case 0x11D: // Force sleep
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
-          break;
-
-        case 0x3C: // Casting failure
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
-            new String[]{"Wizard", "Priest", "Innate"}));
-          break;
-
-        case 0x42: // Translucency
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Visual effect",
-            new String[]{"Draw instantly", "Fade in", "Fade out"}));
-          break;
-
-        case 0x43: // Summon creature
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Summon animation",
-            new String[]{"No animation", "Monster summoning circle",
-                         "Animal summoning circle", "Earth summoning circle",
-                         "Fire summoning circle", "Water summoning circle", "",
-                         "Puff of smoke"}));
-          restype = "CRE";
-          break;
-
-        case 0x49: // Attack damage bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Fire damage", "Cold damage",
-                         "Electricity damage", "Acid damage", "Magic damage",
-                         "Poison damage", "Slashing damage", "Piercing damage",
-                         "Crushing damage", "Missile damage"}));
-          break;
-
-        case 0x4E: // Disease
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
-            new String[]{"1 damage per second", "Amount damage per round",
-                         "Amount damage per second",
-                         "1 damage per amount seconds", "Strength", "Dexterity",
-                         "Constitution", "Intelligence", "Wisdom", "Charisma",
-                         "Slow target", "Mold touch"}));
-          break;
-
-        case 0x52: // Set AI script
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
-          restype = "BCS";
-          break;
-
-        case 0x62: // Regeneration
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
-            new String[]{"1 HP per second", "1 HP per second",
-                         "Amount HP per second", "1 HP per amount seconds",
-                         "Amount HP per round"}));
-          break;
-
-        case 0x77: // Mirror image
-          s.add(new DecNumber(buffer, offset, 4, "# images"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x7C: // Teleport
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Behavior",
-            new String[]{"Normal", "Source to target", "Return to start",
-                         "Exchange with target"}));
-          break;
-
-        case 0x83: // Chant (non-cumulative)
-        case 0xF4: // Prayer
-        case 0xF9: // Recitation
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Prayer type",
-            new String[]{"Beneficial", "Detrimental"}));
-          break;
-
-        case 0x90: // Disable button
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
-          break;
-
-        case 0x91: // Disable spellcasting
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Wizard", "Priest", "Innate"}));
-          break;
-
-        case 0xBA: // Move creature
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Orientation", "DIR.IDS"));
-          restype = "ARE";
-          break;
-
-        case 0xBB: // Set local variable
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "String";
-          break;
-
-        case 0xBC: // Increase spells cast per round
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
-          break;
-
-        case 0xBD: // Increase casting speed factor
-        case 0xBE: // Increase attack speed factor
-        case 0xEA: // Snilloc's snowball swarm
-        case 0xED: // Magical stone
-        case 0xEF: // Slow poison
-        case 0xF5: // Bad prayer
-        case 0xFA: // Bad recitation
-        case 0xFC: // Sol's searing orb
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xCE: // Protection from spell
-        case 0x122: // Display spell immunity string
-          final String s_cretype[] = {"Anyone", "Undead", "Not undead",
-            "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
-            "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
-            "Not fungus", "Huge creature", "Not huge creature", "Elf",
-            "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
-            "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
-            "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
-            "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
-            "Not undead or fungus", "Good", "Not good", "Neutral",
-            "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
-            "Same moral alignment as source",
-            "Not same moral alignment as source", "Source", "Not source",
-            "Water-dwelling", "Not water-dwelling", "Breathing",
-            "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
-            "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
-            "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
-            "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf",
-            "Not deaf", "Summoned creature", "Not summoned creature",
-            "Mind flayer", "Not mind flayer", "Silenced", "Not silenced",
-            "Intelligence less than", "Intelligence greater than",
-            "Intelligence less than or equal to",
-            "Intelligence greater than or equal to", "Skald", "Not skald",
-            "Near enemies", "Not near enemies", "Drow", "Not drow",
-            "Gray dwarf", "Not gray dwarf", "Daytime", "Not daytime", "Outdoor",
-            "Not outdoor", "Keg", "Not keg", "Outsider", "Not outsider"};
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
-          restype = "SPL";
-          break;
-
-        case 0xD0: // Minimum HP
-          s.add(new DecNumber(buffer, offset, 4, "HP amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xDA: // Stoneskin effect
-          s.add(new DecNumber(buffer, offset, 4, "# skins"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xE8: // Creature RGB color fade
-          s.add(new Unknown(buffer, offset, 1));
-          s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
-          s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
-          s.add(new UnsignDecNumber(buffer, offset + 3, 1, "Blue"));
-          s.add(new Unknown(buffer, offset + 4, 2));
-          s.add(new DecNumber(buffer, offset + 6, 2, "Speed"));
-          break;
-
-        case 0xE9: // Show visual effect
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
-          break;
-
-        case 0xEB: // Show casting glow
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
-            new String[]{"None", "Abjuration", "Conjuration", "Divination",
-                         "Enchantment", "Illusion", "Invocation", "Necromancy",
-                         "Alteration"}));
-          break;
-
-        case 0xF0: // Summon creature 2
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
-            new String[]{"Monster summoning 1", "Monster summoning 2",
-                         "Monster summoning 3", "Monster summoning 4",
-                         "Monster summoning 5", "Monster summoning 6",
-                         "Monster summoning 7", "Animal summoning 1",
-                         "Animal summoning 2", "Animal summoning 3",
-                         "Summon insects", "Creeping doom", "Malavon summon"}));
-          break;
-
-        case 0xF1: // Vampiric touch
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
-            new String[]{"Target to source", "Source to target"}));
-          break;
-
-        case 0xF2: // Show visual overlay
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Overlay",
-            new String[]{"Globe of invulnerability", "Shroud of flame",
-                         "Antimagic shell", "Otiluke's resilient sphere",
-                         "Protection from normal missiles", "Cloak of fear",
-                         "Entropy shield", "Fire aura", "Frost aura",
-                         "Insect plague", "Storm shell", "Shield of lathander",
-                         "Greater shield of lathander", "Seven eyes"}));
-          break;
-
-        case 0xF3: // Animate dead
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Undead type",
-            new String[]{"Normal", "Lich"}));
-          break;
-
-        case 0xF6: // Summon creature 3
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Creature type",
-            new String[]{"Lizard man", "Troll", "Shadow", "Invisible stalker",
-                         "Fire elemental (wizard)", "Earth elemental (wizard)",
-                         "Water elemental (wizard)", "Fire elemental (priest)",
-                         "Earth elemental (priest)", "Water elemental (priest)",
-                         "Malavon earth elemental"}));
-          break;
-
-        case 0xF7: // Beltyn's burning blood
-        case 0x108: // Static charge
-        case 0x109: // Cloak of fear
-        case 0x116: // Shroud of flame
-          s.add(new DecNumber(buffer, offset, 4, "# hits"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xF8: // Summon shadow
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Shadow type",
-            new String[]{"Shadow", "Demishadow", "Shade"}));
-          break;
-
-        case 0xFB: // Lich touch
-        case 0x100: // Umber hulk gaze
-        case 0x117: // Animal rage
-          s.add(new DecNumber(buffer, offset, 4, "# seconds"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xFD: // Bonus AC vs. weapons
-          s.add(new DecNumber(buffer, offset, 4, "AC value"));
-          s.add(new Flag(buffer, offset + 4, 4, "Bonus to",
-            new String[]{"All weapons", "Blunt weapons", "Missile weapons",
-                         "Piercing weapons", "Slashing weapons",
-                         "Set base AC to value"}));
-          break;
-
-        case 0xFE: // Dispel specific spell
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
-            new String[]{"All effects", "Equipped effects only",
-                         "Limited effects only"}));
-          restype = "SPL";
-          break;
-
-        case 0xFF: // Salamander aura
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Aura type",
-            new String[]{"Fire", "Frost"}));
-          break;
-
-        case 0x103: // Summon creatures with cloud
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
-            new String[]{"Default", "Ally", "Hostile", "Forced", "Genie"}));
-          restype = "CRE";
-          break;
-
-        case 0x105: // Immunity to effect and string
-        case 0x114: // Remove effect by type
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
-          break;
-
-        case 0x11B: // Float text
-          s.add(new StringRef(buffer, offset, "String"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Display type",
-            new String[]{"String reference", "Cynicism"}));
-          break;
-
-        case 0x128: // Set global variable
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-      }
-    }
-
-    // -----------------------
-    // Baldur's Gate 2, ToB & BGEE Effects
-    // -----------------------
-    else if (gameid == ResourceFactory.ID_BG2 ||
-             gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_BGEE) {
-      switch (effectType) {
-        case 0x0: // AC bonus (CGameEffectAC)
-          s.add(new DecNumber(buffer, offset, 4, "AC value"));
-          s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
-          break;
-
-        case 0x1: // Modify attacks per round (CGameEffectAttackNo)
-          s.add(new Bitmap(buffer, offset, 4, "Value",
-            new String[]{"0 attacks per round", "1 attack per round",
-                         "2 attacks per round", "3 attacks per round",
-                         "4 attacks per round", "5 attacks per round",
-                         "1 attack per 2 rounds", "3 attacks per 2 rounds",
-                         "5 attacks per 2 rounds", "7 attacks per 2 rounds",
-                         "9 attacks per 2 rounds"}));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0xC: // Damage (CGameEffectDamage)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
-            new String[]{"Normal", "Set to value", "Set to %", "Percentage"}));
-          s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
-          break;
-
-        case 0x11: // Current HP bonus (CGameEffectHeal)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
-            new String[]{"Increment", "Set", "Increment % of"}));
-          s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
-            new String[]{"No flags set", "Raise dead",
-                         "Remove limited effects"}));
-          break;
-
-        case 0xF: // Dexterity bonus (CGameEffectDEX)
-        case 0x16: // Luck bonus (CGameEffectLuck)
-        case 0x2C: // Strength bonus (CGameEffectSTR)
-        case 0x49: // Attack damage bonus (CGameEffectDamageMod)
-        case 0x106: // Visual range bonus (CGameEffectVisualRange)
-        case 0x107: // Backstab bonus (CGameEffectBackStabMod)
-        case 0x113: // Hide in shadows bonus (CGameEffectHideInShadows)
-        case 0x114: // Detect illusions bonus (CGameEffectDetectIllusion)
-        case 0x115: // Set traps bonus (CGameEffectSetTrap)
-        case 0x116: // THAC0 bonus (CGameEffectHitMod)
-        case 0x119: // Wild surge bonus (CGameEffectSurgeMod)
-        case 0x11C: // Melee THAC0 bonus (CGameEffectMeleeTHAC0Bonus)
-        case 0x11D: // Melee weapon damage bonus (CGameEffectMeleeDamageBonus)
-        case 0x11E: // Missile weapon damage bonus (CGameEffectMissileDamageBonus)
-        case 0x120: // Fist THAC0 bonus (CGameEffectFistTHAC0Bonus)
-        case 0x121: // Fist damage bonus (CGameEffectFistDamageBonus)
-        case 0x131: // Off-hand THAC0 bonus (CGameEffectThac0Left)
-        case 0x132: // Main hand THAC0 bonus (CGameEffectThac0Right)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0x3C: // Casting failure (CGameEffectCastingFailure)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
-            new String[]{"Wizard", "Priest", "Innate", "Wizard (dead magic)",
-                         "Priest (dead magic)", "Innate (dead magic)"}));
-          break;
-
-        case 0x42: // Translucency (CGameEffectTranslucent)
-          s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x43: // Summon creature (CGameEffectSummon)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Allegiance",
-            new String[]{"Match target", "Match target", "From CRE file",
-                         "Match target", "From CRE file", "Hostile"}));
-          restype = "CRE";
-          break;
-
-        case 0x4E: // Disease (CGameEffectDisease)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
-            new String[]{"1 damage per second", "1 damage per second",
-                         "Amount damage per second",
-                         "1 damage per amount seconds", "Strength", "Dexterity",
-                         "Constitution", "Intelligence", "Wisdom", "Charisma",
-                         "Slow target"}));
-          break;
-
-        case 0x52: // Set AI script (CGameEffectSetAIScript)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
-          restype = "BCS";
-          break;
-
-        case 0x62: // Regeneration (CGameEffectRegeneration)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
-            new String[]{"1 HP per second", "1 HP per second",
-                         "Amount HP per second", "1 HP per amount seconds",
-                         "Variable per amount seconds"}));
-          break;
-
-        case 0x83: // Chant (non-cumulative) (CGameEffectNon_CumulativeChant)
-        case 0xBD: // Increase casting speed factor (CGameEffectMentalSpeed)
-        case 0xBE: // Increase attack speed factor (CGameEffectPhysicalSpeed)
-        case 0x12D: // Critical threat range bonus (CGameEffectCriticalHitBonus)
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x90: // Disable button (CGameEffectDisableButton)
-        case 0x117: // Enable button (CGameEffectEnableButton)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
-          break;
-
-        case 0x91: // Disable spellcasting (CGameEffectDisableSpellType)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Wizard", "Priest", "Innate"}));
-          break;
-
-        case 0xB8: // No collision detection (CGameEffectSetDoNotJump)
-        case 0xBC: // Increase spells cast per round (CGameEffectAuraCleansing)
-        case 0xC1: // Invisibility detection (CGameEffectSeeInvisible)
-        case 0xC2: // Ignore dialogue pause (CGameEffectIgnoreDialogPause)
-        case 0xF5: // Unknown (F5) (CGameEffectCheckForBerserk)
-        case 0xF6: // Berserk effect (CGameEffectBerserkStage1)
-        case 0xF7: // Attack nearest creature (CGameEffectBerserkStage2)
-        case 0x123: // Disable visual effects (CGameEffectPreventSpellProtectionEffects)
-        case 0x124: // Immunity to backstab (CGameEffectImmunityToBackstab)
-        case 0x125: // Set persistent AI (CGameEffectPreventAISlowDown)
-        case 0x127: // Disable permanent death (CGameEffectNoPermanentDeath)
-        case 0x129: // Immunity to turn undead (CGameEffectImmunityToTurnUndead)
-        case 0x12C: // Modify collision behavior (CGameEffectNPCBump)
-        case 0x12E: // Can use any item (CGameEffectUseAnyItem)
-        case 0x12F: // Backstab every hit (CGameEffectAssassination)
-        case 0x134: // Immunity to tracking (CGameEffectImmuneToTracking)
-        case 0x136: // Immunity to time stop (CGameEffectImmunityToTimeStop)
-        case 0x13B: // Remove animation (CGameEffectDoNotDraw)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
-          break;
-
-        case 0xBA: // Move creature (CGameEffectJumpToArea)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", Actor.s_orientation));
-          restype = "ARE";
-          break;
-
-        case 0xBB: // Set local variable (CGameEffectSetLocalVariable)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "String";
-          break;
-
-        case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Wizard", "Priest"}));
-          break;
-
-        case 0xC3: // Drain HP on death (CGameEffectHitPointsOnDeath)
-          s.add(new DecNumber(buffer, offset, 4, "HP amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xC5: // Physical mirror (CGameEffectBounceProjectile)
-          s.add(new Unknown(buffer, offset, 4));
-          if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
-            s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
-          else
-            s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
-          break;
-
-        case 0xC6: // Reflect specified effect (CGameEffectBounceEffect)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
-          break;
-
-        case 0xC7: // Reflect spell level (CGameEffectBounceLevel)
-          s.add(new DecNumber(buffer, offset, 4, "Spell level"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xC8: // Spell turning (CGameEffectBounceLevelDecrement)
-        case 0xC9: // Spell deflection (CGameEffectImmunityLevelDecrement)
-          s.add(new DecNumber(buffer, offset, 4, "# levels"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
-          break;
-
-        case 0xCA: // Reflect spell school (CGameEffectBounceSchool)
-        case 0xCC: // Protection from spell school (CGameEffectImmunitySchool)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
-          break;
-
-        case 0xCB: // Reflect spell type (CGameEffectBounceSecondaryType)
-        case 0xCD: // Protection from spell type (CGameEffectImmunitySecondaryType)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
-          break;
-
-        case 0xCE: // Protection from spell (CGameEffectImmunitySpell)
-          s.add(new StringRef(buffer, offset, "String"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "SPL";
-          break;
-
-        case 0xCF: // Reflect specified spell (CGameEffectBounceSpell)
-        case 0xFB: // Change bard song (CGameEffectBardSong)
-        case 0xFC: // Set trap (CGameEffectSetSnare)
-        case 0x100: // Spell sequencer (CGameEffectSequencerInstance)
-        case 0x102: // Activate spell sequencer (CGameEffectSequencerFire)
-        case 0x10A: // Remove protection from spell (CGameEffectRemoveSpellImmunity)
-        case 0x139: // High-level ability (CGameEffectHighLevelAbility)
-          restype = "SPL";
-          break;
-
-        case 0xD0: // Minimum HP (CGameEffectMinHitPoints)
-          s.add(new DecNumber(buffer, offset, 4, "HP amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xD6: // Select spell (CGameEffectSecondaryCastList)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Show",
-            new String[]{"All spells", "Known spells"}));
-          restype = "2DA";
-          break;
-
-        case 0xD7: // Play visual effect (CGameEffectVisualEffect)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Play where?",
-            new String[]{"Over target (unattached)", "Over target (attached)",
-                         "At target point"}));
-          restype = "VEF:VVC:BAM";
-          break;
-
-        case 0xD8: // Level drain (CGameEffectLevelDrain)
-          s.add(new DecNumber(buffer, offset, 4, "# levels"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xDA: // Stoneskin effect (CGameEffectStoneSkins)
-        case 0x13A: // Stoneskin protection (CGameEffectStoneSkinsGolem)
-          s.add(new DecNumber(buffer, offset, 4, "# skins"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xDB: // Attack roll penalty (CGameEffectProtectionCircle)
-        case 0xEE: // Disintegrate (CGameEffectDisintegrate)
-          s.add(new IDSTargetEffect(buffer, offset));
-          break;
-
-        case 0xDC: // Remove spell school protections (CGameEffectDispelSchool)
-        case 0xE5: // Remove protection by school (CGameEffectDispelSchoolOne)
-          s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
-          break;
-
-        case 0xDD: // Remove spell type protections (CGameEffectDispelSecondaryType)
-        case 0xE6: // Remove protection by type (CGameEffectDispelSecondaryTypeOne)
-          s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
-          break;
-
-        case 0xDE: // Teleport field (CGameEffectRandomTeleport)
-          s.add(new DecNumber(buffer, offset, 4, "Maximum range"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xDF: // Spell school deflection (CGameEffectImmunitySchoolDecrement)
-        case 0xE3: // Spell school turning (CGameEffectBounceSchoolDecrement)
-          s.add(new DecNumber(buffer, offset, 4, "# levels"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
-          break;
-
-        case 0xE2: // Spell type deflection (CGameEffectImmunitySecondaryTypeDecrement)
-        case 0xE4: // Spell type turning (CGameEffectBounceSecondaryTypeDecrement)
-          s.add(new DecNumber(buffer, offset, 4, "# levels"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
-          break;
-
-        case 0xE8: // Cast spell on condition (CGameEffectContingencyInstance)
-          s.add(new Bitmap(buffer, offset, 4, "Target",
-            new String[]{"Caster", "Last hit by", "Nearest enemy"}));
-          if (gameid == ResourceFactory.ID_BGEE) {
-            s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
-              new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                           "HP below 25%", "HP below 10%", "If helpless",
-                           "If poisoned", "Every round when attacked",
-                           "Every round when hit", "Every round",
-                           "Actor killed", "Time of day"}));
-
-          } else {
-            s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
-              new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                           "HP below 25%", "HP below 10%", "If helpless",
-                           "If poisoned", "Every round when attacked",
-                           "Every round when hit", "Every round"}));
-          }
-          restype = "SPL";
-          break;
-
-        case 0xE9: // Modify proficiencies (CGameEffectProficiency)
-          s.add(new DecNumber(buffer, offset, 4, "# stars"));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
-          break;
-
-        case 0xEA: // Create contingency (CGameEffectContingencyStart)
-          s.add(new DecNumber(buffer, offset, 4, "Maximum spell level"));
-          s.add(new DecNumber(buffer, offset + 4, 2, "# spells"));
-          s.add(new Bitmap(buffer, offset + 6, 2, "Trigger type",
-            new String[]{"Chain contingency", "Contingency",
-                         "Spell sequencer"}));
-          break;
-
-        case 0xEB: // Wing buffet (CGameEffectPushPull)
-          s.add(new DecNumber(buffer, offset, 4, "Strength"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
-            new String[]{"", "Away from target point", "Away from source",
-                         "Toward target point", "Toward source"}));
-          break;
-
-        case 0xEC: // Project image (CGameEffectCopySelf)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Image type",
-            new String[]{"", "Mislead", "Project image", "Simulacrum"}));
-          break;
-
-        case 0xED: // Set image type (CGameEffectPuppetMaster)
-          s.add(new DecNumber(buffer, offset, 4, "Puppet master"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Puppet type",
-            new String[]{"", "Mislead", "Project image", "Simulacrum"}));
-          break;
-
-        case 0xEF: // Farsight (CGameEffectClairvoyance)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Can view unexplored?", s_noyes));
-          break;
-
-        case 0xF0: // Remove portrait icon (CGameEffectRemovePortraitIcon)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Icon", s_poricon));
-          break;
-
-        case 0xF1: // Control creature (CGameEffectCharm)
-          s.add(new IdsBitmap(buffer, offset, 4, "Creature type", "GENERAL.IDS"));
-          s.add(new Flag(buffer, offset + 4, 4, "Charm flags",
-            new String[]{"No flags set", "Turn hostile afterward", "Dire charm",
-                         "Controlled by cleric"}));
-          break;
-
-        case 0xF3: // Drain item charges (CGameEffectDrainChargeFromAllItems)
-          s.add(new Bitmap(buffer, offset, 4, "Include weapons?", s_noyes));
-          if (gameid == ResourceFactory.ID_BGEE) {
-            s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
-          } else {
-            s.add(new Unknown(buffer, offset + 4, 4));
-          }
-          break;
-
-        case 0xF4: // Drain wizard spells (CGameEffectRemoveRandomSpell)
-          s.add(new DecNumber(buffer, offset, 4, "# spells"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xF8: // Melee hit effect (CGameEffectMeleeEffect)
-        case 0xF9: // Ranged hit effect (CGameEffectRangeEffect)
-          restype = "EFF";
-          break;
-
-        case 0xFA: // Maximum damage each hit (CGameEffectDamageLuck)
-          s.add(new DecNumber(buffer, offset, 4, "Stat value"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xFD: // Set automap note (CGameAddMapNote)
-        case 0xFE: // Remove automap note (CGameRemoveMapNote)
-        case 0x10B: // Disable display string (CGameEffectImmunityToDisplayString)
-          s.add(new StringRef(buffer, offset, "String"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xFF: // Create item (days) (CGameEffectCreateItem)
-          s.add(new DecNumber(buffer, offset, 4, "# items in stack"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "ITM";
-          break;
-
-        case 0x101: // Create spell sequencer (CGameEffectSequencerStart)
-          s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "# spells"));
-          break;
-
-        case 0x103: // Spell trap (CGameEffectSpellTrapLevelDecrement)
-          s.add(new DecNumber(buffer, offset, 4, "# spells"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
-          break;
-
-        case 0x105: // Wondrous recall (CGameEffectRememorizeSpell)
-          s.add(new DecNumber(buffer, offset, 4, "Spell level"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Wizard", "Priest"}));
-          break;
-
-        case 0x108: // Drop item (CGameEffectRandomDrop)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Only quick weapons?", s_noyes));
-          break;
-
-        case 0x109: // Set global variable (CGameEffectSetGlobal)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Set", "Increment"}));
-          restype = "String";
-          break;
-
-        case 0x10D: // Shake screen (CGameEffectScreenShake)
-          s.add(new DecNumber(buffer, offset, 4, "Strength"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x110: // Use EFF file on condition (CGameEffectRepeatingApplyEffect)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Frequency",
-            new String[]{"Once per second", "", "Value per second",
-                         "Once per value seconds",
-                         "Variable per value rounds"}));
-          restype = "EFF";
-          break;
-
-        case 0x118: // Wild magic (CGameEffectForceSurge)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Affect",
-            new String[]{"", "Next spell", "Every spell"}));
-          break;
-
-        case 0x11A: // Modify script state (CGameEffectScriptingState)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "STATS.IDS", 156));
-          break;
-
-        case 0x11B: // Use EFF file as curse (CGameEffectCurseApplyEffect)
-          s.add(new IDSTargetEffect(buffer, offset));
-          restype = "EFF";
-          break;
-
-        case 0x122: // Change title (CGameEffectClassStringOverride)
-          s.add(new StringRef(buffer, offset, "Title"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Change where?",
-            new String[]{"Records screen", "Class name"}));
-          break;
-
-        case 0x126: // Set existence delay (CGameEffectExistanceDelayOverride)
-          s.add(new DecNumber(buffer, offset, 4, "Interval override"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x128: // Immunity to specific animation (CGameEffectImmunityToVisualEffect)
-          restype = "VEF:VVC:BAM";
-          break;
-
-        case 0x133: // Tracking (CGameEffectTracking)
-          s.add(new DecNumber(buffer, offset, 4, "Range"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x135: // Set variable (CGameEffectSetLocalExternal)
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Global or local?",
-            new String[]{"Both", "Local only"}));
-          restype = "String";
-          break;
-
-        case 0x13D: // Haste 2 (CGameEffectHaste2)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Haste type",
-            new String[]{"Normal", "Improved", "Movement rate only"}));
-          break;
-
-        case 0x13F: // Restrict item (BGEE)
-          s.add(new IDSTargetEffect(buffer, offset));
-          break;
-
-        case 0x140: // Change weather (BGEE)
-          s.add(new Bitmap(buffer, offset, 4, "Type",
-                           new String[]{"", "Rain", "Snow", "Nothing"}));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x141: // Remove effects by resource (BGEE)
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "SPL";
-          break;
-
-      }
-    }
-
-    // -----------------------
-    // Icewind Dale 2 Effects
-    // -----------------------
-    else if (gameid == ResourceFactory.ID_ICEWIND2) {
-      switch (effectType) {
-        case 0x0: // AC bonus
-          s.add(new DecNumber(buffer, offset, 4, "AC value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Bonus to",
-            new String[]{"Generic", "Armor", "Deflection", "Shield", "Crushing",
-                         "Piercing", "Slashing", "Missile"}));
-          break;
-
-        case 0x1: // Modify attacks per round
-        case 0x17: // Morale bonus
-        case 0xEE: // All saving throws bonus
-        case 0x10A: // Movement rate modifier
-        case 0x129: // Hide in shadows bonus
-        case 0x12A: // Use magic device bonus
-        case 0x1B9: // Force slow
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-          break;
-
-        case 0x3: // Berserk
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Berserk type",
-            new String[]{"Normal", "Constant", "Blood rage"}));
-          break;
-
-        case 0xC: // Damage
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
-            new String[]{"Normal", "Set to value", "Set to %", "Save for half"}));
-          s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
-          break;
-
-        case 0xF: // Dexterity bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Set", "Set % of", "Cat's grace"}));
-          break;
-
-        case 0x11: // Current HP bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
-            new String[]{"Increment", "Set", "Increment % of", "Lay on hands",
-                         "Wholeness of body", "Lathander's renewal"}));
-          s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
-            new String[]{"No flags set", "Raise dead"}));
-          break;
-
-        case 0x16: // Luck bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Lucky streak", "Fortune's favorite"}));
-          break;
-
-        case 0x18: // Panic
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Panic type",
-            new String[]{"Normal", "Harpy wail"}));
-          break;
-
-        case 0x19: // Poison
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
-            new String[]{"1 damage per second", "1 damage per second",
-                         "Amount damage per second",
-                         "1 damage per amount seconds",
-                         "Amount damage per round",
-                         "Snake bite", "Envenomed weapon"}));
-          break;
-
-        case 0x27: // Sleep
-        case 0x11D: // Force sleep
-        case 0x1A3: // Unconsciousness
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
-          break;
-
-        case 0x2C: // Strength bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Set", "Set % of", "Wizard strength"}));
-          break;
-
-        case 0x2D: // Stun
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Stun type",
-            new String[]{"Normal", "Unstun on damage", "Power word, stun"}));
-          break;
-
-        case 0x3C: // Casting failure
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"Arcane", "Divine", "All spells"}));
-          break;
-
-        case 0x3D: // Alchemy
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Set", "Mastery"}));
-          break;
-
-        case 0x42: // Translucency
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Visual effect",
-            new String[]{"Draw instantly", "Fade in", "Fade out"}));
-          break;
-
-        case 0x43: // Summon creature
-        case 0x19A: // Summon friendly creature
-        case 0x19B: // Summon hostile creature
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Summon animation",
-            new String[]{"No animation", "Monster summoning circle",
-                         "Animal summoning circle", "Earth summoning circle",
-                         "Fire summoning circle", "Water summoning circle", "",
-                         "Puff of smoke"}));
-          restype = "CRE";
-          break;
-
-        case 0x49: // Attack damage bonus
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-            new String[]{"Increment", "Fire damage", "Cold damage",
-                         "Electricity damage", "Acid damage", "Magic damage",
-                         "Poison damage", "Slashing damage", "Piercing damage",
-                         "Crushing damage", "Missile damage"}));
-          break;
-
-        case 0x4E: // Disease
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
-            new String[]{"1 damage per second", "Amount damage per round",
-                         "Amount damage per second",
-                         "1 damage per amount seconds", "Strength", "Dexterity",
-                         "Constitution", "Intelligence", "Wisdom", "Charisma",
-                         "Slow target", "Mold touch", "", "Contagion",
-                         "Cloud of pestilence", "Dolorous decay"}));
-          break;
-
-        case 0x52: // Set AI script
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
-          restype = "BCS";
-          break;
-
-        case 0x62: // Regeneration
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
-            new String[]{"1 HP per second", "1 HP per second",
-                         "Amount HP per second", "1 HP per amount seconds",
-                         "Amount HP per round"}));
-          break;
-
-        case 0x77: // Mirror image
-          s.add(new DecNumber(buffer, offset, 4, "# images"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Image type",
-            new String[]{"Normal", "Reflected image"}));
-          break;
-
-        case 0x7C: // Teleport
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Behavior",
-            new String[]{"Normal", "Source to target", "Return to start",
-                         "Exchange with target"}));
-          break;
-
-        case 0x83: // Chant (non-cumulative)
-        case 0xF4: // Prayer
-        case 0xF9: // Recitation
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Prayer type",
-            new String[]{"Beneficial", "Detrimental"}));
-          break;
-
-        case 0x90: // Disable button
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Button",
-            new String[]{"Stealth", "Thieving", "Cast spell", "Quick spell 0",
-                         "Quick spell 1", "Quick spell 2", "Quick spell 3",
-                         "Quick spell 4", "Quick spell 5", "Quick spell 6",
-                         "Quick spell 7", "Quick spell 8", "Bard song",
-                         "Quick song 0", "Quick song 1", "Quick song 2",
-                         "Quick song 3", "Quick song 4", "Quick song 5",
-                         "Quick song 6", "Quick song 7", "Quick song 8",
-                         "Quick skill 0", "Quick skill 1", "Quick skill 2",
-                         "Quick skill 3", "Quick skill 4", "Quick skill 5",
-                         "Quick skill 6", "Quick skill 7", "Quick skill 8"}));
-          break;
-
-        case 0x91: // Disable spellcasting
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-            new String[]{"All spells", "Non-innate", "Arcane", "Divine",
-                         "Innate"}));
-          break;
-
-        case 0xBA: // Move creature
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Orientation", "DIR.IDS"));
-          restype = "ARE";
-          break;
-
-        case 0xBB: // Set local variable
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "String";
-          break;
-
-        case 0xBC: // Increase spells cast per round
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
-          break;
-
-        case 0xBD: // Increase casting speed factor
-        case 0xBE: // Increase attack speed factor
-        case 0xEA: // Snilloc's snowball swarm
-        case 0xED: // Magical stone
-        case 0xEF: // Slow poison
-        case 0xF5: // Bad prayer
-        case 0xFA: // Bad recitation
-        case 0xFC: // Sol's searing orb
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xBF: // Casting level bonus
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset, 4, "Spell class",
-            new String[]{"Arcane", "Divine"}));
-          break;
-
-        case 0xC1: // Invisibility detection
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Ignore visibility?", s_noyes));
-          break;
-
-        case 0xCE: // Protection from spell
-        case 0x122: // Display spell immunity string
-          final String s_cretype[] = {"Anyone", "Undead", "Not undead",
-            "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
-            "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
-            "Not fungus", "Huge creature", "Not huge creature", "Elf",
-            "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
-            "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
-            "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
-            "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
-            "Not undead or fungus", "Good", "Not good", "Neutral",
-            "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
-            "Same moral alignment as source",
-            "Not same moral alignment as source", "Source", "Not source",
-            "Water-dwelling", "Not water-dwelling", "Breathing",
-            "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
-            "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
-            "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
-            "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf",
-            "Not deaf", "Summoned creature", "Not summoned creature",
-            "Mind flayer", "Not mind flayer", "Silenced", "Not silenced",
-            "Intelligence less than", "Intelligence greater than",
-            "Intelligence less than or equal to",
-            "Intelligence greater than or equal to", "Skald", "Not skald",
-            "Near enemies", "Not near enemies", "Drow", "Not drow",
-            "Gray dwarf", "Not gray dwarf", "Daytime", "Not daytime", "Outdoor",
-            "Not outdoor", "Keg", "Not keg", "Outsider", "Not outsider"};
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
-          restype = "SPL";
-          break;
-
-        case 0xD0: // Minimum HP
-        case 0x1B0: // Tortoise shell
-          s.add(new DecNumber(buffer, offset, 4, "HP amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xDA: // Stoneskin effect
-          s.add(new DecNumber(buffer, offset, 4, "# skins"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Skin type",
-            new String[]{"Stoneskin", "Iron skins"}));
-          break;
-
-        case 0xE8: // Creature RGB color fade
-          s.add(new Unknown(buffer, offset, 1));
-          s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
-          s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
-          s.add(new UnsignDecNumber(buffer, offset + 3, 1, "Blue"));
-          s.add(new Unknown(buffer, offset + 4, 2));
-          s.add(new DecNumber(buffer, offset + 6, 2, "Speed"));
-          break;
-
-        case 0xE9: // Show visual effect
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
-          break;
-
-        case 0xEB: // Show casting glow
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
-            new String[]{"None", "Abjuration", "Conjuration", "Divination",
-                         "Enchantment", "Illusion", "Invocation", "Necromancy",
-                         "Alteration"}));
-          break;
-
-        case 0xF0: // Summon creature 2
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
-            new String[]{"Monster summoning 1", "Monster summoning 2",
-                         "Monster summoning 3", "Monster summoning 4",
-                         "Monster summoning 5", "Monster summoning 6",
-                         "Monster summoning 7", "Animal summoning 1",
-                         "Animal summoning 2", "Animal summoning 3",
-                         "Summon insects", "Creeping doom", "Malavon summon"}));
-          break;
-
-        case 0xF1: // Vampiric touch
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
-            new String[]{"Target to source", "Source to target"}));
-          break;
-
-        case 0xF2: // Show visual overlay
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Overlay",
-            new String[]{"Globe of invulnerability", "Shroud of flame",
-                         "Antimagic shell", "Otiluke's resilient sphere",
-                         "Protection from normal missiles", "Cloak of fear",
-                         "Entropy shield", "Fire aura", "Frost aura",
-                         "Insect plague", "Storm shell", "Shield of lathander",
-                         "Greater shield of lathander", "Seven eyes"}));
-          break;
-
-        case 0xF3: // Animate dead
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Undead type",
-            new String[]{"Normal", "Lich"}));
-          break;
-
-        case 0xF6: // Summon creature 3
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Creature type",
-            new String[]{"Lizard man", "Troll", "Shadow", "Invisible stalker",
-                         "Fire elemental (wizard)", "Earth elemental (wizard)",
-                         "Water elemental (wizard)", "Fire elemental (priest)",
-                         "Earth elemental (priest)", "Water elemental (priest)",
-                         "Malavon earth elemental"}));
-          break;
-
-        case 0xF7: // Beltyn's burning blood
-          s.add(new DecNumber(buffer, offset, 4, "# hits"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xF8: // Summon shadow
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Shadow type",
-            new String[]{"Shadow", "Demishadow", "Shade"}));
-          break;
-
-        case 0xFB: // Lich touch
-        case 0x100: // Umber hulk gaze
-        case 0x117: // Animal rage
-          s.add(new DecNumber(buffer, offset, 4, "# seconds"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0xFD: // Bonus AC vs. weapons
-          s.add(new DecNumber(buffer, offset, 4, "AC value"));
-          s.add(new Flag(buffer, offset + 4, 4, "Bonus to",
-            new String[]{"All weapons", "Blunt weapons", "Missile weapons",
-                         "Piercing weapons", "Slashing weapons",
-                         "Set base AC to value"}));
-          break;
-
-        case 0xFE: // Dispel specific spell
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
-            new String[]{"All effects", "Equipped effects only",
-                         "Limited effects only"}));
-          restype = "SPL";
-          break;
-
-        case 0xFF: // Salamander aura
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Aura type",
-            new String[]{"Fire", "Frost"}));
-          break;
-
-        case 0x103: // Summon creatures with cloud
-          s.add(new DecNumber(buffer, offset, 4, "# creatures"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
-            new String[]{"Default", "Ally", "Hostile", "Forced", "Genie"}));
-          restype = "CRE";
-          break;
-
-        case 0x105: // Immunity to effect and resource
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
-          restype = "SPL";
-          break;
-
-        case 0x108: // Static charge
-        case 0x109: // Cloak of fear
-        case 0x1C1: // Call lightning
-          s.add(new DecNumber(buffer, offset, 4, "# hits"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "SPL";
-          break;
-
-        case 0x114: // Remove effect by type
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
-          break;
-
-        case 0x118: // Turn undead
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Turn type",
-            new String[]{"Command", "Rebuke", "Destroy", "Panic",
-                         "Depend on caster"}));
-          break;
-
-        case 0x11B: // Float text
-          s.add(new StringRef(buffer, offset, "String"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Display type",
-            new String[]{"String reference", "Cynicism"}));
-          break;
-
-        case 0x120: // Set status
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "SPLSTATE.IDS"));
-          break;
-
-        case 0x128: // Set global variable
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x192: // Apply effects list
-          final String s_applytype[] = {"Anyone", "Undead", "Not undead",
-            "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
-            "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
-            "Not fungus", "Huge creature", "Not huge creature", "Elf",
-            "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
-            "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
-            "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
-            "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
-            "Not undead or fungus", "Good", "Not good", "Neutral",
-            "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
-            "Same moral alignment as source",
-            "Not same moral alignment as source", "Source", "Not source",
-            "Water-dwelling", "Not water-dwelling", "Breathing",
-            "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
-            "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
-            "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
-            "Chaotic", "Not chaotic", "Orc", "Not orc", "Deaf", "Not deaf",
-            "Same alignment", "Not same alignment", "Allied and same alignment",
-            "Not allied and same alignment", "Hit points greater than",
-            "Hit points less than", "Drow", "Not drow", "Gray dwarf",
-            "Not gray dwarf", "Summoned creature", "Not summoned creature",
-            "Goblin", "Not goblin", "Giant", "Not giant", "Troll", "Not troll",
-            "Keg", "Not keg", "Human", "Not human", "Yuan-ti", "Not yuan-ti",
-            "Outsider", "Not outsider"};
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_applytype));
-          restype = "SPL";
-          break;
-
-        case 0x194: // Nausea
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Nausea type",
-            new String[]{"Stinking cloud", "Ghoul touch"}));
-          break;
-
-        case 0x196: // Fire shield
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Shield type",
-            new String[]{"Red", "Blue"}));
-          restype = "SPL";
-          break;
-
-        case 0x199: // Righteous wrath of the faithful
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Affect",
-            new String[]{"Allies", "Allies and same alignment"}));
-          break;
-
-        case 0x19C: // Control creature
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Control type",
-            new String[]{"", "Default", "Mental domination"}));
-          break;
-
-        case 0x19D: // Run visual effect
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Animation",
-            new String[]{"Sanctuary", "Entangle", "Wisp", "Shield", "Grease",
-                         "Web", "Minor globe of invulnerability",
-                         "Globe of invulnerability", "Shroud of flame",
-                         "Antimagic shell", "Otiluke's resilient sphere",
-                         "Protection from normal missiles", "Cloak of fear",
-                         "Entrophy shield", "Fire aura", "Frost aura",
-                         "Insect plague", "Storm shell", "Shield of lathander",
-                         "", "Greater shield of lathander", "", "Seven eyes",
-                         "", "Blur", "Invisibility", "Fire shield (red)",
-                         "Fire shield (blue)", "", "", "Tortoise shell",
-                         "Death armor"}));
-          break;
-
-        case 0x1A0: // Bleeding wounds
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Damage type",
-            new String[]{"Amount HP per round", "Amount HP per second",
-                         "1 HP per amount seconds"}));
-          break;
-
-        case 0x1A1: // Area effect using effects list
-          s.add(new DecNumber(buffer, offset, 4, "Radius"));
-          s.add(new Flag(buffer, offset + 4, 4, "Area effect type",
-            new String[]{"Instant", "Once per round", "Ignore target"}));
-          restype = "SPL";
-          break;
-
-        case 0x1A4: // Death magic
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Flag(buffer, offset + 4, 4, "Death type",
-            new String[]{"Acid", "Burning", "Crushing", "Normal", "Exploding",
-                         "Stoned", "Freezing", "", "", "", "Permanent",
-                         "Destruction"}));
-          break;
-
-        case 0x1AD: // Apply effects list on hit
-          restype = "SPL";
-          break;
-
-        case 0x1AE: // Projectile type using effects list
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
-          restype = "SPL";
-          break;
-
-        case 0x1AF: // Energy drain
-          s.add(new DecNumber(buffer, offset, 4, "# levels"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x1B1: // Blink
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Blink type",
-            new String[]{"Normal", "Empty body"}));
-          break;
-
-        case 0x1B2: // Persistent using effects list
-          s.add(new DecNumber(buffer, offset, 4, "Interval"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          restype = "SPL";
-          break;
-
-        case 0x1B4: // Damage reduction
-          s.add(new DecNumber(buffer, offset, 4, "Damage ignored"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Enchantment to overcome"));
-          break;
-
-        case 0x1B5: // Disguise
-          s.add(new IdsBitmap(buffer, offset, 4, "Animation", "ANIMATE.IDS"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-
-        case 0x1BB: // Protection from arrows
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Damage reduction",
-            new String[]{"None", "10/+1", "10/+2", "10/+3", "10/+4", "10/+5"}));
-          break;
-
-        case 0x1C2: // Globe of invulnerability
-          s.add(new Unknown(buffer, offset, 4));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Globe type",
-            new String[]{"Minor globe of invulnerability",
-                         "Globe of invulnerability"}));
-          break;
-
-        case 0x1C4: // Bane
-          s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new Unknown(buffer, offset + 4, 4));
-          break;
-      }
-    }
-
-    if (s.size() == initSize) {
-      s.add(new Unknown(buffer, offset, 4));
-      s.add(new Unknown(buffer, offset + 4, 4));
-    }
     return restype;
   }
-}
 
+  private String makeEffectParamsBG1(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                     int effectType, boolean isV1)
+  {
+    String restype = null;
+    switch (effectType) {
+      case 0x0: // AC bonus (CGameEffectAC)
+        s.add(new DecNumber(buffer, offset, 4, "AC value"));
+        s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
+        break;
+
+      case 0x1: // Modify attacks per round (CGameEffectAttackNo)
+        s.add(new Bitmap(buffer, offset, 4, "Value",
+          new String[]{"0 attacks per round", "1 attack per round",
+                       "2 attacks per round", "3 attacks per round",
+                       "4 attacks per round", "5 attacks per round",
+                       "1 attack per 2 rounds", "3 attacks per 2 rounds",
+                       "5 attacks per 2 rounds", "7 attacks per 2 rounds",
+                       "9 attacks per 2 rounds"}));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0xC: // Damage (CGameEffectDamage)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
+          new String[]{"Normal", "Set to value", "Set to %"}));
+        s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
+        break;
+
+      case 0xF: // Dexterity bonus (CGameEffectDEX)
+      case 0x16: // Luck bonus (CGameEffectLuck)
+      case 0x2C: // Strength bonus (CGameEffectSTR)
+      case 0x49: // Attack damage bonus (CGameEffectDamageMod)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0x11: // Current HP bonus (CGameEffectHeal)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
+          new String[]{"Increment", "Set", "Increment % of"}));
+        s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
+          new String[]{"No flags set", "Raise dead"}));
+        break;
+
+      case 0x19: // Poison (CGameEffectPoison)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
+          new String[]{"1 damage per second", "1 damage per second",
+                       "Amount damage per second",
+                       "1 damage per amount seconds",
+                       "Variable per amount seconds"}));
+        break;
+
+      case 0x3C: // Casting failure (CGameEffectCastingFailure)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
+          new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0x42: // Translucency (CGameEffectTranslucent)
+        s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x43: // Summon creature (CGameEffectSummon)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Allegiance",
+          new String[]{"Match target", "Match target", "From CRE file",
+                       "Match target", "From CRE file", "Hostile"}));
+        restype = "CRE";
+        break;
+
+      case 0x4E: // Disease (CGameEffectDisease)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
+          new String[]{"1 damage per second", "1 damage per second",
+                       "Amount damage per second",
+                       "1 damage per amount seconds", "Strength", "Dexterity",
+                       "Constitution", "Intelligence", "Wisdom", "Charisma",
+                       "Slow target"}));
+        break;
+
+      case 0x52: // Set AI script (CGameEffectSetAIScript)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+        restype = "BCS";
+        break;
+
+      case 0x62: // Regeneration (CGameEffectRegeneration)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
+          new String[]{"1 HP per second", "1 HP per second",
+                       "Amount HP per second", "1 HP per amount seconds",
+                       "Variable per amount seconds"}));
+        break;
+
+      case 0x83: // Chant (non-cumulative) (CGameEffectNon_CumulativeChant)
+      case 0xBD: // Increase casting speed factor (CGameEffectMentalSpeed)
+      case 0xBE: // Increase attack speed factor (CGameEffectPhysicalSpeed)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x90: // Disable button (CGameEffectDisableButton)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
+        break;
+
+      case 0x91: // Disable spellcasting (CGameEffectDisableSpellType)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0xBA: // Move creature (CGameEffectJumpToArea)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", Actor.s_orientation));
+        restype = "ARE";
+        break;
+
+      case 0xBB: // Set local variable (CGameEffectSetLocalVariable)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "String";
+        break;
+
+      case 0xBC: // Increase spells cast per round (CGameEffectAuraCleansing)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
+        break;
+
+      case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Wizard", "Priest"}));
+        break;
+    }
+
+    return restype;
+  }
+
+  private String makeEffectParamsBG2(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                     int effectType, boolean isV1)
+  {
+    String restype = null;
+    final int gameid = ResourceFactory.getGameID();
+    switch (effectType) {
+      case 0x0: // AC bonus (CGameEffectAC)
+        s.add(new DecNumber(buffer, offset, 4, "AC value"));
+        s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
+        break;
+
+      case 0x1: // Modify attacks per round (CGameEffectAttackNo)
+        s.add(new Bitmap(buffer, offset, 4, "Value",
+          new String[]{"0 attacks per round", "1 attack per round",
+                       "2 attacks per round", "3 attacks per round",
+                       "4 attacks per round", "5 attacks per round",
+                       "1 attack per 2 rounds", "3 attacks per 2 rounds",
+                       "5 attacks per 2 rounds", "7 attacks per 2 rounds",
+                       "9 attacks per 2 rounds"}));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0xC: // Damage (CGameEffectDamage)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
+          new String[]{"Normal", "Set to value", "Set to %", "Percentage"}));
+        s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
+        break;
+
+      case 0x11: // Current HP bonus (CGameEffectHeal)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
+          new String[]{"Increment", "Set", "Increment % of"}));
+        s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
+          new String[]{"No flags set", "Raise dead",
+                       "Remove limited effects"}));
+        break;
+
+      case 0xF: // Dexterity bonus (CGameEffectDEX)
+      case 0x16: // Luck bonus (CGameEffectLuck)
+      case 0x2C: // Strength bonus (CGameEffectSTR)
+      case 0x49: // Attack damage bonus (CGameEffectDamageMod)
+      case 0x106: // Visual range bonus (CGameEffectVisualRange)
+      case 0x107: // Backstab bonus (CGameEffectBackStabMod)
+      case 0x113: // Hide in shadows bonus (CGameEffectHideInShadows)
+      case 0x114: // Detect illusions bonus (CGameEffectDetectIllusion)
+      case 0x115: // Set traps bonus (CGameEffectSetTrap)
+      case 0x116: // THAC0 bonus (CGameEffectHitMod)
+      case 0x119: // Wild surge bonus (CGameEffectSurgeMod)
+      case 0x11C: // Melee THAC0 bonus (CGameEffectMeleeTHAC0Bonus)
+      case 0x11D: // Melee weapon damage bonus (CGameEffectMeleeDamageBonus)
+      case 0x11E: // Missile weapon damage bonus (CGameEffectMissileDamageBonus)
+      case 0x120: // Fist THAC0 bonus (CGameEffectFistTHAC0Bonus)
+      case 0x121: // Fist damage bonus (CGameEffectFistDamageBonus)
+      case 0x131: // Off-hand THAC0 bonus (CGameEffectThac0Left)
+      case 0x132: // Main hand THAC0 bonus (CGameEffectThac0Right)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0x3C: // Casting failure (CGameEffectCastingFailure)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
+          new String[]{"Wizard", "Priest", "Innate", "Wizard (dead magic)",
+                       "Priest (dead magic)", "Innate (dead magic)"}));
+        break;
+
+      case 0x42: // Translucency (CGameEffectTranslucent)
+        s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x43: // Summon creature (CGameEffectSummon)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Allegiance",
+          new String[]{"Match target", "Match target", "From CRE file",
+                       "Match target", "From CRE file", "Hostile"}));
+        restype = "CRE";
+        break;
+
+      case 0x4E: // Disease (CGameEffectDisease)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
+          new String[]{"1 damage per second", "1 damage per second",
+                       "Amount damage per second",
+                       "1 damage per amount seconds", "Strength", "Dexterity",
+                       "Constitution", "Intelligence", "Wisdom", "Charisma",
+                       "Slow target"}));
+        break;
+
+      case 0x52: // Set AI script (CGameEffectSetAIScript)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+        restype = "BCS";
+        break;
+
+      case 0x62: // Regeneration (CGameEffectRegeneration)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
+          new String[]{"1 HP per second", "1 HP per second",
+                       "Amount HP per second", "1 HP per amount seconds",
+                       "Variable per amount seconds"}));
+        break;
+
+      case 0x83: // Chant (non-cumulative) (CGameEffectNon_CumulativeChant)
+      case 0xBD: // Increase casting speed factor (CGameEffectMentalSpeed)
+      case 0xBE: // Increase attack speed factor (CGameEffectPhysicalSpeed)
+      case 0x12D: // Critical threat range bonus (CGameEffectCriticalHitBonus)
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x90: // Disable button (CGameEffectDisableButton)
+      case 0x117: // Enable button (CGameEffectEnableButton)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
+        break;
+
+      case 0x91: // Disable spellcasting (CGameEffectDisableSpellType)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0xB8: // No collision detection (CGameEffectSetDoNotJump)
+      case 0xBC: // Increase spells cast per round (CGameEffectAuraCleansing)
+      case 0xC1: // Invisibility detection (CGameEffectSeeInvisible)
+      case 0xC2: // Ignore dialogue pause (CGameEffectIgnoreDialogPause)
+      case 0xF5: // Unknown (F5) (CGameEffectCheckForBerserk)
+      case 0xF6: // Berserk effect (CGameEffectBerserkStage1)
+      case 0xF7: // Attack nearest creature (CGameEffectBerserkStage2)
+      case 0x123: // Disable visual effects (CGameEffectPreventSpellProtectionEffects)
+      case 0x124: // Immunity to backstab (CGameEffectImmunityToBackstab)
+      case 0x125: // Set persistent AI (CGameEffectPreventAISlowDown)
+      case 0x127: // Disable permanent death (CGameEffectNoPermanentDeath)
+      case 0x129: // Immunity to turn undead (CGameEffectImmunityToTurnUndead)
+      case 0x12C: // Modify collision behavior (CGameEffectNPCBump)
+      case 0x12E: // Can use any item (CGameEffectUseAnyItem)
+      case 0x12F: // Backstab every hit (CGameEffectAssassination)
+      case 0x134: // Immunity to tracking (CGameEffectImmuneToTracking)
+      case 0x136: // Immunity to time stop (CGameEffectImmunityToTimeStop)
+      case 0x13B: // Remove animation (CGameEffectDoNotDraw)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
+        break;
+
+      case 0xBA: // Move creature (CGameEffectJumpToArea)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", Actor.s_orientation));
+        restype = "ARE";
+        break;
+
+      case 0xBB: // Set local variable (CGameEffectSetLocalVariable)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "String";
+        break;
+
+      case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Wizard", "Priest"}));
+        break;
+
+      case 0xC3: // Drain HP on death (CGameEffectHitPointsOnDeath)
+        s.add(new DecNumber(buffer, offset, 4, "HP amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xC5: // Physical mirror (CGameEffectBounceProjectile)
+        s.add(new Unknown(buffer, offset, 4));
+        if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
+        else
+          s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
+        break;
+
+      case 0xC6: // Reflect specified effect (CGameEffectBounceEffect)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        break;
+
+      case 0xC7: // Reflect spell level (CGameEffectBounceLevel)
+        s.add(new DecNumber(buffer, offset, 4, "Spell level"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xC8: // Spell turning (CGameEffectBounceLevelDecrement)
+      case 0xC9: // Spell deflection (CGameEffectImmunityLevelDecrement)
+        s.add(new DecNumber(buffer, offset, 4, "# levels"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
+        break;
+
+      case 0xCA: // Reflect spell school (CGameEffectBounceSchool)
+      case 0xCC: // Protection from spell school (CGameEffectImmunitySchool)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        break;
+
+      case 0xCB: // Reflect spell type (CGameEffectBounceSecondaryType)
+      case 0xCD: // Protection from spell type (CGameEffectImmunitySecondaryType)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
+        break;
+
+      case 0xCE: // Protection from spell (CGameEffectImmunitySpell)
+        s.add(new StringRef(buffer, offset, "String"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "SPL";
+        break;
+
+      case 0xCF: // Reflect specified spell (CGameEffectBounceSpell)
+      case 0xFB: // Change bard song (CGameEffectBardSong)
+      case 0xFC: // Set trap (CGameEffectSetSnare)
+      case 0x100: // Spell sequencer (CGameEffectSequencerInstance)
+      case 0x102: // Activate spell sequencer (CGameEffectSequencerFire)
+      case 0x10A: // Remove protection from spell (CGameEffectRemoveSpellImmunity)
+      case 0x139: // High-level ability (CGameEffectHighLevelAbility)
+        restype = "SPL";
+        break;
+
+      case 0xD0: // Minimum HP (CGameEffectMinHitPoints)
+        s.add(new DecNumber(buffer, offset, 4, "HP amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xD6: // Select spell (CGameEffectSecondaryCastList)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Show",
+          new String[]{"All spells", "Known spells"}));
+        restype = "2DA";
+        break;
+
+      case 0xD7: // Play visual effect (CGameEffectVisualEffect)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Play where?",
+          new String[]{"Over target (unattached)", "Over target (attached)",
+                       "At target point"}));
+        restype = "VEF:VVC:BAM";
+        break;
+
+      case 0xD8: // Level drain (CGameEffectLevelDrain)
+        s.add(new DecNumber(buffer, offset, 4, "# levels"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xDA: // Stoneskin effect (CGameEffectStoneSkins)
+      case 0x13A: // Stoneskin protection (CGameEffectStoneSkinsGolem)
+        s.add(new DecNumber(buffer, offset, 4, "# skins"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xDB: // Attack roll penalty (CGameEffectProtectionCircle)
+      case 0xEE: // Disintegrate (CGameEffectDisintegrate)
+        s.add(new IDSTargetEffect(buffer, offset));
+        break;
+
+      case 0xDC: // Remove spell school protections (CGameEffectDispelSchool)
+      case 0xE5: // Remove protection by school (CGameEffectDispelSchoolOne)
+        s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        break;
+
+      case 0xDD: // Remove spell type protections (CGameEffectDispelSecondaryType)
+      case 0xE6: // Remove protection by type (CGameEffectDispelSecondaryTypeOne)
+        s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
+        break;
+
+      case 0xDE: // Teleport field (CGameEffectRandomTeleport)
+        s.add(new DecNumber(buffer, offset, 4, "Maximum range"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xDF: // Spell school deflection (CGameEffectImmunitySchoolDecrement)
+      case 0xE3: // Spell school turning (CGameEffectBounceSchoolDecrement)
+        s.add(new DecNumber(buffer, offset, 4, "# levels"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        break;
+
+      case 0xE2: // Spell type deflection (CGameEffectImmunitySecondaryTypeDecrement)
+      case 0xE4: // Spell type turning (CGameEffectBounceSecondaryTypeDecrement)
+        s.add(new DecNumber(buffer, offset, 4, "# levels"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
+        break;
+
+      case 0xE8: // Cast spell on condition (CGameEffectContingencyInstance)
+      {
+        s.add(new Bitmap(buffer, offset, 4, "Target",
+          new String[]{"Caster", "Last hit by", "Nearest enemy"}));
+        if (gameid == ResourceFactory.ID_BGEE) {
+          BitmapEx item = new BitmapEx(buffer, offset + 4, 4, "Condition",
+              new String[]{"Target hit", "Enemy sighted", "HP below 50%",
+              "HP below 25%", "HP below 10%", "If helpless",
+              "If poisoned", "Every round when attacked",
+              "Target in range 4'", "Target in range 10'",
+              "Every round", "Took damage",
+              "Actor killed", "Time of day"});
+          s.add(item);
+          if (parent != null && parent instanceof UpdateListener)
+            item.addUpdateListener((UpdateListener)parent);
+
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
+              new String[]{"Target hit", "Enemy sighted", "HP below 50%",
+                           "HP below 25%", "HP below 10%", "If helpless",
+                           "If poisoned", "Every round when attacked",
+                           "Target in range 4'", "Target in range 10'",
+                           "Every round", "Took damage"}));
+        }
+        restype = "SPL";
+        break;
+      }
+
+      case 0xE9: // Modify proficiencies (CGameEffectProficiency)
+        s.add(new DecNumber(buffer, offset, 4, "# stars"));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
+        break;
+
+      case 0xEA: // Create contingency (CGameEffectContingencyStart)
+        s.add(new DecNumber(buffer, offset, 4, "Maximum spell level"));
+        s.add(new DecNumber(buffer, offset + 4, 2, "# spells"));
+        s.add(new Bitmap(buffer, offset + 6, 2, "Trigger type",
+          new String[]{"Chain contingency", "Contingency",
+                       "Spell sequencer"}));
+        break;
+
+      case 0xEB: // Wing buffet (CGameEffectPushPull)
+        s.add(new DecNumber(buffer, offset, 4, "Strength"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
+          new String[]{"", "Away from target point", "Away from source",
+                       "Toward target point", "Toward source"}));
+        break;
+
+      case 0xEC: // Project image (CGameEffectCopySelf)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Image type",
+          new String[]{"", "Mislead", "Project image", "Simulacrum"}));
+        break;
+
+      case 0xED: // Set image type (CGameEffectPuppetMaster)
+        s.add(new DecNumber(buffer, offset, 4, "Puppet master"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Puppet type",
+          new String[]{"", "Mislead", "Project image", "Simulacrum"}));
+        break;
+
+      case 0xEF: // Farsight (CGameEffectClairvoyance)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Can view unexplored?", s_noyes));
+        break;
+
+      case 0xF0: // Remove portrait icon (CGameEffectRemovePortraitIcon)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Icon", s_poricon));
+        break;
+
+      case 0xF1: // Control creature (CGameEffectCharm)
+        s.add(new IdsBitmap(buffer, offset, 4, "Creature type", "GENERAL.IDS"));
+        s.add(new Flag(buffer, offset + 4, 4, "Charm flags",
+          new String[]{"No flags set", "Turn hostile afterward", "Dire charm",
+                       "Controlled by cleric"}));
+        break;
+
+      case 0xF3: // Drain item charges (CGameEffectDrainChargeFromAllItems)
+        s.add(new Bitmap(buffer, offset, 4, "Include weapons?", s_noyes));
+        if (gameid == ResourceFactory.ID_BGEE) {
+          s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
+        } else {
+          s.add(new Unknown(buffer, offset + 4, 4));
+        }
+        break;
+
+      case 0xF4: // Drain wizard spells (CGameEffectRemoveRandomSpell)
+        s.add(new DecNumber(buffer, offset, 4, "# spells"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xF8: // Melee hit effect (CGameEffectMeleeEffect)
+      case 0xF9: // Ranged hit effect (CGameEffectRangeEffect)
+        restype = "EFF";
+        break;
+
+      case 0xFA: // Maximum damage each hit (CGameEffectDamageLuck)
+        s.add(new DecNumber(buffer, offset, 4, "Stat value"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xFD: // Set automap note (CGameAddMapNote)
+      case 0xFE: // Remove automap note (CGameRemoveMapNote)
+      case 0x10B: // Disable display string (CGameEffectImmunityToDisplayString)
+        s.add(new StringRef(buffer, offset, "String"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xFF: // Create item (days) (CGameEffectCreateItem)
+        s.add(new DecNumber(buffer, offset, 4, "# items in stack"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "ITM";
+        break;
+
+      case 0x101: // Create spell sequencer (CGameEffectSequencerStart)
+        s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "# spells"));
+        break;
+
+      case 0x103: // Spell trap (CGameEffectSpellTrapLevelDecrement)
+        s.add(new DecNumber(buffer, offset, 4, "# spells"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
+        break;
+
+      case 0x105: // Wondrous recall (CGameEffectRememorizeSpell)
+        s.add(new DecNumber(buffer, offset, 4, "Spell level"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Wizard", "Priest"}));
+        break;
+
+      case 0x108: // Drop item (CGameEffectRandomDrop)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Only quick weapons?", s_noyes));
+        break;
+
+      case 0x109: // Set global variable (CGameEffectSetGlobal)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Set", "Increment"}));
+        restype = "String";
+        break;
+
+      case 0x10D: // Shake screen (CGameEffectScreenShake)
+        s.add(new DecNumber(buffer, offset, 4, "Strength"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x110: // Use EFF file on condition (CGameEffectRepeatingApplyEffect)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Frequency",
+          new String[]{"Once per second", "", "Value per second",
+                       "Once per value seconds",
+                       "Variable per value rounds"}));
+        restype = "EFF";
+        break;
+
+      case 0x118: // Wild magic (CGameEffectForceSurge)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Affect",
+          new String[]{"", "Next spell", "Every spell"}));
+        break;
+
+      case 0x11A: // Modify script state (CGameEffectScriptingState)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "STATS.IDS", 156));
+        break;
+
+      case 0x11B: // Use EFF file as curse (CGameEffectCurseApplyEffect)
+        s.add(new IDSTargetEffect(buffer, offset));
+        restype = "EFF";
+        break;
+
+      case 0x122: // Change title (CGameEffectClassStringOverride)
+        s.add(new StringRef(buffer, offset, "Title"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Change where?",
+          new String[]{"Records screen", "Class name"}));
+        break;
+
+      case 0x126: // Set existence delay (CGameEffectExistanceDelayOverride)
+        s.add(new DecNumber(buffer, offset, 4, "Interval override"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x128: // Immunity to specific animation (CGameEffectImmunityToVisualEffect)
+        restype = "VEF:VVC:BAM";
+        break;
+
+      case 0x133: // Tracking (CGameEffectTracking)
+        s.add(new DecNumber(buffer, offset, 4, "Range"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x135: // Set variable (CGameEffectSetLocalExternal)
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Global or local?",
+          new String[]{"Both", "Local only"}));
+        restype = "String";
+        break;
+
+      case 0x13D: // Haste 2 (CGameEffectHaste2)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Haste type",
+          new String[]{"Normal", "Improved", "Movement rate only"}));
+        break;
+
+      case 0x13F: // Restrict item (BGEE)
+      {
+        int param2 = Byteconvert.convertInt(buffer, offset + 4);
+        if (param2 >= 2 && param2 < 10) {
+          s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", m_itemids.get((long)param2)));
+        } else if (param2 == 10) {
+          s.add(new StringRef(buffer, offset, "Actor name"));
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        }
+        HashBitmapEx idsFile = new HashBitmapEx(buffer, offset + 4, 4, "IDS file", m_itemids);
+        s.add(idsFile);
+        if (parent != null && parent instanceof UpdateListener)
+          idsFile.addUpdateListener((UpdateListener)parent);
+        break;
+      }
+
+      case 0x140: // Change weather (BGEE)
+        s.add(new Bitmap(buffer, offset, 4, "Type",
+                         new String[]{"", "Rain", "Snow", "Nothing"}));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x141: // Remove effects by resource (BGEE)
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "SPL";
+        break;
+    }
+
+    return restype;
+  }
+
+  private String makeEffectParamsPST(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                     int effectType, boolean isV1)
+  {
+    String restype = null;
+    switch (effectType) {
+      case 0x0: // AC bonus
+        s.add(new DecNumber(buffer, offset, 4, "AC value"));
+        s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
+        break;
+
+      case 0x1: // Modify attacks per round
+        s.add(new Bitmap(buffer, offset, 4, "Value",
+          new String[]{"0 attacks per round", "1 attack per round",
+                       "2 attacks per round", "3 attacks per round",
+                       "4 attacks per round", "5 attacks per round",
+                       "1 attack per 2 rounds", "3 attacks per 2 rounds",
+                       "5 attacks per 2 rounds", "7 attacks per 2 rounds",
+                       "9 attacks per 2 rounds"}));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0xC: // Damage
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
+          new String[]{"Normal", "Set to value", "Set to %"}));
+        s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
+        break;
+
+      case 0xF: // Dexterity bonus
+      case 0x16: // Luck bonus
+      case 0x2C: // Strength bonus
+      case 0x49: // Attack damage bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0x11: // Current HP bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
+          new String[]{"Increment", "Set", "Increment % of"}));
+        s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
+          new String[]{"No flags set", "Raise dead"}));
+        break;
+
+      case 0x19: // Poison
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
+          new String[]{"1 damage per second", "1 damage per second",
+                       "Amount damage per second",
+                       "1 damage per amount seconds",
+                       "Variable per amount seconds"}));
+        break;
+
+      case 0x3C: // Casting failure
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
+          new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0x42: // Translucency
+        s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x43: // Summon creature
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Allegiance",
+          new String[]{"Match target", "Match target", "From CRE file",
+                       "Match target", "From CRE file", "Hostile"}));
+        restype = "CRE";
+        break;
+
+      case 0x4E: // Disease
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
+          new String[]{"1 damage per second", "1 damage per second",
+                       "Amount damage per second",
+                       "1 damage per amount seconds", "Strength", "Dexterity",
+                       "Constitution", "Intelligence", "Wisdom", "Charisma",
+                       "Slow target"}));
+        break;
+
+      case 0x62: // Regeneration
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
+          new String[]{"1 HP per second", "1 HP per second",
+                       "Amount HP per second", "1 HP per amount seconds",
+                       "Variable per amount seconds"}));
+        break;
+
+      case 0x83: // Chant (non-cumulative)
+      case 0xCB: // Curse
+      case 0xCC: // Prayer
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x90: // Disable button
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
+        break;
+
+      case 0x91: // Disable spellcasting
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0xBA: // Set status
+        s.add(new Bitmap(buffer, offset, 4, "Action", new String[]{"Clear", "Set"}));
+        s.add(new IdsFlag(buffer, offset + 4, 4, "State", "STATE.IDS"));
+        break;
+
+      case 0xBB: // Play BAM file (single/dual)
+        s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
+        s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
+        s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
+        s.add(new Unknown(buffer, offset + 3, 1));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "BAM";
+        break;
+
+      case 0xBC: // Play BAM file
+      case 0xBD: // Play BAM file 2
+      case 0xBE: // Play BAM file 3
+      case 0xBF: // Play BAM file 4
+        final LongIntegerHashMap<String> m_playbam = new LongIntegerHashMap<String>();
+        m_playbam.put(0L, "Non-sticky, not 3D");
+        m_playbam.put(1L, "Random placement, not 3D");
+        m_playbam.put(528384L, "Sticky, 3D");
+        m_playbam.put(1179648L, "RGB transparent");
+        m_playbam.put(1183744L, "RGB transparent, 3D, sticky");
+        m_playbam.put(3280896L, "RGB transparent, 3D");
+        s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
+        s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
+        s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
+        s.add(new Unknown(buffer, offset + 3, 1));
+        s.add(new HashBitmap(buffer, offset + 4, 4, "Properties", m_playbam));
+        restype = "BAM";
+        break;
+
+      case 0xC0: // Hit point transfer
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Direction",
+          new String[]{"Source to target", "Target to source", "Swap HP",
+                       "Caster to target"}));
+        s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
+        break;
+
+      case 0xC1: // Shake screen
+        s.add(new DecNumber(buffer, offset, 4, "Strength"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xC2: // Flash screen
+        s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
+        s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
+        s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
+        s.add(new Unknown(buffer, offset + 3, 1));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xC3: // Tint screen
+        s.add(new UnsignDecNumber(buffer, offset, 1, "Red"));
+        s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Green"));
+        s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Blue"));
+        s.add(new Unknown(buffer, offset + 3, 1));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Method"));
+        break;
+
+      case 0xC4: // Special spell hit
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
+          new String[]{"Adder's kiss", "Ball lightning", "Fizzle"}));
+        break;
+
+      case 0xC9: // Play BAM with effects
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
+          new String[]{"Cloak of warding", "Shield", "Black-barbed shield",
+                       "Pain mirror", "Guardian mantle", "",
+                       "Enoll eva's duplication", "Armor", "Antimagic shell",
+                       "", "", "Flame walk", "Protection from evil",
+                       "Conflagration", "Infernal shield",
+                       "Submerge the will", "Balance in all things"}));
+        restype = "BAM";
+        break;
+
+      case 0xCD: // Move view to target
+        s.add(new DecNumber(buffer, offset, 4, "Speed"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xCE: // Embalm
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Embalming type",
+          new String[]{"Normal", "Greater"}));
+        break;
+    }
+
+    return restype;
+  }
+
+  private String makeEffectParamsIWD(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                     int effectType, boolean isV1)
+  {
+    String restype = null;
+    switch (effectType) {
+      case 0x0: // AC bonus
+        s.add(new DecNumber(buffer, offset, 4, "AC value"));
+        s.add(new Flag(buffer, offset + 4, 4, "Bonus to", s_actype));
+        break;
+
+      case 0x1: // Modify attacks per round
+      case 0x16: // Luck bonus
+      case 0x17: // Morale bonus
+      case 0xEE: // All saving throws bonus
+      case 0x10A: // Movement rate modifier
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0x3: // Berserk
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Berserk type",
+          new String[]{"Normal", "Blood rage"}));
+        break;
+
+      case 0xC: // Damage
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
+          new String[]{"Normal", "Set to value", "Set to %", "Percentage"}));
+        s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
+        break;
+
+      case 0xF: // Dexterity bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Set", "Set % of", "Cat's grace"}));
+        break;
+
+      case 0x11: // Current HP bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
+          new String[]{"Increment", "Set", "Increment % of"}));
+        s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
+          new String[]{"No flags set", "Raise dead"}));
+        break;
+
+      case 0x19: // Poison
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
+          new String[]{"1 damage per second", "1 damage per second",
+                       "Amount damage per second",
+                       "1 damage per amount seconds",
+                       "Variable per amount seconds"}));
+        break;
+
+      case 0x2C: // Strength bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Set", "Set % of", "Wizard strength"}));
+        break;
+
+      case 0x27: // Sleep
+      case 0x11D: // Force sleep
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
+        break;
+
+      case 0x3C: // Casting failure
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Failure type",
+          new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0x42: // Translucency
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Visual effect",
+          new String[]{"Draw instantly", "Fade in", "Fade out"}));
+        break;
+
+      case 0x43: // Summon creature
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Summon animation",
+          new String[]{"No animation", "Monster summoning circle",
+                       "Animal summoning circle", "Earth summoning circle",
+                       "Fire summoning circle", "Water summoning circle", "",
+                       "Puff of smoke"}));
+        restype = "CRE";
+        break;
+
+      case 0x49: // Attack damage bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Fire damage", "Cold damage",
+                       "Electricity damage", "Acid damage", "Magic damage",
+                       "Poison damage", "Slashing damage", "Piercing damage",
+                       "Crushing damage", "Missile damage"}));
+        break;
+
+      case 0x4E: // Disease
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
+          new String[]{"1 damage per second", "Amount damage per round",
+                       "Amount damage per second",
+                       "1 damage per amount seconds", "Strength", "Dexterity",
+                       "Constitution", "Intelligence", "Wisdom", "Charisma",
+                       "Slow target", "Mold touch"}));
+        break;
+
+      case 0x52: // Set AI script
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+        restype = "BCS";
+        break;
+
+      case 0x62: // Regeneration
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
+          new String[]{"1 HP per second", "1 HP per second",
+                       "Amount HP per second", "1 HP per amount seconds",
+                       "Amount HP per round"}));
+        break;
+
+      case 0x77: // Mirror image
+        s.add(new DecNumber(buffer, offset, 4, "# images"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x7C: // Teleport
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Behavior",
+          new String[]{"Normal", "Source to target", "Return to start",
+                       "Exchange with target"}));
+        break;
+
+      case 0x83: // Chant (non-cumulative)
+      case 0xF4: // Prayer
+      case 0xF9: // Recitation
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Prayer type",
+          new String[]{"Beneficial", "Detrimental"}));
+        break;
+
+      case 0x90: // Disable button
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
+        break;
+
+      case 0x91: // Disable spellcasting
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0xBA: // Move creature
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "Orientation", "DIR.IDS"));
+        restype = "ARE";
+        break;
+
+      case 0xBB: // Set local variable
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "String";
+        break;
+
+      case 0xBC: // Increase spells cast per round
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
+        break;
+
+      case 0xBD: // Increase casting speed factor
+      case 0xBE: // Increase attack speed factor
+      case 0xEA: // Snilloc's snowball swarm
+      case 0xED: // Magical stone
+      case 0xEF: // Slow poison
+      case 0xF5: // Bad prayer
+      case 0xFA: // Bad recitation
+      case 0xFC: // Sol's searing orb
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xCE: // Protection from spell
+      case 0x122: // Display spell immunity string
+        final String s_cretype[] = {"Anyone", "Undead", "Not undead",
+          "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
+          "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
+          "Not fungus", "Huge creature", "Not huge creature", "Elf",
+          "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
+          "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
+          "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
+          "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
+          "Not undead or fungus", "Good", "Not good", "Neutral",
+          "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
+          "Same moral alignment as source",
+          "Not same moral alignment as source", "Source", "Not source",
+          "Water-dwelling", "Not water-dwelling", "Breathing",
+          "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
+          "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
+          "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
+          "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf",
+          "Not deaf", "Summoned creature", "Not summoned creature",
+          "Mind flayer", "Not mind flayer", "Silenced", "Not silenced",
+          "Intelligence less than", "Intelligence greater than",
+          "Intelligence less than or equal to",
+          "Intelligence greater than or equal to", "Skald", "Not skald",
+          "Near enemies", "Not near enemies", "Drow", "Not drow",
+          "Gray dwarf", "Not gray dwarf", "Daytime", "Not daytime", "Outdoor",
+          "Not outdoor", "Keg", "Not keg", "Outsider", "Not outsider"};
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
+        restype = "SPL";
+        break;
+
+      case 0xD0: // Minimum HP
+        s.add(new DecNumber(buffer, offset, 4, "HP amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xDA: // Stoneskin effect
+        s.add(new DecNumber(buffer, offset, 4, "# skins"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xE8: // Creature RGB color fade
+        s.add(new Unknown(buffer, offset, 1));
+        s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
+        s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
+        s.add(new UnsignDecNumber(buffer, offset + 3, 1, "Blue"));
+        s.add(new Unknown(buffer, offset + 4, 2));
+        s.add(new DecNumber(buffer, offset + 6, 2, "Speed"));
+        break;
+
+      case 0xE9: // Show visual effect
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
+        break;
+
+      case 0xEB: // Show casting glow
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
+          new String[]{"None", "Abjuration", "Conjuration", "Divination",
+                       "Enchantment", "Illusion", "Invocation", "Necromancy",
+                       "Alteration"}));
+        break;
+
+      case 0xF0: // Summon creature 2
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
+          new String[]{"Monster summoning 1", "Monster summoning 2",
+                       "Monster summoning 3", "Monster summoning 4",
+                       "Monster summoning 5", "Monster summoning 6",
+                       "Monster summoning 7", "Animal summoning 1",
+                       "Animal summoning 2", "Animal summoning 3",
+                       "Summon insects", "Creeping doom", "Malavon summon"}));
+        break;
+
+      case 0xF1: // Vampiric touch
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
+          new String[]{"Target to source", "Source to target"}));
+        break;
+
+      case 0xF2: // Show visual overlay
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Overlay",
+          new String[]{"Globe of invulnerability", "Shroud of flame",
+                       "Antimagic shell", "Otiluke's resilient sphere",
+                       "Protection from normal missiles", "Cloak of fear",
+                       "Entropy shield", "Fire aura", "Frost aura",
+                       "Insect plague", "Storm shell", "Shield of lathander",
+                       "Greater shield of lathander", "Seven eyes"}));
+        break;
+
+      case 0xF3: // Animate dead
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Undead type",
+          new String[]{"Normal", "Lich"}));
+        break;
+
+      case 0xF6: // Summon creature 3
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Creature type",
+          new String[]{"Lizard man", "Troll", "Shadow", "Invisible stalker",
+                       "Fire elemental (wizard)", "Earth elemental (wizard)",
+                       "Water elemental (wizard)", "Fire elemental (priest)",
+                       "Earth elemental (priest)", "Water elemental (priest)",
+                       "Malavon earth elemental"}));
+        break;
+
+      case 0xF7: // Beltyn's burning blood
+      case 0x108: // Static charge
+      case 0x109: // Cloak of fear
+      case 0x116: // Shroud of flame
+        s.add(new DecNumber(buffer, offset, 4, "# hits"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xF8: // Summon shadow
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Shadow type",
+          new String[]{"Shadow", "Demishadow", "Shade"}));
+        break;
+
+      case 0xFB: // Lich touch
+      case 0x100: // Umber hulk gaze
+      case 0x117: // Animal rage
+        s.add(new DecNumber(buffer, offset, 4, "# seconds"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xFD: // Bonus AC vs. weapons
+        s.add(new DecNumber(buffer, offset, 4, "AC value"));
+        s.add(new Flag(buffer, offset + 4, 4, "Bonus to",
+          new String[]{"All weapons", "Blunt weapons", "Missile weapons",
+                       "Piercing weapons", "Slashing weapons",
+                       "Set base AC to value"}));
+        break;
+
+      case 0xFE: // Dispel specific spell
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
+          new String[]{"All effects", "Equipped effects only",
+                       "Limited effects only"}));
+        restype = "SPL";
+        break;
+
+      case 0xFF: // Salamander aura
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Aura type",
+          new String[]{"Fire", "Frost"}));
+        break;
+
+      case 0x103: // Summon creatures with cloud
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
+          new String[]{"Default", "Ally", "Hostile", "Forced", "Genie"}));
+        restype = "CRE";
+        break;
+
+      case 0x105: // Immunity to effect and string
+      case 0x114: // Remove effect by type
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        break;
+
+      case 0x11B: // Float text
+        s.add(new StringRef(buffer, offset, "String"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Display type",
+          new String[]{"String reference", "Cynicism"}));
+        break;
+
+      case 0x128: // Set global variable
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+    }
+
+    return restype;
+  }
+
+  private String makeEffectParamsIWD2(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                      int effectType, boolean isV1)
+  {
+    String restype = null;
+    switch (effectType) {
+      case 0x0: // AC bonus
+        s.add(new DecNumber(buffer, offset, 4, "AC value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Bonus to",
+          new String[]{"Generic", "Armor", "Deflection", "Shield", "Crushing",
+                       "Piercing", "Slashing", "Missile"}));
+        break;
+
+      case 0x1: // Modify attacks per round
+      case 0x17: // Morale bonus
+      case 0xEE: // All saving throws bonus
+      case 0x10A: // Movement rate modifier
+      case 0x129: // Hide in shadows bonus
+      case 0x12A: // Use magic device bonus
+      case 0x1B9: // Force slow
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        break;
+
+      case 0x3: // Berserk
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Berserk type",
+          new String[]{"Normal", "Constant", "Blood rage"}));
+        break;
+
+      case 0xC: // Damage
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Mode",
+          new String[]{"Normal", "Set to value", "Set to %", "Save for half"}));
+        s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
+        break;
+
+      case 0xF: // Dexterity bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Set", "Set % of", "Cat's grace"}));
+        break;
+
+      case 0x11: // Current HP bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type",
+          new String[]{"Increment", "Set", "Increment % of", "Lay on hands",
+                       "Wholeness of body", "Lathander's renewal"}));
+        s.add(new Flag(buffer, offset + 6, 2, "Heal flags",
+          new String[]{"No flags set", "Raise dead"}));
+        break;
+
+      case 0x16: // Luck bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Lucky streak", "Fortune's favorite"}));
+        break;
+
+      case 0x18: // Panic
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Panic type",
+          new String[]{"Normal", "Harpy wail"}));
+        break;
+
+      case 0x19: // Poison
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Poison type",
+          new String[]{"1 damage per second", "1 damage per second",
+                       "Amount damage per second",
+                       "1 damage per amount seconds",
+                       "Amount damage per round",
+                       "Snake bite", "Envenomed weapon"}));
+        break;
+
+      case 0x27: // Sleep
+      case 0x11D: // Force sleep
+      case 0x1A3: // Unconsciousness
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
+        break;
+
+      case 0x2C: // Strength bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Set", "Set % of", "Wizard strength"}));
+        break;
+
+      case 0x2D: // Stun
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Stun type",
+          new String[]{"Normal", "Unstun on damage", "Power word, stun"}));
+        break;
+
+      case 0x3C: // Casting failure
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"Arcane", "Divine", "All spells"}));
+        break;
+
+      case 0x3D: // Alchemy
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Set", "Mastery"}));
+        break;
+
+      case 0x42: // Translucency
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Visual effect",
+          new String[]{"Draw instantly", "Fade in", "Fade out"}));
+        break;
+
+      case 0x43: // Summon creature
+      case 0x19A: // Summon friendly creature
+      case 0x19B: // Summon hostile creature
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Summon animation",
+          new String[]{"No animation", "Monster summoning circle",
+                       "Animal summoning circle", "Earth summoning circle",
+                       "Fire summoning circle", "Water summoning circle", "",
+                       "Puff of smoke"}));
+        restype = "CRE";
+        break;
+
+      case 0x49: // Attack damage bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+          new String[]{"Increment", "Fire damage", "Cold damage",
+                       "Electricity damage", "Acid damage", "Magic damage",
+                       "Poison damage", "Slashing damage", "Piercing damage",
+                       "Crushing damage", "Missile damage"}));
+        break;
+
+      case 0x4E: // Disease
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Disease type",
+          new String[]{"1 damage per second", "Amount damage per round",
+                       "Amount damage per second",
+                       "1 damage per amount seconds", "Strength", "Dexterity",
+                       "Constitution", "Intelligence", "Wisdom", "Charisma",
+                       "Slow target", "Mold touch", "", "Contagion",
+                       "Cloud of pestilence", "Dolorous decay"}));
+        break;
+
+      case 0x52: // Set AI script
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+        restype = "BCS";
+        break;
+
+      case 0x62: // Regeneration
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type",
+          new String[]{"1 HP per second", "1 HP per second",
+                       "Amount HP per second", "1 HP per amount seconds",
+                       "Amount HP per round"}));
+        break;
+
+      case 0x77: // Mirror image
+        s.add(new DecNumber(buffer, offset, 4, "# images"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Image type",
+          new String[]{"Normal", "Reflected image"}));
+        break;
+
+      case 0x7C: // Teleport
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Behavior",
+          new String[]{"Normal", "Source to target", "Return to start",
+                       "Exchange with target"}));
+        break;
+
+      case 0x83: // Chant (non-cumulative)
+      case 0xF4: // Prayer
+      case 0xF9: // Recitation
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Prayer type",
+          new String[]{"Beneficial", "Detrimental"}));
+        break;
+
+      case 0x90: // Disable button
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Button",
+          new String[]{"Stealth", "Thieving", "Cast spell", "Quick spell 0",
+                       "Quick spell 1", "Quick spell 2", "Quick spell 3",
+                       "Quick spell 4", "Quick spell 5", "Quick spell 6",
+                       "Quick spell 7", "Quick spell 8", "Bard song",
+                       "Quick song 0", "Quick song 1", "Quick song 2",
+                       "Quick song 3", "Quick song 4", "Quick song 5",
+                       "Quick song 6", "Quick song 7", "Quick song 8",
+                       "Quick skill 0", "Quick skill 1", "Quick skill 2",
+                       "Quick skill 3", "Quick skill 4", "Quick skill 5",
+                       "Quick skill 6", "Quick skill 7", "Quick skill 8"}));
+        break;
+
+      case 0x91: // Disable spellcasting
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
+          new String[]{"All spells", "Non-innate", "Arcane", "Divine",
+                       "Innate"}));
+        break;
+
+      case 0xBA: // Move creature
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "Orientation", "DIR.IDS"));
+        restype = "ARE";
+        break;
+
+      case 0xBB: // Set local variable
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "String";
+        break;
+
+      case 0xBC: // Increase spells cast per round
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
+        break;
+
+      case 0xBD: // Increase casting speed factor
+      case 0xBE: // Increase attack speed factor
+      case 0xEA: // Snilloc's snowball swarm
+      case 0xED: // Magical stone
+      case 0xEF: // Slow poison
+      case 0xF5: // Bad prayer
+      case 0xFA: // Bad recitation
+      case 0xFC: // Sol's searing orb
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xBF: // Casting level bonus
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset, 4, "Spell class",
+          new String[]{"Arcane", "Divine"}));
+        break;
+
+      case 0xC1: // Invisibility detection
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Ignore visibility?", s_noyes));
+        break;
+
+      case 0xCE: // Protection from spell
+      case 0x122: // Display spell immunity string
+        final String s_cretype[] = {"Anyone", "Undead", "Not undead",
+          "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
+          "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
+          "Not fungus", "Huge creature", "Not huge creature", "Elf",
+          "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
+          "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
+          "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
+          "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
+          "Not undead or fungus", "Good", "Not good", "Neutral",
+          "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
+          "Same moral alignment as source",
+          "Not same moral alignment as source", "Source", "Not source",
+          "Water-dwelling", "Not water-dwelling", "Breathing",
+          "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
+          "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
+          "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
+          "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf",
+          "Not deaf", "Summoned creature", "Not summoned creature",
+          "Mind flayer", "Not mind flayer", "Silenced", "Not silenced",
+          "Intelligence less than", "Intelligence greater than",
+          "Intelligence less than or equal to",
+          "Intelligence greater than or equal to", "Skald", "Not skald",
+          "Near enemies", "Not near enemies", "Drow", "Not drow",
+          "Gray dwarf", "Not gray dwarf", "Daytime", "Not daytime", "Outdoor",
+          "Not outdoor", "Keg", "Not keg", "Outsider", "Not outsider"};
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
+        restype = "SPL";
+        break;
+
+      case 0xD0: // Minimum HP
+      case 0x1B0: // Tortoise shell
+        s.add(new DecNumber(buffer, offset, 4, "HP amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xDA: // Stoneskin effect
+        s.add(new DecNumber(buffer, offset, 4, "# skins"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Skin type",
+          new String[]{"Stoneskin", "Iron skins"}));
+        break;
+
+      case 0xE8: // Creature RGB color fade
+        s.add(new Unknown(buffer, offset, 1));
+        s.add(new UnsignDecNumber(buffer, offset + 1, 1, "Red"));
+        s.add(new UnsignDecNumber(buffer, offset + 2, 1, "Green"));
+        s.add(new UnsignDecNumber(buffer, offset + 3, 1, "Blue"));
+        s.add(new Unknown(buffer, offset + 4, 2));
+        s.add(new DecNumber(buffer, offset + 6, 2, "Speed"));
+        break;
+
+      case 0xE9: // Show visual effect
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
+        break;
+
+      case 0xEB: // Show casting glow
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
+          new String[]{"None", "Abjuration", "Conjuration", "Divination",
+                       "Enchantment", "Illusion", "Invocation", "Necromancy",
+                       "Alteration"}));
+        break;
+
+      case 0xF0: // Summon creature 2
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
+          new String[]{"Monster summoning 1", "Monster summoning 2",
+                       "Monster summoning 3", "Monster summoning 4",
+                       "Monster summoning 5", "Monster summoning 6",
+                       "Monster summoning 7", "Animal summoning 1",
+                       "Animal summoning 2", "Animal summoning 3",
+                       "Summon insects", "Creeping doom", "Malavon summon"}));
+        break;
+
+      case 0xF1: // Vampiric touch
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Direction",
+          new String[]{"Target to source", "Source to target"}));
+        break;
+
+      case 0xF2: // Show visual overlay
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Overlay",
+          new String[]{"Globe of invulnerability", "Shroud of flame",
+                       "Antimagic shell", "Otiluke's resilient sphere",
+                       "Protection from normal missiles", "Cloak of fear",
+                       "Entropy shield", "Fire aura", "Frost aura",
+                       "Insect plague", "Storm shell", "Shield of lathander",
+                       "Greater shield of lathander", "Seven eyes"}));
+        break;
+
+      case 0xF3: // Animate dead
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Undead type",
+          new String[]{"Normal", "Lich"}));
+        break;
+
+      case 0xF6: // Summon creature 3
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Creature type",
+          new String[]{"Lizard man", "Troll", "Shadow", "Invisible stalker",
+                       "Fire elemental (wizard)", "Earth elemental (wizard)",
+                       "Water elemental (wizard)", "Fire elemental (priest)",
+                       "Earth elemental (priest)", "Water elemental (priest)",
+                       "Malavon earth elemental"}));
+        break;
+
+      case 0xF7: // Beltyn's burning blood
+        s.add(new DecNumber(buffer, offset, 4, "# hits"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xF8: // Summon shadow
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Shadow type",
+          new String[]{"Shadow", "Demishadow", "Shade"}));
+        break;
+
+      case 0xFB: // Lich touch
+      case 0x100: // Umber hulk gaze
+      case 0x117: // Animal rage
+        s.add(new DecNumber(buffer, offset, 4, "# seconds"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0xFD: // Bonus AC vs. weapons
+        s.add(new DecNumber(buffer, offset, 4, "AC value"));
+        s.add(new Flag(buffer, offset + 4, 4, "Bonus to",
+          new String[]{"All weapons", "Blunt weapons", "Missile weapons",
+                       "Piercing weapons", "Slashing weapons",
+                       "Set base AC to value"}));
+        break;
+
+      case 0xFE: // Dispel specific spell
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
+          new String[]{"All effects", "Equipped effects only",
+                       "Limited effects only"}));
+        restype = "SPL";
+        break;
+
+      case 0xFF: // Salamander aura
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Aura type",
+          new String[]{"Fire", "Frost"}));
+        break;
+
+      case 0x103: // Summon creatures with cloud
+        s.add(new DecNumber(buffer, offset, 4, "# creatures"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Summon type",
+          new String[]{"Default", "Ally", "Hostile", "Forced", "Genie"}));
+        restype = "CRE";
+        break;
+
+      case 0x105: // Immunity to effect and resource
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        restype = "SPL";
+        break;
+
+      case 0x108: // Static charge
+      case 0x109: // Cloak of fear
+      case 0x1C1: // Call lightning
+        s.add(new DecNumber(buffer, offset, 4, "# hits"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "SPL";
+        break;
+
+      case 0x114: // Remove effect by type
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        break;
+
+      case 0x118: // Turn undead
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Turn type",
+          new String[]{"Command", "Rebuke", "Destroy", "Panic",
+                       "Depend on caster"}));
+        break;
+
+      case 0x11B: // Float text
+        s.add(new StringRef(buffer, offset, "String"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Display type",
+          new String[]{"String reference", "Cynicism"}));
+        break;
+
+      case 0x120: // Set status
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "SPLSTATE.IDS"));
+        break;
+
+      case 0x128: // Set global variable
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x192: // Apply effects list
+        final String s_applytype[] = {"Anyone", "Undead", "Not undead",
+          "Fire-dwelling", "Not fire-dwelling", "Humanoid", "Not humanoid",
+          "Animal", "Not animal", "Elemental", "Not elemental", "Fungus",
+          "Not fungus", "Huge creature", "Not huge creature", "Elf",
+          "Not elf", "Umber hulk", "Not umber hulk", "Half-elf",
+          "Not half-elf", "Humanoid or animal", "Not humanoid or animal",
+          "Blind", "Not blind", "Cold-dwelling", "Not cold-dwelling", "Golem",
+          "Not golem", "Minotaur", "Not minotaur", "Undead or fungus",
+          "Not undead or fungus", "Good", "Not good", "Neutral",
+          "Not neutral", "Evil", "Not evil", "Paladin", "Not paladin",
+          "Same moral alignment as source",
+          "Not same moral alignment as source", "Source", "Not source",
+          "Water-dwelling", "Not water-dwelling", "Breathing",
+          "Not breathing", "Allies", "Not allies", "Enemies", "Not enemies",
+          "Fire or cold dwelling", "Not fire or cold dwelling", "Unnatural",
+          "Not unnatural", "Male", "Not male", "Lawful", "Not lawful",
+          "Chaotic", "Not chaotic", "Orc", "Not orc", "Deaf", "Not deaf",
+          "Same alignment", "Not same alignment", "Allied and same alignment",
+          "Not allied and same alignment", "Hit points greater than",
+          "Hit points less than", "Drow", "Not drow", "Gray dwarf",
+          "Not gray dwarf", "Summoned creature", "Not summoned creature",
+          "Goblin", "Not goblin", "Giant", "Not giant", "Troll", "Not troll",
+          "Keg", "Not keg", "Human", "Not human", "Yuan-ti", "Not yuan-ti",
+          "Outsider", "Not outsider"};
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_applytype));
+        restype = "SPL";
+        break;
+
+      case 0x194: // Nausea
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Nausea type",
+          new String[]{"Stinking cloud", "Ghoul touch"}));
+        break;
+
+      case 0x196: // Fire shield
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Shield type",
+          new String[]{"Red", "Blue"}));
+        restype = "SPL";
+        break;
+
+      case 0x199: // Righteous wrath of the faithful
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Affect",
+          new String[]{"Allies", "Allies and same alignment"}));
+        break;
+
+      case 0x19C: // Control creature
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Control type",
+          new String[]{"", "Default", "Mental domination"}));
+        break;
+
+      case 0x19D: // Run visual effect
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Animation",
+          new String[]{"Sanctuary", "Entangle", "Wisp", "Shield", "Grease",
+                       "Web", "Minor globe of invulnerability",
+                       "Globe of invulnerability", "Shroud of flame",
+                       "Antimagic shell", "Otiluke's resilient sphere",
+                       "Protection from normal missiles", "Cloak of fear",
+                       "Entrophy shield", "Fire aura", "Frost aura",
+                       "Insect plague", "Storm shell", "Shield of lathander",
+                       "", "Greater shield of lathander", "", "Seven eyes",
+                       "", "Blur", "Invisibility", "Fire shield (red)",
+                       "Fire shield (blue)", "", "", "Tortoise shell",
+                       "Death armor"}));
+        break;
+
+      case 0x1A0: // Bleeding wounds
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Damage type",
+          new String[]{"Amount HP per round", "Amount HP per second",
+                       "1 HP per amount seconds"}));
+        break;
+
+      case 0x1A1: // Area effect using effects list
+        s.add(new DecNumber(buffer, offset, 4, "Radius"));
+        s.add(new Flag(buffer, offset + 4, 4, "Area effect type",
+          new String[]{"Instant", "Once per round", "Ignore target"}));
+        restype = "SPL";
+        break;
+
+      case 0x1A4: // Death magic
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Flag(buffer, offset + 4, 4, "Death type",
+          new String[]{"Acid", "Burning", "Crushing", "Normal", "Exploding",
+                       "Stoned", "Freezing", "", "", "", "Permanent",
+                       "Destruction"}));
+        break;
+
+      case 0x1AD: // Apply effects list on hit
+        restype = "SPL";
+        break;
+
+      case 0x1AE: // Projectile type using effects list
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
+        restype = "SPL";
+        break;
+
+      case 0x1AF: // Energy drain
+        s.add(new DecNumber(buffer, offset, 4, "# levels"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x1B1: // Blink
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Blink type",
+          new String[]{"Normal", "Empty body"}));
+        break;
+
+      case 0x1B2: // Persistent using effects list
+        s.add(new DecNumber(buffer, offset, 4, "Interval"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        restype = "SPL";
+        break;
+
+      case 0x1B4: // Damage reduction
+        s.add(new DecNumber(buffer, offset, 4, "Damage ignored"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Enchantment to overcome"));
+        break;
+
+      case 0x1B5: // Disguise
+        s.add(new IdsBitmap(buffer, offset, 4, "Animation", "ANIMATE.IDS"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+
+      case 0x1BB: // Protection from arrows
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Damage reduction",
+          new String[]{"None", "10/+1", "10/+2", "10/+3", "10/+4", "10/+5"}));
+        break;
+
+      case 0x1C2: // Globe of invulnerability
+        s.add(new Unknown(buffer, offset, 4));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Globe type",
+          new String[]{"Minor globe of invulnerability",
+                       "Globe of invulnerability"}));
+        break;
+
+      case 0x1C4: // Bane
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Unknown(buffer, offset + 4, 4));
+        break;
+    }
+
+    return restype;
+  }
+
+  private int makeEffectCommon1(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
+  {
+    if (isV1) {
+      s.add(new Bitmap(buffer, offset, 1, "Timing mode", s_duration));
+      s.add(new Bitmap(buffer, offset + 1, 1, "Dispel/Resistance", EffectType.s_dispel));
+      offset += 2;
+    } else {
+      s.add(new Bitmap(buffer, offset, 4, "Timing mode", s_duration));
+      offset += 4;
+    }
+
+    s.add(new DecNumber(buffer, offset, 4, "Duration"));
+    offset += 4;
+
+    if (isV1) {
+      s.add(new DecNumber(buffer, offset, 1, "Probability 1"));
+      s.add(new DecNumber(buffer, offset + 1, 1, "Probability 2"));
+      offset += 2;
+    } else {
+      s.add(new DecNumber(buffer, offset, 2, "Probability 1"));
+      s.add(new DecNumber(buffer, offset + 2, 2, "Probability 2"));
+      offset += 4;
+    }
+
+    return offset;
+  }
+
+  private int makeEffectResource(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                 int effectType, String resourceType, int param1, int param2)
+  {
+    final int gameid = ResourceFactory.getGameID();
+
+    if (resourceType == null) {
+      if ((gameid == ResourceFactory.ID_BG2 ||
+          gameid == ResourceFactory.ID_BG2TOB ||
+          gameid == ResourceFactory.ID_BGEE) &&
+          effectType == 0x13F && param2 == 11) {    // Restrict item (BGEE)
+        s.add(new TextString(buffer, offset, 8, "Script name"));
+      } else {
+        s.add(new Unknown(buffer, offset, 8, "Unused"));
+      }
+    } else if (resourceType.equalsIgnoreCase("String")) {
+      s.add(new TextString(buffer, offset, 8, "String"));
+    } else {
+      s.add(new ResourceRef(buffer, offset, "Resource", resourceType.split(":")));
+    }
+    offset += 8;
+
+    return offset;
+  }
+
+  private int makeEffectCommon2(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
+  {
+    final int gameid = ResourceFactory.getGameID();
+
+    if (isV1) {
+      s.add(new DecNumber(buffer, offset, 4, "# dice thrown/maximum level"));
+      s.add(new DecNumber(buffer, offset + 4, 4, "Dice size/minimum level"));
+      if (gameid == ResourceFactory.ID_ICEWIND2) {
+        s.add(new Flag(buffer, offset + 8, 4, "Save type", s_savetype2));
+        s.add(new DecNumber(buffer, offset + 12, 4, "Save penalty"));
+      }
+      else {
+        s.add(new Flag(buffer, offset + 8, 4, "Save type", s_savetype));
+        s.add(new DecNumber(buffer, offset + 12, 4, "Save bonus"));
+      }
+    } else {
+      if (gameid == ResourceFactory.ID_ICEWIND2) {
+        s.add(new Flag(buffer, offset, 4, "Save type", s_savetype2));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Save penalty"));
+        s.add(new DecNumber(buffer, offset + 8, 4, "Parameter?"));
+        s.add(new DecNumber(buffer, offset + 12, 4, "Parameter?"));
+      }
+      else {
+        s.add(new DecNumber(buffer, offset, 4, "# dice thrown"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Dice size"));
+        s.add(new Flag(buffer, offset + 8 , 4, "Save type", s_savetype));
+        s.add(new DecNumber(buffer, offset + 12, 4, "Save bonus"));
+      }
+    }
+    offset += 16;
+
+    return offset;
+  }
+
+  private int makeEffectParam25(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+                                int effectType, String resourceType, int param1, int param2)
+  {
+    final int gameid = ResourceFactory.getGameID();
+
+    if (gameid == ResourceFactory.ID_BG2 ||
+        gameid == ResourceFactory.ID_BG2TOB ||
+        gameid == ResourceFactory.ID_BGEE) {
+      switch (effectType) {
+        case 0xE8:    // Cast spell on condition (CGameEffectContingencyInstance)
+          if (param2 == 13) {
+            s.add(new IdsBitmap(buffer, offset, 4, "Time of day", "TIMEODAY.IDS"));
+          } else {
+            s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          }
+          break;
+        case 0x13F:   // Restrict item (BGEE)
+          s.add(new StringRef(buffer, offset, "Description note"));
+          break;
+        default:
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          break;
+      }
+    } else {
+      s.add(new Unknown(buffer, offset, 4));
+    }
+    offset += 4;
+
+    return offset;
+  }
+
+}

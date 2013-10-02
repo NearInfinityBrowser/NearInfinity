@@ -4,7 +4,10 @@
 
 package infinity.gui;
 
+import infinity.NearInfinity;
+
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -19,6 +22,31 @@ public final class WindowBlocker
           };
 
   private Component glassPane;
+
+  /**
+   * Blocks or unblocks the whole GUI and shows the respective mouse cursor.
+   * @param block Blocks the GUI if set to <code>true</code>, unblocks if set to <code>false</code>.
+   */
+  public static void blockWindow(boolean block)
+  {
+    blockWindow(NearInfinity.getInstance(), block);
+  }
+
+  /**
+   * Blocks or unblocks the specified component and shows the respective mouse cursor.
+   * @param block Blocks the component if set to <code>true</code>,
+   *              unblocks if set to <code>false</code>.
+   */
+  public static void blockWindow(Window window, boolean block)
+  {
+    if (window != null) {
+      if (block) {
+        window.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      } else {
+        window.setCursor(null);
+      }
+    }
+  }
 
   public WindowBlocker(RootPaneContainer window)
   {

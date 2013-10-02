@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+@Deprecated
 public final class Entry
 {
   private final Entry[] entries;

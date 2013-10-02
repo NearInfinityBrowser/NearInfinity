@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
+@Deprecated
 public final class AcmResource implements Resource, ActionListener, Closeable, Runnable
 {
   private final ResourceEntry entry;

@@ -4,12 +4,15 @@
 
 package infinity.gui.layeritem;
 
+import infinity.gui.layeritem.LayerItemEvent.ItemState;
+import infinity.resource.Viewable;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
 
@@ -18,18 +21,14 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
-import infinity.gui.layeritem.LayerItemEvent.ItemState;
-import infinity.resource.Viewable;
-
 /**
- * Represents a game resource structure visually as a polygon.
+ * Represents a game resource structure visually as a shape.
  * @author argent77
- */
-public class PolygonLayerItem extends AbstractLayerItem implements LayerItemListener
+ */ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListener
 {
   private static final Color DefaultColor = Color.BLACK;
 
-  private Polygon polygon;
+  private Shape shape;
   private EnumMap<ItemState, Icon> icons;
   private EnumMap<ItemState, Color> strokeColors;
   private EnumMap<ItemState, Color> fillColors;
@@ -39,18 +38,18 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   /**
    * Initialize object with default settings.
    */
-  public PolygonLayerItem()
+  public ShapedLayerItem()
   {
-    this(null, null, null, null);
+    this(null, null, null, null, null);
   }
 
   /**
    * Initialize object with the specified map location.
    * @param location Map location
    */
-  public PolygonLayerItem(Point location)
+  public ShapedLayerItem(Point location)
   {
-    this(location, null, null);
+    this(location, null, null, null, null);
   }
 
   /**
@@ -58,9 +57,9 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
    * @param location Map location
    * @param viewable Associated Viewable object
    */
-  public PolygonLayerItem(Point location, Viewable viewable)
+  public ShapedLayerItem(Point location, Viewable viewable)
   {
-    this(location, viewable, null, null);
+    this(location, viewable, null, null, null);
   }
 
   /**
@@ -69,20 +68,34 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
    * @param viewable Associated Viewable object
    * @param msg An arbitrary text message
    */
-  public PolygonLayerItem(Point location, Viewable viewable, String msg)
+  public ShapedLayerItem(Point location, Viewable viewable, String msg)
   {
-    this(location, viewable, msg, null);
+    this(location, viewable, msg, null, null);
   }
 
   /**
    * Initialize object with a specific map location, associated Viewable, an additional text message
-   * and a polygon for the visual representation.
+   * and a shape for the visual representation.
    * @param location Map location
    * @param viewable Associated Viewable object
    * @param msg An arbitrary text message
-   * @param poly The polygon to display
+   * @param shape The shape to display
    */
-  public PolygonLayerItem(Point location, Viewable viewable, String msg, Polygon poly)
+  public ShapedLayerItem(Point location, Viewable viewable, String msg, Shape shape)
+  {
+    this(location, viewable, msg, shape, null);
+  }
+
+  /**
+   * Initialize object with a specific map location, associated Viewable, an additional text message,
+   * a shape for the visual representation and a locical center position within the shape.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param msg An arbitrary text message
+   * @param shape The shape to display
+   * @param center Logical center position within the shape
+   */
+  public ShapedLayerItem(Point location, Viewable viewable, String msg, Shape shape, Point center)
   {
     super(location, viewable, msg);
     icons = new EnumMap<ItemState, Icon>(ItemState.class);
@@ -93,27 +106,47 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
     label.setHorizontalAlignment(SwingConstants.CENTER);
     label.setVerticalAlignment(SwingConstants.CENTER);
     add(label, BorderLayout.CENTER);
-    setPolygon(poly);
+    setShape(shape);
+    setCenterPosition(center);
     addLayerItemListener(this);
   }
 
   /**
-   * Returns the associated polygon.
-   * @return The associated polygon
+   * Returns the associated shape object.
+   * @return The associated shape object.
    */
-  public Polygon getPolygon()
+  public Shape getShape()
   {
-    return polygon;
+    return shape;
   }
 
   /**
-   * Sets a new polygon.
-   * @param poly The new polygon
+   * Sets a new shape.
+   * @param shape The new shape
    */
-  public void setPolygon(Polygon poly)
+  public void setShape(Shape shape)
   {
-    polygon = (poly != null) ? poly : new Polygon();
-    updatePolygon();
+    this.shape = (shape != null) ? shape : new Rectangle();
+    updateShape();
+  }
+
+  /**
+   * Sets the logical center of the icon.
+   * @param center The center position within the icon
+   */
+  public void setCenterPosition(Point center)
+  {
+    if (center == null)
+      center = new Point(0, 0);
+
+    if (!getLocationOffset().equals(center)) {
+      Point distance = new Point(getLocationOffset().x - center.x, getLocationOffset().y - center.y);
+      setLocationOffset(center);
+      // updating component location
+      Point loc = super.getLocation();
+      setLocation(loc.x + distance.x, loc.y + distance.y);
+      validate();
+    }
   }
 
   /**
@@ -205,7 +238,7 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   {
     if (b != stroked) {
       stroked = b;
-      updatePolygon();
+      updateShape();
     }
   }
 
@@ -226,7 +259,7 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   {
     if (b != filled) {
       filled = b;
-      updatePolygon();
+      updateShape();
     }
   }
 
@@ -234,8 +267,8 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   // Returns whether the mouse cursor is over the relevant part of the component
   protected boolean isMouseOver(Point pt)
   {
-    if (polygon != null) {
-      return polygon.contains(pt);
+    if (shape != null) {
+      return shape.contains(pt);
     } else
       return getBounds().contains(pt);
   }
@@ -267,7 +300,7 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
       } else {
         strokeColors.remove(state);
       }
-      updatePolygon();
+      updateShape();
     }
   }
 
@@ -297,15 +330,15 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
       } else {
         fillColors.remove(state);
       }
-      updatePolygon();
+      updateShape();
     }
   }
 
   // generates a graphical representation of the polygon
   private ImageIcon createIcon(ItemState state)
   {
-    if (polygon != null && polygon.npoints > 2 && state != null) {
-      Rectangle rect = polygon.getBounds();
+    if (shape != null && !shape.getBounds().isEmpty() && state != null) {
+      Rectangle rect = shape.getBounds();
       if (rect.isEmpty())
         rect.width = rect.height = 1;
       BufferedImage img = new BufferedImage(rect.x + rect.width, rect.y + rect.height, BufferedImage.TYPE_INT_ARGB);
@@ -313,11 +346,11 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
       if (graphics != null) {
         if (filled) {
           graphics.setColor(fillColors.get(state));
-          graphics.fillPolygon(polygon);
+          graphics.fill(shape);
         }
         if (stroked) {
           graphics.setColor(strokeColors.get(state));
-          graphics.drawPolygon(polygon);
+          graphics.draw(shape);
         }
       }
       return new ImageIcon(img);
@@ -338,7 +371,7 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
   }
 
   // Recreates polygons
-  private void updatePolygon()
+  private void updateShape()
   {
     updateSize();
     icons.put(ItemState.NORMAL, createIcon(ItemState.NORMAL));
@@ -358,7 +391,7 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
       label.setIcon(icons.get(state));
   }
 
-//--------------------- Begin Interface Runnable ---------------------
+//--------------------- Begin Interface LayerItemListener ---------------------
 
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -367,6 +400,6 @@ public class PolygonLayerItem extends AbstractLayerItem implements LayerItemList
     }
   }
 
-//--------------------- End Interface Runnable ---------------------
+//--------------------- End Interface LayerItemListener ---------------------
 
 }

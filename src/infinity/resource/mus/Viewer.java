@@ -11,11 +11,13 @@ import infinity.icon.Icons;
 import infinity.resource.sound.SoundUtilities;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+@Deprecated
 final class Viewer extends JPanel implements Runnable, ActionListener
 {
   private final JButton bplay = new JButton(Icons.getIcon("Play16.gif"));

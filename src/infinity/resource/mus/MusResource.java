@@ -6,6 +6,7 @@ package infinity.resource.mus;
 
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.Closeable;
@@ -28,21 +29,22 @@ public final class MusResource implements Closeable, TextResource, ActionListene
                                           DocumentListener
 {
   private static int lastIndex = -1;
-  private final JTabbedPane tabbedPane = new JTabbedPane();
   private final ResourceEntry entry;
   private final String text;
+  private JTabbedPane tabbedPane;
   private ButtonPopupMenu bfind;
   private JButton bsave, bexport;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
   private JTextArea editor;
-  private Viewer viewer;
+  private Viewer2 viewer;
   private boolean resourceChanged;
 
   public MusResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
     text = new String(entry.getResourceData());
+    resourceChanged = false;
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -50,9 +52,10 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bsave) {
-      if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor()))
-        resourceChanged = false;
-      viewer.parseMusfile(this);
+      if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor())) {
+        setDocumentModified(false);
+      }
+      viewer.loadMusResource(this);
     }
     else if (event.getSource() == bexport)
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
@@ -68,23 +71,25 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     lastIndex = tabbedPane.getSelectedIndex();
     if (resourceChanged) {
       File output;
-      if (entry instanceof BIFFResourceEntry)
-        output =
-            NIFile.getFile(ResourceFactory.getRootDirs(),
+      if (entry instanceof BIFFResourceEntry) {
+        output = NIFile.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
-      else
+      } else {
         output = entry.getActualFile();
+      }
       String options[] = {"Save changes", "Discard changes", "Cancel"};
       int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0)
+      if (result == 0) {
         ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-      else if (result == 2)
+      } else if (result == 2) {
         throw new Exception("Save aborted");
+      }
     }
-    if (viewer != null)
+    if (viewer != null) {
       viewer.close();
+    }
   }
 
 // --------------------- End Interface Closeable ---------------------
@@ -94,17 +99,17 @@ public final class MusResource implements Closeable, TextResource, ActionListene
 
   public void insertUpdate(DocumentEvent event)
   {
-    resourceChanged = true;
+    setDocumentModified(true);
   }
 
   public void removeUpdate(DocumentEvent event)
   {
-    resourceChanged = true;
+    setDocumentModified(true);
   }
 
   public void changedUpdate(DocumentEvent event)
   {
-    resourceChanged = true;
+    setDocumentModified(true);
   }
 
 // --------------------- End Interface DocumentListener ---------------------
@@ -173,16 +178,23 @@ public final class MusResource implements Closeable, TextResource, ActionListene
 
   public JComponent makeViewer(ViewableContainer container)
   {
-    viewer = new Viewer(this);
-    panel = new JPanel();
-    tabbedPane.addTab("View", viewer);
-    tabbedPane.addTab("Edit", getEditor(container.getStatusBar()));
-    panel.setLayout(new BorderLayout());
-    panel.add(tabbedPane, BorderLayout.CENTER);
-    if (lastIndex != -1)
-      tabbedPane.setSelectedIndex(lastIndex);
-    else if (BrowserMenuBar.getInstance().getDefaultStructView() == BrowserMenuBar.DEFAULT_EDIT)
-      tabbedPane.setSelectedIndex(1);
+    panel = new JPanel(new BorderLayout());
+    try {
+      WindowBlocker.blockWindow(true);
+      viewer = new Viewer2(this);
+      tabbedPane = new JTabbedPane();
+      tabbedPane.addTab("View", viewer);
+      tabbedPane.addTab("Edit", getEditor(container.getStatusBar()));
+      panel.add(tabbedPane, BorderLayout.CENTER);
+      if (lastIndex != -1) {
+        tabbedPane.setSelectedIndex(lastIndex);
+      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == BrowserMenuBar.DEFAULT_EDIT) {
+        tabbedPane.setSelectedIndex(1);
+      }
+      WindowBlocker.blockWindow(false);
+    } catch (Exception e) {
+      WindowBlocker.blockWindow(false);
+    }
     return panel;
   }
 
@@ -200,6 +212,11 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+  public Viewer2 getViewer()
+  {
+    return viewer;
+  }
 
   private JComponent getEditor(CaretListener caretListener)
   {
@@ -226,6 +243,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     bfind.setIcon(Icons.getIcon("Find16.gif"));
     bexport.setIcon(Icons.getIcon("Export16.gif"));
     bsave.setIcon(Icons.getIcon("Save16.gif"));
+    bsave.setEnabled(getDocumentModified());
 
     JPanel bpanel = new JPanel();
     bpanel.setLayout(new GridLayout(1, 3, 6, 0));
@@ -243,6 +261,19 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     panel2.add(lowerpanel, BorderLayout.SOUTH);
 
     return panel2;
+  }
+
+  private boolean getDocumentModified()
+  {
+    return resourceChanged;
+  }
+
+  private void setDocumentModified(boolean b)
+  {
+    if (b != resourceChanged) {
+      resourceChanged = b;
+      bsave.setEnabled(resourceChanged);
+    }
   }
 }
 

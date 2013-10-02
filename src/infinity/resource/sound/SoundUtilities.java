@@ -11,6 +11,7 @@ import infinity.util.Filewriter;
 import javax.sound.sampled.*;
 import java.io.*;
 
+@Deprecated
 public final class SoundUtilities
 {
   private static final AdpcmFmt fmt = new AdpcmFmt();
