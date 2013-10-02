@@ -1205,8 +1205,7 @@ public final class EffectFactory
     // Baldur's Gate I & TotSC Effects
     // ---------------
     if (gameid == ResourceFactory.ID_BG1 ||
-        gameid == ResourceFactory.ID_BG1TOTSC ||
-        gameid == ResourceFactory.ID_DEMO) {
+        gameid == ResourceFactory.ID_BG1TOTSC) {
       switch (effectType) {
         case 0x0: // AC bonus (CGameEffectAC)
           s.add(new DecNumber(buffer, offset, 4, "AC value"));
