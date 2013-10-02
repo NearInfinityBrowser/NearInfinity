@@ -8,6 +8,7 @@ import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
 import infinity.gui.TileGrid;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
@@ -20,7 +21,6 @@ import infinity.resource.wed.WedResource;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -370,7 +370,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   private void initTileset()
   {
     try {
-      NearInfinity.getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      WindowBlocker.blockWindow(true);
 
       decoder = new TisDecoder(entry);
 
@@ -392,10 +392,10 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
         img.setRGB(0, 0, tileWidth, tileHeight, block, 0, tileWidth);
         tileImages.add(img);
       }
-      NearInfinity.getInstance().setCursor(null);
+      WindowBlocker.blockWindow(false);
     } catch (Exception e) {
       e.printStackTrace();
-      NearInfinity.getInstance().setCursor(null);
+      WindowBlocker.blockWindow(false);
       if (tileImages == null)
         tileImages = new ArrayList<Image>();
       if (tileImages.isEmpty())

@@ -47,6 +47,24 @@ public final class ArrayUtil
       return null;
   }
 
+  /**
+   * Searches an array of objects for a specific element.
+   * @param array The object array to search.
+   * @param obj The object to find.
+   * @return The array index of the element if found, -1 otherwise.
+   */
+  public static<V> int indexOf(V[] array, V obj)
+  {
+    if (array != null && array.length > 0) {
+      for (int i = 0; i < array.length; i++) {
+        if (array[i] == obj) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
   private ArrayUtil(){}
 }
 

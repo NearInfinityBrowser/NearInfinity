@@ -15,6 +15,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
+import sun.awt.image.ToolkitImage;
 import infinity.gui.layeritem.LayerItemEvent.ItemState;
 import infinity.resource.Viewable;
 
@@ -157,8 +158,9 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    */
   public void setCenterPosition(Point center)
   {
-    if (center == null)
+    if (center == null) {
       center = new Point(0, 0);
+    }
 
     if (!getLocationOffset().equals(center)) {
       Point distance = new Point(getLocationOffset().x - center.x, getLocationOffset().y - center.y);
@@ -171,22 +173,44 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   }
 
   // Returns whether the mouse cursor is over the relevant part of the component
+  @Override
   protected boolean isMouseOver(Point pt)
   {
-    Icon icon = getCurrentIcon();
+    ImageIcon icon = (ImageIcon)getCurrentIcon();
     if (icon != null) {
-      return (new Rectangle((getSize().width - icon.getIconWidth()) / 2,
-                            (getSize().height - icon.getIconHeight()) / 2,
-                            icon.getIconWidth(),
-                            icon.getIconHeight())).contains(pt);
-    } else
+      Rectangle region = new Rectangle((getSize().width - icon.getIconWidth()) / 2,
+                                       (getSize().height - icon.getIconHeight()) / 2,
+                                        icon.getIconWidth(),
+                                        icon.getIconHeight());
+      if (region.contains(pt)) {
+        BufferedImage image;
+        if (icon.getImage() instanceof ToolkitImage) {
+          image = ((ToolkitImage)icon.getImage()).getBufferedImage();
+        } else if (icon.getImage() instanceof BufferedImage) {
+          image = (BufferedImage)icon.getImage();
+        } else {
+          image = null;
+        }
+        if (image != null) {
+          int color = image.getRGB(pt.x - region.x, pt.y - region.y);
+          // (near) transparent pixels (alpha <= 16) are disregarded
+          return ((color >>> 24) > 0x10);
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
+    } else {
       return super.isMouseOver(pt);
+    }
   }
 
   private Icon getIcon(ItemState state)
   {
-    if (state == null)
+    if (state == null) {
       state = ItemState.NORMAL;
+    }
     switch (state) {
       case SELECTED:
         if (icons.containsKey(ItemState.SELECTED))

@@ -10,6 +10,10 @@ import infinity.resource.vertex.Vertex;
 
 public abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
+  private static final String[] s_flags = { "No flags set", "Shade wall", "Semi transparent",
+                                            "Hovering wall", "Cover animations", "Unknown",
+                                            "Unknown", "Unknown", "Is door" };
+
   public Polygon(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
   {
     super(superStruct, name, buffer, offset, 8);
@@ -77,8 +81,8 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   {
     list.add(new DecNumber(buffer, offset, 4, "Vertex index"));
     list.add(new SectionCount(buffer, offset + 4, 4, "# vertices", Vertex.class));
-    list.add(new Unknown(buffer, offset + 8, 2));
-//    list.add(new Unknown(buffer, offset + 9, 1));
+    list.add(new Flag(buffer, offset + 8, 1, "Polygon flags", s_flags));
+    list.add(new Unknown(buffer, offset + 9, 1));
     list.add(new DecNumber(buffer, offset + 10, 2, "Minimum coordinate: X"));
     list.add(new DecNumber(buffer, offset + 12, 2, "Maximum coordinate: X"));
     list.add(new DecNumber(buffer, offset + 14, 2, "Minimum coordinate: Y"));

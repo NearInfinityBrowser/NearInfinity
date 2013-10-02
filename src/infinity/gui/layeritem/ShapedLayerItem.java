@@ -136,8 +136,9 @@ import javax.swing.SwingConstants;
    */
   public void setCenterPosition(Point center)
   {
-    if (center == null)
+    if (center == null) {
       center = new Point(0, 0);
+    }
 
     if (!getLocationOffset().equals(center)) {
       Point distance = new Point(getLocationOffset().x - center.x, getLocationOffset().y - center.y);
@@ -265,19 +266,22 @@ import javax.swing.SwingConstants;
 
 
   // Returns whether the mouse cursor is over the relevant part of the component
+  @Override
   protected boolean isMouseOver(Point pt)
   {
     if (shape != null) {
       return shape.contains(pt);
-    } else
+    } else {
       return getBounds().contains(pt);
+    }
   }
 
 
   private Color getStrokeColor(ItemState state)
   {
-    if (state == null)
+    if (state == null) {
       state = ItemState.NORMAL;
+    }
     switch (state) {
       case SELECTED:
         if (strokeColors.containsKey(ItemState.SELECTED))
@@ -306,8 +310,9 @@ import javax.swing.SwingConstants;
 
   private Color getFillColor(ItemState state)
   {
-    if (state == null)
+    if (state == null) {
       state = ItemState.NORMAL;
+    }
     switch (state) {
       case SELECTED:
         if (fillColors.containsKey(ItemState.SELECTED))
@@ -354,8 +359,9 @@ import javax.swing.SwingConstants;
         }
       }
       return new ImageIcon(img);
-    } else
+    } else {
       return new ImageIcon(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
+    }
   }
 
   private void updateSize()
@@ -387,8 +393,9 @@ import javax.swing.SwingConstants;
 
   private void setCurrentIcon(ItemState state)
   {
-    if (state != null && icons.containsKey(state))
+    if (state != null && icons.containsKey(state)) {
       label.setIcon(icons.get(state));
+    }
   }
 
 //--------------------- Begin Interface LayerItemListener ---------------------
