@@ -8,6 +8,7 @@ import infinity.NearInfinity;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -32,7 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-public class PvrzResource implements Resource, ActionListener
+public class PvrzResource implements Resource, ActionListener, Closeable
 {
   private final ResourceEntry entry;
   private BufferedImage image;
@@ -102,6 +103,18 @@ public class PvrzResource implements Resource, ActionListener
 
 //--------------------- End Interface Resource ---------------------
 
+//--------------------- Begin Interface Closeable ---------------------
+
+  public void close() throws Exception
+  {
+    if (decoder != null) {
+      decoder.close();
+      decoder = null;
+    }
+    System.gc();
+  }
+
+//--------------------- End Interface Closeable ---------------------
 
 //--------------------- Begin Interface Viewable ---------------------
 

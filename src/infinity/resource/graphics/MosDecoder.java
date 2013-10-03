@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Decodes either a single data block or a whole MOS resource.
  * @author argent77
  */
-public class MosDecoder
+public class MosDecoder implements Closeable
 {
   private static final String NOT_INITIALIZED = "Not initialized";
 
@@ -31,11 +32,7 @@ public class MosDecoder
    */
   public MosDecoder(String mosName) throws Exception
   {
-    ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(mosName);
-    if (entry == null)
-      throw new NullPointerException();
-
-    init(entry.getResourceData(), 0);
+    open(mosName);
   }
 
   /**
@@ -45,10 +42,56 @@ public class MosDecoder
    */
   public MosDecoder(ResourceEntry entry) throws Exception
   {
+    open(entry);
+  }
+
+//--------------------- Begin Interface Closeable ---------------------
+
+  public void close() throws Exception
+  {
+    info = null;
+    if (pvrTable != null) {
+      for (final Closeable pvr: pvrTable.values()) {
+        pvr.close();
+      }
+      pvrTable.clear();
+    }
+    pvrTable = null;
+  }
+
+//--------------------- End Interface Closeable ---------------------
+
+  /**
+   * Initialize this object using the specified filename.
+   * @param mosName Filename of the MOS file
+   * @throws Exception
+   */
+  public void open(String mosName) throws Exception
+  {
+    open(ResourceFactory.getInstance().getResourceEntry(mosName));
+  }
+
+  /**
+   * Initialize this object using the specified resource entry.
+   * @param entry Resource entry structure of the MOS resource.
+   * @throws Exception
+   */
+  public void open(ResourceEntry entry) throws Exception
+  {
+    close();
+
     if (entry == null)
       throw new NullPointerException();
-
     init(entry.getResourceData(), 0);
+  }
+
+  /**
+   * Returns whether this MosDecoder object has already been successfully initialized.
+   * @return Whether this MosDecoder object has already been initialized.
+   */
+  public boolean isOpen()
+  {
+    return !empty();
   }
 
   /**

@@ -23,6 +23,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -91,8 +92,7 @@ public final class AreaViewer extends ChildFrame
   implements Runnable, ActionListener, ItemListener, LayerItemListener, ComponentListener, MouseMotionListener
 {
   // Identifies the respective layers
-  private static enum Layers { ACTOR, TRIGGER, ENTRANCE, CONTAINER, AMBIENT, DOOR,
-//                               AMBIENTRANGE,
+  private static enum Layers { ACTOR, TRIGGER, ENTRANCE, CONTAINER, AMBIENT, AMBIENTRANGE, DOOR,
                                ANIMATION, AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION,
                                DOORPOLY, WALLPOLY }
 
@@ -111,7 +111,7 @@ public final class AreaViewer extends ChildFrame
     LayerButtonState.put(Layers.ENTRANCE, false);
     LayerButtonState.put(Layers.CONTAINER, false);
     LayerButtonState.put(Layers.AMBIENT, false);
-//    LayerButtonState.put(Layers.AMBIENTRANGE, false);
+    LayerButtonState.put(Layers.AMBIENTRANGE, false);
     LayerButtonState.put(Layers.DOOR, false);
     LayerButtonState.put(Layers.ANIMATION, false);
     LayerButtonState.put(Layers.AUTOMAP, false);
@@ -195,7 +195,7 @@ public final class AreaViewer extends ChildFrame
       setExtendedState(Frame.NORMAL);
     }
 
-    initProgressMonitor(parent, "Initializing " + are.getName(), 15, 0, 0);
+    initProgressMonitor(parent, "Initializing " + are.getName(), 3, 0, 0);
     new Thread(this).start();
   }
 
@@ -245,12 +245,12 @@ public final class AreaViewer extends ChildFrame
       enableLayer(Layers.CONTAINER, layerButton.get(Layers.CONTAINER).isSelected());
     } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENT)) {
       enableLayer(Layers.AMBIENT, layerButton.get(Layers.AMBIENT).isSelected());
-//      layerButton.get(Layers.AMBIENTRANGE).setEnabled(layerButton.get(Layers.AMBIENT).isSelected() &&
-//                                                                      !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
-//      enableLayer(Layers.AMBIENTRANGE, layerButton.get(Layers.AMBIENT).isSelected() &&
-//                                                       layerButton.get(Layers.AMBIENTRANGE).isSelected());
-//    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENTRANGE)) {
-//      enableLayer(Layers.AMBIENTRANGE, layerButton.get(Layers.AMBIENTRANGE).isSelected());
+      layerButton.get(Layers.AMBIENTRANGE).setEnabled(
+          layerButton.get(Layers.AMBIENT).isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
+      enableLayer(Layers.AMBIENTRANGE, layerButton.get(
+          Layers.AMBIENT).isSelected() && layerButton.get(Layers.AMBIENTRANGE).isSelected());
+    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENTRANGE)) {
+      enableLayer(Layers.AMBIENTRANGE, layerButton.get(Layers.AMBIENTRANGE).isSelected());
     } else if (event.getItemSelectable() == layerButton.get(Layers.DOOR)) {
       enableLayer(Layers.DOOR, layerButton.get(Layers.DOOR).isSelected());
     } else if (event.getItemSelectable() == layerButton.get(Layers.ANIMATION)) {
@@ -354,6 +354,18 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- End Interface MouseMotionListener ---------------------
 
+  @Override
+  protected void windowClosing() throws Exception
+  {
+    lTileset.removeAll();
+    for (List<AbstractLayerItem> list: layerItems.values())
+    {
+      list.clear();
+    }
+    layerItems.clear();
+    tisDecoder.close();
+  }
+
   private void initGui()
   {
     // assembling main view
@@ -374,32 +386,20 @@ public final class AreaViewer extends ChildFrame
     // initializing map data
     advanceProgressMonitor("Loading tileset");
     initMap();
-    advanceProgressMonitor("Loading actors");
+    advanceProgressMonitor("Loading map entities");
     initLayerActor();
-    advanceProgressMonitor("Loading entrances");
     initLayerEntrance();
-    advanceProgressMonitor("Loading ambient sounds");
     initLayerAmbient();
-    advanceProgressMonitor("Loading animations");
     initLayerAnimation();
-    advanceProgressMonitor("Loading automap notes");
     initLayerAutomap();
-    advanceProgressMonitor("Loading proj. traps");
     initLayerProTrap();
-    advanceProgressMonitor("Loading spawn points");
     initLayerSpawnPoint();
-    advanceProgressMonitor("Loading triggers");
     initLayerTrigger();
-    advanceProgressMonitor("Loading containers");
     initLayerContainer();
-    advanceProgressMonitor("Loading doors");
     initLayerDoor();
-    advanceProgressMonitor("Loading map transitions");
     initLayerTransition();
-    advanceProgressMonitor("Loading wall/door polygons");
     initLayerWedPoly();
-//    advanceProgressMonitor("Loading ambient sound ranges");
-//    initLayerAmbientRange();
+    initLayerAmbientRange();
     advanceProgressMonitor("Creating GUI");
 
     // assembling Visual State group box
@@ -501,9 +501,9 @@ public final class AreaViewer extends ChildFrame
     layerButton.get(Layers.TRIGGER).setSelected(LayerButtonState.get(Layers.TRIGGER));
     layerButton.get(Layers.ENTRANCE).setSelected(LayerButtonState.get(Layers.ENTRANCE));
     layerButton.get(Layers.CONTAINER).setSelected(LayerButtonState.get(Layers.CONTAINER));
-//    layerButton.get(Layers.AMBIENTRANGE).setSelected(LayerButtonState.get(Layers.AMBIENTRANGE));
-//    layerButton.get(Layers.AMBIENTRANGE).setEnabled(LayerButtonState.get(Layers.AMBIENT) &&
-//                                                    !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
+    layerButton.get(Layers.AMBIENTRANGE).setSelected(LayerButtonState.get(Layers.AMBIENTRANGE));
+    layerButton.get(Layers.AMBIENTRANGE).setEnabled(LayerButtonState.get(Layers.AMBIENT) &&
+                                                    !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
     layerButton.get(Layers.AMBIENT).setSelected(LayerButtonState.get(Layers.AMBIENT));
     layerButton.get(Layers.DOOR).setSelected(LayerButtonState.get(Layers.DOOR));
     layerButton.get(Layers.ANIMATION).setSelected(LayerButtonState.get(Layers.ANIMATION));
@@ -538,7 +538,7 @@ public final class AreaViewer extends ChildFrame
           case ENTRANCE:      cb = new JCheckBox("Entrances"); break;
           case CONTAINER:     cb = new JCheckBox("Containers"); break;
           case AMBIENT:       cb = new JCheckBox("Ambient Sounds"); break;
-  //        case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Radius"); break;
+          case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Range"); break;
           case DOOR:          cb = new JCheckBox("Doors"); break;
           case ANIMATION:     cb = new JCheckBox("Background Animations"); break;
           case AUTOMAP:       cb = new JCheckBox("Automap Notes"); break;
@@ -1030,82 +1030,84 @@ public final class AreaViewer extends ChildFrame
     setLayerEnabled(Layers.AMBIENT, !list.isEmpty(), list.size() + " ambient sounds available");
   }
 
-//  private void initLayerAmbientRange()
-//  {
-//    addLayer(Layers.AMBIENTRANGE);
-//
-//
-//    // initializing ambient sound objects
-//    ArrayList<Ambient> listAmbients = new ArrayList<Ambient>();
-//    SectionOffset so = (SectionOffset)are.getAttribute("Ambients offset");
-//    SectionCount sc = (SectionCount)are.getAttribute("# ambients");
-//    if (so != null && sc != null) {
-//      int baseOfs = so.getValue();
-//      int count = sc.getValue();
-//      if (baseOfs > 0 && count > 0) {
-//        try {
-//          for (int i = 0; i < count; i++) {
-//            Ambient ambient = (Ambient)are.getAttribute("Ambient " + i);
-//            if (ambient != null) {
-//              listAmbients.add(ambient);
-//            }
-//          }
-//        } catch (Exception e) {
-//          System.err.println("Error parsing ambient sound ranges.");
-//          e.printStackTrace();
-//        }
-//      }
-//    }
-//
-//    // initializing ambient sound layer items
-//    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listAmbients.size());
-//    final Color[] color = new Color[]{new Color(0xFF000080, true), new Color(0xFF000080, true),
-//                                      new Color(0x00204080, true), new Color(0x004060C0, true)};
-//    for (final Ambient ambient: listAmbients) {
-//      String msg;
-//      Point location = new Point(0, 0);
-//      Ellipse2D.Float circle = null;
-//      int radius = 0;
-//      int volume = 0;
-//      try {
-//        location.x = ((DecNumber)ambient.getAttribute("Origin: X")).getValue();
-//        location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
-//        radius = ((DecNumber)ambient.getAttribute("Radius")).getValue();
-//        volume = ((DecNumber)ambient.getAttribute("Volume")).getValue();
-//        msg = ((TextString)ambient.getAttribute("Name")).toString();
-//        boolean global = ((Flag)ambient.getAttribute("Flags")).isFlagSet(2);
-//        if (!global && radius > 0) {
-//          circle = new Ellipse2D.Float(0, 0, (float)(2*radius), (float)(2*radius));
-//          float alphaF = (float)volume / 100.0f * 255.0f;
-//          int alphaNorm = ((int)Math.max(10.0f, alphaF*0.5f) & 0xff);
-//          int alphaHigh = ((int)Math.min(255.0f, alphaF*0.5f) & 0xff);
-//          color[2] = new Color(color[2].getRGB() | (alphaNorm << 24), true);
-//          color[3] = new Color(color[3].getRGB() | (alphaHigh << 24), true);
-//        }
-//      } catch (Throwable e) {
-//        msg = new String();
-//      }
-//      if (circle != null) {
-//        ShapedLayerItem item = new ShapedLayerItem(location, ambient, msg, circle, new Point(radius, radius));
-//        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-//        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-//        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-//        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-//        item.setStroked(true);
-//        item.setFilled(true);
-//        item.addActionListener(this);
-//        item.addLayerItemListener(this);
-//        item.addMouseMotionListener(this);
-//        list.add(item);
-//        item.setVisible(false);
-//        lTileset.add(item);
-//        item.setItemLocation(item.getMapLocation());
-//      }
-//    }
-//    addLayerItems(Layers.AMBIENTRANGE, list);
-//    setLayerEnabled(Layers.AMBIENTRANGE, !list.isEmpty(),
-//                    list.size() + " ambient sounds with local radius available");
-//  }
+  private void initLayerAmbientRange()
+  {
+    addLayer(Layers.AMBIENTRANGE);
+
+    // initializing ambient sound objects
+    ArrayList<Ambient> listAmbients = new ArrayList<Ambient>();
+    SectionOffset so = (SectionOffset)are.getAttribute("Ambients offset");
+    SectionCount sc = (SectionCount)are.getAttribute("# ambients");
+    if (so != null && sc != null) {
+      int baseOfs = so.getValue();
+      int count = sc.getValue();
+      if (baseOfs > 0 && count > 0) {
+        try {
+          for (int i = 0; i < count; i++) {
+            Ambient ambient = (Ambient)are.getAttribute("Ambient " + i);
+            if (ambient != null) {
+              listAmbients.add(ambient);
+            }
+          }
+        } catch (Exception e) {
+          System.err.println("Error parsing ambient sound ranges.");
+          e.printStackTrace();
+        }
+      }
+    }
+
+    // initializing ambient sound layer items
+    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listAmbients.size());
+    final Color[] color = new Color[]{new Color(0xA0000080, true), new Color(0xA0000080, true),
+                                      new Color(0x00204080, true), new Color(0x004060C0, true)};
+    for (final Ambient ambient: listAmbients) {
+      String msg;
+      Point location = new Point(0, 0);
+      Ellipse2D.Float circle = null;
+      int radius = 0;
+      int volume = 0;
+      try {
+        location.x = ((DecNumber)ambient.getAttribute("Origin: X")).getValue();
+        location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
+        radius = ((DecNumber)ambient.getAttribute("Radius")).getValue();
+        volume = ((DecNumber)ambient.getAttribute("Volume")).getValue();
+        msg = ((TextString)ambient.getAttribute("Name")).toString();
+        boolean global = ((Flag)ambient.getAttribute("Flags")).isFlagSet(2);
+        if (!global && radius > 0) {
+          circle = new Ellipse2D.Float(0, 0, (float)(2*radius), (float)(2*radius));
+          double minAlpha = 0.0, maxAlpha = 64.0;
+          double alphaF = minAlpha + Math.sqrt((double)volume) / 10.0 * (maxAlpha - minAlpha);
+          int alphaNorm = (int)alphaF & 0xff;
+          int alphaHigh = (int)alphaF & 0xff;
+          color[2] = new Color(color[2].getRGB() | (alphaNorm << 24), true);
+          color[3] = new Color(color[3].getRGB() | (alphaHigh << 24), true);
+        }
+      } catch (Throwable e) {
+        msg = new String();
+      }
+      if (circle != null) {
+        ShapedLayerItem item = new ShapedLayerItem(location, ambient, msg, circle, new Point(radius, radius));
+        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
+        item.setStrokeWidth(AbstractLayerItem.ItemState.NORMAL, 2);
+        item.setStrokeWidth(AbstractLayerItem.ItemState.HIGHLIGHTED, 2);
+        item.setStroked(true);
+        item.setFilled(true);
+        item.addActionListener(this);
+        item.addLayerItemListener(this);
+        item.addMouseMotionListener(this);
+        list.add(item);
+        item.setVisible(false);
+        lTileset.add(item);
+        item.setItemLocation(item.getMapLocation());
+      }
+    }
+    addLayerItems(Layers.AMBIENTRANGE, list);
+    setLayerEnabled(Layers.AMBIENTRANGE, !list.isEmpty(),
+                    list.size() + " ambient sounds with local radius available");
+  }
 
   private void initLayerDoor()
   {
@@ -1555,13 +1557,9 @@ public final class AreaViewer extends ChildFrame
     addLayer(Layers.WALLPOLY);
 
     // common initializations
-    String wedName = ((ResourceRef)are.getAttribute("WED resource")).getResourceName();
-    ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(wedName);
-    WedResource wed = null;
-    try {
-      wed = new WedResource(entry);
-    } catch (Exception e) {
-      e.printStackTrace();
+    WedResource wed = dayNightWed.get(getCurrentMap());
+    if (wed == null) {
+      System.err.println("WedResource not found");
       return;
     }
     HexNumber ofsDoors = (HexNumber)wed.getAttribute("Doors offset");

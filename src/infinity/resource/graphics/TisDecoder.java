@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.ColorConvert.ColorFormat;
 import infinity.resource.key.ResourceEntry;
@@ -18,15 +19,20 @@ import java.util.regex.Pattern;
  * Decodes either a single tile or a block of tiles from a TIS resource.
  * @author argent77
  */
-public class TisDecoder
+public class TisDecoder implements Closeable
 {
   private static final String NOT_INITIALIZED = "Not initialized";
 
   private TisInfo info;
-  private final ResourceEntry entry;                  // TIS resource entry structure
-  private final byte[] tisBuffer;                     // points to the data of the TIS resource entry
-  private String tisName;                             // TIS resource name without extension
+  private ResourceEntry entry;      // TIS resource entry structure
+  private byte[] tisBuffer;         // points to the data of the TIS resource entry
+  private String tisName;           // TIS resource name without extension
   private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;  // cache for associated PVR resources
+
+  public TisDecoder() throws Exception
+  {
+    close();
+  }
 
   /**
    * Initialize this object using the specified filename.
@@ -35,12 +41,7 @@ public class TisDecoder
    */
   public TisDecoder(String tisName) throws Exception
   {
-    entry = ResourceFactory.getInstance().getResourceEntry(tisName);
-    if (entry == null)
-      throw new NullPointerException();
-    tisBuffer = entry.getResourceData();
-
-    init();
+    open(tisName);
   }
 
   /**
@@ -50,12 +51,61 @@ public class TisDecoder
    */
   public TisDecoder(ResourceEntry entry) throws Exception
   {
+    open(entry);
+  }
+
+//--------------------- Begin Interface Closeable ---------------------
+
+  public void close() throws Exception
+  {
+    info = null;
+    entry = null;
+    tisName = null;
+    tisBuffer = null;
+    if (pvrTable != null) {
+      for (final Closeable pvr: pvrTable.values()) {
+        pvr.close();
+      }
+      pvrTable.clear();
+    }
+    pvrTable = null;
+  }
+
+//--------------------- End Interface Closeable ---------------------
+
+  /**
+   * Initialize this object using the specified filename.
+   * @param tisName Filename of the TIS file
+   * @throws Exception
+   */
+  public void open(String tisName) throws Exception
+  {
+    open(ResourceFactory.getInstance().getResourceEntry(tisName));
+  }
+
+  /**
+   * Initialize this object using the specified resource entry.
+   * @param entry Resource entry structure of the TIS resource.
+   * @throws Exception
+   */
+  public void open(ResourceEntry entry) throws Exception
+  {
+    close();
+
     this.entry = entry;
     if (this.entry == null)
       throw new NullPointerException();
     tisBuffer = this.entry.getResourceData();
-
     init();
+  }
+
+  /**
+   * Returns whether this TisDecoder object has already been successfully initialized.
+   * @return Whether this TisDecoder object has already been initialized.
+   */
+  public boolean isOpen()
+  {
+    return !empty();
   }
 
   /**

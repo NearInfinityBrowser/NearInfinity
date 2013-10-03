@@ -261,7 +261,10 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     cbGrid.removeChangeListener(this);
     tileImages = null;
     tileGrid = null;
-    decoder = null;
+    if (decoder != null) {
+      decoder.close();
+      decoder = null;
+    }
     System.gc();
   }
 

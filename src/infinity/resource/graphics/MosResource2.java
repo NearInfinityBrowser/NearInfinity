@@ -117,8 +117,14 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
   public void close() throws Exception
   {
-    image = null;
-    decoder = null;
+    if (image != null) {
+      image.flush();
+      image = null;
+    }
+    if (decoder != null) {
+      decoder.close();
+      decoder = null;
+    }
     System.gc();
   }
 

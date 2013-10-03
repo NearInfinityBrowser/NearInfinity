@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import infinity.resource.Closeable;
 import infinity.resource.graphics.ColorConvert;
 
 import java.nio.ByteBuffer;
@@ -14,7 +15,7 @@ import java.nio.ByteOrder;
  * <b>Note:</b> Only DXT1 compression supported.
  * @author argent77
  */
-public class PvrDecoder
+public class PvrDecoder implements Closeable
 {
   private static final String NOT_INITIALIZED = "Not initialized";
 
@@ -28,10 +29,7 @@ public class PvrDecoder
    */
   public PvrDecoder(byte[] buffer) throws Exception
   {
-    if (buffer == null)
-      throw new NullPointerException();
-
-    init(buffer, 0);
+    open(buffer);
   }
 
   /**
@@ -42,10 +40,37 @@ public class PvrDecoder
    */
   public PvrDecoder(byte[] buffer, int ofs) throws Exception
   {
+    open(buffer, ofs);
+  }
+
+//--------------------- Begin Interface Closeable ---------------------
+
+  public void close() throws Exception
+  {
+    info = null;
+    inBuffer = null;
+  }
+
+//--------------------- End Interface Closeable ---------------------
+
+  public void open(byte[] buffer) throws Exception
+  {
+    open(buffer, 0);
+  }
+
+  public void open(byte[] buffer, int ofs) throws Exception
+  {
+    close();
+
     if (buffer == null)
       throw new NullPointerException();
 
     init(buffer, ofs);
+  }
+
+  public boolean isOpen()
+  {
+    return !empty();
   }
 
   /**
