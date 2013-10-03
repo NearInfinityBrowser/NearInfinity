@@ -4,15 +4,17 @@
 
 package infinity.gui.layeritem;
 
-import infinity.gui.layeritem.LayerItemEvent.ItemState;
+import infinity.gui.layeritem.LayerItemEvent;
 import infinity.resource.Viewable;
 import infinity.resource.graphics.ColorConvert;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
@@ -32,6 +34,7 @@ import javax.swing.SwingConstants;
   private Shape shape;
   private EnumMap<ItemState, Icon> icons;
   private EnumMap<ItemState, Color> strokeColors;
+  private EnumMap<ItemState, BasicStroke> strokePen;
   private EnumMap<ItemState, Color> fillColors;
   private JLabel label;
   private boolean stroked, filled;
@@ -101,6 +104,7 @@ import javax.swing.SwingConstants;
     super(location, viewable, msg);
     icons = new EnumMap<ItemState, Icon>(ItemState.class);
     strokeColors = new EnumMap<ItemState, Color>(ItemState.class);
+    strokePen = new EnumMap<ItemState, BasicStroke>(ItemState.class);
     fillColors = new EnumMap<ItemState, Color>(ItemState.class);
     setLayout(new BorderLayout());
     label = new JLabel();
@@ -152,75 +156,108 @@ import javax.swing.SwingConstants;
   }
 
   /**
-   * Returns the stroke color.
-   * @return Stroke color
+   * Returns the polygon's stroke color of the specified visual state.
+   * @return Stroke color of the specified visual state.
    */
-  public Color getStrokeColor()
+  public Color getStrokeColor(ItemState state)
   {
-    return getStrokeColor(ItemState.NORMAL);
+    if (state == null) {
+      state = ItemState.NORMAL;
+    }
+    switch (state) {
+      case HIGHLIGHTED:
+        if (strokeColors.containsKey(ItemState.HIGHLIGHTED))
+          return strokeColors.get(ItemState.HIGHLIGHTED);
+      case NORMAL:
+        if (strokeColors.containsKey(ItemState.NORMAL))
+          return strokeColors.get(ItemState.NORMAL);
+    }
+    return DefaultColor;
   }
 
   /**
-   * Returns the stroke color in highlighted state.
-   * @return Stroke color in highlighted state
+   * Sets the stroke color of the polygon for the specified visual state.
+   * @param color The stroke color of the polygon for the specified visual state.
    */
-  public Color getHighlightedStrokeColor()
+  public void setStrokeColor(ItemState state, Color color)
   {
-    return getStrokeColor(ItemState.HIGHLIGHTED);
+    if (state != null) {
+      if (color != null) {
+        strokeColors.put(state, color);
+      } else {
+        strokeColors.remove(state);
+      }
+      updateShape();
+    }
   }
 
   /**
-   * Sets the stroke color of the polygon.
-   * @param c The stroke color of the polygon.
+   * Returns the stroke width of the polygon for the specified visual state.
+   * @param state The visual state to get the stroke with from.
+   * @return The stroke width in pixels.
    */
-  public void setStrokeColor(Color c)
+  public int getStrokeWidth(ItemState state)
   {
-    setStrokeColor(ItemState.NORMAL, c);
+    if (state == null) {
+      state = ItemState.NORMAL;
+    }
+    if (strokePen.containsKey(state)) {
+      return (int)strokePen.get(state).getLineWidth();
+    } else {
+      return 1;
+    }
   }
 
   /**
-   * Sets the stroke color of the polygon in the highlighted state.
-   * @param c The stroke color of the polygon in the highlighted state.
+   * Sets the stroke width of the polygon for the specified visual state.
+   * @param state The visual state to set the stroke with for.
+   * @param width The stroke width in pixels.
    */
-  public void setHighlightedStrokeColor(Color c)
+  public void setStrokeWidth(ItemState state, int width)
   {
-    setStrokeColor(ItemState.HIGHLIGHTED, c);
+    if (state != null) {
+      if (width < 1) {
+        width = 1;
+      }
+      strokePen.put(state, new BasicStroke((float)width));
+      updateShape();
+    }
   }
 
   /**
-   * Returns the fill color of the polygon.
-   * @return Fill color
+   * Returns the polygon's fill color of the specified visual state.
+   * @return Fill color of the specified visual state.
    */
-  public Color getFillColor()
+  public Color getFillColor(ItemState state)
   {
-    return getFillColor(ItemState.NORMAL);
+    if (state == null) {
+      state = ItemState.NORMAL;
+    }
+    switch (state) {
+      case HIGHLIGHTED:
+        if (fillColors.containsKey(ItemState.HIGHLIGHTED))
+          return fillColors.get(ItemState.HIGHLIGHTED);
+      case NORMAL:
+        if (fillColors.containsKey(ItemState.NORMAL))
+          return fillColors.get(ItemState.NORMAL);
+    }
+    return DefaultColor;
   }
 
   /**
-   * Returns the fill color of the polygon in the highlighted state.
-   * @return The fill color of the polygon in the highlighted state.
+   * Sets the polygon's fill color for the specified visual state.
+   * @param color The fill color for the specified visual state.
    */
-  public Color getHighlightedFillColor()
+  public void setFillColor(ItemState state, Color color)
   {
-    return getFillColor(ItemState.HIGHLIGHTED);
-  }
-
-  /**
-   * Sets the fill color of the polygon.
-   * @param c The fill color of the polygon.
-   */
-  public void setFillColor(Color c)
-  {
-    setFillColor(ItemState.NORMAL, c);
-  }
-
-  /**
-   * Sets the fill color of the polygon in the highlighted state.
-   * @param c The fill color of the polygon in the highlighted state.
-   */
-  public void setHighlightedFillColor(Color c)
-  {
-    setFillColor(ItemState.HIGHLIGHTED, c);
+    if (state != null) {
+      if (color != null) {
+        fillColors.put(state, color);
+      } else {
+        fillColors.remove(state);
+      }
+      updateShape();
+    }
   }
 
   /**
@@ -278,68 +315,6 @@ import javax.swing.SwingConstants;
   }
 
 
-  private Color getStrokeColor(ItemState state)
-  {
-    if (state == null) {
-      state = ItemState.NORMAL;
-    }
-    switch (state) {
-      case SELECTED:
-        if (strokeColors.containsKey(ItemState.SELECTED))
-          return strokeColors.get(ItemState.SELECTED);
-      case HIGHLIGHTED:
-        if (strokeColors.containsKey(ItemState.HIGHLIGHTED))
-          return strokeColors.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (strokeColors.containsKey(ItemState.NORMAL))
-          return strokeColors.get(ItemState.NORMAL);
-    }
-    return DefaultColor;
-  }
-
-  private void setStrokeColor(ItemState state, Color color)
-  {
-    if (state != null) {
-      if (color != null) {
-        strokeColors.put(state, color);
-      } else {
-        strokeColors.remove(state);
-      }
-      updateShape();
-    }
-  }
-
-  private Color getFillColor(ItemState state)
-  {
-    if (state == null) {
-      state = ItemState.NORMAL;
-    }
-    switch (state) {
-      case SELECTED:
-        if (fillColors.containsKey(ItemState.SELECTED))
-          return fillColors.get(ItemState.SELECTED);
-      case HIGHLIGHTED:
-        if (fillColors.containsKey(ItemState.HIGHLIGHTED))
-          return fillColors.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (fillColors.containsKey(ItemState.NORMAL))
-          return fillColors.get(ItemState.NORMAL);
-    }
-    return DefaultColor;
-  }
-
-  private void setFillColor(ItemState state, Color color)
-  {
-    if (state != null) {
-      if (color != null) {
-        fillColors.put(state, color);
-      } else {
-        fillColors.remove(state);
-      }
-      updateShape();
-    }
-  }
-
   // generates a graphical representation of the polygon
   private ImageIcon createIcon(ItemState state)
   {
@@ -355,8 +330,14 @@ import javax.swing.SwingConstants;
           graphics.fill(shape);
         }
         if (stroked) {
+          Object renderHint = graphics.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+          graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+          if (strokePen.containsKey(state)) {
+            graphics.setStroke(strokePen.get(state));
+          }
           graphics.setColor(strokeColors.get(state));
           graphics.draw(shape);
+          graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, renderHint);
         }
       }
       return new ImageIcon(img);
@@ -383,7 +364,6 @@ import javax.swing.SwingConstants;
     updateSize();
     icons.put(ItemState.NORMAL, createIcon(ItemState.NORMAL));
     icons.put(ItemState.HIGHLIGHTED, createIcon(ItemState.HIGHLIGHTED));
-    icons.put(ItemState.SELECTED, createIcon(ItemState.SELECTED));
     setCurrentIcon(getItemState());
   }
 
@@ -399,7 +379,7 @@ import javax.swing.SwingConstants;
   public void layerItemChanged(LayerItemEvent event)
   {
     if (event.getSource() == this) {
-      setCurrentIcon(event.getItemState());
+      setCurrentIcon(getItemState());
     }
   }
 

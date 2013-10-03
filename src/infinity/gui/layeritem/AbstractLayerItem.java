@@ -14,7 +14,6 @@ import java.awt.event.MouseMotionListener;
 import java.util.Vector;
 
 import infinity.gui.ViewFrame;
-import infinity.gui.layeritem.LayerItemEvent.ItemState;
 import infinity.resource.Viewable;
 
 import javax.swing.JComponent;
@@ -25,6 +24,11 @@ import javax.swing.JComponent;
  */
 public abstract class AbstractLayerItem extends JComponent implements MouseListener, MouseMotionListener
 {
+  /**
+   * Represents the possible visual states of the component
+   */
+  public enum ItemState { NORMAL, HIGHLIGHTED }
+
   private Vector<ActionListener> actionListener;
   private Vector<LayerItemListener> itemStateListener;
   private String actionCommand;
@@ -209,31 +213,12 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   }
 
   /**
-   * Returns the current item state.
-   * @return The current item state
+   * Returns the item's current visual state.
+   * @return The item's current visual state.
    */
   public ItemState getItemState()
   {
     return itemState;
-  }
-
-  /**
-   * Returns whether the component is in highlighted state, i.e. the mouse cursor has been placed
-   * over the component.
-   * @return The highlighted state of the component.
-   */
-  public boolean isHighlighted()
-  {
-    return itemState == ItemState.HIGHLIGHTED;
-  }
-
-  /**
-   * Returns whether the component has been clicked on.
-   * @return The selected state of the component
-   */
-  public boolean isSelected()
-  {
-    return itemState == ItemState.SELECTED;
   }
 
   /**
@@ -284,16 +269,14 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public void mousePressed(MouseEvent event)
   {
-    if (event.getButton() == MouseEvent.BUTTON1 &&
-        isMouseOver(event.getPoint())) {
-      setItemState(ItemState.SELECTED);
+    if (isMouseOver(event.getPoint())) {
+      setMouseClicked(event.getButton());
     }
   }
 
   public void mouseReleased(MouseEvent event)
   {
-    if (event.getButton() == MouseEvent.BUTTON1 &&
-        isMouseOver(event.getPoint())) {
+    if (isMouseOver(event.getPoint())) {
       setItemState(ItemState.HIGHLIGHTED);
     } else {
       setItemState(ItemState.NORMAL);
@@ -311,10 +294,10 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   public void mouseMoved(MouseEvent event)
   {
     if (isMouseOver(event.getPoint())) {
-      if (itemState != ItemState.SELECTED)
-        setItemState(ItemState.HIGHLIGHTED);
-    } else
+      setItemState(ItemState.HIGHLIGHTED);
+    } else {
       setItemState(ItemState.NORMAL);
+    }
   }
 
 //--------------------- End Interface MouseMotionListener ---------------------
@@ -367,21 +350,30 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     if (itemState != newState) {
       itemState = newState;
       if (!itemStateListener.isEmpty()) {
-        LayerItemEvent ise = new LayerItemEvent(this, itemState, actionCommand);
+        LayerItemEvent ise = new LayerItemEvent(this, actionCommand);
         for (final LayerItemListener l: itemStateListener)
           l.layerItemChanged(ise);
       }
-      if (itemState == ItemState.SELECTED && !actionListener.isEmpty()) {
-        ActionEvent ae = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommand);
-        for (final ActionListener l: actionListener) {
-          l.actionPerformed(ae);
-        }
-      }
-      if (itemState == ItemState.HIGHLIGHTED || itemState == ItemState.SELECTED) {
+      if (itemState == ItemState.HIGHLIGHTED) {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       } else {
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       }
+    }
+  }
+
+  private void setMouseClicked(int button)
+  {
+    if ((button == MouseEvent.BUTTON1) && !actionListener.isEmpty()) {
+      // processing left mouse click event
+      ActionEvent ae = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommand);
+      for (final ActionListener l: actionListener) {
+        l.actionPerformed(ae);
+      }
+    } else if (button == MouseEvent.BUTTON2) {
+      // processing right mouse click event
+    } else if (button == MouseEvent.BUTTON3) {
+      // processing middle mouse click event
     }
   }
 }

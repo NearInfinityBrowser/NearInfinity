@@ -282,7 +282,7 @@ public final class AreaViewer extends ChildFrame
   {
     if (event.getSource() instanceof AbstractLayerItem) {
       AbstractLayerItem item = (AbstractLayerItem)event.getSource();
-      if (item.isHighlighted() || item.isSelected()) {
+      if (event.isHighlighted()) {
         setInfoText(item.getMessage());
         setAreaLocation(item.getMapLocation());
       } else {
@@ -770,7 +770,7 @@ public final class AreaViewer extends ChildFrame
       }
       IconLayerItem item = new IconLayerItem(location, actor, msg, icon[0], center);
       item.setToolTipText(msg);
-      item.setHighlightedIcon(icon[1]);
+      item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
       item.addMouseMotionListener(this);
@@ -831,10 +831,10 @@ public final class AreaViewer extends ChildFrame
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), trigger, msg, poly);
       item.setToolTipText(msg);
-      item.setStrokeColor(color[0]);
-      item.setHighlightedStrokeColor(color[1]);
-      item.setFillColor(color[2]);
-      item.setHighlightedFillColor(color[3]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
       item.setStroked(true);
       item.setFilled(true);
       item.addActionListener(this);
@@ -890,7 +890,7 @@ public final class AreaViewer extends ChildFrame
       }
       IconLayerItem item = new IconLayerItem(location, entrance, msg, icon[0], center);
       item.setToolTipText(msg);
-      item.setHighlightedIcon(icon[1]);
+      item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
       item.addMouseMotionListener(this);
@@ -954,10 +954,10 @@ public final class AreaViewer extends ChildFrame
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), container, msg, poly);
       item.setToolTipText(msg);
-      item.setStrokeColor(color[0]);
-      item.setHighlightedStrokeColor(color[1]);
-      item.setFillColor(color[2]);
-      item.setHighlightedFillColor(color[3]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
       item.setStroked(true);
       item.setFilled(true);
       item.addActionListener(this);
@@ -1020,7 +1020,7 @@ public final class AreaViewer extends ChildFrame
       }
       IconLayerItem item = new IconLayerItem(location, ambient, msg, icon[iconBase + 0], center);
       item.setToolTipText(msg);
-      item.setHighlightedIcon(icon[iconBase + 1]);
+      item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[iconBase + 1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
       item.addMouseMotionListener(this);
@@ -1087,10 +1087,10 @@ public final class AreaViewer extends ChildFrame
 //      }
 //      if (circle != null) {
 //        ShapedLayerItem item = new ShapedLayerItem(location, ambient, msg, circle, new Point(radius, radius));
-//        item.setStrokeColor(color[0]);
-//        item.setHighlightedStrokeColor(color[1]);
-//        item.setFillColor(color[2]);
-//        item.setHighlightedFillColor(color[3]);
+//        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+//        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+//        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+//        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
 //        item.setStroked(true);
 //        item.setFilled(true);
 //        item.addActionListener(this);
@@ -1169,10 +1169,10 @@ public final class AreaViewer extends ChildFrame
         Rectangle rect = normalizePolygon(poly[i]);
         ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg[i], poly[i]);
         item.setToolTipText(msg[i]);
-        item.setStrokeColor(color[0]);
-        item.setHighlightedStrokeColor(color[1]);
-        item.setFillColor(color[2]);
-        item.setHighlightedFillColor(color[3]);
+        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
         item.setStroked(true);
         item.setFilled(true);
         item.addActionListener(this);
@@ -1227,7 +1227,7 @@ public final class AreaViewer extends ChildFrame
       }
       IconLayerItem item = new IconLayerItem(location, animation, msg, icon[0], center);
       item.setToolTipText(msg);
-      item.setHighlightedIcon(icon[1]);
+      item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
       item.addMouseMotionListener(this);
@@ -1300,7 +1300,7 @@ public final class AreaViewer extends ChildFrame
         }
         IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
         item.setToolTipText(msg);
-        item.setHighlightedIcon(icon[1]);
+        item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
         item.addActionListener(this);
         item.addLayerItemListener(this);
         item.addMouseMotionListener(this);
@@ -1362,7 +1362,7 @@ public final class AreaViewer extends ChildFrame
         }
         IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
         item.setToolTipText(msg);
-        item.setHighlightedIcon(icon[1]);
+        item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
         item.addActionListener(this);
         item.addLayerItemListener(this);
         list.add(item);
@@ -1417,10 +1417,10 @@ public final class AreaViewer extends ChildFrame
         ShapedLayerItem item = new ShapedLayerItem(new Point(rectMap.get(edge).x, rectMap.get(edge).y),
                                                    resource, msg, poly);
         item.setToolTipText(msg);
-        item.setStrokeColor(color[0]);
-        item.setHighlightedStrokeColor(color[1]);
-        item.setFillColor(color[2]);
-        item.setHighlightedFillColor(color[3]);
+        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
         item.setStroked(true);
         item.setFilled(true);
         item.addActionListener(this);
@@ -1487,7 +1487,7 @@ public final class AreaViewer extends ChildFrame
       }
       IconLayerItem item = new IconLayerItem(location, trap, msg, icon[0], center);
       item.setToolTipText(msg);
-      item.setHighlightedIcon(icon[1]);
+      item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
       item.addMouseMotionListener(this);
@@ -1539,7 +1539,7 @@ public final class AreaViewer extends ChildFrame
       }
       IconLayerItem item = new IconLayerItem(location, spawn, msg, icon[0], center);
       item.setToolTipText(msg);
-      item.setHighlightedIcon(icon[1]);
+      item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
       item.addMouseMotionListener(this);
@@ -1663,10 +1663,10 @@ public final class AreaViewer extends ChildFrame
               Rectangle rect = normalizePolygon(poly[j]);
               ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg2[j], poly[j]);
               item.setToolTipText(msg2[j]);
-              item.setStrokeColor(color[0]);
-              item.setHighlightedStrokeColor(color[1]);
-              item.setFillColor(color[2]);
-              item.setHighlightedFillColor(color[3]);
+              item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+              item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+              item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+              item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
               item.setStroked(true);
               item.setFilled(true);
               item.addActionListener(this);
@@ -1710,10 +1710,10 @@ public final class AreaViewer extends ChildFrame
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), wp, msg, poly);
       item.setToolTipText(msg);
-      item.setStrokeColor(color[0]);
-      item.setHighlightedStrokeColor(color[1]);
-      item.setFillColor(color[2]);
-      item.setHighlightedFillColor(color[3]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
       item.setStroked(true);
       item.setFilled(true);
       item.addActionListener(this);
