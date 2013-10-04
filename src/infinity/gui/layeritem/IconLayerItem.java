@@ -283,15 +283,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
                                         icon.getIconWidth(),
                                         icon.getIconHeight());
       if (region.contains(pt)) {
-        BufferedImage image;
-        // XXX: sun.awt.image.ToolkitImage is not part of the official JDK API
-        if (icon.getImage() instanceof ToolkitImage) {
-          image = ((ToolkitImage)icon.getImage()).getBufferedImage();
-        } else if (icon.getImage() instanceof BufferedImage) {
-          image = (BufferedImage)icon.getImage();
-        } else {
-          image = null;
-        }
+        BufferedImage image = ColorConvert.toBufferedImage(icon.getImage(), true);
         if (image != null) {
           int color = image.getRGB(pt.x - region.x, pt.y - region.y);
           // (near) transparent pixels (alpha <= 16) are disregarded
