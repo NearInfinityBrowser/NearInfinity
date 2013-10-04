@@ -4,7 +4,7 @@
 
 package infinity.datatype;
 
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,11 +18,11 @@ public class DecNumber extends Datatype implements InlineEditable
     super(offset, length, name);
     number = 0;
     if (length == 4)
-      number = Byteconvert.convertInt(buffer, offset);
+      number = DynamicArray.getInt(buffer, offset);
     else if (length == 2)
-      number = (int)Byteconvert.convertShort(buffer, offset);
+      number = (int)DynamicArray.getShort(buffer, offset);
     else if (length == 1)
-      number = (int)Byteconvert.convertByte(buffer, offset);
+      number = (int)DynamicArray.getByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }

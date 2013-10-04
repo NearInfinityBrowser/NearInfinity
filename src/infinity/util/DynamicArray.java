@@ -312,6 +312,29 @@ public class DynamicArray
   }
 
   /**
+   *
+   * Converts a byte sequence of a buffer into a string.
+   * @param buffer The buffer to read the byte sequence from.
+   * @param offset Buffer offset.
+   * @param length The number of bytes to convert.
+   * @return A string representation of the byte sequence or an empty string on error.
+   */
+  public static String getString(byte[] buffer, int offset, int length)
+  {
+    if (buffer != null && offset >= 0 && offset < buffer.length && length >= 0) {
+      if (offset + length > buffer.length)
+        length = buffer.length - offset;
+      for (int i = 0; i < length; i++) {
+        if (buffer[offset+i] == 0x00) {
+          return new String(buffer, offset, i);
+        }
+      }
+      return new String(buffer, offset, length);
+    }
+    return new String();
+  }
+
+  /**
    * Convenience method to read an unsigned byte value from the specified buffer.
    * @param buffer The buffer to read the value from.
    * @param offset Buffer offset
@@ -357,7 +380,6 @@ public class DynamicArray
   {
     return ((long)getInt(buffer, offset) & 0xffffffffL);
   }
-
 
   /**
    * Creates and returns a shallow copy of the current object.

@@ -29,7 +29,7 @@ import infinity.datatype.UnsignDecNumber;
 import infinity.datatype.UpdateListener;
 import infinity.resource.are.Actor;
 import infinity.resource.spl.SplResource;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
 
 public final class EffectFactory
@@ -1187,8 +1187,8 @@ public final class EffectFactory
                               int effectType, boolean isV1) throws Exception
   {
     if (buffer != null && offset >= 0 && s != null && effectType >= 0) {
-      int param1 = Byteconvert.convertInt(buffer, offset);
-      int param2 = Byteconvert.convertInt(buffer, offset + 4);
+      int param1 = DynamicArray.getInt(buffer, offset);
+      int param2 = DynamicArray.getInt(buffer, offset + 4);
 
       // setting param1 & param2
       String restype = makeEffectParams(parent, buffer, offset, s, effectType, isV1);
@@ -1222,7 +1222,7 @@ public final class EffectFactory
     String restype = makeEffectParamsGeneric(parent, buffer, offset, s, effectType, isV1);
 
     // Processing game specific effects
-    if (s.size() == initSize) {
+    if (s.size() == initSize && restype == null) {
       if (gameid == ResourceFactory.ID_BG1 ||
           gameid == ResourceFactory.ID_BG1TOTSC) {
         restype = makeEffectParamsBG1(parent, buffer, offset, s, effectType, isV1);
@@ -2321,7 +2321,7 @@ public final class EffectFactory
 
       case 0x13F: // Restrict item (BGEE)
       {
-        int param2 = Byteconvert.convertInt(buffer, offset + 4);
+        int param2 = DynamicArray.getInt(buffer, offset + 4);
         if (param2 >= 2 && param2 < 10) {
           s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", m_itemids.get((long)param2)));
         } else if (param2 == 10) {

@@ -9,6 +9,7 @@ import infinity.datatype.*;
 import infinity.gui.*;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
+import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.TisDecoder;
 import infinity.resource.graphics.TisResource2;
 import infinity.resource.key.ResourceEntry;
@@ -92,9 +93,9 @@ public final class ViewerGraphics extends ChildFrame implements Runnable
 
       blocker.setBlocked(true);
       TisDecoder decoder = new TisDecoder(tisEntry);
-      BufferedImage image = new BufferedImage(width*decoder.info().tileWidth(),
-                                              height*decoder.info().tileHeight(),
-                                              BufferedImage.TYPE_INT_RGB);
+      BufferedImage image = ColorConvert.createCompatibleImage(width*decoder.info().tileWidth(),
+                                                               height*decoder.info().tileHeight(),
+                                                               false);
       if (!TisResource2.drawImage(image, decoder, width, height, mapIndex, lookupIndex, overlay, false)) {
         image = null;
         decoder = null;

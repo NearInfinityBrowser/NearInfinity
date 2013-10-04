@@ -10,7 +10,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.StringReferenceSearcher;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.StringResource;
 
 import javax.swing.*;
@@ -36,7 +36,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
   public StringRef(byte buffer[], int offset, String name)
   {
     super(offset, 4, name);
-    value = Byteconvert.convertInt(buffer, offset);
+    value = DynamicArray.getInt(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------

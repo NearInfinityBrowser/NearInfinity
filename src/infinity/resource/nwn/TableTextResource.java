@@ -7,7 +7,7 @@ package infinity.resource.nwn;
 import infinity.resource.Resource;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -37,7 +37,7 @@ public final class TableTextResource implements Resource
       index = endIndex + 1;
     }
 
-    int rowCount = Byteconvert.convertInt(buffer, ++index);
+    int rowCount = DynamicArray.getInt(buffer, ++index);
     stringData = new String[columnNames.size() + 1][rowCount];
     index += 4;
 
@@ -52,10 +52,10 @@ public final class TableTextResource implements Resource
     int stringOffsets[][] = new int[columnNames.size()][rowCount];
     for (int row = 0; row < rowCount; row++)
       for (int col = 0; col < columnNames.size(); col++)
-        stringOffsets[col][row] = Byteconvert.convertShort(buffer, index + row * columnNames.size() * 2 + col * 2);
+        stringOffsets[col][row] = DynamicArray.getShort(buffer, index + row * columnNames.size() * 2 + col * 2);
 
     index += rowCount * columnNames.size() * 2;
-    int unknown1 = Byteconvert.convertShort(buffer, index);
+    int unknown1 = DynamicArray.getShort(buffer, index);
     index += 2;
 
     for (int row = 0; row < rowCount; row++)

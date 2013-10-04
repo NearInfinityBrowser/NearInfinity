@@ -9,6 +9,7 @@ import infinity.icon.Icons;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -20,7 +21,7 @@ public final class SortableTable extends JTable
   private boolean sortAscending;
   private int sortByColumn;
 
-  public SortableTable(String[] columnNames, Class<? extends Object>[] columnClasses, int[] columnWidths)
+  public SortableTable(List<String> columnNames, List<Class<? extends Object>> columnClasses, List<Integer> columnWidths)
   {
     tableModel = new SortableTableModel(columnNames, columnClasses);
     setModel(tableModel);
@@ -44,8 +45,8 @@ public final class SortableTable extends JTable
         tableModel.sort();
       }
     });
-    for (int i = 0; i < columnWidths.length; i++)
-      getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+    for (int i = 0; i < columnWidths.size(); i++)
+      getColumnModel().getColumn(i).setPreferredWidth(columnWidths.get(i));
   }
 
   public void addTableItem(TableItem item)
@@ -109,13 +110,21 @@ public final class SortableTable extends JTable
   {
     private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
     private final List<TableItem> tableItems = new ArrayList<TableItem>();
-    private final Class<? extends Object>[] columnClasses;
-    private final String[] columnNames;
+    private final List<Class<? extends Object>> columnClasses;
+    private final List<String> columnNames;
 
-    private SortableTableModel(String[] columnNames, Class<? extends Object>[] columnClasses)
+    private SortableTableModel(List<String> columnNames, List<Class<? extends Object>> columnClasses)
     {
-      this.columnNames = columnNames;
-      this.columnClasses = columnClasses;
+      if (columnNames != null) {
+        this.columnNames = columnNames;
+      } else {
+        this.columnNames = new ArrayList<String>();
+      }
+      if (columnClasses != null) {
+        this.columnClasses = columnClasses;
+      } else {
+        this.columnClasses = new ArrayList<Class<? extends Object>>();
+      }
     }
 
     private void addTableItem(TableItem item)
@@ -146,17 +155,17 @@ public final class SortableTable extends JTable
 
     public Class<? extends Object> getColumnClass(int columnIndex)
     {
-      return columnClasses[columnIndex];
+      return columnClasses.get(columnIndex);
     }
 
     public int getColumnCount()
     {
-      return columnClasses.length;
+      return columnClasses.size();
     }
 
     public String getColumnName(int columnIndex)
     {
-      return columnNames[columnIndex];
+      return columnNames.get(columnIndex);
     }
 
     public int getRowCount()

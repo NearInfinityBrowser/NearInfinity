@@ -36,8 +36,8 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   public IDSTargetEffect(byte buffer[], int offset, String secondIDS)
   {
     super(offset, 8, "IDS target");
-    idsValue = Byteconvert.convertUnsignedInt(buffer, offset);
-    idsFile = Byteconvert.convertUnsignedInt(buffer, offset + 4);
+    idsValue = DynamicArray.getUnsignedInt(buffer, offset);
+    idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
     sIDS[2] = secondIDS;
     if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals(""))
       idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();

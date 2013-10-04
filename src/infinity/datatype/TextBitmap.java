@@ -7,11 +7,12 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
 import javax.swing.*;
 import javax.swing.table.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -27,7 +28,7 @@ public final class TextBitmap extends Datatype implements Editable
   public TextBitmap(byte buffer[], int offset, int length, String name, String ids[], String names[])
   {
     super(offset, length, name);
-    text = Byteconvert.convertString(buffer, offset, length);
+    text = DynamicArray.getString(buffer, offset, length);
     this.ids = ids;
     this.names = names;
   }

@@ -17,7 +17,7 @@ public final class GffWord extends GffField
   public GffWord(byte buffer[], int fieldOffset, int labelOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    value = Byteconvert.convertUnsignedShort(buffer, fieldOffset + 8);
+    value = DynamicArray.getUnsignedShort(buffer, fieldOffset + 8);
   }
 
   public String toString()
@@ -43,7 +43,7 @@ public final class GffWord extends GffField
     Filewriter.writeInt(os, labels.indexOf(getLabel()));
     if (value > 32767)
       value -= 65536;
-    byte v[] = Byteconvert.convertBack((short)value);
+    byte v[] = DynamicArray.convertShort((short)value);
     Filewriter.writeBytes(os, new byte[] { v[0], v[1], 0, 0 });
     return fieldDataIndex;
   }

@@ -174,7 +174,7 @@ public final class IOHandler implements Writeable
             int tilecount = uncomprLength.getValue() / tilesize;
             return new int[]{tilecount, tilesize};
           }
-          return new int[]{Byteconvert.convertInt(data, 8), Byteconvert.convertInt(data, 12)};
+          return new int[]{DynamicArray.getInt(data, 8), DynamicArray.getInt(data, 12)};
         } catch (IOException e) {
           e.printStackTrace();
         }

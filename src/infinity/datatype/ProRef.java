@@ -33,7 +33,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   {
     super(offset, 2, name);
     idsmap = IdsMapCache.get("PROJECTL.IDS").getMap();
-    value = (long)Byteconvert.convertUnsignedShort(buffer, offset);
+    value = (long)DynamicArray.getUnsignedShort(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------

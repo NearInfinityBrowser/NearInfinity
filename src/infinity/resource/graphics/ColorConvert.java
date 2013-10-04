@@ -4,6 +4,9 @@
 
 package infinity.resource.graphics;
 
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.EnumMap;
@@ -46,6 +49,23 @@ public class ColorConvert
     ColorMap.put(ColorFormat.B4G4R4A4, new int[]{4,  0, 4,  4, 4,  8, 4, 12});
     ColorMap.put(ColorFormat.R5G6B5,   new int[]{0,  0, 5, 11, 6,  5, 5,  0});
     ColorMap.put(ColorFormat.B5G6R5,   new int[]{0,  0, 5,  0, 6,  5, 5, 11});
+  }
+
+  /**
+   * Creates a BufferedImage object in the native color format for best possible performance.
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @param hasTransparency Transparency support
+   * @return A new BufferedImage object with the specified properties.
+   */
+  public static BufferedImage createCompatibleImage(int width, int height, boolean hasTransparency)
+  {
+    // obtain the current system graphical settings
+    GraphicsConfiguration gfxConfig =
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+    return gfxConfig.createCompatibleImage(width, height,
+                                           hasTransparency ? BufferedImage.TRANSLUCENT : BufferedImage.OPAQUE);
   }
 
   /**
@@ -113,7 +133,7 @@ public class ColorConvert
     int bpp = ColorBits(format) >> 3;
     if (buffer != null && buffer.length - ofs >= bpp) {
       for (int i = 0; i < bpp; i++)
-        buffer[ofs+i] = (byte)((color >> (i << 3)) & 0xff);
+        buffer[ofs+i] = (byte)((color >>> (i << 3)) & 0xff);
       return true;
     } else
       return false;
@@ -143,7 +163,7 @@ public class ColorConvert
     for (int idx = 0; idx < count; idx++, inOfs++) {
       int c = inBuffer[inOfs];
       for (int i = 0; i < bpp; i++, outOfs++)
-        outBuffer[outOfs] = (byte)(c >> (i << 3) & 0xff);
+        outBuffer[outOfs] = (byte)(c >>> (i << 3) & 0xff);
     }
 
     return count;

@@ -8,12 +8,13 @@ import infinity.NearInfinity;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -32,7 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-public class PvrzResource implements Resource, ActionListener
+public class PvrzResource implements Resource, ActionListener, Closeable
 {
   private final ResourceEntry entry;
   private BufferedImage image;
@@ -45,8 +46,8 @@ public class PvrzResource implements Resource, ActionListener
   {
     this.entry = entry;
     byte[] data = entry.getResourceData();
-    int size = Byteconvert.convertInt(data, 0);
-    int marker = Byteconvert.convertShort(data, 4) & 0xffff;
+    int size = DynamicArray.getInt(data, 0);
+    int marker = DynamicArray.getShort(data, 4) & 0xffff;
     if ((size & 0xff) != 0x34 && marker != 0x9c78)
       throw new Exception("Invalid PVRZ resource");
 
@@ -102,6 +103,18 @@ public class PvrzResource implements Resource, ActionListener
 
 //--------------------- End Interface Resource ---------------------
 
+//--------------------- Begin Interface Closeable ---------------------
+
+  public void close() throws Exception
+  {
+    if (decoder != null) {
+      decoder.close();
+      decoder = null;
+    }
+    System.gc();
+  }
+
+//--------------------- End Interface Closeable ---------------------
 
 //--------------------- Begin Interface Viewable ---------------------
 
@@ -152,7 +165,7 @@ public class PvrzResource implements Resource, ActionListener
     int imgSize = imgWidth*imgHeight;
     int[] block = new int[imgSize];
     ColorConvert.BufferToColor(outputFormat, decoder.decode(outputFormat), 0, block, 0, imgSize);
-    image = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
+    image = ColorConvert.createCompatibleImage(imgWidth, imgHeight, false);
     image.setRGB(0, 0, imgWidth, imgHeight, block, 0, imgWidth);
   }
 

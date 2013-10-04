@@ -18,15 +18,15 @@ public final class GffExoLocString extends GffField
   public GffExoLocString(byte buffer[], int fieldOffset, int labelOffset, int fieldDataOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    int dataOrDataOffset = Byteconvert.convertInt(buffer, fieldOffset + 8);
+    int dataOrDataOffset = DynamicArray.getInt(buffer, fieldOffset + 8);
 
-    int size = Byteconvert.convertInt(buffer, fieldDataOffset + dataOrDataOffset);
-    stringRef = Byteconvert.convertInt(buffer, fieldDataOffset + dataOrDataOffset + 4);
-    int stringCount = Byteconvert.convertInt(buffer, fieldDataOffset + dataOrDataOffset + 8);
+    int size = DynamicArray.getInt(buffer, fieldDataOffset + dataOrDataOffset);
+    stringRef = DynamicArray.getInt(buffer, fieldDataOffset + dataOrDataOffset + 4);
+    int stringCount = DynamicArray.getInt(buffer, fieldDataOffset + dataOrDataOffset + 8);
     int offset = fieldDataOffset + dataOrDataOffset + 12;
     for (int i = 0; i < stringCount; i++) {
-      int stringID = Byteconvert.convertInt(buffer, offset);
-      int stringLength = Byteconvert.convertInt(buffer, offset + 4);
+      int stringID = DynamicArray.getInt(buffer, offset);
+      int stringLength = DynamicArray.getInt(buffer, offset + 4);
       String string = new String(buffer, offset + 8, stringLength);
       strings.put(stringID, string);
       offset += 8 + stringLength;
@@ -81,15 +81,15 @@ public final class GffExoLocString extends GffField
     Filewriter.writeInt(os, fieldDataIndex);
 
     // Size doesn't include the first 4 bytes
-    System.arraycopy(Byteconvert.convertBack(getFieldDataSize() - 4), 0, fieldData, fieldDataIndex, 4);
-    System.arraycopy(Byteconvert.convertBack(stringRef), 0, fieldData, fieldDataIndex + 4, 4);
-    System.arraycopy(Byteconvert.convertBack(strings.keySet().size()), 0, fieldData, fieldDataIndex + 8, 4);
+    System.arraycopy(DynamicArray.convertInt(getFieldDataSize() - 4), 0, fieldData, fieldDataIndex, 4);
+    System.arraycopy(DynamicArray.convertInt(stringRef), 0, fieldData, fieldDataIndex + 4, 4);
+    System.arraycopy(DynamicArray.convertInt(strings.keySet().size()), 0, fieldData, fieldDataIndex + 8, 4);
     fieldDataIndex += 12;
     int[] keys = strings.keys();
     for (final int key : keys) {
       String string = strings.get(key);
-      System.arraycopy(Byteconvert.convertBack(key), 0, fieldData, fieldDataIndex, 4);
-      System.arraycopy(Byteconvert.convertBack(string.length()), 0, fieldData, fieldDataIndex + 4, 4);
+      System.arraycopy(DynamicArray.convertInt(key), 0, fieldData, fieldDataIndex, 4);
+      System.arraycopy(DynamicArray.convertInt(string.length()), 0, fieldData, fieldDataIndex + 4, 4);
       System.arraycopy(string.getBytes(), 0, fieldData, fieldDataIndex + 8, string.length());
       fieldDataIndex += 8 + string.length();
     }

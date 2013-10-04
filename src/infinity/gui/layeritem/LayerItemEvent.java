@@ -12,21 +12,21 @@ import java.util.EventObject;
  */
 public class LayerItemEvent extends EventObject
 {
-  // represents the possible states of this component
-  public enum ItemState { NORMAL, HIGHLIGHTED, SELECTED }
-  private ItemState itemState;
   private String actionCommand;
 
-  public LayerItemEvent(Object source, ItemState state, String cmd)
+  public LayerItemEvent(Object source, String cmd)
   {
     super(source);
-    this.itemState = (state != null) ? state : ItemState.NORMAL;
     this.actionCommand = cmd;
   }
 
-  public ItemState getItemState()
+  public boolean isHighlighted()
   {
-    return itemState;
+    if (source instanceof AbstractLayerItem) {
+      return (((AbstractLayerItem)source).getItemState() == AbstractLayerItem.ItemState.HIGHLIGHTED);
+    } else {
+      return false;
+    }
   }
 
   public String getActionCommand()

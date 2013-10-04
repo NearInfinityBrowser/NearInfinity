@@ -17,7 +17,7 @@ public final class GffFloat extends GffField
   public GffFloat(byte buffer[], int fieldOffset, int labelOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    value = Float.intBitsToFloat(Byteconvert.convertInt(buffer, fieldOffset + 8));
+    value = Float.intBitsToFloat(DynamicArray.getInt(buffer, fieldOffset + 8));
   }
 
   public String toString()

@@ -8,6 +8,8 @@ import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
+import infinity.util.ArrayUtil;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,14 +17,6 @@ import java.util.*;
 
 public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable
 {
-  private static HexNumber findNextOffset(HexNumber offsets[], HexNumber offset)
-  {
-    for (int i = 0; i < offsets.length; i++)
-      if (offsets[i] == offset && i < offsets.length - 1)
-        return offsets[i + 1];
-    return null;
-  }
-
   public WedResource(ResourceEntry entry) throws Exception
   {
     super(entry);
@@ -97,6 +91,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
   protected int read(byte buffer[], int offset) throws Exception
   {
+    int startOffset = offset;
+
     list.add(new TextString(buffer, offset, 4, "Signature"));
     list.add(new TextString(buffer, offset + 4, 4, "Version"));
     SectionCount countOverlays = new SectionCount(buffer, offset + 8, 4, "# overlays",
@@ -140,7 +136,9 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     list.add(offsetPolytable);
 
     HexNumber offsets[] = new HexNumber[]{offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile,
-                                          offsetPolygons, offsetWallgroups, offsetPolytable};
+                                          offsetPolygons, offsetWallgroups, offsetPolytable,
+                                          new HexNumber(DynamicArray.convertInt(buffer.length - startOffset),
+                                                        0, 4, "")};
     Arrays.sort(offsets, new Comparator<HexNumber>()
     {
       public int compare(HexNumber s1, HexNumber s2)
@@ -159,9 +157,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetWallgroups.getValue();
     int countPolytable = 0;
-    int countWallgroups = (findNextOffset(offsets, offsetWallgroups).getValue() -
-                           offsetWallgroups.getValue()) /
-                          4;
+    int countWallgroups = (offsets[ArrayUtil.indexOf(offsets, offsetWallgroups) + 1].getValue() -
+                           offsetWallgroups.getValue()) / 4;
     for (int i = 0; i < countWallgroups; i++) {
       Wallgroup wall = new Wallgroup(this, buffer, offset, i);
       offset = wall.getEndOffset();

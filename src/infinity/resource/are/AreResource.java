@@ -8,7 +8,7 @@ import infinity.datatype.*;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -43,47 +43,47 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
-      addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 84),
-                     (int)Byteconvert.convertShort(buffer, offset + 88), 272);
+      addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 84),
+                     (int)DynamicArray.getShort(buffer, offset + 88), 272);
 
     // ITEPoints
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 92),
-                   (int)Byteconvert.convertShort(buffer, offset + 90), 196);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 92),
+                   (int)DynamicArray.getShort(buffer, offset + 90), 196);
 
     // Spawnpoints
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 96),
-                   Byteconvert.convertInt(buffer, offset + 100), 200);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 96),
+                   DynamicArray.getInt(buffer, offset + 100), 200);
 
     // Entrances
-//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 104),
-//                   Byteconvert.convertInt(buffer, offset + 108), 104);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 104),
+//                   DynamicArray.getInt(buffer, offset + 108), 104);
 
     // Containers
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 112),
-                   (int)Byteconvert.convertShort(buffer, offset + 116), 192);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 112),
+                   (int)DynamicArray.getShort(buffer, offset + 116), 192);
 
     // Ambients
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 132),
-                   (int)Byteconvert.convertShort(buffer, offset + 130), 212);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 132),
+                   (int)DynamicArray.getShort(buffer, offset + 130), 212);
 
     // Variables
-//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 136),
-//                   Byteconvert.convertInt(buffer, offset + 140), 84);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 136),
+//                   DynamicArray.getInt(buffer, offset + 140), 84);
 
     // Doors
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 168),
-                   Byteconvert.convertInt(buffer, offset + 164), 200);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 168),
+                   DynamicArray.getInt(buffer, offset + 164), 200);
 
     // Animations
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 176),
-                   Byteconvert.convertInt(buffer, offset + 172), 76);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 176),
+                   DynamicArray.getInt(buffer, offset + 172), 76);
 
     // Tiled objects
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 184),
-                   Byteconvert.convertInt(buffer, offset + 180), 108);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 184),
+                   DynamicArray.getInt(buffer, offset + 180), 108);
 
     // Rest spawn
-//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 192), 1, 228);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 192), 1, 228);
   }
 
   private static void addScriptNames(Set<String> scriptNames, byte buffer[], int offset, int count, int size)

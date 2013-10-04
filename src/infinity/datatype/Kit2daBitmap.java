@@ -88,8 +88,8 @@ public final class Kit2daBitmap extends Datatype implements Editable
       value = (long)buffer[offset + 2];
     }
     else {
-      value = (long)(Byteconvert.convertUnsignedShort(buffer, offset + 2) +
-                     0x10000 * Byteconvert.convertUnsignedShort(buffer, offset));
+      value = (long)(DynamicArray.getUnsignedShort(buffer, offset + 2) +
+                     0x10000 * DynamicArray.getUnsignedShort(buffer, offset));
       if (value < 0)
         value += 4294967296L;
     }
@@ -169,7 +169,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
     if (useUnusable) {
       if (value > 2147483648L)
         value -= 4294967296L;
-      byte buffer[] = Byteconvert.convertBack((int)value);
+      byte buffer[] = DynamicArray.convertInt((int)value);
       os.write((int)buffer[2]);
       os.write((int)buffer[3]);
       os.write((int)buffer[0]);

@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -814,36 +813,6 @@ public class TileGrid extends JComponent
     public TileLabel()
     {
       super();
-      init();
-    }
-
-    public TileLabel(Icon image)
-    {
-      super(image);
-      init();
-    }
-
-    public TileLabel(Icon image, int horizontalAlignment)
-    {
-      super(image, horizontalAlignment);
-      init();
-    }
-
-    public TileLabel(String text)
-    {
-      super(text);
-      init();
-    }
-
-    public TileLabel(String text, Icon icon, int horizontalAlignment)
-    {
-      super(text, icon, horizontalAlignment);
-      init();
-    }
-
-    public TileLabel(String text, int horizontalAlignment)
-    {
-      super(text, horizontalAlignment);
       init();
     }
 

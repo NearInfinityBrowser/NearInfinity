@@ -8,7 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
 
 import javax.swing.*;
@@ -32,11 +32,11 @@ public class HashBitmap extends Datatype implements Editable
     this.idsmap = new LongIntegerHashMap<String>(idsmap);
 
     if (length == 4)
-      value = Byteconvert.convertUnsignedInt(buffer, offset);
+      value = DynamicArray.getUnsignedInt(buffer, offset);
     else if (length == 2)
-      value = (long)Byteconvert.convertUnsignedShort(buffer, offset);
+      value = (long)DynamicArray.getUnsignedShort(buffer, offset);
     else if (length == 1)
-      value = (long)Byteconvert.convertUnsignedByte(buffer, offset);
+      value = (long)DynamicArray.getUnsignedByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }

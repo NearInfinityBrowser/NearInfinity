@@ -8,11 +8,12 @@ import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
 import javax.swing.*;
 import javax.swing.text.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -113,7 +114,7 @@ public final class TextEdit extends Datatype implements Editable
   public String toString()
   {
     if (text == null)
-      text = eolConvert(Byteconvert.convertString(bytes, 0, bytes.length), System.getProperty("line.separator"));
+      text = eolConvert(DynamicArray.getString(bytes, 0, bytes.length), System.getProperty("line.separator"));
     return text;
   }
 
