@@ -1152,7 +1152,8 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class HelpMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem helpAbout, helpLicense, helpBsdLicense;
+    private final JMenuItem helpAbout, helpLicense, helpBsdLicense,
+      helpJOrbisLicense;
 
     private HelpMenu()
     {
@@ -1169,46 +1170,45 @@ public final class BrowserMenuBar extends JMenuBar
       helpBsdLicense =
       makeMenuItem("Plastic XP License", KeyEvent.VK_P, Icons.getIcon("Edit16.gif"), -1, this);
       add(helpBsdLicense);
+
+      helpJOrbisLicense =
+        makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon("Edit16.gif"), -1, this);
+      add(helpJOrbisLicense);
     }
 
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == helpAbout) {
-        JLabel label1 = new JLabel("Near Infinity " + VERSION, JLabel.CENTER);
-        JLabel label2 = new JLabel("Copyright (©) 2001-2005 - Jon Olav Hauglid", JLabel.CENTER);
-        JLabel label3 = new JLabel(
-                "<html><a href=http://www.idi.ntnu.no/~joh/ni/>http://www.idi.ntnu.no/~joh/ni/</a></html>",
-                JLabel.CENTER);
-        label3.addMouseListener(new MouseAdapter()
-        {
-          public void mouseClicked(MouseEvent event)
-          {
-            if (!java.awt.Desktop.isDesktopSupported()) {
-              JOptionPane.showMessageDialog(NearInfinity.getInstance(), "I can't open an url on this system", "Attention",
-                                            JOptionPane.PLAIN_MESSAGE);
-            } else {
-              try {
-                final java.net.URI url = new java.net.URI("http://www.idi.ntnu.no/~joh/ni/");
-                java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
-                if (!desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
-                  JOptionPane.showMessageDialog(NearInfinity.getInstance(), "I can't open an url on this system", "Attention",
-                                                JOptionPane.PLAIN_MESSAGE);
-                } else {
-                  desktop.browse(url);
-                }
-              } catch (IOException e) {
-                e.printStackTrace();
-              } catch (java.net.URISyntaxException e) {
-                e.printStackTrace();
-              }
-            }
-          }
-        });
-        label3.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Font defaultfont = label1.getFont();
-        label1.setFont(defaultfont.deriveFont(Font.BOLD, 20.0f));
-        label2.setFont(defaultfont.deriveFont(13.0f));
-        label3.setFont(defaultfont.deriveFont(13.0f));
+        final String hauglidPage = "http://www.idi.ntnu.no/~joh/ni/";
+        final String githubPage = "https://github.com/NearInfinityBrowser/NearInfinity/";
+        final String versionText = "Near Infinity " + VERSION;
+        final String githubHTML = "<html><a href=" + githubPage + "/>" +
+          githubPage + "</a></html>";
+        final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
+        final String hauglidCopyrightText = "Copyright (©) 2001-2005 - Jon Olav Hauglid";
+        final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" +
+          hauglidPage + "</a></html>";
+
+        //TODO: add list of contributors
+
+        JLabel version = new JLabel(versionText);
+        JLabel githubLink = new JLabel(githubHTML, JLabel.CENTER);
+        githubLink.addMouseListener(new UrlBrowser(githubPage));
+        githubLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.CENTER);
+        JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.CENTER);
+        JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.CENTER);
+        hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
+        hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        Font defaultfont = version.getFont();
+        Font boldFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
+        Font font = defaultfont.deriveFont(13.0f);
+
+        version.setFont(boldFont);
+        githubLink.setFont(font);
+        hauglidVersion.setFont(font);
+        hauglidCopyright.setFont(font);
+        hauglidLink.setFont(font);
 
         JPanel panel = new JPanel();
         GridBagLayout gbl = new GridBagLayout();
@@ -1219,23 +1219,33 @@ public final class BrowserMenuBar extends JMenuBar
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(label1, gbc);
-        panel.add(label1);
-        gbc.insets = new Insets(3, 6, 0, 6);
-        gbl.setConstraints(label2, gbc);
-        panel.add(label2);
-        gbc.insets = new Insets(0, 6, 3, 6);
-        gbl.setConstraints(label3, gbc);
-        panel.add(label3);
+        gbl.setConstraints(version, gbc);
+        panel.add(version);
+        gbc.insets = new Insets(3, 6, 3, 6);
+        gbl.setConstraints(githubLink, gbc);
+        panel.add(githubLink);
+        gbc.insets = new Insets(6, 6, 0, 6);
+        gbl.setConstraints(hauglidVersion, gbc);
+        panel.add(hauglidVersion);
+        gbc.insets = new Insets(0, 6, 0, 6);
+        gbl.setConstraints(hauglidCopyright, gbc);
+        panel.add(hauglidCopyright);
+        gbc.insets = new Insets(3, 6, 3, 6);
+        gbl.setConstraints(hauglidLink, gbc);
+        panel.add(hauglidLink);
+
         JLabel label4 = new JLabel("This program is free and may be distributed according", JLabel.CENTER);
         JLabel label5 = new JLabel("to the terms of the GNU Lesser General Public License.", JLabel.CENTER);
         JLabel label6 = new JLabel("Most icons (©) eclipse.org - Common Public License.", JLabel.CENTER);
         JLabel label7 = new JLabel(
                 "Plastic XP L&F (©) jgoodies.com - Berkeley Software Distribution License.", JLabel.CENTER);
-        label4.setFont(defaultfont.deriveFont(11.0f));
-        label5.setFont(defaultfont.deriveFont(11.0f));
-        label6.setFont(defaultfont.deriveFont(11.0f));
-        label7.setFont(defaultfont.deriveFont(11.0f));
+        JLabel label8 = new JLabel("JOrbis (©) JCraft Inc. - GNU Lesser General Public License.", JLabel.CENTER);
+        Font smallFont = defaultfont.deriveFont(11.0f);
+        label4.setFont(smallFont);
+        label5.setFont(smallFont);
+        label6.setFont(smallFont);
+        label7.setFont(smallFont);
+        label8.setFont(smallFont);
         gbc.insets = new Insets(3, 6, 0, 6);
         gbl.setConstraints(label4, gbc);
         panel.add(label4);
@@ -1248,40 +1258,41 @@ public final class BrowserMenuBar extends JMenuBar
         gbc.insets.top = 0;
         gbl.setConstraints(label7, gbc);
         panel.add(label7);
+        gbl.setConstraints(label8, gbc);
+        panel.add(label8);
 
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "About Near Infinity",
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                      panel, "About Near Infinity",
                                       JOptionPane.PLAIN_MESSAGE);
       }
       else if (event.getSource() == helpLicense) {
-        JPanel panel = new JPanel(new BorderLayout());
-        JTextPane tphelp = new JTextPane();
-        try {
-          tphelp.setPage(NearInfinity.class.getResource("License.txt"));
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        tphelp.setEditable(false);
-        tphelp.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        panel.add(new JScrollPane(tphelp), BorderLayout.CENTER);
-        panel.setPreferredSize(new Dimension(500, 400));
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "LGPL License",
-                                      JOptionPane.PLAIN_MESSAGE);
+        displayLicense(NearInfinity.class, "License.txt", "LGPL License");
       }
       else if (event.getSource() == helpBsdLicense) {
-        JPanel panel = new JPanel(new BorderLayout());
-        JTextPane tphelp = new JTextPane();
-        try {
-          tphelp.setPage(NearInfinity.class.getResource("bsd-license.txt"));
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        tphelp.setEditable(false);
-        tphelp.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        panel.add(new JScrollPane(tphelp), BorderLayout.CENTER);
-        panel.setPreferredSize(new Dimension(500, 400));
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "BSD License",
-                                      JOptionPane.PLAIN_MESSAGE);
+        displayLicense(NearInfinity.class, "bsd-license.txt", "BSD License");
       }
+      else if (event.getSource() == helpJOrbisLicense) {
+        displayLicense(NearInfinity.class, "License.txt", "LGPL License");
+      }
+    }
+
+    private void displayLicense(Class c, String resource, String title)
+    {
+      JPanel panel = new JPanel(new BorderLayout());
+      JTextPane tphelp = new JTextPane();
+      tphelp.setEditable(false);
+      tphelp.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      panel.add(new JScrollPane(tphelp), BorderLayout.CENTER);
+      panel.setPreferredSize(new Dimension(500, 400));
+
+      try {
+        tphelp.setPage(c.getResource(resource));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, title,
+                                    JOptionPane.PLAIN_MESSAGE);
     }
   }
 }
