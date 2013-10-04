@@ -29,7 +29,10 @@ public class TisDecoder implements Closeable
   private String tisName;           // TIS resource name without extension
   private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;  // cache for associated PVR resources
 
-  public TisDecoder() throws Exception
+  /**
+   * Creates an uninitialized TisDecoder object. Use <code>open()</code> to load a TIS resource.
+   */
+  public TisDecoder()
   {
     close();
   }
@@ -56,15 +59,15 @@ public class TisDecoder implements Closeable
 
 //--------------------- Begin Interface Closeable ---------------------
 
-  public void close() throws Exception
+  public void close()
   {
     info = null;
     entry = null;
     tisName = null;
     tisBuffer = null;
     if (pvrTable != null) {
-      for (final Closeable pvr: pvrTable.values()) {
-        pvr.close();
+      for (final PvrDecoder pvr: pvrTable.values()) {
+          pvr.close();
       }
       pvrTable.clear();
     }

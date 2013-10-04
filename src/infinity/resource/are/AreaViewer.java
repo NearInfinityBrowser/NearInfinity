@@ -358,12 +358,13 @@ public final class AreaViewer extends ChildFrame
   protected void windowClosing() throws Exception
   {
     lTileset.removeAll();
-    for (List<AbstractLayerItem> list: layerItems.values())
+    for (final List<AbstractLayerItem> list: layerItems.values())
     {
       list.clear();
     }
     layerItems.clear();
     tisDecoder.close();
+    mapImage.getImage().flush();
   }
 
   private void initGui()
@@ -1399,9 +1400,7 @@ public final class AreaViewer extends ChildFrame
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listTransitions.size());
     final Color[] color = new Color[]{new Color(0xFF404000, true), new Color(0xFF404000, true),
                                       new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
-    Dimension mapDim = getMapSize(getCurrentMap());
-    mapDim.width *= getTisDecoder().info().tileWidth();
-    mapDim.height *= getTisDecoder().info().tileHeight();
+    Dimension mapDim = new Dimension(mapImage.getIconWidth(), mapImage.getIconHeight());
     EnumMap<AreaEdge, Rectangle> rectMap = new EnumMap<AreaEdge, Rectangle>(AreaEdge.class);
     rectMap.put(AreaEdge.NORTH, new Rectangle(0, 0, mapDim.width, 16));
     rectMap.put(AreaEdge.EAST, new Rectangle(mapDim.width - 16, 0, 16, mapDim.height));
@@ -1738,11 +1737,6 @@ public final class AreaViewer extends ChildFrame
     LayerButtonState.put(layer, enable);
   }
 
-  private DayNight getCurrentMap()
-  {
-    return currentMap;
-  }
-
   // Translates polygon to top-left corner and returns original bounding box
   private Rectangle normalizePolygon(Polygon poly)
   {
@@ -1788,6 +1782,11 @@ public final class AreaViewer extends ChildFrame
       }
     }
     return "[No flags]";
+  }
+
+  private DayNight getCurrentMap()
+  {
+    return currentMap;
   }
 
   // Draws the complete map
@@ -1901,8 +1900,10 @@ public final class AreaViewer extends ChildFrame
   {
     if (dn != getCurrentMap()) {
       try {
-        TisDecoder decoder = new TisDecoder(getTisResource(dn));
-        tisDecoder = decoder;
+        if (tisDecoder == null) {
+          tisDecoder = new TisDecoder();
+        }
+        tisDecoder.open(getTisResource(dn));
       } catch (Exception e) {
         e.printStackTrace();
       }

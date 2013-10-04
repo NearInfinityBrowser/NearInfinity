@@ -23,6 +23,14 @@ public class PvrDecoder implements Closeable
   private byte[] inBuffer = null;
 
   /**
+   * Creates an uninitialized PvrDecoder object. Use <code>open()</code> to load a PVR resource.
+   */
+  public PvrDecoder()
+  {
+    close();
+  }
+
+  /**
    * Constructor takes a buffer containing the whole PVR data.
    * @param buffer The buffer containing the whole PVR data.
    * @throws Exception
@@ -45,7 +53,7 @@ public class PvrDecoder implements Closeable
 
 //--------------------- Begin Interface Closeable ---------------------
 
-  public void close() throws Exception
+  public void close()
   {
     info = null;
     inBuffer = null;

@@ -1222,7 +1222,7 @@ public final class EffectFactory
     String restype = makeEffectParamsGeneric(parent, buffer, offset, s, effectType, isV1);
 
     // Processing game specific effects
-    if (s.size() == initSize) {
+    if (s.size() == initSize && restype == null) {
       if (gameid == ResourceFactory.ID_BG1 ||
           gameid == ResourceFactory.ID_BG1TOTSC ||
           gameid == ResourceFactory.ID_DEMO) {

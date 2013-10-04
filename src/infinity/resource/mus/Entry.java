@@ -65,6 +65,9 @@ public class Entry
       String key = getCacheKey(dir, name);
       if (BufferCache.containsKey(key)) {
         AudioBuffer ab = BufferCache.get(key);
+        // refreshing cached object
+        BufferCache.remove(key);
+        BufferCache.put(key, ab);
         return ab;
       }
     }
