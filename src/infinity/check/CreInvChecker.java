@@ -13,9 +13,11 @@ import infinity.resource.*;
 import infinity.resource.cre.CreResource;
 import infinity.resource.cre.Item;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -82,9 +84,12 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     creFiles.addAll(ResourceFactory.getInstance().getResources("CHR"));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Checking inventories...", null, 0, creFiles.size());
-    table = new SortableTable(new String[]{"File", "Name", "Item"},
-                              new Class[]{Object.class, Object.class, Object.class},
-                              new int[]{100, 100, 200});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Name", "Item"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{100, 100, 200}));
+
     for (int i = 0; i < creFiles.size(); i++) {
       ResourceEntry entry = creFiles.get(i);
       try {

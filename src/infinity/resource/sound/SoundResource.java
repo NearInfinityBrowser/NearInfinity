@@ -31,6 +31,7 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 
 /**
  * Handles all kinds of supported single track audio files.
@@ -200,7 +201,13 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   private void loadSoundResource()
   {
     setLoaded(false);
-    new Thread(new SoundLoader(this, entry)).start();
+    (new SwingWorker<Boolean, Void>() {
+      @Override
+      public Boolean doInBackground()
+      {
+        return loadAudio();
+      }
+    }).execute();
   }
 
   private synchronized void setLoaded(boolean b)
@@ -223,49 +230,39 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     }
   }
 
-  private boolean isClosed()
+  private synchronized boolean isClosed()
   {
     return isClosed;
   }
 
-  private synchronized void setAudio(AudioBuffer buffer)
+  private boolean loadAudio()
   {
-    if (buffer != null && !isClosed()) {
-      audioBuffer = buffer;
-      isWAV = (audioBuffer instanceof WavBuffer);
-      isReference = (entry.getExtension().compareToIgnoreCase("WAV") == 0);
-      setLoaded(true);
+    try {
+      AudioBuffer.AudioOverride override = null;
+      AudioBuffer buffer = null;
+      synchronized (entry) {
+        // ignore # channels in ACM headers
+        if (entry.getExtension().equalsIgnoreCase("ACM")) {
+          override = AudioBuffer.AudioOverride.overrideChannels(2);
+        }
+        buffer = AudioFactory.getAudioBuffer(entry, override);
+      }
+      if (buffer != null && !isClosed()) {
+        synchronized (this) {
+          audioBuffer = buffer;
+          isWAV = (audioBuffer instanceof WavBuffer);
+          isReference = (entry.getExtension().compareToIgnoreCase("WAV") == 0);
+        }
+        setLoaded(true);
+        return true;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      JOptionPane.showMessageDialog(getContainer(), e.getMessage(), "Error",
+                                    JOptionPane.ERROR_MESSAGE);
     }
+    return false;
   }
 
 //--------------------- End Interface Viewable ---------------------
-
-//-------------------------- INNER CLASSES --------------------------
-
-  private class SoundLoader implements Runnable
-  {
-    private final SoundResource res;
-    private final ResourceEntry entry;
-
-    private SoundLoader(SoundResource res, ResourceEntry entry)
-    {
-      this.res = res;
-      this.entry = entry;
-    }
-
-    public void run()
-    {
-      try {
-        AudioBuffer.AudioOverride override = null;
-        // ignore # channels in ACM headers
-        if (entry.getExtension().equalsIgnoreCase("ACM"))
-          override = AudioBuffer.AudioOverride.overrideChannels(2);
-        res.setAudio(AudioFactory.getAudioBuffer(entry, override));
-      } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(res.getContainer(), e.getMessage(), "Error",
-                                      JOptionPane.ERROR_MESSAGE);
-      }
-    }
-  }
 }

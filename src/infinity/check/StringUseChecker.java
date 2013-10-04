@@ -16,10 +16,12 @@ import infinity.resource.key.ResourceEntry;
 import infinity.resource.other.PlainTextResource;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
+import infinity.util.ArrayUtil;
 import infinity.util.StringResource;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -76,9 +78,12 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
       files.addAll(ResourceFactory.getInstance().getResources(fileType));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Searching...", null, 0, files.size());
-    table = new SortableTable(new String[]{"String", "StrRef"},
-                              new Class[]{Object.class, Integer.class},
-                              new int[]{450, 20});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
+    colClasses.add(Object.class); colClasses.add(Integer.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"String", "StrRef"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{450, 20}));
+
     StringResource.getStringRef(0);
     strUsed = new boolean[StringResource.getMaxIndex() + 1];
     for (int i = 0; i < files.size(); i++) {

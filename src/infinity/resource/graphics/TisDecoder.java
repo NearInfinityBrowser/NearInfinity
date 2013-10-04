@@ -4,10 +4,11 @@
 
 package infinity.resource.graphics;
 
+import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.ColorConvert.ColorFormat;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -18,15 +19,23 @@ import java.util.regex.Pattern;
  * Decodes either a single tile or a block of tiles from a TIS resource.
  * @author argent77
  */
-public class TisDecoder
+public class TisDecoder implements Closeable
 {
   private static final String NOT_INITIALIZED = "Not initialized";
 
   private TisInfo info;
-  private final ResourceEntry entry;                  // TIS resource entry structure
-  private final byte[] tisBuffer;                     // points to the data of the TIS resource entry
-  private String tisName;                             // TIS resource name without extension
+  private ResourceEntry entry;      // TIS resource entry structure
+  private byte[] tisBuffer;         // points to the data of the TIS resource entry
+  private String tisName;           // TIS resource name without extension
   private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;  // cache for associated PVR resources
+
+  /**
+   * Creates an uninitialized TisDecoder object. Use <code>open()</code> to load a TIS resource.
+   */
+  public TisDecoder()
+  {
+    close();
+  }
 
   /**
    * Initialize this object using the specified filename.
@@ -35,12 +44,7 @@ public class TisDecoder
    */
   public TisDecoder(String tisName) throws Exception
   {
-    entry = ResourceFactory.getInstance().getResourceEntry(tisName);
-    if (entry == null)
-      throw new NullPointerException();
-    tisBuffer = entry.getResourceData();
-
-    init();
+    open(tisName);
   }
 
   /**
@@ -50,12 +54,61 @@ public class TisDecoder
    */
   public TisDecoder(ResourceEntry entry) throws Exception
   {
+    open(entry);
+  }
+
+//--------------------- Begin Interface Closeable ---------------------
+
+  public void close()
+  {
+    info = null;
+    entry = null;
+    tisName = null;
+    tisBuffer = null;
+    if (pvrTable != null) {
+      for (final PvrDecoder pvr: pvrTable.values()) {
+          pvr.close();
+      }
+      pvrTable.clear();
+    }
+    pvrTable = null;
+  }
+
+//--------------------- End Interface Closeable ---------------------
+
+  /**
+   * Initialize this object using the specified filename.
+   * @param tisName Filename of the TIS file
+   * @throws Exception
+   */
+  public void open(String tisName) throws Exception
+  {
+    open(ResourceFactory.getInstance().getResourceEntry(tisName));
+  }
+
+  /**
+   * Initialize this object using the specified resource entry.
+   * @param entry Resource entry structure of the TIS resource.
+   * @throws Exception
+   */
+  public void open(ResourceEntry entry) throws Exception
+  {
+    close();
+
     this.entry = entry;
     if (this.entry == null)
       throw new NullPointerException();
     tisBuffer = this.entry.getResourceData();
-
     init();
+  }
+
+  /**
+   * Returns whether this TisDecoder object has already been successfully initialized.
+   * @return Whether this TisDecoder object has already been initialized.
+   */
+  public boolean isOpen()
+  {
+    return !empty();
   }
 
   /**
@@ -196,8 +249,8 @@ public class TisDecoder
           if (entry != null) {
             byte[] data = entry.getResourceData();
             if (data != null) {
-              int size = Byteconvert.convertInt(data, 0);
-              int marker = Byteconvert.convertShort(data, 4) & 0xffff;
+              int size = DynamicArray.getInt(data, 0);
+              int marker = DynamicArray.getShort(data, 4) & 0xffff;
               if ((size & 0xff) != 0x34 || marker != 0x9c78)
                 throw new Exception("Invalid PVRZ resource: " + entry.getResourceName());
               data = Compressor.decompress(data, 0);
@@ -333,7 +386,7 @@ public class TisDecoder
     if (outBuffer.length - outOfs < info().tileWidth()*info.tileHeight()*outPixelSize)
       throw new Exception("Output buffer size too small");
 
-    int page = Byteconvert.convertInt(inBuffer, inOfs);
+    int page = DynamicArray.getInt(inBuffer, inOfs);
     if (page < 0) {
       // special case: fill with black pixels
       byte[] outPixel = new byte[outPixelSize];
@@ -344,8 +397,8 @@ public class TisDecoder
       return true;
     } else {
       // extract data block from associated PVR file
-      int xPos = Byteconvert.convertInt(inBuffer, inOfs+4);
-      int yPos = Byteconvert.convertInt(inBuffer, inOfs+8);
+      int xPos = DynamicArray.getInt(inBuffer, inOfs+4);
+      int yPos = DynamicArray.getInt(inBuffer, inOfs+8);
       PvrDecoder decoder = getPVR(page);
       if (decoder != null) {
         System.arraycopy(decoder.decode(xPos, yPos, info().tileWidth(), info().tileHeight(), fmt),

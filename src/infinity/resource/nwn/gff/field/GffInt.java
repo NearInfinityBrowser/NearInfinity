@@ -17,7 +17,7 @@ public final class GffInt extends GffField
   public GffInt(byte buffer[], int fieldOffset, int labelOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    value = Byteconvert.convertInt(buffer, fieldOffset + 8);
+    value = DynamicArray.getInt(buffer, fieldOffset + 8);
   }
 
   public String toString()

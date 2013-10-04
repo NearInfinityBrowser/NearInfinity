@@ -8,7 +8,7 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.other.UnknownResource;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 
@@ -122,27 +122,27 @@ public final class PltResource implements Resource, ActionListener
     }
     new String(buffer, 0, 4); // Signature
     new String(buffer, 4, 4); // Version
-    Byteconvert.convertInt(buffer, 8); // Unknown 1
-    Byteconvert.convertInt(buffer, 12); // Unknown 2
-    int width = Byteconvert.convertInt(buffer, 16);
-    int height = Byteconvert.convertInt(buffer, 20);
+    DynamicArray.getInt(buffer, 8); // Unknown 1
+    DynamicArray.getInt(buffer, 12); // Unknown 2
+    int width = DynamicArray.getInt(buffer, 16);
+    int height = DynamicArray.getInt(buffer, 20);
     int offset = 24;
-    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    BufferedImage image = ColorConvert.createCompatibleImage(width, height, false);
     for (int y = height - 1; y >= 0; y--) {
       for (int x = 0; x < width; x++) {
-        short colorIndex = Byteconvert.convertUnsignedByte(buffer, offset++);
-        short paletteIndex = Byteconvert.convertUnsignedByte(buffer, offset++);
+        short colorIndex = DynamicArray.getUnsignedByte(buffer, offset++);
+        short paletteIndex = DynamicArray.getUnsignedByte(buffer, offset++);
         if (palette == null)
-          image.setRGB(x, y, Byteconvert.convertInt(
-                  new byte[]{(byte)colorIndex, (byte)colorIndex, (byte)colorIndex, 0}, 0));
+          image.setRGB(x, y, DynamicArray.getInt(new byte[]{(byte)colorIndex, (byte)colorIndex,
+                                                            (byte)colorIndex, 0}, 0));
         else {
           short colors[] = palette.getColorBytes((int)paletteIndex);
           double factor = (double)colorIndex / 256.0;
           for (int i = 0; i < 3; i++)
             colors[i] = (short)((double)colors[i] * factor);
-          image.setRGB(x, y, Byteconvert.convertInt(new byte[]{(byte)colors[0],
-                                                               (byte)colors[1],
-                                                               (byte)colors[2], 0}, 0));
+          image.setRGB(x, y, DynamicArray.getInt(new byte[]{(byte)colors[0],
+                                                            (byte)colors[1],
+                                                            (byte)colors[2], 0}, 0));
         }
       }
     }

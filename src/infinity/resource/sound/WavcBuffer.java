@@ -5,7 +5,6 @@
 package infinity.resource.sound;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.sound.AudioBuffer.AudioOverride;
 import infinity.util.DynamicArray;
 
 /**
@@ -43,7 +42,7 @@ public class WavcBuffer extends AcmBuffer
       throw new Exception("Invalid WAVC header");
     if (!new String(buffer, 4, 4).equals("V1.0"))
       throw new Exception("Unsupported WAVC version");
-//    int dsize = Byteconvert.convertInt(buffer, 8);
+//    int dsize = DynamicArray.getInt(buffer, 8);
     int csize = DynamicArray.getInt(buffer, 12);
     int acmOfs = DynamicArray.getInt(buffer, 16);
     if (acmOfs < 0x1c || acmOfs + csize > buffer.length - offset)

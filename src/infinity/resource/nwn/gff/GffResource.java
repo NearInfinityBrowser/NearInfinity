@@ -11,6 +11,7 @@ import infinity.resource.key.FileResourceEntry;
 import infinity.util.*;
 
 import javax.swing.*;
+
 import java.util.*;
 import java.io.*;
 
@@ -40,18 +41,18 @@ public class GffResource implements Resource, Writeable
     fileVersion = new String(buffer, 4, 4);
     if (!fileVersion.equalsIgnoreCase("V3.2"))
       throw new Exception("Unsupported GFF version: " + fileVersion);
-    int structOffset = Byteconvert.convertInt(buffer, 8);
-    int structCount = Byteconvert.convertInt(buffer, 12);
-    int fieldOffset = Byteconvert.convertInt(buffer, 16);
-    int fieldCount = Byteconvert.convertInt(buffer, 20);
-    int labelOffset = Byteconvert.convertInt(buffer, 24);
-    int labelCount = Byteconvert.convertInt(buffer, 28);
-    int fieldDataOffset = Byteconvert.convertInt(buffer, 32);
-    int fieldDataCount = Byteconvert.convertInt(buffer, 36);
-    int fieldIndicesOffset = Byteconvert.convertInt(buffer, 40);
-    int fieldIndicesCount = Byteconvert.convertInt(buffer, 44);
-    int listIndicesOffset = Byteconvert.convertInt(buffer, 48);
-    int listIndicesCount = Byteconvert.convertInt(buffer, 52);
+    int structOffset = DynamicArray.getInt(buffer, 8);
+    int structCount = DynamicArray.getInt(buffer, 12);
+    int fieldOffset = DynamicArray.getInt(buffer, 16);
+    int fieldCount = DynamicArray.getInt(buffer, 20);
+    int labelOffset = DynamicArray.getInt(buffer, 24);
+    int labelCount = DynamicArray.getInt(buffer, 28);
+    int fieldDataOffset = DynamicArray.getInt(buffer, 32);
+    int fieldDataCount = DynamicArray.getInt(buffer, 36);
+    int fieldIndicesOffset = DynamicArray.getInt(buffer, 40);
+    int fieldIndicesCount = DynamicArray.getInt(buffer, 44);
+    int listIndicesOffset = DynamicArray.getInt(buffer, 48);
+    int listIndicesCount = DynamicArray.getInt(buffer, 52);
 
 //    System.out.println(structOffset + " - " + structCount);
 //    System.out.println(fieldOffset + " - " + fieldCount);
@@ -70,7 +71,7 @@ public class GffResource implements Resource, Writeable
 
     for (int i = 0; i < fieldCount; i++) {
       int offset = fieldOffset + i * 12;
-      int type = Byteconvert.convertInt(buffer, offset);
+      int type = DynamicArray.getInt(buffer, offset);
       switch (type) {
         case 0:
           fields[i] = new GffByte(buffer, offset, labelOffset);
@@ -115,9 +116,9 @@ public class GffResource implements Resource, Writeable
           fields[i] = new GffVoid(buffer, offset, labelOffset, fieldDataOffset);
           break;
         case 14:
-          int labelIndex = Byteconvert.convertInt(buffer, offset + 4);
-          int structArrayOffset = Byteconvert.convertInt(buffer, offset + 8);
-          String label = Byteconvert.convertString(buffer, labelOffset + labelIndex * 16, 16);
+          int labelIndex = DynamicArray.getInt(buffer, offset + 4);
+          int structArrayOffset = DynamicArray.getInt(buffer, offset + 8);
+          String label = DynamicArray.getString(buffer, labelOffset + labelIndex * 16, 16);
           fields[i] = structs[structArrayOffset];
           fields[i].setLabel(label);
           break;

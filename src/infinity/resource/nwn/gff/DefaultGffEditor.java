@@ -163,7 +163,7 @@ final class DefaultGffEditor extends JPanel implements ActionListener
       return columnIndex == 2;
     }
 
-    public Class getColumnClass(int columnIndex)
+    public Class<? extends Object> getColumnClass(int columnIndex)
     {
       if (columnIndex == 0)
         return ImageIcon.class;

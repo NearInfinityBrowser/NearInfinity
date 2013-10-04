@@ -8,7 +8,7 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,18 +28,18 @@ public final class TgaResource implements Resource, ActionListener
     byte[] data = entry.getResourceData();
 
     // Header
-    int idlength = (int)Byteconvert.convertUnsignedByte(data, 0);
-//    int colormaptype = Byteconvert.convertUnsignedByte(data, 1);
-    int datatypecode = (int)Byteconvert.convertUnsignedByte(data, 2);
-//    int colormaporigin = Byteconvert.convertUnsignedShort(data, 3);
-//    int colormaplength = Byteconvert.convertUnsignedShort(data, 5);
-//    int colormapdepth = Byteconvert.convertUnsignedByte(data, 7);
-//    int x_origin = Byteconvert.convertUnsignedShort(data, 8);
-//    int y_origin = Byteconvert.convertUnsignedShort(data, 10);
-    int width = Byteconvert.convertUnsignedShort(data, 12);
-    int height = Byteconvert.convertUnsignedShort(data, 14);
-    int bitsperpixel = (int)Byteconvert.convertUnsignedByte(data, 16);
-//    int imagedescriptor = Byteconvert.convertUnsignedByte(data, 17);
+    int idlength = (int)DynamicArray.getUnsignedByte(data, 0);
+//    int colormaptype = DynamicArray.getUnsignedByte(data, 1);
+    int datatypecode = (int)DynamicArray.getUnsignedByte(data, 2);
+//    int colormaporigin = DynamicArray.getUnsignedShort(data, 3);
+//    int colormaplength = DynamicArray.getUnsignedShort(data, 5);
+//    int colormapdepth = DynamicArray.getUnsignedByte(data, 7);
+//    int x_origin = DynamicArray.getUnsignedShort(data, 8);
+//    int y_origin = DynamicArray.getUnsignedShort(data, 10);
+    int width = DynamicArray.getUnsignedShort(data, 12);
+    int height = DynamicArray.getUnsignedShort(data, 14);
+    int bitsperpixel = (int)DynamicArray.getUnsignedByte(data, 16);
+//    int imagedescriptor = DynamicArray.getUnsignedByte(data, 17);
 
     if (datatypecode == 2) {
       int offset = 18 + idlength;
@@ -49,7 +49,7 @@ public final class TgaResource implements Resource, ActionListener
         for (int y = height - 1; y >= 0; y--) {
           for (int x = 0; x < width; x++) {
             byte[] color = {data[offset], data[offset + 1], data[offset + 2], 0};
-            image.setRGB(x, y, Byteconvert.convertInt(color, 0));
+            image.setRGB(x, y, DynamicArray.getInt(color, 0));
             offset += bytesperpixel;
           }
         }
@@ -63,7 +63,7 @@ public final class TgaResource implements Resource, ActionListener
       for (int y = height - 1; y >= 0; y--) {
         for (int x = 0; x < width; x++) {
           byte[] color = {data[offset], data[offset], data[offset], 0};
-          image.setRGB(x, y, Byteconvert.convertInt(color, 0));
+          image.setRGB(x, y, DynamicArray.getInt(color, 0));
           offset++;
         }
       }
@@ -81,7 +81,7 @@ public final class TgaResource implements Resource, ActionListener
               if (packet < 0) { // rle
                 rlecount = (int)packet + 129;
                 byte[] color = {data[offset], data[offset + 1], data[offset + 2], 0};
-                rlecolor = Byteconvert.convertInt(color, 0);
+                rlecolor = DynamicArray.getInt(color, 0);
                 offset += bytesperpixel;
               }
               else  // raw
@@ -94,7 +94,7 @@ public final class TgaResource implements Resource, ActionListener
             else if (rawcount > 0) {
               rawcount--;
               byte color[] = {data[offset], data[offset + 1], data[offset + 2], 0};
-              image.setRGB(x, y, Byteconvert.convertInt(color, 0));
+              image.setRGB(x, y, DynamicArray.getInt(color, 0));
               offset += bytesperpixel;
             }
           }

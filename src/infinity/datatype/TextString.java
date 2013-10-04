@@ -49,7 +49,7 @@ public final class TextString extends Datatype implements InlineEditable
   public String toString()
   {
     if (text == null)
-      text = Byteconvert.convertString(bytes, 0, bytes.length);
+      text = DynamicArray.getString(bytes, 0, bytes.length);
     return text;
   }
 }

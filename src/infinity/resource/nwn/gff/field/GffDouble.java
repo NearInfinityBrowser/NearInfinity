@@ -17,9 +17,9 @@ public final class GffDouble extends GffField
   public GffDouble(byte buffer[], int fieldOffset, int labelOffset, int fieldDataOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    int dataOrDataOffset = Byteconvert.convertInt(buffer, fieldOffset + 8);
+    int dataOrDataOffset = DynamicArray.getInt(buffer, fieldOffset + 8);
 
-    long l = Byteconvert.convertLong(buffer, fieldDataOffset + dataOrDataOffset);
+    long l = DynamicArray.getLong(buffer, fieldDataOffset + dataOrDataOffset);
     value = Double.longBitsToDouble(l);
   }
 
@@ -50,7 +50,7 @@ public final class GffDouble extends GffField
     Filewriter.writeInt(os, 9);
     Filewriter.writeInt(os, labels.indexOf(getLabel()));
     Filewriter.writeInt(os, fieldDataIndex);
-    byte b[] = Byteconvert.convertBack(Double.doubleToLongBits(value));
+    byte b[] = DynamicArray.convertLong(Double.doubleToLongBits(value));
     System.arraycopy(b, 0, fieldData, fieldDataIndex, b.length);
     return fieldDataIndex + b.length;
   }

@@ -31,11 +31,11 @@ public final class IdsBitmap extends Datatype implements Editable
     idsmap = IdsMapCache.get(resource).getMap();
 
     if (length == 4)
-      value = Byteconvert.convertUnsignedInt(buffer, offset);
+      value = DynamicArray.getUnsignedInt(buffer, offset);
     else if (length == 2)
-      value = (long)Byteconvert.convertUnsignedShort(buffer, offset);
+      value = (long)DynamicArray.getUnsignedShort(buffer, offset);
     else if (length == 1)
-      value = (long)Byteconvert.convertUnsignedByte(buffer, offset);
+      value = (long)DynamicArray.getUnsignedByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }
@@ -56,11 +56,11 @@ public final class IdsBitmap extends Datatype implements Editable
     }
 
     if (length == 4)
-      value = Byteconvert.convertUnsignedInt(buffer, offset);
+      value = DynamicArray.getUnsignedInt(buffer, offset);
     else if (length == 2)
-      value = (long)Byteconvert.convertUnsignedShort(buffer, offset);
+      value = (long)DynamicArray.getUnsignedShort(buffer, offset);
     else if (length == 1)
-      value = (long)Byteconvert.convertUnsignedByte(buffer, offset);
+      value = (long)DynamicArray.getUnsignedByte(buffer, offset);
     else
       throw new IllegalArgumentException();
   }

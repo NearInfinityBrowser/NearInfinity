@@ -155,7 +155,7 @@ public class WavBuffer extends AudioBuffer
         new HashSet<Short>(ArrayUtil.toList(new Short[]{ID_TYPE_PCM, ID_TYPE_ADPCM}));
 
     private final AudioOverride override;
-    private int sampleRate, byteRate, samplesPerBlock, samplesPerChannel, dataSize;
+    private int sampleRate, samplesPerBlock, samplesPerChannel, dataSize;
     private short pcmType, numChannels, blockAlign, bitsPerSample;
 
     private WaveFmt(AudioOverride override)
@@ -192,7 +192,7 @@ public class WavBuffer extends AudioBuffer
         throw new Exception("Unsupported audio compression format: " + pcmType);
       numChannels = DynamicArray.getShort(buffer, offset + 10);
       sampleRate = DynamicArray.getInt(buffer, offset + 12);
-      byteRate = DynamicArray.getInt(buffer, offset + 16);
+      DynamicArray.getInt(buffer, offset + 16);   // byte rate
       blockAlign = DynamicArray.getShort(buffer, offset + 20);
       bitsPerSample = DynamicArray.getShort(buffer, offset + 22);
       offset += subChunk1Size + 8;
@@ -220,7 +220,6 @@ public class WavBuffer extends AudioBuffer
         if (override.bitsPerSample > 0)
           bitsPerSample = (short)override.bitsPerSample;
         blockAlign = (short)(numChannels * bitsPerSample / 8);
-        byteRate = sampleRate * blockAlign;
         samplesPerBlock = 1;
       }
 

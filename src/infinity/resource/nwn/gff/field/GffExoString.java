@@ -17,10 +17,10 @@ public final class GffExoString extends GffField
   public GffExoString(byte buffer[], int fieldOffset, int labelOffset, int fieldDataOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    int dataOrDataOffset = Byteconvert.convertInt(buffer, fieldOffset + 8);
+    int dataOrDataOffset = DynamicArray.getInt(buffer, fieldOffset + 8);
 
-    int size = Byteconvert.convertInt(buffer, fieldDataOffset + dataOrDataOffset);
-    string = Byteconvert.convertString(buffer, fieldDataOffset + dataOrDataOffset + 4, size);
+    int size = DynamicArray.getInt(buffer, fieldDataOffset + dataOrDataOffset);
+    string = DynamicArray.getString(buffer, fieldDataOffset + dataOrDataOffset + 4, size);
   }
 
   public int getFieldDataSize()
@@ -51,7 +51,7 @@ public final class GffExoString extends GffField
     Filewriter.writeInt(os, labels.indexOf(getLabel()));
     Filewriter.writeInt(os, fieldDataIndex);
 
-    System.arraycopy(Byteconvert.convertBack(string.length()), 0, fieldData, fieldDataIndex, 4);
+    System.arraycopy(DynamicArray.convertInt(string.length()), 0, fieldData, fieldDataIndex, 4);
     System.arraycopy(string.getBytes(), 0, fieldData, fieldDataIndex + 4, string.length());
     return fieldDataIndex + 4 + string.length();
   }

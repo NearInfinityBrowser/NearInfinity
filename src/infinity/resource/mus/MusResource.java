@@ -37,7 +37,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
   private JTextArea editor;
-  private Viewer2 viewer;
+  private Viewer viewer;
   private boolean resourceChanged;
 
   public MusResource(ResourceEntry entry) throws Exception
@@ -181,7 +181,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     panel = new JPanel(new BorderLayout());
     try {
       WindowBlocker.blockWindow(true);
-      viewer = new Viewer2(this);
+      viewer = new Viewer(this);
       tabbedPane = new JTabbedPane();
       tabbedPane.addTab("View", viewer);
       tabbedPane.addTab("Edit", getEditor(container.getStatusBar()));
@@ -213,7 +213,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
 
 // --------------------- End Interface Writeable ---------------------
 
-  public Viewer2 getViewer()
+  public Viewer getViewer()
   {
     return viewer;
   }

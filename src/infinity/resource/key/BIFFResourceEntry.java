@@ -32,9 +32,9 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
 
   public BIFFResourceEntry(byte buffer[], int offset, int stringLength)
   {
-    StringBuffer sb = new StringBuffer(Byteconvert.convertString(buffer, offset, stringLength));
-    type = (int)Byteconvert.convertShort(buffer, offset + stringLength);
-    locator = Byteconvert.convertInt(buffer, offset + stringLength + 2);
+    StringBuffer sb = new StringBuffer(DynamicArray.getString(buffer, offset, stringLength));
+    type = (int)DynamicArray.getShort(buffer, offset + stringLength);
+    locator = DynamicArray.getInt(buffer, offset + stringLength + 2);
     resourceName = sb.append('.').append(getExtension()).toString();
   }
 

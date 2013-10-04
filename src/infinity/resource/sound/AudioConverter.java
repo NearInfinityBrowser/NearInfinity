@@ -39,7 +39,7 @@ public class AudioConverter
    */
   public AudioConverter()
   {
-    String d = BrowserMenuBar.getInstance().getAudioDecoder();
+    String d = ""; // BrowserMenuBar.getInstance().getAudioDecoder();
     if (d.equalsIgnoreCase(ACM2WAV)) {
       if (acm2wav == null || !acm2wav.exists())
         acm2wav = NIFile.getFile(ResourceFactory.getRootDirs(), ACM2WAV);

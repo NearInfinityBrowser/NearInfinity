@@ -4,7 +4,6 @@
 
 package infinity.resource.sound;
 
-import infinity.gui.BrowserMenuBar;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.Closeable;
@@ -37,7 +36,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     byte data[] = entry.getResourceData();
     signature = new String(data, 0, 4);
     if (signature.equals("RIFF")) {
-      if (Byteconvert.convertShort(data, 20) == 0x11) { // IMA ADPCM
+      if (DynamicArray.getShort(data, 20) == 0x11) { // IMA ADPCM
         wavfile = SoundUtilities.convertADPCM(data, 0, entry.toString());
         fileCreated = true;
       }
@@ -62,13 +61,13 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
     }
     else if (signature.equals("WAVC")) {
       new String(data, 4, 4); // Version
-      Byteconvert.convertInt(data, 8); // Unc_length
-      Byteconvert.convertInt(data, 12); // Com_length
+      DynamicArray.getInt(data, 8); // Unc_length
+      DynamicArray.getInt(data, 12); // Com_length
       // 4 unknown bytes
-      channels = (int)Byteconvert.convertShort(data, 20);
+      channels = (int)DynamicArray.getShort(data, 20);
       // 6 unknown bytes
 
-      if (BrowserMenuBar.getInstance().autoConvertWAV() && SoundUtilities.converterExists())
+      if (SoundUtilities.converterExists())
         wavfile = SoundUtilities.convert(data, 28, '_' + entry.toString(), channels == 1);
       fileCreated = true;
     }
@@ -76,7 +75,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       mp3data = ArrayUtil.getSubArray(data, 8, data.length - 8);
     }
     else if (data.length > 480 && new String(data, 470, 4).equals("RIFF")) {
-      if (Byteconvert.convertShort(data, 470 + 20) == 0x11) { // IMA ADPCM
+      if (DynamicArray.getShort(data, 470 + 20) == 0x11) { // IMA ADPCM
         wavfile = SoundUtilities.convertADPCM(data, 470, entry.toString());
         fileCreated = true;
       }
@@ -209,12 +208,12 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       bstop.addActionListener(this);
       bplay.setEnabled(wavfile != null);
       bstop.setEnabled(false);
-      if (!BrowserMenuBar.getInstance().autoConvertWAV() && wavfile == null) {
-        bconvert = new JButton("Convert", Icons.getIcon("Refresh16.gif"));
-        bconvert.addActionListener(this);
-        bplay.setEnabled(false);
-        bplay.setToolTipText("You must convert file before playback is possible");
-      }
+//      if (!BrowserMenuBar.getInstance().autoConvertWAV() && wavfile == null) {
+//        bconvert = new JButton("Convert", Icons.getIcon("Refresh16.gif"));
+//        bconvert.addActionListener(this);
+//        bplay.setEnabled(false);
+//        bplay.setToolTipText("You must convert file before playback is possible");
+//      }
 
       gbl.setConstraints(bplay, gbc);
       buttonpanel.add(bplay);

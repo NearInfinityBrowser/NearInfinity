@@ -5,7 +5,7 @@
 package infinity.resource.graphics;
 
 import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.util.zip.*;
@@ -17,7 +17,7 @@ public final class Compressor
   public static byte[] compress(byte data[], String signature, String version)
   {
     byte header[] = ArrayUtil.mergeArrays(signature.getBytes(), version.getBytes());
-    header = ArrayUtil.mergeArrays(header, Byteconvert.convertBack(data.length));
+    header = ArrayUtil.mergeArrays(header, DynamicArray.convertInt(data.length));
     byte result[] = ArrayUtil.resizeArray(header, data.length * 2);
     Deflater deflater = new Deflater();
     deflater.setInput(data);
@@ -33,7 +33,7 @@ public final class Compressor
 
   public static byte[] decompress(byte buffer[], int ofs) throws IOException
   {
-    byte result[] = new byte[Byteconvert.convertInt(buffer, ofs)];
+    byte result[] = new byte[DynamicArray.getInt(buffer, ofs)];
     ofs += 4;
     inflater.setInput(buffer, ofs, buffer.length - ofs);
     try {

@@ -13,9 +13,12 @@ import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
@@ -33,9 +36,12 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     this.query = query;
     this.parent = parent;
     setIconImage(Icons.getIcon("History16.gif").getImage());
-    table = new SortableTable(new String[]{"File", "Text", "Line"},
-                              new Class[]{Object.class, Object.class, Integer.class},
-                              new int[]{100, 300, 50});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Text", "Line"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{100, 300, 50}));
+
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');
     bsave.setMnemonic('s');

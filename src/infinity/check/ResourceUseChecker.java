@@ -14,9 +14,11 @@ import infinity.resource.dlg.*;
 import infinity.resource.dlg.Action;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.other.PlainTextResource;
+import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -136,9 +138,12 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       files.addAll(ResourceFactory.getInstance().getResources(fileType));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Searching...", null, 0, files.size());
-    table = new SortableTable(new String[]{"File", "Name"},
-                              new Class[]{Object.class, Object.class},
-                              new int[]{200, 200});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
+    colClasses.add(Object.class); colClasses.add(Object.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Name"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{200, 200}));
+
     checkList.addAll(ResourceFactory.getInstance().getResources(checkType));
     long startTime = System.currentTimeMillis();
     for (int i = 0; i < files.size(); i++) {

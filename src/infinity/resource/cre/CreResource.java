@@ -118,13 +118,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       if (signature.equalsIgnoreCase("CRE ")) {
         String version = new String(buffer, 4, 4);
         if (version.equalsIgnoreCase("V1.0"))
-          scriptName = Byteconvert.convertString(buffer, 640, 32);
+          scriptName = DynamicArray.getString(buffer, 640, 32);
         else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2"))
-          scriptName = Byteconvert.convertString(buffer, 804, 32);
+          scriptName = DynamicArray.getString(buffer, 804, 32);
         else if (version.equalsIgnoreCase("V2.2"))
-          scriptName = Byteconvert.convertString(buffer, 916, 32);
+          scriptName = DynamicArray.getString(buffer, 916, 32);
         else if (version.equalsIgnoreCase("V9.0"))
-          scriptName = Byteconvert.convertString(buffer, 744, 32);
+          scriptName = DynamicArray.getString(buffer, 744, 32);
         if (scriptName.equals("") || scriptName.equalsIgnoreCase("None"))
           return;
         // Apparently script name is the only thing that matters

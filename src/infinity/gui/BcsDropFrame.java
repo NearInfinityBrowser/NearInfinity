@@ -14,6 +14,7 @@ import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
@@ -48,9 +49,12 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     blocker = new WindowBlocker(this);
     compZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
     decompZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
-    table = new SortableTable(new String[]{"File", "Errors/Warnings", "Line"},
-                              new Class[]{Object.class, Object.class, Integer.class},
-                              new int[]{200, 400, 100});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Errors/Warnings", "Line"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{200, 400, 100}));
+
     table.getSelectionModel().addListSelectionListener(this);
     table.addMouseListener(new MouseAdapter()
     {

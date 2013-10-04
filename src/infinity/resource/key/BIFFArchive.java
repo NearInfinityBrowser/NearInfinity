@@ -152,20 +152,20 @@ public final class BIFFArchive
 
     int size;
     byte[] tileheader = null;
-//    Byteconvert.convertInt(header, 0); // Locator
-    int resoff = Byteconvert.convertInt(header, 4);
+//    DynamicArray.getInt(header, 0); // Locator
+    int resoff = DynamicArray.getInt(header, 4);
     if (!isTile) {
-      size = Byteconvert.convertInt(header, 8);
-//      Byteconvert.convertShort(header, 12); // Type
-//      Byteconvert.convertShort(header, 14); // Unknown
+      size = DynamicArray.getInt(header, 8);
+//      DynamicArray.getShort(header, 12); // Type
+//      DynamicArray.getShort(header, 14); // Unknown
     }
     else {
-      int tilecount = Byteconvert.convertInt(header, 8);
-      int tilesize = Byteconvert.convertInt(header, 12);
+      int tilecount = DynamicArray.getInt(header, 8);
+      int tilesize = DynamicArray.getInt(header, 12);
       size = tilecount * tilesize;
       tileheader = getTisHeader(tilecount, tilesize);
-//      Byteconvert.convertShort(header, 16); // Type
-//      Byteconvert.convertShort(header, 18); // Unknown
+//      DynamicArray.getShort(header, 16); // Type
+//      DynamicArray.getShort(header, 18); // Unknown
     }
 
     if (size > 1000000)
@@ -233,18 +233,18 @@ public final class BIFFArchive
     }
 
     int size;
-//    Byteconvert.convertInt(header, 0); // Locator
-    int resoff = Byteconvert.convertInt(header, 4);
+//    DynamicArray.getInt(header, 0); // Locator
+    int resoff = DynamicArray.getInt(header, 4);
     if (!isTile) {
-      size = Byteconvert.convertInt(header, 8);
-//      Byteconvert.convertShort(header, 12); // Type
-//      Byteconvert.convertShort(header, 14); // Unknown
+      size = DynamicArray.getInt(header, 8);
+//      DynamicArray.getShort(header, 12); // Type
+//      DynamicArray.getShort(header, 14); // Unknown
     }
     else {
-      int tilecount = Byteconvert.convertInt(header, 8);
-      size = tilecount * Byteconvert.convertInt(header, 12);
-//      Byteconvert.convertShort(header, 16); // Type
-//      Byteconvert.convertShort(header, 18); // Unknown
+      int tilecount = DynamicArray.getInt(header, 8);
+      size = tilecount * DynamicArray.getInt(header, 12);
+//      DynamicArray.getShort(header, 16); // Type
+//      DynamicArray.getShort(header, 18); // Unknown
     }
 
     if (resoff > currentoffset + block.decompSize) {
@@ -297,8 +297,8 @@ public final class BIFFArchive
     fis.close();
 
     if (isTile)
-      return new int[]{Byteconvert.convertInt(header, 8), Byteconvert.convertInt(header, 12)};
-    return new int[]{Byteconvert.convertInt(header, 8)};
+      return new int[]{DynamicArray.getInt(header, 8), DynamicArray.getInt(header, 12)};
+    return new int[]{DynamicArray.getInt(header, 8)};
   }
 
   private byte[] getBIFFResource(int offset, boolean isTile) throws IOException

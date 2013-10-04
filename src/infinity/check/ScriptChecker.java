@@ -12,9 +12,11 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.*;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -100,12 +102,14 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
     scriptFiles.addAll(ResourceFactory.getInstance().getResources("BS"));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Checking scripts...", null, 0, scriptFiles.size());
-    errorTable = new SortableTable(new String[]{"Script", "Error message", "Line"},
-                                   new Class[]{Object.class, Object.class, Integer.class},
-                                   new int[]{120, 440, 50});
-    warningTable = new SortableTable(new String[]{"Script", "Warning", "Line"},
-                                     new Class[]{Object.class, Object.class, Integer.class},
-                                     new int[]{120, 440, 50});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+    errorTable = new SortableTable(ArrayUtil.toList(new String[]{"Script", "Error message", "Line"}),
+                                   colClasses, ArrayUtil.toList(new Integer[]{120, 440, 50}));
+    warningTable = new SortableTable(ArrayUtil.toList(new String[]{"Script", "Warning", "Line"}),
+                                     colClasses, ArrayUtil.toList(new Integer[]{120, 440, 50}));
+
     for (int i = 0; i < scriptFiles.size(); i++) {
       ResourceEntry entry = scriptFiles.get(i);
       try {

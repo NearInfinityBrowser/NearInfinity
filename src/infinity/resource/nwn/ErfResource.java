@@ -9,7 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.ArrayUtil;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.NIFile;
 
 import javax.swing.*;
@@ -18,6 +18,8 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ErfResource implements Resource, ActionListener, ListSelectionListener
 {
@@ -36,15 +38,15 @@ public final class ErfResource implements Resource, ActionListener, ListSelectio
     // Read header
     String fileType = new String(buffer, 0, 4);
     String version = new String(buffer, 4, 4);
-    int languageCount = Byteconvert.convertInt(buffer, 8);
-    int localizedStringSize = Byteconvert.convertInt(buffer, 12);
-    int entryCount = Byteconvert.convertInt(buffer, 16);
-    int offsetToLocalizedString = Byteconvert.convertInt(buffer, 20);
-    int offsetToKeyList = Byteconvert.convertInt(buffer, 24);
-    int offsetToResourceList = Byteconvert.convertInt(buffer, 28);
-    int buildYear = Byteconvert.convertInt(buffer, 32);
-    int buildDay = Byteconvert.convertInt(buffer, 36);
-    int descriptionStrRef = Byteconvert.convertInt(buffer, 40);
+    int languageCount = DynamicArray.getInt(buffer, 8);
+    int localizedStringSize = DynamicArray.getInt(buffer, 12);
+    int entryCount = DynamicArray.getInt(buffer, 16);
+    int offsetToLocalizedString = DynamicArray.getInt(buffer, 20);
+    int offsetToKeyList = DynamicArray.getInt(buffer, 24);
+    int offsetToResourceList = DynamicArray.getInt(buffer, 28);
+    int buildYear = DynamicArray.getInt(buffer, 32);
+    int buildDay = DynamicArray.getInt(buffer, 36);
+    int descriptionStrRef = DynamicArray.getInt(buffer, 40);
     // 116 reserved bytes
 
     // Read localized strings
@@ -99,9 +101,11 @@ public final class ErfResource implements Resource, ActionListener, ListSelectio
 
   public JComponent makeViewer(ViewableContainer container)
   {
-    table = new SortableTable(new String[] { "", "Resource name" },
-                              new Class[] { ImageIcon.class, String.class },
-                              new int[] { 5, 300 });
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
+    colClasses.add(ImageIcon.class); colClasses.add(String.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"", "Resource name"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{5, 300}));
+
     for (final ERFKey key : keys)
       table.addTableItem(key);
     table.tableComplete(1);
@@ -171,9 +175,9 @@ public final class ErfResource implements Resource, ActionListener, ListSelectio
 
     private LocalizedString(byte buffer[], int offset)
     {
-      languageID = Byteconvert.convertInt(buffer, offset);
-      stringSize = Byteconvert.convertInt(buffer, offset + 4);
-      string = Byteconvert.convertString(buffer, offset + 8, stringSize);
+      languageID = DynamicArray.getInt(buffer, offset);
+      stringSize = DynamicArray.getInt(buffer, offset + 4);
+      string = DynamicArray.getString(buffer, offset + 8, stringSize);
     }
   }
 
@@ -187,13 +191,13 @@ public final class ErfResource implements Resource, ActionListener, ListSelectio
 
     private ERFKey(byte buffer[], int offset1, int offset2)
     {
-      resRef = Byteconvert.convertString(buffer, offset1, 16);
-      resID = Byteconvert.convertInt(buffer, offset1 + 16);
-      resType = Byteconvert.convertShort(buffer, offset1 + 20);
+      resRef = DynamicArray.getString(buffer, offset1, 16);
+      resID = DynamicArray.getInt(buffer, offset1 + 16);
+      resType = DynamicArray.getShort(buffer, offset1 + 20);
       // 2 unused bytes
 
-      offsetToResource = Byteconvert.convertInt(buffer, offset2);
-      resourceSize = Byteconvert.convertInt(buffer, offset2 + 4);
+      offsetToResource = DynamicArray.getInt(buffer, offset2);
+      resourceSize = DynamicArray.getInt(buffer, offset2 + 4);
     }
 
     public Object getObjectAt(int columnIndex)

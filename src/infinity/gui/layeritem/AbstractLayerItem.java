@@ -14,7 +14,6 @@ import java.awt.event.MouseMotionListener;
 import java.util.Vector;
 
 import infinity.gui.ViewFrame;
-import infinity.gui.layeritem.LayerItemEvent.ItemState;
 import infinity.resource.Viewable;
 
 import javax.swing.JComponent;
@@ -25,6 +24,11 @@ import javax.swing.JComponent;
  */
 public abstract class AbstractLayerItem extends JComponent implements MouseListener, MouseMotionListener
 {
+  /**
+   * Represents the possible visual states of the component
+   */
+  public enum ItemState { NORMAL, HIGHLIGHTED }
+
   private Vector<ActionListener> actionListener;
   private Vector<LayerItemListener> itemStateListener;
   private String actionCommand;
@@ -88,16 +92,18 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public void setActionCommand(String cmd)
   {
-    if (cmd != null)
+    if (cmd != null) {
       actionCommand = cmd;
-    else
+    } else {
       actionCommand = new String();
+    }
   }
 
   public void addActionListener(ActionListener l)
   {
-    if (l != null)
+    if (l != null) {
       actionListener.add(l);
+    }
   }
 
   public ActionListener[] getActionListeners()
@@ -107,14 +113,16 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public void removeActionListener(ActionListener l)
   {
-    if (l != null)
+    if (l != null) {
       actionListener.remove(l);
+    }
   }
 
   public void addLayerItemListener(LayerItemListener l)
   {
-    if (l != null)
+    if (l != null) {
       itemStateListener.add(l);
+    }
   }
 
   public LayerItemListener[] getLayerItemListeners()
@@ -124,8 +132,9 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public void removeLayerItemListener(LayerItemListener l)
   {
-    if (l != null)
+    if (l != null) {
       itemStateListener.remove(l);
+    }
   }
 
   /**
@@ -144,8 +153,9 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
    */
   public void setItemLocation(Point p)
   {
-    if (p == null)
+    if (p == null) {
       p = new Point(0, 0);
+    }
 
     setLocation(new Point(p.x - center.x, p.y - center.y));
   }
@@ -178,10 +188,11 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
    */
   public void setMessage(String msg)
   {
-    if (msg != null)
+    if (msg != null) {
       message = new String(msg);
-    else
+    } else {
       message = new String();
+    }
   }
 
   /**
@@ -202,31 +213,12 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   }
 
   /**
-   * Returns the current item state.
-   * @return The current item state
+   * Returns the item's current visual state.
+   * @return The item's current visual state.
    */
   public ItemState getItemState()
   {
     return itemState;
-  }
-
-  /**
-   * Returns whether the component is in highlighted state, i.e. the mouse cursor has been placed
-   * over the component.
-   * @return The highlighted state of the component.
-   */
-  public boolean isHighlighted()
-  {
-    return itemState == ItemState.HIGHLIGHTED;
-  }
-
-  /**
-   * Returns whether the component has been clicked on.
-   * @return The selected state of the component
-   */
-  public boolean isSelected()
-  {
-    return itemState == ItemState.SELECTED;
   }
 
   /**
@@ -261,15 +253,13 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public void mouseClicked(MouseEvent event)
   {
-//    if (event.getButton() == MouseEvent.BUTTON1 &&
-//        isMouseOver(new Point(event.getX(), event.getY())))
-//      setItemState(ItemState.SELECTED);
   }
 
   public void mouseEntered(MouseEvent event)
   {
-    if (isMouseOver(new Point(event.getX(), event.getY())))
+    if (isMouseOver(event.getPoint())) {
       setItemState(ItemState.HIGHLIGHTED);
+    }
   }
 
   public void mouseExited(MouseEvent event)
@@ -279,18 +269,18 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public void mousePressed(MouseEvent event)
   {
-    if (event.getButton() == MouseEvent.BUTTON1 &&
-        isMouseOver(new Point(event.getX(), event.getY())))
-      setItemState(ItemState.SELECTED);
+    if (isMouseOver(event.getPoint())) {
+      setMouseClicked(event.getButton());
+    }
   }
 
   public void mouseReleased(MouseEvent event)
   {
-    if (event.getButton() == MouseEvent.BUTTON1 &&
-        isMouseOver(new Point(event.getX(), event.getY())))
+    if (isMouseOver(event.getPoint())) {
       setItemState(ItemState.HIGHLIGHTED);
-    else
+    } else {
       setItemState(ItemState.NORMAL);
+    }
   }
 
 //--------------------- End Interface MouseListener ---------------------
@@ -303,23 +293,41 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public void mouseMoved(MouseEvent event)
   {
-    // override
-    if (isMouseOver(new Point(event.getX(), event.getY()))) {
-      if (itemState != ItemState.SELECTED)
-        setItemState(ItemState.HIGHLIGHTED);
-    } else
+    if (isMouseOver(event.getPoint())) {
+      setItemState(ItemState.HIGHLIGHTED);
+    } else {
       setItemState(ItemState.NORMAL);
+    }
   }
 
 //--------------------- End Interface MouseMotionListener ---------------------
 
+  @Override
+  public String getToolTipText(MouseEvent event)
+  {
+    // Tooltip is only displayed over visible areas of this component
+    if (isMouseOver(event.getPoint())) {
+      return message;
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public boolean contains(int x, int y)
+  {
+    // Non-visible parts of the component are disregarded by mouse events
+    return isMouseOver(new Point(x, y));
+  }
+
   // Returns whether the mouse cursor is over the relevant part of the component
   protected boolean isMouseOver(Point pt)
   {
-    if (pt != null)
+    if (pt != null) {
       return getBounds().contains(pt);
-    else
+    } else {
       return false;
+    }
   }
 
   // Adds an offset to the component's position
@@ -342,20 +350,30 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     if (itemState != newState) {
       itemState = newState;
       if (!itemStateListener.isEmpty()) {
-        LayerItemEvent ise = new LayerItemEvent(this, itemState, actionCommand);
+        LayerItemEvent ise = new LayerItemEvent(this, actionCommand);
         for (final LayerItemListener l: itemStateListener)
           l.layerItemChanged(ise);
       }
-      if (itemState == ItemState.SELECTED && !actionListener.isEmpty()) {
-        ActionEvent ae = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommand);
-        for (final ActionListener l: actionListener)
-          l.actionPerformed(ae);
-      }
-      if (itemState == ItemState.HIGHLIGHTED || itemState == ItemState.SELECTED) {
+      if (itemState == ItemState.HIGHLIGHTED) {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       } else {
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       }
+    }
+  }
+
+  private void setMouseClicked(int button)
+  {
+    if ((button == MouseEvent.BUTTON1) && !actionListener.isEmpty()) {
+      // processing left mouse click event
+      ActionEvent ae = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommand);
+      for (final ActionListener l: actionListener) {
+        l.actionPerformed(ae);
+      }
+    } else if (button == MouseEvent.BUTTON2) {
+      // processing right mouse click event
+    } else if (button == MouseEvent.BUTTON3) {
+      // processing middle mouse click event
     }
   }
 }

@@ -17,7 +17,7 @@ public final class GffShort extends GffField
   public GffShort(byte buffer[], int fieldOffset, int labelOffset)
   {
     super(buffer, fieldOffset, labelOffset);
-    value = Byteconvert.convertShort(buffer, fieldOffset + 8);
+    value = DynamicArray.getShort(buffer, fieldOffset + 8);
   }
 
   public String toString()
@@ -41,7 +41,7 @@ public final class GffShort extends GffField
   {
     Filewriter.writeInt(os, 3);
     Filewriter.writeInt(os, labels.indexOf(getLabel()));
-    byte v[] = Byteconvert.convertBack(value);
+    byte v[] = DynamicArray.convertShort(value);
     Filewriter.writeBytes(os, new byte[] { v[0], v[1], 0, 0 });
     return fieldDataIndex;
   }

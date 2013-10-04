@@ -637,17 +637,6 @@ public final class StructureFactory
   }
 
 
-  // returns path without trailing path separator (except for root)
-  private String extractFilePath(String fileName)
-  {
-    if (fileName.length() > 0) {
-      int idx = fileName.lastIndexOf(File.separatorChar);
-      if (idx > 0)
-        return fileName.substring(0, idx);
-    }
-    return fileName;
-  }
-
   private String extractFileName(String fileName)
   {
     String[] s = fileName.split("[\\\\/]");
@@ -664,14 +653,6 @@ public final class StructureFactory
         return name.substring(0, idx);
     }
     return name;
-  }
-
-  // returns file extension without separator
-  private String extractFileExt(String fileName)
-  {
-    String name = extractFileName(fileName);
-    String[] s = name.split("\\.");
-    return (s.length > 0) ? s[s.length - 1] : name;
   }
 
 

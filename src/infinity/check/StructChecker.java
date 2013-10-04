@@ -13,6 +13,7 @@ import infinity.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -40,9 +41,10 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     super("Find Corrupted Files");
     setIconImage(Icons.getIcon("Refresh16.gif").getImage());
 
-    table = new SortableTable(new String[]{"File", "Offset", "Error message"},
-                              new Class[]{Object.class, Object.class, Object.class},
-                              new int[]{50, 50, 400});
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
+    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Offset", "Error message"}),
+                              colClasses, ArrayUtil.toList(new Integer[]{50, 50, 400}));
 
     boxes = new JCheckBox[filetypes.length];
     bstart.setMnemonic('s');
