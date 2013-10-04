@@ -20,7 +20,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
-import sun.awt.image.ToolkitImage;
 import infinity.gui.layeritem.LayerItemEvent;
 import infinity.resource.Viewable;
 import infinity.resource.graphics.ColorConvert;
