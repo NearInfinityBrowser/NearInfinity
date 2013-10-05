@@ -4,8 +4,10 @@
 
 package infinity.resource.graphics;
 
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -60,12 +62,36 @@ public class ColorConvert
    */
   public static BufferedImage createCompatibleImage(int width, int height, boolean hasTransparency)
   {
-    // obtain the current system graphical settings
-    GraphicsConfiguration gfxConfig =
+    // obtain the current system's graphical settings
+    final GraphicsConfiguration gfxConfig =
         GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
     return gfxConfig.createCompatibleImage(width, height,
                                            hasTransparency ? BufferedImage.TRANSLUCENT : BufferedImage.OPAQUE);
+  }
+
+  /**
+   * Converts a generic image object into a BufferedImage object if possible.
+   * @param img The image to convert into a BufferedImage object.
+   * @param hasTransparency Indicates whether the converted image should support transparency.
+   *        (Does nothing if the specified image object is already a BufferedImage object.)
+   * @return A BufferedImage object of the specified image.
+   */
+  public static BufferedImage toBufferedImage(Image img, boolean hasTransparency)
+  {
+    if (img != null) {
+      if (img instanceof BufferedImage) {
+        return (BufferedImage)img;
+      } else {
+        final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
+                                                          hasTransparency);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.drawImage(img, 0, 0, null);
+        g.dispose();
+        return image;
+      }
+    }
+    return null;
   }
 
   /**
