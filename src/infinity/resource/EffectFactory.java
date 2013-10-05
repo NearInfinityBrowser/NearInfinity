@@ -1224,8 +1224,7 @@ public final class EffectFactory
     // Processing game specific effects
     if (s.size() == initSize && restype == null) {
       if (gameid == ResourceFactory.ID_BG1 ||
-          gameid == ResourceFactory.ID_BG1TOTSC ||
-          gameid == ResourceFactory.ID_DEMO) {
+          gameid == ResourceFactory.ID_BG1TOTSC) {
         restype = makeEffectParamsBG1(parent, buffer, offset, s, effectType, isV1);
       } else if (gameid == ResourceFactory.ID_TORMENT) {
         restype = makeEffectParamsPST(parent, buffer, offset, s, effectType, isV1);

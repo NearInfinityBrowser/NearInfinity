@@ -384,8 +384,6 @@ public final class ResourceFactory
     else if (new File(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
              (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "Config.exe").exists()))
       currentGame = ID_BG1;
-    else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "chitin.ini").exists())
-      currentGame = ID_DEMO;
     else if (new File(rootDir, "movies/DEATHAND.wbm").exists())
       currentGame = ID_BGEE;
 

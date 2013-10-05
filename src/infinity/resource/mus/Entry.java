@@ -66,9 +66,6 @@ public class Entry
       String key = getCacheKey(dir, name);
       if (BufferCache.containsKey(key)) {
         AudioBuffer ab = BufferCache.get(key);
-        // refreshing cached object
-        BufferCache.remove(key);
-        BufferCache.put(key, ab);
         return ab;
       }
     }
@@ -172,8 +169,9 @@ public class Entry
   private AudioBuffer getAudioBuffer(String fileName) throws IOException
   {
     // audio file can reside in a number of different locations
+    // fileDir should have no terimal separator
     String fileDir = dir + File.separatorChar + dir;
-    File acmFile = new File(entry.getActualFile().getParent() + File.separatorChar + fileDir +
+    File acmFile = new File(entry.getActualFile().getParentFile(), fileDir +
                             fileName + ".acm");
     if (!acmFile.exists() || !acmFile.isFile()) {
       fileDir = "";
@@ -181,7 +179,7 @@ public class Entry
     }
     if ((!acmFile.exists() || !acmFile.isFile()) && fileName.toUpperCase().startsWith("MX")) {
       fileDir = fileName.substring(0, 6) + File.separatorChar;
-      acmFile = new File(entry.getActualFile().getParent() + File.separatorChar + fileDir +
+      acmFile = new File(entry.getActualFile().getParentFile(), fileDir +
                          fileName + ".acm");
     }
     if (!acmFile.exists() || !acmFile.isFile())

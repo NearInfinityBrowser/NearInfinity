@@ -8,7 +8,9 @@
 
     <javac srcdir="${src}"
            destdir="${build}"
-           includeantruntime="false"/>
+           includeantruntime="false">
+      <!--<compilerarg value="-Xlint:unchecked"/>-->
+    </javac>
 
     <copy todir="${build}">
       <fileset dir="${src}" excludes="**/*.java"/>
