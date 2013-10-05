@@ -4,13 +4,12 @@
 
 package infinity.resource.graphics;
 
-import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,12 +17,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Decodes either a single data block or a whole MOS resource.
  * @author argent77
  */
-public class MosDecoder implements Closeable
+public class MosDecoder
 {
   private static final String NOT_INITIALIZED = "Not initialized";
 
+  private ResourceEntry entry;
   private MosInfo info;
   private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;
+
+  /**
+   * Creates an uninitialized MosDecoder object. Use <code>open()</code> to load a MOS resource.
+   */
+  public MosDecoder()
+  {
+    close();
+  }
 
   /**
    * Initialize this object using the specified filename.
@@ -45,21 +53,18 @@ public class MosDecoder implements Closeable
     open(entry);
   }
 
-//--------------------- Begin Interface Closeable ---------------------
-
-  public void close() throws Exception
+  public void close()
   {
+    entry = null;
     info = null;
     if (pvrTable != null) {
-      for (final Closeable pvr: pvrTable.values()) {
+      for (final PvrDecoder pvr: pvrTable.values()) {
         pvr.close();
       }
       pvrTable.clear();
     }
     pvrTable = null;
   }
-
-//--------------------- End Interface Closeable ---------------------
 
   /**
    * Initialize this object using the specified filename.
@@ -80,9 +85,10 @@ public class MosDecoder implements Closeable
   {
     close();
 
-    if (entry == null)
+    this.entry = entry;
+    if (this.entry == null)
       throw new NullPointerException();
-    init(entry.getResourceData(), 0);
+    init();
   }
 
   /**
@@ -107,52 +113,97 @@ public class MosDecoder implements Closeable
   }
 
   /**
-   * Decodes the currently loaded MOS file as either raw pixel data using the
-   * specified color format.
-   * @param fmt Color format of the output data
-   * @return A buffer containing the resulting image data.
+   * Decodes the currently loaded MOS file and returns the result as a new BufferedImage object.
+   * @return A BufferedImage object of the resulting image data.
    * @throws Exception
    */
-  public byte[] decode(ColorConvert.ColorFormat fmt) throws Exception
+  public BufferedImage decoder() throws Exception
   {
     if (!empty()) {
-
-      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      int dataSize = info.width*info.height*outPixelSize;
-      byte[] data = new byte[dataSize];
-
-      for (final BlockInfo blockInfo: info.tiles) {
-        byte[] block = decodeMOSBlock(blockInfo, fmt);
-        copyBuffer(block, 0, blockInfo.width, blockInfo.height,
-                   data, 0, info.width, info.height,
-                   blockInfo.dstX, blockInfo.dstY, fmt);
+      BufferedImage image = ColorConvert.createCompatibleImage(info().width(), info().height(), false);
+      if (decode(image)) {
+        return image;
+      } else {
+        image = null;
       }
-
-      return data;
-    } else
-      throw new Exception(NOT_INITIALIZED);
+    }
+    return null;
   }
 
   /**
-   * Decodes a single data block of the MOS file and returns it as raw pixel data in
-   * the specified color format.
-   * @param blockIndex Refers to the block to decode.
-   * @param fmt Color format of the output data
-   * @return A buffer containing the decoded pixel data of the data block.
+   * Decodes the currently loaded MOS file and draws the result into the specified BufferedImage
+   * object.
+   * @param image The BufferedImage object to draw the MOS image into.
+   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
    * @throws Exception
    */
-  public byte[] decodeBlock(int blockIndex, ColorConvert.ColorFormat fmt) throws Exception
+  public boolean decode(BufferedImage image) throws Exception
   {
     if (!empty()) {
+      if (image == null)
+        throw new NullPointerException();
+      if (image.getWidth() < info().width() || image.getHeight() < info().height())
+        throw new Exception("Image dimensions too small");
+
+      for (final BlockInfo blockInfo: info.tiles) {
+        if (!decodeMosBlock(image, blockInfo.dstX, blockInfo.dstY, blockInfo)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Decodes a single data block of the MOS file and returns the result as a new BufferedImage object.
+   * @param blockIndex Refers to the block to decode.
+   * @return A BufferedImage object of the resulting image data.
+   * @throws Exception
+   */
+  public BufferedImage decodeBlock(int blockIndex) throws Exception
+  {
+    if (!empty()) {
+      if (blockIndex >= 0 && blockIndex < info.tiles.size()) {
+        BlockInfo bi = info.tiles.get(blockIndex);
+        if (bi != null) {
+          BufferedImage image = ColorConvert.createCompatibleImage(bi.width, bi.height, false);
+          if (decodeBlock(image, blockIndex)) {
+            return image;
+          } else {
+            image = null;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Decodes a single data block of the MOS file and draws the result into the specified
+   * BufferedImage object.
+   * @param image The BufferedImage object to draw the MOS data block into.
+   * @param blockIndex Refers to the block to decode.
+   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
+   * @throws Exception
+   */
+  public boolean decodeBlock(BufferedImage image, int blockIndex) throws Exception
+  {
+    if (!empty()) {
+      if (image == null)
+        throw new NullPointerException();
       if (blockIndex < 0 || blockIndex >= info.tiles.size())
         throw new IndexOutOfBoundsException();
 
       BlockInfo bi = info.tiles.get(blockIndex);
-      byte[] block = decodeMOSBlock(bi, fmt);
+      if (bi != null) {
+        if (image.getWidth() < bi.width || image.getHeight() < bi.height)
+          throw new Exception("Image dimensions too small");
 
-      return block;
-    } else
-      throw new Exception(NOT_INITIALIZED);
+        return decodeMosBlock(image, 0, 0, bi);
+      }
+    }
+    return false;
   }
 
   private boolean empty()
@@ -163,14 +214,14 @@ public class MosDecoder implements Closeable
       return true;
   }
 
-  private void init(byte[] buffer, int ofs) throws Exception
+  private void init() throws Exception
   {
-    if (buffer == null)
+    if (entry == null)
       throw new NullPointerException();
 
-    info = new MosInfo(buffer, ofs);
+    info = new MosInfo(entry);
     if (info.empty())
-      throw new Exception("Error initializing MOS resource");
+      throw new Exception("Error parsing MOS resource");
 
     pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>(6, 0.75f);
   }
@@ -208,96 +259,77 @@ public class MosDecoder implements Closeable
   }
 
   // Decodes a single MOS data block
-  private byte[] decodeMOSBlock(BlockInfo info, ColorConvert.ColorFormat fmt) throws Exception
+  private boolean decodeMosBlock(BufferedImage image, int startX, int startY,
+                                 BlockInfo info) throws Exception
   {
     if (!empty()) {
-      if (info == null)
-        throw new NullPointerException();
-
-      byte[] blockBuffer = null;
       switch (info.type) {
         case PALETTE:
-          blockBuffer = decodeMOSBlockInPlace(info, fmt);
-          break;
+          return decodeMosBlockInPlace(image, startX, startY, info);
         case PVRZ:
-          blockBuffer = decodeMOSBlockPVRZ(info, fmt);
-          break;
+          return decodeMosBlockPVRZ(image, startX, startY, info);
       }
-      if (blockBuffer == null)
-        throw new Exception("Invalid MOS data block");
-
-      return blockBuffer;
-    } else
-      throw new Exception(NOT_INITIALIZED);
+    }
+    return false;
   }
 
   // Decodes a palette-based MOS tile
-  private byte[] decodeMOSBlockInPlace(BlockInfo info, ColorConvert.ColorFormat fmt) throws Exception
+  private boolean decodeMosBlockInPlace(BufferedImage image, int startX, int startY,
+                                        BlockInfo info) throws Exception
   {
-    if (info == null || info.data == null || info.palette == null)
-      throw new NullPointerException();
-    if (info.type != MosInfo.MosType.PALETTE)
-      throw new Exception("Incompatible format of MOS data block");
-    if (info.data.length < info.width*info.height || info.palette.length < 1024)
-      throw new Exception("MOS data block too small");
+    if (!empty()) {
+      if (image == null || info == null || info.data == null || info.palette == null)
+        throw new NullPointerException();
+      if (info.type != MosInfo.MosType.PALETTE)
+        throw new Exception("Incompatible format of MOS data block");
+      if (info.data.length < info.width*info.height || info.palette.length < 256)
+        throw new Exception("MOS data block too small");
+      if (startX < 0 || startX + info.width > image.getWidth() ||
+          startY < 0 || startY + info.height > image.getHeight())
+        throw new Exception("Image dimensions too small");
 
-    ColorConvert.ColorFormat inFormat = ColorConvert.ColorFormat.A8R8G8B8;
-    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    byte[] palette = new byte[256*outPixelSize];
-    ColorConvert.Convert(inFormat, info.palette, 0, fmt, palette, 0, 256);
+      int[] dataBlock = new int[info.width*info.height];
+      for (int i = 0; i < dataBlock.length; i++) {
+        dataBlock[i] = info.palette[info.data[i] & 0xff];
+      }
+      image.setRGB(startX, startY, info.width, info.height, dataBlock, 0, info.width);
+      dataBlock = null;
 
-    int pixelCount= info.width*info.height;
-    byte[] outBuffer = new byte[pixelCount*outPixelSize];
-    for (int i = 0; i < pixelCount; i++)
-      System.arraycopy(palette, (info.data[i] & 0xff)*outPixelSize, outBuffer, i*outPixelSize, outPixelSize);
-
-    return outBuffer;
+      return true;
+    }
+    return false;
   }
 
   // Decodes a PVRZ-based MOS chunk
-  private byte[] decodeMOSBlockPVRZ(BlockInfo info, ColorConvert.ColorFormat fmt) throws Exception
+  private boolean decodeMosBlockPVRZ(BufferedImage image, int startX, int startY,
+                                     BlockInfo info) throws Exception
   {
-    if (info == null)
-      throw new NullPointerException();
-    if (info.type != MosInfo.MosType.PVRZ)
-      throw new Exception("Incompatible format of MOS data block");
-    if (info.width < 1 || info.height < 1)
-      throw new Exception("Invalid block dimensions: " + info.width + "x" + info.height);
+    if (!empty()) {
+      if (image == null || info == null)
+        throw new NullPointerException();
+      if (info.type != MosInfo.MosType.PVRZ)
+        throw new Exception("Incompatible format of MOS data block");
+      if (info.width < 1 || info.height < 1)
+        throw new Exception("Invalid block dimensions: " + info.width + "x" + info.height);
+      if (startX < 0 || startX + info.width > image.getWidth() ||
+          startY < 0 || startY + info.height > image.getHeight())
+        throw new Exception("Image dimensions too small");
 
-    PvrDecoder decoder = getPVR(info.page);
-    if (decoder != null) {
-      return decoder.decode(info.srcX, info.srcY, info.width, info.height, fmt);
-    } else
-      throw new Exception("Error decoding pixel data");
-  }
-
-  // Copies a pixel block to another, starting at the specified pixel position
-  private void copyBuffer(byte[] srcBuffer, int srcOfs, int srcWidth, int srcHeight,
-                          byte[] dstBuffer, int dstOfs, int dstWidth, int dstHeight,
-                          int dstX, int dstY, ColorConvert.ColorFormat fmt) throws Exception
-  {
-    if (srcBuffer == null || dstBuffer == null)
-      throw new NullPointerException();
-    if (srcWidth < 0 || srcHeight < 0 || dstWidth < 0 || dstHeight < 0)
-      throw new Exception("Invalid pixel block dimensions");
-    if (dstX < 0 || dstX + srcWidth > dstWidth || dstY < 0 || dstY + srcHeight > dstHeight)
-      throw new Exception("Clipping not supported");
-
-    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    if (srcOfs < 0 || srcBuffer.length - srcOfs < srcWidth*srcHeight*outPixelSize)
-      throw new Exception("Source buffer too small");
-    if (dstOfs < 0 || dstBuffer.length - dstOfs < dstWidth*dstHeight*outPixelSize)
-      throw new Exception("Target buffer too small");
-
-    int srcLineSize = srcWidth*outPixelSize;
-    int dstLineSize = dstWidth*outPixelSize;
-    dstOfs = dstOfs + (dstY*dstWidth + dstX)*outPixelSize;
-    for (int y = 0; y < srcHeight; y++) {
-      System.arraycopy(srcBuffer, srcOfs, dstBuffer, dstOfs, srcLineSize);
-      srcOfs += srcLineSize;
-      dstOfs += dstLineSize;
+      PvrDecoder decoder = getPVR(info.page);
+      if (decoder != null) {
+        BufferedImage imgTile = decoder.decode(info.srcX, info.srcY,
+                                               info.width, info.height);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.drawImage(imgTile, startX, startY, null);
+        g.dispose();
+        g = null;
+        decoder = null;
+        return true;
+      }
     }
+    return false;
   }
+
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -315,9 +347,9 @@ public class MosDecoder implements Closeable
     private boolean initialized, compressed;
     private ArrayList<BlockInfo> tiles;
 
-    public MosInfo(byte[] buffer, int ofs) throws Exception
+    public MosInfo(ResourceEntry entry) throws Exception
     {
-      init(buffer, ofs);
+      init(entry);
     }
 
     /**
@@ -406,31 +438,33 @@ public class MosDecoder implements Closeable
         throw new IndexOutOfBoundsException();
     }
 
-    private void init(byte[] buffer, int ofs) throws Exception
+    private void init(ResourceEntry entry) throws Exception
     {
       initialized = false;
 
+      if (entry == null)
+        throw new NullPointerException();
+
+      byte[] buffer = entry.getResourceData();
       if (buffer == null)
         throw new NullPointerException();
-      if (ofs < 0)
-        throw new Exception("Invalid buffer offset");
-      if (buffer.length - ofs < 0x18)
+
+      if (buffer.length < 0x18)
         throw new Exception("Input buffer too small");
 
-      ByteBuffer header = ByteBuffer.wrap(buffer, ofs, buffer.length - ofs).order(ByteOrder.LITTLE_ENDIAN);
+      int ofs = 0;
 
       // evaluating signature
       String s = new String(buffer, ofs, 4);
       if (s.equals("MOSC")) {
         compressed = true;
         buffer = Compressor.decompress(buffer, ofs+8);
-        ofs = 0;
         if (buffer == null || buffer.length - ofs < 0x18)
           throw new Exception("Error decompressing MOS");
-        header = ByteBuffer.wrap(buffer, ofs, buffer.length).order(ByteOrder.LITTLE_ENDIAN);
         s = new String(buffer, ofs, 4);
-      } else
+      } else {
         compressed = false;
+      }
 
       if (!s.equals("MOS "))
         throw new Exception("Invalid MOS signature: '" + s + "'");
@@ -443,21 +477,21 @@ public class MosDecoder implements Closeable
       } else if (s.equals("V2  ")) {
         type = MosType.PVRZ;
         version = 2;
-      } else
+      } else {
         throw new Exception("Invalid MOS version: '" + s + "'");
+      }
 
-      header.position(header.position() + 8);   // skipping signature and version
       if (type == MosType.PALETTE) {
         // parsing palette-based MOS resource
-        width = header.getShort();
-        height = header.getShort();
-        colCount = header.getShort();
-        rowCount = header.getShort();
+        width = DynamicArray.getShort(buffer, ofs + 8);
+        height = DynamicArray.getShort(buffer, ofs + 10);
+        colCount = DynamicArray.getShort(buffer, ofs + 12);
+        rowCount = DynamicArray.getShort(buffer, ofs + 14);
         blockCount = colCount*rowCount;
-        tileDim = header.getInt();
-        headerSize = header.getInt();
+        tileDim = DynamicArray.getInt(buffer, ofs + 16);
+        headerSize = DynamicArray.getInt(buffer, ofs + 20);
         dataSize = blockCount*(1024+4) + width*height;   // total size of palette, offset and data blocks
-        if (buffer.length - ofs < dataSize + headerSize)
+        if (buffer.length < dataSize + headerSize)
           throw new Exception("Input buffer too small");
 
         tiles = new ArrayList<BlockInfo>(blockCount);
@@ -465,19 +499,20 @@ public class MosDecoder implements Closeable
           tiles.add(new BlockInfo());
 
         // initializing palette data
-        header.position(headerSize);
+        ofs = headerSize;
         for (final BlockInfo info: tiles) {
-          info.palette = new byte[1024];
-          header.get(info.palette, 0, 1024);
-          for (int i = 0; i < 256; i++)
-            info.palette[(i << 2)+3] = (byte)0xff;    // fixing alpha value
+          info.palette = new int[256];
+          for (int i = 0; i < 256; i++, ofs+=4) {
+            info.palette[i] = (buffer[ofs] & 0xff) | ((buffer[ofs+1] & 0xff) << 8) |
+                              ((buffer[ofs+2] & 0xff) << 16) | 0xff000000;
+          }
         }
 
         // initializing tile data
         int[] blockOffsets = new int[blockCount];
-        for (int i = 0; i < blockCount; i++)
-          blockOffsets[i] = header.getInt();
-        int dataOfs = header.position();
+        for (int i = 0; i < blockCount; i++, ofs+=4) {
+          blockOffsets[i] = DynamicArray.getInt(buffer, ofs);
+        }
         for (int idx = 0; idx < blockCount; idx++) {
           int x = idx % colCount;
           int y = idx / colCount;
@@ -485,41 +520,41 @@ public class MosDecoder implements Closeable
           info.type = type;
           info.dstX = x*tileDim;
           info.dstY = y*tileDim;
-          if (x == colCount - 1)
+          if (x == colCount - 1) {
             info.width = width % tileDim != 0 ? width % tileDim : tileDim;
-          else
+          } else {
             info.width = tileDim;
-          if (y == rowCount - 1)
+          }
+          if (y == rowCount - 1) {
             info.height = (height % tileDim != 0) ? height % tileDim : tileDim;
-          else
+          } else {
             info.height = tileDim;
-          header.position(dataOfs + blockOffsets[idx]);
+          }
           info.data = new byte[info.width*info.height];
-          header.get(info.data, 0, info.data.length);
+          System.arraycopy(buffer, ofs + blockOffsets[idx], info.data, 0, info.data.length);
         }
-
       } else {
         // parsing PVRZ-based MOS resource
-        width = header.getInt();
-        height = header.getInt();
-        blockCount = header.getInt();
-        headerSize = header.getInt();
+        width = DynamicArray.getInt(buffer, ofs + 8);
+        height = DynamicArray.getInt(buffer, ofs + 12);
+        blockCount = DynamicArray.getInt(buffer, ofs + 16);
+        headerSize = DynamicArray.getInt(buffer, ofs + 20);
         dataSize = blockCount*28;
         if (buffer.length - ofs < headerSize + dataSize)
           throw new Exception("Input buffer too small");
 
-        header.position(headerSize);
+        ofs = headerSize;
         tiles = new ArrayList<MosDecoder.BlockInfo>(blockCount);
-        for (int idx = 0; idx < blockCount; idx++) {
+        for (int idx = 0; idx < blockCount; idx++, ofs+=28) {
           BlockInfo info = new BlockInfo();
           info.type = type;
-          info.page = header.getInt();
-          info.srcX = header.getInt();
-          info.srcY = header.getInt();
-          info.width = header.getInt();
-          info.height = header.getInt();
-          info.dstX = header.getInt();
-          info.dstY = header.getInt();
+          info.page = DynamicArray.getInt(buffer, ofs);
+          info.srcX = DynamicArray.getInt(buffer, ofs + 4);
+          info.srcY = DynamicArray.getInt(buffer, ofs + 8);
+          info.width = DynamicArray.getInt(buffer, ofs + 12);
+          info.height = DynamicArray.getInt(buffer, ofs + 16);
+          info.dstX = DynamicArray.getInt(buffer, ofs + 20);
+          info.dstY = DynamicArray.getInt(buffer, ofs + 24);
           tiles.add(info);
         }
       }
@@ -538,7 +573,7 @@ public class MosDecoder implements Closeable
   public static class BlockInfo
   {
     private MosInfo.MosType type; // MOS type
-    private byte[] palette;       // 256 RGBA palette entries (Palette-based MOS only)
+    private int[] palette;        // 256 RGBA palette entries (Palette-based MOS only)
     private byte[] data;          // the raw tile data (Palette-based MOS only)
     private int page;             // PVRZ page (PVRZ-based MOS only)
     private int srcX, srcY;       // pixel coordinate in PVRZ (PVRZ-based MOS only)
@@ -557,7 +592,8 @@ public class MosDecoder implements Closeable
 
     private BlockInfo()
     {
-      palette = data = null;
+      palette = null;
+      data = null;
       page = srcX = srcY = dstX = dstY = width = height = 0;
     }
   }

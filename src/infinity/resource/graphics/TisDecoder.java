@@ -4,14 +4,13 @@
 
 package infinity.resource.graphics;
 
-import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
-import infinity.resource.graphics.ColorConvert.ColorFormat;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -19,7 +18,7 @@ import java.util.regex.Pattern;
  * Decodes either a single tile or a block of tiles from a TIS resource.
  * @author argent77
  */
-public class TisDecoder implements Closeable
+public class TisDecoder
 {
   private static final String NOT_INITIALIZED = "Not initialized";
 
@@ -29,9 +28,6 @@ public class TisDecoder implements Closeable
   private String tisName;           // TIS resource name without extension
   private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;  // cache for associated PVR resources
 
-  /**
-   * Creates an uninitialized TisDecoder object. Use <code>open()</code> to load a TIS resource.
-   */
   public TisDecoder()
   {
     close();
@@ -57,8 +53,9 @@ public class TisDecoder implements Closeable
     open(entry);
   }
 
-//--------------------- Begin Interface Closeable ---------------------
-
+  /**
+   * Closes the current TIS resource
+   */
   public void close()
   {
     info = null;
@@ -67,14 +64,25 @@ public class TisDecoder implements Closeable
     tisBuffer = null;
     if (pvrTable != null) {
       for (final PvrDecoder pvr: pvrTable.values()) {
+        try {
           pvr.close();
+        } catch (Exception e) {
+        }
       }
       pvrTable.clear();
     }
     pvrTable = null;
   }
 
-//--------------------- End Interface Closeable ---------------------
+  /**
+   * Call this method if you want to free the TIS input data buffer from memory.
+   */
+  public void flush()
+  {
+    if (tisBuffer != null) {
+      tisBuffer = null;
+    }
+  }
 
   /**
    * Initialize this object using the specified filename.
@@ -98,7 +106,6 @@ public class TisDecoder implements Closeable
     this.entry = entry;
     if (this.entry == null)
       throw new NullPointerException();
-    tisBuffer = this.entry.getResourceData();
     init();
   }
 
@@ -124,69 +131,155 @@ public class TisDecoder implements Closeable
   }
 
   /**
-   * Decodes the currently loaded TIS file as raw pixel data using
-   * the specified color format.<br>
-   * <b>Note:</b> This method is thread-safe.
-   * @param tilesX Number of tiles per line (if tilesX == 0, then tilesX = 1 assumed)
-   * @param tilesY Number of tile lines (if tilesY == 0, then tilesY = tileCount / tilesX assumed)
-   * @param fmt Color format of the output data
-   * @return A buffer containing the resulting image data.
+   * Decodes the currently loaded TIS file and returns the result as a new BufferedImage object.
+   * @param tileColumns Number of tile columns.
+   * @param tileRows Number of tile rows (a value of 0 indicates <code>tileCount / tilesX</code>).
+   * @return A BufferedImage object of the resulting image data.
    * @throws Exception
    */
-  public byte[] decode(int tilesX, int tilesY, ColorFormat fmt) throws Exception
+  public BufferedImage decode(int tileColumns, int tileRows) throws Exception
   {
     if (!empty()) {
-      if (tilesX < 0 || tilesY < 0)
-        throw new Exception("Invalid dimensions specified");
-
-      if (tilesX == 0)
-        tilesX = 1;
-      if (tilesY == 0)
-        tilesY = info().tileCount() / tilesX;
-      if (tilesX*tilesY > info().tileCount())
-        throw new Exception("Tiles dimension too big (" + tilesX + "x" + tilesY + "=" + tilesX*tilesY +
-                            " tiles specified, but only " + info().tileCount() + " tiles available)");
-
-      int width = tilesX * info().tileWidth();
-      int height = tilesY * info().tileHeight();
-
-      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      // decode into raw pixel format
-      byte[] outBuffer = new byte[width*height*outPixelSize];
-      if (decodeTIS(outBuffer, 0, tilesX, tilesY, fmt))
-        return outBuffer;
-      return null;
-    } else
-      throw new Exception(NOT_INITIALIZED);
+      BufferedImage image = ColorConvert.createCompatibleImage(tileColumns*info().tileWidth(),
+                                                               tileRows*info.tileHeight(), false);
+      if (decode(image, tileColumns, tileRows)) {
+        return image;
+      } else {
+        image = null;
+      }
+    }
+    return null;
   }
 
   /**
-   * Decodes the specified tile of the currently loaded TIS file and returns it as raw pixel data
-   * using the specified color format.<br>
-   * <b>Note:</b> This method is thread-safe.
-   * @param tileIndex The tile to extract (index starting at 0).
-   * @param fmt Color format of the output data
-   * @return A buffer containing the resulting output data of the tile.
+   * Decodes the currently loaded TIS file and draws the result into the specified BufferedImage object.
+   * The image will be clipped if the BufferedImage is too small to hold the complete graphics data.
+   * @param image The BufferedImage object to draw the TIS map into.
+   * @param tileCols Number of tile columns.
+   * @param tileRows Number of tile rows (a value of 0 indicates <code>tileCount / tilesX</code>).
+   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
    * @throws Exception
    */
-  public byte[] decodeTile(int tileIndex, ColorFormat fmt) throws Exception
+  public boolean decode(BufferedImage image, int tileCols, int tileRows) throws Exception
   {
     if (!empty()) {
+      if (image == null)
+        throw new NullPointerException();
+      if (tileCols < 0 || tileRows < 0)
+        throw new Exception("Invalid dimensions specified");
+
+      if (tileCols == 0)
+        tileCols = 1;
+      if (tileRows == 0)
+        tileRows = info().tileCount() / tileCols;
+
+      if (image.getWidth() < tileCols*info().tileWidth() ||
+          image.getHeight() < tileRows*info().tileHeight())
+        throw new Exception("Image dimensions too small");
+      if (tileCols*tileRows > info().tileCount())
+        throw new Exception("Tiles dimension too big (" + tileCols + "x" + tileRows +
+                            "=" + tileCols*tileRows + " tiles specified, but only " +
+                            info().tileCount() + " tiles available)");
+
+      int imgTileCols = image.getWidth() / info().tileWidth();
+      if (image.getWidth() % info().tileWidth() != 0)
+        imgTileCols++;
+      int imgTileRows = image.getHeight() / info().tileHeight();
+      if (image.getHeight() % info().tileHeight() != 0)
+        imgTileRows++;
+
+      BufferedImage imgTile =
+          ColorConvert.createCompatibleImage(info().tileWidth(), info().tileHeight(), false);
+      Graphics2D g = (Graphics2D)image.getGraphics();
+      for (int y = 0; y < imgTileRows; y++) {
+        for (int x = 0; x < imgTileCols; x++) {
+          int tileIdx = y*tileCols+x;
+          if (decodeTile(imgTile, tileIdx)) {
+            g.drawImage(imgTile, x*info().tileWidth(), y*info().tileHeight(), null);
+          } else {
+            g.dispose();
+            return false;
+          }
+        }
+      }
+      g.dispose();
+      imgTile.flush();
+      imgTile = null;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Decodes the specified tile of the currently loaded TIS file and returns the result as a new
+   * BufferedImage object.
+   * @param tileIndex The tile to extract (index starting at 0).
+   * @return A BufferedImage object of the resulting image data.
+   * @throws Exception
+   */
+  public BufferedImage decodeTile(int tileIndex) throws Exception
+  {
+    if (!empty()) {
+      BufferedImage image = ColorConvert.createCompatibleImage(info().tileWidth(),
+                                                               info().tileHeight(), false);
+      if (decodeTile(image, tileIndex)) {
+        return image;
+      } else {
+        image = null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Decodes the specified tile of the currently loaded TIS file and draws the result into the
+   * specified BufferedImage object.
+   * @param image The BufferedImage object to draw the TIS tile into.
+   * @param tileIndex The tile to extract (index starting at 0).
+   * @return <code>true</code> if the tile has been drawn successfully, <code>false</code> otherwise.
+   * @throws Exception
+   */
+  public boolean decodeTile(BufferedImage image, int tileIndex) throws Exception
+  {
+    if (!empty()) {
+      if (image == null)
+        throw new NullPointerException();
+      if (image.getWidth() < info().tileWidth() || image.getHeight() < info().tileHeight())
+        throw new Exception("Image dimensions too small");
       if (tileIndex < 0 || tileIndex > info().tileCount())
         throw new Exception("Tile index out of bounds");
 
-      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      byte[] outBuffer = new byte[info().tileWidth()*info().tileHeight()*outPixelSize];
-      if (decodeTISTile(outBuffer, 0, tileIndex, fmt))
-        return outBuffer;
-      return null;
-    } else
-      throw new Exception(NOT_INITIALIZED);
+      switch (info().type()) {
+        case PALETTE:
+          return decodeTileInPlace(image, tileIndex);
+        case PVRZ:
+          return decodeTilePVRZ(image, tileIndex);
+        default:
+          return false;
+      }
+    }
+    return false;
+  }
+
+  // Returns TIS input data as byte buffer
+  private byte[] getInputData()
+  {
+    if (!empty()) {
+      if (tisBuffer == null) {
+        try {
+          tisBuffer = entry.getResourceData();
+        } catch (Exception e) {
+          tisBuffer = null;
+        }
+      }
+      return tisBuffer;
+    }
+    return null;
   }
 
   private boolean empty()
   {
-    if (info != null)
+    if (entry != null && info != null)
       return info.empty();
     else
       return true;
@@ -198,19 +291,12 @@ public class TisDecoder implements Closeable
     if (entry == null)
       throw new NullPointerException();
 
-    info = null;
-    tisName = null;
-    pvrTable = null;
-
-    info = new TisInfo(tisBuffer, 0);
+    info = new TisInfo(entry);
     if (info.empty())
       throw new Exception("Error parsing TIS resource");
 
-    if (tisBuffer.length < info.headerSize + info.dataSize)
-      throw new Exception("Unexpected end of TIS resource data");
-
     if (!initPVR())
-      info = null;
+      close();
   }
 
   // checks for PVRZ compatibility
@@ -229,10 +315,12 @@ public class TisDecoder implements Closeable
           }
         }
         return false;
-      } else
+      } else {
         return true;
-    } else
+      }
+    } else {
       throw new Exception(NOT_INITIALIZED);
+    }
   }
 
   // returns a PVR object of the specified page
@@ -261,10 +349,12 @@ public class TisDecoder implements Closeable
           }
         }
         throw new Exception("PVR page #" + page + " not found");
-      } else
+      } else {
         return null;
-    } else
+      }
+    } else {
       throw new Exception(NOT_INITIALIZED);
+    }
   }
 
   private String getPVRZName(int page) throws Exception
@@ -277,136 +367,82 @@ public class TisDecoder implements Closeable
     return pvrzBase + pvrzPage + ".PVRZ";
   }
 
-  // Decode tilesX*tilesY tiles into outBuffer, starting at ofs
-  private boolean decodeTIS(byte[] outBuffer, int ofs, int tilesX, int tilesY, ColorFormat fmt) throws Exception
+  private boolean decodeTileInPlace(BufferedImage image, int tileIndex)
   {
     if (!empty()) {
-      if (outBuffer == null)
-        throw new NullPointerException();
-
-      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      int tileCount = tilesX*tilesY;
-      int tileSize = info().tileWidth()*info().tileHeight()*outPixelSize;
-      if (outBuffer.length - ofs < tileCount*tileSize)
-        throw new Exception("Output buffer too small");
-
-      // 1. parsing through TIS data and decode each tile in turn
-      int tileIdx = 0;
-      int inBufferOfs = info().headerSize();
-      int tileLineSize = info().tileWidth()*outPixelSize;
-      int outLineSize = tilesX*info().tileWidth()*outPixelSize;
-      byte[] tileBuffer = new byte[tileSize];
-      boolean bRet = true;
-      for (int ty = 0; ty < tilesY; ty++) {
-        for (int tx = 0; tx < tilesX; tx++, tileIdx++, inBufferOfs+=info().tileSize()) {
-          // for each tile...
-          // ...decompress...
-          if (info().type() == TisInfo.TisType.PALETTE)
-            bRet &= decodeTISTileInPlace(tisBuffer, inBufferOfs, tileBuffer, 0, fmt);
-          else
-            bRet &= decodeTISTilePVRZ(tisBuffer, inBufferOfs, tileBuffer, 0, fmt);
-          if (tileBuffer != null) {
-            // ...and copy to output buffer
-            int tileOfs = 0;    // current offset into tile buffer
-            int outOfs = ofs + ty*tilesX*tileSize + tx*tileLineSize;    // current offset into output buffer
-            for (int i = 0; i < info().tileHeight(); i++, tileOfs+=tileLineSize, outOfs+=outLineSize) {
-              System.arraycopy(tileBuffer, tileOfs, outBuffer, outOfs, tileLineSize);
-            }
-          } else
-            throw new Exception("Error decoding tile #" + tileIdx);
-        }
-      }
-
-      return bRet;
-    } else
-      throw new Exception(NOT_INITIALIZED);
-  }
-
-  // Decode the single tile tileIdx into outBuffer, starting at ofs
-  private boolean decodeTISTile(byte[] outBuffer, int ofs, int tileIdx, ColorFormat fmt) throws Exception
-  {
-    if (!empty()) {
-      if (outBuffer == null)
-        throw new NullPointerException();
-      if (tileIdx < 0 || tileIdx > info().tileCount())
-        throw new Exception("Tile index out of bounds");
-
-      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      int tileSize = info().tileWidth()*info().tileHeight()*outPixelSize;
-      int inBufferOfs = info().headerSize() + tileIdx*info().tileSize();
-      if (ofs + tileSize > outBuffer.length)
-        throw new Exception("Output buffer too small");
-
-      // Decoding a single tile is trivial
-      boolean bRet = false;
-      if (info().type() == TisInfo.TisType.PALETTE)
-        bRet = decodeTISTileInPlace(tisBuffer, inBufferOfs, outBuffer, ofs, fmt);
-      else
-        bRet = decodeTISTilePVRZ(tisBuffer, inBufferOfs, outBuffer, ofs, fmt);
-
-      return bRet;
-    } else
-      throw new Exception(NOT_INITIALIZED);
-  }
-
-  private boolean decodeTISTileInPlace(byte[] inBuffer, int inOfs, byte[] outBuffer, int outOfs, ColorFormat fmt) throws Exception
-  {
-    if (inBuffer == null || outBuffer == null)
-      throw new NullPointerException();
-    if (inBuffer.length - inOfs < info().tileSize())
-      throw new Exception("Input buffer size too small");
-
-    ColorConvert.ColorFormat inFormat = ColorConvert.ColorFormat.A8R8G8B8;
-    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    if (outBuffer.length - outOfs < info().tileWidth()*info.tileHeight()*outPixelSize)
-      throw new Exception("Output buffer size too small");
-
-    byte[] palette = new byte[256*outPixelSize];
-    for (int i = 0; i < 256; i++)
-      inBuffer[inOfs+(i << 2)+3] = (byte)0xff;    // fixing alpha value
-    if (ColorConvert.Convert(inFormat, inBuffer, inOfs, fmt, palette, 0, 256) != 256)
-      return false;
-    inOfs += 1024;
-
-    int tileLength = info().tileWidth()*info().tileHeight();
-    for (int i = 0; i < tileLength; i++)
-      System.arraycopy(palette, (inBuffer[inOfs+i] & 0xff)*outPixelSize, outBuffer, outOfs + i*outPixelSize, outPixelSize);
-
-    return true;
-  }
-
-  private boolean decodeTISTilePVRZ(byte[] inBuffer, int inOfs, byte[] outBuffer, int outOfs, ColorFormat fmt) throws Exception
-  {
-    if (inBuffer == null)
-      throw new NullPointerException();
-    if (inBuffer.length - inOfs < info().tileSize())
-      throw new Exception("Buffer size too small");
-
-    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    if (outBuffer.length - outOfs < info().tileWidth()*info.tileHeight()*outPixelSize)
-      throw new Exception("Output buffer size too small");
-
-    int page = DynamicArray.getInt(inBuffer, inOfs);
-    if (page < 0) {
-      // special case: fill with black pixels
-      byte[] outPixel = new byte[outPixelSize];
-      ColorConvert.Convert(ColorConvert.ColorFormat.A8R8G8B8, new byte[]{0, 0, 0, (byte)255}, 0,
-                           fmt, outPixel, 0, 1);
-      for (int i = 0; i < info().tileWidth()*info().tileHeight(); i++)
-        System.arraycopy(outPixel, 0, outBuffer, outOfs + i*outPixelSize, outPixelSize);;
-      return true;
-    } else {
-      // extract data block from associated PVR file
-      int xPos = DynamicArray.getInt(inBuffer, inOfs+4);
-      int yPos = DynamicArray.getInt(inBuffer, inOfs+8);
-      PvrDecoder decoder = getPVR(page);
-      if (decoder != null) {
-        System.arraycopy(decoder.decode(xPos, yPos, info().tileWidth(), info().tileHeight(), fmt),
-                         0, outBuffer, outOfs, info().tileWidth()*info().tileHeight()*outPixelSize);
-        return true;
-      } else
+      if (image == null)
         return false;
+      if (image.getWidth() < info().tileWidth() || image.getHeight() < info().tileHeight())
+        return false;
+      if (tileIndex < 0 || tileIndex >= info().tileCount())
+        return false;
+
+      byte[] inBuffer = getInputData();
+      if (inBuffer != null) {
+        int inOfs = info().headerSize() + tileIndex*info().tileSize();
+        if (inOfs + info().tileSize() > inBuffer.length)
+          return false;
+
+        int[] palette = new int[256];
+        for (int i = 0; i < palette.length; i++, inOfs+=4) {
+          palette[i] = DynamicArray.getInt(inBuffer, inOfs) | 0xff000000;
+        }
+        int[] dataBlock = new int[info().tileWidth()*info().tileHeight()];
+        for (int i = 0; i < dataBlock.length; i++, inOfs++) {
+          dataBlock[i] = palette[inBuffer[inOfs] & 0xff];
+        }
+        image.setRGB(0, 0, info().tileWidth(), info().tileHeight(), dataBlock, 0, info().tileWidth());
+        palette = null;
+        dataBlock = null;
+        inBuffer = null;
+
+        return true;
+      }
     }
+    return false;
+  }
+
+  private boolean decodeTilePVRZ(BufferedImage image, int tileIndex)
+  {
+    if (!empty()) {
+      if (image == null)
+        return false;
+      if (image.getWidth() < info().tileWidth() || image.getHeight() < info().tileHeight())
+        return false;
+      if (tileIndex < 0 || tileIndex >= info().tileCount())
+        return false;
+
+      byte[] inBuffer = getInputData();
+      if (inBuffer != null) {
+        int inOfs = info().headerSize() + tileIndex*info().tileSize();
+        if (inOfs + info().tileSize() > inBuffer.length)
+          return false;
+
+        int pvrPage = DynamicArray.getInt(inBuffer, inOfs);
+        if (pvrPage < 0) {
+          // special case: fill with black pixels
+          Graphics2D g = (Graphics2D)image.getGraphics();
+          g.setColor(Color.BLACK);
+          g.fillRect(0, 0, info().tileWidth(), info().tileHeight());
+          g.dispose();
+        } else {
+          try {
+            // extract data block from associated PVR file
+            int pvrX = DynamicArray.getInt(inBuffer, inOfs + 4);
+            int pvrY = DynamicArray.getInt(inBuffer, inOfs + 8);
+            PvrDecoder pvrDecoder = getPVR(pvrPage);
+            if (pvrDecoder == null)
+              return false;
+            pvrDecoder.decode(image, pvrX, pvrY, info().tileWidth(), info().tileHeight());
+          } catch (Exception e) {
+            return false;
+          }
+        }
+        inBuffer = null;
+        return true;
+      }
+    }
+    return false;
   }
 
 
@@ -424,27 +460,26 @@ public class TisDecoder implements Closeable
      */
     public enum TisType { PALETTE, PVRZ }
 
-    private int version = 0, tileCount = 0, tileSize = 0, headerSize = 0, tileDim = 0, dataSize = 0;
+    private static int tileDim = 64;
+    private static int headerSize = 24;
+
     private TisType type;
+    private int tileCount, tileSize, dataSize;
     private boolean initialized = false;
 
-    public TisInfo(byte[] buffer, int ofs) throws Exception
+    public TisInfo(ResourceEntry entry) throws Exception
     {
-      if (buffer == null)
+      if (entry == null)
         throw new NullPointerException();
 
-      init(buffer, ofs);
+      init(entry);
     }
 
     /**
-     * The TIS version.
-     * @return The TIS version.
+     * Returns the TIS type (palette-based or PVRZ-based data blocks)
+     * @return TIS type
+     * @throws Exception
      */
-    public int version()
-    {
-      return version;
-    }
-
     public TisType type() throws Exception
     {
       if (!empty())
@@ -489,58 +524,48 @@ public class TisDecoder implements Closeable
       return tileDim;
     }
 
+    /**
+     * Size of the TIS header in bytes.
+     * @return TIS header size
+     */
     public int headerSize()
     {
       return headerSize;
     }
 
+    /**
+     * Size of the TIS data in bytes.
+     * @return TIS data size
+     */
     public int dataSize()
     {
       return dataSize;
     }
 
-    private void init(byte[] buffer, int ofs) throws Exception
+    private void init(ResourceEntry entry) throws Exception
     {
-      if (buffer == null)
+      if (entry == null)
         throw new NullPointerException();
-      if (buffer.length - ofs < 0x18)
-        throw new Exception("Input buffer too small");
 
-      ByteBuffer header = ByteBuffer.wrap(buffer, ofs, buffer.length - ofs).order(ByteOrder.LITTLE_ENDIAN);
-      String s = new String(buffer, ofs, 4);
-      if (!s.equals("TIS "))
-        throw new Exception("Invalid TIS signature: '" + s + "'");
-      s = new String(buffer, ofs+4, 4);
-      try {
-        if (Integer.parseInt(s.substring(1).trim()) <= 0)
-          throw new Exception("Invalid TIS version: '" + s + "'");
-      } catch (NumberFormatException e) {
-        throw new Exception("Invalid TIS version: '" + s + "'");
-      }
+      int[] resInfo = entry.getResourceInfo();
+      if (resInfo == null || resInfo.length < 2)
+        throw new Exception("Error reading TIS header");
 
-      header.position(header.position() + 8);   // skipping signature and version
-      tileCount = header.getInt();
+      tileCount = resInfo[0];
       if (tileCount <= 0)
         throw new Exception("Invalid tile count: " + tileCount);
 
-      tileSize = header.getInt();
+      tileSize = resInfo[1];
       if (tileSize <= 0)
         throw new Exception("Invalid tile size: " + tileSize);
 
-      headerSize = header.getInt();
-      if (headerSize < 0x18)
-        throw new Exception("Invalid TIS header size: " + headerSize + " byte(s)");
-
-      tileDim = header.getInt();
-      if (tileDim <= 0)
-        throw new Exception("Invalid tile dimensions: " + tileDim + "x" + tileDim);
-
-      if (tileSize == 1024 + tileDim * tileDim)
+      if (tileSize == 1024 + tileDim * tileDim) {
         type = TisType.PALETTE;
-      else if (tileSize == 12)
+      } else if (tileSize == 12) {
         type = TisType.PVRZ;
-      else
+      } else {
         throw new Exception("TIS file type could not be determined");
+      }
 
       dataSize = tileCount * tileSize;
 

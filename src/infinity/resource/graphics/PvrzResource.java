@@ -4,7 +4,6 @@
 
 package infinity.resource.graphics;
 
-import infinity.NearInfinity;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
@@ -32,37 +31,19 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 
 public class PvrzResource implements Resource, ActionListener, Closeable
 {
   private final ResourceEntry entry;
-  private BufferedImage image;
-  private PvrDecoder decoder;
   private ButtonPopupMenu mnuExport;
   private JMenuItem miExport, miBMP;
+  private JLabel lImage;
   private JPanel panel;
 
   public PvrzResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    byte[] data = entry.getResourceData();
-    int size = DynamicArray.getInt(data, 0);
-    int marker = DynamicArray.getShort(data, 4) & 0xffff;
-    if ((size & 0xff) != 0x34 && marker != 0x9c78)
-      throw new Exception("Invalid PVRZ resource");
-
-    data = Compressor.decompress(data, 0);
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
-    blocker.setBlocked(true);
-
-    try {
-      setImage(data);
-    } catch (Exception e) {
-      blocker.setBlocked(false);
-      throw e;
-    }
-
-    blocker.setBlocked(false);
   }
 
 //--------------------- Begin Interface ActionListener ---------------------
@@ -76,9 +57,10 @@ public class PvrzResource implements Resource, ActionListener, Closeable
       try {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         String fileName = entry.toString().replace(".PVRZ", ".BMP");
+        BufferedImage image = getImage();
         if (ImageIO.write(image, "bmp", os)) {
-          ResourceFactory.getInstance().exportResource(entry,
-              os.toByteArray(), fileName, panel.getTopLevelAncestor());
+          ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
+                                                       fileName, panel.getTopLevelAncestor());
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
@@ -86,6 +68,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
         }
         os.close();
         os = null;
+        image = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -107,11 +90,9 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
   public void close() throws Exception
   {
-    if (decoder != null) {
-      decoder.close();
-      decoder = null;
-    }
-    System.gc();
+    panel.removeAll();
+    lImage.setIcon(null);
+    lImage = null;
   }
 
 //--------------------- End Interface Closeable ---------------------
@@ -127,7 +108,17 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     mnuExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miBMP});
     mnuExport.setIcon(Icons.getIcon("Export16.gif"));
     mnuExport.setMnemonic('e');
-    JScrollPane scroll = new JScrollPane(new JLabel(new ImageIcon(image)));
+    lImage = new JLabel();
+    lImage.setHorizontalAlignment(SwingConstants.CENTER);
+    lImage.setVerticalAlignment(SwingConstants.CENTER);
+    WindowBlocker.blockWindow(true);
+    try {
+      lImage.setIcon(loadImage());
+      WindowBlocker.blockWindow(false);
+    } catch (Exception e) {
+      WindowBlocker.blockWindow(false);
+    }
+    JScrollPane scroll = new JScrollPane(lImage);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
@@ -148,25 +139,41 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
   public BufferedImage getImage()
   {
-    return image;
+    if (lImage != null) {
+      ImageIcon icon = (ImageIcon)lImage.getIcon();
+      if (icon != null) {
+        return ColorConvert.toBufferedImage(icon.getImage(), false);
+      }
+    } else if (entry != null) {
+      return (BufferedImage)loadImage().getImage();
+    }
+    return null;
   }
 
-  public PvrDecoder getDecoder()
+  private ImageIcon loadImage()
   {
-    return decoder;
-  }
+    if (entry != null) {
+      try {
+        byte[] data = entry.getResourceData();
+        int size = DynamicArray.getInt(data, 0);
+        int marker = DynamicArray.getUnsignedShort(data, 4);
+        if ((size & 0xff) != 0x34 && marker != 0x9c78)
+          throw new Exception("Invalid PVRZ resource");
+        data = Compressor.decompress(data, 0);
 
-  private void setImage(byte[] buffer) throws Exception
-  {
-    decoder = new PvrDecoder(buffer);
-    ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.A8R8G8B8;
-    int imgWidth = decoder.info().width();
-    int imgHeight = decoder.info().height();
-    int imgSize = imgWidth*imgHeight;
-    int[] block = new int[imgSize];
-    ColorConvert.BufferToColor(outputFormat, decoder.decode(outputFormat), 0, block, 0, imgSize);
-    image = ColorConvert.createCompatibleImage(imgWidth, imgHeight, false);
-    image.setRGB(0, 0, imgWidth, imgHeight, block, 0, imgWidth);
+        PvrDecoder decoder = new PvrDecoder(data);
+        BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().width(),
+                                                                 decoder.info().height(), false);
+        if (decoder.decode(image)) {
+          decoder.close();
+          return new ImageIcon(image);
+        }
+        decoder.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
   }
 
 }

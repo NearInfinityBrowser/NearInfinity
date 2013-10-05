@@ -40,8 +40,8 @@ import javax.swing.SwingWorker;
 public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
 {
   private final ResourceEntry entry;
-  private final AudioPlayer player = new AudioPlayer();
 
+  private AudioPlayer player;
   private AudioBuffer audioBuffer = null;
   private JButton bPlay, bStop, bFind;
   private JMenuItem miExport, miConvert;
@@ -52,6 +52,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   public SoundResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
+    player = new AudioPlayer();
     isWAV = false;
     isReference = false;
     isClosed = false;
@@ -100,7 +101,10 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     setClosed(true);
     if (player != null) {
       player.stopPlay();
+      player = null;
     }
+    audioBuffer = null;
+    panel = null;
   }
 
 //--------------------- End Interface Closeable ---------------------

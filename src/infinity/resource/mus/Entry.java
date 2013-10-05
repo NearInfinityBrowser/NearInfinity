@@ -45,7 +45,8 @@ public class Entry
   private static void addCacheEntry(String dir, String name, AudioBuffer buffer)
   {
     if (name != null && buffer != null) {
-      while (currentCacheSize >= MAX_CACHE_SIZE) {
+      while (currentCacheSize + buffer.getAudioData().length > MAX_CACHE_SIZE &&
+             !BufferCache.isEmpty()) {
         Iterator<String> iter = BufferCache.keySet().iterator();
         if (iter.hasNext()) {
           AudioBuffer ab = BufferCache.get(iter.next());
@@ -89,10 +90,10 @@ public class Entry
   {
     // use max. 1/10th of max. available memory or 100MB for caching AudioBuffer objects
     long memSize = Runtime.getRuntime().maxMemory();
-    if (memSize == Long.MAX_VALUE || memSize < (long)(512*1024*1024)) {
-      return (long)(100*1024*1024);
+    if (memSize == Long.MAX_VALUE || memSize < (long)(256*1024*1024)) {
+      return (long)(32*1024*1024);
     } else {
-      return memSize / 10L;
+      return Math.max(memSize / 8L, (long)(256*1024*1024));
     }
   }
 
@@ -104,6 +105,13 @@ public class Entry
     this.entryList = entries;
     this.line = line;
     this.nextnr = nr + 1;
+  }
+
+  public void close()
+  {
+    audioBuffer = null;
+    endBuffer = null;
+    nextnr = -1;
   }
 
   public String toString()

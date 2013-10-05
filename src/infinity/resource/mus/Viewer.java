@@ -116,6 +116,10 @@ public class Viewer extends JPanel implements Runnable, ActionListener
   {
     setClosed(true);
     stopPlay();
+    for (final Entry entry: entryList) {
+      entry.close();
+    }
+    entryList.clear();
   }
 
   // Creates a new music list and loads all associated soundtracks

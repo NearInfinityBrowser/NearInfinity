@@ -4,9 +4,10 @@
 
 package infinity.resource.graphics;
 
-import infinity.resource.Closeable;
 import infinity.resource.graphics.ColorConvert;
+import infinity.util.DynamicArray;
 
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -15,12 +16,12 @@ import java.nio.ByteOrder;
  * <b>Note:</b> Only DXT1 compression supported.
  * @author argent77
  */
-public class PvrDecoder implements Closeable
+public class PvrDecoder
 {
   private static final String NOT_INITIALIZED = "Not initialized";
 
-  private PVRInfo info = null;
-  private byte[] inBuffer = null;
+  private PVRInfo info;
+  private DynamicArray inBuffer;
 
   /**
    * Creates an uninitialized PvrDecoder object. Use <code>open()</code> to load a PVR resource.
@@ -51,15 +52,14 @@ public class PvrDecoder implements Closeable
     open(buffer, ofs);
   }
 
-//--------------------- Begin Interface Closeable ---------------------
-
+  /**
+   * Closes the current PVR resource.
+   */
   public void close()
   {
     info = null;
     inBuffer = null;
   }
-
-//--------------------- End Interface Closeable ---------------------
 
   public void open(byte[] buffer) throws Exception
   {
@@ -81,18 +81,44 @@ public class PvrDecoder implements Closeable
     return !empty();
   }
 
+  public BufferedImage decode() throws Exception
+  {
+    if (!empty()) {
+      final BufferedImage image = ColorConvert.createCompatibleImage(info().width(),
+                                                                     info().height(), false);
+      if (decode(image)) {
+        return image;
+      }
+    }
+    return null;
+  }
+
   /**
    * Decodes the currently loaded PVR data into a raw data format.
    * @param fmt The color format of the decoded data.
    * @return A buffer containing the decoded PVR pixel data.
    * @throws Exception
    */
-  public byte[] decode(ColorConvert.ColorFormat fmt) throws Exception
+  public boolean decode(BufferedImage image) throws Exception
   {
     if (!empty()) {
-      return decode(0, 0, info().width(), info().height(), fmt);
-    } else
-      throw new Exception(NOT_INITIALIZED);
+      return decode(image, 0, 0, info().width(), info().height());
+    } else {
+      return false;
+    }
+  }
+
+  public BufferedImage decode(int x, int y, int width, int height) throws Exception
+  {
+    if (!empty()) {
+      if (width > 0 && height > 0) {
+        BufferedImage image = ColorConvert.createCompatibleImage(width, height, false);
+        if (decode(image, x, y, width, height)) {
+          return image;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -105,25 +131,20 @@ public class PvrDecoder implements Closeable
    * @return A buffer containing the decoded PVR pixel data.
    * @throws Exception
    */
-  public byte[] decode(int left, int top, int width, int height,
-                       ColorConvert.ColorFormat fmt) throws Exception
+  public boolean decode(BufferedImage image, int x, int y, int width, int height) throws Exception
   {
     if (!empty()) {
-      if (left < 0 || top < 0 || width < 0 || height < 0 ||
-          left + width > info().width() || (top + height > info().height()))
+      if (x < 0 || y < 0 || width < 1 || height < 1 ||
+          x + width > info().width() || (y + height > info().height()))
         throw new Exception("Invalid dimensions specified");
       if (info().pixelFormat() != PVRInfo.PixelFormat.DXT1)
         throw new Exception("Pixel compression format not supported");
       if (info().channelType() != PVRInfo.ChannelType.UBYTE_NORM)
         throw new Exception("Channel type not supported");
 
-      int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-      byte[] outBuffer = new byte[width*height*outPixelSize];
-      if (decodeDXT1(outBuffer, 0, left, top, width, height, fmt))
-        return outBuffer;
-      return null;
-    } else
-      throw new Exception(NOT_INITIALIZED);
+      return decodeDXT1(image, x, y, width, height);
+    }
+    return false;
   }
 
   /**
@@ -140,10 +161,14 @@ public class PvrDecoder implements Closeable
 
   private void init(byte[] buffer, int ofs) throws Exception
   {
+    close();
+
     if (buffer == null)
       throw new NullPointerException();
 
-    info = new PVRInfo(buffer, ofs);
+    inBuffer = DynamicArray.wrap(buffer, ofs, DynamicArray.ElementType.BYTE);
+
+    info = new PVRInfo(inBuffer);
     if (info.pixelFormat != PVRInfo.PixelFormat.DXT1) {
       info = null;
       throw new Exception("Only DXT1 pixel format supported");
@@ -153,13 +178,12 @@ public class PvrDecoder implements Closeable
       throw new Exception("Input buffer too small");
     }
 
-    inBuffer = new byte[info.dataSize()];
-    System.arraycopy(buffer, ofs + info().headerSize(), inBuffer, 0, info().dataSize());
+    inBuffer.addToBaseOffset(info().headerSize());
   }
 
   private boolean empty()
   {
-    if (info != null)
+    if (inBuffer != null && info != null)
       return info.empty();
     else
       return true;
@@ -175,60 +199,42 @@ public class PvrDecoder implements Closeable
    * @param height height of the pixel block
    * @return true if successful, false otherwise
    */
-  private boolean decodeDXT1(byte[] outBuffer, int ofs,
-                             int left, int top, int width, int height,
-                             ColorConvert.ColorFormat fmt) throws Exception
+  private boolean decodeDXT1(BufferedImage image, int left, int top, int width, int height) throws Exception
   {
-    if (outBuffer == null)
-      throw new NullPointerException();
+    if (!empty()) {
+      if (image == null)
+        throw new NullPointerException();
+      if (left < 0 || top < 0 || width < 0 || height < 0 ||
+          left + width > info().width() || top + height > info().height ||
+          width > image.getWidth() || height > image.getHeight())
+        return false;
 
-    int outPixelSize = ColorConvert.ColorBits(fmt) >> 3;
-    int size = width*height*outPixelSize;
-    if (outBuffer.length - ofs < size)
-      throw new Exception("Output buffer too small");
+      // calculating block dimensions, aligned to a multiple of 4
+      int alignedLeft = ((left & 3) != 0) ? (left & ~3) : left;
+      int alignedTop = ((top & 3) != 0) ? (top & ~3) : top;
+      int alignedWidth = width + left - alignedLeft;
+      if ((alignedWidth & 3) != 0)
+        alignedWidth = (alignedWidth & ~3) + 4;
+      int alignedHeight = height + top - alignedTop;
+      if ((alignedHeight & 3) != 0)
+        alignedHeight = (alignedHeight & ~3) + 4;
+      int ofsX = left - alignedLeft;
+      int ofsY = top - alignedTop;
 
-    // 1. calculating block dimensions, aligned to a multiple of 4
-    int alignedLeft = ((left & 3) != 0) ? (left & ~3) : left;
-    int alignedTop = ((top & 3) != 0) ? (top & ~3) : top;
-    int alignedWidth = width + left - alignedLeft;
-    if ((alignedWidth & 3) != 0)
-      alignedWidth = (alignedWidth & ~3) + 4;
-    int alignedHeight = height + top - alignedTop;
-    if ((alignedHeight & 3) != 0)
-      alignedHeight = (alignedHeight & ~3) + 4;
-
-    // 2. decoding aligned data block
-    byte[] alignedBuffer = new byte[alignedHeight*alignedWidth*outPixelSize];
-    int inBlocksX = info().width() >> 2;        // # blocks per line of input image
-    int alignedBlocksX = alignedWidth >> 2;     // # blocks per line of aligned image block
-    int alignedBlocksY = alignedHeight >> 2;    // # block lines of aligned image block
-    for (int y = 0; y < alignedBlocksY; y++) {
-      int inOfs = (((alignedTop >> 2) + y) * inBlocksX + (alignedLeft >> 2)) << 3;
-      for (int x = 0; x < alignedBlocksX; x++, inOfs+=8) {
-        byte[] block = decodeDXT1Block(inBuffer, inOfs, fmt);
-        if (block != null && block.length >= (outPixelSize << 4)) {
-          int blockOfs = 0;
-          int aOfs = ((y * alignedWidth + x) << 2) * outPixelSize;
-          for (int i = 0; i < 4; i++) {
-            System.arraycopy(block, blockOfs, alignedBuffer, aOfs, outPixelSize << 2);
-            blockOfs += outPixelSize << 2;
-            aOfs += alignedWidth * outPixelSize;
-          }
+      // decoding aligned data block and drawing relevant pixels to target image
+      int inBlocksX = info().width() >>> 2;
+      int alignedBlocksX = alignedWidth >>> 2;
+      int alignedBlocksY = alignedHeight >>> 2;
+      for (int y = 0; y < alignedBlocksY; y++) {
+        int inOfs = (((alignedTop >>> 2) + y) * inBlocksX + (alignedLeft >>> 2)) << 3;
+        for (int x = 0; x < alignedBlocksX; x++, inOfs+=8) {
+          decodeDXT1Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
+                          (x << 2) - ofsX, (y << 2) - ofsY);
         }
       }
+      return true;
     }
-
-    // 3. copying data block of specified size to output buffer
-    int aOfs = ((top - alignedTop) * alignedWidth + (left - alignedLeft)) * outPixelSize;
-    int aLength = alignedWidth * outPixelSize;
-    int outOfs = ofs;
-    int outLength = width * outPixelSize;
-    for (int y = 0; y < height; y++) {
-      System.arraycopy(alignedBuffer, aOfs, outBuffer, outOfs, outLength);
-      aOfs += aLength;
-      outOfs += outLength;
-    }
-    return true;
+    return false;
   }
 
   /**
@@ -237,82 +243,75 @@ public class PvrDecoder implements Closeable
    * @param ofs Start start offset into the input buffer
    * @return The decoded pixel data as a 4x4 32-bit color data block.
    */
-  private byte[] decodeDXT1Block(byte[] inBuffer, int ofs, ColorConvert.ColorFormat fmt) throws Exception
+//  private boolean decodeDXT1Block(DynamicArray buffer, BufferedImage image)
+  private boolean decodeDXT1Block(DynamicArray buffer, BufferedImage image, int startX, int startY)
   {
-    final ColorConvert.ColorFormat inputFormat = ColorConvert.ColorFormat.A8R8G8B8;
-
-    if (inBuffer == null)
+    if (buffer == null || image == null)
       throw new NullPointerException();
-    if (inBuffer.length + ofs < 8)
-      throw new Exception("Input buffer too small");
+    if (buffer.getArray().length - buffer.getBaseOffset() < 8)
+      return false;
+    if (startX >= image.getWidth() || startY >= image.getHeight())
+      return true;
 
-    byte[] workingBuffer = new byte[64];
-    ByteBuffer bbIn = ByteBuffer.wrap(inBuffer, ofs, 8).order(ByteOrder.LITTLE_ENDIAN);
-    int c0 = bbIn.getShort() & 0xffff;
-    int c1 = bbIn.getShort() & 0xffff;
-    int code = bbIn.getInt();
+    int imgWidth = image.getWidth();
+    int imgHeight = image.getHeight();
 
-    int outOfs = 0;
-    int v;
-    for (int i = 0; i < 16; i++) {
-      switch ((code >> (i << 1)) & 3) {
-        case 0:
-          // 100% c0, 0% c1
-          workingBuffer[outOfs+2] = (byte)((c0 >> 8) & 0xf8);
-          workingBuffer[outOfs+1] = (byte)((c0 >> 3) & 0xfc);
-          workingBuffer[outOfs+0] = (byte)((c0 << 3) & 0xf8);
-          break;
-        case 1:
-          // 0% c0, 100% c1
-          workingBuffer[outOfs+2] = (byte)((c1 >> 8) & 0xf8);
-          workingBuffer[outOfs+1] = (byte)((c1 >> 3) & 0xfc);
-          workingBuffer[outOfs+0] = (byte)((c1 << 3) & 0xf8);
-          break;
-        case 2:
-          if (c0 > c1) {
-            // 66% c0, 33% c1
-            v = (((c0 >> 7) & 0x1f0) + ((c1 >> 8) & 0xf8)) / 3;
-            workingBuffer[outOfs+2] = (byte)((v > 255) ? 255 : v);
-            v = (((c0 >> 2) & 0x1f8) + ((c1 >> 3) & 0xfc)) / 3;
-            workingBuffer[outOfs+1] = (byte)((v > 255) ? 255 : v);
-            v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
-            workingBuffer[outOfs+0] = (byte)((v > 255) ? 255 : v);
-          } else {
-            // 50% c0, 50% c1
-            v = (((c0 >> 8) & 0xf8) + ((c1 >> 8) & 0xf8)) >> 1;
-            workingBuffer[outOfs+2] = (byte)((v > 255) ? 255 : v);
-            v = (((c0 >> 3) & 0xfc) + ((c1 >> 3) & 0xfc)) >> 1;
-            workingBuffer[outOfs+1] = (byte)((v > 255) ? 255 : v);
-            v = (((c0 << 3) & 0xf8) + ((c1 << 3) & 0xf8)) >> 1;
-            workingBuffer[outOfs+0] = (byte)((v > 255) ? 255 : v);
-          }
-          break;
-        case 3:
-          if (c0 > c1) {
-            // 33% c0, 66% c1
-            v = (((c0 >> 8) & 0xf8) + ((c1 >> 7) & 0x1f0)) / 3;
-            workingBuffer[outOfs+2] = (byte)((v > 255) ? 255 : v);
-            v = (((c0 >> 3) & 0xfc) + ((c1 >> 2) & 0x1f8)) / 3;
-            workingBuffer[outOfs+1] = (byte)((v > 255) ? 255 : v);
-            v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
-            workingBuffer[outOfs+0] = (byte)((v > 255) ? 255 : v);
-          } else {
-            // black
-            workingBuffer[outOfs+2] = (byte)0;
-            workingBuffer[outOfs+1] = (byte)0;
-            workingBuffer[outOfs+0] = (byte)0;
-          }
-          break;
+    int c0 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
+    int c1 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
+    int code = buffer.getInt(0);
+
+    int v, col = 0;
+    for (int i = 0; i < 16; i++, code>>>=2) {
+      int x = startX + (i & 3);
+      int y = startY + (i >>> 2);
+      if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
+        switch (code & 3) {
+          case 0:
+            // 100% c0, 0% c1
+            col = ((c0 & 0xf800) << 8) | ((c0 & 0x7e0) << 5) | ((c0 & 0x1f) << 3);
+            break;
+          case 1:
+            // 0% c0, 100% c1
+            col = ((c1 & 0xf800) << 8) | ((c1 & 0x7e0) << 5) | ((c1 & 0x1f) << 3);
+            break;
+          case 2:
+            if (c0 > c1) {
+              // 66% c0, 33% c1
+              v = (((c0 >>> 7) & 0x1f0) + ((c1 >>> 8) & 0xf8)) / 3;
+              col = ((v > 255) ? 255 : v) << 16;
+              v = (((c0 >>> 2) & 0x1f8) + ((c1 >>> 3) & 0xfc)) / 3;
+              col |= ((v > 255) ? 255 : v) << 8;
+              v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
+              col |= ((v > 255) ? 255 : v);
+            } else {
+              // 50% c0, 50% c1
+              v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 8) & 0xf8)) >> 1;
+              col = ((v > 255) ? 255 : v) << 16;
+              v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 3) & 0xfc)) >> 1;
+              col |= ((v > 255) ? 255 : v) << 8;
+              v = (((c0 << 3) & 0xf8) + ((c1 << 3) & 0xf8)) >> 1;
+              col |= ((v > 255) ? 255 : v);
+            }
+            break;
+          case 3:
+            if (c0 > c1) {
+              // 33% c0, 66% c1
+              v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 7) & 0x1f0)) / 3;
+              col = ((v > 255) ? 255 : v) << 16;
+              v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 2) & 0x1f8)) / 3;
+              col |= ((v > 255) ? 255 : v) << 8;
+              v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
+              col |= ((v > 255) ? 255 : v);
+            } else {
+              // black
+              col = 0;
+            }
+            break;
+        }
+        image.setRGB(x, y, col | 0xff000000);
       }
-      workingBuffer[outOfs+3] = (byte)255;    // alpha
-      outOfs += 4;
     }
-
-    // converting pixels to output color format
-    byte[] outBuffer = new byte[16 * ColorConvert.ColorBits(fmt) >> 3];
-    ColorConvert.Convert(inputFormat, workingBuffer, 0, fmt, outBuffer, 0, 16);
-
-    return outBuffer;
+    return true;
   }
 
 
@@ -379,12 +378,12 @@ public class PvrDecoder implements Closeable
     private boolean initialized;
 
 
-    public PVRInfo(byte[] buffer, int ofs) throws Exception
+    public PVRInfo(DynamicArray buffer) throws Exception
     {
       if (buffer == null)
         throw new NullPointerException();
 
-      init(buffer, ofs);
+      init(buffer);
     }
 
     /**
@@ -571,26 +570,25 @@ public class PvrDecoder implements Closeable
     }
 
 
-    private void init(byte[] buffer, int ofs) throws Exception
+    private void init(DynamicArray buffer) throws Exception
     {
       if (buffer == null)
         throw new NullPointerException();
-      if (buffer.length - ofs < 0x34)
+      if (buffer.getArray().length - buffer.getBaseOffset() < 0x34)
         throw new Exception("Input buffer too small");
 
-      ByteBuffer header = ByteBuffer.wrap(buffer, ofs, buffer.length - ofs).order(ByteOrder.LITTLE_ENDIAN);
-      signature = header.getInt();
+      signature = buffer.getInt(0);
       if (signature != 0x03525650)
         throw new Exception("No PVR signature found");
 
-      int v = header.getInt();
+      int v = buffer.getInt(4);
       switch (v) {
         case 0: flags = Flags.NONE; break;
         case 1: flags = Flags.PRE_MULTIPLIED; break;
         default: throw new Exception("Unsupported PVR flags: " + Integer.toString(v));
       }
 
-      long l = header.getLong();
+      long l = buffer.getLong(8);
       if ((l & 0xffffffff00000000L) != 0L) {
         // custom pixel format?
         pixelFormat = PixelFormat.CUSTOM;
@@ -634,14 +632,14 @@ public class PvrDecoder implements Closeable
         pixelFormatEx = new byte[0];
       }
 
-      v = header.getInt();
+      v = buffer.getInt(16);
       switch (v) {
         case 0: colorSpace = ColorSpace.RGB; break;
         case 1: colorSpace = ColorSpace.SRGB; break;
         default: throw new Exception("Unsupported color space: " + Integer.toString(v));
       }
 
-      v = header.getInt();
+      v = buffer.getInt(20);
       switch (v) {
         case  0: channelType = ChannelType.UBYTE_NORM; break;
         case  1: channelType = ChannelType.SBYTE_NORM; break;
@@ -659,19 +657,18 @@ public class PvrDecoder implements Closeable
         default: throw new Exception("Unsupported channel type: " + Integer.toString(v));
       }
 
-      height = header.getInt();
-      width = header.getInt();
+      height = buffer.getInt(24);
+      width = buffer.getInt(28);
       colorDepth = getColorDepth();
-      textureDepth = header.getInt();
-      numSurfaces = header.getInt();
-      numFaces = header.getInt();
-      numMipMaps = header.getInt();
-      metaSize = header.getInt();
+      textureDepth = buffer.getInt(32);
+      numSurfaces = buffer.getInt(36);
+      numFaces = buffer.getInt(40);
+      numMipMaps = buffer.getInt(44);
+      metaSize = buffer.getInt(48);
       if (metaSize > 0) {
-        if (buffer.length - ofs < 0x34 + metaSize)
+        if (buffer.size() - buffer.getBaseOffset() < 0x34 + metaSize)
           throw new Exception("Input buffer too small");
-        metaData = new byte[metaSize];
-        header.get(metaData);
+        metaData = buffer.get(52, metaSize);
       } else
         metaData = new byte[0];
 

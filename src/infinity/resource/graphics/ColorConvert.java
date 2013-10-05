@@ -9,8 +9,6 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.EnumMap;
 
 /**
@@ -94,26 +92,26 @@ public class ColorConvert
     return null;
   }
 
-  /**
-   * Returns the color, located in buffer, starting at offset ofs, as an integer
-   * @param format The color format of the data in the buffer
-   * @param buffer Input buffer containing the color data
-   * @param ofs Start offset into the input buffer
-   * @return The color as integer value
-   */
-  public static int BufferToColor(ColorFormat format, byte[] buffer, int ofs)
-  {
-    int c = 0;
-    int bpp = ColorBits(format) >> 3;
-
-    if (buffer != null && ofs >= 0 && ofs + bpp <= buffer.length) {
-      for (int i = 0; i < bpp; i++) {
-        c |= (int)((buffer[ofs+i] & 0xff) << (i << 3));
-      }
-    }
-
-    return c;
-  }
+//  /**
+//   * Returns the color, located in buffer, starting at offset ofs, as an integer
+//   * @param format The color format of the data in the buffer
+//   * @param buffer Input buffer containing the color data
+//   * @param ofs Start offset into the input buffer
+//   * @return The color as integer value
+//   */
+//  public static int BufferToColor(ColorFormat format, byte[] buffer, int ofs)
+//  {
+//    int c = 0;
+//    int bpp = ColorBits(format) >> 3;
+//
+//    if (buffer != null && ofs >= 0 && ofs + bpp <= buffer.length) {
+//      for (int i = 0; i < bpp; i++) {
+//        c |= (int)((buffer[ofs+i] & 0xff) << (i << 3));
+//      }
+//    }
+//
+//    return c;
+//  }
 
   /**
    * Converts 'count' colors from a byte array into an array of integers, consisting of the whole color values.
@@ -146,54 +144,54 @@ public class ColorConvert
     return count;
   }
 
-  /**
-   * Convert the specified color into an array of bytes.
-   * @param format The color format.
-   * @param color The color.
-   * @param buffer The output buffer to write the stream of bytes into.
-   * @param ofs Start offset into the output buffer.
-   * @return true if the conversion succeeded, false otherwise.
-   */
-  public static boolean ColorToBuffer(ColorFormat format, int color, byte[] buffer, int ofs)
-  {
-    int bpp = ColorBits(format) >> 3;
-    if (buffer != null && buffer.length - ofs >= bpp) {
-      for (int i = 0; i < bpp; i++)
-        buffer[ofs+i] = (byte)((color >>> (i << 3)) & 0xff);
-      return true;
-    } else
-      return false;
-  }
+//  /**
+//   * Convert the specified color into an array of bytes.
+//   * @param format The color format.
+//   * @param color The color.
+//   * @param buffer The output buffer to write the stream of bytes into.
+//   * @param ofs Start offset into the output buffer.
+//   * @return true if the conversion succeeded, false otherwise.
+//   */
+//  public static boolean ColorToBuffer(ColorFormat format, int color, byte[] buffer, int ofs)
+//  {
+//    int bpp = ColorBits(format) >> 3;
+//    if (buffer != null && buffer.length - ofs >= bpp) {
+//      for (int i = 0; i < bpp; i++)
+//        buffer[ofs+i] = (byte)((color >>> (i << 3)) & 0xff);
+//      return true;
+//    } else
+//      return false;
+//  }
 
-  /**
-   * Convert the array of colors into an array of bytes.
-   * @param format The format of the colors.
-   * @param inBuffer Input buffer containing the colors
-   * @param inOfs Start offset into the input buffer.
-   * @param outBuffer Output buffer to write the stream of bytes into.
-   * @param outOfs Start offset into the output buffer.
-   * @param count Number of colors to convert.
-   * @return The actual number of converted colors.
-   */
-  public static int ColorToBuffer(ColorFormat format, int[] inBuffer, int inOfs, byte[] outBuffer, int outOfs, int count)
-  {
-    if (inBuffer == null || outBuffer == null || inOfs < 0 || outOfs < 0)
-      return 0;
-
-    int bpp = ColorBits(format) >> 3;
-    if (inOfs + count > inBuffer.length)
-      count = inBuffer.length - inOfs;
-    if (outOfs + count*bpp > outBuffer.length)
-      count = (outBuffer.length - outOfs) / bpp;
-
-    for (int idx = 0; idx < count; idx++, inOfs++) {
-      int c = inBuffer[inOfs];
-      for (int i = 0; i < bpp; i++, outOfs++)
-        outBuffer[outOfs] = (byte)(c >>> (i << 3) & 0xff);
-    }
-
-    return count;
-  }
+//  /**
+//   * Convert the array of colors into an array of bytes.
+//   * @param format The format of the colors.
+//   * @param inBuffer Input buffer containing the colors
+//   * @param inOfs Start offset into the input buffer.
+//   * @param outBuffer Output buffer to write the stream of bytes into.
+//   * @param outOfs Start offset into the output buffer.
+//   * @param count Number of colors to convert.
+//   * @return The actual number of converted colors.
+//   */
+//  public static int ColorToBuffer(ColorFormat format, int[] inBuffer, int inOfs, byte[] outBuffer, int outOfs, int count)
+//  {
+//    if (inBuffer == null || outBuffer == null || inOfs < 0 || outOfs < 0)
+//      return 0;
+//
+//    int bpp = ColorBits(format) >> 3;
+//    if (inOfs + count > inBuffer.length)
+//      count = inBuffer.length - inOfs;
+//    if (outOfs + count*bpp > outBuffer.length)
+//      count = (outBuffer.length - outOfs) / bpp;
+//
+//    for (int idx = 0; idx < count; idx++, inOfs++) {
+//      int c = inBuffer[inOfs];
+//      for (int i = 0; i < bpp; i++, outOfs++)
+//        outBuffer[outOfs] = (byte)(c >>> (i << 3) & 0xff);
+//    }
+//
+//    return count;
+//  }
 
   /**
    * Returns the number of bits required for the specified color format.
@@ -291,98 +289,98 @@ public class ColorConvert
     return count;
   }
 
-  /**
-   * Returns a Windows BMP header structure as byte array.
-   * @param width The image width in pixels.
-   * @param height The image height in pixels.
-   * @param format The color format of the image.
-   * @return A byte array containing a complete Windows BMP header.
-   * @throws Exception Thrown if color format is not supported by the graphics format.
-   */
-  public static byte[] CreateBMPHeader(int width, int height, ColorFormat format) throws Exception
-  {
-    if (width < 0 || height < 0)
-      throw new Exception("Invalid image dimensions specified");
-
-    final int bmpFileHeaderSize = 14;
-
-    int bmpInfoHeaderSize;
-    int compression;
-    boolean useV5Header;
-    // checking for supported BMP color formats
-    switch (format) {
-      case A8R8G8B8:
-      case A8B8G8R8:
-      case R8G8B8A8:
-      case B8G8R8A8:
-      case R5G6B5:
-      case B5G5R5A1:
-      case R5G5B5A1:
-      case A4R4G4B4:
-      case A4B4G4R4:
-        // using BITMAPV5HEADER structure
-        useV5Header = true;
-        bmpInfoHeaderSize = 124;
-        compression = 3;    // BITFIELD compression
-        break;
-      case A1R5G5B5:
-      case R8G8B8:
-        // using old BITMAPINFOHEADER structure
-        useV5Header = false;
-        bmpInfoHeaderSize = 40;
-        compression = 0;    // RGB compression
-        break;
-      default:
-        throw new Exception("Pixel format not supported.");
-    }
-
-    int depth = ColorBits(format);
-    int bpp = depth >> 3;
-    int bmpHeaderSize = bmpFileHeaderSize + bmpInfoHeaderSize;
-    int bytesPerLine = width*bpp;
-    if ((bytesPerLine & 3) != 0)    // don't forget the padding
-      bytesPerLine += 4 - (bytesPerLine & 3);
-    long bmpSize = bmpHeaderSize + height*bytesPerLine;   // complete header size + pixel data size
-    byte[] bmpHeader = new byte[bmpHeaderSize];
-
-    ByteBuffer bb = ByteBuffer.wrap(bmpHeader).order(ByteOrder.LITTLE_ENDIAN);
-    // BITMAP header
-    bb.putShort((short)0x4D42);         // BM
-    bb.putLong(bmpSize);                // total file size
-    bb.putInt(bmpHeaderSize);           // offset to pixel data block
-    // BITMAPINFOHEADER structure
-    bb.putInt(bmpInfoHeaderSize);       // BITMAPxxxHEADER size
-    bb.putInt(width);                   // width
-    bb.putInt(height);                  // height
-    bb.putShort((short)1);              // # planes
-    bb.putShort((short)depth);          // bpp
-    bb.putInt(compression);             // Compression method
-    bb.putInt(width*height*bpp);        // image size in bytes
-    bb.putInt(2834);                    // X resolution in pixels/meter
-    bb.putInt(2834);                    // Y resolution in pixels/meter
-    bb.putInt(0);                       // # of palette entries
-    bb.putInt(0);                       // # of important colors
-    if (useV5Header) {
-      // BITMAPV5HEADER additions
-      final int csRGB  = 0x206e6957;    // linear RGB color space ID
-      int[] colorFormat = ColorDefinition(format);
-      int[] mask = new int[4];
-      mask[0] = ((1 << colorFormat[2]) - 1) << colorFormat[3];
-      mask[1] = ((1 << colorFormat[4]) - 1) << colorFormat[5];
-      mask[2] = ((1 << colorFormat[6]) - 1) << colorFormat[7];
-      mask[3] = ((1 << colorFormat[0]) - 1) << colorFormat[1];
-      for (final int m: mask)           // color masks
-        bb.putInt(m);
-      bb.putInt(csRGB);                 // type of color space
-      bb.put(new byte[0x24]);           // unused
-      bb.putInt(0);                     // red gamma
-      bb.putInt(0);                     // green gamma
-      bb.putInt(0);                     // blue gamma
-      bb.putInt(8);                     // intent (LCS_GM_ABS_COLORIMETRIC)
-      bb.putInt(0);                     // profile data
-      bb.putInt(0);                     // profile size
-      bb.putInt(0);                     // reserved
-    }
-    return bmpHeader;
-  }
+//  /**
+//   * Returns a Windows BMP header structure as byte array.
+//   * @param width The image width in pixels.
+//   * @param height The image height in pixels.
+//   * @param format The color format of the image.
+//   * @return A byte array containing a complete Windows BMP header.
+//   * @throws Exception Thrown if color format is not supported by the graphics format.
+//   */
+//  public static byte[] CreateBMPHeader(int width, int height, ColorFormat format) throws Exception
+//  {
+//    if (width < 0 || height < 0)
+//      throw new Exception("Invalid image dimensions specified");
+//
+//    final int bmpFileHeaderSize = 14;
+//
+//    int bmpInfoHeaderSize;
+//    int compression;
+//    boolean useV5Header;
+//    // checking for supported BMP color formats
+//    switch (format) {
+//      case A8R8G8B8:
+//      case A8B8G8R8:
+//      case R8G8B8A8:
+//      case B8G8R8A8:
+//      case R5G6B5:
+//      case B5G5R5A1:
+//      case R5G5B5A1:
+//      case A4R4G4B4:
+//      case A4B4G4R4:
+//        // using BITMAPV5HEADER structure
+//        useV5Header = true;
+//        bmpInfoHeaderSize = 124;
+//        compression = 3;    // BITFIELD compression
+//        break;
+//      case A1R5G5B5:
+//      case R8G8B8:
+//        // using old BITMAPINFOHEADER structure
+//        useV5Header = false;
+//        bmpInfoHeaderSize = 40;
+//        compression = 0;    // RGB compression
+//        break;
+//      default:
+//        throw new Exception("Pixel format not supported.");
+//    }
+//
+//    int depth = ColorBits(format);
+//    int bpp = depth >> 3;
+//    int bmpHeaderSize = bmpFileHeaderSize + bmpInfoHeaderSize;
+//    int bytesPerLine = width*bpp;
+//    if ((bytesPerLine & 3) != 0)    // don't forget the padding
+//      bytesPerLine += 4 - (bytesPerLine & 3);
+//    long bmpSize = bmpHeaderSize + height*bytesPerLine;   // complete header size + pixel data size
+//    byte[] bmpHeader = new byte[bmpHeaderSize];
+//
+//    ByteBuffer bb = ByteBuffer.wrap(bmpHeader).order(ByteOrder.LITTLE_ENDIAN);
+//    // BITMAP header
+//    bb.putShort((short)0x4D42);         // BM
+//    bb.putLong(bmpSize);                // total file size
+//    bb.putInt(bmpHeaderSize);           // offset to pixel data block
+//    // BITMAPINFOHEADER structure
+//    bb.putInt(bmpInfoHeaderSize);       // BITMAPxxxHEADER size
+//    bb.putInt(width);                   // width
+//    bb.putInt(height);                  // height
+//    bb.putShort((short)1);              // # planes
+//    bb.putShort((short)depth);          // bpp
+//    bb.putInt(compression);             // Compression method
+//    bb.putInt(width*height*bpp);        // image size in bytes
+//    bb.putInt(2834);                    // X resolution in pixels/meter
+//    bb.putInt(2834);                    // Y resolution in pixels/meter
+//    bb.putInt(0);                       // # of palette entries
+//    bb.putInt(0);                       // # of important colors
+//    if (useV5Header) {
+//      // BITMAPV5HEADER additions
+//      final int csRGB  = 0x206e6957;    // linear RGB color space ID
+//      int[] colorFormat = ColorDefinition(format);
+//      int[] mask = new int[4];
+//      mask[0] = ((1 << colorFormat[2]) - 1) << colorFormat[3];
+//      mask[1] = ((1 << colorFormat[4]) - 1) << colorFormat[5];
+//      mask[2] = ((1 << colorFormat[6]) - 1) << colorFormat[7];
+//      mask[3] = ((1 << colorFormat[0]) - 1) << colorFormat[1];
+//      for (final int m: mask)           // color masks
+//        bb.putInt(m);
+//      bb.putInt(csRGB);                 // type of color space
+//      bb.put(new byte[0x24]);           // unused
+//      bb.putInt(0);                     // red gamma
+//      bb.putInt(0);                     // green gamma
+//      bb.putInt(0);                     // blue gamma
+//      bb.putInt(8);                     // intent (LCS_GM_ABS_COLORIMETRIC)
+//      bb.putInt(0);                     // profile data
+//      bb.putInt(0);                     // profile size
+//      bb.putInt(0);                     // reserved
+//    }
+//    return bmpHeader;
+//  }
 }

@@ -4,7 +4,6 @@
 
 package infinity.resource.graphics;
 
-import infinity.NearInfinity;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
@@ -32,32 +31,22 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 
 public class MosResource2 implements Resource, ActionListener, Closeable
 {
   private final ResourceEntry entry;
-  private BufferedImage image;
-  private MosDecoder decoder;
+  private MosDecoder.MosInfo.MosType mosType;
   private ButtonPopupMenu mnuExport;
   private JMenuItem miExport, miExport2, miExportBMP;
   private JButton bFind;
+  private JLabel lImage;
   private JPanel panel;
   private boolean compressed;
 
   public MosResource2(ResourceEntry entry)
   {
     this.entry = entry;
-
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
-    try {
-      blocker.setBlocked(true);
-      decoder = new MosDecoder(entry);
-      setImage();
-      blocker.setBlocked(false);
-    } catch (Exception e) {
-      blocker.setBlocked(false);
-      e.printStackTrace();
-    }
   }
 
 //--------------------- Begin Interface ActionListener ---------------------
@@ -83,12 +72,12 @@ public class MosResource2 implements Resource, ActionListener, Closeable
       }
     } else if (event.getSource() == miExportBMP) {
       try {
-        ByteArrayOutputStream os = new ByteArrayOutputStream(image.getWidth()*image.getHeight()*3+256);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
         String fileName = entry.toString().replace(".MOS", ".BMP");
+        BufferedImage image = getImage();
         if (ImageIO.write(image, "bmp", os)) {
-          ResourceFactory.getInstance().exportResource(entry,
-              os.toByteArray(),
-              fileName, panel.getTopLevelAncestor());
+          ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
+                                                       fileName, panel.getTopLevelAncestor());
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
@@ -96,6 +85,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
         }
         os.close();
         os = null;
+        image = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -117,15 +107,9 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
   public void close() throws Exception
   {
-    if (image != null) {
-      image.flush();
-      image = null;
-    }
-    if (decoder != null) {
-      decoder.close();
-      decoder = null;
-    }
-    System.gc();
+    panel.removeAll();
+    lImage.setIcon(null);
+    lImage = null;
   }
 
 //--------------------- End Interface Closeable ---------------------
@@ -161,12 +145,22 @@ public class MosResource2 implements Resource, ActionListener, Closeable
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
-      miExport2.setEnabled(decoder.info().type() == MosDecoder.MosInfo.MosType.PALETTE);
+      miExport2.setEnabled(mosType == MosDecoder.MosInfo.MosType.PALETTE);
     } else {
       miExport2.setEnabled(false);
     }
 
-    JScrollPane scroll = new JScrollPane(new JLabel(new ImageIcon(image)));
+    lImage = new JLabel();
+    lImage.setHorizontalAlignment(SwingConstants.CENTER);
+    lImage.setVerticalAlignment(SwingConstants.CENTER);
+    WindowBlocker.blockWindow(true);
+    try {
+      lImage.setIcon(loadImage());
+      WindowBlocker.blockWindow(false);
+    } catch (Exception e) {
+      WindowBlocker.blockWindow(false);
+    }
+    JScrollPane scroll = new JScrollPane(lImage);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
@@ -186,46 +180,41 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
   public BufferedImage getImage()
   {
-    return image;
-  }
-
-  public MosDecoder getDecoder()
-  {
-    return decoder;
-  }
-
-  private void setImage() throws Exception
-  {
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
-    blocker.setBlocked(true);
-    if (decoder != null) {
-      compressed = decoder.info().isCompressed();
-      if (decoder.info().blockCount() > 0) {
-        int blockCount = decoder.info().blockCount();
-        ColorConvert.ColorFormat outputFormat = ColorConvert.ColorFormat.A8R8G8B8;
-        image = ColorConvert.createCompatibleImage(decoder.info().width(), decoder.info().height(), false);
-
-        for (int blockIdx = 0; blockIdx < blockCount; blockIdx++) {
-          MosDecoder.BlockInfo bi = decoder.info().blockInfo(blockIdx);
-          int blockSize = bi.width()*bi.height();
-          int[] block = new int[blockSize];
-          // decoding block
-          ColorConvert.BufferToColor(outputFormat, decoder.decodeBlock(blockIdx, outputFormat),
-                                    0, block, 0, blockSize);
-
-          // drawing block
-          image.setRGB(bi.x(), bi.y(), bi.width(), bi.height(), block, 0, bi.width());
-        }
-        blocker.setBlocked(false);
-      } else {
-        blocker.setBlocked(false);
-        throw new Exception("No image data available");
+    if (lImage != null) {
+      ImageIcon icon = (ImageIcon)lImage.getIcon();
+      if (icon != null) {
+        return ColorConvert.toBufferedImage(icon.getImage(), false);
       }
-
-    } else {
-      blocker.setBlocked(false);
-      throw new Exception("MOS decoder not initialized");
+    } else if (entry != null) {
+      return (BufferedImage)loadImage().getImage();
     }
+    return null;
+  }
+
+  private ImageIcon loadImage()
+  {
+    ImageIcon icon = null;
+    MosDecoder decoder = null;
+    if (entry != null) {
+      try {
+        decoder = new MosDecoder(entry);
+        compressed = decoder.info().isCompressed();
+        mosType = decoder.info().type();
+        BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().width(),
+                                                                 decoder.info().height(), false);
+        if (decoder.decode(image)) {
+          icon = new ImageIcon(image);
+        }
+        image = null;
+        decoder.close();
+      } catch (Exception e) {
+        if (decoder != null)
+          decoder.close();
+        icon = null;
+        e.printStackTrace();
+      }
+    }
+    return icon;
   }
 
 }

@@ -284,13 +284,6 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
       this.defaultString = "";
     }
 
-    public StrrefItem(int strref, String description, String defaultString)
-    {
-      this.stringId = strref;
-      this.desc = description;
-      this.defaultString = defaultString;
-    }
-
     public int getStringId()
     {
       return stringId;
@@ -304,11 +297,6 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
         return StringResource.getStringRef(stringId);
       else
         return defaultString;
-    }
-
-    public String getDescription()
-    {
-      return desc;
     }
 
     public String toString()

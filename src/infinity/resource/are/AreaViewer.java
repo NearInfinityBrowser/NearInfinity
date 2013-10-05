@@ -143,7 +143,6 @@ public final class AreaViewer extends ChildFrame
   private JPanel pRoot, pView, pSideBar;
   private JScrollPane spView;
   private JLabel lTileset;
-  private ImageIcon mapImage;
   private JCheckBox cbDrawClosed;
   private JLabel lPosX, lPosY;
   private JTextArea taInfo;
@@ -354,17 +353,15 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- End Interface MouseMotionListener ---------------------
 
-  @Override
   protected void windowClosing() throws Exception
   {
+    lTileset.setIcon(null);
     lTileset.removeAll();
-    for (final List<AbstractLayerItem> list: layerItems.values())
-    {
-      list.clear();
-    }
     layerItems.clear();
     tisDecoder.close();
-    mapImage.getImage().flush();
+    dayNightWed.clear();
+    dispose();
+    System.gc();
   }
 
   private void initGui()
@@ -376,8 +373,6 @@ public final class AreaViewer extends ChildFrame
     lTileset.addMouseMotionListener(this);
     lTileset.setHorizontalAlignment(JLabel.CENTER);
     lTileset.setVerticalAlignment(JLabel.CENTER);
-    mapImage = new ImageIcon();
-    lTileset.setIcon(mapImage);
     pView.add(lTileset, BorderLayout.CENTER);
     spView = new JScrollPane(pView);
     spView.addComponentListener(this);
@@ -585,14 +580,14 @@ public final class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns whether the layer is available
-  private boolean isLayerEnabled(Layers layer)
-  {
-    if (layer != null && layerButton.containsKey(layer)) {
-      return layerButton.get(layer).isEnabled();
-    }
-    return false;
-  }
+//  // Returns whether the layer is available
+//  private boolean isLayerEnabled(Layers layer)
+//  {
+//    if (layer != null && layerButton.containsKey(layer)) {
+//      return layerButton.get(layer).isEnabled();
+//    }
+//    return false;
+//  }
 
   // Enables/disables the checkbox associated with the specified layer
   private void setLayerEnabled(Layers layer, boolean enable, String toolTipText)
@@ -617,14 +612,14 @@ public final class AreaViewer extends ChildFrame
     return panel;
   }
 
-  // Returns the currently displayed area location (of the mouse cursor)
-  private Point getAreaLocation()
-  {
-    if (mapCoordinate == null) {
-      mapCoordinate = new Point();
-    }
-    return mapCoordinate;
-  }
+//  // Returns the currently displayed area location (of the mouse cursor)
+//  private Point getAreaLocation()
+//  {
+//    if (mapCoordinate == null) {
+//      mapCoordinate = new Point();
+//    }
+//    return mapCoordinate;
+//  }
 
   // Updates the area location in the information box
   private void setAreaLocation(Point loc)
@@ -644,15 +639,15 @@ public final class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns the information string in the information box
-  private String getInfoText()
-  {
-    if (taInfo != null) {
-      return taInfo.getText();
-    } else {
-      return new String();
-    }
-  }
+//  // Returns the information string in the information box
+//  private String getInfoText()
+//  {
+//    if (taInfo != null) {
+//      return taInfo.getText();
+//    } else {
+//      return new String();
+//    }
+//  }
 
   // Updates the information string in the information box
   private void setInfoText(String msg)
@@ -1400,7 +1395,9 @@ public final class AreaViewer extends ChildFrame
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listTransitions.size());
     final Color[] color = new Color[]{new Color(0xFF404000, true), new Color(0xFF404000, true),
                                       new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
-    Dimension mapDim = new Dimension(mapImage.getIconWidth(), mapImage.getIconHeight());
+    Dimension mapTilesDim = getMapSize(getCurrentMap());
+    Dimension mapDim = new Dimension(mapTilesDim.width*getTisDecoder().info().tileWidth(),
+                                     mapTilesDim.height*getTisDecoder().info().tileHeight());
     EnumMap<AreaEdge, Rectangle> rectMap = new EnumMap<AreaEdge, Rectangle>(AreaEdge.class);
     rectMap.put(AreaEdge.NORTH, new Rectangle(0, 0, mapDim.width, 16));
     rectMap.put(AreaEdge.EAST, new Rectangle(mapDim.width - 16, 0, 16, mapDim.height));
@@ -1784,6 +1781,18 @@ public final class AreaViewer extends ChildFrame
     return "[No flags]";
   }
 
+  // Returns the BufferedImage object containing the pixel data of the currently shown tileset
+  private BufferedImage getCurrentMapImage()
+  {
+    if (lTileset != null) {
+      ImageIcon icon = (ImageIcon)lTileset.getIcon();
+      if (icon != null) {
+        return (BufferedImage)icon.getImage();
+      }
+    }
+    return null;
+  }
+
   private DayNight getCurrentMap()
   {
     return currentMap;
@@ -1803,12 +1812,15 @@ public final class AreaViewer extends ChildFrame
         Dimension mapTilesDim = getMapSize(dn);
         Dimension mapDim = new Dimension(mapTilesDim.width*getTisDecoder().info().tileWidth(),
                                          mapTilesDim.height*getTisDecoder().info().tileHeight());
-        BufferedImage img = (BufferedImage)mapImage.getImage();
+
+        BufferedImage img = getCurrentMapImage();
         if (img == null || img.getWidth() != mapDim.width || img.getHeight() != mapDim.height) {
+          lTileset.setIcon(null);
+          lTileset.setSize(mapDim);
           // creating new image object
           img = ColorConvert.createCompatibleImage(mapDim.width, mapDim.height, false);
-          mapImage.setImage(img);
-        } else if (img != null) {
+          lTileset.setIcon(new ImageIcon(img));
+        } else {
           img.flush();
         }
 
@@ -1821,7 +1833,7 @@ public final class AreaViewer extends ChildFrame
                                    dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
                                    drawDoorsClosed());
 
-        lTileset.setSize(mapDim);
+        img = null;
         currentMap = dn;
         lTileset.repaint();
         WindowBlocker.blockWindow(this, false);
@@ -1843,15 +1855,20 @@ public final class AreaViewer extends ChildFrame
         Dimension mapTilesDim = getMapSize(dn);
         Dimension mapDim = new Dimension(mapTilesDim.width*getTisDecoder().info().tileWidth(),
             mapTilesDim.height*getTisDecoder().info().tileHeight());
-        BufferedImage img = (BufferedImage)mapImage.getImage();
 
-        if (img != null && img.getWidth() >= mapDim.width && img.getHeight() >= mapDim.height) {
-          // drawing opened/closed door tiles
-          TisResource2.drawDoorTiles(img, getTisDecoder(), mapTilesDim.width, mapTilesDim.height,
-                                     dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
-                                     drawDoorsClosed());
-          lTileset.repaint();
-          return true;
+        BufferedImage img = getCurrentMapImage();
+        if (img != null) {
+          if (img.getWidth() >= mapDim.width && img.getHeight() >= mapDim.height) {
+            // drawing opened/closed door tiles
+            TisResource2.drawDoorTiles(img, getTisDecoder(), mapTilesDim.width, mapTilesDim.height,
+                                       dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
+                                       drawDoorsClosed());
+
+            img = null;
+            lTileset.repaint();
+            return true;
+          }
+          img = null;
         }
       } catch (Exception e) {
         e.printStackTrace();
