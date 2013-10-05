@@ -366,7 +366,7 @@ public class DynamicArray
    */
   public static int getUnsignedInt24(byte[] buffer, int offset)
   {
-    return ((int)getInt24(buffer, offset) & 0xffffff);
+    return (getInt24(buffer, offset) & 0xffffff);
   }
 
   /**
@@ -873,7 +873,7 @@ public class DynamicArray
     if (ofs + size > buffer.length)
       size = buffer.length - ofs;
 
-    byte[] b = new byte[size];
+    final byte[] b = new byte[size];
     System.arraycopy(buffer, ofs, b, 0, size);
     for (int i = 0; i < remaining; i++)
       b[ofs + size + i] = 0;
@@ -921,6 +921,46 @@ public class DynamicArray
     }
 
     return this;
+  }
+
+  /**
+   * Convenience method: Returns the unsigned byte value at the specified index.
+   * @param index The logical index of the the value.
+   * @return The unsigned byte value at the specified position.
+   */
+  public short getUnsignedByte(int index)
+  {
+    return (short)(getByte(index) & 0xff);
+  }
+
+  /**
+   * Convenience method: Returns the unsigned short value at the specified index.
+   * @param index The logical index of the the value.
+   * @return The unsigned short value at the specified position.
+   */
+  public int getUnsignedShort(int index)
+  {
+    return ((int)getShort(index) & 0xffff);
+  }
+
+  /**
+   * Convenience method: Returns the unsigned 24-bit integer value at the specified index.
+   * @param index The logical index of the the value.
+   * @return The unsigned 24-byte integer value at the specified position.
+   */
+  public int getUnsignedInt24(int index)
+  {
+    return getInt24(index) & 0xffffff;
+  }
+
+  /**
+   * Convenience method: Returns the unsigned integer value at the specified index.
+   * @param index The logical index of the the value.
+   * @return The unsigned integer value at the specified position.
+   */
+  public long getUnsignedInt(int index)
+  {
+    return ((long)getInt(index) & 0xffffffffL);
   }
 
   // Allocate a new buffer
