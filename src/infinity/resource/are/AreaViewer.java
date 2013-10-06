@@ -100,8 +100,8 @@ public final class AreaViewer extends ChildFrame
 {
   // Identifies the respective layers
   private static enum Layers { ACTOR, TRIGGER, ENTRANCE, CONTAINER, AMBIENT, AMBIENTRANGE, DOOR,
-                               ANIMATION, AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION,
-                               DOORPOLY, WALLPOLY }
+                               ANIMATION, AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION, DOORPOLY,
+                               WALLPOLY }
 
   // Identifies the respective WED resources
   private static enum DayNight { DAY, NIGHT }
@@ -110,32 +110,47 @@ public final class AreaViewer extends ChildFrame
   private static enum AreaEdge { NORTH, EAST, SOUTH, WEST }
 
   // Tracks the current layer item state
-  private static EnumMap<Layers, Boolean> LayerButtonState =
+  private static final EnumMap<Layers, Boolean> LayerButtonState =
       new EnumMap<Layers, Boolean>(Layers.class);
+  private static final EnumMap<Layers, String> layerItemDesc =
+      new EnumMap<Layers, String>(Layers.class);
   static {
     for (final Layers layer: Layers.values()) {
       LayerButtonState.put(layer, false);
     }
+    layerItemDesc.put(Layers.ACTOR, "Actor");
+    layerItemDesc.put(Layers.TRIGGER, "Trigger");
+    layerItemDesc.put(Layers.ENTRANCE, "Entrance");
+    layerItemDesc.put(Layers.CONTAINER, "Container");
+    layerItemDesc.put(Layers.AMBIENT, "Sound");
+    layerItemDesc.put(Layers.AMBIENTRANGE, "Sound");
+    layerItemDesc.put(Layers.DOOR, "Door");
+    layerItemDesc.put(Layers.ANIMATION, "Animation");
+    layerItemDesc.put(Layers.AUTOMAP, "Automap");
+    layerItemDesc.put(Layers.SPAWNPOINT, "Spawn Point");
+    layerItemDesc.put(Layers.PROTRAP, "Trap");
+    layerItemDesc.put(Layers.TRANSITION, "Transition");
+    layerItemDesc.put(Layers.DOORPOLY, "Door Poly");
+    layerItemDesc.put(Layers.WALLPOLY, "Wall Poly");
   }
+
+  private final EnumMap<DayNight, JRadioButton> dayNightButton =
+      new EnumMap<DayNight, JRadioButton>(DayNight.class);
+  private final EnumMap<DayNight, WedResource> dayNightWed =
+      new EnumMap<DayNight, WedResource>(DayNight.class);
+  private final EnumMap<DayNight, List<TisResource2.TileInfo>> dayNightTiles =
+      new EnumMap<DayNight, List<TisResource2.TileInfo>>(DayNight.class);
+  private final EnumMap<DayNight, List<Integer>> dayNightDoorIndices =
+      new EnumMap<DayNight, List<Integer>>(DayNight.class);
+  private final EnumMap<Layers, JCheckBox> layerButton =
+      new EnumMap<Layers, JCheckBox>(Layers.class);
+  private final EnumMap<Layers, List<AbstractLayerItem>> layerItems =
+      new EnumMap<Layers, List<AbstractLayerItem>>(Layers.class);
 
   private final AreResource are;
 
-  private EnumMap<DayNight, JRadioButton> dayNightButton =
-      new EnumMap<DayNight, JRadioButton>(DayNight.class);
-  private EnumMap<DayNight, WedResource> dayNightWed =
-      new EnumMap<DayNight, WedResource>(DayNight.class);
-  private EnumMap<DayNight, List<TisResource2.TileInfo>> dayNightTiles =
-      new EnumMap<DayNight, List<TisResource2.TileInfo>>(DayNight.class);
-  private EnumMap<DayNight, List<Integer>> dayNightDoorIndices =
-      new EnumMap<DayNight, List<Integer>>(DayNight.class);
-  private DayNight currentMap = null;
+  private DayNight currentMap;
   private TisDecoder tisDecoder;
-
-  private EnumMap<Layers, JCheckBox> layerButton =
-      new EnumMap<Layers, JCheckBox>(Layers.class);
-  private EnumMap<Layers, List<AbstractLayerItem>> layerItems =
-      new EnumMap<Layers, List<AbstractLayerItem>>(Layers.class);
-
   private JPanel pRoot, pView, pSideBar;
   private JScrollPane spView;
   private JLabel lTileset;
@@ -143,12 +158,12 @@ public final class AreaViewer extends ChildFrame
   private JLabel lPosX, lPosY;
   private JTextArea taInfo;
 
-  JPopupMenu pmItems;               // displays a list of layer items at a specific map position
   private Point mapCoordinate;      // map location of current mouse cursor position
+  private JPopupMenu pmItems;       // displays a list of layer items at a specific map position
   boolean bMapDragging;             // Is map dragging active
-  Point mapDraggingPosStart;        // starting mouse position during map dragging
-  Point mapDraggingPosCurrent;      // current mouse positiuon during map dragging
-  Point mapDraggingScrollStart;     // starting Viewport location during dragging
+  private Point mapDraggingPosStart;          // starting mouse position during map dragging
+  private Point mapDraggingPosCurrent;        // current mouse positiuon during map dragging
+  private Point mapDraggingScrollStart;       // starting Viewport location during dragging
   private ProgressMonitor progressMonitor;    // progress dialog shown during GUI initialization
   private int pmMax, pmCur;                   // tracks GUI initialization progress
 
@@ -421,7 +436,7 @@ public final class AreaViewer extends ChildFrame
     advanceProgressMonitor("Loading tileset");
     initMap();
     // initializing layer items (order is important for item's z-order!)
-    advanceProgressMonitor("Loading map entities");
+    advanceProgressMonitor("Loading map items");
     initLayerActor();
     initLayerEntrance();
     initLayerAmbient();
@@ -580,7 +595,7 @@ public final class AreaViewer extends ChildFrame
           case ENTRANCE:      cb = new JCheckBox("Entrances"); break;
           case CONTAINER:     cb = new JCheckBox("Containers"); break;
           case AMBIENT:       cb = new JCheckBox("Ambient Sounds"); break;
-          case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Range"); break;
+          case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Ranges"); break;
           case DOOR:          cb = new JCheckBox("Doors"); break;
           case ANIMATION:     cb = new JCheckBox("Background Animations"); break;
           case AUTOMAP:       cb = new JCheckBox("Automap Notes"); break;
@@ -820,7 +835,7 @@ public final class AreaViewer extends ChildFrame
         icon = iconNeutral;
       }
       IconLayerItem item = new IconLayerItem(location, actor, msg, icon[0], center);
-      item.setName("Actor");
+      item.setName(layerItemDesc.get(Layers.ACTOR));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
@@ -883,7 +898,7 @@ public final class AreaViewer extends ChildFrame
       }
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), trigger, msg, poly);
-      item.setName("Trigger");
+      item.setName(layerItemDesc.get(Layers.TRIGGER));
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -944,7 +959,7 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, entrance, msg, icon[0], center);
-      item.setName("Entrance");
+      item.setName(layerItemDesc.get(Layers.ENTRANCE));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
@@ -1010,7 +1025,7 @@ public final class AreaViewer extends ChildFrame
       }
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), container, msg, poly);
-      item.setName("Container");
+      item.setName(layerItemDesc.get(Layers.CONTAINER));
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1068,17 +1083,12 @@ public final class AreaViewer extends ChildFrame
         location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
         iconBase = ((Flag)ambient.getAttribute("Flags")).isFlagSet(2) ? 0 : 2;
         msg = ((TextString)ambient.getAttribute("Name")).toString();
-        if (iconBase == 0) {
-          msg += " (Global)";
-        } else if (iconBase == 2) {
-          msg += " (Ranged)";
-        }
       } catch (Throwable e) {
         msg = new String();
         iconBase = 0;
       }
       IconLayerItem item = new IconLayerItem(location, ambient, msg, icon[iconBase + 0], center);
-      item.setName("Sound");
+      item.setName(layerItemDesc.get(Layers.AMBIENT));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[iconBase + 1]);
       item.addActionListener(this);
@@ -1148,7 +1158,7 @@ public final class AreaViewer extends ChildFrame
       }
       if (circle != null) {
         ShapedLayerItem item = new ShapedLayerItem(location, ambient, msg, circle, new Point(radius, radius));
-        item.setName("Sound");
+        item.setName(layerItemDesc.get(Layers.AMBIENTRANGE));
         item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
         item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
@@ -1233,7 +1243,7 @@ public final class AreaViewer extends ChildFrame
       for (int i = 0; i < poly.length; i++) {
         Rectangle rect = normalizePolygon(poly[i]);
         ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg[i], poly[i]);
-        item.setName("Door");
+        item.setName(layerItemDesc.get(Layers.DOOR));
         item.setToolTipText(msg[i]);
         item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1293,7 +1303,7 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, animation, msg, icon[0], center);
-      item.setName("Animation");
+      item.setName(layerItemDesc.get(Layers.ANIMATION));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
@@ -1368,7 +1378,7 @@ public final class AreaViewer extends ChildFrame
           msg = new String();
         }
         IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
-        item.setName("Automap");
+        item.setName(layerItemDesc.get(Layers.AUTOMAP));
         item.setToolTipText(msg);
         item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
         item.addActionListener(this);
@@ -1432,7 +1442,7 @@ public final class AreaViewer extends ChildFrame
           msg = new String();
         }
         IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
-        item.setName("Automap");
+        item.setName(layerItemDesc.get(Layers.AUTOMAP));
         item.setToolTipText(msg);
         item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
         item.addActionListener(this);
@@ -1490,7 +1500,7 @@ public final class AreaViewer extends ChildFrame
         poly.addPoint(0, rectMap.get(edge).height);
         ShapedLayerItem item = new ShapedLayerItem(new Point(rectMap.get(edge).x, rectMap.get(edge).y),
                                                    resource, msg, poly);
-        item.setName("Transition");
+        item.setName(layerItemDesc.get(Layers.TRANSITION));
         item.setToolTipText(msg);
         item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1562,7 +1572,7 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, trap, msg, icon[0], center);
-      item.setName("Trap");
+      item.setName(layerItemDesc.get(Layers.PROTRAP));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
@@ -1616,7 +1626,7 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, spawn, msg, icon[0], center);
-      item.setName("Spawn Point");
+      item.setName(layerItemDesc.get(Layers.SPAWNPOINT));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
@@ -1738,7 +1748,7 @@ public final class AreaViewer extends ChildFrame
             if (dp[j] != null) {
               Rectangle rect = normalizePolygon(poly[j]);
               ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg2[j], poly[j]);
-              item.setName("Door Poly");
+              item.setName(layerItemDesc.get(Layers.DOORPOLY));
               item.setToolTipText(msg2[j]);
               item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
               item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1787,7 +1797,7 @@ public final class AreaViewer extends ChildFrame
       count++;
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), wp, msg, poly);
-      item.setName("Wall Poly");
+      item.setName(layerItemDesc.get(Layers.WALLPOLY));
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -2222,7 +2232,7 @@ public final class AreaViewer extends ChildFrame
   // Creates and displays a popup menu containing the items located at the specified position
   private boolean updateItemPopup(Point mapLocation)
   {
-    final int MAX_LEN = 20;
+    final int MAX_LEN = 32;
 
     // preparing menu items
     List<JMenuItem> menuItems = new ArrayList<JMenuItem>();
@@ -2237,6 +2247,15 @@ public final class AreaViewer extends ChildFrame
             if (isExtendedLayerItemActive(layer, i)) {
               final AbstractLayerItem item = itemList.get(i);
               if (item != null) {
+                if (layer == Layers.AMBIENT && isLayerSelected(Layers.AMBIENTRANGE)) {
+                  // skip duplicate (AMBIENT and AMBIENTRANGE) entries
+                  if (item.getViewable() instanceof Ambient) {
+                    Flag flag = (Flag)((Ambient)item.getViewable()).getAttribute("Flags");
+                    if (flag != null && flag.isFlagSet(2)) {
+                      break;
+                    }
+                  }
+                }
                 itemLocation.x = mapLocation.x - item.getX();
                 itemLocation.y = mapLocation.y - item.getY();
                 if (item.contains(itemLocation)) {
@@ -2245,10 +2264,13 @@ public final class AreaViewer extends ChildFrame
                   sb.append(item.getName() == null || item.getName().isEmpty() ?
                             "Item" : item.getName());
                   sb.append(": ");
-                  sb.append((item.getMessage().length() > MAX_LEN) ?
-                             item.getMessage().substring(0, MAX_LEN) + "..." : item.getMessage());
+                  int lenPrefix = sb.length();
+                  int lenMsg = item.getMessage().length();
+                  sb.append((lenPrefix + lenMsg > MAX_LEN) ?
+                            (item.getMessage().substring(0, MAX_LEN - lenPrefix) + "...") :
+                            item.getMessage());
                   LayerMenuItem lmi = new LayerMenuItem(sb.toString(), item);
-                  if (item.getMessage().length() > MAX_LEN) {
+                  if (lenPrefix + lenMsg > MAX_LEN) {
                     lmi.setToolTipText(item.getMessage());
                   }
                   lmi.addActionListener(this);
