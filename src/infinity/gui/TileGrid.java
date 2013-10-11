@@ -816,11 +816,6 @@ public class TileGrid extends JComponent
       init();
     }
 
-    public boolean getShowGrid()
-    {
-      return showGrid;
-    }
-
     public void setShowGrid(boolean bShow)
     {
       if (bShow != showGrid) {
@@ -836,11 +831,6 @@ public class TileGrid extends JComponent
         if (showGrid)
           repaint();
       }
-    }
-
-    public Color getGridColor()
-    {
-      return gridColor;
     }
 
     protected void paintComponent(Graphics g)

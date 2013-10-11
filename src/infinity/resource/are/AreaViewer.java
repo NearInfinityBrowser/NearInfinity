@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridLayout;
@@ -22,6 +23,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
@@ -31,13 +33,17 @@ import java.util.EnumMap;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoundedRangeModel;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ProgressMonitor;
@@ -90,12 +96,13 @@ import infinity.util.FileCI;
  * @author argent77
  */
 public final class AreaViewer extends ChildFrame
-  implements Runnable, ActionListener, ItemListener, LayerItemListener, ComponentListener, MouseMotionListener
+  implements Runnable, ActionListener, ItemListener, LayerItemListener, ComponentListener,
+             MouseMotionListener, MouseListener
 {
   // Identifies the respective layers
   private static enum Layers { ACTOR, TRIGGER, ENTRANCE, CONTAINER, AMBIENT, AMBIENTRANGE, DOOR,
-                               ANIMATION, AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION,
-                               DOORPOLY, WALLPOLY }
+                               ANIMATION, AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION, DOORPOLY,
+                               WALLPOLY }
 
   // Identifies the respective WED resources
   private static enum DayNight { DAY, NIGHT }
@@ -104,54 +111,62 @@ public final class AreaViewer extends ChildFrame
   private static enum AreaEdge { NORTH, EAST, SOUTH, WEST }
 
   // Tracks the current layer item state
-  private static EnumMap<Layers, Boolean> LayerButtonState =
+  private static final EnumMap<Layers, Boolean> LayerButtonState =
       new EnumMap<Layers, Boolean>(Layers.class);
+  private static final EnumMap<Layers, String> layerItemDesc =
+      new EnumMap<Layers, String>(Layers.class);
   static {
-    LayerButtonState.put(Layers.ACTOR, false);
-    LayerButtonState.put(Layers.TRIGGER, false);
-    LayerButtonState.put(Layers.ENTRANCE, false);
-    LayerButtonState.put(Layers.CONTAINER, false);
-    LayerButtonState.put(Layers.AMBIENT, false);
-    LayerButtonState.put(Layers.AMBIENTRANGE, false);
-    LayerButtonState.put(Layers.DOOR, false);
-    LayerButtonState.put(Layers.ANIMATION, false);
-    LayerButtonState.put(Layers.AUTOMAP, false);
-    LayerButtonState.put(Layers.SPAWNPOINT, false);
-    LayerButtonState.put(Layers.PROTRAP, false);
-    LayerButtonState.put(Layers.TRANSITION, false);
-    LayerButtonState.put(Layers.DOORPOLY, false);
-    LayerButtonState.put(Layers.WALLPOLY, false);
+    for (final Layers layer: Layers.values()) {
+      LayerButtonState.put(layer, false);
+    }
+    layerItemDesc.put(Layers.ACTOR, "Actor");
+    layerItemDesc.put(Layers.TRIGGER, "Trigger");
+    layerItemDesc.put(Layers.ENTRANCE, "Entrance");
+    layerItemDesc.put(Layers.CONTAINER, "Container");
+    layerItemDesc.put(Layers.AMBIENT, "Sound");
+    layerItemDesc.put(Layers.AMBIENTRANGE, "Sound");
+    layerItemDesc.put(Layers.DOOR, "Door");
+    layerItemDesc.put(Layers.ANIMATION, "Animation");
+    layerItemDesc.put(Layers.AUTOMAP, "Automap");
+    layerItemDesc.put(Layers.SPAWNPOINT, "Spawn Point");
+    layerItemDesc.put(Layers.PROTRAP, "Trap");
+    layerItemDesc.put(Layers.TRANSITION, "Transition");
+    layerItemDesc.put(Layers.DOORPOLY, "Door Poly");
+    layerItemDesc.put(Layers.WALLPOLY, "Wall Poly");
   }
+
+  private final EnumMap<DayNight, JRadioButton> dayNightButton =
+      new EnumMap<DayNight, JRadioButton>(DayNight.class);
+  private final EnumMap<DayNight, WedResource> dayNightWed =
+      new EnumMap<DayNight, WedResource>(DayNight.class);
+  private final EnumMap<DayNight, List<TisResource2.TileInfo>> dayNightTiles =
+      new EnumMap<DayNight, List<TisResource2.TileInfo>>(DayNight.class);
+  private final EnumMap<DayNight, List<Integer>> dayNightDoorIndices =
+      new EnumMap<DayNight, List<Integer>>(DayNight.class);
+  private final EnumMap<Layers, JCheckBox> layerButton =
+      new EnumMap<Layers, JCheckBox>(Layers.class);
+  private final EnumMap<Layers, List<AbstractLayerItem>> layerItems =
+      new EnumMap<Layers, List<AbstractLayerItem>>(Layers.class);
 
   private final AreResource are;
 
-  private EnumMap<DayNight, JRadioButton> dayNightButton =
-      new EnumMap<DayNight, JRadioButton>(DayNight.class);
-  private EnumMap<DayNight, WedResource> dayNightWed =
-      new EnumMap<DayNight, WedResource>(DayNight.class);
-  private EnumMap<DayNight, List<TisResource2.TileInfo>> dayNightTiles =
-      new EnumMap<DayNight, List<TisResource2.TileInfo>>(DayNight.class);
-  private EnumMap<DayNight, List<Integer>> dayNightDoorIndices =
-      new EnumMap<DayNight, List<Integer>>(DayNight.class);
-  private DayNight currentMap = null;
+  private DayNight currentMap;
   private TisDecoder tisDecoder;
-
-  private EnumMap<Layers, JCheckBox> layerButton =
-      new EnumMap<Layers, JCheckBox>(Layers.class);
-  private EnumMap<Layers, List<AbstractLayerItem>> layerItems =
-      new EnumMap<Layers, List<AbstractLayerItem>>(Layers.class);
-
   private JPanel pRoot, pView, pSideBar;
   private JScrollPane spView;
   private JLabel lTileset;
-  private ImageIcon mapImage;
   private JCheckBox cbDrawClosed;
   private JLabel lPosX, lPosY;
   private JTextArea taInfo;
-  private Point mapCoordinate;
-  private ProgressMonitor progressMonitor;
-  private int pmMax, pmCur;
 
+  private Point mapCoordinate;      // map location of current mouse cursor position
+  private JPopupMenu pmItems;       // displays a list of layer items at a specific map position
+  boolean bMapDragging;             // Is map dragging active
+  private Point mapDraggingPosStart;          // starting mouse position during map dragging
+  private Point mapDraggingPosCurrent;        // current mouse positiuon during map dragging
+  private Point mapDraggingScrollStart;       // starting Viewport location during dragging
+  private ProgressMonitor progressMonitor;    // progress dialog shown during GUI initialization
+  private int pmMax, pmCur;                   // tracks GUI initialization progress
 
   /**
    * Checks whether the specified ARE resource can be displayed with the area viewer.
@@ -180,11 +195,20 @@ public final class AreaViewer extends ChildFrame
   }
 
 
+  /**
+   * Constructs a new Area Viewer window.
+   * @param areaFile The ARE resource to process.
+   */
   public AreaViewer(AreResource areaFile)
   {
     this(NearInfinity.getInstance(), areaFile);
   }
 
+  /**
+   * Constructs a new Area Viewer window.
+   * @param parent Determines the position of the progress dialog during initialization.
+   * @param areaFile The ARE resource to process.
+   */
   public AreaViewer(Component parent, AreResource areaFile)
   {
     super("Area Viewer: " + areaFile.getName(), true);
@@ -227,6 +251,12 @@ public final class AreaViewer extends ChildFrame
     } else if (event.getSource() instanceof AbstractLayerItem) {
       AbstractLayerItem item = (AbstractLayerItem)event.getSource();
       item.showViewable();
+    } else if (event.getSource() instanceof LayerMenuItem) {
+      LayerMenuItem lmi = (LayerMenuItem)event.getSource();
+      AbstractLayerItem item = lmi.getLayerItem();
+      if (item != null) {
+        item.showViewable();
+      }
     }
   }
 
@@ -236,39 +266,22 @@ public final class AreaViewer extends ChildFrame
 
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getItemSelectable() == layerButton.get(Layers.ACTOR)) {
-      enableLayer(Layers.ACTOR, layerButton.get(Layers.ACTOR).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.TRIGGER)) {
-      enableLayer(Layers.TRIGGER, layerButton.get(Layers.TRIGGER).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.ENTRANCE)) {
-      enableLayer(Layers.ENTRANCE, layerButton.get(Layers.ENTRANCE).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.CONTAINER)) {
-      enableLayer(Layers.CONTAINER, layerButton.get(Layers.CONTAINER).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENT)) {
-      enableLayer(Layers.AMBIENT, layerButton.get(Layers.AMBIENT).isSelected());
-      layerButton.get(Layers.AMBIENTRANGE).setEnabled(
-          layerButton.get(Layers.AMBIENT).isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
-      enableLayer(Layers.AMBIENTRANGE, layerButton.get(
-          Layers.AMBIENT).isSelected() && layerButton.get(Layers.AMBIENTRANGE).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.AMBIENTRANGE)) {
-      enableLayer(Layers.AMBIENTRANGE, layerButton.get(Layers.AMBIENTRANGE).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.DOOR)) {
-      enableLayer(Layers.DOOR, layerButton.get(Layers.DOOR).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.ANIMATION)) {
-      enableLayer(Layers.ANIMATION, layerButton.get(Layers.ANIMATION).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.AUTOMAP)) {
-      enableLayer(Layers.AUTOMAP, layerButton.get(Layers.AUTOMAP).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.TRANSITION)) {
-      enableLayer(Layers.TRANSITION, layerButton.get(Layers.TRANSITION).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.SPAWNPOINT)) {
-      enableLayer(Layers.SPAWNPOINT, layerButton.get(Layers.SPAWNPOINT).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.PROTRAP)) {
-      enableLayer(Layers.PROTRAP, layerButton.get(Layers.PROTRAP).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.DOORPOLY)) {
-      enableLayer(Layers.DOORPOLY, layerButton.get(Layers.DOORPOLY).isSelected());
-    } else if (event.getItemSelectable() == layerButton.get(Layers.WALLPOLY)) {
-      enableLayer(Layers.WALLPOLY, layerButton.get(Layers.WALLPOLY).isSelected());
-    } else if (event.getItemSelectable() == cbDrawClosed) {
+    for (final Layers layer: Layers.values()) {
+      JCheckBox cb;
+      if (event.getItemSelectable() != null &&
+          event.getItemSelectable() == (cb = layerButton.get(layer))) {
+        enableLayer(layer, cb.isSelected());
+        if (layer == Layers.AMBIENT) {
+          layerButton.get(Layers.AMBIENTRANGE).setEnabled(
+              cb.isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
+          enableLayer(Layers.AMBIENTRANGE,
+                      cb.isSelected() && layerButton.get(Layers.AMBIENTRANGE).isSelected());
+        }
+        return;
+      }
+    }
+
+    if (event.getItemSelectable() == cbDrawClosed) {
       setDoorState(getCurrentMap(), drawDoorsClosed());
       enableLayer(Layers.DOOR, layerButton.get(Layers.DOOR).isSelected());
       enableLayer(Layers.DOORPOLY, layerButton.get(Layers.DOORPOLY).isSelected());
@@ -335,6 +348,9 @@ public final class AreaViewer extends ChildFrame
 
   public void mouseDragged(MouseEvent event)
   {
+    if (event.getSource() == lTileset && isMapDragging(event.getLocationOnScreen())) {
+      moveMapViewport();
+    }
   }
 
   public void mouseMoved(MouseEvent event)
@@ -342,7 +358,8 @@ public final class AreaViewer extends ChildFrame
     if (event.getSource() == lTileset) {
       setAreaLocation(event.getPoint());
     } else if (event.getSource() instanceof AbstractLayerItem) {
-      // forwarding mouse event to continue displaying cursor position information when hovering over layer items
+      // forwarding mouse event to continue displaying cursor position information
+      // when hovering over layer items
       AbstractLayerItem item = (AbstractLayerItem)event.getSource();
       MouseEvent newEvent =
           new MouseEvent(lTileset, event.getID(), event.getWhen(), event.getModifiers(),
@@ -355,17 +372,49 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- End Interface MouseMotionListener ---------------------
 
-  @Override
+//--------------------- Begin Interface MouseListener ---------------------
+
+  public void mouseClicked(MouseEvent event)
+  {
+  }
+
+  public void mouseEntered(MouseEvent event)
+  {
+  }
+
+  public void mouseExited(MouseEvent event)
+  {
+  }
+
+  public void mousePressed(MouseEvent event)
+  {
+    if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == lTileset) {
+      setMapDraggingEnabled(true, event.getLocationOnScreen());
+    } else {
+      showItemPopup(event);
+    }
+  }
+
+  public void mouseReleased(MouseEvent event)
+  {
+    if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == lTileset) {
+      setMapDraggingEnabled(false, event.getLocationOnScreen());
+    } else {
+      showItemPopup(event);
+    }
+  }
+
+//--------------------- End Interface MouseListener ---------------------
+
   protected void windowClosing() throws Exception
   {
+    lTileset.setIcon(null);
     lTileset.removeAll();
-    for (final List<AbstractLayerItem> list: layerItems.values())
-    {
-      list.clear();
-    }
     layerItems.clear();
     tisDecoder.close();
-    mapImage.getImage().flush();
+    dayNightWed.clear();
+    dispose();
+    System.gc();
   }
 
   private void initGui()
@@ -374,11 +423,10 @@ public final class AreaViewer extends ChildFrame
     pView = new JPanel(null);
     lTileset = new JLabel();
     lTileset.addComponentListener(this);
+    lTileset.addMouseListener(this);
     lTileset.addMouseMotionListener(this);
     lTileset.setHorizontalAlignment(JLabel.CENTER);
     lTileset.setVerticalAlignment(JLabel.CENTER);
-    mapImage = new ImageIcon();
-    lTileset.setIcon(mapImage);
     pView.add(lTileset, BorderLayout.CENTER);
     spView = new JScrollPane(pView);
     spView.addComponentListener(this);
@@ -388,17 +436,18 @@ public final class AreaViewer extends ChildFrame
     // initializing map data
     advanceProgressMonitor("Loading tileset");
     initMap();
-    advanceProgressMonitor("Loading map entities");
+    // initializing layer items (order is important for item's z-order!)
+    advanceProgressMonitor("Loading map items");
     initLayerActor();
     initLayerEntrance();
     initLayerAmbient();
     initLayerAnimation();
-    initLayerAutomap();
     initLayerProTrap();
     initLayerSpawnPoint();
-    initLayerTrigger();
+    initLayerAutomap();
     initLayerContainer();
     initLayerDoor();
+    initLayerTrigger();
     initLayerTransition();
     initLayerWedPoly();
     initLayerAmbientRange();
@@ -498,7 +547,14 @@ public final class AreaViewer extends ChildFrame
     setSize(NearInfinity.getInstance().getSize());
     Center.center(this, NearInfinity.getInstance().getBounds());
 
-    // first time layer initialization
+    // misc. initializations
+    pmItems = new JPopupMenu("Select item:");
+    bMapDragging = false;
+    mapDraggingPosStart = new Point();
+    mapDraggingPosCurrent = new Point();
+    mapDraggingScrollStart = new Point();
+
+    // first time layer initialization (order of ambient/ambientrange is important!)
     layerButton.get(Layers.ACTOR).setSelected(LayerButtonState.get(Layers.ACTOR));
     layerButton.get(Layers.TRIGGER).setSelected(LayerButtonState.get(Layers.TRIGGER));
     layerButton.get(Layers.ENTRANCE).setSelected(LayerButtonState.get(Layers.ENTRANCE));
@@ -540,7 +596,7 @@ public final class AreaViewer extends ChildFrame
           case ENTRANCE:      cb = new JCheckBox("Entrances"); break;
           case CONTAINER:     cb = new JCheckBox("Containers"); break;
           case AMBIENT:       cb = new JCheckBox("Ambient Sounds"); break;
-          case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Range"); break;
+          case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Ranges"); break;
           case DOOR:          cb = new JCheckBox("Doors"); break;
           case ANIMATION:     cb = new JCheckBox("Background Animations"); break;
           case AUTOMAP:       cb = new JCheckBox("Automap Notes"); break;
@@ -586,14 +642,23 @@ public final class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns whether the layer is available
-  private boolean isLayerEnabled(Layers layer)
+  // Returns whether the layer is visible
+  private boolean isLayerSelected(Layers layer)
   {
     if (layer != null && layerButton.containsKey(layer)) {
-      return layerButton.get(layer).isEnabled();
+      return layerButton.get(layer).isSelected();
     }
     return false;
   }
+
+//  // Returns whether the layer is available
+//  private boolean isLayerEnabled(Layers layer)
+//  {
+//    if (layer != null && layerButton.containsKey(layer)) {
+//      return layerButton.get(layer).isEnabled();
+//    }
+//    return false;
+//  }
 
   // Enables/disables the checkbox associated with the specified layer
   private void setLayerEnabled(Layers layer, boolean enable, String toolTipText)
@@ -618,14 +683,14 @@ public final class AreaViewer extends ChildFrame
     return panel;
   }
 
-  // Returns the currently displayed area location (of the mouse cursor)
-  private Point getAreaLocation()
-  {
-    if (mapCoordinate == null) {
-      mapCoordinate = new Point();
-    }
-    return mapCoordinate;
-  }
+//  // Returns the currently displayed area location (of the mouse cursor)
+//  private Point getAreaLocation()
+//  {
+//    if (mapCoordinate == null) {
+//      mapCoordinate = new Point();
+//    }
+//    return mapCoordinate;
+//  }
 
   // Updates the area location in the information box
   private void setAreaLocation(Point loc)
@@ -645,15 +710,15 @@ public final class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns the information string in the information box
-  private String getInfoText()
-  {
-    if (taInfo != null) {
-      return taInfo.getText();
-    } else {
-      return new String();
-    }
-  }
+//  // Returns the information string in the information box
+//  private String getInfoText()
+//  {
+//    if (taInfo != null) {
+//      return taInfo.getText();
+//    } else {
+//      return new String();
+//    }
+//  }
 
   // Updates the information string in the information box
   private void setInfoText(String msg)
@@ -771,10 +836,12 @@ public final class AreaViewer extends ChildFrame
         icon = iconNeutral;
       }
       IconLayerItem item = new IconLayerItem(location, actor, msg, icon[0], center);
+      item.setName(layerItemDesc.get(Layers.ACTOR));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -832,6 +899,7 @@ public final class AreaViewer extends ChildFrame
       }
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), trigger, msg, poly);
+      item.setName(layerItemDesc.get(Layers.TRIGGER));
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -841,6 +909,7 @@ public final class AreaViewer extends ChildFrame
       item.setFilled(true);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -891,10 +960,12 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, entrance, msg, icon[0], center);
+      item.setName(layerItemDesc.get(Layers.ENTRANCE));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -955,6 +1026,7 @@ public final class AreaViewer extends ChildFrame
       }
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), container, msg, poly);
+      item.setName(layerItemDesc.get(Layers.CONTAINER));
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -964,6 +1036,7 @@ public final class AreaViewer extends ChildFrame
       item.setFilled(true);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -1011,20 +1084,17 @@ public final class AreaViewer extends ChildFrame
         location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
         iconBase = ((Flag)ambient.getAttribute("Flags")).isFlagSet(2) ? 0 : 2;
         msg = ((TextString)ambient.getAttribute("Name")).toString();
-        if (iconBase == 0) {
-          msg += " (Global)";
-        } else if (iconBase == 2) {
-          msg += " (Ranged)";
-        }
       } catch (Throwable e) {
         msg = new String();
         iconBase = 0;
       }
       IconLayerItem item = new IconLayerItem(location, ambient, msg, icon[iconBase + 0], center);
+      item.setName(layerItemDesc.get(Layers.AMBIENT));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[iconBase + 1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -1089,6 +1159,7 @@ public final class AreaViewer extends ChildFrame
       }
       if (circle != null) {
         ShapedLayerItem item = new ShapedLayerItem(location, ambient, msg, circle, new Point(radius, radius));
+        item.setName(layerItemDesc.get(Layers.AMBIENTRANGE));
         item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
         item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
@@ -1099,6 +1170,7 @@ public final class AreaViewer extends ChildFrame
         item.setFilled(true);
         item.addActionListener(this);
         item.addLayerItemListener(this);
+        item.addMouseListener(this);
         item.addMouseMotionListener(this);
         list.add(item);
         item.setVisible(false);
@@ -1172,6 +1244,7 @@ public final class AreaViewer extends ChildFrame
       for (int i = 0; i < poly.length; i++) {
         Rectangle rect = normalizePolygon(poly[i]);
         ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg[i], poly[i]);
+        item.setName(layerItemDesc.get(Layers.DOOR));
         item.setToolTipText(msg[i]);
         item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1181,6 +1254,7 @@ public final class AreaViewer extends ChildFrame
         item.setFilled(true);
         item.addActionListener(this);
         item.addLayerItemListener(this);
+        item.addMouseListener(this);
         item.addMouseMotionListener(this);
         list.add(item);
       }
@@ -1230,10 +1304,12 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, animation, msg, icon[0], center);
+      item.setName(layerItemDesc.get(Layers.ANIMATION));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -1303,10 +1379,12 @@ public final class AreaViewer extends ChildFrame
           msg = new String();
         }
         IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
+        item.setName(layerItemDesc.get(Layers.AUTOMAP));
         item.setToolTipText(msg);
         item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
         item.addActionListener(this);
         item.addLayerItemListener(this);
+        item.addMouseListener(this);
         item.addMouseMotionListener(this);
         list.add(item);
       }
@@ -1365,9 +1443,12 @@ public final class AreaViewer extends ChildFrame
           msg = new String();
         }
         IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
+        item.setName(layerItemDesc.get(Layers.AUTOMAP));
         item.setToolTipText(msg);
         item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
         item.addActionListener(this);
+        item.addMouseListener(this);
+        item.addMouseMotionListener(this);
         item.addLayerItemListener(this);
         list.add(item);
       }
@@ -1401,7 +1482,9 @@ public final class AreaViewer extends ChildFrame
     ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listTransitions.size());
     final Color[] color = new Color[]{new Color(0xFF404000, true), new Color(0xFF404000, true),
                                       new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
-    Dimension mapDim = new Dimension(mapImage.getIconWidth(), mapImage.getIconHeight());
+    Dimension mapTilesDim = getMapSize(getCurrentMap());
+    Dimension mapDim = new Dimension(mapTilesDim.width*getTisDecoder().info().tileWidth(),
+                                     mapTilesDim.height*getTisDecoder().info().tileHeight());
     EnumMap<AreaEdge, Rectangle> rectMap = new EnumMap<AreaEdge, Rectangle>(AreaEdge.class);
     rectMap.put(AreaEdge.NORTH, new Rectangle(0, 0, mapDim.width, 16));
     rectMap.put(AreaEdge.EAST, new Rectangle(mapDim.width - 16, 0, 16, mapDim.height));
@@ -1418,6 +1501,7 @@ public final class AreaViewer extends ChildFrame
         poly.addPoint(0, rectMap.get(edge).height);
         ShapedLayerItem item = new ShapedLayerItem(new Point(rectMap.get(edge).x, rectMap.get(edge).y),
                                                    resource, msg, poly);
+        item.setName(layerItemDesc.get(Layers.TRANSITION));
         item.setToolTipText(msg);
         item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1427,6 +1511,7 @@ public final class AreaViewer extends ChildFrame
         item.setFilled(true);
         item.addActionListener(this);
         item.addLayerItemListener(this);
+        item.addMouseListener(this);
         item.addMouseMotionListener(this);
         list.add(item);
       }
@@ -1488,10 +1573,12 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, trap, msg, icon[0], center);
+      item.setName(layerItemDesc.get(Layers.PROTRAP));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -1540,10 +1627,12 @@ public final class AreaViewer extends ChildFrame
         msg = new String();
       }
       IconLayerItem item = new IconLayerItem(location, spawn, msg, icon[0], center);
+      item.setName(layerItemDesc.get(Layers.SPAWNPOINT));
       item.setToolTipText(msg);
       item.setIcon(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       list.add(item);
     }
@@ -1660,6 +1749,7 @@ public final class AreaViewer extends ChildFrame
             if (dp[j] != null) {
               Rectangle rect = normalizePolygon(poly[j]);
               ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg2[j], poly[j]);
+              item.setName(layerItemDesc.get(Layers.DOORPOLY));
               item.setToolTipText(msg2[j]);
               item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
               item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1669,6 +1759,7 @@ public final class AreaViewer extends ChildFrame
               item.setFilled(true);
               item.addActionListener(this);
               item.addLayerItemListener(this);
+              item.addMouseListener(this);
               item.addMouseMotionListener(this);
               listDoor.add(item);
             } else {
@@ -1707,6 +1798,7 @@ public final class AreaViewer extends ChildFrame
       count++;
       Rectangle rect = normalizePolygon(poly);
       ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), wp, msg, poly);
+      item.setName(layerItemDesc.get(Layers.WALLPOLY));
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -1716,6 +1808,7 @@ public final class AreaViewer extends ChildFrame
       item.setFilled(true);
       item.addActionListener(this);
       item.addLayerItemListener(this);
+      item.addMouseListener(this);
       item.addMouseMotionListener(this);
       listWall.add(item);
     }
@@ -1725,17 +1818,32 @@ public final class AreaViewer extends ChildFrame
 
   private void enableLayer(Layers layer, boolean enable)
   {
-    if (layer == Layers.DOOR || layer == Layers.DOORPOLY) {
+    if (layer != null && layerItems.containsKey(layer)) {
       List<AbstractLayerItem> list = layerItems.get(layer);
-      int ofs = drawDoorsClosed() ? 1 : 0;
-      for (int i = 0; i < list.size() / 2; i++) {
-        showLayerItem(list.get((i << 1) + ((ofs + 1) & 1)), false);
-        showLayerItem(list.get((i << 1) + ofs), enable);
+      for (int i = 0; i < list.size(); i++) {
+        AbstractLayerItem item = list.get(i);
+        if (item != null) {
+          item.setVisible(isExtendedLayerItemActive(layer, i) && enable);
+        }
       }
-    } else {
-      showAllLayerItems(layerItems.get(layer), enable);
+      LayerButtonState.put(layer, enable);
     }
-    LayerButtonState.put(layer, enable);
+  }
+
+  // Returns whether the items of the specified layer consist of more than one logical item
+  private boolean isExtendedLayerItem(Layers layer)
+  {
+    return (layer == Layers.DOOR || layer == Layers.DOORPOLY);
+  }
+
+  // Returns whether the layer item of the specified list index is currently active
+  private boolean isExtendedLayerItemActive(Layers layer, int itemIndex)
+  {
+    if (isExtendedLayerItem(layer)) {
+      return ((itemIndex & 1) == 1) == drawDoorsClosed();
+    } else {
+      return true;
+    }
   }
 
   // Translates polygon to top-left corner and returns original bounding box
@@ -1785,6 +1893,18 @@ public final class AreaViewer extends ChildFrame
     return "[No flags]";
   }
 
+  // Returns the BufferedImage object containing the pixel data of the currently shown tileset
+  private BufferedImage getCurrentMapImage()
+  {
+    if (lTileset != null) {
+      ImageIcon icon = (ImageIcon)lTileset.getIcon();
+      if (icon != null) {
+        return (BufferedImage)icon.getImage();
+      }
+    }
+    return null;
+  }
+
   private DayNight getCurrentMap()
   {
     return currentMap;
@@ -1804,12 +1924,15 @@ public final class AreaViewer extends ChildFrame
         Dimension mapTilesDim = getMapSize(dn);
         Dimension mapDim = new Dimension(mapTilesDim.width*getTisDecoder().info().tileWidth(),
                                          mapTilesDim.height*getTisDecoder().info().tileHeight());
-        BufferedImage img = (BufferedImage)mapImage.getImage();
+
+        BufferedImage img = getCurrentMapImage();
         if (img == null || img.getWidth() != mapDim.width || img.getHeight() != mapDim.height) {
+          lTileset.setIcon(null);
+          lTileset.setSize(mapDim);
           // creating new image object
           img = ColorConvert.createCompatibleImage(mapDim.width, mapDim.height, false);
-          mapImage.setImage(img);
-        } else if (img != null) {
+          lTileset.setIcon(new ImageIcon(img));
+        } else {
           img.flush();
         }
 
@@ -1822,7 +1945,7 @@ public final class AreaViewer extends ChildFrame
                                    dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
                                    drawDoorsClosed());
 
-        lTileset.setSize(mapDim);
+        img = null;
         currentMap = dn;
         lTileset.repaint();
         WindowBlocker.blockWindow(this, false);
@@ -1844,15 +1967,20 @@ public final class AreaViewer extends ChildFrame
         Dimension mapTilesDim = getMapSize(dn);
         Dimension mapDim = new Dimension(mapTilesDim.width*getTisDecoder().info().tileWidth(),
             mapTilesDim.height*getTisDecoder().info().tileHeight());
-        BufferedImage img = (BufferedImage)mapImage.getImage();
 
-        if (img != null && img.getWidth() >= mapDim.width && img.getHeight() >= mapDim.height) {
-          // drawing opened/closed door tiles
-          TisResource2.drawDoorTiles(img, getTisDecoder(), mapTilesDim.width, mapTilesDim.height,
-                                     dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
-                                     drawDoorsClosed());
-          lTileset.repaint();
-          return true;
+        BufferedImage img = getCurrentMapImage();
+        if (img != null) {
+          if (img.getWidth() >= mapDim.width && img.getHeight() >= mapDim.height) {
+            // drawing opened/closed door tiles
+            TisResource2.drawDoorTiles(img, getTisDecoder(), mapTilesDim.width, mapTilesDim.height,
+                                       dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
+                                       drawDoorsClosed());
+
+            img = null;
+            lTileset.repaint();
+            return true;
+          }
+          img = null;
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -1985,24 +2113,6 @@ public final class AreaViewer extends ChildFrame
     return false;
   }
 
-  // sets visibility state of the specified layer items list
-  private void showAllLayerItems(List<AbstractLayerItem> list, boolean show)
-  {
-    if (list != null) {
-      for (final AbstractLayerItem item: list) {
-        item.setVisible(show);
-      }
-    }
-  }
-
-  // sets visibility state of the specific layer items
-  private void showLayerItem(AbstractLayerItem item, boolean show)
-  {
-    if (item != null) {
-      item.setVisible(show);
-    }
-  }
-
   // Returns whether closed door are currently shown
   private boolean drawDoorsClosed()
   {
@@ -2046,6 +2156,174 @@ public final class AreaViewer extends ChildFrame
           progressMonitor.setNote(note);
         progressMonitor.setProgress(pmCur);
       }
+    }
+  }
+
+  // Returns whether map dragging is enabled; updates current and previous mouse positions
+  private boolean isMapDragging(Point mousePos)
+  {
+    if (bMapDragging && mousePos != null && !mapDraggingPosCurrent.equals(mousePos)) {
+      mapDraggingPosCurrent.x = mousePos.x;
+      mapDraggingPosCurrent.y = mousePos.y;
+    }
+    return bMapDragging;
+  }
+
+  // Enables/Disables map dragging mode (set mouse cursor, global state and current mouse position)
+  private void setMapDraggingEnabled(boolean enable, Point mousePos)
+  {
+    if (bMapDragging != enable) {
+      bMapDragging = enable;
+      setCursor(Cursor.getPredefinedCursor(bMapDragging ? Cursor.MOVE_CURSOR : Cursor.DEFAULT_CURSOR));
+      if (bMapDragging == true) {
+        if (mousePos == null) {
+          mousePos = new Point();
+        }
+        mapDraggingPosStart.x = mapDraggingPosCurrent.x = mousePos.x;
+        mapDraggingPosStart.y = mapDraggingPosCurrent.y = mousePos.y;
+        mapDraggingScrollStart.x = spView.getHorizontalScrollBar().getModel().getValue();
+        mapDraggingScrollStart.y = spView.getVerticalScrollBar().getModel().getValue();
+      }
+    }
+  }
+
+  // Returns the current or previous mouse position
+  private Point getMapDraggingDistance()
+  {
+    Point pDelta = new Point();
+    if (bMapDragging) {
+      pDelta.x = mapDraggingPosStart.x - mapDraggingPosCurrent.x;
+      pDelta.y = mapDraggingPosStart.y - mapDraggingPosCurrent.y;
+    }
+    return pDelta;
+  }
+
+  // Updates the map portion displayed in the viewport
+  private void moveMapViewport()
+  {
+    if (!mapDraggingPosStart.equals(mapDraggingPosCurrent)) {
+      Point distance = getMapDraggingDistance();
+      if (distance.x != 0) {
+        JScrollBar bar = spView.getHorizontalScrollBar();
+        if (bar != null && bar.isEnabled()) {
+          BoundedRangeModel model = bar.getModel();
+          int curValue = mapDraggingScrollStart.x + distance.x;
+          if (curValue < 0)
+            curValue = 0;
+          if (curValue > model.getMaximum())
+            curValue = model.getMaximum();
+          model.setValue(curValue);
+        }
+      }
+      if (distance.y != 0) {
+        JScrollBar bar = spView.getVerticalScrollBar();
+        if (bar != null && bar.isEnabled()) {
+          BoundedRangeModel model = bar.getModel();
+          int curValue = mapDraggingScrollStart.y + distance.y;
+          if (curValue < 0)
+            curValue = 0;
+          if (curValue > model.getMaximum())
+            curValue = model.getMaximum();
+          model.setValue(curValue);
+        }
+      }
+    }
+  }
+
+  // Creates and displays a popup menu containing the items located at the specified position
+  private boolean updateItemPopup(Point mapLocation)
+  {
+    final int MAX_LEN = 32;
+
+    // preparing menu items
+    List<JMenuItem> menuItems = new ArrayList<JMenuItem>();
+    Point itemLocation = new Point();
+    // for each active layer...
+    for (final Layers layer: Layers.values()) {
+      if (isLayerSelected(layer)) {
+        List<AbstractLayerItem> itemList = layerItems.get(layer);
+        if (itemList != null) {
+          // for each visible layer item...
+          for (int i = 0; i < itemList.size(); i++) {
+            if (isExtendedLayerItemActive(layer, i)) {
+              final AbstractLayerItem item = itemList.get(i);
+              if (item != null) {
+                if (layer == Layers.AMBIENT && isLayerSelected(Layers.AMBIENTRANGE)) {
+                  // skip duplicate (AMBIENT and AMBIENTRANGE) entries
+                  if (item.getViewable() instanceof Ambient) {
+                    Flag flag = (Flag)((Ambient)item.getViewable()).getAttribute("Flags");
+                    if (flag != null && flag.isFlagSet(2)) {
+                      break;
+                    }
+                  }
+                }
+                itemLocation.x = mapLocation.x - item.getX();
+                itemLocation.y = mapLocation.y - item.getY();
+                if (item.contains(itemLocation)) {
+                  // creating a new menu item to be added to the context menu
+                  StringBuilder sb = new StringBuilder();
+                  sb.append(item.getName() == null || item.getName().isEmpty() ?
+                            "Item" : item.getName());
+                  sb.append(": ");
+                  int lenPrefix = sb.length();
+                  int lenMsg = item.getMessage().length();
+                  sb.append((lenPrefix + lenMsg > MAX_LEN) ?
+                            (item.getMessage().substring(0, MAX_LEN - lenPrefix) + "...") :
+                            item.getMessage());
+                  LayerMenuItem lmi = new LayerMenuItem(sb.toString(), item);
+                  if (lenPrefix + lenMsg > MAX_LEN) {
+                    lmi.setToolTipText(item.getMessage());
+                  }
+                  lmi.addActionListener(this);
+                  menuItems.add(lmi);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // updating context menu with the prepared item list
+    pmItems.removeAll();
+    if (!menuItems.isEmpty()) {
+      for (final JMenuItem mi: menuItems) {
+        pmItems.add(mi);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  // Shows a popup menu containing layer items located at the current position when needed
+  private void showItemPopup(MouseEvent event)
+  {
+    if (event != null && event.isPopupTrigger() && event.getSource() instanceof AbstractLayerItem) {
+      AbstractLayerItem item = (AbstractLayerItem)event.getSource();
+      Point location = item.getLocation();
+      location.translate(event.getX(), event.getY());
+      if (updateItemPopup(location)) {
+        pmItems.show(item, event.getX(), event.getY());
+      }
+    }
+  }
+
+//----------------------------- INNER CLASSES -----------------------------
+
+  // Associates a menu item with a layer item object
+  private class LayerMenuItem extends JMenuItem
+  {
+    private AbstractLayerItem layerItem;
+
+    public LayerMenuItem(String text, AbstractLayerItem item)
+    {
+      super(text);
+      layerItem = item;
+    }
+
+    public AbstractLayerItem getLayerItem()
+    {
+      return layerItem;
     }
   }
 }

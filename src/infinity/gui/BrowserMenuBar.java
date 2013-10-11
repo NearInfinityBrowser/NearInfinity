@@ -1136,7 +1136,7 @@ public final class BrowserMenuBar extends JMenuBar
         final String githubHTML = "<html><a href=" + githubPage + "/>" +
           githubPage + "</a></html>";
         final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
-        final String hauglidCopyrightText = "Copyright (©) 2001-2005 - Jon Olav Hauglid";
+        final String hauglidCopyrightText = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
         final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" +
           hauglidPage + "</a></html>";
 
@@ -1187,10 +1187,10 @@ public final class BrowserMenuBar extends JMenuBar
 
         JLabel label4 = new JLabel("This program is free and may be distributed according", JLabel.CENTER);
         JLabel label5 = new JLabel("to the terms of the GNU Lesser General Public License.", JLabel.CENTER);
-        JLabel label6 = new JLabel("Most icons (©) eclipse.org - Common Public License.", JLabel.CENTER);
+        JLabel label6 = new JLabel("Most icons (\u00A9) eclipse.org - Common Public License.", JLabel.CENTER);
         JLabel label7 = new JLabel(
-                "Plastic XP L&F (©) jgoodies.com - Berkeley Software Distribution License.", JLabel.CENTER);
-        JLabel label8 = new JLabel("JOrbis (©) JCraft Inc. - GNU Lesser General Public License.", JLabel.CENTER);
+                "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.", JLabel.CENTER);
+        JLabel label8 = new JLabel("JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.", JLabel.CENTER);
         Font smallFont = defaultfont.deriveFont(11.0f);
         label4.setFont(smallFont);
         label5.setFont(smallFont);

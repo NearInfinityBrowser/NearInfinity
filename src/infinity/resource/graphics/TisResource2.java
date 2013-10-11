@@ -10,7 +10,6 @@ import infinity.datatype.ResourceRef;
 import infinity.gui.TileGrid;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
@@ -23,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -62,94 +62,69 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   private JPanel panel;                   // top-level panel of the viewer
 
 
-  @Deprecated
-  public static boolean drawImage(BufferedImage image, TisDecoder decoder, int width, int height,
-                                  int mapIndex, int lookupIndex, Overlay overlay, boolean secondary)
-                                      throws Exception
-  {
-    if (image != null && decoder != null) {
-      // creating tile index map
-      List<TileInfo> tiles = new ArrayList<TileInfo>(width * height);
-      for (int ypos = 0; ypos < height; ypos++) {
-        for (int xpos = 0; xpos < width; xpos++) {
-          AbstractStruct wedtilemap = (AbstractStruct)overlay.getStructEntryAt(ypos*width + xpos + mapIndex);
-          int tilenum, tilenumAlt = -1;
-          int lookupPrimary = ((DecNumber)wedtilemap.getAttribute("Primary tile index")).getValue();
-          int lookupSecondary = ((DecNumber)wedtilemap.getAttribute("Secondary tile index")).getValue();
-          if (lookupSecondary != -1)
-            tilenumAlt = lookupSecondary;
-          tilenum = ((DecNumber)overlay.getStructEntryAt(lookupPrimary + lookupIndex)).getValue();
-          tiles.add(new TileInfo(xpos, ypos, tilenum, tilenumAlt));
-        }
-      }
-
-      ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.A8R8G8B8;
-      int tileWidth = decoder.info().tileWidth();
-      int tileHeight = decoder.info().tileHeight();
-      int[] tileBlock = new int[tileWidth*tileHeight];
-      for (final TileInfo tile: tiles) {
-        // decoding tile
-        int tileIdx = (secondary && tile.tilenumAlt != -1) ? tile.tilenumAlt : tile.tilenum;
-        ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tileIdx, colorFormat), 0,
-                                   tileBlock, 0, tileBlock.length);
-
-        // drawing tile
-        image.setRGB(tile.xpos*tileWidth, tile.ypos*tileHeight, tileWidth, tileHeight,
-                     tileBlock, 0, tileWidth);
-      }
-      return true;
-    }
-    return false;
-  }
-
+  /**
+   * Draws a list of map tiles into the specified image object.
+   * @param image The image to draw the tiles into
+   * @param decoder The TIS decoder needed to decode the tiles
+   * @param tilesX Number of tiles per row
+   * @param tilesY Number of tile rows
+   * @param tileInfo A list of info objects needed to draw the right tiles
+   * @return true if successful, false otherwise
+   */
   public static boolean drawTiles(BufferedImage image, TisDecoder decoder,
                                   int tilesX, int tilesY, List<TileInfo> tileInfo)
   {
     if (image != null && decoder != null && tileInfo != null) {
-      ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.R8G8B8;
       int tileWidth = decoder.info().tileWidth();
       int tileHeight = decoder.info().tileHeight();
       int width = tilesX * tileWidth;
       int height = tilesY * tileHeight;
       if (image.getWidth() >= width && image.getHeight() >= height) {
-        int[] tileBlock = new int[tileWidth*tileHeight];
+        final BufferedImage imgTile = ColorConvert.createCompatibleImage(tileWidth, tileHeight, false);
+        final Graphics2D g = (Graphics2D)image.getGraphics();
         for (final TileInfo tile: tileInfo) {
-          // decoding tile
           try {
-            ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tile.tilenum, colorFormat),
-                                       0, tileBlock, 0, tileBlock.length);
+            if (decoder.decodeTile(imgTile, tile.tilenum)) {
+              g.drawImage(imgTile, tile.xpos*tileWidth, tile.ypos*tileHeight, null);
+            }
           } catch (Exception e) {
-            for (int i = 0; i < tileBlock.length; i++)
-              tileBlock[i] = 0;
+            System.err.println("Error drawing tile #" + tile.tilenum);
           }
-
-          // drawing tile
-          image.setRGB(tile.xpos*tileWidth, tile.ypos*tileHeight, tileWidth, tileHeight,
-                       tileBlock, 0, tileWidth);
         }
+        g.dispose();
         return true;
       }
     }
     return false;
   }
 
+  /**
+   * Draws a specific list of primary or secondary tiles, depending on the specified opened/closed state.
+   * @param image The image to draw the tiles into
+   * @param decoder The TIS decoder needed to decode the tiles
+   * @param tilesX Number of tiles per row
+   * @param tilesY Number of tile rows
+   * @param tileInfo List of info objects needed to draw the right tiles
+   * @param doorIndices List of info objects of specific door tiles
+   * @param drawClosed Indicates whether the primary or secondary tile has to be drawn
+   * @return true if successful, false otherwise
+   */
   public static boolean drawDoorTiles(BufferedImage image, TisDecoder decoder,
                                       int tilesX, int tilesY, List<TileInfo> tileInfo,
                                       List<Integer> doorIndices, boolean drawClosed)
   {
     if (image != null && decoder != null && tileInfo != null && doorIndices != null) {
-      ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.R8G8B8;
       int tileWidth = decoder.info().tileWidth();
       int tileHeight = decoder.info().tileHeight();
       int width = tilesX * tileWidth;
       int height = tilesY * tileHeight;
       if (image.getWidth() >= width && image.getHeight() >= height) {
-        int[] tileBlock = new int[tileWidth*tileHeight];
+        final BufferedImage imgTile = ColorConvert.createCompatibleImage(tileWidth, tileHeight, false);
+        final Graphics2D g = (Graphics2D)image.getGraphics();
         for (final int index: doorIndices) {
-          // search for correct tileinfo object
+          // searching for correct tileinfo object
           TileInfo tile = tileInfo.get(index);
           if (tile.tilenum != index) {
-            // search for correct tileinfo object
             for (TileInfo ti: tileInfo) {
               if (ti.tilenum == index) {
                 tile = ti;
@@ -161,17 +136,14 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
           // decoding tile
           int tileIdx = (drawClosed && tile.tilenumAlt != -1) ? tile.tilenumAlt : tile.tilenum;
           try {
-            ColorConvert.BufferToColor(colorFormat, decoder.decodeTile(tileIdx, colorFormat),
-                                       0, tileBlock, 0, tileBlock.length);
+            if (decoder.decodeTile(imgTile, tileIdx)) {
+              g.drawImage(imgTile, tile.xpos*tileWidth, tile.ypos*tileHeight, null);
+            }
           } catch (Exception e) {
-            for (int i = 0; i < tileBlock.length; i++)
-              tileBlock[i] = 0;
+            System.err.println("Error drawing tile #" + tileIdx);
           }
-
-          // drawing tile
-          image.setRGB(tile.xpos*tileWidth, tile.ypos*tileHeight, tileWidth, tileHeight,
-                       tileBlock, 0, tileWidth);
         }
+        g.dispose();
         return true;
       }
     }
@@ -259,12 +231,16 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   public void close() throws Exception
   {
     cbGrid.removeChangeListener(this);
+    panel.removeAll();
+    tileImages.clear();
     tileImages = null;
+    tileGrid.clearImages();
     tileGrid = null;
     if (decoder != null) {
       decoder.close();
       decoder = null;
     }
+    panel = null;
     System.gc();
   }
 
@@ -376,25 +352,18 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       WindowBlocker.blockWindow(true);
 
       decoder = new TisDecoder(entry);
-
-      // preparations
       int tileCount = decoder.info().tileCount();
       tileImages = new ArrayList<Image>(tileCount);
-      ColorConvert.ColorFormat colorFormat = ColorConvert.ColorFormat.A8R8G8B8;
-      int tileWidth = decoder.info().tileWidth();
-      int tileHeight = decoder.info().tileHeight();
-      int[] block = new int[tileWidth*tileHeight];
       for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
-        // decoding tile
-        ColorConvert.BufferToColor(colorFormat,
-                                   decoder.decodeTile(tileIdx, colorFormat),
-                                   0, block, 0, block.length);
-
-        // drawing tile
-        BufferedImage img = ColorConvert.createCompatibleImage(tileWidth, tileHeight, false);
-        img.setRGB(0, 0, tileWidth, tileHeight, block, 0, tileWidth);
-        tileImages.add(img);
+        final BufferedImage image = decoder.decodeTile(tileIdx);
+        if (image != null) {
+          tileImages.add(image);
+        } else {
+          tileImages.add(ColorConvert.createCompatibleImage(decoder.info().tileWidth(),
+                                                            decoder.info().tileHeight(), false));
+        }
       }
+      decoder.flush();
       WindowBlocker.blockWindow(false);
     } catch (Exception e) {
       e.printStackTrace();
