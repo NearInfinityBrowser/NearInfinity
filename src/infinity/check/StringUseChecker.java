@@ -16,7 +16,6 @@ import infinity.resource.key.ResourceEntry;
 import infinity.resource.other.PlainTextResource;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
-import infinity.util.ArrayUtil;
 import infinity.util.StringResource;
 
 import javax.swing.*;
@@ -81,8 +80,8 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
     colClasses.add(Object.class); colClasses.add(Integer.class);
-    table = new SortableTable(ArrayUtil.toList(new String[]{"String", "StrRef"}),
-                              colClasses, ArrayUtil.toList(new Integer[]{450, 20}));
+    table = new SortableTable(Arrays.asList(new String[]{"String", "StrRef"}),
+                              colClasses, Arrays.asList(new Integer[]{450, 20}));
 
     StringResource.getStringRef(0);
     strUsed = new boolean[StringResource.getMaxIndex() + 1];

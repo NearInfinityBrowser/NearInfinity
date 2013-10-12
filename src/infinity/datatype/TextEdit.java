@@ -7,7 +7,6 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
@@ -18,6 +17,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.EnumMap;
 
 public final class TextEdit extends Datatype implements Editable
@@ -45,7 +45,7 @@ public final class TextEdit extends Datatype implements Editable
   public TextEdit(byte buffer[], int offset, int length, String name, EOLType eolType)
   {
     super(offset, length, name);
-    bytes = ArrayUtil.getSubArray(buffer, offset, length);
+    bytes = Arrays.copyOfRange(buffer, offset, offset + length);
     this.eolType = (eolType != null) ? eolType : EOLType.UNIX;
   }
 

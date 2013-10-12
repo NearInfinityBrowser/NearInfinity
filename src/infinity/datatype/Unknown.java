@@ -7,14 +7,15 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.ArrayUtil;
 import infinity.util.Filewriter;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 public class Unknown extends Datatype implements Editable
 {
@@ -25,13 +26,13 @@ public class Unknown extends Datatype implements Editable
   public Unknown(byte[] buffer, int offset, int length)
   {
     super(offset, length, UNKNOWN);
-    data = ArrayUtil.getSubArray(buffer, offset, length);
+    data = Arrays.copyOfRange(buffer, offset, offset + length);
   }
 
   public Unknown(byte[] buffer, int offset, int length, String name)
   {
     super(offset, length, name);
-    data = ArrayUtil.getSubArray(buffer, offset, length);
+    data = Arrays.copyOfRange(buffer, offset, offset + length);
   }
 
 // --------------------- Begin Interface Editable ---------------------

@@ -8,6 +8,7 @@ import infinity.util.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 public final class TextString extends Datatype implements InlineEditable
 {
@@ -17,7 +18,7 @@ public final class TextString extends Datatype implements InlineEditable
   public TextString(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    bytes = ArrayUtil.getSubArray(buffer, offset, length);
+    bytes = Arrays.copyOfRange(buffer, offset, offset + length);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------

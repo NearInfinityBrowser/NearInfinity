@@ -11,7 +11,6 @@ import infinity.resource.*;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -20,6 +19,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
@@ -41,8 +41,8 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Name", "Attribute"}),
-                              colClasses, ArrayUtil.toList(new Integer[]{100, 100, 300}));
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Name", "Attribute"}),
+                              colClasses, Arrays.asList(new Integer[]{100, 100, 300}));
 
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');

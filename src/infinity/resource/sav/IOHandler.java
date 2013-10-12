@@ -108,7 +108,7 @@ public final class IOHandler implements Writeable
       offset += 4 + filenameLength.getValue();
       uncomprLength = new DecNumber(buffer, offset, 4, null);
       comprLength = new DecNumber(buffer, offset + 4, 4, null);
-      cdata = ArrayUtil.getSubArray(buffer, offset + 8, comprLength.getValue());
+      cdata = Arrays.copyOfRange(buffer, offset + 8, offset + 8 + comprLength.getValue());
     }
 
     private FileEntry(ResourceEntry rentry) throws Exception
@@ -129,7 +129,7 @@ public final class IOHandler implements Writeable
         deflater.setInput(udata);
         deflater.finish();
         int clength = deflater.deflate(cdata);
-        cdata = ArrayUtil.getSubArray(cdata, 0, clength);
+        cdata = Arrays.copyOfRange(cdata, 0, clength);
         comprLength.setValue(clength);
       }
     }

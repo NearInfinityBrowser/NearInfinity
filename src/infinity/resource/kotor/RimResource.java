@@ -8,7 +8,6 @@ import infinity.gui.*;
 import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 import infinity.util.NIFile;
 
@@ -19,6 +18,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class RimResource implements Resource, ActionListener, ListSelectionListener
@@ -86,8 +86,8 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
   {
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(ImageIcon.class); colClasses.add(String.class);
-    table = new SortableTable(ArrayUtil.toList(new String[]{"", "Resource name"}),
-                              colClasses, ArrayUtil.toList(new Integer[]{5, 300}));
+    table = new SortableTable(Arrays.asList(new String[]{"", "Resource name"}),
+                              colClasses, Arrays.asList(new Integer[]{5, 300}));
 
     for (final RimKeyEntry key : keys)
       table.addTableItem(key);
@@ -204,7 +204,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
     public byte[] getResourceData(boolean ignoreoverride) throws Exception
     {
-      return ArrayUtil.getSubArray(buffer, key.offsetToResource, key.resourceSize);
+      return Arrays.copyOfRange(buffer, key.offsetToResource, key.offsetToResource + key.resourceSize);
     }
 
     public boolean hasOverride()

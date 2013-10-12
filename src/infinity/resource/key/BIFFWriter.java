@@ -6,7 +6,6 @@ package infinity.resource.key;
 
 import infinity.gui.BIFFEditor;
 import infinity.resource.ResourceFactory;
-import infinity.util.ArrayUtil;
 import infinity.util.Filewriter;
 import infinity.util.NIFile;
 
@@ -29,7 +28,7 @@ public final class BIFFWriter
     deflater.setInput(data);
     deflater.finish();
     int clength = deflater.deflate(compr);
-    return ArrayUtil.getSubArray(compr, 0, clength);
+    return Arrays.copyOfRange(compr, 0, clength);
   }
 
   private static void compressBIF(File biff, File compr, String uncrfilename) throws IOException
@@ -88,7 +87,7 @@ public final class BIFFWriter
         break;
       bytesread += newread;
     }
-    return ArrayUtil.getSubArray(buffer, 0, bytesread);
+    return Arrays.copyOfRange(buffer, 0, bytesread);
   }
 
   public BIFFWriter(BIFFEntry bifentry, int format)

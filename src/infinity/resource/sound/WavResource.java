@@ -10,13 +10,14 @@ import infinity.resource.Closeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.WavReferenceSearcher;
-import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Arrays;
 
 @Deprecated
 public final class WavResource implements Resource, ActionListener, Closeable, Runnable
@@ -48,7 +49,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 //        fileCreated = true;
 //      }
       else if (data.length > 60 && new String(data, 58, 3).equalsIgnoreCase("ID3"))
-        mp3data = ArrayUtil.getSubArray(data, 58, data.length - 58);
+        mp3data = Arrays.copyOfRange(data, 58, data.length);
       else if (entry instanceof FileResourceEntry)
         wavfile = entry.getActualFile();
       else {
@@ -73,7 +74,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       fileCreated = true;
     }
     else if (signature.equals("BMU ")) {
-      mp3data = ArrayUtil.getSubArray(data, 8, data.length - 8);
+      mp3data = Arrays.copyOfRange(data, 8, data.length);
     }
     else if (data.length > 480 && new String(data, 470, 4).equals("RIFF")) {
       if (DynamicArray.getShort(data, 470 + 20) == 0x11) { // IMA ADPCM

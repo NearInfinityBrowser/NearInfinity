@@ -10,7 +10,6 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.FileResourceEntry;
-import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -52,8 +51,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Errors/Warnings", "Line"}),
-                              colClasses, ArrayUtil.toList(new Integer[]{200, 400, 100}));
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Errors/Warnings", "Line"}),
+                              colClasses, Arrays.asList(new Integer[]{200, 400, 100}));
 
     table.getSelectionModel().addListSelectionListener(this);
     table.addMouseListener(new MouseAdapter()

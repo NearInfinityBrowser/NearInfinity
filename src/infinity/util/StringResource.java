@@ -7,8 +7,10 @@ package infinity.util;
 import infinity.resource.ResourceFactory;
 
 import javax.swing.*;
+
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 public final class StringResource
 {
@@ -79,7 +81,7 @@ public final class StringResource
         }
       }
       if (max != buffer.length)
-        buffer = ArrayUtil.getSubArray(buffer, 0, max);
+        buffer = Arrays.copyOfRange(buffer, 0, max);
       return new String(buffer);
     } catch (Exception e) {
       e.printStackTrace();

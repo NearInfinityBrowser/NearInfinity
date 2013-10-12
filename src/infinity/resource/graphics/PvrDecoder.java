@@ -12,8 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Decodes a PVR file, specified as byte array into either raw pixel data.<br>
- * <b>Note:</b> Only DXT1 compression supported.
+ * Decodes a PVR file. (Note: Only DXT1 compression supported)
  * @author argent77
  */
 public class PvrDecoder
@@ -81,6 +80,11 @@ public class PvrDecoder
     return !empty();
   }
 
+  /**
+   * Decodes the currently loaded PVR data and returns the result as a new BufferedImage object.
+   * @return A BufferedImage object of the resulting image data.
+   * @throws Exception
+   */
   public BufferedImage decode() throws Exception
   {
     if (!empty()) {
@@ -94,9 +98,9 @@ public class PvrDecoder
   }
 
   /**
-   * Decodes the currently loaded PVR data into a raw data format.
-   * @param fmt The color format of the decoded data.
-   * @return A buffer containing the decoded PVR pixel data.
+   * Decodes the currently loaded PVR data and draws the result into a BufferedImage object.
+   * @param image The BufferedImage object to draw the PVR texture into.
+   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
    * @throws Exception
    */
   public boolean decode(BufferedImage image) throws Exception
@@ -108,6 +112,16 @@ public class PvrDecoder
     }
   }
 
+  /**
+   * Decodes a block of pixels of the currently loaded PVR data and returns it as a new
+   * BufferedImage object.
+   * @param x Left-most x coordinate of the pixel block.
+   * @param y Top-most y coordinate of the pixel block.
+   * @param width Width in pixels.
+   * @param height Height in pixels.
+   * @return A BufferedImage object of the resulting image data.
+   * @throws Exception
+   */
   public BufferedImage decode(int x, int y, int width, int height) throws Exception
   {
     if (!empty()) {
@@ -122,13 +136,14 @@ public class PvrDecoder
   }
 
   /**
-   * Decodes a block of pixels of the currently loaded PVR data into a raw data format.
-   * @param left left-most x coordinate of the pixel block
-   * @param top top-most y coordinate of the pixel block
-   * @param width width in pixels
-   * @param height height in pixels
-   * @param fmt The color format of the decoded data.
-   * @return A buffer containing the decoded PVR pixel data.
+   * Decodes a block of pixels of the currently loaded PVR data and draws it into a BufferedImage
+   * object.
+   * @param image The BufferedImage object to draw the pixel data into.
+   * @param x Left-most x coordinate of the pixel block.
+   * @param y Top-most y coordinate of the pixel block.
+   * @param width Width in pixels.
+   * @param height Height in pixels.
+   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
    * @throws Exception
    */
   public boolean decode(BufferedImage image, int x, int y, int width, int height) throws Exception

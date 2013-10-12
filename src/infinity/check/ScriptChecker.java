@@ -12,7 +12,6 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.*;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -105,10 +104,10 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-    errorTable = new SortableTable(ArrayUtil.toList(new String[]{"Script", "Error message", "Line"}),
-                                   colClasses, ArrayUtil.toList(new Integer[]{120, 440, 50}));
-    warningTable = new SortableTable(ArrayUtil.toList(new String[]{"Script", "Warning", "Line"}),
-                                     colClasses, ArrayUtil.toList(new Integer[]{120, 440, 50}));
+    errorTable = new SortableTable(Arrays.asList(new String[]{"Script", "Error message", "Line"}),
+                                   colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
+    warningTable = new SortableTable(Arrays.asList(new String[]{"Script", "Warning", "Line"}),
+                                     colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
 
     for (int i = 0; i < scriptFiles.size(); i++) {
       ResourceEntry entry = scriptFiles.get(i);

@@ -12,7 +12,6 @@ import infinity.resource.bcs.Compiler;
 import infinity.resource.dlg.*;
 import infinity.resource.dlg.Action;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -116,11 +115,11 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
     colClasses.add(Integer.class);
     errorTable = new SortableTable(
-        ArrayUtil.toList(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"}),
-        colClasses, ArrayUtil.toList(new Integer[]{50, 100, 350, 10}));
+        Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"}),
+        colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
     warningTable = new SortableTable(
-        ArrayUtil.toList(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"}),
-        colClasses, ArrayUtil.toList(new Integer[]{50, 100, 350, 10}));
+        Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"}),
+        colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
 
     for (int i = 0; i < dlgFiles.size(); i++) {
       ResourceEntry entry = dlgFiles.get(i);

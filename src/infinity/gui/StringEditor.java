@@ -600,12 +600,12 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     protected int read(byte buffer[], int offset) throws Exception
     {
       if (version.equals("V1  ")) {
-        data = ArrayUtil.getSubArray(buffer, offset, 18);
+        data = Arrays.copyOfRange(buffer, offset, offset + 18);
         doffset = DynamicArray.getInt(buffer, offset + 18);
         dlength = DynamicArray.getInt(buffer, offset + 22);
       }
       else if (version.equals("V3.0")) {
-        data = ArrayUtil.getSubArray(buffer, offset, 40);
+        data = Arrays.copyOfRange(buffer, offset, offset + 40);
         doffset = DynamicArray.getInt(buffer, offset + 28);
         dlength = DynamicArray.getInt(buffer, offset + 32);
       }

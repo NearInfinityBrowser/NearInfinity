@@ -11,7 +11,6 @@ import infinity.icon.Icons;
 import infinity.resource.*;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
-import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 
 import javax.swing.*;
@@ -19,6 +18,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import java.util.Arrays;
 
 public final class BamResource implements Resource, ActionListener, ItemListener
 {
@@ -309,7 +309,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
       }
       byte imagedata[] = new byte[height * width];
       if (!rle)
-        imagedata = ArrayUtil.getSubArray(buffer, (int)frameDataOffset, imagedata.length);
+        imagedata = Arrays.copyOfRange(buffer, (int)frameDataOffset, (int)frameDataOffset + imagedata.length);
       else {
         int w_idx = 0;
         while (w_idx < imagedata.length) {

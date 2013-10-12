@@ -9,9 +9,11 @@ import infinity.gui.WindowBlocker;
 import infinity.util.*;
 
 import javax.swing.*;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.zip.*;
 
 public final class BIFFArchive
@@ -489,7 +491,7 @@ public final class BIFFArchive
       }
       if (length == decompSize)
         return buffer;
-      return ArrayUtil.getSubArray(buffer, offset, length);
+      return Arrays.copyOfRange(buffer, offset, offset + length);
     }
   }
 

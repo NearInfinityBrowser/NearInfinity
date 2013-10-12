@@ -9,16 +9,17 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
 import infinity.util.Filewriter;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -58,7 +59,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     else
       this.type = type;
     curtype = type[0];
-    buffer = ArrayUtil.getSubArray(h_buffer, offset, length);
+    buffer = Arrays.copyOfRange(h_buffer, offset, offset + length);
     if (buffer[0] == 0x00 ||
         buffer[0] == 0x4e && buffer[1] == 0x6f && buffer[2] == 0x6e && buffer[3] == 0x65 && buffer[4] == 0x00) {
       resname = NONE;
@@ -72,7 +73,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
         }
       }
       if (max != buffer.length)
-        buffer = ArrayUtil.getSubArray(buffer, 0, max);
+        buffer = Arrays.copyOfRange(buffer, 0, max);
       resname = new String(buffer).toUpperCase();
     }
     if (resname.equalsIgnoreCase(NONE))

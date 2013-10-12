@@ -8,6 +8,7 @@ import infinity.util.*;
 
 import java.io.OutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public final class GffVoid extends GffField
@@ -20,7 +21,8 @@ public final class GffVoid extends GffField
     int dataOrDataOffset = DynamicArray.getInt(buffer, fieldOffset + 8);
 
     int size = DynamicArray.getInt(buffer, fieldDataOffset + dataOrDataOffset);
-    data = ArrayUtil.getSubArray(buffer, fieldDataOffset + dataOrDataOffset + 4, size);
+    data = Arrays.copyOfRange(buffer, fieldDataOffset + dataOrDataOffset + 4,
+                              fieldDataOffset + dataOrDataOffset + 4 + size);
   }
 
   public int getFieldDataSize()
