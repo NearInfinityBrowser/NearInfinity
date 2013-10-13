@@ -4,10 +4,10 @@
 
 package infinity.datatype;
 
-import java.util.Vector;
-
 import infinity.resource.AbstractStruct;
 import infinity.util.LongIntegerHashMap;
+
+import java.util.Vector;
 
 /**
  * Adds UpdateListener callback support to the HashBitmap class
@@ -26,6 +26,7 @@ public class HashBitmapEx extends HashBitmap
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     boolean result = super.updateValue(struct);

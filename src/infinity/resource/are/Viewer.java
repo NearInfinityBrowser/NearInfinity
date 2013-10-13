@@ -8,11 +8,17 @@ import infinity.datatype.Flag;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 
-import javax.swing.*;
-
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 final class Viewer extends JPanel implements ActionListener
 {
@@ -74,6 +80,7 @@ final class Viewer extends JPanel implements ActionListener
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getActionCommand().equals(CMD_VIEWAREA)) {

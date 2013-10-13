@@ -6,11 +6,13 @@ package infinity.search;
 
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.StringResource;
 
-import java.awt.*;
+import java.awt.Component;
 
 public final class WavReferenceSearcher extends AbstractReferenceSearcher
 {
@@ -20,6 +22,7 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
                                     "SPL", "STO", "VEF", "VVC", "WED", "WMP"}, parent);
   }
 
+  @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
     searchStruct(entry, (AbstractStruct)resource);

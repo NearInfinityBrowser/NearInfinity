@@ -6,15 +6,37 @@ package infinity.resource.sav;
 
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
+import infinity.resource.Writeable;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 
 public final class SavResource implements Resource, ActionListener, Closeable, Writeable
 {
@@ -39,6 +61,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bcompress) {
@@ -98,6 +121,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close()
   {
     handler.close();
@@ -108,6 +132,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -118,6 +143,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     listModel = new DefaultListModel();
@@ -127,6 +153,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
     filelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     filelist.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
@@ -204,6 +231,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     handler.write(os);

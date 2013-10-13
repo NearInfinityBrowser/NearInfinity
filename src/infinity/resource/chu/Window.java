@@ -4,7 +4,12 @@
 
 package infinity.resource.chu;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 
@@ -32,6 +37,7 @@ final class Window extends AbstractStruct // implements AddRemovable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Collections.sort(list);
@@ -80,6 +86,7 @@ final class Window extends AbstractStruct // implements AddRemovable
     }
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new DecNumber(buffer, offset, 4, "Panel ID"));

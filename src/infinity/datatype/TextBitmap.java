@@ -10,13 +10,19 @@ import infinity.resource.AbstractStruct;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import javax.swing.table.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.AbstractTableModel;
 
 public final class TextBitmap extends Datatype implements Editable
 {
@@ -35,6 +41,7 @@ public final class TextBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     if (table == null) {
@@ -73,11 +80,13 @@ public final class TextBitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     table.scrollRectToVisible(table.getCellRect(table.getSelectedRow(), 0, false));
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     int index = table.getSelectedRow();
@@ -92,6 +101,7 @@ public final class TextBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Filewriter.writeString(os, text, getSize());
@@ -99,6 +109,7 @@ public final class TextBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     for (int i = 0; i < ids.length; i++)
@@ -115,16 +126,19 @@ public final class TextBitmap extends Datatype implements Editable
     {
     }
 
+    @Override
     public int getRowCount()
     {
       return ids.length;
     }
 
+    @Override
     public int getColumnCount()
     {
       return 2;
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       if (columnIndex == 0)

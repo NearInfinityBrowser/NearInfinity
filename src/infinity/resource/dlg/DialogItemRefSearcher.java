@@ -25,6 +25,7 @@ public class DialogItemRefSearcher implements Runnable {
     new Thread(this).start();
   }
 
+  @Override
   public void run() {
     List<StructEntry> searchItems = dlg.getList();
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, searchItems.size());

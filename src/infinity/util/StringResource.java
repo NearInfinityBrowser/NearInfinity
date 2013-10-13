@@ -6,11 +6,13 @@ package infinity.util;
 
 import infinity.resource.ResourceFactory;
 
-import javax.swing.*;
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+
+import javax.swing.JOptionPane;
 
 public final class StringResource
 {

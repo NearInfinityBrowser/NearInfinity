@@ -50,6 +50,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bPlay) {
@@ -69,6 +70,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener
 
 //--------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     bPlay.setEnabled(false);

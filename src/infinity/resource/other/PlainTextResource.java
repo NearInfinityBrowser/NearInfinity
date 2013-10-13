@@ -7,8 +7,11 @@ package infinity.resource.other;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPopupMenu;
 import infinity.icon.Icons;
-import infinity.resource.*;
 import infinity.resource.Closeable;
+import infinity.resource.ResourceFactory;
+import infinity.resource.TextResource;
+import infinity.resource.ViewableContainer;
+import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.TextResourceSearcher;
@@ -16,14 +19,30 @@ import infinity.util.Decryptor;
 import infinity.util.Filewriter;
 import infinity.util.NIFile;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
                                                 DocumentListener, Closeable
@@ -49,6 +68,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bsave) {
@@ -72,6 +92,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     if (resourceChanged) {
@@ -98,16 +119,19 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
+  @Override
   public void insertUpdate(DocumentEvent event)
   {
     resourceChanged = true;
   }
 
+  @Override
   public void removeUpdate(DocumentEvent event)
   {
     resourceChanged = true;
   }
 
+  @Override
   public void changedUpdate(DocumentEvent event)
   {
     resourceChanged = true;
@@ -118,6 +142,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bfind) {
@@ -139,6 +164,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -149,11 +175,13 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface TextResource ---------------------
 
+  @Override
   public String getText()
   {
     return text;
   }
 
+  @Override
   public void highlightText(int linenr, String text)
   {
     String s = editor.getText();
@@ -174,6 +202,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     editor = new JTextArea();
@@ -229,6 +258,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (editor == null)

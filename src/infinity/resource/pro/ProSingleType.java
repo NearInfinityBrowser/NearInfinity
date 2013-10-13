@@ -44,6 +44,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return false;   // can not be removed manually
@@ -51,6 +52,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Flags", s_flags));

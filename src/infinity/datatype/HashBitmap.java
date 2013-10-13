@@ -11,14 +11,20 @@ import infinity.resource.AbstractStruct;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 public class HashBitmap extends Datatype implements Editable
 {
@@ -43,6 +49,7 @@ public class HashBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
     if (list == null) {
@@ -55,6 +62,7 @@ public class HashBitmap extends Datatype implements Editable
       list = new TextListPanel(items);
       list.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -91,11 +99,13 @@ public class HashBitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String selected = list.getSelectedValue().toString();
@@ -113,6 +123,7 @@ public class HashBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, value);
@@ -120,6 +131,7 @@ public class HashBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     Object o = idsmap.get(value);

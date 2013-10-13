@@ -4,16 +4,41 @@
 
 package infinity.resource.nwn.gff;
 
-import infinity.resource.*;
-import infinity.resource.nwn.gff.field.*;
-import infinity.resource.key.ResourceEntry;
+import infinity.resource.Resource;
+import infinity.resource.ViewableContainer;
+import infinity.resource.Writeable;
 import infinity.resource.key.FileResourceEntry;
-import infinity.util.*;
+import infinity.resource.key.ResourceEntry;
+import infinity.resource.nwn.gff.field.GffByte;
+import infinity.resource.nwn.gff.field.GffChar;
+import infinity.resource.nwn.gff.field.GffDouble;
+import infinity.resource.nwn.gff.field.GffDword;
+import infinity.resource.nwn.gff.field.GffDword64;
+import infinity.resource.nwn.gff.field.GffExoLocString;
+import infinity.resource.nwn.gff.field.GffExoString;
+import infinity.resource.nwn.gff.field.GffField;
+import infinity.resource.nwn.gff.field.GffFloat;
+import infinity.resource.nwn.gff.field.GffInt;
+import infinity.resource.nwn.gff.field.GffInt64;
+import infinity.resource.nwn.gff.field.GffList;
+import infinity.resource.nwn.gff.field.GffResRef;
+import infinity.resource.nwn.gff.field.GffShort;
+import infinity.resource.nwn.gff.field.GffStruct;
+import infinity.resource.nwn.gff.field.GffVoid;
+import infinity.resource.nwn.gff.field.GffWord;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
+import infinity.util.StringResource;
 
-import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import java.util.*;
-import java.io.*;
+import javax.swing.JComponent;
 
 public class GffResource implements Resource, Writeable
 {
@@ -140,6 +165,7 @@ public class GffResource implements Resource, Writeable
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -150,6 +176,7 @@ public class GffResource implements Resource, Writeable
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     return new DefaultGffEditor(this);
@@ -160,6 +187,7 @@ public class GffResource implements Resource, Writeable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     List<GffStruct> structs = new ArrayList<GffStruct>();

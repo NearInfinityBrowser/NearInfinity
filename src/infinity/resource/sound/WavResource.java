@@ -5,19 +5,33 @@
 package infinity.resource.sound;
 
 import infinity.icon.Icons;
-import infinity.resource.*;
 import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.WavReferenceSearcher;
 import infinity.util.DynamicArray;
 
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Arrays;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 @Deprecated
 public final class WavResource implements Resource, ActionListener, Closeable, Runnable
@@ -95,6 +109,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bplay)
@@ -146,6 +161,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close()
   {
     a2w.stopPlay();
@@ -160,6 +176,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -170,6 +187,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     bplay.setEnabled(false);
@@ -189,6 +207,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     JPanel buttonpanel = new JPanel();

@@ -6,33 +6,56 @@ package infinity.check;
 
 import infinity.NearInfinity;
 import infinity.datatype.StringRef;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
-import infinity.resource.bcs.*;
-import infinity.resource.dlg.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.bcs.BcsResource;
+import infinity.resource.bcs.Decompiler;
+import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
+import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.other.PlainTextResource;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.PrintWriter;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.BorderFactory;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class StringUseChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
@@ -52,6 +75,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (table.getSelectedRow() == -1)
@@ -68,6 +92,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -153,6 +178,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() == save) {
@@ -193,6 +219,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
 // --------------------- Begin Interface SearchClient ---------------------
 
+  @Override
   public String getText(int nr)
   {
     if (nr < 0 || nr >= table.getRowCount())
@@ -200,6 +227,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
     return table.getTableItemAt(nr).toString();
   }
 
+  @Override
   public void hitFound(int nr)
   {
     table.getSelectionModel().addSelectionInterval(nr, nr);
@@ -285,6 +313,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
       string = StringResource.getStringRef(strRef.intValue());
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 1)
@@ -292,6 +321,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
       return string;
     }
 
+    @Override
     public String toString()
     {
       return string;

@@ -47,6 +47,7 @@ public final class AreResourceRef extends ResourceRef
 //    }
   }
 
+  @Override
   public boolean isLegalEntry(ResourceEntry entry)
   {
     if (!(entry instanceof BIFFResourceEntry))

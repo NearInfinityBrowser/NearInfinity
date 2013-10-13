@@ -7,21 +7,41 @@ package infinity.check;
 import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
 import infinity.datatype.HexNumber;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 import infinity.resource.cre.Item;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class CreInvChecker implements Runnable, ActionListener, ListSelectionListener
 {
@@ -38,6 +58,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bopen) {
@@ -65,6 +86,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -76,6 +98,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -135,6 +158,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
       table.getSelectionModel().addListSelectionListener(this);
       table.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseReleased(MouseEvent event)
         {
           if (event.getClickCount() == 2) {
@@ -205,6 +229,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
       this.itemRef = itemRef;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)

@@ -4,11 +4,6 @@
 
 package infinity.resource;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.List;
-
 import infinity.datatype.Bitmap;
 import infinity.datatype.BitmapEx;
 import infinity.datatype.ColorValue;
@@ -31,6 +26,11 @@ import infinity.resource.are.Actor;
 import infinity.resource.spl.SplResource;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.EnumMap;
+import java.util.List;
 
 public final class EffectFactory
 {

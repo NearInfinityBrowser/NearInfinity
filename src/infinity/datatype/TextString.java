@@ -4,7 +4,8 @@
 
 package infinity.datatype;
 
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -23,6 +24,7 @@ public final class TextString extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     String newstring = (String)value;
@@ -37,6 +39,7 @@ public final class TextString extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (text == null)
@@ -47,6 +50,7 @@ public final class TextString extends Datatype implements InlineEditable
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     if (text == null)

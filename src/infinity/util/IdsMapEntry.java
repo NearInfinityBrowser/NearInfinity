@@ -19,6 +19,7 @@ public final class IdsMapEntry implements Comparable<IdsMapEntry>
 
 // --------------------- Begin Interface Comparable ---------------------
 
+  @Override
   public int compareTo(IdsMapEntry o)
   {
     return toString().compareToIgnoreCase(o.toString());
@@ -26,6 +27,7 @@ public final class IdsMapEntry implements Comparable<IdsMapEntry>
 
 // --------------------- End Interface Comparable ---------------------
 
+  @Override
   public String toString()
   {
     if (parameters == null)

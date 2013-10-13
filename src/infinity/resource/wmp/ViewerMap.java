@@ -14,10 +14,20 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.BamResource;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.image.BufferedImage;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 final class ViewerMap extends JPanel implements ListSelectionListener
 {
@@ -54,6 +64,7 @@ final class ViewerMap extends JPanel implements ListSelectionListener
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (!event.getValueIsAdjusting()) {
@@ -83,6 +94,7 @@ final class ViewerMap extends JPanel implements ListSelectionListener
       this.icons = icons;
     }
 
+    @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
                                                   boolean cellHasFocus)
     {

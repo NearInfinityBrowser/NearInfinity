@@ -9,7 +9,9 @@ import infinity.resource.Writeable;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 {
@@ -61,6 +63,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
 // --------------------- Begin Interface Comparable ---------------------
 
+  @Override
   public int compareTo(BIFFEntry o)
   {
     return filename.compareTo(o.filename);
@@ -71,6 +74,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Filewriter.writeInt(os, filelength);
@@ -81,6 +85,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof BIFFEntry))
@@ -92,6 +97,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
            filename.equals(other.filename);
   }
 
+  @Override
   public String toString()
   {
     return filename;

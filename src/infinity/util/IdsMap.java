@@ -7,8 +7,13 @@ package infinity.util;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.other.PlainTextResource;
 
-import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+
+import javax.swing.JOptionPane;
 
 public final class IdsMap
 {
@@ -74,6 +79,7 @@ public final class IdsMap
     }
   }
 
+  @Override
   public String toString()
   {
     if (entry == null)

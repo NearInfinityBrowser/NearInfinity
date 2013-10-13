@@ -5,21 +5,32 @@
 package infinity.resource.graphics;
 
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 /**
  * @deprecated
  * Replaced by MosResource2.
  */
+@Deprecated
 public final class MosResource implements Resource, ActionListener
 {
   private final ResourceEntry entry;
@@ -83,6 +94,7 @@ public final class MosResource implements Resource, ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bfind)
@@ -109,6 +121,7 @@ public final class MosResource implements Resource, ActionListener
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -119,6 +132,7 @@ public final class MosResource implements Resource, ActionListener
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));

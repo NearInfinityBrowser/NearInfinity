@@ -6,11 +6,27 @@ package infinity.resource.key;
 
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filereader;
+import infinity.util.Filewriter;
+import infinity.util.IntegerHashMap;
 
-import javax.swing.*;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 public final class Keyfile
 {
@@ -318,6 +334,7 @@ public final class Keyfile
     }
   }
 
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof Keyfile))
@@ -326,6 +343,7 @@ public final class Keyfile
     return signature.equals(other.signature) && version.equals(other.version);
   }
 
+  @Override
   public String toString()
   {
     return keyfile.toString();

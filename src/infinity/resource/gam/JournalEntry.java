@@ -4,7 +4,12 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HashBitmap;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.ResourceFactory;
@@ -34,6 +39,7 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -41,6 +47,7 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new StringRef(buffer, offset, "Text"));

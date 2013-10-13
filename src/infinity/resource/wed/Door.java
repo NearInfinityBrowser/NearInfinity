@@ -4,8 +4,16 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.RemovableDecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
@@ -23,6 +31,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new OpenPolygon(), new ClosedPolygon()};
@@ -33,6 +42,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -40,6 +50,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof RemovableDecNumber) {
@@ -84,6 +95,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 //    return offset;
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 8, "Name"));

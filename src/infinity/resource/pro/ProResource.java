@@ -45,6 +45,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
 
 //--------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return null;
@@ -54,6 +55,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
 
 //--------------------- Begin Interface UpdateListener ---------------------
 
+  @Override
   public boolean valueUpdated(UpdateEvent event)
   {
     if (event.getSource() instanceof HashBitmap) {
@@ -106,6 +108,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
 
 //--------------------- End Interface UpdateListener ---------------------
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

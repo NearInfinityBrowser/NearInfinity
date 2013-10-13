@@ -4,8 +4,14 @@
 
 package infinity.resource.vef;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 
 public final class VefResource extends AbstractStruct implements Resource, HasAddRemovable
@@ -17,6 +23,7 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
 
   {
@@ -25,6 +32,7 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface HasAddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

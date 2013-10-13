@@ -7,22 +7,47 @@ package infinity.resource.dlg;
 import infinity.NearInfinity;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPopupMenu;
+import infinity.gui.ScriptTextArea;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.DialogSearcher;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
 {
@@ -150,6 +175,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (!alive) return;
@@ -234,6 +260,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bfind) {
@@ -254,6 +281,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
 // --------------------- Begin Interface TableModelListener ---------------------
 
+  @Override
   public void tableChanged(TableModelEvent e)
   {
     updateViewerLists();
@@ -586,6 +614,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       structEntry = null;
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == bView)

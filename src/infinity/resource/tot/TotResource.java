@@ -4,8 +4,10 @@
 
 package infinity.resource.tot;
 
-import infinity.resource.*;
 import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 
 public final class TotResource extends AbstractStruct implements Resource
@@ -15,6 +17,7 @@ public final class TotResource extends AbstractStruct implements Resource
     super(entry);
   }
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     if (buffer != null && buffer.length > 0) {

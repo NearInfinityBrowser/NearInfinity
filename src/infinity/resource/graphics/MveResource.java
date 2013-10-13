@@ -7,16 +7,32 @@ package infinity.resource.graphics;
 import infinity.NearInfinity;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
 import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.Filereader;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 public final class MveResource implements Resource, ActionListener, Closeable
 {
@@ -61,6 +77,7 @@ public final class MveResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bplay) {
@@ -88,6 +105,7 @@ public final class MveResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close()
   {
     if (moviefile != null)
@@ -100,6 +118,7 @@ public final class MveResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -110,6 +129,7 @@ public final class MveResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     bplay = new JButton("Play movie", Icons.getIcon("Play16.gif"));

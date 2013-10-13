@@ -36,6 +36,7 @@ public class AcmBuffer extends AudioBuffer
 
 //--------------------- Begin Class AudioBuffer ---------------------
 
+  @Override
   protected void convert(byte[] buffer, int offset, AudioOverride override) throws Exception
   {
     AcmReader acm = new AcmReader(buffer, offset, override);

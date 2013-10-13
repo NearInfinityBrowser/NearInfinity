@@ -4,7 +4,10 @@
 
 package infinity.resource.dlg;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -68,6 +71,7 @@ public final class Transition extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -75,6 +79,7 @@ public final class Transition extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Flags", s_flag));

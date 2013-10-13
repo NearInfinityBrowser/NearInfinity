@@ -5,19 +5,46 @@
 package infinity.search;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Viewable;
 import infinity.resource.bcs.BcsResource;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable
 {
@@ -84,6 +111,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     binsert.addActionListener(this);
     list.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
@@ -96,6 +124,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     });
     addWindowListener(new WindowAdapter()
     {
+      @Override
       public void windowOpened(WindowEvent event)
       {
         tfield.requestFocus();
@@ -185,6 +214,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tfield || event.getSource() == bsearch) {
@@ -223,6 +253,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -235,6 +266,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     list.setEnabled(false);

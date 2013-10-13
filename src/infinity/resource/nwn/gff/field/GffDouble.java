@@ -4,10 +4,11 @@
 
 package infinity.resource.nwn.gff.field;
 
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public final class GffDouble extends GffField
@@ -23,16 +24,19 @@ public final class GffDouble extends GffField
     value = Double.longBitsToDouble(l);
   }
 
+  @Override
   public int getFieldDataSize()
   {
     return 8;
   }
 
+  @Override
   public String toString()
   {
     return getLabel() + " = " + value;
   }
 
+  @Override
   public void compare(GffField field)
   {
     if (!getLabel().equals(field.getLabel()) ||
@@ -40,11 +44,13 @@ public final class GffDouble extends GffField
       throw new IllegalStateException(toString() + " - " + field.toString());
   }
 
+  @Override
   public Object getValue()
   {
     return new Double(value);
   }
 
+  @Override
   public int writeField(OutputStream os, List<String> labels, byte[] fieldData, int fieldDataIndex) throws IOException
   {
     Filewriter.writeInt(os, 9);

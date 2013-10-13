@@ -4,24 +4,42 @@
 
 package infinity.resource.dlg;
 
-import infinity.datatype.*;
+import infinity.datatype.Datatype;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Editable;
+import infinity.datatype.TextString;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ScriptTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
 import java.util.List;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public abstract class AbstractCode extends Datatype implements Editable, AddRemovable, ActionListener,
                                                                DocumentListener, ItemListener
@@ -50,6 +68,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bCheck) {
@@ -87,18 +106,21 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
+  @Override
   public void insertUpdate(DocumentEvent event)
   {
     bUpdate.setEnabled(true);
     bCheck.setEnabled(true);
   }
 
+  @Override
   public void removeUpdate(DocumentEvent event)
   {
     bUpdate.setEnabled(true);
     bCheck.setEnabled(true);
   }
 
+  @Override
   public void changedUpdate(DocumentEvent event)
   {
     bUpdate.setEnabled(true);
@@ -110,6 +132,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     textArea = new ScriptTextArea();
@@ -171,12 +194,14 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     return panel;
   }
 
+  @Override
   public void select()
   {
     if (BrowserMenuBar.getInstance().autocheckBCS())
       bCheck.doClick();
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     if (bCheck.isEnabled())
@@ -203,6 +228,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -213,6 +239,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     String selected = "";
@@ -230,6 +257,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     off.write(os);
@@ -238,6 +266,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     return text;

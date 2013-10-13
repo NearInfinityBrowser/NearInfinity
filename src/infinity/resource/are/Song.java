@@ -4,7 +4,13 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
+import infinity.datatype.AreResourceRef;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.Song2daBitmap;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 
@@ -18,6 +24,7 @@ final class Song extends AbstractStruct // implements AddRemovable
     super(superStruct, "Songs", buffer, offset);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     if (ResourceFactory.getInstance().resourceExists("SONGLIST.2DA")) { // BG2

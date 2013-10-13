@@ -4,13 +4,33 @@
 
 package infinity.resource.itm;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextBitmap;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.Effect;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 
 public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
 {
@@ -120,6 +140,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Ability(), new Effect()};
@@ -130,6 +151,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
@@ -142,6 +164,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
@@ -156,6 +179,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
@@ -178,6 +202,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeAddedInChild(child, datatype);
@@ -191,6 +216,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
@@ -213,6 +239,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeRemovedInChild(child, datatype);
@@ -226,6 +253,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, 0, 4, "Signature"));

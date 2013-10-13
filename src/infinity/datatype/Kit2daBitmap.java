@@ -10,16 +10,25 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.other.PlainTextResource;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 public final class Kit2daBitmap extends Datatype implements Editable
 {
@@ -97,6 +106,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
     LongIntegerHashMap<KitlistEntry> idsmap = kitsNumber;
@@ -111,6 +121,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
       list = new TextListPanel(items);
       list.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -147,11 +158,13 @@ public final class Kit2daBitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     KitlistEntry selected = (KitlistEntry)list.getSelectedValue();
@@ -164,6 +177,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (useUnusable) {
@@ -181,6 +195,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     Object o;
@@ -207,6 +222,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
       this.name = name;
     }
 
+    @Override
     public String toString()
     {
       return name + " - " + number;

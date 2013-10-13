@@ -6,10 +6,10 @@ package infinity.resource.nwn.gff.field;
 
 import infinity.util.DynamicArray;
 
-import java.util.List;
-import java.util.Collections;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.List;
 
 
 public abstract class GffField

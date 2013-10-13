@@ -4,17 +4,32 @@
 
 package infinity.resource.nwn.gff;
 
-import infinity.resource.ResourceFactory;
-import infinity.resource.nwn.gff.field.*;
 import infinity.icon.Icons;
+import infinity.resource.ResourceFactory;
+import infinity.resource.nwn.gff.field.GffField;
+import infinity.resource.nwn.gff.field.GffList;
+import infinity.resource.nwn.gff.field.GffStruct;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 
 final class DefaultGffEditor extends JPanel implements ActionListener
 {
@@ -57,6 +72,7 @@ final class DefaultGffEditor extends JPanel implements ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bExport)
@@ -72,6 +88,7 @@ final class DefaultGffEditor extends JPanel implements ActionListener
 
   private static final class GffTableMouseListener extends MouseAdapter
   {
+    @Override
     public void mouseClicked(MouseEvent event)
     {
       JTable table = (JTable)event.getSource();
@@ -127,6 +144,7 @@ final class DefaultGffEditor extends JPanel implements ActionListener
       }
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       GffField field = shownFields.get(rowIndex);
@@ -143,26 +161,31 @@ final class DefaultGffEditor extends JPanel implements ActionListener
       return field.getValue();
     }
 
+    @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex)
     {
       //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    @Override
     public int getRowCount()
     {
       return shownFields.size();
     }
 
+    @Override
     public int getColumnCount()
     {
       return 3;
     }
 
+    @Override
     public boolean isCellEditable(int rowIndex, int columnIndex)
     {
       return columnIndex == 2;
     }
 
+    @Override
     public Class<? extends Object> getColumnClass(int columnIndex)
     {
       if (columnIndex == 0)
@@ -170,6 +193,7 @@ final class DefaultGffEditor extends JPanel implements ActionListener
       return Object.class;
     }
 
+    @Override
     public String getColumnName(int columnIndex)
     {
       if (columnIndex == 0)
@@ -179,11 +203,13 @@ final class DefaultGffEditor extends JPanel implements ActionListener
       return "Value";
     }
 
+    @Override
     public void addTableModelListener(TableModelListener l)
     {
       listeners.add(l);
     }
 
+    @Override
     public void removeTableModelListener(TableModelListener l)
     {
       listeners.remove(l);

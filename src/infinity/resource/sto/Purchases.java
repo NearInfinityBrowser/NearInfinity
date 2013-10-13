@@ -25,6 +25,7 @@ final class Purchases extends Bitmap implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;

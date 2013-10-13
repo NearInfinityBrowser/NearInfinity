@@ -4,16 +4,33 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
 import infinity.util.DynamicArray;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
 {
@@ -108,6 +125,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
@@ -135,6 +153,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
@@ -147,6 +166,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -154,6 +174,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
@@ -170,6 +191,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (datatype instanceof Vertex)
@@ -193,6 +215,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
@@ -209,6 +232,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (datatype instanceof Vertex)
@@ -232,6 +256,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

@@ -5,11 +5,10 @@
 package infinity.resource.bcs;
 
 import infinity.NearInfinity;
-import infinity.gui.StatusBar;
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.StatusBar;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.AreResource;
-import infinity.resource.bcs.Decompiler;
 import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMap;
@@ -119,6 +118,7 @@ public final class Compiler
 
     // This can take some time, so its moved into a background job
     SwingWorker<Object, Object> task = new SwingWorker<Object, Object>() {
+      @Override
       protected Object doInBackground() {
         scriptNamesCre.clear();
         scriptNamesAre.clear();
@@ -145,6 +145,7 @@ public final class Compiler
         return null;
       }
 
+      @Override
       protected void done() {
         if (statusBar.getMessage().startsWith(notification)) {
           statusBar.setMessage(oldMessage.trim());

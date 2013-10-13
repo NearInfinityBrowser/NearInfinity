@@ -7,16 +7,49 @@ package infinity.gui;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.icon.Icons;
-import infinity.resource.*;
-import infinity.resource.graphics.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.Viewable;
+import infinity.resource.graphics.BamResource;
+import infinity.resource.graphics.BmpResource;
+import infinity.resource.graphics.MosResource2;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 public final class ViewerUtil
 {
@@ -222,6 +255,7 @@ public final class ViewerUtil
       final JPanel parent = this;
       list.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent e)
         {
           if (e.getClickCount() == 2 && list.getSelectedValue() instanceof Viewable) {
@@ -240,11 +274,13 @@ public final class ViewerUtil
       setPreferredSize(new Dimension(5, 5));
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       new ViewFrame(getTopLevelAncestor(), (Viewable)list.getSelectedValue());
     }
 
+    @Override
     public void tableChanged(TableModelEvent event)
     {
       if (event.getType() == TableModelEvent.DELETE) {
@@ -313,6 +349,7 @@ public final class ViewerUtil
       this.attrName = attrName;
     }
 
+    @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
                                                   boolean cellHasFocus)
     {
@@ -340,6 +377,7 @@ public final class ViewerUtil
       this.attrName = attrName;
     }
 
+    @Override
     public int compare(AbstractStruct as1, AbstractStruct as2)
     {
       return as1.getAttribute(attrName).toString().compareTo(as2.getAttribute(attrName).toString());

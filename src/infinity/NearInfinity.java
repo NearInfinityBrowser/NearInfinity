@@ -4,10 +4,18 @@
 
 package infinity;
 
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.ChildFrame;
+import infinity.gui.ResourceTree;
+import infinity.gui.StatusBar;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
 import infinity.resource.Closeable;
+import infinity.resource.EffectFactory;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.Viewable;
+import infinity.resource.ViewableContainer;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
@@ -15,12 +23,28 @@ import infinity.search.SearchFrame;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.prefs.Preferences;
+
+import javax.swing.BorderFactory;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.filechooser.FileFilter;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
@@ -49,11 +73,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     chooser.setDialogTitle("Open game: Locate keyfile");
     chooser.setFileFilter(new FileFilter()
     {
+      @Override
       public boolean accept(File pathname)
       {
         return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".key");
       }
 
+      @Override
       public String getDescription()
       {
         return "Infinity Keyfile (.KEY)";
@@ -144,6 +170,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     addWindowListener(new WindowAdapter()
     {
+      @Override
       public void windowClosing(WindowEvent event)
       {
         if (removeViewable()) {
@@ -206,6 +233,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getActionCommand().equals("Open")) {
@@ -290,16 +318,19 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
 // --------------------- Begin Interface ViewableContainer ---------------------
 
+  @Override
   public StatusBar getStatusBar()
   {
     return statusBar;
   }
 
+  @Override
   public Viewable getViewable()
   {
     return viewable;
   }
 
+  @Override
   public void setViewable(Viewable newViewable)
   {
     if (newViewable == null || !(newViewable instanceof Resource))
@@ -414,6 +445,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       this.text = text;
     }
 
+    @Override
     public void write(byte buf[], int off, int len)
     {
       super.write(buf, off, len);

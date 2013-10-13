@@ -4,11 +4,6 @@
 
 package infinity.resource.other;
 
-import java.awt.Component;
-
-import javax.swing.AbstractButton;
-import javax.swing.JPanel;
-
 import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
 import infinity.gui.StructViewer;
@@ -16,6 +11,11 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
+
+import java.awt.Component;
+
+import javax.swing.AbstractButton;
+import javax.swing.JPanel;
 
 public final class FntResource extends AbstractStruct implements Resource, Closeable
 {
@@ -25,11 +25,13 @@ public final class FntResource extends AbstractStruct implements Resource, Close
     super(entry);
   }
 
+  @Override
   public void close() throws Exception
   {
     // don't save changes
   }
 
+  @Override
   protected int read(byte[] buffer, int startoffset) throws Exception
   {
     String resName = getResourceEntry().getResourceName();
@@ -44,6 +46,7 @@ public final class FntResource extends AbstractStruct implements Resource, Close
     return buffer.length;
   }
 
+  @Override
   protected void viewerInitialized(StructViewer viewer)
   {
     // removing 'Save' button

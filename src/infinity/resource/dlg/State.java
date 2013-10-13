@@ -51,6 +51,7 @@ public final class State extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -58,6 +59,7 @@ public final class State extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   public int read(byte buffer[], int offset)
   {
     list.add(new StringRef(buffer, offset, "Response"));

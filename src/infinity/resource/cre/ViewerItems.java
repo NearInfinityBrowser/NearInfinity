@@ -4,19 +4,35 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
 import infinity.gui.ToolTipTableCellRenderer;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 
 final class ViewerItems extends JPanel implements ActionListener, ListSelectionListener, TableModelListener
 {
@@ -57,6 +73,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     table.getColumnModel().getColumn(0).setMaxWidth(175);
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2 && table.getSelectedRowCount() == 1) {
@@ -82,6 +99,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bOpen) {
@@ -99,6 +117,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (table.getSelectedRow() == -1)
@@ -112,6 +131,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
 
 // --------------------- Begin Interface TableModelListener ---------------------
 
+  @Override
   public void tableChanged(TableModelEvent event)
   {
     if (event.getType() == TableModelEvent.UPDATE) {
@@ -165,11 +185,13 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
       list.add(new InventoryTableEntry(slot, item));
     }
 
+    @Override
     public int getRowCount()
     {
       return list.size();
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       InventoryTableEntry entry = list.get(rowIndex);
@@ -178,11 +200,13 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
       return entry.item;
     }
 
+    @Override
     public int getColumnCount()
     {
       return 2;
     }
 
+    @Override
     public String getColumnName(int column)
     {
       if (column == 0)

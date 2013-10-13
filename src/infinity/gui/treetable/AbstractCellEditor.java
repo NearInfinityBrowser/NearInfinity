@@ -1,9 +1,13 @@
 
 package infinity.gui.treetable;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.List;
+
+import javax.swing.CellEditor;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 
 public class AbstractCellEditor implements CellEditor
 {
@@ -11,21 +15,28 @@ public class AbstractCellEditor implements CellEditor
 
 // --------------------- Begin Interface CellEditor ---------------------
 
+  @Override
   public Object getCellEditorValue() { return null; }
 
+  @Override
   public boolean isCellEditable(EventObject e) { return true; }
 
+  @Override
   public boolean shouldSelectCell(EventObject anEvent) { return false; }
 
+  @Override
   public boolean stopCellEditing() { return true; }
 
+  @Override
   public void cancelCellEditing() {}
 
+  @Override
   public void addCellEditorListener(CellEditorListener l)
   {
     listeners.add(l);
   }
 
+  @Override
   public void removeCellEditorListener(CellEditorListener l)
   {
     listeners.remove(l);

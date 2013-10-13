@@ -5,22 +5,49 @@
 package infinity.search;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.Viewable;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
@@ -69,6 +96,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     final ChildFrame frame = this;
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseReleased(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
@@ -90,6 +118,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bopen) {
@@ -173,6 +202,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -181,6 +211,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
 
 // --------------------- End Interface ListSelectionListener ---------------------
 
+  @Override
   public void setVisible(boolean b)
   {
     table.tableComplete();
@@ -211,6 +242,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       this.ref = ref;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)
@@ -232,6 +264,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       return ref;
     }
 
+    @Override
     public String toString()
     {
       StringBuffer buf = new StringBuffer("File: ");

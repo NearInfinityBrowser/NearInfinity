@@ -4,10 +4,19 @@
 
 package infinity.resource.wmp;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailViewer, HasAddRemovable
 {
@@ -24,6 +33,7 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
     super(superStruct, "Area " + nr, buffer, offset);
   }
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[] { new AreaLinkNorth(), new AreaLinkSouth(),
@@ -32,6 +42,7 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     return new ViewerArea(this);
@@ -42,6 +53,7 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -49,6 +61,7 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Current area", "ARE"));

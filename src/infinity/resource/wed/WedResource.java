@@ -4,8 +4,17 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.RemovableDecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
 import infinity.util.ArrayUtil;
@@ -13,7 +22,9 @@ import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable
 {
@@ -24,6 +35,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Door(), new WallPolygon(), new Wallgroup()};
@@ -34,6 +46,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -41,11 +54,13 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
@@ -65,11 +80,13 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
@@ -89,6 +106,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     int startOffset = offset;
@@ -141,6 +159,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
                                                         0, 4, "")};
     Arrays.sort(offsets, new Comparator<HexNumber>()
     {
+      @Override
       public int compare(HexNumber s1, HexNumber s2)
       {
         return s1.getValue() - s2.getValue();

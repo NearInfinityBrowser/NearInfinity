@@ -111,6 +111,7 @@ public class Entry
     nextnr = -1;
   }
 
+  @Override
   public String toString()
   {
     return line;

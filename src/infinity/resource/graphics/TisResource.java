@@ -6,25 +6,41 @@ package infinity.resource.graphics;
 
 import infinity.datatype.DecNumber;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.util.DynamicArray;
 import infinity.util.Filereader;
 
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  * @deprecated
  * Replaced by TisResource2.
  */
+@Deprecated
 public final class TisResource implements Resource, ActionListener, Closeable
 {
   private static final int ROWS = 5, COLS = 7;
@@ -138,6 +154,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bprev) {
@@ -157,6 +174,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close()
   {
     imagedata = null;
@@ -176,6 +194,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -186,6 +205,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     labels = new JLabel[ROWS * COLS];
@@ -296,6 +316,7 @@ public final class TisResource implements Resource, ActionListener, Closeable
       this.tilenum = tilenum;
     }
 
+    @Override
     public int compareTo(TileInfo o)
     {
       return tilenum - o.tilenum;

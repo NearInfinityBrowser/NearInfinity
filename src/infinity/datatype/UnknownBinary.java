@@ -15,6 +15,7 @@ public final class UnknownBinary extends Unknown
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim();
@@ -42,6 +43,7 @@ public final class UnknownBinary extends Unknown
 
 // --------------------- End Interface Editable ---------------------
 
+  @Override
   public String toString()
   {
     if (data != null && data.length > 0) {

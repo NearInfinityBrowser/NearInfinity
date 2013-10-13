@@ -4,7 +4,13 @@
 
 package infinity.resource.nwn;
 
-import infinity.datatype.*;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
@@ -21,6 +27,7 @@ public final class SsfResource extends AbstractStruct implements Resource
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -28,6 +35,7 @@ public final class SsfResource extends AbstractStruct implements Resource
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "FileType"));
@@ -66,6 +74,7 @@ public final class SsfResource extends AbstractStruct implements Resource
       super(ssf, "Entry " + num, buffer, offset);
     }
 
+    @Override
     protected int read(byte buffer[], int startoffset) throws Exception
     {
       HexNumber offset = new HexNumber(buffer, startoffset, 4, "Entry offset");

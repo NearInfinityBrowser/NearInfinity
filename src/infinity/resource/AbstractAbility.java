@@ -4,7 +4,9 @@
 
 package infinity.resource;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -316,6 +318,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     for (int i = 0; i < list.size(); i++) {
@@ -328,6 +331,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Effect && getEffectsCount() >= 1) {

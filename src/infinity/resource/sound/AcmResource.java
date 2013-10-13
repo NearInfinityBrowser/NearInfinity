@@ -5,13 +5,24 @@
 package infinity.resource.sound;
 
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 @Deprecated
 public final class AcmResource implements Resource, ActionListener, Closeable, Runnable
@@ -29,6 +40,7 @@ public final class AcmResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bplay)
@@ -57,6 +69,7 @@ public final class AcmResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close()
   {
     a2w.stopPlay();
@@ -70,6 +83,7 @@ public final class AcmResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -80,6 +94,7 @@ public final class AcmResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     bplay.setEnabled(false);
@@ -103,6 +118,7 @@ public final class AcmResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     bplay = new JButton(Icons.getIcon("Play16.gif"));
@@ -158,6 +174,7 @@ public final class AcmResource implements Resource, ActionListener, Closeable, R
       this.isMono = isMono;
     }
 
+    @Override
     public void run()
     {
       try {

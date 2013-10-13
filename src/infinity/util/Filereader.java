@@ -4,7 +4,9 @@
 
 package infinity.util;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 
 public final class Filereader

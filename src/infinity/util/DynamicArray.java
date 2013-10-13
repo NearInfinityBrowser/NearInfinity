@@ -384,6 +384,7 @@ public class DynamicArray
   /**
    * Creates and returns a shallow copy of the current object.
    */
+  @Override
   public DynamicArray clone()
   {
     return new DynamicArray(buffer, baseOfs, elementType, order);
@@ -392,6 +393,7 @@ public class DynamicArray
   /**
    * Takes only the underlying array and the current base offset into account.
    */
+  @Override
   public int hashCode()
   {
     int hash = 0;
@@ -408,6 +410,7 @@ public class DynamicArray
    * @return true if both objects refer to the same array, starting at the same base offset.
    *         false otherwise.
    */
+  @Override
   public boolean equals(Object obj)
   {
     if (obj != null && obj instanceof DynamicArray) {

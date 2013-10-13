@@ -4,10 +4,22 @@
 
 package infinity.resource.spl;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.ProRef;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
+import infinity.resource.AbstractAbility;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.Effect;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.ResourceFactory;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
 {
@@ -26,6 +38,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Effect()};
@@ -36,6 +49,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -46,6 +60,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     return new ViewerAbility(this);
@@ -53,6 +68,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 
 // --------------------- End Interface HasDetailViewer ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {

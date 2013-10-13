@@ -4,7 +4,9 @@
 
 package infinity.datatype;
 
-import infinity.util.*;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 
 public final class IdsFlag extends Flag
 {

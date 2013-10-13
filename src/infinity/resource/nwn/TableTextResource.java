@@ -9,10 +9,13 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
-import javax.swing.*;
-import javax.swing.table.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
 
 public final class TableTextResource implements Resource
 {
@@ -74,6 +77,7 @@ public final class TableTextResource implements Resource
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -84,6 +88,7 @@ public final class TableTextResource implements Resource
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     TextTableModel tableModel = new TextTableModel();
@@ -99,6 +104,7 @@ public final class TableTextResource implements Resource
 
   private final class TextTableModel extends AbstractTableModel
   {
+    @Override
     public String getColumnName(int column)
     {
       if (column == 0)
@@ -106,16 +112,19 @@ public final class TableTextResource implements Resource
       return columnNames.get(column - 1);
     }
 
+    @Override
     public int getColumnCount()
     {
       return columnNames.size() + 1;
     }
 
+    @Override
     public int getRowCount()
     {
       return stringData[0].length;
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       return stringData[columnIndex][rowIndex];

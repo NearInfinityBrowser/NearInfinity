@@ -6,10 +6,12 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Window;
+import java.awt.event.MouseAdapter;
 
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.RootPaneContainer;
 
 /**
  * @author Jon Heggland

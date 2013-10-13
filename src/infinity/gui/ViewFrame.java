@@ -5,13 +5,21 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
+import infinity.resource.TextResource;
+import infinity.resource.Viewable;
+import infinity.resource.ViewableContainer;
 import infinity.resource.graphics.BamResource;
 import infinity.resource.key.Keyfile;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+
+import javax.swing.JPanel;
 
 public final class ViewFrame extends ChildFrame implements ViewableContainer
 {
@@ -33,16 +41,19 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
 
 // --------------------- Begin Interface ViewableContainer ---------------------
 
+  @Override
   public StatusBar getStatusBar()
   {
     return statusBar;
   }
 
+  @Override
   public Viewable getViewable()
   {
     return viewable;
   }
 
+  @Override
   public void setViewable(Viewable viewable)
   {
     this.viewable = viewable;
@@ -69,6 +80,7 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
 
 // --------------------- End Interface ViewableContainer ---------------------
 
+  @Override
   protected void windowClosing() throws Exception
   {
     if (viewable instanceof Closeable)

@@ -11,7 +11,6 @@ import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
-import infinity.resource.graphics.ColorConvert;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
@@ -48,6 +47,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == miExport) {
@@ -79,6 +79,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -88,6 +89,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     panel.removeAll();
@@ -99,6 +101,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     miExport = new JMenuItem("original");

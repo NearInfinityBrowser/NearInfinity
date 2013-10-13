@@ -159,6 +159,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bExport) {
@@ -171,6 +172,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     if (event.getSource() == slCols) {
@@ -186,6 +188,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface KeyListener ---------------------
 
+  @Override
   public void keyPressed(KeyEvent event)
   {
     if (event.getSource() == tfCols) {
@@ -212,12 +215,14 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   }
 
 
+  @Override
   public void keyReleased(KeyEvent event)
   {
     // nothing to do
   }
 
 
+  @Override
   public void keyTyped(KeyEvent event)
   {
     // nothing to do
@@ -228,6 +233,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     cbGrid.removeChangeListener(this);
@@ -249,6 +255,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -259,6 +266,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     int tileCount = decoder.info().tileCount();

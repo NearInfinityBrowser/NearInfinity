@@ -4,6 +4,9 @@
 
 package infinity.gui.layeritem;
 
+import infinity.resource.Viewable;
+import infinity.resource.graphics.ColorConvert;
+
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -19,10 +22,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
-
-import infinity.gui.layeritem.LayerItemEvent;
-import infinity.resource.Viewable;
-import infinity.resource.graphics.ColorConvert;
 
 /**
  * Represents a game resource structure visually as a bitmap icon.
@@ -262,6 +261,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
 
 //--------------------- Begin Interface LayerItemListener ---------------------
 
+  @Override
   public void layerItemChanged(LayerItemEvent event)
   {
     if (event.getSource() == this) {

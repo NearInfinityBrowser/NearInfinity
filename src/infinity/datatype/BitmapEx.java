@@ -24,7 +24,8 @@ public class BitmapEx extends Bitmap
 
 //--------------------- Begin Interface Editable ---------------------
 
- public boolean updateValue(AbstractStruct struct)
+ @Override
+public boolean updateValue(AbstractStruct struct)
  {
    boolean result = super.updateValue(struct);
    if (!listeners.isEmpty()) {

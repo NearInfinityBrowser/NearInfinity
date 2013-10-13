@@ -4,22 +4,42 @@
 
 package infinity.resource.kotor;
 
-import infinity.gui.*;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 import infinity.util.NIFile;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class RimResource implements Resource, ActionListener, ListSelectionListener
 {
@@ -48,6 +68,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
@@ -62,6 +83,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bView.setEnabled(table.getSelectedRowCount() == 1);
@@ -72,6 +94,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -82,6 +105,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
@@ -95,6 +119,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
     table.getSelectionModel().addListSelectionListener(this);
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
@@ -167,6 +192,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
       resourceSize = DynamicArray.getInt(buffer, offset + 28);
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)
@@ -184,6 +210,7 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
       this.key = key;
     }
 
+    @Override
     public String getExtension()
     {
       String ext = ResourceFactory.getKeyfile().getExtension(key.resType);
@@ -192,41 +219,49 @@ public final class RimResource implements Resource, ActionListener, ListSelectio
       return ext;
     }
 
+    @Override
     public String getTreeFolder()
     {
       return null;
     }
 
+    @Override
     public int[] getResourceInfo(boolean ignoreoverride) throws Exception
     {
       return new int[] { key.resourceSize };
     }
 
+    @Override
     public byte[] getResourceData(boolean ignoreoverride) throws Exception
     {
       return Arrays.copyOfRange(buffer, key.offsetToResource, key.offsetToResource + key.resourceSize);
     }
 
+    @Override
     public boolean hasOverride()
     {
       return false;
     }
 
+    @Override
     protected InputStream getResourceDataAsStream(boolean ignoreoverride) throws Exception
     {
       return new ByteArrayInputStream(buffer, key.offsetToResource, key.resourceSize);
     }
 
+    @Override
     protected File getActualFile(boolean ignoreoverride)
     {
       return NIFile.getFile(ResourceFactory.getRootDirs(), toString());
     }
 
+    @Override
     public String toString()
     {
       return key.resRef + '.' + getExtension();
     }
 
+    @Override
     public String getResourceName()
     {
       return toString();

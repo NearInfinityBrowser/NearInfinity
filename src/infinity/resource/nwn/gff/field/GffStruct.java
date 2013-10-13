@@ -7,10 +7,10 @@ package infinity.resource.nwn.gff.field;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class GffStruct extends GffField
 {
@@ -26,11 +26,13 @@ public final class GffStruct extends GffField
     fieldCount = DynamicArray.getInt(buffer, offset + 8);
   }
 
+  @Override
   public List<GffField> getChildren()
   {
     return fields;
   }
 
+  @Override
   public String toString()
   {
     return new StringBuffer("Struct (Type=").append(id).append(" Label =").append(getLabel()).append(')').toString();
@@ -41,6 +43,7 @@ public final class GffStruct extends GffField
     fields.add(field);
   }
 
+  @Override
   public void compare(GffField field)
   {
     if (!getLabel().equals(field.getLabel()))
@@ -72,6 +75,7 @@ public final class GffStruct extends GffField
     return 0;
   }
 
+  @Override
   public Object getValue()
   {
     return new Integer(id);
@@ -99,6 +103,7 @@ public final class GffStruct extends GffField
     Filewriter.writeInt(os, structs.indexOf(this));
   }
 
+  @Override
   public int writeField(OutputStream os, List<String> labels, byte[] fieldData, int fieldDataIndex)
   {
     throw new IllegalAccessError("Struct not regular field - writeField aborted");

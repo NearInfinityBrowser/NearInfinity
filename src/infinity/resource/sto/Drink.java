@@ -4,7 +4,9 @@
 
 package infinity.resource.sto;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -22,6 +24,7 @@ final class Drink extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -29,6 +32,7 @@ final class Drink extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new Unknown(buffer, offset, 8));

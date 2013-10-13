@@ -4,7 +4,6 @@
 
 package infinity.resource.sound;
 
-import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
 import infinity.util.NIFile;
 import infinity.util.StreamDiscarder;

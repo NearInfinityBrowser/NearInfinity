@@ -51,6 +51,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bFind) {
@@ -96,6 +97,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -105,6 +107,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     panel.removeAll();
@@ -116,6 +119,7 @@ public class MosResource2 implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));

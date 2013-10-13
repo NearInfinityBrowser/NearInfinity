@@ -4,7 +4,6 @@
 
 package infinity.resource.graphics;
 
-import infinity.resource.graphics.ColorConvert;
 import infinity.util.DynamicArray;
 
 import java.awt.image.BufferedImage;

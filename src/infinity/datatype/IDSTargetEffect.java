@@ -8,16 +8,28 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
 {
@@ -47,6 +59,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
     if (fileList == null) {
@@ -69,6 +82,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
       valueList = new TextListPanel(items);
       valueList.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -118,12 +132,14 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     return panel;
   }
 
+  @Override
   public void select()
   {
     fileList.ensureIndexIsVisible(fileList.getSelectedIndex());
     valueList.ensureIndexIsVisible(valueList.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String svalue = (String)fileList.getSelectedValue();
@@ -152,6 +168,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (event.getValueIsAdjusting())
@@ -208,6 +225,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Filewriter.writeUnsignedInt(os, idsValue);
@@ -216,6 +234,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     String idsFileStr = getString((int)idsFile) + " / ";

@@ -8,8 +8,13 @@ import infinity.datatype.ResourceRef;
 import infinity.gui.ViewerUtil;
 import infinity.resource.Effect;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 final class ViewerAbility extends JPanel
 {

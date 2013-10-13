@@ -5,21 +5,44 @@
 package infinity.check;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
-import infinity.resource.bcs.*;
+import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Compiler;
+import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class ScriptChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
@@ -35,6 +58,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     SortableTable table = errorTable;
@@ -65,6 +89,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent e)
   {
     if (tabbedPane.getSelectedIndex() == 0)
@@ -79,6 +104,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (tabbedPane.getSelectedIndex() == 0)
@@ -93,6 +119,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -173,6 +200,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       warningTable.getSelectionModel().addListSelectionListener(this);
       MouseListener listener = new MouseAdapter()
       {
+        @Override
         public void mouseReleased(MouseEvent event)
         {
           if (event.getClickCount() == 2) {
@@ -217,6 +245,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       this.error = error;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)

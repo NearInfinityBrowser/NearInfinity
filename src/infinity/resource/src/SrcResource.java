@@ -5,7 +5,10 @@
 package infinity.resource.src;
 
 import infinity.datatype.SectionCount;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 
 public final class SrcResource extends AbstractStruct implements Resource, HasAddRemovable
@@ -17,6 +20,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Entry()};
@@ -24,6 +28,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface HasAddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     SectionCount entry_count = new SectionCount(buffer, offset, 4, "# entries", Entry.class);

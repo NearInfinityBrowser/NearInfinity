@@ -833,6 +833,7 @@ public class TileGrid extends JComponent
       }
     }
 
+    @Override
     protected void paintComponent(Graphics g)
     {
       super.paintComponent(g);

@@ -9,11 +9,22 @@ import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Viewable;
 import infinity.resource.bcs.BcsResource;
-import infinity.util.*;
+import infinity.util.IdsMap;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 public final class IdsBrowser extends ChildFrame implements ActionListener
 {
@@ -41,6 +52,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     list = new TextListPanel(idsmap.getAllValues());
     list.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2)
@@ -77,6 +89,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == idsfiles)

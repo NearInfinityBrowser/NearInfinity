@@ -10,10 +10,22 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.Writeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
+import infinity.util.NIFile;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -43,6 +55,7 @@ public final class IOHandler implements Writeable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     header.write(os);
@@ -139,31 +152,37 @@ public final class IOHandler implements Writeable
       return comprLength.getOffset() + 4 + cdata.length;
     }
 
+    @Override
     public String toString()
     {
       return filename;
     }
 
+    @Override
     public String getResourceName()
     {
       return filename;
     }
 
+    @Override
     public String getExtension()
     {
       return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase();
     }
 
+    @Override
     public String getTreeFolder()
     {
       return null;
     }
 
+    @Override
     public boolean hasOverride()
     {
       return false;
     }
 
+    @Override
     public int[] getResourceInfo(boolean ignoreoverride) throws Exception
     {
       if (filename.toUpperCase().endsWith(".TIS")) {
@@ -183,16 +202,19 @@ public final class IOHandler implements Writeable
       return new int[]{uncomprLength.getValue()};
     }
 
+    @Override
     public byte[] getResourceData(boolean ignoreoverride) throws Exception
     {
       return decompress();
     }
 
+    @Override
     public InputStream getResourceDataAsStream(boolean ignoreoverride) throws Exception
     {
       return new BufferedInputStream(new ByteArrayInputStream(decompress()));
     }
 
+    @Override
     public File getActualFile(boolean ignoreoverride)
     {
       return null;
@@ -207,6 +229,7 @@ public final class IOHandler implements Writeable
       return udata;
     }
 
+    @Override
     public void write(OutputStream os) throws IOException
     {
       Filewriter.writeInt(os, filename.length() + 1);

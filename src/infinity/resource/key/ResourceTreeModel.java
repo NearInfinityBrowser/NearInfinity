@@ -4,10 +4,18 @@
 
 package infinity.resource.key;
 
-import javax.swing.event.*;
-import javax.swing.tree.*;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 
 public final class ResourceTreeModel implements TreeModel
 {
@@ -22,11 +30,13 @@ public final class ResourceTreeModel implements TreeModel
 
 // --------------------- Begin Interface TreeModel ---------------------
 
+  @Override
   public Object getRoot()
   {
     return root;
   }
 
+  @Override
   public Object getChild(Object parent, int index)
   {
     if (parent instanceof ResourceTreeFolder)
@@ -34,6 +44,7 @@ public final class ResourceTreeModel implements TreeModel
     return null;
   }
 
+  @Override
   public int getChildCount(Object parent)
   {
     if (parent instanceof ResourceTreeFolder)
@@ -41,16 +52,19 @@ public final class ResourceTreeModel implements TreeModel
     return 0;
   }
 
+  @Override
   public boolean isLeaf(Object node)
   {
     return !(node instanceof ResourceTreeFolder);
   }
 
+  @Override
   public void valueForPathChanged(TreePath path, Object newvalue)
   {
     throw new IllegalArgumentException(); // Not allowed
   }
 
+  @Override
   public int getIndexOfChild(Object parent, Object child)
   {
     if (parent instanceof ResourceTreeFolder)
@@ -58,11 +72,13 @@ public final class ResourceTreeModel implements TreeModel
     return -1;
   }
 
+  @Override
   public void addTreeModelListener(TreeModelListener l)
   {
     treeModelListeners.add(l);
   }
 
+  @Override
   public void removeTreeModelListener(TreeModelListener l)
   {
     treeModelListeners.remove(l);

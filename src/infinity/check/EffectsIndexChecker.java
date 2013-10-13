@@ -87,6 +87,7 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
   }
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bstart) {
@@ -112,6 +113,7 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...", null, 0,

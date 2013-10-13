@@ -27,6 +27,7 @@ public class Vertex extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -34,6 +35,7 @@ public class Vertex extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   public int read(byte buffer[], int offset)
   {
     list.add(new DecNumber(buffer, offset, 2, "X"));

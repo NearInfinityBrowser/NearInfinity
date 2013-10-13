@@ -1,13 +1,13 @@
 package infinity.gui;
 
+import infinity.NearInfinity;
+
 import java.awt.Desktop;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.net.URI;
 
 import javax.swing.JOptionPane;
-
-import infinity.NearInfinity;
 
 /**
  * Browses for the provided URI on mouse clicks
@@ -33,6 +33,7 @@ class UrlBrowser implements MouseListener
 
 // --------------------- Begin Interface MouseListener ---------------------
 
+  @Override
   public void mouseClicked(MouseEvent event)
   {
 
@@ -52,18 +53,22 @@ class UrlBrowser implements MouseListener
     }
   }
 
+  @Override
   public void mousePressed(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseReleased(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseEntered(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseExited(MouseEvent e)
   {
   }

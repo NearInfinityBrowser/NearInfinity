@@ -9,7 +9,9 @@ import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.zip.*;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 public final class Compressor
 {

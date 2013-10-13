@@ -4,11 +4,22 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasDetailViewer,
                                                                HasAddRemovable
@@ -32,6 +43,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Vertex(), new Item()};
@@ -42,6 +54,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -52,6 +65,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     return new ViewerContainer(this);
@@ -62,6 +76,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 // --------------------- Begin Interface HasVertices ---------------------
 
+  @Override
   public void readVertices(byte buffer[], int offset) throws Exception
   {
     int firstVertex = ((DecNumber)getAttribute("First vertex index")).getValue();
@@ -71,6 +86,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
       list.add(new Vertex(this, buffer, offset + 4 * i, i));
   }
 
+  @Override
   public int updateVertices(int offset, int number)
   {
     ((DecNumber)getAttribute("First vertex index")).setValue(number);
@@ -90,6 +106,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 // --------------------- End Interface HasVertices ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {
@@ -135,6 +152,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     return count;
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

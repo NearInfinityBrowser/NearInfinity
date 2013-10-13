@@ -5,12 +5,21 @@
 package infinity.resource.gam;
 
 import infinity.gui.ViewerUtil;
+import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 import infinity.resource.cre.Viewer;
-import infinity.resource.StructEntry;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 
 final class ViewerNPC extends JPanel
 {

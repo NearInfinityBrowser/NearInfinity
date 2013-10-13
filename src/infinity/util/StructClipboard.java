@@ -4,11 +4,16 @@
 
 package infinity.util;
 
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.StructEntry;
 
-import javax.swing.event.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public final class StructClipboard
 {
@@ -47,6 +52,7 @@ public final class StructClipboard
   {
   }
 
+  @Override
   public String toString()
   {
     StringBuffer sb = new StringBuffer();

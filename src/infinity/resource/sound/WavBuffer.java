@@ -4,11 +4,11 @@
 
 package infinity.resource.sound;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
+
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * Loads and provides access to uncompressed PCM WAV audio data.
@@ -38,6 +38,7 @@ public class WavBuffer extends AudioBuffer
 
 //--------------------- Begin Class AudioBuffer ---------------------
 
+  @Override
   protected void convert(byte[] buffer, int offset, AudioOverride override) throws Exception
   {
     WaveFmt fmt = new WaveFmt(override);

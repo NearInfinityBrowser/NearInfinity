@@ -4,7 +4,8 @@
 
 package infinity.resource.tot;
 
-import infinity.datatype.*;
+import infinity.datatype.HexNumber;
+import infinity.datatype.TextEdit;
 import infinity.resource.AbstractStruct;
 
 public final class StringEntry extends AbstractStruct
@@ -24,6 +25,7 @@ public final class StringEntry extends AbstractStruct
     super(superStruct, name, buffer, offset);
   }
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new HexNumber(buffer, offset, 4, "Offset to next free region"));

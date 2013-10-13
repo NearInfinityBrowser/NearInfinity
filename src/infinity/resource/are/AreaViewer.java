@@ -4,6 +4,46 @@
 
 package infinity.resource.are;
 
+import infinity.NearInfinity;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.RemovableDecNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextEdit;
+import infinity.datatype.TextString;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.WindowBlocker;
+import infinity.gui.layeritem.AbstractLayerItem;
+import infinity.gui.layeritem.IconLayerItem;
+import infinity.gui.layeritem.LayerItemEvent;
+import infinity.gui.layeritem.LayerItemListener;
+import infinity.gui.layeritem.ShapedLayerItem;
+import infinity.icon.Icons;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.cre.CreResource;
+import infinity.resource.graphics.ColorConvert;
+import infinity.resource.graphics.TisDecoder;
+import infinity.resource.graphics.TisResource2;
+import infinity.resource.key.FileResourceEntry;
+import infinity.resource.key.ResourceEntry;
+import infinity.resource.toh.StrRefEntry;
+import infinity.resource.toh.TohResource;
+import infinity.resource.tot.StringEntry;
+import infinity.resource.tot.TotResource;
+import infinity.resource.vertex.Vertex;
+import infinity.resource.wed.Overlay;
+import infinity.resource.wed.Tilemap;
+import infinity.resource.wed.WedResource;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -48,46 +88,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ProgressMonitor;
 import javax.swing.SpringLayout;
-
-import infinity.NearInfinity;
-import infinity.datatype.DecNumber;
-import infinity.datatype.Flag;
-import infinity.datatype.HexNumber;
-import infinity.datatype.IdsBitmap;
-import infinity.datatype.RemovableDecNumber;
-import infinity.datatype.ResourceRef;
-import infinity.datatype.SectionCount;
-import infinity.datatype.SectionOffset;
-import infinity.datatype.StringRef;
-import infinity.datatype.TextEdit;
-import infinity.datatype.TextString;
-import infinity.gui.Center;
-import infinity.gui.ChildFrame;
-import infinity.gui.WindowBlocker;
-import infinity.gui.layeritem.AbstractLayerItem;
-import infinity.gui.layeritem.IconLayerItem;
-import infinity.gui.layeritem.LayerItemEvent;
-import infinity.gui.layeritem.LayerItemListener;
-import infinity.gui.layeritem.ShapedLayerItem;
-import infinity.icon.Icons;
-import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
-import infinity.resource.StructEntry;
-import infinity.datatype.Bitmap;
-import infinity.resource.cre.CreResource;
-import infinity.resource.graphics.ColorConvert;
-import infinity.resource.graphics.TisDecoder;
-import infinity.resource.graphics.TisResource2;
-import infinity.resource.key.FileResourceEntry;
-import infinity.resource.key.ResourceEntry;
-import infinity.resource.toh.StrRefEntry;
-import infinity.resource.toh.TohResource;
-import infinity.resource.tot.StringEntry;
-import infinity.resource.tot.TotResource;
-import infinity.resource.vertex.Vertex;
-import infinity.resource.wed.Overlay;
-import infinity.resource.wed.Tilemap;
-import infinity.resource.wed.WedResource;
 
 /**
  * The Area Viewer shows a selected map with its associated items, such as actors, triggers or
@@ -225,6 +225,7 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     initGui();
@@ -235,6 +236,7 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == dayNightButton.get(DayNight.DAY)) {
@@ -263,6 +265,7 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     for (final Layers layer: Layers.values()) {
@@ -291,6 +294,7 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- Begin Interface ItemStateListener ---------------------
 
+  @Override
   public void layerItemChanged(LayerItemEvent event)
   {
     if (event.getSource() instanceof AbstractLayerItem) {
@@ -308,14 +312,17 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- Begin Interface ComponentListener ---------------------
 
+  @Override
   public void componentHidden(ComponentEvent event)
   {
   }
 
+  @Override
   public void componentMoved(ComponentEvent event)
   {
   }
 
+  @Override
   public void componentResized(ComponentEvent event)
   {
     if (event.getSource() == lTileset) {
@@ -337,6 +344,7 @@ public final class AreaViewer extends ChildFrame
     }
   }
 
+  @Override
   public void componentShown(ComponentEvent event)
   {
   }
@@ -345,6 +353,7 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- Begin Interface MouseMotionListener ---------------------
 
+  @Override
   public void mouseDragged(MouseEvent event)
   {
     if (event.getSource() == lTileset && isMapDragging(event.getLocationOnScreen())) {
@@ -352,6 +361,7 @@ public final class AreaViewer extends ChildFrame
     }
   }
 
+  @Override
   public void mouseMoved(MouseEvent event)
   {
     if (event.getSource() == lTileset) {
@@ -373,18 +383,22 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- Begin Interface MouseListener ---------------------
 
+  @Override
   public void mouseClicked(MouseEvent event)
   {
   }
 
+  @Override
   public void mouseEntered(MouseEvent event)
   {
   }
 
+  @Override
   public void mouseExited(MouseEvent event)
   {
   }
 
+  @Override
   public void mousePressed(MouseEvent event)
   {
     if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == lTileset) {
@@ -394,6 +408,7 @@ public final class AreaViewer extends ChildFrame
     }
   }
 
+  @Override
   public void mouseReleased(MouseEvent event)
   {
     if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == lTileset) {
@@ -405,6 +420,7 @@ public final class AreaViewer extends ChildFrame
 
 //--------------------- End Interface MouseListener ---------------------
 
+  @Override
   protected void windowClosing() throws Exception
   {
     lTileset.setIcon(null);

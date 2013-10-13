@@ -4,7 +4,9 @@
 
 package infinity.resource.chu;
 
-import infinity.datatype.*;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
@@ -21,6 +23,7 @@ public final class ChuResource extends AbstractStruct implements Resource //, Ha
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
@@ -38,6 +41,7 @@ public final class ChuResource extends AbstractStruct implements Resource //, Ha
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
