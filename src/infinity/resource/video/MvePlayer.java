@@ -57,7 +57,7 @@ public class MvePlayer
     while (isPlaying() && decoder.hasNextFrame()) {
       Object dataObj = renderer.fetchData();
       if (dataObj instanceof Integer) {
-        setTimerDelay(((Integer)dataObj).longValue() * 1000L);
+        setTimerDelay(((Integer)dataObj).longValue() * 1000L + timeRemaining());
       } else {
         // audio-only frames do not contain timing information
         setTimerDelay(0L);
@@ -82,7 +82,7 @@ public class MvePlayer
       }
 
       // skip audio-only frames
-      if (timeRemaining() <= 0L)
+      if (timeRemaining() == 0L)
         continue;
 
       outputAudioFrame(false);
@@ -106,17 +106,7 @@ public class MvePlayer
       }
 
       // waiting for the next frame to be displayed
-      while (timeRemaining() > 2000000L) {
-        // sleep as much as possible
-        try {
-          Thread.sleep(1);
-        } catch (InterruptedException e) {
-        }
-      }
-      while (timeRemaining() > 0L) {
-        // waste remaining nanoseconds
-      }
-
+      sleepUntil(5000000L);
       renderer.updateRenderer();
       audioQueue.skipNext();
     }
@@ -214,11 +204,34 @@ public class MvePlayer
 
   private long timeRemaining()
   {
+    long res = 0L;
     long curTime = System.nanoTime() & Long.MAX_VALUE;
     if (curTime < startTime) {
-      return delayTime - (Long.MAX_VALUE - startTime + curTime);
+      res = delayTime - (Long.MAX_VALUE - startTime + curTime);
     } else {
-      return delayTime - (curTime - startTime);
+      res = delayTime - (curTime - startTime);
+    }
+    if (res < 0L)
+      res = 0L;
+    return res;
+  }
+
+  // waits until only 'remaining' time (in ns) of the current timer remains
+  private void sleepUntil(long remaining)
+  {
+    if (timeRemaining() > 2000000L) {
+      while (timeRemaining() > remaining) {
+        // sleep as much as possible
+        try {
+          Thread.sleep(1);
+        } catch (InterruptedException e) {
+        }
+      }
+    }
+    if (timeRemaining() <= 2000000L) {
+      while (timeRemaining() > remaining) {
+        // waste remaining nanoseconds
+      }
     }
   }
 
