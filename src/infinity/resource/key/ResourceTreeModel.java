@@ -91,9 +91,14 @@ public final class ResourceTreeModel implements TreeModel
     File files[] = directory.listFiles();
     if (files.length == 0)
       return;
-    ResourceTreeFolder folder = new ResourceTreeFolder(parentFolder, directory.getName());
-    folders.put(directory.getName(), folder);
-    parentFolder.addFolder(folder);
+
+    ResourceTreeFolder folder = getFolder(parentFolder, directory.getName());
+    if (folder == null) {
+      folder = new ResourceTreeFolder(parentFolder, directory.getName());
+      folders.put(directory.getName(), folder);
+      parentFolder.addFolder(folder);
+    }
+
     for (final File file : files) {
       if (file.isDirectory())
         addDirectory(folder, file);
@@ -126,6 +131,20 @@ public final class ResourceTreeModel implements TreeModel
       }
     }
     return list;
+  }
+
+  public ResourceTreeFolder getFolder(ResourceTreeFolder parentFolder, String name)
+  {
+    ResourceTreeFolder folder = null;
+    if (parentFolder != null) {
+      for (final ResourceTreeFolder rtf: parentFolder.getFolders()) {
+        if (rtf.folderName().equalsIgnoreCase(name)) {
+          folder = rtf;
+          break;
+        }
+      }
+    }
+    return folder;
   }
 
   public ResourceTreeFolder getFolder(String text)

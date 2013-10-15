@@ -37,6 +37,11 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     return folderName + " - " + getChildCount();
   }
 
+  public String folderName()
+  {
+    return folderName;
+  }
+
   public List<ResourceEntry> getResourceEntries()
   {
     return Collections.unmodifiableList(resourceEntries);
