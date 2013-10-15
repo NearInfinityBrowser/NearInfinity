@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.graphics;
+package infinity.resource.video;
 
 import infinity.NearInfinity;
 import infinity.gui.WindowBlocker;
@@ -34,6 +34,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+@Deprecated
 public final class MveResource implements Resource, ActionListener, Closeable
 {
   private final ResourceEntry entry;

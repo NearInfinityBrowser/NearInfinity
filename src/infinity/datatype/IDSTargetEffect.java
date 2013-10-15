@@ -228,8 +228,8 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeUnsignedInt(os, idsValue);
-    Filewriter.writeUnsignedInt(os, idsFile);
+    Filewriter.writeInt(os, (int)idsValue);
+    Filewriter.writeInt(os, (int)idsFile);
   }
 
 // --------------------- End Interface Writeable ---------------------

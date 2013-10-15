@@ -21,12 +21,10 @@ import infinity.resource.gam.GamResource;
 import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource2;
-import infinity.resource.graphics.MveResource;
 import infinity.resource.graphics.PltResource;
 import infinity.resource.graphics.PvrzResource;
 import infinity.resource.graphics.TgaResource;
 import infinity.resource.graphics.TisResource2;
-import infinity.resource.graphics.WbmResource;
 import infinity.resource.itm.ItmResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.FileResourceEntry;
@@ -59,6 +57,8 @@ import infinity.resource.toh.TohResource;
 import infinity.resource.tot.TotResource;
 import infinity.resource.var.VarResource;
 import infinity.resource.vef.VefResource;
+import infinity.resource.video.MveResource2;
+import infinity.resource.video.WbmResource;
 import infinity.resource.wed.WedResource;
 import infinity.resource.wmp.WmpResource;
 import infinity.util.Decryptor;
@@ -259,7 +259,7 @@ public final class ResourceFactory
                  entry.getExtension().equalsIgnoreCase("GUI"))
           res = new PlainTextResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MVE"))
-          res = new MveResource(entry);
+          res = new MveResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("WBM"))
           res = new WbmResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("PLT"))

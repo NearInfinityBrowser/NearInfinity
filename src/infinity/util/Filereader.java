@@ -49,27 +49,32 @@ public final class Filereader
     }
   }
 
-  public static int readInt(RandomAccessFile ranfile) throws IOException
+  /**
+   * Reads a byte (8 bit) from specified input stream.
+   * @param in The input stream to read from.
+   * @return The byte value from the stream.
+   */
+  public static byte readByte(InputStream in) throws IOException
   {
-    ranfile.readFully(buffer4);
-    return DynamicArray.getInt(buffer4, 0);
+    byte res = 0;
+    if (in != null) {
+      int n = in.read();
+      if (n < 0)
+        return res;
+      res = (byte)n;
+    }
+    return res;
   }
 
-  public static int readInt(InputStream is) throws IOException
+  /**
+   * Reads an unsigned byte (8 bit) from specified input stream.
+   * @param in The input stream to read from.
+   * @return The unsigned byte value from the stream.
+   */
+  public static short readUnsignedByte(InputStream in) throws IOException
   {
-    return DynamicArray.getInt(readBytes(is, 4), 0);
+    return (short)(readByte(in) & 0xff);
   }
-
-// --Recycle Bin START (21.10.03 21:45):
-//  public static long readUnsignedInt(RandomAccessFile ranfile) throws IOException
-//  {
-//    ranfile.readFully(buffer4);
-//    long value = (long)DynamicArray.getInt(buffer4, 0);
-//    if (value < 0)
-//      value += 4294967296L;
-//    return value;
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
 
   public static short readShort(RandomAccessFile ranfile) throws IOException
   {
@@ -77,54 +82,109 @@ public final class Filereader
     return DynamicArray.getShort(buffer2, 0);
   }
 
-// --Recycle Bin START (21.10.03 21:45):
-//  public static byte readByte(InputStream is) throws IOException
-//  {
-//    return DynamicArray.getByte(readBytes(is, 1), 0);
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
-
-  public static short readShort(InputStream is) throws IOException
+  /**
+   * Reads a short (16 bit) from specified input stream.
+   * @param in The input stream to read from.
+   * @return The short value from the stream.
+   */
+  public static short readShort(InputStream in) throws IOException
   {
-    return DynamicArray.getShort(readBytes(is, 2), 0);
+    short res = 0;
+    if (in != null) {
+      for (int i = 0, shift = 0; i < 2; i++, shift+=8) {
+        int n = in.read();
+        if (n < 0)
+          throw new IOException("End of stream");
+        res |= n << shift;
+      }
+    }
+    return res;
   }
 
-// --Recycle Bin START (21.10.03 21:45):
-//  public static long readLong(InputStream is) throws IOException
-//  {
-//    return DynamicArray.getLong(readBytes(is, 8), 0);
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
+  /**
+   * Reads an unsigned short (16 bit) from specified input stream.
+   * @param in The input stream to read from.
+   * @return The unsigned short value from the stream.
+   */
+  public static int readUnsignedShort(InputStream in) throws IOException
+  {
+    return readShort(in) & 0xffff;
+  }
 
-// --Recycle Bin START (21.10.03 21:45):
-//  public static int readUnsignedByte(InputStream is) throws IOException
-//  {
-//    int value = (int)DynamicArray.getByte(readBytes(is, 1), 0);
-//    if (value < 0)
-//      value += 256;
-//    return value;
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
+  public static int readInt(RandomAccessFile ranfile) throws IOException
+  {
+    ranfile.readFully(buffer4);
+    return DynamicArray.getInt(buffer4, 0);
+  }
 
-// --Recycle Bin START (21.10.03 21:45):
-//  public static int readUnsignedShort(InputStream is) throws IOException
-//  {
-//    int value = (int)DynamicArray.getShort(readBytes(is, 2), 0);
-//    if (value < 0)
-//      value += 65536;
-//    return value;
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
+  /**
+   * Reads an integer (32 bit) from specified input stream.
+   * @param in The input stream to read from.
+   * @return The integer value from the stream.
+   */
+  public static int readInt(InputStream in) throws IOException
+  {
+    int res = 0;
+    if (in != null) {
+      for (int i = 0, shift = 0; i < 4; i++, shift+=8) {
+        int n = in.read();
+        if (n < 0)
+          throw new IOException("End of stream");
+        res |= n << shift;
+      }
+    }
+    return res;
+  }
 
-// --Recycle Bin START (21.10.03 21:45):
-//  public static long readUnsignedInt(InputStream is) throws IOException
-//  {
-//    long value = (long)DynamicArray.getInt(readBytes(is, 4), 0);
-//    if (value < 0)
-//      value += 4294967296L;
-//    return value;
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
+  /**
+   * Reads an unsigned integer (32 bit) from specified input stream.
+   * @param in The input stream to read from.
+   * @return The unsigned integer value from the stream.
+   */
+  public static long readUnsignedInt(InputStream in) throws IOException
+  {
+    return readInt(in) & 0xffffffffL;
+  }
+
+  /**
+   * Reads an 24 bit integer from specified input stream.
+   * @param in The input stream to read from.
+   * @return The 24 bit integer value from the stream.
+   */
+  public static int readInt24(InputStream in) throws IOException
+  {
+    return signExtend(readUnsignedInt24(in), 24);
+  }
+
+  /**
+   * Reads an unsigned 24 bit integer from specified input stream.
+   * @param in The input stream to read from.
+   * @return The unsigned 24 bit integer value from the stream.
+   */
+  public static int readUnsignedInt24(InputStream in) throws IOException
+  {
+    int res = 0;
+    if (in != null) {
+      for (int i = 0, shift = 0; i < 3; i++, shift+=8) {
+        int n = in.read();
+        if (n < 0)
+          throw new IOException("End of stream");
+        res |= n << shift;
+      }
+    }
+    return res;
+  }
+
+  /**
+   * Sign extends the specified value consisting of specified number of bits.
+   * @param value The value to sign-extend
+   * @param bits Size of <code>value</code> in bits.
+   * @return A sign-extended version of <code>value</code>.
+   */
+  public static int signExtend(int value, int bits)
+  {
+    return (value << (32 - bits)) >> (32 - bits);
+  }
 
   public static String readString(RandomAccessFile ranfile, int length) throws IOException
   {
