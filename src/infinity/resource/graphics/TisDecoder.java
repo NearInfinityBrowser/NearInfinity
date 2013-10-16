@@ -480,12 +480,12 @@ public class TisDecoder
      * @return TIS type
      * @throws Exception
      */
-    public TisType type() throws Exception
+    public TisType type()
     {
       if (!empty())
         return type;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return null;
     }
 
     /**
