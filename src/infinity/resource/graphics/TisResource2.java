@@ -51,6 +51,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -73,6 +74,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
   private JMenuItem miExport, miOldTis;
   private JButton bExport;
   private JPanel panel;                   // top-level panel of the viewer
+  private RootPaneContainer rpc;
   private SwingWorker<List<byte[]>, Void> workerConvert;
   private WindowBlocker blocker;
 
@@ -181,7 +183,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         (bExport != null && event.getSource() == bExport)) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miOldTis) {
-      blocker = new WindowBlocker(NearInfinity.getInstance());
+      blocker = new WindowBlocker(rpc);
       blocker.setBlocked(true);
       workerConvert = new SwingWorker<List<byte[]>, Void>() {
         @Override
@@ -353,6 +355,12 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
+    if (container instanceof RootPaneContainer) {
+      rpc = (RootPaneContainer)container;
+    } else {
+      rpc = NearInfinity.getInstance();
+    }
+
     int tileCount = decoder.info().tileCount();
 
     // 1. creating top panel

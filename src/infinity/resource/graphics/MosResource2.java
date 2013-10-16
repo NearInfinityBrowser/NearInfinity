@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ProgressMonitor;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 
@@ -53,6 +54,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
   private JButton bFind;
   private JLabel lImage;
   private JPanel panel;
+  private RootPaneContainer rpc;
   private boolean compressed;
   private SwingWorker<List<byte[]>, Void> workerConvert;
   private boolean exportCompressed;
@@ -86,7 +88,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
     } else if (event.getSource() == miExportMOSV1) {
       if (mosType == MosDecoder.MosInfo.MosType.PVRZ) {
         // create new MOS V1 from scratch
-        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker = new WindowBlocker(rpc);
         blocker.setBlocked(true);
         startConversion(false);
       } else {
@@ -108,7 +110,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
     } else if (event.getSource() == miExportMOSC) {
       if (mosType == MosDecoder.MosInfo.MosType.PVRZ) {
         // create new MOSC V1 from scratch
-        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker = new WindowBlocker(rpc);
         blocker.setBlocked(true);
         startConversion(true);
       } else {
@@ -222,6 +224,12 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
+    if (container instanceof RootPaneContainer) {
+      rpc = (RootPaneContainer)container;
+    } else {
+      rpc = NearInfinity.getInstance();
+    }
+
     bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
     bFind.setMnemonic('f');
     bFind.addActionListener(this);
