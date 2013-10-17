@@ -104,7 +104,7 @@ public class ColorConvert
    * if you want to use the method {@link #nearestColor(int, int[])}.
    * @param rgbPalette The source RGB palette.
    * @param hslPalette An array to store the resulting HSL colors into.
-   * @return <code>true</code> if the conversion finished successfully, </code>false</code> otherwise.
+   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
    */
   public static boolean toHslPalette(int[] rgbPalette, int[] hslPalette)
   {

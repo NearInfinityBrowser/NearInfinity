@@ -60,19 +60,15 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
   private boolean exportCompressed;
   private WindowBlocker blocker;
 
-  public MosResource2(ResourceEntry entry)
+  public MosResource2(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
     if (this.entry != null) {
-      try {
-        MosDecoder decoder = new MosDecoder(entry);
-        compressed = decoder.info().isCompressed();
-        mosType = decoder.info().type();
-        decoder.close();
-        decoder = null;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      MosDecoder decoder = new MosDecoder(entry);
+      compressed = decoder.info().isCompressed();
+      mosType = decoder.info().type();
+      decoder.close();
+      decoder = null;
     }
   }
 

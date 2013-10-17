@@ -13,6 +13,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -202,6 +203,7 @@ public class MveResource2 implements Resource, ActionListener, ChangeListener, C
       renderer = new ImageRenderer();
     }
     JScrollPane scroll = new JScrollPane(renderer);
+    scroll.setPreferredSize(new Dimension(renderer.getBufferWidth(), renderer.getBufferHeight()));
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());

@@ -75,7 +75,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
     if (numBuffers > 0 && width > 1 && height > 1) {
       boolean res = videoBuffer.create(numBuffers, width, height, false);
       if (res) {
-        setPreferredSize(new Dimension(getBufferWidth(), getBufferHeight()));
+        updateDefaultSize();
         updateCanvasBounds();
         updateRenderer();
       }
@@ -169,6 +169,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
   {
     if (enable != canvas.getScalingEnabled()) {
       canvas.setScalingEnabled(enable);
+      updateDefaultSize();
       updateCanvasBounds();
     }
   }
@@ -310,6 +311,15 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
   }
 
 //--------------------- End Interface ComponentListener ---------------------
+
+  private void updateDefaultSize()
+  {
+    if (getScalingEnabled()) {
+      setPreferredSize(getMinimumSize());
+    } else {
+      setPreferredSize(new Dimension(getBufferWidth(), getBufferHeight()));
+    }
+  }
 
   private void updateCanvasBounds()
   {

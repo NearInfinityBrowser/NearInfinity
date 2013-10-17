@@ -34,17 +34,6 @@ final class Control extends AbstractStruct // implements AddRemovable
     super(superStruct, "Control " + number, buffer, offset);
   }
 
-// --------------------- Begin Interface StructEntry ---------------------
-
-  @Override
-  public String getName()
-  {
-    return "Control";
-  }
-
-// --------------------- End Interface StructEntry ---------------------
-
-
 // --------------------- Begin Interface Writeable ---------------------
 
   @Override
