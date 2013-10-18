@@ -11,7 +11,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class AutomapNote extends AbstractStruct implements AddRemovable
+public final class AutomapNote extends AbstractStruct implements AddRemovable
 {
   private static final String s_flag[] = {"Gray", "Violet", "Green", "Orange", "Red", "Blue",
                                           "Dark blue", "Light gray"};

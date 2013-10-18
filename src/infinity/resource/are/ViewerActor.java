@@ -17,7 +17,7 @@ import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-final class ViewerActor extends JPanel
+public final class ViewerActor extends JPanel
 {
   ViewerActor(Actor actor)
   {

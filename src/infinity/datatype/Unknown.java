@@ -41,6 +41,11 @@ public class Unknown extends Datatype implements Editable
     data = Arrays.copyOfRange(buffer, offset, offset + length);
   }
 
+  public byte[] getData()
+  {
+    return data;
+  }
+
 // --------------------- Begin Interface Editable ---------------------
 
   @Override

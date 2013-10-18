@@ -11,7 +11,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class TiledObject extends AbstractStruct implements AddRemovable
+public final class TiledObject extends AbstractStruct implements AddRemovable
 {
   private static final String s_flag[] = { "No flags set", "Secondary tile", "Can be looked through" };
 

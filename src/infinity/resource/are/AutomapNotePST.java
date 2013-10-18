@@ -11,7 +11,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class AutomapNotePST extends AbstractStruct implements AddRemovable
+public final class AutomapNotePST extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_yesno = new String[] { "No", "Yes" };
 

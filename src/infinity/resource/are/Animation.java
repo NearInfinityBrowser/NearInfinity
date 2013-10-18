@@ -13,7 +13,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.ResourceFactory;
 
-final class Animation extends AbstractStruct implements AddRemovable
+public final class Animation extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_flag = {"Not shown", "Is shown", "No shadow", "Not light source",
                                           "Partial animation", "Synchronized draw", "Random start",

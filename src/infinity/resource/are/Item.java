@@ -11,7 +11,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Item extends AbstractStruct implements AddRemovable
+public final class Item extends AbstractStruct implements AddRemovable
 {
   private static final String s_flags[] = {"No flags set", "Identified", "Not stealable", "Stolen",
                                            "Undroppable"};

@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import infinity.gui.RenderCanvas;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
@@ -20,7 +21,6 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -34,7 +34,7 @@ public final class PltResource implements Resource, ActionListener
   private final byte[] buffer;
   private JButton bexport;
   private JComboBox cbColorBMP;
-  private JLabel imageLabel;
+  private RenderCanvas rcCanvas;
   private JPanel panel;
   private Resource externalResource;
 
@@ -60,7 +60,7 @@ public final class PltResource implements Resource, ActionListener
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == cbColorBMP)
-      imageLabel.setIcon(new ImageIcon(getImage()));
+      rcCanvas.setImage(getImage());
     else if (event.getSource() == bexport)
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
   }
@@ -100,8 +100,8 @@ public final class PltResource implements Resource, ActionListener
       bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
       bexport.setMnemonic('e');
       bexport.addActionListener(this);
-      imageLabel = new JLabel(new ImageIcon(getImage()));
-      JScrollPane scroll = new JScrollPane(imageLabel);
+      rcCanvas = new RenderCanvas(getImage());
+      JScrollPane scroll = new JScrollPane(rcCanvas);
 
       JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       bpanel.add(new JLabel("Colors: "));

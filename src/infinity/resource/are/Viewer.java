@@ -7,6 +7,7 @@ package infinity.resource.are;
 import infinity.datatype.Flag;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
+import infinity.resource.are.viewer.AreaViewer;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;

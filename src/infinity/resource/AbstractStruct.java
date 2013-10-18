@@ -467,6 +467,24 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return null;
   }
 
+  // returns a specific StructEntry object located at the specified offset
+  public StructEntry getAttribute(int offset, Class<? extends StructEntry> type)
+  {
+    for (int i = 0; i < list.size(); i++) {
+      StructEntry structEntry = list.get(i);
+      if (offset >= structEntry.getOffset()) {
+        if (offset == structEntry.getOffset() && type.isInstance(structEntry)) {
+          return structEntry;
+        } else if (structEntry instanceof AbstractStruct) {
+          StructEntry res = ((AbstractStruct)structEntry).getAttribute(offset, type);
+          if (res != null)
+            return res;
+        }
+      }
+    }
+    return null;
+  }
+
   public StructEntry getAttribute(String ename)
   {
     for (int i = 0; i < list.size(); i++) {
@@ -474,7 +492,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       if (structEntry.getName().equalsIgnoreCase(ename))
         return structEntry;
     }
-    System.err.println("Could not find attribute " + ename + " in " + getName());
+//    System.err.println("Could not find attribute " + ename + " in " + getName());
     return null;
   }
 

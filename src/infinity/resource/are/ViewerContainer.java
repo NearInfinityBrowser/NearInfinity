@@ -18,7 +18,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-final class ViewerContainer extends JPanel
+public final class ViewerContainer extends JPanel
 {
   ViewerContainer(Container container)
   {

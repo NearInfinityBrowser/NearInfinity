@@ -11,7 +11,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Variable extends AbstractStruct implements AddRemovable
+public final class Variable extends AbstractStruct implements AddRemovable
 {
   private static final String s_type[] = {"Integer", "Float", "Script name", "Resource reference",
                                           "String reference", "Double word"};

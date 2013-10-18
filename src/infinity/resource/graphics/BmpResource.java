@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import infinity.gui.RenderCanvas;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
@@ -19,10 +20,8 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -114,7 +113,10 @@ public final class BmpResource implements Resource, ActionListener
     bexport.addActionListener(this);
     bfind.setMnemonic('r');
     bfind.addActionListener(this);
-    JScrollPane scroll = new JScrollPane(new JLabel(new ImageIcon(image)));
+    RenderCanvas rcCanvas = new RenderCanvas(image);
+    JScrollPane scroll = new JScrollPane(rcCanvas);
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+    scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
     JPanel bpanel = new JPanel();
     bpanel.setLayout(new FlowLayout(FlowLayout.CENTER));

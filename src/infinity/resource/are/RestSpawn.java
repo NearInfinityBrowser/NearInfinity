@@ -12,7 +12,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
-final class RestSpawn extends AbstractStruct // implements AddRemovable
+public final class RestSpawn extends AbstractStruct // implements AddRemovable
 {
   RestSpawn(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {

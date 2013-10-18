@@ -14,7 +14,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 
-final class Song extends AbstractStruct // implements AddRemovable
+public final class Song extends AbstractStruct // implements AddRemovable
 {
   private static final String[] s_reverb = {"None", "Small room", "Medium room",
                                             "Large room", "Outside", "Dungeon"};

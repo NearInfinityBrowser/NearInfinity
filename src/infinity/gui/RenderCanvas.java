@@ -263,6 +263,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
         g2.drawImage(currentImage, srcPos.x, srcPos.y, null);
       }
     }
+    super.paint(g);
   }
 
 //--------------------- End Class Component ---------------------

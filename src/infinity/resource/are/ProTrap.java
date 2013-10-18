@@ -10,7 +10,7 @@ import infinity.datatype.SectionOffset;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class ProTrap extends AbstractStruct implements AddRemovable
+public final class ProTrap extends AbstractStruct implements AddRemovable
 {
   ProTrap() throws Exception
   {

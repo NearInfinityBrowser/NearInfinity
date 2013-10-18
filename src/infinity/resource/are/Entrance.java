@@ -11,7 +11,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Entrance extends AbstractStruct implements AddRemovable
+public final class Entrance extends AbstractStruct implements AddRemovable
 {
   Entrance() throws Exception
   {

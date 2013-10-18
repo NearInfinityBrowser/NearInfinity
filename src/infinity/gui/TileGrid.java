@@ -12,9 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 
@@ -690,12 +688,12 @@ public class TileGrid extends JComponent
     ListIterator<TileLabel> iterTile = tileList.listIterator(startIndex);
     // updating icons on labels
     while (tileCount > 0 && iterImage.hasNext() && iterTile.hasNext()) {
-      iterTile.next().setIcon(new ImageIcon(iterImage.next()));
+      iterTile.next().setImage(iterImage.next());
       tileCount--;
     }
     // removing icons from remaining labels
     while (tileCount > 0 && iterTile.hasNext()) {
-      iterTile.next().setIcon(null);
+      iterTile.next().setImage(null);
       tileCount--;
     }
   }
@@ -745,13 +743,13 @@ public class TileGrid extends JComponent
         while (iterDst.hasNext()) {
           Image image = iterSrc.hasNext() ? iterSrc.next() : null;
           TileLabel label = iterDst.next();
-          label.setIcon(new ImageIcon(image));
+          label.setImage(image);
         }
       } else {
         ListIterator<TileLabel> iter = tileList.listIterator();
         while (iter.hasNext()) {
           TileLabel label = iter.next();
-          label.setIcon(null);
+          label.setImage(null);
         }
       }
     }
@@ -775,7 +773,7 @@ public class TileGrid extends JComponent
     label.setBackground(bgColor);
     label.setBorder(tileBorder);
     if (img != null)
-      label.setIcon(new ImageIcon(img));
+      label.setImage(img);
     return label;
   }
 
@@ -804,8 +802,8 @@ public class TileGrid extends JComponent
 
 //-------------------------- INNER CLASSES --------------------------
 
-  // Adding grid support to JLabel
-  private class TileLabel extends JLabel
+  // Adding grid support to RenderCanvas
+  private class TileLabel extends RenderCanvas
   {
     private Color gridColor;
     private boolean showGrid;

@@ -6,6 +6,7 @@ package infinity.resource.graphics;
 
 import infinity.NearInfinity;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
@@ -32,10 +33,8 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -52,7 +51,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
   private ButtonPopupMenu bpmExport;
   private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportBMP;
   private JButton bFind;
-  private JLabel lImage;
+//  private JLabel lImage;
+  private RenderCanvas rcImage;
   private JPanel panel;
   private RootPaneContainer rpc;
   private boolean compressed;
@@ -209,8 +209,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
   public void close() throws Exception
   {
     panel.removeAll();
-    lImage.setIcon(null);
-    lImage = null;
+    rcImage.setImage(null);
+    rcImage = null;
   }
 
 //--------------------- End Interface Closeable ---------------------
@@ -269,17 +269,17 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
     bpmExport.setIcon(Icons.getIcon("Export16.gif"));
     bpmExport.setMnemonic('e');
 
-    lImage = new JLabel();
-    lImage.setHorizontalAlignment(SwingConstants.CENTER);
-    lImage.setVerticalAlignment(SwingConstants.CENTER);
+    rcImage = new RenderCanvas();
+    rcImage.setHorizontalAlignment(SwingConstants.CENTER);
+    rcImage.setVerticalAlignment(SwingConstants.CENTER);
     WindowBlocker.blockWindow(true);
     try {
-      lImage.setIcon(loadImage());
+      rcImage.setImage(loadImage());
       WindowBlocker.blockWindow(false);
     } catch (Exception e) {
       WindowBlocker.blockWindow(false);
     }
-    JScrollPane scroll = new JScrollPane(lImage);
+    JScrollPane scroll = new JScrollPane(rcImage);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
@@ -299,50 +299,46 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
 
   public BufferedImage getImage()
   {
-    if (lImage != null) {
-      ImageIcon icon = (ImageIcon)lImage.getIcon();
-      if (icon != null) {
-        return ColorConvert.toBufferedImage(icon.getImage(), false);
-      }
+    if (rcImage != null) {
+      return ColorConvert.toBufferedImage(rcImage.getImage(), false);
     } else if (entry != null) {
-      return (BufferedImage)loadImage().getImage();
+      return loadImage();
     }
     return null;
   }
 
-  private ImageIcon loadImage()
+  private BufferedImage loadImage()
   {
-    ImageIcon icon = null;
+    BufferedImage image = null;
     MosDecoder decoder = null;
     if (entry != null) {
       try {
         decoder = new MosDecoder(entry);
         compressed = decoder.info().isCompressed();
         mosType = decoder.info().type();
-        BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().width(),
-                                                                 decoder.info().height(), false);
-        if (decoder.decode(image)) {
-          icon = new ImageIcon(image);
+        image = ColorConvert.createCompatibleImage(decoder.info().width(),
+                                                   decoder.info().height(), false);
+        if (!decoder.decode(image)) {
+          image = null;
         }
-        image = null;
         decoder.close();
       } catch (Exception e) {
         if (decoder != null)
           decoder.close();
-        icon = null;
+        image = null;
         e.printStackTrace();
       }
     }
-    return icon;
+    return image;
   }
 
   // Creates a new MOS V1 or MOSC V1 resource from scratch. DO NOT call directly!
   private byte[] convertToMosV1(boolean compressed) throws Exception
   {
     byte[] buf = null;
-    if (lImage != null && lImage.getIcon() != null) {
+    if (rcImage != null && rcImage.getImage() != null) {
       // preparing source image
-      Image img = ((ImageIcon)lImage.getIcon()).getImage();
+      Image img = rcImage.getImage();
       BufferedImage srcImage = ColorConvert.createCompatibleImage(img.getWidth(null),
                                                                   img.getHeight(null), false);
       Graphics2D g = (Graphics2D)srcImage.getGraphics();

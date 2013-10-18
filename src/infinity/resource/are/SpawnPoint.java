@@ -13,7 +13,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class SpawnPoint extends AbstractStruct implements AddRemovable
+public final class SpawnPoint extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_active = { "No", "Yes" };
 
