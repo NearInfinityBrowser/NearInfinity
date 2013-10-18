@@ -41,6 +41,7 @@ import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+@Deprecated
 public final class RimResource implements Resource, ActionListener, ListSelectionListener
 {
   private final ResourceEntry entry;

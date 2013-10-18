@@ -40,6 +40,7 @@ import java.util.Set;
 
 import javax.swing.JComponent;
 
+@Deprecated
 public class GffResource implements Resource, Writeable
 {
   private final GffStruct topStruct;

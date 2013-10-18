@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+@Deprecated
 public final class GffFloat extends GffField
 {
   private final float value;

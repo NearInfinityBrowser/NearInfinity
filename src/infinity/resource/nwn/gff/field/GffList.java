@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public final class GffList extends GffField
 {
   private final List<GffStruct> structs = new ArrayList<GffStruct>();

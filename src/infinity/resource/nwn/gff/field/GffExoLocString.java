@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public final class GffExoLocString extends GffField
 {
   private final IntegerHashMap<String> strings = new IntegerHashMap<String>();

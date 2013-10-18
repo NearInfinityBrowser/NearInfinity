@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+@Deprecated
 public final class GffVoid extends GffField
 {
   private final byte data[];

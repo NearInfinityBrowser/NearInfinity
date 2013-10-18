@@ -17,6 +17,7 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+@Deprecated
 public final class NcsResource implements Resource
 {
   private static final IntegerHashMap<String> ARG_TYPES = new IntegerHashMap<String>();

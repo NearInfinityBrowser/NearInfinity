@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 
+@Deprecated
 public abstract class GffField
 {
   private String label;

@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+@Deprecated
 public final class GlobalVarsResource extends GffResource implements ActionListener
 {
   private final GffList catBoolean, catNumber, catLocation, catString, valString;

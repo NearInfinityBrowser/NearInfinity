@@ -18,6 +18,7 @@ import infinity.resource.key.ResourceEntry;
 import java.io.IOException;
 import java.io.OutputStream;
 
+@Deprecated
 public final class SsfResource extends AbstractStruct implements Resource
 {
   public SsfResource(ResourceEntry entry) throws Exception

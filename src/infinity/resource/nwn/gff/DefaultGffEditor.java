@@ -31,6 +31,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
+@Deprecated
 final class DefaultGffEditor extends JPanel implements ActionListener
 {
   private static final ImageIcon closed = Icons.getIcon("Forward16.gif");

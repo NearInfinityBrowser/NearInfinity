@@ -1,7 +1,13 @@
-package infinity.resource.dlg;
+package infinity.search;
 
 import infinity.resource.StructEntry;
-import infinity.search.ReferenceHitFrame;
+import infinity.resource.dlg.AbstractCode;
+import infinity.resource.dlg.Action;
+import infinity.resource.dlg.DlgResource;
+import infinity.resource.dlg.ResponseTrigger;
+import infinity.resource.dlg.State;
+import infinity.resource.dlg.StateTrigger;
+import infinity.resource.dlg.Transition;
 
 import java.awt.Component;
 import java.util.List;

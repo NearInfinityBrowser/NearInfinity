@@ -17,6 +17,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
+@Deprecated
 public final class TableTextResource implements Resource
 {
   private final List<String> columnNames = new ArrayList<String>();
