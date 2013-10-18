@@ -4,7 +4,7 @@
 
 package infinity.resource.dlg;
 
-final class ResponseTrigger extends AbstractCode
+public final class ResponseTrigger extends AbstractCode
 {
   ResponseTrigger()
   {
