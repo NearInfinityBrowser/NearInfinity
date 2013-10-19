@@ -48,7 +48,7 @@ import java.util.List;
  * Manages map structures for the AreaViewer.
  * @author argent77
  */
-public class AreaStructure
+final class AreaStructures
 {
   // identifies preprocessed lists of StructEntry objects
   public static enum Structure {
@@ -58,7 +58,7 @@ public class AreaStructure
     ACTOR, AMBIENT, ANIMATION, AUTOMAP, CONTAINER, ENTRANCE, EXPLORED, PROTRAP, REGION,
     REST, SONG, SPAWNPOINT, TILE, VARIABLE,
     // WED related structures
-    DOORPOLY, DOORTILE, OVERLAY, POLYGONINDEX, TILEINDEX, TILEMAP, WALLGROUP, WALLPOLY,
+    DOORPOLY, DOORTILE, OVERLAY, POLYGONINDEX, TILEINDEX, WALLGROUP, WALLPOLY,
     // used in both super structures
     DOOR, VERTEX
   }
@@ -69,7 +69,7 @@ public class AreaStructure
 
   private final AreaViewer viewer;
 
-  public AreaStructure(AreaViewer viewer)
+  public AreaStructures(AreaViewer viewer)
   {
     if (viewer == null)
       throw new NullPointerException();
@@ -77,12 +77,73 @@ public class AreaStructure
     this.viewer = viewer;
   }
 
+  /**
+   * Returns a list of map structures of the specified type.
+   * @param superStruct The super structure the map structures belong to (ARE or WED).
+   * @param struct The type of the map structures to return.
+   * @return A list of entries of the specified map structure type.
+   */
+  public List<StructEntry> getStructureList(Structure superStruct, Structure struct)
+  {
+    if (structures.containsKey(superStruct)) {
+      if (structures.get(superStruct).containsKey(struct)) {
+        return structures.get(superStruct).get(struct);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns a single map structure entry located at the specified offset.
+   * @param superStruct The super structure the map structure belongs to (ARE or WED).
+   * @param struct The type of map structure to search for the map structure entry.
+   * @param offset The offset in bytes of the map structure entry to find.
+   * @return The map structure entry found at the specified offset.
+   */
+  public StructEntry getStructureByOffset(Structure superStruct, Structure struct, int offset)
+  {
+    if (structures.containsKey(superStruct)) {
+      if (structures.get(superStruct).containsKey(struct)) {
+        List<StructEntry> list = structures.get(superStruct).get(struct);
+        for (final StructEntry entry: list) {
+          if (entry != null && entry.getOffset() == offset) {
+            return entry;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns a single map structure entry located at the specified list position.
+   * @param superStruct The super structure the map structure belongs to (ARE or WED).
+   * @param struct The type of map structure to search for the map structure entry.
+   * @param index The list index of the map structure entry to find.
+   * @return The map structure entry found at the specified list index.
+   */
+  public StructEntry getStructureByIndex(Structure superStruct, Structure struct, int index)
+  {
+    if (structures.containsKey(superStruct)) {
+      if (structures.get(superStruct).containsKey(struct)) {
+        List<StructEntry> list = structures.get(superStruct).get(struct);
+        if (index >= 0 && index < list.size()) {
+          return list.get(index);
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Removes all map structures and super structures from memory.
+   */
   public void clear()
   {
     Collection<EnumMap<Structure, List<StructEntry>>> baseMapCol = structures.values();
     for (final EnumMap<Structure, List<StructEntry>> mapCol: baseMapCol) {
       Collection<List<StructEntry>> listCol = mapCol.values();
-      for (final List<StructEntry> list: mapCol.values()) {
+      for (final List<StructEntry> list: listCol) {
         list.clear();
       }
       listCol.clear();
@@ -91,14 +152,60 @@ public class AreaStructure
     structures.clear();
   }
 
-  // initialize ARE and WED structure entries
-  public void init(WedResource wed)
+  /**
+   * Removes all entries of the specified map structure type.
+   * @param superStruct The super structure the map structure belongs to (ARE or WED).
+   *                    If <code>null</code> is specified, the <code>struct</code> entries of all
+   *                    super structures will be removed.
+   * @param struct The structure type of the map structure to be removed. If <code>null</code> is
+   *               specified, all map structures of the current (or all) super structures will be
+   *               removed.
+   */
+  public void clearStructure(Structure superStruct, Structure struct)
+  {
+    if (superStruct != null) {
+      if (structures.containsKey(superStruct)) {
+        if (struct != null) {
+          if (structures.get(superStruct).containsKey(struct)) {
+            structures.get(superStruct).get(struct).clear();
+            structures.get(superStruct).remove(struct);
+          }
+        } else {
+          for (final Structure key: structures.get(superStruct).keySet()) {
+            if (structures.get(superStruct).containsKey(key)) {
+              structures.get(superStruct).get(key).clear();
+              structures.get(superStruct).remove(key);
+            }
+          }
+        }
+      }
+    } else {
+      if (struct != null) {
+        for (final EnumMap<Structure, List<StructEntry>> structMap: structures.values()) {
+          if (structMap.containsKey(struct)) {
+            structMap.get(struct).clear();
+            structMap.remove(struct);
+          }
+        }
+      } else {
+        clear();
+      }
+    }
+  }
+
+  /**
+   * Initializes all ARE and WED structure entries.
+   */
+  public void init()
   {
     // preparing map entries
     initAre();
-    initWed(wed);
+    initWed();
   }
 
+  /**
+   * Initializes all ARE specific map structures.
+   */
   public void initAre()
   {
     // removing old ARE entry
@@ -147,14 +254,19 @@ public class AreaStructure
     initAreVertex(structMap);
   }
 
-  public void initWed(WedResource wed)
+  /**
+   * Initializes all WED specific map structures that belong to the current ARE resource.
+   * Uses the currently active WED resource.
+   */
+  public void initWed()
   {
-    // *** remove old WED entry ***
+    // remove old WED entry
     if (structures.containsKey(Structure.WED)) {
       structures.remove(Structure.WED);
     }
 
-    // *** create and add new WED entry ***
+    // create and add new WED entry
+    WedResource wed = viewer.getCurrentWed();
     if (wed != null) {
       EnumMap<Structure, List<StructEntry>> structMap = new EnumMap<Structure, List<StructEntry>>(Structure.class);
       ArrayList<StructEntry> entryList = new ArrayList<StructEntry>();
@@ -185,7 +297,55 @@ public class AreaStructure
     }
   }
 
-  public void initAreActor(EnumMap<Structure, List<StructEntry>> areMap)
+  /**
+   * Initializes a specific type of map structure.
+   * @param superStruct The super structure (ARE or WED) the specified structure belongs to.
+   * @param struct The structure to initialize.
+   */
+  public void initStructure(Structure superStruct, Structure struct)
+  {
+    if (superStruct == Structure.ARE) {
+      EnumMap<Structure, List<StructEntry>> structMap = structures.get(Structure.ARE);
+      if (structMap != null) {
+        switch (struct) {
+          case ACTOR:       initAreActor(structMap); break;
+          case ANIMATION:   initAreAnimation(structMap); break;
+          case AMBIENT:     initAreAmbient(structMap); break;
+          case AUTOMAP:     initAreAutomap(structMap); break;
+          case CONTAINER:   initAreContainer(structMap); break;
+          case DOOR:        initAreDoor(structMap); break;
+          case ENTRANCE:    initAreEntrance(structMap); break;
+          case EXPLORED:    initAreExplored(structMap); break;
+          case PROTRAP:     initAreProTrap(structMap); break;
+          case REGION:      initAreRegion(structMap); break;
+          case REST:        initAreRest(structMap); break;
+          case SONG:        initAreSong(structMap); break;
+          case SPAWNPOINT:  initAreSpawnPoint(structMap); break;
+          case TILE:        initAreTile(structMap); break;
+          case VARIABLE:    initAreVariable(structMap); break;
+          case VERTEX:      initAreVertex(structMap); break;
+          default:
+        }
+      }
+    } else if (superStruct == Structure.WED) {
+      EnumMap<Structure, List<StructEntry>> structMap = structures.get(Structure.WED);
+      if (structMap != null) {
+        switch (struct) {
+          case DOOR:      initWedDoor(structMap); break;
+          case DOORPOLY:  initWedDoorPoly(structMap); break;
+          case DOORTILE:  initWedDoorTile(structMap); break;
+          case OVERLAY:   initWedOverlay(structMap); break;
+          case TILEINDEX: initWedTileIndex(structMap); break;
+          case VERTEX:    initWedVertex(structMap); break;
+          case WALLGROUP: initWedWallGroup(structMap); break;
+          case WALLPOLY:  initWedWallPoly(structMap); break;
+          default:
+        }
+      }
+    }
+  }
+
+  private void initAreActor(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.ACTOR)) {
@@ -220,7 +380,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreRegion(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreRegion(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.REGION)) {
@@ -255,7 +415,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreSpawnPoint(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreSpawnPoint(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.SPAWNPOINT)) {
@@ -290,7 +450,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreEntrance(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreEntrance(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.ENTRANCE)) {
@@ -325,7 +485,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreContainer(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreContainer(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.CONTAINER)) {
@@ -360,7 +520,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreAmbient(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreAmbient(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.AMBIENT)) {
@@ -395,7 +555,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreVariable(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreVariable(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.VARIABLE)) {
@@ -430,7 +590,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreExplored(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreExplored(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.EXPLORED)) {
@@ -453,7 +613,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreDoor(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreDoor(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.DOOR)) {
@@ -488,7 +648,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreAnimation(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreAnimation(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.ANIMATION)) {
@@ -523,7 +683,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreAutomap(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreAutomap(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.AUTOMAP)) {
@@ -564,7 +724,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreTile(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreTile(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.TILE)) {
@@ -599,7 +759,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreProTrap(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreProTrap(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.PROTRAP)) {
@@ -638,7 +798,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreSong(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreSong(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.SONG)) {
@@ -660,7 +820,7 @@ public class AreaStructure
     }
   }
 
-  public void initAreRest(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreRest(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.REST)) {
@@ -683,7 +843,7 @@ public class AreaStructure
   }
 
   // must be called AFTER initAreRegion(), initAreContainer() and initAreDoor()
-  public void initAreVertex(EnumMap<Structure, List<StructEntry>> areMap)
+  private void initAreVertex(EnumMap<Structure, List<StructEntry>> areMap)
   {
     // removing old list
     if (areMap.containsKey(Structure.VERTEX)) {
@@ -732,7 +892,7 @@ public class AreaStructure
     }
   }
 
-  public void initWedOverlay(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedOverlay(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.OVERLAY)) {
@@ -769,7 +929,7 @@ public class AreaStructure
     }
   }
 
-  public void initWedDoor(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedDoor(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.DOOR)) {
@@ -807,7 +967,7 @@ public class AreaStructure
   }
 
   // must be called AFTER initWedOverlay()
-  public void initWedDoorTile(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedDoorTile(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.DOORTILE)) {
@@ -852,7 +1012,7 @@ public class AreaStructure
   }
 
   // must be called AFTER initWedOverlay()
-  public void initWedTileIndex(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedTileIndex(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.TILEINDEX)) {
@@ -896,7 +1056,7 @@ public class AreaStructure
     }
   }
 
-  public void initWedWallGroup(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedWallGroup(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.WALLGROUP)) {
@@ -948,7 +1108,7 @@ public class AreaStructure
     }
   }
 
-  public void initWedWallPoly(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedWallPoly(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.WALLPOLY)) {
@@ -986,7 +1146,7 @@ public class AreaStructure
   }
 
   // must be called AFTER initWedDoor()
-  public void initWedDoorPoly(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedDoorPoly(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.DOORPOLY)) {
@@ -1028,7 +1188,7 @@ public class AreaStructure
     }
   }
 
-  public void initWedPolyIndex(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedPolyIndex(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.POLYGONINDEX)) {
@@ -1082,7 +1242,7 @@ public class AreaStructure
   }
 
   //must be called AFTER initWedWallPoly() and initWedDoorPoly()
-  public void initWedVertex(EnumMap<Structure, List<StructEntry>> wedMap)
+  private void initWedVertex(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
     if (wedMap.containsKey(Structure.VERTEX)) {
@@ -1125,43 +1285,5 @@ public class AreaStructure
       }
       wedMap.put(Structure.VERTEX, list);
     }
-  }
-
-  public List<StructEntry> getStructureList(Structure superStruct, Structure struct)
-  {
-    if (structures.containsKey(superStruct)) {
-      if (structures.get(superStruct).containsKey(struct)) {
-        return structures.get(superStruct).get(struct);
-      }
-    }
-    return null;
-  }
-
-  public StructEntry getStructureByOffset(Structure superStruct, Structure struct, int offset)
-  {
-    if (structures.containsKey(superStruct)) {
-      if (structures.get(superStruct).containsKey(struct)) {
-        List<StructEntry> list = structures.get(superStruct).get(struct);
-        for (final StructEntry entry: list) {
-          if (entry != null && entry.getOffset() == offset) {
-            return entry;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  public StructEntry getStructureByIndex(Structure superStruct, Structure struct, int index)
-  {
-    if (structures.containsKey(superStruct)) {
-      if (structures.get(superStruct).containsKey(struct)) {
-        List<StructEntry> list = structures.get(superStruct).get(struct);
-        if (index >= 0 && index < list.size()) {
-          return list.get(index);
-        }
-      }
-    }
-    return null;
   }
 }

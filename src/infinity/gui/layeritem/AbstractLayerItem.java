@@ -245,8 +245,8 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
    */
   public void showViewable()
   {
-    if (viewable != null) {
-      new ViewFrame(this.getTopLevelAncestor(), (Viewable)viewable);
+    if (viewable != null && getTopLevelAncestor() != null) {
+      new ViewFrame(getTopLevelAncestor(), (Viewable)viewable);
     }
   }
 

@@ -8,14 +8,10 @@ import infinity.NearInfinity;
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
-import infinity.datatype.IdsBitmap;
 import infinity.datatype.RemovableDecNumber;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
-import infinity.datatype.StringRef;
-import infinity.datatype.TextEdit;
-import infinity.datatype.TextString;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.gui.RenderCanvas;
@@ -24,39 +20,18 @@ import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.gui.layeritem.LayerItemEvent;
 import infinity.gui.layeritem.LayerItemListener;
-import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
-import infinity.resource.StructEntry;
-import infinity.resource.are.Actor;
 import infinity.resource.are.Ambient;
-import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
-import infinity.resource.are.AutomapNote;
-import infinity.resource.are.AutomapNotePST;
-import infinity.resource.are.Door;
-import infinity.resource.are.Entrance;
-import infinity.resource.are.ITEPoint;
-import infinity.resource.are.ProTrap;
-import infinity.resource.are.SpawnPoint;
-import infinity.resource.are.viewer.AreaStructure.Structure;
-import infinity.resource.cre.CreResource;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.TisDecoder;
-import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.toh.StrRefEntry;
-import infinity.resource.toh.TohResource;
-import infinity.resource.tot.StringEntry;
-import infinity.resource.tot.TotResource;
-import infinity.resource.vertex.Vertex;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.Tilemap;
 import infinity.resource.wed.WedResource;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
@@ -64,11 +39,9 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.LayoutManager;
 import java.awt.Point;
-import java.awt.Polygon;
-import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -78,9 +51,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -108,41 +79,8 @@ public final class AreaViewer extends ChildFrame
   implements Runnable, ActionListener, ItemListener, LayerItemListener, ComponentListener,
              MouseMotionListener, MouseListener
 {
-  // identifies the respective layers of map structures
-  private static enum Layers { ACTOR, REGION, ENTRANCE, CONTAINER, AMBIENT, AMBIENTRANGE, DOOR,
-                               ANIMATION, AUTOMAP, SPAWNPOINT, PROTRAP, TRANSITION, DOORPOLY,
-                               WALLPOLY }
-
   // identifies the respective WED resources
   private static enum DayNight { DAY, NIGHT }
-
-  // identifies locations of the map transitions
-  private static enum AreaEdge { NORTH, EAST, SOUTH, WEST }
-
-  // tracks the current layer item state
-  private static final EnumMap<Layers, Boolean> LayerButtonState =
-      new EnumMap<Layers, Boolean>(Layers.class);
-  private static final EnumMap<Layers, String> layerItemDesc =
-      new EnumMap<Layers, String>(Layers.class);
-  static {
-    for (final Layers layer: Layers.values()) {
-      LayerButtonState.put(layer, false);
-    }
-    layerItemDesc.put(Layers.ACTOR, "Actor");
-    layerItemDesc.put(Layers.REGION, "Region");
-    layerItemDesc.put(Layers.ENTRANCE, "Entrance");
-    layerItemDesc.put(Layers.CONTAINER, "Container");
-    layerItemDesc.put(Layers.AMBIENT, "Sound");
-    layerItemDesc.put(Layers.AMBIENTRANGE, "Sound");
-    layerItemDesc.put(Layers.DOOR, "Door");
-    layerItemDesc.put(Layers.ANIMATION, "Animation");
-    layerItemDesc.put(Layers.AUTOMAP, "Automap");
-    layerItemDesc.put(Layers.SPAWNPOINT, "Spawn Point");
-    layerItemDesc.put(Layers.PROTRAP, "Trap");
-    layerItemDesc.put(Layers.TRANSITION, "Transition");
-    layerItemDesc.put(Layers.DOORPOLY, "Door Poly");
-    layerItemDesc.put(Layers.WALLPOLY, "Wall Poly");
-  }
 
   // RadioButtons to switch between day/night WEDs
   private final EnumMap<DayNight, JRadioButton> dayNightButton =
@@ -157,14 +95,14 @@ public final class AreaViewer extends ChildFrame
   private final EnumMap<DayNight, List<Integer>> dayNightDoorIndices =
       new EnumMap<DayNight, List<Integer>>(DayNight.class);
   // CheckBoxes to show/hide specific layers of map structures
-  private final EnumMap<Layers, JCheckBox> layerButton =
-      new EnumMap<Layers, JCheckBox>(Layers.class);
-  // stores the visual representations of the actual map structures
-  private final EnumMap<Layers, List<AbstractLayerItem>> layerItems =
-      new EnumMap<Layers, List<AbstractLayerItem>>(Layers.class);
+  private final EnumMap<ItemLayer.Type, JCheckBox> layerButtons =
+      new EnumMap<ItemLayer.Type, JCheckBox>(ItemLayer.Type.class);
 
+  private final Component parent;
   private final AreResource are;
-  private final AreaStructure structure;    // provides access to preprocessed map structures
+  private final AreaStructures structure;   // provides access to preprocessed map structures
+  private final LayerManager layers;        // provides access to the map item layers
+  private final AbstractLayerItem areItem;
 
   private DayNight currentMap;
   private TisDecoder tisDecoder;
@@ -228,8 +166,12 @@ public final class AreaViewer extends ChildFrame
   public AreaViewer(Component parent, AreResource areaFile)
   {
     super("Area Viewer: " + areaFile.getName(), true);
+    this.parent = parent;
     this.are = areaFile;
-    this.structure = new AreaStructure(this);
+    this.structure = new AreaStructures(this);
+    this.layers = new LayerManager(this);
+    this.areItem = new IconLayerItem(new Point(), this.are, areaFile.getName());
+    areItem.setVisible(false);
 
     if ((NearInfinity.getInstance().getExtendedState() & Frame.MAXIMIZED_BOTH) != 0) {
       setExtendedState(Frame.MAXIMIZED_BOTH);
@@ -251,14 +193,49 @@ public final class AreaViewer extends ChildFrame
   }
 
   /**
-   * Returns the currently selected WED resource that is linked to the ARE.
-   * @return The currently selected WED resouerce.
+   * Returns the currently selected WED resource structure that is linked to the ARE.
+   * @return The currently selected WED resource structure.
    */
   public WedResource getCurrentWed()
   {
     return dayNightWed.get(getCurrentMap());
   }
 
+  /**
+   * Returns the canvas for the map graphics
+   * @return
+   */
+  public RenderCanvas getCanvas()
+  {
+    return mapCanvas;
+  }
+
+  /**
+   * Returns the data structures object of the current map.
+   * @return The data structures object of the current map.
+   */
+  public AreaStructures getAreaStructures()
+  {
+    return structure;
+  }
+
+  /**
+   * Returns the layers manager object of the viewer.
+   * @return The layers manager object of the viewer
+   */
+  public LayerManager getAreaLayers()
+  {
+    return layers;
+  }
+
+  // Returns whether closed door are currently shown
+  public boolean isDoorStateClosed()
+  {
+    if (cbDrawClosed != null) {
+      return cbDrawClosed.isSelected();
+    } else
+      return false;
+  }
 
 //--------------------- Begin Interface Runnable ---------------------
 
@@ -278,26 +255,47 @@ public final class AreaViewer extends ChildFrame
   {
     if (event.getSource() == dayNightButton.get(DayNight.DAY)) {
       setCurrentMap(DayNight.DAY);
-      structure.initWed(getCurrentWed());
-      initLayerDoorPoly();
-      initLayerWallPoly();
-      enableLayer(Layers.DOORPOLY, layerButton.get(Layers.DOORPOLY).isSelected());
-      enableLayer(Layers.WALLPOLY, layerButton.get(Layers.WALLPOLY).isSelected());
+      structure.initWed();
+      for (ItemLayer.Type type: new ItemLayer.Type[]{ItemLayer.Type.DOORPOLY, ItemLayer.Type.WALLPOLY}) {
+        layers.initData(type, layerButtons.get(type), mapCanvas);
+        layers.get(type).setEnabled(layerButtons.get(type).isSelected());
+      }
+//      layers.initData(ItemLayer.Type.DOORPOLY, mapCanvas);
+//      layers.initData(ItemLayer.Type.WALLPOLY, mapCanvas);
+//      ItemLayer layer = layers.get(ItemLayer.Type.DOORPOLY);
+//      layer.setEnabled(layer.getCheckBox().isSelected());
+//      layer = layers.get(ItemLayer.Type.WALLPOLY);
+//      layer.setEnabled(layer.getCheckBox().isSelected());
     } else if (event.getSource() == dayNightButton.get(DayNight.NIGHT)) {
       setCurrentMap(DayNight.NIGHT);
-      structure.initWed(getCurrentWed());
-      initLayerDoorPoly();
-      initLayerWallPoly();
-      enableLayer(Layers.DOORPOLY, layerButton.get(Layers.DOORPOLY).isSelected());
-      enableLayer(Layers.WALLPOLY, layerButton.get(Layers.WALLPOLY).isSelected());
+      structure.initWed();
+      for (ItemLayer.Type type: new ItemLayer.Type[]{ItemLayer.Type.DOORPOLY, ItemLayer.Type.WALLPOLY}) {
+        layers.initData(type, layerButtons.get(type), mapCanvas);
+        layers.get(type).setEnabled(layerButtons.get(type).isSelected());
+      }
+//      layers.initData(ItemLayer.Type.DOORPOLY, mapCanvas);
+//      layers.initData(ItemLayer.Type.WALLPOLY, mapCanvas);
+//      ItemLayer layer = layers.get(ItemLayer.Type.DOORPOLY);
+//      layer.setEnabled(layer.getCheckBox().isSelected());
+//      layer = layers.get(ItemLayer.Type.WALLPOLY);
+//      layer.setEnabled(layer.getCheckBox().isSelected());
     } else if (event.getSource() instanceof AbstractLayerItem) {
       AbstractLayerItem item = (AbstractLayerItem)event.getSource();
       item.showViewable();
-    } else if (event.getSource() instanceof LayerMenuItem) {
-      LayerMenuItem lmi = (LayerMenuItem)event.getSource();
-      AbstractLayerItem item = lmi.getLayerItem();
-      if (item != null) {
-        item.showViewable();
+    } else if (event.getSource() instanceof JMenuItem) {
+      if (event.getSource() instanceof LayerMenuItem) {
+        LayerMenuItem lmi = (LayerMenuItem)event.getSource();
+        AbstractLayerItem item = lmi.getLayerItem();
+        if (item != null) {
+          if (item == areItem) {
+            // Global structure: showing Edit tab of are structure
+            are.selectEditTab();
+            getParentWindow().toFront();
+          } else {
+            // Sub structure: creating and showing new Viewable
+            item.showViewable();
+          }
+        }
       }
     }
   }
@@ -309,25 +307,26 @@ public final class AreaViewer extends ChildFrame
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    for (final Layers layer: Layers.values()) {
-      JCheckBox cb;
-      if (event.getItemSelectable() != null &&
-          event.getItemSelectable() == (cb = layerButton.get(layer))) {
-        enableLayer(layer, cb.isSelected());
-        if (layer == Layers.AMBIENT) {
-          layerButton.get(Layers.AMBIENTRANGE).setEnabled(
-              cb.isSelected() && !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
-          enableLayer(Layers.AMBIENTRANGE,
-                      cb.isSelected() && layerButton.get(Layers.AMBIENTRANGE).isSelected());
-        }
-        return;
-      }
-    }
-
     if (event.getItemSelectable() == cbDrawClosed) {
-      setDoorState(getCurrentMap(), drawDoorsClosed());
-      enableLayer(Layers.DOOR, layerButton.get(Layers.DOOR).isSelected());
-      enableLayer(Layers.DOORPOLY, layerButton.get(Layers.DOORPOLY).isSelected());
+      setDoorState(getCurrentMap(), isDoorStateClosed());
+      for (ItemLayer.Type type: new ItemLayer.Type[]{ItemLayer.Type.DOOR, ItemLayer.Type.DOORPOLY}) {
+        layers.get(type).setEnabled(layerButtons.get(type).isSelected());
+      }
+    } else if (event.getItemSelectable() instanceof JCheckBox) {
+      for (ItemLayer.Type type: ItemLayer.Type.values()) {
+        if (event.getItemSelectable() == layerButtons.get(type)) {
+          ItemLayer layer = layers.get(type);
+          JCheckBox cb = layerButtons.get(type);
+          layer.setEnabled(cb.isSelected());
+          if (type == ItemLayer.Type.AMBIENT) {
+            ItemLayer layerAR = layers.get(ItemLayer.Type.AMBIENTRANGE);
+            JCheckBox cbAR = layerButtons.get(ItemLayer.Type.AMBIENTRANGE);
+            cbAR.setEnabled(cb.isSelected() && !layerAR.isEmpty());
+            layerAR.setEnabled(cb.isSelected() && cbAR.isSelected());
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -468,7 +467,7 @@ public final class AreaViewer extends ChildFrame
   {
     mapCanvas.setImage(null);
     mapCanvas.removeAll();
-    layerItems.clear();
+    layers.clearData();
     tisDecoder.close();
     structure.clear();
     dayNightWed.clear();
@@ -499,22 +498,19 @@ public final class AreaViewer extends ChildFrame
     initMap();
     advanceProgressMonitor("Loading map entries");
     // initializing layer items (order is important for z-order (front to back)!)
-    structure.init(getCurrentWed());
-    initLayerActor();
-    initLayerEntrance();
-    initLayerAmbient();
-    initLayerAnimation();
-    initLayerProTrap();
-    initLayerSpawnPoint();
-    initLayerAutomap();
-    initLayerContainer();
-    initLayerDoor();
-    initLayerRegion();
-    initLayerTransition();
-    initLayerDoorPoly();
-    initLayerWallPoly();
-    initLayerAmbientRange();
+    structure.init();
+    ItemLayer.Type[] typeCreation = new ItemLayer.Type[]{
+        ItemLayer.Type.ACTOR, ItemLayer.Type.ENTRANCE, ItemLayer.Type.AMBIENT,
+        ItemLayer.Type.ANIMATION, ItemLayer.Type.PROTRAP, ItemLayer.Type.SPAWNPOINT,
+        ItemLayer.Type.AUTOMAP, ItemLayer.Type.CONTAINER, ItemLayer.Type.DOOR, ItemLayer.Type.REGION,
+        ItemLayer.Type.DOORPOLY, ItemLayer.Type.WALLPOLY, ItemLayer.Type.AMBIENTRANGE};
+    for (final ItemLayer.Type type: typeCreation) {
+      JCheckBox cb = layers.get(type).createCheckBox(this);
+      layerButtons.put(type, cb);
+      layers.initData(type, cb, mapCanvas);
+    }
     advanceProgressMonitor("Creating GUI");
+    mapCanvas.add(areItem);
 
     // assembling Visual State group box
     ButtonGroup bg = new ButtonGroup();
@@ -528,9 +524,9 @@ public final class AreaViewer extends ChildFrame
     pVisual.add(cbDrawClosed);
 
     // Assembling Layers group box
-    JPanel pLayers = createGroupBox("Layers: ", new GridLayout(layerButton.size(), 1));
-    for (final JCheckBox cb: layerButton.values()) {
-      pLayers.add(cb);
+    JPanel pLayers = createGroupBox("Layers: ", new GridLayout(layers.size(), 1));
+    for (final ItemLayer.Type type: ItemLayer.Type.values()) {
+      pLayers.add(layerButtons.get(type));
     }
 
     // Assembling Information box
@@ -618,22 +614,19 @@ public final class AreaViewer extends ChildFrame
     mapDraggingScrollStart = new Point();
 
     // first time layer initialization (order of ambient/ambientrange is important!)
-    layerButton.get(Layers.ACTOR).setSelected(LayerButtonState.get(Layers.ACTOR));
-    layerButton.get(Layers.REGION).setSelected(LayerButtonState.get(Layers.REGION));
-    layerButton.get(Layers.ENTRANCE).setSelected(LayerButtonState.get(Layers.ENTRANCE));
-    layerButton.get(Layers.CONTAINER).setSelected(LayerButtonState.get(Layers.CONTAINER));
-    layerButton.get(Layers.AMBIENTRANGE).setSelected(LayerButtonState.get(Layers.AMBIENTRANGE));
-    layerButton.get(Layers.AMBIENTRANGE).setEnabled(LayerButtonState.get(Layers.AMBIENT) &&
-                                                    !layerItems.get(Layers.AMBIENTRANGE).isEmpty());
-    layerButton.get(Layers.AMBIENT).setSelected(LayerButtonState.get(Layers.AMBIENT));
-    layerButton.get(Layers.DOOR).setSelected(LayerButtonState.get(Layers.DOOR));
-    layerButton.get(Layers.ANIMATION).setSelected(LayerButtonState.get(Layers.ANIMATION));
-    layerButton.get(Layers.AUTOMAP).setSelected(LayerButtonState.get(Layers.AUTOMAP));
-    layerButton.get(Layers.TRANSITION).setSelected(LayerButtonState.get(Layers.TRANSITION));
-    layerButton.get(Layers.PROTRAP).setSelected(LayerButtonState.get(Layers.PROTRAP));
-    layerButton.get(Layers.SPAWNPOINT).setSelected(LayerButtonState.get(Layers.SPAWNPOINT));
-    layerButton.get(Layers.DOORPOLY).setSelected(LayerButtonState.get(Layers.DOORPOLY));
-    layerButton.get(Layers.WALLPOLY).setSelected(LayerButtonState.get(Layers.WALLPOLY));
+    ItemLayer.Type[] typeSelection = new ItemLayer.Type[]{
+        ItemLayer.Type.ACTOR, ItemLayer.Type.REGION, ItemLayer.Type.ENTRANCE,
+        ItemLayer.Type.CONTAINER, ItemLayer.Type.AMBIENTRANGE, ItemLayer.Type.AMBIENT,
+        ItemLayer.Type.DOOR, ItemLayer.Type.ANIMATION, ItemLayer.Type.AUTOMAP, ItemLayer.Type.PROTRAP,
+        ItemLayer.Type.SPAWNPOINT, ItemLayer.Type.DOORPOLY, ItemLayer.Type.WALLPOLY};
+    for (final ItemLayer.Type type: typeSelection) {
+      layerButtons.get(type).setSelected(layers.get(type).isSelected());
+      layers.get(type).setEnabled(layers.get(type).isSelected());
+      if (type == ItemLayer.Type.AMBIENTRANGE) {
+        layerButtons.get(type).setEnabled(layers.get(ItemLayer.Type.AMBIENT).isSelected() &&
+                                                     !layers.get(type).isEmpty());
+      }
+    }
 
     setVisible(true);
   }
@@ -644,98 +637,6 @@ public final class AreaViewer extends ChildFrame
     rb.addActionListener(this);
     rb.setEnabled(false);
     dayNightButton.put(dn, rb);
-  }
-
-  // adds layer-specific checkboxes to the GUI
-  private void addLayer(Layers layer)
-  {
-    if (layer != null) {
-      JCheckBox cb = layerButton.get(layer);
-      // add only if not yet created
-      if (cb == null) {
-        switch (layer) {
-          case ACTOR:         cb = new JCheckBox("Actors"); break;
-          case REGION:       cb = new JCheckBox("Regions"); break;
-          case ENTRANCE:      cb = new JCheckBox("Entrances"); break;
-          case CONTAINER:     cb = new JCheckBox("Containers"); break;
-          case AMBIENT:       cb = new JCheckBox("Ambient Sounds"); break;
-          case AMBIENTRANGE:  cb = new JCheckBox("Ambient Sound Ranges"); break;
-          case DOOR:          cb = new JCheckBox("Doors"); break;
-          case ANIMATION:     cb = new JCheckBox("Background Animations"); break;
-          case AUTOMAP:       cb = new JCheckBox("Automap Notes"); break;
-          case SPAWNPOINT:    cb = new JCheckBox("Spawn Points"); break;
-          case PROTRAP:       cb = new JCheckBox("Projectile Traps"); break;
-          case TRANSITION:    cb = new JCheckBox("Map Transitions"); break;
-          case DOORPOLY:      cb = new JCheckBox("Door Polygons"); break;
-          case WALLPOLY:      cb = new JCheckBox("Wall Polygons"); break;
-        }
-        if (cb != null) {
-          layerButton.put(layer, cb);
-          cb.addItemListener(this);
-          cb.setEnabled(false);
-        }
-      }
-    }
-  }
-
-  // adds a list of layer items to the view, removes old items if necessary
-  private void addLayerItems(Layers layer, List<AbstractLayerItem> list)
-  {
-    if (layer != null) {
-      if (layerItems.containsKey(layer)) {
-        List<AbstractLayerItem> oldList = layerItems.get(layer);
-        for (final AbstractLayerItem item: oldList) {
-          if (item != null) {
-            mapCanvas.remove(item);
-          }
-        }
-        oldList.clear();
-      }
-
-      if (list != null) {
-        for (final AbstractLayerItem item: list) {
-          if (item != null) {
-            item.setVisible(false);
-            mapCanvas.add(item);
-            item.setItemLocation(item.getMapLocation());
-          }
-        }
-        layerItems.put(layer, list);
-      }
-    }
-  }
-
-  // Returns whether the layer is visible
-  private boolean isLayerSelected(Layers layer)
-  {
-    if (layer != null && layerButton.containsKey(layer)) {
-      return layerButton.get(layer).isSelected();
-    }
-    return false;
-  }
-
-//  // Returns whether the layer is available
-//  private boolean isLayerEnabled(Layers layer)
-//  {
-//    if (layer != null && layerButton.containsKey(layer)) {
-//      return layerButton.get(layer).isEnabled();
-//    }
-//    return false;
-//  }
-
-  // Enables/disables the checkbox associated with the specified layer
-  private void setLayerEnabled(Layers layer, boolean enable, String toolTipText)
-  {
-    if (layer != null && layerButton.containsKey(layer)) {
-      JCheckBox cb = layerButton.get(layer);
-      if (!enable && cb.isSelected()) {
-        cb.setSelected(false);
-      }
-      cb.setEnabled(enable);
-      if (enable && toolTipText != null && !toolTipText.isEmpty()) {
-        cb.setToolTipText(toolTipText);
-      }
-    }
   }
 
   // creates a simple titled frame
@@ -833,858 +734,6 @@ public final class AreaViewer extends ChildFrame
     setCurrentMap(DayNight.DAY);
   }
 
-
-  private void initLayerActor()
-  {
-    addLayer(Layers.ACTOR);
-
-    // initializing actor layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.ACTOR);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Image[] iconGood = new Image[]{Icons.getImage("ActorGreen.png"), Icons.getImage("ActorGreen_s.png")};
-    final Image[] iconNeutral = new Image[]{Icons.getImage("ActorBlue.png"), Icons.getImage("ActorBlue_s.png")};
-    final Image[] iconEvil = new Image[]{Icons.getImage("ActorRed.png"), Icons.getImage("ActorRed_s.png")};
-    Point center = new Point(12, 40);
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final Actor actor = (Actor)listEntries.get(idx);
-      String msg;
-      Image[] icon;
-      Point location = new Point(0, 0);
-      long ea;
-      try {
-        location.x = ((DecNumber)actor.getAttribute("Position: X")).getValue();
-        location.y = ((DecNumber)actor.getAttribute("Position: Y")).getValue();
-        StructEntry obj = actor.getAttribute("Character");
-        CreResource cre = null;
-        if (obj instanceof TextString) {
-          // ARE in savegame
-          cre = (CreResource)actor.getAttribute("CRE file");
-        } else if (obj instanceof ResourceRef) {
-          String creName = ((ResourceRef)obj).getResourceName();
-          cre = new CreResource(ResourceFactory.getInstance().getResourceEntry(creName));
-        }
-        if (cre != null) {
-          msg = ((StringRef)cre.getAttribute("Name")).toString();
-          ea = ((IdsBitmap)cre.getAttribute("Allegiance")).getValue();
-        } else
-          throw new Exception();
-        if (ea >= 2L && ea <= 30L) {
-          icon = iconGood;
-        } else if (ea >= 200) {
-          icon = iconEvil;
-        } else {
-          icon = iconNeutral;
-        }
-      } catch (Throwable e) {
-        msg = new String();
-        icon = iconNeutral;
-      }
-      IconLayerItem item = new IconLayerItem(location, actor, msg, icon[0], center);
-      item.setName(layerItemDesc.get(Layers.ACTOR));
-      item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.ACTOR, list);
-    setLayerEnabled(Layers.ACTOR, !list.isEmpty(), list.size() + " actors available");
-  }
-
-  private void initLayerRegion()
-  {
-    addLayer(Layers.REGION);
-
-    // initializing region layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.REGION);
-    if (listEntries == null)
-      return;
-    final String[] type = new String[]{" (Proximity trigger)", " (Info point)", " (Travel region)"};
-    final Color[] color = new Color[]{new Color(0xFF400000, true), new Color(0xFF400000, true),
-                                      new Color(0xC0800000, true), new Color(0xC0C00000, true)};
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final ITEPoint region = (ITEPoint)listEntries.get(idx);
-      String msg;
-      Polygon poly = new Polygon();
-      try {
-        msg = ((TextString)region.getAttribute("Name")).toString();
-        msg += type[((Bitmap)region.getAttribute("Type")).getValue()];
-        int vertexIndex = ((DecNumber)region.getAttribute("First vertex index")).getValue();
-        int vnum = ((DecNumber)region.getAttribute("# vertices")).getValue();
-        for (int i = 0; i < vnum; i++) {
-          Vertex vertex = (Vertex)structure.getStructureByIndex(Structure.ARE, Structure.VERTEX,
-                                                                vertexIndex+i);
-          if (vertex != null) {
-            poly.addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
-                          ((DecNumber)vertex.getAttribute("Y")).getValue());
-          }
-        }
-      } catch (Throwable e) {
-        msg = new String();
-      }
-      Rectangle rect = normalizePolygon(poly);
-      ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), region, msg, poly);
-      item.setName(layerItemDesc.get(Layers.REGION));
-      item.setToolTipText(msg);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.REGION, list);
-    setLayerEnabled(Layers.REGION, !list.isEmpty(), list.size() + " regions available");
-  }
-
-  private void initLayerEntrance()
-  {
-    addLayer(Layers.ENTRANCE);
-
-    // initializing entrance layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.ENTRANCE);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Image[] icon = new Image[]{Icons.getImage("Entrance.png"), Icons.getImage("Entrance_s.png")};
-    Point center = new Point(11, 18);
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final Entrance entrance = (Entrance)listEntries.get(idx);
-      String msg;
-      Point location = new Point(0, 0);
-      try {
-        location.x = ((DecNumber)entrance.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)entrance.getAttribute("Location: Y")).getValue();
-        int o = ((Bitmap)entrance.getAttribute("Orientation")).getValue();
-        msg = ((TextString)entrance.getAttribute("Name")).toString() +
-              " (" + Actor.s_orientation[o] + ")";
-      } catch (Throwable e) {
-        msg = new String();
-      }
-      IconLayerItem item = new IconLayerItem(location, entrance, msg, icon[0], center);
-      item.setName(layerItemDesc.get(Layers.ENTRANCE));
-      item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.ENTRANCE, list);
-    setLayerEnabled(Layers.ENTRANCE, !list.isEmpty(), list.size() + " entrances available");
-  }
-
-  private void initLayerContainer()
-  {
-    addLayer(Layers.CONTAINER);
-
-    // initializing container layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.CONTAINER);
-    if (listEntries == null)
-      return;
-    final String[] s_type = new String[]{" (Unknown)", " (Bag)", " (Chest)", " (Drawer)", " (Pile)",
-                                         " (Table)", " (Shelf)", " (Altar)", " (Invisible)",
-                                         " (Spellbook)", " (Body)", " (Barrel)", " (Crate)"};
-    final Color[] color = new Color[]{new Color(0xFF004040, true), new Color(0xFF004040, true),
-                                      new Color(0xC0008080, true), new Color(0xC000C0C0, true)};
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final infinity.resource.are.Container container =  (infinity.resource.are.Container)listEntries.get(idx);
-      String msg;
-      Polygon poly = new Polygon();
-      try {
-        msg = ((TextString)container.getAttribute("Name")).toString();
-        msg += s_type[((Bitmap)container.getAttribute("Type")).getValue()];
-        int vertexIndex = ((DecNumber)container.getAttribute("First vertex index")).getValue();
-        int vnum = ((DecNumber)container.getAttribute("# vertices")).getValue();
-        for (int i = 0; i < vnum; i++) {
-          Vertex vertex = (Vertex)structure.getStructureByIndex(Structure.ARE, Structure.VERTEX,
-                                                                vertexIndex+i);
-          if (vertex != null) {
-            poly.addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
-                          ((DecNumber)vertex.getAttribute("Y")).getValue());
-          }
-        }
-      } catch (Throwable e) {
-        msg = new String();
-      }
-      Rectangle rect = normalizePolygon(poly);
-      ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), container, msg, poly);
-      item.setName(layerItemDesc.get(Layers.CONTAINER));
-      item.setToolTipText(msg);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.CONTAINER, list);
-    setLayerEnabled(Layers.CONTAINER, !list.isEmpty(), list.size() + " containers available");
-  }
-
-  private void initLayerAmbient()
-  {
-    addLayer(Layers.AMBIENT);
-
-    // initializing ambient sound layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.AMBIENT);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Image[] icon = new Image[]{Icons.getImage("Ambient.png"), Icons.getImage("Ambient_s.png"),
-                                      Icons.getImage("AmbientRanged.png"), Icons.getImage("AmbientRanged_s.png")};
-    Point center = new Point(16, 16);
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final Ambient ambient = (Ambient)listEntries.get(idx);
-      String msg;
-      Point location = new Point(0, 0);
-      int iconBase;
-      try {
-        location.x = ((DecNumber)ambient.getAttribute("Origin: X")).getValue();
-        location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
-        iconBase = ((Flag)ambient.getAttribute("Flags")).isFlagSet(2) ? 0 : 2;
-        msg = ((TextString)ambient.getAttribute("Name")).toString();
-      } catch (Throwable e) {
-        msg = new String();
-        iconBase = 0;
-      }
-      IconLayerItem item = new IconLayerItem(location, ambient, msg, icon[iconBase + 0], center);
-      item.setName(layerItemDesc.get(Layers.AMBIENT));
-      item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[iconBase + 1]);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.AMBIENT, list);
-    setLayerEnabled(Layers.AMBIENT, !list.isEmpty(), list.size() + " ambient sounds available");
-  }
-
-  private void initLayerAmbientRange()
-  {
-    addLayer(Layers.AMBIENTRANGE);
-
-    // initializing ambient sound layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.AMBIENT);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Color[] color = new Color[]{new Color(0xA0000080, true), new Color(0xA0000080, true),
-                                      new Color(0x00204080, true), new Color(0x004060C0, true)};
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final Ambient ambient = (Ambient)listEntries.get(idx);
-      String msg;
-      Point location = new Point(0, 0);
-      Ellipse2D.Float circle = null;
-      int radius = 0;
-      int volume = 0;
-      try {
-        location.x = ((DecNumber)ambient.getAttribute("Origin: X")).getValue();
-        location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
-        radius = ((DecNumber)ambient.getAttribute("Radius")).getValue();
-        volume = ((DecNumber)ambient.getAttribute("Volume")).getValue();
-        msg = ((TextString)ambient.getAttribute("Name")).toString();
-        boolean global = ((Flag)ambient.getAttribute("Flags")).isFlagSet(2);
-        if (!global && radius > 0) {
-          circle = new Ellipse2D.Float(0, 0, (float)(2*radius), (float)(2*radius));
-          double minAlpha = 0.0, maxAlpha = 64.0;
-          double alphaF = minAlpha + Math.sqrt((double)volume) / 10.0 * (maxAlpha - minAlpha);
-          int alphaNorm = (int)alphaF & 0xff;
-          int alphaHigh = (int)alphaF & 0xff;
-          color[2] = new Color(color[2].getRGB() | (alphaNorm << 24), true);
-          color[3] = new Color(color[3].getRGB() | (alphaHigh << 24), true);
-        }
-      } catch (Throwable e) {
-        msg = new String();
-      }
-      if (circle != null) {
-        ShapedLayerItem item = new ShapedLayerItem(location, ambient, msg, circle, new Point(radius, radius));
-        item.setName(layerItemDesc.get(Layers.AMBIENTRANGE));
-        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-        item.setStrokeWidth(AbstractLayerItem.ItemState.NORMAL, 2);
-        item.setStrokeWidth(AbstractLayerItem.ItemState.HIGHLIGHTED, 2);
-        item.setStroked(true);
-        item.setFilled(true);
-        item.addActionListener(this);
-        item.addLayerItemListener(this);
-        item.addMouseListener(this);
-        item.addMouseMotionListener(this);
-        list.add(item);
-        item.setVisible(false);
-        mapCanvas.add(item);
-        item.setItemLocation(item.getMapLocation());
-      }
-    }
-    addLayerItems(Layers.AMBIENTRANGE, list);
-    setLayerEnabled(Layers.AMBIENTRANGE, !list.isEmpty(),
-                    list.size() + " ambient sounds with local radius available");
-  }
-
-  private void initLayerDoor()
-  {
-    addLayer(Layers.DOOR);
-
-    // initializing door layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.DOOR);
-    if (listEntries == null)
-      return;
-    final Color[] color = new Color[]{new Color(0xFF400040, true), new Color(0xFF400040, true),
-                                      new Color(0xC0800080, true), new Color(0xC0C000C0, true)};
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(2*listEntries.size());
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final Door door = (Door)listEntries.get(idx);
-      Polygon[] poly = new Polygon[]{new Polygon(), new Polygon()};
-      String[] msg = {null, null};
-      try {
-        msg[0] = ((TextString)door.getAttribute("Name")).toString() + " (Open)";
-        int vertexIndex = ((DecNumber)door.getAttribute("First vertex index (open)")).getValue();
-        int vnum = ((DecNumber)door.getAttribute("# vertices (open)")).getValue();
-        for (int i = 0; i < vnum; i++) {
-          Vertex vertex = (Vertex)structure.getStructureByIndex(Structure.ARE, Structure.VERTEX,
-                                                                vertexIndex+i);
-          if (vertex != null) {
-            poly[0].addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
-                          ((DecNumber)vertex.getAttribute("Y")).getValue());
-          }
-        }
-        msg[1] = ((TextString)door.getAttribute("Name")).toString() + " (Closed)";
-        vertexIndex = ((DecNumber)door.getAttribute("First vertex index (closed)")).getValue();
-        vnum = ((DecNumber)door.getAttribute("# vertices (closed)")).getValue();
-        for (int i = 0; i < vnum; i++) {
-          Vertex vertex = (Vertex)structure.getStructureByIndex(Structure.ARE, Structure.VERTEX,
-                                                                vertexIndex+i);
-          if (vertex != null) {
-            poly[1].addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
-                          ((DecNumber)vertex.getAttribute("Y")).getValue());
-          }
-        }
-      } catch (Throwable e) {
-        msg[0] = new String();
-        msg[1] = new String();
-      }
-
-      // adding open/closed door items
-      for (int i = 0; i < poly.length; i++) {
-        Rectangle rect = normalizePolygon(poly[i]);
-        ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg[i], poly[i]);
-        item.setName(layerItemDesc.get(Layers.DOOR));
-        item.setToolTipText(msg[i]);
-        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-        item.setStroked(true);
-        item.setFilled(true);
-        item.addActionListener(this);
-        item.addLayerItemListener(this);
-        item.addMouseListener(this);
-        item.addMouseMotionListener(this);
-        list.add(item);
-      }
-    }
-    addLayerItems(Layers.DOOR, list);
-    setLayerEnabled(Layers.DOOR, !listEntries.isEmpty(), listEntries.size() + " doors available");
-  }
-
-  private void initLayerAnimation()
-  {
-    addLayer(Layers.ANIMATION);
-
-    // initializing background animation layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.ANIMATION);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Image[] icon = new Image[]{Icons.getImage("Animation.png"), Icons.getImage("Animation_s.png")};
-    Point center = new Point(16, 17);
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final Animation animation = (Animation)listEntries.get(idx);
-      String msg;
-      Point location = new Point(0, 0);
-      try {
-        location.x = ((DecNumber)animation.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)animation.getAttribute("Location: Y")).getValue();
-        msg = ((TextString)animation.getAttribute("Name")).toString();
-      } catch (Throwable e) {
-        msg = new String();
-      }
-      IconLayerItem item = new IconLayerItem(location, animation, msg, icon[0], center);
-      item.setName(layerItemDesc.get(Layers.ANIMATION));
-      item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.ANIMATION, list);
-    setLayerEnabled(Layers.ANIMATION, !list.isEmpty(), list.size() + " animations available");
-  }
-
-  private void initLayerAutomap()
-  {
-    addLayer(Layers.AUTOMAP);
-
-    // initializing automap notes layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.AUTOMAP);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Image[] icon = new Image[]{Icons.getImage("Automap.png"), Icons.getImage("Automap_s.png")};
-    Point center = new Point(26, 26);
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
-      final double mapScale = 32.0 / 3.0;   // scaling factor for MOS to TIS coordinates
-      for (int idx = 0; idx < listEntries.size(); idx++) {
-        final AutomapNotePST automap = (AutomapNotePST)listEntries.get(idx);
-        String msg;
-        Point location = new Point(0, 0);
-        try {
-          int v = ((DecNumber)automap.getAttribute("Coordinate: X")).getValue();
-          location.x = (int)((double)v * mapScale);
-          v = ((DecNumber)automap.getAttribute("Coordinate: Y")).getValue();
-          location.y = (int)((double)v * mapScale);
-          msg = ((TextString)automap.getAttribute("Text")).toString();
-        } catch (Throwable e) {
-          msg = new String();
-        }
-        IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
-        item.setName(layerItemDesc.get(Layers.AUTOMAP));
-        item.setToolTipText(msg);
-        item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-        item.addActionListener(this);
-        item.addLayerItemListener(this);
-        item.addMouseListener(this);
-        item.addMouseMotionListener(this);
-        list.add(item);
-      }
-    } else {
-      for (int idx = 0; idx < listEntries.size(); idx++) {
-        final AutomapNote automap = (AutomapNote)listEntries.get(idx);
-        String msg;
-        Point location = new Point(0, 0);
-        try {
-          // fetching automap note string from dialog.tlk
-          location.x = ((DecNumber)automap.getAttribute("Coordinate: X")).getValue();
-          location.y = ((DecNumber)automap.getAttribute("Coordinate: Y")).getValue();
-          if (((Bitmap)automap.getAttribute("Text location")).getValue() == 1)
-            msg = ((StringRef)automap.getAttribute("Text")).toString();
-          else {
-            // fetching automap note string from Talk Override
-            msg = "[user-defined note]";
-            try {
-              int srcStrref = ((StringRef)automap.getAttribute("Text")).getValue();
-              if (srcStrref > 0) {
-                String filePath = are.getResourceEntry().getActualFile().toString();
-                filePath = filePath.replace(are.getResourceEntry().getResourceName(), "");
-                File tohFile = new File(filePath + "DEFAULT.TOH");
-                File totFile = new File(filePath + "DEFAULT.TOT");
-                if (tohFile.exists() && totFile.exists()) {
-                  FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
-                  FileResourceEntry totEntry = new FileResourceEntry(totFile);
-                  TohResource toh = new TohResource(tohEntry);
-                  TotResource tot = new TotResource(totEntry);
-                  SectionCount sc = (SectionCount)toh.getAttribute("# strref entries");
-                  int totIndex = -1;
-                  if (sc != null && sc.getValue() > 0) {
-                    for (int i = 0; i < sc.getValue(); i++) {
-                      StrRefEntry strref = (StrRefEntry)toh.getAttribute("StrRef entry " + i);
-                      int v = ((StringRef)strref.getAttribute("Overridden strref")).getValue();
-                      if (v == srcStrref) {
-                        totIndex = i;
-                        break;
-                      }
-                    }
-                    if (totIndex >= 0) {
-                      StringEntry se = (StringEntry)tot.getAttribute("String entry " + totIndex);
-                      if (se != null) {
-                        TextEdit te = (TextEdit)se.getAttribute("String data");
-                        if (te != null) {
-                          msg = te.toString();
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            } catch (Exception e) {
-            }
-          }
-        } catch (Throwable e) {
-          msg = new String();
-        }
-        IconLayerItem item = new IconLayerItem(location, automap, msg, icon[0], center);
-        item.setName(layerItemDesc.get(Layers.AUTOMAP));
-        item.setToolTipText(msg);
-        item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-        item.addActionListener(this);
-        item.addMouseListener(this);
-        item.addMouseMotionListener(this);
-        item.addLayerItemListener(this);
-        list.add(item);
-      }
-    }
-    addLayerItems(Layers.AUTOMAP, list);
-    setLayerEnabled(Layers.AUTOMAP, !list.isEmpty(), list.size() + " automap notes available");
-  }
-
-  private void initLayerTransition()
-  {
-    addLayer(Layers.TRANSITION);
-
-    // initializing transition objects
-    EnumMap<AreaEdge, Resource> listTransitions = new EnumMap<AreaEdge, Resource>(AreaEdge.class);
-    EnumMap<AreaEdge, String> attrMap = new EnumMap<AreaEdge, String>(AreaEdge.class);
-    attrMap.put(AreaEdge.NORTH, "Area north");
-    attrMap.put(AreaEdge.EAST, "Area east");
-    attrMap.put(AreaEdge.SOUTH, "Area south");
-    attrMap.put(AreaEdge.WEST, "Area west");
-    for (final AreaEdge edge: AreaEdge.values()) {
-      ResourceRef res = (ResourceRef)are.getAttribute(attrMap.get(edge));
-      if (res != null && !res.getResourceName().equalsIgnoreCase("NONE.ARE")) {
-        ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(res.getResourceName());
-        if (entry != null) {
-          listTransitions.put(edge, ResourceFactory.getResource(entry));
-        }
-      }
-    }
-
-    // initializing transition layer items
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listTransitions.size());
-    final Color[] color = new Color[]{new Color(0xFF404000, true), new Color(0xFF404000, true),
-                                      new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
-    Dimension mapTilesDim = getMapSize(getCurrentMap());
-    Dimension mapDim = new Dimension(mapTilesDim.width*getTisDecoder().info().tileWidth(),
-                                     mapTilesDim.height*getTisDecoder().info().tileHeight());
-    EnumMap<AreaEdge, Rectangle> rectMap = new EnumMap<AreaEdge, Rectangle>(AreaEdge.class);
-    rectMap.put(AreaEdge.NORTH, new Rectangle(0, 0, mapDim.width, 16));
-    rectMap.put(AreaEdge.EAST, new Rectangle(mapDim.width - 16, 0, 16, mapDim.height));
-    rectMap.put(AreaEdge.SOUTH, new Rectangle(0, mapDim.height - 16, mapDim.width, 16));
-    rectMap.put(AreaEdge.WEST, new Rectangle(0, 0, 16, mapDim.height));
-    for (final AreaEdge edge: AreaEdge.values()) {
-      if (listTransitions.containsKey(edge)) {
-        Resource resource = listTransitions.get(edge);
-        String msg = "Transition to " + resource.getResourceEntry().getResourceName();
-        Polygon poly = new Polygon();
-        poly.addPoint(0, 0);
-        poly.addPoint(rectMap.get(edge).width, 0);
-        poly.addPoint(rectMap.get(edge).width, rectMap.get(edge).height);
-        poly.addPoint(0, rectMap.get(edge).height);
-        ShapedLayerItem item = new ShapedLayerItem(new Point(rectMap.get(edge).x, rectMap.get(edge).y),
-                                                   resource, msg, poly);
-        item.setName(layerItemDesc.get(Layers.TRANSITION));
-        item.setToolTipText(msg);
-        item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-        item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-        item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-        item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-        item.setStroked(true);
-        item.setFilled(true);
-        item.addActionListener(this);
-        item.addLayerItemListener(this);
-        item.addMouseListener(this);
-        item.addMouseMotionListener(this);
-        list.add(item);
-      }
-    }
-    addLayerItems(Layers.TRANSITION, list);
-    setLayerEnabled(Layers.TRANSITION, !list.isEmpty(), list.size() + " map transitions available");
-  }
-
-  private void initLayerProTrap()
-  {
-    addLayer(Layers.PROTRAP);
-
-    // initializing projectile trap layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.PROTRAP);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Image[] icon = new Image[]{Icons.getImage("ProTrap.png"), Icons.getImage("ProTrap_s.png")};
-    Point center = new Point(14, 14);
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final ProTrap trap = (ProTrap)listEntries.get(idx);
-      String msg;
-      Point location = new Point(0, 0);
-      try {
-        location.x = ((DecNumber)trap.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)trap.getAttribute("Location: Y")).getValue();
-        msg = ((ResourceRef)trap.getAttribute("Trap")).toString();
-        int target = ((DecNumber)trap.getAttribute("Target")).getValue() & 0xff;
-        if (target >= 2 && target <= 30) {
-          msg += " (hostile)";
-        } else if (target >= 200) {
-          msg += " (friendly)";
-        }
-      } catch (Throwable e) {
-        msg = new String();
-      }
-      IconLayerItem item = new IconLayerItem(location, trap, msg, icon[0], center);
-      item.setName(layerItemDesc.get(Layers.PROTRAP));
-      item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.PROTRAP, list);
-    setLayerEnabled(Layers.PROTRAP, !list.isEmpty(), list.size() + " projectile traps available");
-  }
-
-  private void initLayerSpawnPoint()
-  {
-    addLayer(Layers.SPAWNPOINT);
-
-    // initializing spawn point layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.ARE, Structure.SPAWNPOINT);
-    if (listEntries == null)
-      return;
-    ArrayList<AbstractLayerItem> list = new ArrayList<AbstractLayerItem>(listEntries.size());
-    final Image[] icon = new Image[]{Icons.getImage("SpawnPoint.png"), Icons.getImage("SpawnPoint_s.png")};
-    Point center = new Point(22, 22);
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final SpawnPoint spawn = (SpawnPoint)listEntries.get(idx);
-      String msg;
-      Point location = new Point(0, 0);
-      try {
-        location.x = ((DecNumber)spawn.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)spawn.getAttribute("Location: Y")).getValue();
-        msg = ((TextString)spawn.getAttribute("Name")).toString();
-      } catch (Throwable e) {
-        msg = new String();
-      }
-      IconLayerItem item = new IconLayerItem(location, spawn, msg, icon[0], center);
-      item.setName(layerItemDesc.get(Layers.SPAWNPOINT));
-      item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      list.add(item);
-    }
-    addLayerItems(Layers.SPAWNPOINT, list);
-    setLayerEnabled(Layers.SPAWNPOINT, !list.isEmpty(), list.size() + " spawn points available");
-  }
-
-  private void initLayerDoorPoly()
-  {
-    addLayer(Layers.DOORPOLY);
-
-    // initializing door polygon layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.WED, Structure.DOOR);
-    if (listEntries == null)
-      return;
-    Color[] color = new Color[]{new Color(0xFF603080, true), new Color(0xFF603080, true),
-                                new Color(0x80A050C0, true), new Color(0xC0C060D0, true)};
-    ArrayList<AbstractLayerItem> listDoor = new ArrayList<AbstractLayerItem>(2*listEntries.size());
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final infinity.resource.wed.Door door = (infinity.resource.wed.Door)listEntries.get(idx);
-      try {
-        int ofsOpen = ((SectionOffset)door.getAttribute("Polygons open offset")).getValue();
-        int numOpen = ((SectionCount)door.getAttribute("# polygons open")).getValue();
-        int ofsClosed = ((SectionOffset)door.getAttribute("Polygons closed offset")).getValue();
-        int numClosed = ((SectionCount)door.getAttribute("# polygons closed")).getValue();
-        int numDoorPairs = (numOpen > numClosed) ? numOpen : numClosed;
-        for (int i = 0; i < numDoorPairs; i++) {
-          String msg = ((TextString)door.getAttribute("Name")).toString();
-          if (numDoorPairs > 1) {
-            msg += " #" + i;
-          }
-          String[] msg2 = {null, null};
-          Polygon[] poly = new Polygon[]{new Polygon(), new Polygon()};
-          infinity.resource.wed.Polygon[] dp = {null, null};
-
-          // open polygon
-          if (numOpen > i) {
-            dp[0] = (infinity.resource.wed.Polygon)structure.getStructureByOffset(Structure.WED,
-                                                                                  Structure.DOORPOLY,
-                                                                                  ofsOpen);
-            if (dp[0] != null) {
-              ofsOpen += dp[0].getSize();
-              msg2[0] = msg + " " + createFlags((Flag)dp[0].getAttribute("Polygon flags"),
-                                                 infinity.resource.wed.Polygon.s_flags) +
-                        " (Open)";
-              int numVertices = ((SectionCount)dp[0].getAttribute("# vertices")).getValue();
-              for (int j = 0; j < numVertices; j++) {
-                Vertex vertex = ((Vertex)dp[0].getAttribute("Vertex " + j));
-                if (vertex != null) {
-                  poly[0].addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
-                                   ((DecNumber)vertex.getAttribute("Y")).getValue());
-                }
-              }
-            }
-          }
-
-          // closed polygon
-          if (numClosed > i) {
-            dp[1] = (infinity.resource.wed.Polygon)structure.getStructureByOffset(Structure.WED,
-                                                                                  Structure.DOORPOLY,
-                                                                                  ofsClosed);
-            if (dp[1] != null) {
-              ofsClosed += dp[1].getSize();
-              msg2[1] = msg + " " + createFlags((Flag)dp[1].getAttribute("Polygon flags"),
-                                                infinity.resource.wed.Polygon.s_flags) +
-                        " (Closed)";
-              int numVertices = ((SectionCount)dp[1].getAttribute("# vertices")).getValue();
-              for (int j = 0; j < numVertices; j++) {
-                Vertex vertex = ((Vertex)dp[1].getAttribute("Vertex " + j));
-                if (vertex != null) {
-                  poly[1].addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
-                                   ((DecNumber)vertex.getAttribute("Y")).getValue());
-                }
-              }
-            }
-          }
-
-          // adding to item list
-          for (int j = 0; j < dp.length; j++) {
-            if (dp[j] != null) {
-              Rectangle rect = normalizePolygon(poly[j]);
-              ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), door, msg2[j], poly[j]);
-              item.setName(layerItemDesc.get(Layers.DOORPOLY));
-              item.setToolTipText(msg2[j]);
-              item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-              item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-              item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-              item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-              item.setStroked(true);
-              item.setFilled(true);
-              item.addActionListener(this);
-              item.addLayerItemListener(this);
-              item.addMouseListener(this);
-              item.addMouseMotionListener(this);
-              listDoor.add(item);
-            } else {
-              listDoor.add(null);
-            }
-          }
-        }
-      } catch (Exception e) {
-      }
-    }
-    addLayerItems(Layers.DOORPOLY, listDoor);
-    setLayerEnabled(Layers.DOORPOLY, !listDoor.isEmpty(), (listDoor.size() / 2) + " door polygons available");
-  }
-
-  private void initLayerWallPoly()
-  {
-    addLayer(Layers.WALLPOLY);
-
-    // initializing wall polygon layer items
-    List<StructEntry> listEntries = structure.getStructureList(Structure.WED, Structure.WALLPOLY);
-    if (listEntries == null)
-      return;
-    Color[] color = new Color[]{new Color(0xFF005046, true), new Color(0xFF005046, true),
-                                new Color(0x8020A060, true), new Color(0xA030B070, true)};
-    ArrayList<AbstractLayerItem> listWall = new ArrayList<AbstractLayerItem>(listEntries.size());
-    int count = 0;
-    for (int idx = 0; idx < listEntries.size(); idx++) {
-      final infinity.resource.wed.Polygon wp = (infinity.resource.wed.Polygon)listEntries.get(idx);
-      String msg;
-      Polygon poly = new Polygon();
-      try {
-        msg = "Wall polygon #" + count + " " + createFlags((Flag)wp.getAttribute("Polygon flags"),
-                                                           infinity.resource.wed.Polygon.s_flags);
-        int vertexIndex = ((DecNumber)wp.getAttribute("Vertex index")).getValue();
-        int numVertices = ((SectionCount)wp.getAttribute("# vertices")).getValue();
-        for (int i = 0; i < numVertices; i++) {
-          Vertex vertex = (Vertex)structure.getStructureByIndex(Structure.WED, Structure.VERTEX,
-                                                                vertexIndex + i);
-          if (vertex != null) {
-            poly.addPoint(((DecNumber)vertex.getAttribute("X")).getValue(),
-                          ((DecNumber)vertex.getAttribute("Y")).getValue());
-          }
-        }
-      } catch (Exception e) {
-        msg = new String();
-      }
-      count++;
-      Rectangle rect = normalizePolygon(poly);
-      ShapedLayerItem item = new ShapedLayerItem(new Point(rect.x, rect.y), wp, msg, poly);
-      item.setName(layerItemDesc.get(Layers.WALLPOLY));
-      item.setToolTipText(msg);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.addActionListener(this);
-      item.addLayerItemListener(this);
-      item.addMouseListener(this);
-      item.addMouseMotionListener(this);
-      listWall.add(item);
-    }
-    addLayerItems(Layers.WALLPOLY, listWall);
-    setLayerEnabled(Layers.WALLPOLY, !listWall.isEmpty(), listWall.size() + " wall polygons available");
-  }
-
-  private void enableLayer(Layers layer, boolean enable)
-  {
-    if (layer != null && layerItems.containsKey(layer)) {
-      List<AbstractLayerItem> list = layerItems.get(layer);
-      for (int i = 0; i < list.size(); i++) {
-        AbstractLayerItem item = list.get(i);
-        if (item != null) {
-          item.setVisible(isExtendedLayerItemActive(layer, i) && enable);
-        }
-      }
-      LayerButtonState.put(layer, enable);
-    }
-  }
-
-  // Returns whether the items of the specified layer consist of more than one logical item
-  private boolean isExtendedLayerItem(Layers layer)
-  {
-    return (layer == Layers.DOOR || layer == Layers.DOORPOLY);
-  }
-
-  // Returns whether the layer item of the specified list index is currently active
-  private boolean isExtendedLayerItemActive(Layers layer, int itemIndex)
-  {
-    if (isExtendedLayerItem(layer)) {
-      return ((itemIndex & 1) == 1) == drawDoorsClosed();
-    } else {
-      return true;
-    }
-  }
-
-  // Translates polygon to top-left corner and returns original bounding box
-  private Rectangle normalizePolygon(Polygon poly)
-  {
-    if (poly != null) {
-      Rectangle r = poly.getBounds();
-      poly.translate(-r.x, -r.y);
-      return r;
-    }
-    return new Rectangle();
-  }
-
   // Returns the BufferedImage object containing the pixel data of the currently shown tileset
   private BufferedImage getCurrentMapImage()
   {
@@ -1732,7 +781,7 @@ public final class AreaViewer extends ChildFrame
         // drawing opened/closed door tiles
         drawDoorTiles(img, getTisDecoder(), mapTilesDim.width, mapTilesDim.height,
                       dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
-                      drawDoorsClosed());
+                      isDoorStateClosed());
 
         img = null;
         currentMap = dn;
@@ -1763,7 +812,7 @@ public final class AreaViewer extends ChildFrame
             // drawing opened/closed door tiles
             drawDoorTiles(img, getTisDecoder(), mapTilesDim.width, mapTilesDim.height,
                           dayNightTiles.get(dn), dayNightDoorIndices.get(dn),
-                          drawDoorsClosed());
+                          isDoorStateClosed());
 
             img = null;
             mapCanvas.repaint();
@@ -1902,15 +951,6 @@ public final class AreaViewer extends ChildFrame
     return false;
   }
 
-  // Returns whether closed door are currently shown
-  private boolean drawDoorsClosed()
-  {
-    if (cbDrawClosed != null) {
-      return cbDrawClosed.isSelected();
-    } else
-      return false;
-  }
-
   private void initProgressMonitor(Component parent, String msg, int maxProgress, int decide, int wait)
   {
     if (progressMonitor != null)
@@ -2021,19 +1061,28 @@ public final class AreaViewer extends ChildFrame
     final int MAX_LEN = 32;
 
     // preparing menu items
-    List<JMenuItem> menuItems = new ArrayList<JMenuItem>();
+    List<LayerMenuItem> menuItems = new ArrayList<LayerMenuItem>();
     Point itemLocation = new Point();
+
+    // adding global menu item
+    LayerMenuItem lmi = new LayerMenuItem("Global: " + areItem.getMessage(), areItem);
+    lmi.setIcon(Icons.getIcon("Edit16.gif"));
+    lmi.addActionListener(this);
+    menuItems.add(lmi);
+
     // for each active layer...
-    for (final Layers layer: Layers.values()) {
-      if (isLayerSelected(layer)) {
-        List<AbstractLayerItem> itemList = layerItems.get(layer);
+    for (final ItemLayer.Type type: ItemLayer.Type.values()) {
+      ItemLayer layer = layers.get(type);
+      if (layerButtons.get(type).isSelected()) {
+        List<AbstractLayerItem> itemList = layer.getItemList();
         if (itemList != null) {
           // for each visible layer item...
           for (int i = 0; i < itemList.size(); i++) {
-            if (isExtendedLayerItemActive(layer, i)) {
+            if (layer.isExtendedItemActive(i)) {
               final AbstractLayerItem item = itemList.get(i);
               if (item != null) {
-                if (layer == Layers.AMBIENT && isLayerSelected(Layers.AMBIENTRANGE)) {
+                if (type == ItemLayer.Type.AMBIENT &&
+                    layerButtons.get(ItemLayer.Type.AMBIENTRANGE).isSelected()) {
                   // skip duplicate (AMBIENT and AMBIENTRANGE) entries
                   if (item.getViewable() instanceof Ambient) {
                     Flag flag = (Flag)((Ambient)item.getViewable()).getAttribute("Flags");
@@ -2055,7 +1104,7 @@ public final class AreaViewer extends ChildFrame
                   sb.append((lenPrefix + lenMsg > MAX_LEN) ?
                             (item.getMessage().substring(0, MAX_LEN - lenPrefix) + "...") :
                             item.getMessage());
-                  LayerMenuItem lmi = new LayerMenuItem(sb.toString(), item);
+                  lmi = new LayerMenuItem(sb.toString(), item);
                   if (lenPrefix + lenMsg > MAX_LEN) {
                     lmi.setToolTipText(item.getMessage());
                   }
@@ -2072,8 +1121,11 @@ public final class AreaViewer extends ChildFrame
     // updating context menu with the prepared item list
     pmItems.removeAll();
     if (!menuItems.isEmpty()) {
-      for (final JMenuItem mi: menuItems) {
+      for (final LayerMenuItem mi: menuItems) {
         pmItems.add(mi);
+        if (mi.getLayerItem() == areItem && menuItems.size() > 1) {
+          pmItems.addSeparator();
+        }
       }
       return true;
     }
@@ -2083,52 +1135,37 @@ public final class AreaViewer extends ChildFrame
   // Shows a popup menu containing layer items located at the current position when needed
   private void showItemPopup(MouseEvent event)
   {
-    if (event != null && event.isPopupTrigger() && event.getSource() instanceof AbstractLayerItem) {
-      AbstractLayerItem item = (AbstractLayerItem)event.getSource();
-      Point location = item.getLocation();
-      location.translate(event.getX(), event.getY());
-      if (updateItemPopup(location)) {
-        pmItems.show(item, event.getX(), event.getY());
+    if (event != null && event.isPopupTrigger()) {
+      Component parent = null;
+      Point location = null;
+      if (event.getSource() instanceof AbstractLayerItem) {
+        parent = (AbstractLayerItem)event.getSource();
+        location = parent.getLocation();
+        location.translate(event.getX(), event.getY());
+      } else if (event.getSource() == mapCanvas) {
+        parent = mapCanvas;
+        location = event.getPoint();
+      }
+      if (parent != null && location != null) {
+        if (updateItemPopup(location)) {
+          pmItems.show(parent, event.getX(), event.getY());
+        }
       }
     }
   }
 
-
-  // Helps to create a string representation of flags (index 0=no flags set)
-  private static String createFlags(Flag flags, String[] flagsDesc)
+  // attempts to find the next available instance of a Window in the list of this component's parent
+  private Window getParentWindow()
   {
-    if (flags != null) {
-      int numFlags = 0;
-      for (int i = 0; i < flags.getSize() * 8; i++) {
-        if (flags.isFlagSet(i)) {
-          numFlags++;
-        }
-      }
-      if (numFlags > 0) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-
-        for (int i = 0; i < flags.getSize() * 8; i++) {
-          if (flags.isFlagSet(i)) {
-            numFlags--;
-            if (flagsDesc != null && i+1 < flagsDesc.length) {
-              sb.append(flagsDesc[i+1]);
-            } else {
-              sb.append("Bit " + i);
-            }
-            if (numFlags > 0) {
-              sb.append(", ");
-            }
-          }
-        }
-        sb.append("]");
-        return sb.toString();
-      } else if (flagsDesc != null && flagsDesc.length > 0) {
-        return "[" + flagsDesc[0] + "]";
-      }
+    Component c = this.parent;
+    while (c != null) {
+      if (c instanceof Window)
+        return (Window)c;
+      c = c.getParent();
     }
-    return "[No flags]";
+    return NearInfinity.getInstance();
   }
+
 
   /**
    * Draws a list of map tiles into the specified image object.

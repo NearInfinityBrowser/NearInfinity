@@ -18,7 +18,6 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
-import infinity.util.Debugging;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 

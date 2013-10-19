@@ -686,6 +686,41 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
+  public boolean hasViewTab()
+  {
+    return (tabbedPane != null && tabbedPane.getTabCount() > 0);
+  }
+
+  public boolean isViewTabSelected()
+  {
+    if (tabbedPane != null) {
+      return tabbedPane.getSelectedIndex() == 0;
+    }
+    return false;
+  }
+
+  public void selectViewTab()
+  {
+    if (tabbedPane != null && tabbedPane.getSelectedIndex() != 0) {
+      tabbedPane.setSelectedIndex(0);
+    }
+  }
+
+  public boolean isEditTabSelected()
+  {
+    if (tabbedPane != null) {
+      return tabbedPane.getSelectedIndex() == 1;
+    }
+    return true;
+  }
+
+  public void selectEditTab()
+  {
+    if (tabbedPane != null && tabbedPane.getTabCount() > 1 && tabbedPane.getSelectedIndex() != 1) {
+      tabbedPane.setSelectedIndex(1);
+    }
+  }
+
   private void considerMenuEnabled()
   {
     ListSelectionModel lsm = table.getSelectionModel();
