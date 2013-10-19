@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.tot;
+package infinity.resource.to;
 
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;

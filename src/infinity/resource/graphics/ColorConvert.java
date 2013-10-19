@@ -69,30 +69,29 @@ public class ColorConvert
   /**
    * Calculates the nearest color available in the palette for the specified color value.
    * Note: For better color matching results the palette is expected in HSL color model.
-   * @param color The source color value in XHSL format (X is ignored).
-   * @param palette A HSL palette with the available color entries. Use the method
-   *                {@link #toHslPalette(int[], int[])} to convert a RGB palette into the HSL format.
+   * @param rgbColor The source color value in XRGB format (X is ignored).
+   * @param hslPalette A HSL palette with the available color entries. Use the method
+   *                   {@link #toHslPalette(int[], int[])} to convert a RGB palette into the HSL format.
    * @return The palette index pointing to the nearest color, or -1 on error.
    */
-  public static int nearestColor(int color, int[] hslPalette)
+  public static int nearestColor(int rgbColor, int[] hslPalette)
   {
     int index = -1;
     if (hslPalette != null && hslPalette.length > 0) {
       int distance = Integer.MAX_VALUE;
-      int v = rgbToHsl(color);
-      int[] col = {(v >>> 16) & 0xff, (v >>> 8) & 0xff, v & 0xff};
-      // different weights for a more visually appealing color table
-      int weightHue = 4, weightSat = 1, weightLum = 16;
+      int v = rgbToHsl(rgbColor);
+      int h = (v >>> 16) & 0xff, s = (v >>> 8) & 0xff, l = v & 0xff;
+      final int wh = 4, ws = 1, wl = 16;  // different weights for a more visually appealing color table
       for (int i = 0; i < hslPalette.length; i++) {
-        int dh = ((hslPalette[i] >>> 16) & 0xff) - col[0];
-        int ds = ((hslPalette[i] >>> 8) & 0xff) - col[1];
-        int dl = (hslPalette[i] & 0xff) - col[2];
-        int curDistance = (weightHue*dh*dh) + (weightSat*ds*ds) + (weightLum*dl*dl);
+        int dh = ((hslPalette[i] >>> 16) & 0xff) - h;
+        int ds = ((hslPalette[i] >>> 8) & 0xff) - s;
+        int dl = (hslPalette[i] & 0xff) - l;
+        int curDistance = (wh*dh*dh) + (ws*ds*ds) + (wl*dl*dl);
         if (curDistance < distance) {
           distance = curDistance;
           index = i;
           if (distance == 0)
-            return i;
+            break;
         }
       }
     }
@@ -108,8 +107,8 @@ public class ColorConvert
    */
   public static boolean toHslPalette(int[] rgbPalette, int[] hslPalette)
   {
-    if (rgbPalette != null && hslPalette != null) {
-      for (int i = 0; i < Math.min(rgbPalette.length, hslPalette.length); i++) {
+    if (rgbPalette != null && hslPalette != null && hslPalette.length >= rgbPalette.length) {
+      for (int i = 0; i < rgbPalette.length; i++) {
         hslPalette[i] = rgbToHsl(rgbPalette[i]);
       }
       return true;
@@ -124,39 +123,39 @@ public class ColorConvert
    */
   public static int rgbToHsl(int color)
   {
-    double r = (double)((color >>> 16) & 0xff) / 255.0;
-    double g = (double)((color >>> 8) & 0xff) / 255.0;
-    double b = (double)(color & 0xff) / 255.0;
-    double cmax = r; if (g > cmax) cmax = g; if (b > cmax) cmax = b;
-    double cmin = r; if (g < cmin) cmin = g; if (b < cmin) cmin = b;
-    double cdelta = cmax - cmin;
-    double h, s, l;
+    float r = (float)((color >>> 16) & 0xff) / 255.0f;
+    float g = (float)((color >>> 8) & 0xff) / 255.0f;
+    float b = (float)(color & 0xff) / 255.0f;
+    float cmax = r; if (g > cmax) cmax = g; if (b > cmax) cmax = b;
+    float cmin = r; if (g < cmin) cmin = g; if (b < cmin) cmin = b;
+    float cdelta = cmax - cmin;
+    float h, s, l;
 
-    l = (cmax + cmin) / 2.0;
+    l = (cmax + cmin) / 2.0f;
 
-    if (cdelta == 0.0) {
-      h = 0.0;
-      s = 0.0;
+    if (cdelta == 0.0f) {
+      h = 0.0f;
+      s = 0.0f;
     } else {
       if (cmax == r) {
-        h = ((g - b) / cdelta) % 6.0;
+        h = ((g - b) / cdelta) % 6.0f;
       } else if (cmax == g) {
-        h = ((b - r) / cdelta) + 2.0;
+        h = ((b - r) / cdelta) + 2.0f;
       } else {    // if (cmax == b)
-        h = ((r - g) / cdelta) + 4.0;
+        h = ((r - g) / cdelta) + 4.0f;
       }
-      h /= 6.0;
+      h /= 6.0f;
 
-      double v = 2.0 * l - 1.0;
-      if (v < 0.0) v += 1.0;
-      if (v > 1.0) v -= 1.0;
+      float v = 2.0f * l - 1.0f;
+      if (v < 0.0f) v += 1.0f;
+      if (v > 1.0f) v -= 1.0f;
       s = cdelta / v;
     }
 
-    if (h < 0.0) h = 0.0; if (h > 1.0) h = 1.0;
-    if (s < 0.0) s = 0.0; if (s > 1.0) s = 1.0;
-    if (l < 0.0) l = 0.0; if (l > 1.0) l = 1.0;
-    return ((int)(h * 255.0) << 16) | ((int)(s * 255.0) << 8) | (int)(l * 255.0);
+    if (h < 0.0f) h = 0.0f; if (h > 1.0f) h = 1.0f;
+    if (s < 0.0f) s = 0.0f; if (s > 1.0f) s = 1.0f;
+    if (l < 0.0f) l = 0.0f; if (l > 1.0f) l = 1.0f;
+    return ((int)(h * 255.0f) << 16) | ((int)(s * 255.0f) << 8) | (int)(l * 255.0f);
   }
 
   /**

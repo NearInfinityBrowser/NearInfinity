@@ -18,7 +18,9 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
+import infinity.util.Debugging;
 import infinity.util.DynamicArray;
+import infinity.util.IntegerHashMap;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -417,8 +419,8 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         ProgressMonitor progress =
             new ProgressMonitor(panel.getTopLevelAncestor(), "Converting TIS...",
                                 String.format(note, progressIndex, progressMax), 0, progressMax);
-        progress.setMillisToDecideToPopup(250);
-        progress.setMillisToPopup(1000);
+        progress.setMillisToDecideToPopup(500);
+        progress.setMillisToPopup(2000);
 
         buf = new byte[24 + decoder.info().tileCount()*5120];
         // writing header data
@@ -436,13 +438,15 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         byte[] tileData = new byte[64*64];
         BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().tileWidth(),
                                                                  decoder.info().tileHeight(), false);
+        IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
         for (int tileIdx = 0; tileIdx < decoder.info().tileCount(); tileIdx++) {
+          colorCache.clear();
           if (progress.isCanceled()) {
             buf = new byte[0];
             break;
           }
           progressIndex++;
-          if ((progressIndex % 50) == 0) {
+          if ((progressIndex % 100) == 0) {
             progress.setProgress(progressIndex);
             progress.setNote(String.format(note, progressIndex, progressMax));
           }
@@ -461,10 +465,17 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
               tilePalette[(i << 2) + 1] = (byte)((palette[i] >>> 8) & 0xff);
               tilePalette[(i << 2) + 2] = (byte)((palette[i] >>> 16) & 0xff);
               tilePalette[(i << 2) + 3] = 0;
+              colorCache.put(palette[i], (byte)i);
             }
             // filling pixel data
             for (int i = 0; i < tileData.length; i++) {
-              tileData[i] = (byte)(ColorConvert.nearestColor(pixels[i], hslPalette));
+              Byte palIndex = colorCache.get(pixels[i]);
+              if (palIndex != null) {
+                tileData[i] = palIndex;
+              } else {
+                tileData[i] = (byte)(ColorConvert.nearestColor(pixels[i], hslPalette));
+                colorCache.put(pixels[i], tileData[i]);
+              }
             }
           } else {
             buf = null;

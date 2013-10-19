@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.toh;
+package infinity.resource.to;
 
 import infinity.datatype.HexNumber;
 import infinity.datatype.ResourceRef;
