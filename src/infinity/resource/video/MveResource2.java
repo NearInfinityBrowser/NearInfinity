@@ -221,6 +221,7 @@ public class MveResource2 implements Resource, ActionListener, ChangeListener, C
 
     bPlay = new JButton("Play", Icons.getIcon("Play16.gif"));
     bPlay.addActionListener(this);
+    bPlay.setEnabled(decoder != null);
     bPause = new JButton("Pause", Icons.getIcon("Pause16.gif"));
     bPause.addActionListener(this);
     bPause.setEnabled(false);

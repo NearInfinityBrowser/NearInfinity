@@ -20,7 +20,7 @@ import javax.swing.JCheckBox;
  * Manages a single layer of map structures.
  * @author argent77
  */
-public class ItemLayer
+class ItemLayer
 {
   /**
    * Identifies the layer of map structures.
@@ -42,12 +42,12 @@ public class ItemLayer
    * buttonText and listener afterwards.
    * @param type The type of the layer. Can not be changed later.
    */
-  public ItemLayer(AreaViewer viewer, Type type)
+  ItemLayer(AreaViewer viewer, Type type)
   {
     this(viewer, type, null, null, false);
   }
 
-  public ItemLayer(AreaViewer viewer, Type type, String name, String longName)
+  ItemLayer(AreaViewer viewer, Type type, String name, String longName)
   {
     this(viewer, type, name, longName, false);
   }
@@ -59,7 +59,7 @@ public class ItemLayer
    * @param buttonText The text that is associated with the layer's checkbox.
    * @param listener A listener that handles the layer's checkbox state changes.
    */
-  public ItemLayer(AreaViewer viewer, Type type, String name, String longName, boolean initialState)
+  ItemLayer(AreaViewer viewer, Type type, String name, String longName, boolean initialState)
   {
     if (viewer == null || type == null)
       throw new NullPointerException();
@@ -77,7 +77,7 @@ public class ItemLayer
    * Returns the number of items stored in the layer.
    * @return Number of items.
    */
-  public int itemCount()
+  int itemCount()
   {
     return itemList.size();
   }
@@ -86,7 +86,7 @@ public class ItemLayer
    * Returns whether the items have been associated with the layer.
    * @return <code>true</code> if no items are available, <code>false</code> otherwise.
    */
-  public boolean isEmpty()
+  boolean isEmpty()
   {
     return itemList.isEmpty();
   }
@@ -95,7 +95,7 @@ public class ItemLayer
    * Adds a new item to the layer.
    * @param item The item to add (can not be <code>null</code>).
    */
-  public void add(AbstractLayerItem item)
+  void add(AbstractLayerItem item)
   {
     if (item != null) {
       itemList.add(item);
@@ -106,7 +106,7 @@ public class ItemLayer
    * Adds a whole collection of items to the layer.
    * @param list A collection of items to be added.
    */
-  public void add(Collection<AbstractLayerItem> list)
+  void add(Collection<AbstractLayerItem> list)
   {
     if (list != null && !list.isEmpty()) {
       for (final AbstractLayerItem item: list) {
@@ -122,7 +122,7 @@ public class ItemLayer
    * @param index The index of the item to remove
    * @return The removed item.
    */
-  public AbstractLayerItem remove(int index)
+  AbstractLayerItem remove(int index)
   {
     if (index >= 0 && index < itemList.size()) {
       return itemList.remove(index);
@@ -136,7 +136,7 @@ public class ItemLayer
    * @param item The item object to remove.
    * @return <code>true</code> if the item was in the list and has been removed.
    */
-  public boolean remove(AbstractLayerItem item)
+  boolean remove(AbstractLayerItem item)
   {
     if (item != null) {
       return itemList.remove(item);
@@ -148,7 +148,7 @@ public class ItemLayer
   /**
    * Removes all items from the layer.
    */
-  public void clear()
+  void clear()
   {
     itemList.clear();
   }
@@ -157,7 +157,7 @@ public class ItemLayer
    * Returns the list of layer items.
    * @return The list of layer items.
    */
-  public List<AbstractLayerItem> getItemList()
+  List<AbstractLayerItem> getItemList()
   {
     return itemList;
   }
@@ -167,7 +167,7 @@ public class ItemLayer
    * @param index The index of the item to return.
    * @return The item at the specified index, or <code>null</code> otherwise.
    */
-  public AbstractLayerItem getItem(int index)
+  AbstractLayerItem getItem(int index)
   {
     if (index >= 0 && index < itemList.size()) {
       return itemList.get(index);
@@ -180,7 +180,7 @@ public class ItemLayer
    * @param viewable The viewable attached to the item in question.
    * @return The matching item, or <code>null</code> otherwise.
    */
-  public AbstractLayerItem findItem(Viewable viewable)
+  AbstractLayerItem findItem(Viewable viewable)
   {
     if (viewable != null) {
       for (final AbstractLayerItem item: itemList) {
@@ -196,7 +196,7 @@ public class ItemLayer
    * @param message The text message attached to the item in question.
    * @return The matching item, or <code>null</code> otherwise.
    */
-  public AbstractLayerItem findItem(String message)
+  AbstractLayerItem findItem(String message)
   {
     if (message != null) {
       for (final AbstractLayerItem item: itemList) {
@@ -212,7 +212,7 @@ public class ItemLayer
    * @param mapLocation The map location of the item in question.
    * @return The matching item, or <code>null</code> otherwise.
    */
-  public AbstractLayerItem findItem(Point mapLocation)
+  AbstractLayerItem findItem(Point mapLocation)
   {
     if (mapLocation != null) {
       for (final AbstractLayerItem item: itemList) {
@@ -227,25 +227,16 @@ public class ItemLayer
    * Returns the type of the layer.
    * @return The type of the layer.
    */
-  public Type getType()
+  Type getType()
   {
     return type;
   }
 
   /**
-   * Returns the checkbox associated with the layer.
-   * @return A JCheckBox object.
-   */
-//  public JCheckBox getCheckBox()
-//  {
-//    return cbButton;
-//  }
-
-  /**
    * Returns the associated name.
    * @return The associated name.
    */
-  public String getName()
+  String getName()
   {
     return name;
   }
@@ -255,9 +246,9 @@ public class ItemLayer
    * (e.g. "Ambient" or "Container").
    * @param name The new name of the layer.
    */
-  public void setName(String name)
+  void setName(String name)
   {
-    if (text != null) {
+    if (name != null) {
       this.name = name;
     } else {
       this.name = type.toString();
@@ -268,7 +259,7 @@ public class ItemLayer
    * Returns the associated long name.
    * @return The associated long name
    */
-  public String getLongName()
+  String getLongName()
   {
     return text;
   }
@@ -277,7 +268,7 @@ public class ItemLayer
    * Sets a new long name for the layer.
    * @param text The new long name.
    */
-  public void setLongName(String text)
+  void setLongName(String text)
   {
     if (text != null) {
       this.text = text;
@@ -290,7 +281,7 @@ public class ItemLayer
    * Returns whether this layer uses two items as one logical item (e.g. doors in opened/closed state).
    * @return <code>true</code> if the layer is in extended state.
    */
-  public boolean isExtended()
+  boolean isExtended()
   {
     return extended;
   }
@@ -300,7 +291,7 @@ public class ItemLayer
    * (e.g. doors in opened/closed states).
    * @param set
    */
-  public void setExtended(boolean set)
+  void setExtended(boolean set)
   {
     if (extended != set) {
       extended = set;
@@ -312,7 +303,7 @@ public class ItemLayer
    * @param itemIndex The item index
    * @return <code>true</code> if the specified item is currently active.
    */
-  public boolean isExtendedItemActive(int itemIndex)
+  boolean isExtendedItemActive(int itemIndex)
   {
     if (isExtended()) {
       return ((itemIndex & 1) == 1) == viewer.isDoorStateClosed();
@@ -322,53 +313,11 @@ public class ItemLayer
   }
 
   /**
-   * Returns whether the specified listener has been connected with the layer's checkbox.
-   * @param listener The lister to query.
-   * @return <code>true</code> if the specified listener has been connected, <code>false</code> otherwise.
-   */
-//  public boolean isConnected(ItemListener listener)
-//  {
-//    if (listener != null) {
-//      for (final ItemListener l: cbButton.getItemListeners()) {
-//        if (l == listener)
-//          return true;
-//      }
-//    }
-//    return false;
-//  }
-
-  /**
-   * Connects the layer's checkbox with the specified listener object.
-   * @param listener The listener object for the layer's checkbox.
-   */
-//  public void connect(ItemListener listener)
-//  {
-//    if (listener != null) {
-//      cbButton.addItemListener(listener);
-//    }
-//  }
-
-  /**
-   * Removes the specified listener from the layer's checkbox.
-   * @param listener The listener to remove from the layer's checkbox.
-   */
-//  public void disconnect(ItemListener listener)
-//  {
-//    if (listener != null) {
-//      cbButton.removeItemListener(listener);
-//    } else {
-//      for (final ItemListener l: cbButton.getItemListeners()) {
-//        cbButton.removeItemListener(l);
-//      }
-//    }
-//  }
-
-  /**
    * Enables or disables the specified layer and sets the appropriate visual state of the
    * associated items.
    * @param enable The new layer state.
    */
-  public void setEnabled(boolean enable)
+  void setEnabled(boolean enable)
   {
     if (type != null) {
       for (int i = 0; i < itemList.size(); i++) {
@@ -385,7 +334,7 @@ public class ItemLayer
    * Returns the selection state of the layer.
    * @return The selection state of the layer
    */
-  public boolean isSelected()
+  boolean isSelected()
   {
     return selected;
   }
@@ -394,7 +343,7 @@ public class ItemLayer
    * Sets the selection state of the layer.
    * @param select The new selection state.
    */
-  public void setSelected(boolean select)
+  void setSelected(boolean select)
   {
     selected = select;
   }
@@ -404,7 +353,7 @@ public class ItemLayer
    * @param listener An optional listener to add to the checkbox. Specify <code>null</code> to omit.
    * @return A new JCheckBox object with configured text, selection state and optional listener.
    */
-  public JCheckBox createCheckBox(ItemListener listener)
+  JCheckBox createCheckBox(ItemListener listener)
   {
     JCheckBox cb = new JCheckBox(text, selected);
     if (listener != null) {
@@ -418,7 +367,7 @@ public class ItemLayer
    * @param index The item index in the layer item list
    * @param target The container to add the item to.
    */
-  public void addToContainer(int index, Container target)
+  void addToContainer(int index, Container target)
   {
     addToContainer(getItem(index), target);
   }
@@ -428,7 +377,7 @@ public class ItemLayer
    * @param item The item to add.
    * @param target The container to add the item to.
    */
-  public void addToContainer(AbstractLayerItem item, Container target)
+  void addToContainer(AbstractLayerItem item, Container target)
   {
     if (item != null && target != null) {
       item.setVisible(false);
@@ -442,7 +391,7 @@ public class ItemLayer
    * @param index The item index in the layer item list.
    * @param target The container to remove the item from.
    */
-  public void removeFromContainer(int index, Container target)
+  void removeFromContainer(int index, Container target)
   {
     removeFromContainer(getItem(index), target);
   }
@@ -452,7 +401,7 @@ public class ItemLayer
    * @param item The item to remove.
    * @param target The container to remove the item from.
    */
-  public void removeFromContainer(AbstractLayerItem item, Container target)
+  void removeFromContainer(AbstractLayerItem item, Container target)
   {
     if (item != null && target != null) {
       target.remove(item);
@@ -463,7 +412,7 @@ public class ItemLayer
    * Adds all items in the list to the specified container.
    * @param target The container to add the items to.
    */
-  public void addAllToContainer(Container target)
+  void addAllToContainer(Container target)
   {
     if (target != null) {
       for (final AbstractLayerItem item: itemList) {
@@ -476,7 +425,7 @@ public class ItemLayer
    * Removes all items in the list from the specified container.
    * @param target The container to remove the items from.
    */
-  public void removeAllFromContainer(Container target)
+  void removeAllFromContainer(Container target)
   {
     if (target != null) {
       for (final AbstractLayerItem item: itemList) {
