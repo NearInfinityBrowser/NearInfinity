@@ -43,6 +43,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                                   "Allow day/night"};
   private static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                            "Dream area"};
+  private static final String s_atype_bgee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+                                                "Dream area", "Player1 can die"};
   private static final String s_atype_torment[] = {"Can rest", "Cannot save",
                                                    "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                    "Cannot save", "Can rest with permission"};
@@ -264,12 +266,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     list.add(version);
     list.add(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
     list.add(new DecNumber(buffer, offset + 16, 4, "Last saved"));
-    if (version.toString().equalsIgnoreCase("V9.1"))
+    if (version.toString().equalsIgnoreCase("V9.1")) {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
       list.add(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
-    else
+    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
+      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_bgee));
+    } else {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
+    }
     list.add(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
     list.add(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
     list.add(new ResourceRef(buffer, offset + 36, "Area east", "ARE"));
