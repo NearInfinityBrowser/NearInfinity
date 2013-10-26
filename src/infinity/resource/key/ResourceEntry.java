@@ -11,7 +11,9 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.itm.ItmResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.FileInputStreamCI;
+import infinity.util.Filereader;
 
 import java.io.BufferedInputStream;
 import java.io.File;

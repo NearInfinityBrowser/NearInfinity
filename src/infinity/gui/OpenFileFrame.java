@@ -9,7 +9,6 @@ import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;

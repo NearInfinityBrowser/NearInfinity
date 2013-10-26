@@ -20,7 +20,9 @@ import infinity.resource.bcs.Compiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.search.SearchFrame;
-import infinity.util.*;
+import infinity.util.FileCI;
+import infinity.util.IdsMapCache;
+import infinity.util.StringResource;
 
 import java.awt.BorderLayout;
 import java.awt.Container;

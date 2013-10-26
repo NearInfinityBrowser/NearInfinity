@@ -12,7 +12,10 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
+import infinity.util.Filereader;
+import infinity.util.Filewriter;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;

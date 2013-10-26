@@ -16,7 +16,8 @@ import infinity.resource.StructEntry;
 import infinity.resource.Writeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
-import infinity.util.*;
+import infinity.util.FileCI;
+import infinity.util.StructClipboard;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;

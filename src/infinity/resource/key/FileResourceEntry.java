@@ -6,7 +6,9 @@ package infinity.resource.key;
 
 import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
-import infinity.util.*;
+import infinity.util.FileCI;
+import infinity.util.FileInputStreamCI;
+import infinity.util.Filereader;
 
 import java.io.BufferedInputStream;
 import java.io.File;

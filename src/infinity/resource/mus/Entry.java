@@ -5,9 +5,10 @@
 package infinity.resource.mus;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
 import infinity.resource.sound.AudioBuffer;
 import infinity.resource.sound.AudioFactory;
+import infinity.util.FileCI;
+import infinity.util.FileInputStreamCI;
 
 import java.io.File;
 import java.io.FileInputStream;
