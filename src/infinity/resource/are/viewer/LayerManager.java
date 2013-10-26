@@ -40,6 +40,7 @@ import infinity.resource.to.StringEntry;
 import infinity.resource.to.TohResource;
 import infinity.resource.to.TotResource;
 import infinity.resource.vertex.Vertex;
+import infinity.util.FileCI;
 
 import java.awt.Color;
 import java.awt.Container;
@@ -779,8 +780,8 @@ class LayerManager
                 if (srcStrref > 0) {
                   String filePath = are.getResourceEntry().getActualFile().toString();
                   filePath = filePath.replace(are.getResourceEntry().getResourceName(), "");
-                  File tohFile = new File(filePath + "DEFAULT.TOH");
-                  File totFile = new File(filePath + "DEFAULT.TOT");
+                  File tohFile = new FileCI(filePath + "DEFAULT.TOH");
+                  File totFile = new FileCI(filePath + "DEFAULT.TOT");
                   if (tohFile.exists() && totFile.exists()) {
                     FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                     FileResourceEntry totEntry = new FileResourceEntry(totFile);
