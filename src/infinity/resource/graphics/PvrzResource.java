@@ -5,13 +5,13 @@
 package infinity.resource.graphics;
 
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
-import infinity.resource.graphics.ColorConvert;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
@@ -24,9 +24,7 @@ import java.io.ByteArrayOutputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -38,7 +36,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   private final ResourceEntry entry;
   private ButtonPopupMenu mnuExport;
   private JMenuItem miExport, miBMP;
-  private JLabel lImage;
+  private RenderCanvas rcImage;
   private JPanel panel;
 
   public PvrzResource(ResourceEntry entry) throws Exception
@@ -48,6 +46,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == miExport) {
@@ -79,6 +78,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -88,17 +88,19 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
 //--------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     panel.removeAll();
-    lImage.setIcon(null);
-    lImage = null;
+    rcImage.setImage(null);
+    rcImage = null;
   }
 
 //--------------------- End Interface Closeable ---------------------
 
 //--------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     miExport = new JMenuItem("original");
@@ -108,17 +110,17 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     mnuExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miBMP});
     mnuExport.setIcon(Icons.getIcon("Export16.gif"));
     mnuExport.setMnemonic('e');
-    lImage = new JLabel();
-    lImage.setHorizontalAlignment(SwingConstants.CENTER);
-    lImage.setVerticalAlignment(SwingConstants.CENTER);
+    rcImage = new RenderCanvas();
+    rcImage.setHorizontalAlignment(SwingConstants.CENTER);
+    rcImage.setVerticalAlignment(SwingConstants.CENTER);
     WindowBlocker.blockWindow(true);
     try {
-      lImage.setIcon(loadImage());
+      rcImage.setImage(loadImage());
       WindowBlocker.blockWindow(false);
     } catch (Exception e) {
       WindowBlocker.blockWindow(false);
     }
-    JScrollPane scroll = new JScrollPane(lImage);
+    JScrollPane scroll = new JScrollPane(rcImage);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
@@ -139,19 +141,18 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
   public BufferedImage getImage()
   {
-    if (lImage != null) {
-      ImageIcon icon = (ImageIcon)lImage.getIcon();
-      if (icon != null) {
-        return ColorConvert.toBufferedImage(icon.getImage(), false);
-      }
+    if (rcImage != null) {
+      return ColorConvert.toBufferedImage(rcImage.getImage(), false);
     } else if (entry != null) {
-      return (BufferedImage)loadImage().getImage();
+      return loadImage();
     }
     return null;
   }
 
-  private ImageIcon loadImage()
+  private BufferedImage loadImage()
   {
+    BufferedImage image = null;
+    PvrDecoder decoder = null;
     if (entry != null) {
       try {
         byte[] data = entry.getResourceData();
@@ -161,19 +162,23 @@ public class PvrzResource implements Resource, ActionListener, Closeable
           throw new Exception("Invalid PVRZ resource");
         data = Compressor.decompress(data, 0);
 
-        PvrDecoder decoder = new PvrDecoder(data);
-        BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().width(),
-                                                                 decoder.info().height(), false);
-        if (decoder.decode(image)) {
-          decoder.close();
-          return new ImageIcon(image);
+        decoder = new PvrDecoder(data);
+        image = ColorConvert.createCompatibleImage(decoder.info().width(),
+                                                   decoder.info().height(), false);
+        if (!decoder.decode(image)) {
+          image = null;
         }
         decoder.close();
       } catch (Exception e) {
+        image = null;
+        if (decoder != null) {
+          decoder.close();
+          decoder = null;
+        }
         e.printStackTrace();
       }
     }
-    return null;
+    return image;
   }
 
 }

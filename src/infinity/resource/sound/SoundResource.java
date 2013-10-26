@@ -60,6 +60,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bPlay) {
@@ -77,6 +78,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
 //--------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bpmExport) {
@@ -96,6 +98,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
 //--------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     setClosed(true);
@@ -111,6 +114,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
 //--------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -120,6 +124,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
 //--------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     bPlay.setEnabled(false);
@@ -141,6 +146,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
 //--------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     JPanel buttonPanel = new JPanel();

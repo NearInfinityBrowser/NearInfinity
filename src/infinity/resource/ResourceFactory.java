@@ -7,21 +7,45 @@ package infinity.resource;
 import infinity.NearInfinity;
 import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.Song2daBitmap;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.ChildFrame;
+import infinity.gui.IdsBrowser;
 import infinity.resource.are.AreResource;
-import infinity.resource.bcs.*;
+import infinity.resource.bcs.BafResource;
+import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.chu.ChuResource;
 import infinity.resource.cre.CreResource;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.gam.GamResource;
-import infinity.resource.graphics.*;
+import infinity.resource.graphics.BamResource;
+import infinity.resource.graphics.BmpResource;
+import infinity.resource.graphics.MosResource2;
+import infinity.resource.graphics.PltResource;
+import infinity.resource.graphics.PvrzResource;
+import infinity.resource.graphics.TgaResource;
+import infinity.resource.graphics.TisResource2;
 import infinity.resource.itm.ItmResource;
-import infinity.resource.key.*;
+import infinity.resource.key.BIFFResourceEntry;
+import infinity.resource.key.FileResourceEntry;
+import infinity.resource.key.Keyfile;
+import infinity.resource.key.ResourceEntry;
+import infinity.resource.key.ResourceTreeFolder;
+import infinity.resource.key.ResourceTreeModel;
+import infinity.resource.kotor.GlobalVarsResource;
+import infinity.resource.kotor.RimResource;
 import infinity.resource.mus.MusResource;
-import infinity.resource.nwn.*;
+import infinity.resource.nwn.ErfResource;
+import infinity.resource.nwn.NcsResource;
+import infinity.resource.nwn.SsfResource;
+import infinity.resource.nwn.TableTextResource;
 import infinity.resource.nwn.gff.GffResource;
-import infinity.resource.other.*;
+import infinity.resource.other.EffResource;
+import infinity.resource.other.FntResource;
+import infinity.resource.other.PlainTextResource;
+import infinity.resource.other.UnknownResource;
+import infinity.resource.other.VvcResource;
+import infinity.resource.other.WfxResource;
 import infinity.resource.pro.ProResource;
 import infinity.resource.sav.SavResource;
 import infinity.resource.sound.SoundResource;
@@ -29,23 +53,34 @@ import infinity.resource.sound.WavResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.src.SrcResource;
 import infinity.resource.sto.StoResource;
-import infinity.resource.toh.TohResource;
-import infinity.resource.tot.TotResource;
+import infinity.resource.to.TohResource;
+import infinity.resource.to.TotResource;
 import infinity.resource.var.VarResource;
 import infinity.resource.vef.VefResource;
+import infinity.resource.video.MveResource2;
+import infinity.resource.video.WbmResource;
 import infinity.resource.wed.WedResource;
 import infinity.resource.wmp.WmpResource;
-import infinity.resource.kotor.RimResource;
-import infinity.resource.kotor.GlobalVarsResource;
-import infinity.util.*;
+import infinity.util.Decryptor;
+import infinity.util.IdsMapCache;
+import infinity.util.NIFile;
+import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
-
-import java.awt.*;
-import java.io.*;
-import java.util.*;
+import java.awt.Component;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileSystemView;
 
 public final class ResourceFactory
 {
@@ -224,7 +259,7 @@ public final class ResourceFactory
                  entry.getExtension().equalsIgnoreCase("GUI"))
           res = new PlainTextResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MVE"))
-          res = new MveResource(entry);
+          res = new MveResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("WBM"))
           res = new WbmResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("PLT"))
@@ -806,6 +841,7 @@ public final class ResourceFactory
       this.extraDirs = extraDirs;
     }
 
+    @Override
     public String toString()
     {
       return name;

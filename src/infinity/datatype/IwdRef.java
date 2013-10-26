@@ -4,22 +4,35 @@
 
 package infinity.datatype;
 
-import infinity.gui.*;
+import infinity.gui.StructViewer;
+import infinity.gui.TextListPanel;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class IwdRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
@@ -37,6 +50,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
@@ -54,6 +68,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
     long[] keys = idsmap.keys();
@@ -67,6 +82,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
     list = new TextListPanel(items);
     list.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2)
@@ -119,11 +135,13 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     SplRefEntry selected = (SplRefEntry)list.getSelectedValue();
@@ -136,6 +154,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent e)
   {
     bView.setEnabled(list.getSelectedValue() != null);
@@ -146,6 +165,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, value);
@@ -153,6 +173,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     if (idsmap.containsKey(value)) {
@@ -178,11 +199,13 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
       this.splref = splref;
     }
 
+    @Override
     public String toString()
     {
       return splref.toString() + " (" + splref.getSearchString() + ')';
     }
 
+    @Override
     public int compareTo(SplRefEntry o)
     {
       return splref.toString().compareTo(o.toString());

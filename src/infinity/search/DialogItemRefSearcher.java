@@ -1,7 +1,13 @@
-package infinity.resource.dlg;
+package infinity.search;
 
 import infinity.resource.StructEntry;
-import infinity.search.ReferenceHitFrame;
+import infinity.resource.dlg.AbstractCode;
+import infinity.resource.dlg.Action;
+import infinity.resource.dlg.DlgResource;
+import infinity.resource.dlg.ResponseTrigger;
+import infinity.resource.dlg.State;
+import infinity.resource.dlg.StateTrigger;
+import infinity.resource.dlg.Transition;
 
 import java.awt.Component;
 import java.util.List;
@@ -25,6 +31,7 @@ public class DialogItemRefSearcher implements Runnable {
     new Thread(this).start();
   }
 
+  @Override
   public void run() {
     List<StructEntry> searchItems = dlg.getList();
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, searchItems.size());

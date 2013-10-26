@@ -4,13 +4,27 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HashBitmap;
+import infinity.datatype.HexNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.are.Actor;
 import infinity.resource.cre.CreResource;
 import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovable, AddRemovable
 {
@@ -58,6 +72,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{};
@@ -68,6 +83,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -78,6 +94,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     return new ViewerNPC(this);
@@ -85,12 +102,14 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 
 // --------------------- End Interface HasDetailViewer ---------------------
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     ((DecNumber)getAttribute("CRE structure size")).setValue(getStructEntryAt(getRowCount() - 1).getSize());
     super.datatypeAddedInChild(child, datatype);
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof CreResource) {
@@ -99,6 +118,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     }
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     ((DecNumber)getAttribute("CRE structure size")).setValue(getStructEntryAt(getRowCount() - 1).getSize());
@@ -112,6 +132,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       ((HexNumber)getAttribute("CRE structure offset")).setValue(entry.getOffset());
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new HashBitmap(buffer, offset, 2, "Selection state", m_selected));

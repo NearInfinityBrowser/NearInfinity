@@ -4,12 +4,14 @@
 
 package infinity.resource.nwn.gff.field;
 
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
+@Deprecated
 public final class GffResRef extends GffField
 {
   private final String resRef;
@@ -23,16 +25,19 @@ public final class GffResRef extends GffField
     resRef = DynamicArray.getString(buffer, fieldDataOffset + dataOrDataOffset + 1, size);
   }
 
+  @Override
   public int getFieldDataSize()
   {
     return 1 + resRef.length();
   }
 
+  @Override
   public String toString()
   {
     return getLabel() + " = " + resRef;
   }
 
+  @Override
   public void compare(GffField field)
   {
     if (!getLabel().equals(field.getLabel()) ||
@@ -40,11 +45,13 @@ public final class GffResRef extends GffField
       throw new IllegalStateException(toString() + " - " + field.toString());
   }
 
+  @Override
   public Object getValue()
   {
     return resRef;
   }
 
+  @Override
   public int writeField(OutputStream os, List<String> labels, byte[] fieldData, int fieldDataIndex) throws IOException
   {
     Filewriter.writeInt(os, 11);

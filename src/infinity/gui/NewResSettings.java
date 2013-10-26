@@ -92,11 +92,13 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     initDialog(parent);
   }
 
+  @Override
   public ResConfig getConfig()
   {
     return config;
   }
 
+  @Override
   protected void accept()
   {
     config.setText(taText.getText());
@@ -204,6 +206,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == updateButton) {
@@ -225,16 +228,19 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
 
 //--------------------- Begin Interface KeyListener ---------------------
 
+  @Override
   public void keyPressed(KeyEvent event)
   {
     if (event.getSource() == cbStrref && event.getKeyCode() == KeyEvent.VK_ENTER)
       updateButton.doClick();
   }
 
+  @Override
   public void keyReleased(KeyEvent event)
   {
   }
 
+  @Override
   public void keyTyped(KeyEvent event)
   {
   }
@@ -299,6 +305,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
         return defaultString;
     }
 
+    @Override
     public String toString()
     {
       return desc;

@@ -4,7 +4,10 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
 final class Familiar extends AbstractStruct
@@ -14,6 +17,7 @@ final class Familiar extends AbstractStruct
     super(superStruct, "Familiar info", buffer, offset);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Lawful good", "CRE"));

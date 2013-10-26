@@ -5,20 +5,67 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Editable;
+import infinity.datatype.Flag;
+import infinity.datatype.InlineEditable;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.search.*;
-import infinity.util.*;
+import infinity.search.SearchClient;
+import infinity.search.SearchMaster;
+import infinity.search.StringReferenceSearcher;
+import infinity.util.DynamicArray;
+import infinity.util.Filereader;
+import infinity.util.Filewriter;
+import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.ProgressMonitor;
+import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
                                                               ChangeListener, ItemListener
@@ -152,6 +199,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tstrref) {
@@ -202,6 +250,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     if (event.getSource() == slider) {
@@ -215,6 +264,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bfind) {
@@ -235,6 +285,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (event.getValueIsAdjusting()) return;
@@ -266,6 +317,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface SearchClient ---------------------
 
+  @Override
   public String getText(int index)
   {
     if (index < 0 || index >= entries_count.getValue())
@@ -276,6 +328,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     return entry.string;
   }
 
+  @Override
   public void hitFound(int index)
   {
     showEntry(index);
@@ -358,6 +411,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
     }
 
+    @Override
     public void run()
     {
       Charset charset = StringResource.getCharset();
@@ -436,6 +490,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
     }
 
+    @Override
     public void run()
     {
       bexport.setEnabled(false);
@@ -504,6 +559,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
     }
 
+    @Override
     public void run()
     {
       Charset charset = StringResource.getCharset();
@@ -597,15 +653,16 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       super(null, null, buffer, 0);
     }
 
+    @Override
     protected int read(byte buffer[], int offset) throws Exception
     {
       if (version.equals("V1  ")) {
-        data = ArrayUtil.getSubArray(buffer, offset, 18);
+        data = Arrays.copyOfRange(buffer, offset, offset + 18);
         doffset = DynamicArray.getInt(buffer, offset + 18);
         dlength = DynamicArray.getInt(buffer, offset + 22);
       }
       else if (version.equals("V3.0")) {
-        data = ArrayUtil.getSubArray(buffer, offset, 40);
+        data = Arrays.copyOfRange(buffer, offset, offset + 40);
         doffset = DynamicArray.getInt(buffer, offset + 28);
         dlength = DynamicArray.getInt(buffer, offset + 32);
       }
@@ -649,6 +706,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       return dlength;
     }
 
+    @Override
     public void write(OutputStream os) throws IOException
     {
       // Update must be called first
@@ -700,6 +758,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       this.selectedrow = selectedrow;
     }
 
+    @Override
     public String getText(int index)
     {
       if (index < 0 || index >= entries_count.getValue())
@@ -713,6 +772,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       return entry.getValueAt(selectedrow, 1).toString();
     }
 
+    @Override
     public void hitFound(int index)
     {
       showEntry(index);

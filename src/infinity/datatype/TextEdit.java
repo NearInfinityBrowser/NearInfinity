@@ -7,18 +7,26 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import javax.swing.text.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.EnumMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
 
 public final class TextEdit extends Datatype implements Editable
 {
@@ -45,12 +53,13 @@ public final class TextEdit extends Datatype implements Editable
   public TextEdit(byte buffer[], int offset, int length, String name, EOLType eolType)
   {
     super(offset, length, name);
-    bytes = ArrayUtil.getSubArray(buffer, offset, length);
+    bytes = Arrays.copyOfRange(buffer, offset, offset + length);
     this.eolType = (eolType != null) ? eolType : EOLType.UNIX;
   }
 
   // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     JButton bUpdate;
@@ -89,10 +98,12 @@ public final class TextEdit extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     text = textArea.getText();
@@ -104,6 +115,7 @@ public final class TextEdit extends Datatype implements Editable
 
   // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Filewriter.writeBytes(os, toArray());
@@ -111,6 +123,7 @@ public final class TextEdit extends Datatype implements Editable
 
   // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     if (text == null)
@@ -163,6 +176,7 @@ public final class TextEdit extends Datatype implements Editable
       maxLength = length >= 0 ? length : 0;
     }
 
+    @Override
     public void insertString(int offs, String str, AttributeSet a) throws BadLocationException
     {
       if (str == null || textArea == null ||

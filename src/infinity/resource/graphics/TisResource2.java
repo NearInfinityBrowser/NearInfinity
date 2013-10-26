@@ -7,6 +7,7 @@ package infinity.resource.graphics;
 import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
+import infinity.gui.ButtonPopupMenu;
 import infinity.gui.TileGrid;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
@@ -17,6 +18,8 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
+import infinity.util.DynamicArray;
+import infinity.util.IntegerHashMap;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -30,27 +33,36 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.ProgressMonitor;
+import javax.swing.RootPaneContainer;
+import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class TisResource2 implements Resource, ActionListener, ChangeListener, KeyListener, Closeable
+public class TisResource2 implements Resource, Closeable, ActionListener, ChangeListener,
+                                     KeyListener, PropertyChangeListener
 {
   private static final int DEFAULT_COLUMNS = 5;
 
-  private final static JCheckBox cbGrid = new JCheckBox("Show Grid"); // show/hide frame around each tile
+  private static boolean showGrid = false;
 
   private final ResourceEntry entry;
   private TisDecoder decoder;
@@ -58,97 +70,14 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   private TileGrid tileGrid;              // the main component for displaying the tileset
   private JSlider slCols;                 // changes the tiles per row
   private JTextField tfCols;              // input/output tiles per row
-  private JButton bExport;                // "Export..." button
+  private JCheckBox cbGrid;               // show/hide frame around each tile
+  private ButtonPopupMenu bpmExport;      // "Export..." button menu
+  private JMenuItem miExport, miOldTis;
+  private JButton bExport;
   private JPanel panel;                   // top-level panel of the viewer
-
-
-  /**
-   * Draws a list of map tiles into the specified image object.
-   * @param image The image to draw the tiles into
-   * @param decoder The TIS decoder needed to decode the tiles
-   * @param tilesX Number of tiles per row
-   * @param tilesY Number of tile rows
-   * @param tileInfo A list of info objects needed to draw the right tiles
-   * @return true if successful, false otherwise
-   */
-  public static boolean drawTiles(BufferedImage image, TisDecoder decoder,
-                                  int tilesX, int tilesY, List<TileInfo> tileInfo)
-  {
-    if (image != null && decoder != null && tileInfo != null) {
-      int tileWidth = decoder.info().tileWidth();
-      int tileHeight = decoder.info().tileHeight();
-      int width = tilesX * tileWidth;
-      int height = tilesY * tileHeight;
-      if (image.getWidth() >= width && image.getHeight() >= height) {
-        final BufferedImage imgTile = ColorConvert.createCompatibleImage(tileWidth, tileHeight, false);
-        final Graphics2D g = (Graphics2D)image.getGraphics();
-        for (final TileInfo tile: tileInfo) {
-          try {
-            if (decoder.decodeTile(imgTile, tile.tilenum)) {
-              g.drawImage(imgTile, tile.xpos*tileWidth, tile.ypos*tileHeight, null);
-            }
-          } catch (Exception e) {
-            System.err.println("Error drawing tile #" + tile.tilenum);
-          }
-        }
-        g.dispose();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Draws a specific list of primary or secondary tiles, depending on the specified opened/closed state.
-   * @param image The image to draw the tiles into
-   * @param decoder The TIS decoder needed to decode the tiles
-   * @param tilesX Number of tiles per row
-   * @param tilesY Number of tile rows
-   * @param tileInfo List of info objects needed to draw the right tiles
-   * @param doorIndices List of info objects of specific door tiles
-   * @param drawClosed Indicates whether the primary or secondary tile has to be drawn
-   * @return true if successful, false otherwise
-   */
-  public static boolean drawDoorTiles(BufferedImage image, TisDecoder decoder,
-                                      int tilesX, int tilesY, List<TileInfo> tileInfo,
-                                      List<Integer> doorIndices, boolean drawClosed)
-  {
-    if (image != null && decoder != null && tileInfo != null && doorIndices != null) {
-      int tileWidth = decoder.info().tileWidth();
-      int tileHeight = decoder.info().tileHeight();
-      int width = tilesX * tileWidth;
-      int height = tilesY * tileHeight;
-      if (image.getWidth() >= width && image.getHeight() >= height) {
-        final BufferedImage imgTile = ColorConvert.createCompatibleImage(tileWidth, tileHeight, false);
-        final Graphics2D g = (Graphics2D)image.getGraphics();
-        for (final int index: doorIndices) {
-          // searching for correct tileinfo object
-          TileInfo tile = tileInfo.get(index);
-          if (tile.tilenum != index) {
-            for (TileInfo ti: tileInfo) {
-              if (ti.tilenum == index) {
-                tile = ti;
-                break;
-              }
-            }
-          }
-
-          // decoding tile
-          int tileIdx = (drawClosed && tile.tilenumAlt != -1) ? tile.tilenumAlt : tile.tilenum;
-          try {
-            if (decoder.decodeTile(imgTile, tileIdx)) {
-              g.drawImage(imgTile, tile.xpos*tileWidth, tile.ypos*tileHeight, null);
-            }
-          } catch (Exception e) {
-            System.err.println("Error drawing tile #" + tileIdx);
-          }
-        }
-        g.dispose();
-        return true;
-      }
-    }
-    return false;
-  }
+  private RootPaneContainer rpc;
+  private SwingWorker<List<byte[]>, Void> workerConvert;
+  private WindowBlocker blocker;
 
 
   public TisResource2(ResourceEntry entry) throws Exception
@@ -159,10 +88,33 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bExport) {
+    if ((miExport != null && event.getSource() == miExport) ||
+        (bExport != null && event.getSource() == bExport)) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    } else if (event.getSource() == miOldTis) {
+      blocker = new WindowBlocker(rpc);
+      blocker.setBlocked(true);
+      workerConvert = new SwingWorker<List<byte[]>, Void>() {
+        @Override
+        public List<byte[]> doInBackground()
+        {
+          List<byte[]> list = new Vector<byte[]>(1);
+          try {
+            byte[] buf = convertToOldTis();
+            if (buf != null) {
+              list.add(buf);
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          return list;
+        }
+      };
+      workerConvert.addPropertyChangeListener(this);
+      workerConvert.execute();
     }
   }
 
@@ -171,6 +123,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     if (event.getSource() == slCols) {
@@ -178,7 +131,8 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       tfCols.setText(Integer.toString(cols));
       tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), cols));
     } else if (event.getSource() == cbGrid) {
-      tileGrid.setShowGrid(cbGrid.isSelected());
+      showGrid = cbGrid.isSelected();
+      tileGrid.setShowGrid(showGrid);
     }
   }
 
@@ -186,6 +140,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface KeyListener ---------------------
 
+  @Override
   public void keyPressed(KeyEvent event)
   {
     if (event.getSource() == tfCols) {
@@ -212,12 +167,14 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
   }
 
 
+  @Override
   public void keyReleased(KeyEvent event)
   {
     // nothing to do
   }
 
 
+  @Override
   public void keyTyped(KeyEvent event)
   {
     // nothing to do
@@ -225,13 +182,61 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- End Interface KeyListener ---------------------
 
+//--------------------- Begin Interface PropertyChangeListener ---------------------
+
+  @Override
+  public void propertyChange(PropertyChangeEvent event)
+  {
+    if (event.getSource() == workerConvert) {
+      if ("state".equals(event.getPropertyName()) &&
+          SwingWorker.StateValue.DONE == event.getNewValue()) {
+        if (blocker != null) {
+          blocker.setBlocked(false);
+          blocker = null;
+        }
+        byte[] tisData = null;
+        try {
+          List<byte[]> l = workerConvert.get();
+          if (l != null && !l.isEmpty()) {
+            tisData = workerConvert.get().get(0);
+            l.clear();
+            l = null;
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        if (tisData != null) {
+          if (tisData.length > 0) {
+            ResourceFactory.getInstance().exportResource(entry, tisData, entry.toString(),
+                                                         panel.getTopLevelAncestor());
+          } else {
+            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+                                          "Export has been cancelled." + entry, "Information",
+                                          JOptionPane.INFORMATION_MESSAGE);
+          }
+          tisData = null;
+        } else {
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+                                        "Error while exporting " + entry, "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    }
+  }
+
+//--------------------- End Interface PropertyChangeListener ---------------------
 
 //--------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
-    cbGrid.removeChangeListener(this);
-    panel.removeAll();
+    if (workerConvert != null) {
+      if (!workerConvert.isDone()) {
+        workerConvert.cancel(true);
+      }
+      workerConvert = null;
+    }
     tileImages.clear();
     tileImages = null;
     tileGrid.clearImages();
@@ -240,7 +245,6 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       decoder.close();
       decoder = null;
     }
-    panel = null;
     System.gc();
   }
 
@@ -249,6 +253,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -259,8 +264,15 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
 //--------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
+    if (container instanceof RootPaneContainer) {
+      rpc = (RootPaneContainer)container;
+    } else {
+      rpc = NearInfinity.getInstance();
+    }
+
     int tileCount = decoder.info().tileCount();
 
     // 1. creating top panel
@@ -293,6 +305,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     tlPanel.add(slCols);
 
     // 1.4. configuring checkbox
+    cbGrid = new JCheckBox("Show Grid", showGrid);
     cbGrid.addChangeListener(this);
     JPanel trPanel = new JPanel(new GridLayout());
     trPanel.add(cbGrid);
@@ -315,7 +328,7 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
       // displaying overlay tilesets in a single row
       tileGrid.setGridSize(new Dimension(tileGrid.getImageCount(), 1));
     }
-    tileGrid.setShowGrid(cbGrid.isSelected());
+    tileGrid.setShowGrid(showGrid);
     slCols.setValue(tileGrid.getTileColumns());
     tfCols.setText(Integer.toString(tileGrid.getTileColumns()));
     JScrollPane scroll = new JScrollPane(tileGrid);
@@ -328,12 +341,29 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
 
     // 3. creating bottom panel
     // 3.1. creating export button
-    bExport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bExport.setMnemonic('e');
-    bExport.addActionListener(this);
+    if (decoder.info().type() == TisDecoder.TisInfo.TisType.PVRZ) {
+      miExport = new JMenuItem("original");
+      miExport.addActionListener(this);
+      miOldTis = new JMenuItem("as legacy TIS");
+      miOldTis.addActionListener(this);
+      bpmExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miOldTis});
+      bpmExport.setIcon(Icons.getIcon("Export16.gif"));
+      bpmExport.setMnemonic('e');
+      bExport = null;
+    } else {
+      bExport = new JButton("Export...", Icons.getIcon("Export16.gif"));
+      bExport.setMnemonic('e');
+      bExport.addActionListener(this);
+      bpmExport = null;
+    }
+
     // 3.2. putting bottom panel together
     JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bottomPanel.add(bExport);
+    if (bpmExport != null) {
+      bottomPanel.add(bpmExport);
+    } else if (bExport != null) {
+      bottomPanel.add(bExport);
+    }
 
     // 4. packing all together
     panel = new JPanel(new BorderLayout());
@@ -376,6 +406,90 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
                                     "Error while loading TIS resource: " + entry.getResourceName(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
+  }
+
+  // Converts the current PVRZ-based tileset into the old tileset variant. DO NOT call directly!
+  private byte[] convertToOldTis()
+  {
+    byte[] buf = null;
+    if (tileImages != null && !tileImages.isEmpty()) {
+        String note = "Converting tile %1$d / %2$d";
+        int progressIndex = 0, progressMax = decoder.info().tileCount();
+        ProgressMonitor progress =
+            new ProgressMonitor(panel.getTopLevelAncestor(), "Converting TIS...",
+                                String.format(note, progressIndex, progressMax), 0, progressMax);
+        progress.setMillisToDecideToPopup(500);
+        progress.setMillisToPopup(2000);
+
+        buf = new byte[24 + decoder.info().tileCount()*5120];
+        // writing header data
+        System.arraycopy("TIS V1  ".getBytes(), 0, buf, 0, 8);
+        DynamicArray.putInt(buf, 8, decoder.info().tileCount());
+        DynamicArray.putInt(buf, 12, 0x1400);
+        DynamicArray.putInt(buf, 16, 0x18);
+        DynamicArray.putInt(buf, 20, 0x40);
+
+        // writing tiles
+        int bufOfs = 24;
+        int[] palette = new int[256];
+        int[] hslPalette = new int[256];
+        byte[] tilePalette = new byte[1024];
+        byte[] tileData = new byte[64*64];
+        BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().tileWidth(),
+                                                                 decoder.info().tileHeight(), false);
+        IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
+        for (int tileIdx = 0; tileIdx < decoder.info().tileCount(); tileIdx++) {
+          colorCache.clear();
+          if (progress.isCanceled()) {
+            buf = new byte[0];
+            break;
+          }
+          progressIndex++;
+          if ((progressIndex % 100) == 0) {
+            progress.setProgress(progressIndex);
+            progress.setNote(String.format(note, progressIndex, progressMax));
+          }
+
+          Graphics2D g = (Graphics2D)image.getGraphics();
+          g.drawImage(tileImages.get(tileIdx), 0, 0, null);
+          g.dispose();
+          g = null;
+
+          int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+          if (ColorConvert.medianCut(pixels, 256, palette)) {
+            ColorConvert.toHslPalette(palette, hslPalette);
+            // filling palette
+            for (int i = 0; i < 256; i++) {
+              tilePalette[(i << 2) + 0] = (byte)(palette[i] & 0xff);
+              tilePalette[(i << 2) + 1] = (byte)((palette[i] >>> 8) & 0xff);
+              tilePalette[(i << 2) + 2] = (byte)((palette[i] >>> 16) & 0xff);
+              tilePalette[(i << 2) + 3] = 0;
+              colorCache.put(palette[i], (byte)i);
+            }
+            // filling pixel data
+            for (int i = 0; i < tileData.length; i++) {
+              Byte palIndex = colorCache.get(pixels[i]);
+              if (palIndex != null) {
+                tileData[i] = palIndex;
+              } else {
+                tileData[i] = (byte)(ColorConvert.nearestColor(pixels[i], hslPalette));
+                colorCache.put(pixels[i], tileData[i]);
+              }
+            }
+          } else {
+            buf = null;
+            break;
+          }
+          System.arraycopy(tilePalette, 0, buf, bufOfs, 1024);
+          bufOfs += 1024;
+          System.arraycopy(tileData, 0, buf, bufOfs, 4096);
+          bufOfs += 4096;
+        }
+        image.flush(); image = null;
+        tileData = null; tilePalette = null; hslPalette = null; palette = null;
+        progress.close();
+    }
+    return buf;
   }
 
   // calculates a Dimension structure with the correct number of columns and rows from the specified arguments
@@ -429,59 +543,5 @@ public class TisResource2 implements Resource, ActionListener, ChangeListener, K
     // If WED is not available: approximate the most commonly used aspect ratio found in TIS files
     // Disadvantage: does not take extra tiles into account
     return (int)(Math.sqrt(tileCount)*1.18);
-  }
-
-
-//-------------------------- INNER CLASSES --------------------------
-
-  // stores information about a single tile only
-  public static final class TileInfo
-  {
-    private final int xpos, ypos;   // coordinate in tile grid
-    private final int tilenum;      // primary tile index from WED
-    private final int tilenumAlt;   // secondary tile index from WED
-    private final int[] overlayIndices; // index of additional overlays to address
-
-    public TileInfo(int xpos, int ypos, int tilenum)
-    {
-      this.xpos = xpos;
-      this.ypos = ypos;
-      this.tilenum = tilenum;
-      this.tilenumAlt = -1;
-      this.overlayIndices = null;
-    }
-
-    public TileInfo(int xpos, int ypos, int tilenum, int tilenumAlt)
-    {
-      this.xpos = xpos;
-      this.ypos = ypos;
-      this.tilenum = tilenum;
-      this.tilenumAlt = tilenumAlt;
-      this.overlayIndices = null;
-    }
-
-    public TileInfo(int xpos, int ypos, int tilenum, int tilenumAlt, int overlayMask)
-    {
-      this.xpos = xpos;
-      this.ypos = ypos;
-      this.tilenum = tilenum;
-      this.tilenumAlt = tilenumAlt;
-
-      // calculating additional overlays
-      int mcount = 0;
-      int[] mindices = new int[8];
-      for (int i = 0; i < 8; i++) {
-        if ((overlayMask & (1 << i)) != 0) {
-          mindices[mcount] = i;
-          mcount++;
-          break;
-        }
-      }
-      if (mcount > 0) {
-        this.overlayIndices = new int[mcount];
-        System.arraycopy(mindices, 0, this.overlayIndices, 0, mcount);
-      } else
-        this.overlayIndices = null;
-    }
   }
 }

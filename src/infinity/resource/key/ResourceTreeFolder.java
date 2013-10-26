@@ -4,7 +4,9 @@
 
 package infinity.resource.key;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 {
@@ -21,6 +23,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
 // --------------------- Begin Interface Comparable ---------------------
 
+  @Override
   public int compareTo(ResourceTreeFolder o)
   {
     return folderName.compareToIgnoreCase(o.folderName);
@@ -28,9 +31,15 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
 // --------------------- End Interface Comparable ---------------------
 
+  @Override
   public String toString()
   {
     return folderName + " - " + getChildCount();
+  }
+
+  public String folderName()
+  {
+    return folderName;
   }
 
   public List<ResourceEntry> getResourceEntries()

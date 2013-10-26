@@ -16,6 +16,7 @@ public final class UnknownDecimal extends Unknown
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim().replace('\n', ' ').replace('\r', ' ') + ' ';
@@ -44,6 +45,7 @@ public final class UnknownDecimal extends Unknown
 
 // --------------------- End Interface Editable ---------------------
 
+  @Override
   public String toString()
   {
     if (data != null && data.length > 0) {

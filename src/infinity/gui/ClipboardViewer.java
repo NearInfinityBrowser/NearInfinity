@@ -8,10 +8,17 @@ import infinity.NearInfinity;
 import infinity.icon.Icons;
 import infinity.util.StructClipboard;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener
 {
@@ -42,6 +49,7 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bclearclipboard) {
@@ -55,6 +63,7 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     taClipBoard.setText(StructClipboard.getInstance().toString());

@@ -12,41 +12,84 @@ import java.nio.charset.Charset;
 public final class Filewriter
 {
 
-  public static void writeByte(OutputStream os, byte b) throws IOException
-  {
-    writeBytes(os, DynamicArray.convertByte(b));
-  }
-
   public static void writeBytes(OutputStream os, byte buffer[]) throws IOException
   {
     os.write(buffer);
   }
 
-// --Recycle Bin START (21.10.03 21:45):
-//  public static void writeString(RandomAccessFile ranfile, String s, int length) throws IOException
-//  {
-//    ranfile.writeChars(s);
-//    length -= s.length();
-//    if (length > 0) {
-//      byte buffer[] = new byte[length];
-//      ranfile.writeField(buffer);
-//    }
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
+  /**
+   * Writes a byte (8 bit) to specified output stream.
+   * @param out The output stream to write to.
+   * @param value The value to write.
+   * @return The actual number of bytes written.
+   */
+  public static int writeByte(OutputStream out, byte value) throws IOException
+  {
+    int res = 0;
+    if (out != null) {
+      out.write(value);
+      res++;
+    }
+    return res;
+  }
+
+  /**
+   * Writes a short (16 bit) to specified output stream.
+   * @param out The output stream to write to.
+   * @param value The value to write.
+   * @return The actual number of bytes written.
+   */
+  public static int writeShort(OutputStream out, short value) throws IOException
+  {
+    int res = 0;
+    if (out != null) {
+      for (int i = 0, shift = 0; i < 2; i++, shift+=8) {
+        out.write((value >>> shift) & 0xff);
+        res++;
+      }
+    }
+    return res;
+  }
 
   public static void writeInt(RandomAccessFile ranfile, int b) throws IOException
   {
     ranfile.write(DynamicArray.convertInt(b));
   }
 
-  public static void writeInt(OutputStream os, int b) throws IOException
+  /**
+   * Writes an integer (32 bit) to specified output stream.
+   * @param out The output stream to write to.
+   * @param value The value to write.
+   * @return The actual number of bytes written.
+   */
+  public static int writeInt(OutputStream out, int value) throws IOException
   {
-    writeBytes(os, DynamicArray.convertInt(b));
+    int res = 0;
+    if (out != null) {
+      for (int i = 0, shift = 0; i < 4; i++, shift+=8) {
+        out.write((value >>> shift) & 0xff);
+        res++;
+      }
+    }
+    return res;
   }
 
-  public static void writeShort(OutputStream os, short b) throws IOException
+  /**
+   * Writes a 24 bit integer to specified output stream.
+   * @param out The output stream to write to.
+   * @param value The value to write.
+   * @return The actual number of bytes written.
+   */
+  public static int writeInt24(OutputStream out, int value) throws IOException
   {
-    writeBytes(os, DynamicArray.convertShort(b));
+    int res = 0;
+    if (out != null) {
+      for (int i = 0, shift = 0; i < 3; i++, shift+=8) {
+        out.write((value >>> shift) & 0xff);
+        res++;
+      }
+    }
+    return res;
   }
 
   public static void writeString(OutputStream os, String s, int length) throws IOException
@@ -62,48 +105,6 @@ public final class Filewriter
       writeBytes(os, buffer);
   }
 
-// --Recycle Bin START (21.10.03 21:45):
-//  public static void writeLong(OutputStream os, long b) throws IOException
-//  {
-//    writeBytes(os, DynamicArray.convertLong(b));
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
-
-  public static void writeUnsignedByte(OutputStream os, int b) throws IOException
-  {
-    if (b > 128) // Or 127???
-      b -= 256;
-    writeBytes(os, DynamicArray.convertByte((byte)b));
-  }
-
-  public static void writeUnsignedInt(OutputStream os, long b) throws IOException
-  {
-    if (b > 2147483648L) // Or ???
-      b -= 4294967296L;
-    writeBytes(os, DynamicArray.convertInt((int)b));
-  }
-
-  public static void writeUnsignedShort(OutputStream os, int b) throws IOException
-  {
-    if (b > 32768) // Or 32767???
-      b -= 65536;
-    writeBytes(os, DynamicArray.convertShort((short)b));
-  }
-
-  public static void writeUnsignedThrees(OutputStream os, long b) throws IOException
-  {
-    if (b > 8388608) // Or ???
-      b -= (long)16777216;
-    writeBytes(os, DynamicArray.convertInt24((int)b));
-  }
-
   private Filewriter(){}
-
-// --Recycle Bin START (21.10.03 21:45):
-//  public static void writeShort(RandomAccessFile ranfile, short b) throws IOException
-//  {
-//    ranfile.writeField(DynamicArray.convertShort(b));
-//  }
-// --Recycle Bin STOP (21.10.03 21:45)
 }
 

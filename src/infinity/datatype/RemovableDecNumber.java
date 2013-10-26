@@ -15,6 +15,7 @@ public final class RemovableDecNumber extends DecNumber implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;

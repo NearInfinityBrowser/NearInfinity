@@ -7,7 +7,7 @@ package infinity.datatype;
 import infinity.resource.StructEntry;
 import infinity.util.Filewriter;
 
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -28,6 +28,7 @@ public abstract class Datatype implements StructEntry
 
 // --------------------- Begin Interface Comparable ---------------------
 
+  @Override
   public int compareTo(StructEntry o)
   {
     return offset - o.getOffset();
@@ -38,32 +39,38 @@ public abstract class Datatype implements StructEntry
 
 // --------------------- Begin Interface StructEntry ---------------------
 
+  @Override
   public Object clone() throws CloneNotSupportedException
   {
     return super.clone();
   }
 
+  @Override
   public void copyNameAndOffset(StructEntry entry)
   {
     name = entry.getName();
     offset = entry.getOffset();
   }
 
+  @Override
   public String getName()
   {
     return name;
   }
 
+  @Override
   public int getOffset()
   {
     return offset;
   }
 
+  @Override
   public int getSize()
   {
     return length;
   }
 
+  @Override
   public void setOffset(int newoffset)
   {
     offset = newoffset;
@@ -76,7 +83,7 @@ public abstract class Datatype implements StructEntry
     if (getSize() == 4)
       Filewriter.writeInt(os, value);
     else if (getSize() == 3)
-      Filewriter.writeUnsignedThrees(os, (long)value);
+      Filewriter.writeInt24(os, value);
     else if (getSize() == 2)
       Filewriter.writeShort(os, (short)value);
     else if (getSize() == 1)
@@ -88,13 +95,13 @@ public abstract class Datatype implements StructEntry
   void writeLong(OutputStream os, long value) throws IOException
   {
     if (getSize() == 4)
-      Filewriter.writeUnsignedInt(os, value);
+      Filewriter.writeInt(os, (int)value);
     else if (getSize() == 3)
-      Filewriter.writeUnsignedThrees(os, value);
+      Filewriter.writeInt24(os, (int)value);
     else if (getSize() == 2)
-      Filewriter.writeUnsignedShort(os, (int)value);
+      Filewriter.writeShort(os, (short)value);
     else if (getSize() == 1)
-      Filewriter.writeUnsignedByte(os, (int)value);
+      Filewriter.writeByte(os, (byte)value);
     else
       throw new IllegalArgumentException();
   }

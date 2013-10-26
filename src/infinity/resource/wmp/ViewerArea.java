@@ -4,15 +4,26 @@
 
 package infinity.resource.wmp;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
 import infinity.gui.ViewFrame;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Viewable;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
 
 final class ViewerArea extends JPanel implements ActionListener
 {
@@ -80,6 +91,7 @@ final class ViewerArea extends JPanel implements ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bOpen)

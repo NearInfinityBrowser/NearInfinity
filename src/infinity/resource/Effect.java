@@ -4,7 +4,7 @@
 
 package infinity.resource;
 
-import infinity.datatype.*;
+import infinity.datatype.EffectType;
 
 public final class Effect extends AbstractStruct implements AddRemovable
 {
@@ -20,6 +20,7 @@ public final class Effect extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -27,6 +28,7 @@ public final class Effect extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     EffectType type = new EffectType(buffer, offset, 2);

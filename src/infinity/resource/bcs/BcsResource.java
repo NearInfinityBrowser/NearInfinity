@@ -4,10 +4,16 @@
 
 package infinity.resource.bcs;
 
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPopupMenu;
+import infinity.gui.ScriptTextArea;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
 import infinity.resource.Closeable;
+import infinity.resource.ResourceFactory;
+import infinity.resource.TextResource;
+import infinity.resource.ViewableContainer;
+import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ScriptReferenceSearcher;
@@ -19,15 +25,39 @@ import infinity.util.FileCI;
 import infinity.util.FileWriterCI;
 import infinity.util.FileOutputStreamCI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.filechooser.FileFilter;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
 
 public final class BcsResource implements TextResource, Writeable, Closeable, ActionListener, ItemListener,
                                           DocumentListener
@@ -100,6 +130,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bcompile) {
@@ -195,6 +226,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     if (sourceChanged) {
@@ -235,6 +267,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
+  @Override
   public void insertUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
@@ -249,6 +282,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     }
   }
 
+  @Override
   public void removeUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
@@ -263,6 +297,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     }
   }
 
+  @Override
   public void changedUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
@@ -282,6 +317,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bfind) {
@@ -314,11 +350,13 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
           chooser.setDialogTitle("Export source");
           chooser.setFileFilter(new FileFilter()
           {
+            @Override
             public boolean accept(File pathname)
             {
               return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".baf");
             }
 
+            @Override
             public String getDescription()
             {
               return "Infinity script (.BAF)";
@@ -362,6 +400,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -372,6 +411,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface TextResource ---------------------
 
+  @Override
   public String getText()
   {
     if (sourceText != null)
@@ -379,6 +419,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     return Decompiler.decompile(text, false);
   }
 
+  @Override
   public void highlightText(int linenr, String highlightText)
   {
     String s = sourceText.getText();
@@ -401,6 +442,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     sourceText = new ScriptTextArea();
@@ -506,6 +548,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (codeText == null)

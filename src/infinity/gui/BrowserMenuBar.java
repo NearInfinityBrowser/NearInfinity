@@ -5,25 +5,65 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
-import infinity.check.*;
+import infinity.check.BCSIDSChecker;
+import infinity.check.CreInvChecker;
+import infinity.check.DialogChecker;
+import infinity.check.EffectsIndexChecker;
+import infinity.check.IDSRefChecker;
+import infinity.check.ResRefChecker;
+import infinity.check.ResourceUseChecker;
+import infinity.check.ScriptChecker;
+import infinity.check.StringUseChecker;
+import infinity.check.StructChecker;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructureFactory;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.search.*;
-import infinity.util.*;
+import infinity.search.DialogSearcher;
+import infinity.search.SearchFrame;
+import infinity.search.TextResourceSearcher;
+import infinity.util.MassExporter;
+import infinity.util.NIFile;
+import infinity.util.StringResource;
+import infinity.util.FileCI;
 
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
 
 public final class BrowserMenuBar extends JMenuBar
 {
@@ -365,6 +405,7 @@ public final class BrowserMenuBar extends JMenuBar
     final JTextField tf = new JTextField(charset, 15);
     tf.setMargin(new Insets(2, 2, 2, 2));
     tf.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent event) {
         try {
           StringResource.setCharset(event.getActionCommand());
@@ -387,6 +428,7 @@ public final class BrowserMenuBar extends JMenuBar
     });
 
     tf.addFocusListener(new FocusAdapter() {
+      @Override
       public void focusLost(FocusEvent event) {
         // only trigger when states differ
         if (! tf.getText().equals(StringResource.getCharset().name())) {
@@ -515,6 +557,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == gameOpenFile) {
@@ -671,6 +714,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == fileOpenNew) {
@@ -776,6 +820,7 @@ public final class BrowserMenuBar extends JMenuBar
         editVarVar.setToolTipText("Only available for Planescape: Torment");
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == editString) {
@@ -848,6 +893,7 @@ public final class BrowserMenuBar extends JMenuBar
       add(textSearchMenu);
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == searchString) {
@@ -1019,6 +1065,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == toolInfinityAmp) {
@@ -1040,6 +1087,7 @@ public final class BrowserMenuBar extends JMenuBar
           viewer = new ClipboardViewer();
           viewer.addWindowListener(new WindowAdapter()
           {
+            @Override
             public void windowClosing(WindowEvent e)
             {
               toolClipBoard.setSelected(false);
@@ -1054,6 +1102,7 @@ public final class BrowserMenuBar extends JMenuBar
           console = new DebugConsole();
           console.addWindowListener(new WindowAdapter()
           {
+            @Override
             public void windowClosing(WindowEvent e)
             {
               toolConsole.setSelected(false);
@@ -1127,6 +1176,7 @@ public final class BrowserMenuBar extends JMenuBar
       add(helpJOrbisLicense);
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == helpAbout) {
@@ -1227,7 +1277,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    private void displayLicense(Class c, String resource, String title)
+    private void displayLicense(Class<? extends Object> c, String resource, String title)
     {
       JPanel panel = new JPanel(new BorderLayout());
       JTextPane tphelp = new JTextPane();

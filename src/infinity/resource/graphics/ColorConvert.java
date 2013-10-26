@@ -9,7 +9,11 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.util.EnumMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Contains a set of color-related static methods (little endian order only).
@@ -17,39 +21,8 @@ import java.util.EnumMap;
  */
 public class ColorConvert
 {
-  /**
-   * Specifies the color layout of a single pixel. (A=alpha, R=red, G=green, B=blue - followed by
-   * the individual bit count for the channel)<br>
-   * Note: The order (left to right) is defined from highest bit to lowest bit.
-   */
-  public enum ColorFormat {
-    A8R8G8B8, A8B8G8R8, R8G8B8A8, B8G8R8A8,   // 32 bit
-    R8G8B8, B8G8R8,                           // 24 bit
-    A1R5G5B5, A1B5G5R5, R5G5B5A1, B5G5R5A1,   // 16 bit
-    A4R4G4B4, A4B4G4R4, R4G4B4A4, B4G4R4A4,   // 16 bit
-    R5G6B5, B5G6R5,                           // 16 bit
-  }
-
-  private static final EnumMap<ColorFormat, int[]>  ColorMap = new EnumMap<ColorFormat, int[]>(ColorFormat.class);
-  static {
-    // Format: AlphaBits, AlphaPos, RedBits, RedPos, GreenBits, GreenPos, BlueBits, BluePos
-    ColorMap.put(ColorFormat.A8R8G8B8, new int[]{8, 24, 8, 16, 8,  8, 8,  0});
-    ColorMap.put(ColorFormat.A8B8G8R8, new int[]{8, 24, 8,  0, 8,  8, 8, 16});
-    ColorMap.put(ColorFormat.R8G8B8A8, new int[]{8,  0, 8, 24, 8, 16, 8,  8});
-    ColorMap.put(ColorFormat.B8G8R8A8, new int[]{8,  0, 8,  8, 8, 16, 8, 24});
-    ColorMap.put(ColorFormat.R8G8B8,   new int[]{0,  0, 8, 16, 8,  8, 8,  0});
-    ColorMap.put(ColorFormat.B8G8R8,   new int[]{0,  0, 8,  0, 8,  8, 8, 16});
-    ColorMap.put(ColorFormat.A1R5G5B5, new int[]{1, 15, 5, 10, 5,  5, 5,  0});
-    ColorMap.put(ColorFormat.A1B5G5R5, new int[]{1, 15, 5,  0, 5,  5, 5, 10});
-    ColorMap.put(ColorFormat.R5G5B5A1, new int[]{1,  0, 5, 11, 5,  6, 5,  1});
-    ColorMap.put(ColorFormat.B5G5R5A1, new int[]{1,  0, 5,  1, 5,  6, 5, 11});
-    ColorMap.put(ColorFormat.A4R4G4B4, new int[]{4, 12, 4,  8, 4,  4, 4,  0});
-    ColorMap.put(ColorFormat.A4B4G4R4, new int[]{4, 12, 4,  0, 4,  4, 4, 8});
-    ColorMap.put(ColorFormat.R4G4B4A4, new int[]{4,  0, 4, 12, 4,  8, 4,  4});
-    ColorMap.put(ColorFormat.B4G4R4A4, new int[]{4,  0, 4,  4, 4,  8, 4, 12});
-    ColorMap.put(ColorFormat.R5G6B5,   new int[]{0,  0, 5, 11, 6,  5, 5,  0});
-    ColorMap.put(ColorFormat.B5G6R5,   new int[]{0,  0, 5,  0, 6,  5, 5, 11});
-  }
+  // max. number of colors for color reduction algorithms
+  private static final int MAX_COLORS = 256;
 
   /**
    * Creates a BufferedImage object in the native color format for best possible performance.
@@ -92,295 +65,339 @@ public class ColorConvert
     return null;
   }
 
-//  /**
-//   * Returns the color, located in buffer, starting at offset ofs, as an integer
-//   * @param format The color format of the data in the buffer
-//   * @param buffer Input buffer containing the color data
-//   * @param ofs Start offset into the input buffer
-//   * @return The color as integer value
-//   */
-//  public static int BufferToColor(ColorFormat format, byte[] buffer, int ofs)
-//  {
-//    int c = 0;
-//    int bpp = ColorBits(format) >> 3;
-//
-//    if (buffer != null && ofs >= 0 && ofs + bpp <= buffer.length) {
-//      for (int i = 0; i < bpp; i++) {
-//        c |= (int)((buffer[ofs+i] & 0xff) << (i << 3));
-//      }
-//    }
-//
-//    return c;
-//  }
 
   /**
-   * Converts 'count' colors from a byte array into an array of integers, consisting of the whole color values.
-   * @param format The color format of the data in the buffer.
-   * @param inBuffer Input buffer containing the color data as byte array.
-   * @param inOfs Start offset into the input buffer.
-   * @param outBuffer Output buffer to write the whole color value to.
-   * @param outOfs Start offset into the output buffer.
-   * @param count Number of colors to convert.
-   * @return The actual number of converted colors.
+   * Calculates the nearest color available in the palette for the specified color value.
+   * Note: For better color matching results the palette is expected in HSL color model.
+   * @param rgbColor The source color value in XRGB format (X is ignored).
+   * @param hslPalette A HSL palette with the available color entries. Use the method
+   *                   {@link #toHslPalette(int[], int[])} to convert a RGB palette into the HSL format.
+   * @return The palette index pointing to the nearest color, or -1 on error.
    */
-  public static int BufferToColor(ColorFormat format, byte[] inBuffer, int inOfs, int[] outBuffer, int outOfs, int count)
+  public static int nearestColor(int rgbColor, int[] hslPalette)
   {
-    if (inBuffer == null || outBuffer == null || inOfs < 0 || outOfs < 0)
-      return 0;
+    int index = -1;
+    if (hslPalette != null && hslPalette.length > 0) {
+      int distance = Integer.MAX_VALUE;
+      int v = rgbToHsl(rgbColor);
+      int h = (v >>> 16) & 0xff, s = (v >>> 8) & 0xff, l = v & 0xff;
+      final int wh = 4, ws = 1, wl = 16;  // different weights for a more visually appealing color table
+      for (int i = 0; i < hslPalette.length; i++) {
+        int dh = ((hslPalette[i] >>> 16) & 0xff) - h;
+        int ds = ((hslPalette[i] >>> 8) & 0xff) - s;
+        int dl = (hslPalette[i] & 0xff) - l;
+        int curDistance = (wh*dh*dh) + (ws*ds*ds) + (wl*dl*dl);
+        if (curDistance < distance) {
+          distance = curDistance;
+          index = i;
+          if (distance == 0)
+            break;
+        }
+      }
+    }
+    return index;
+  }
 
-    int bpp = ColorBits(format) >> 3;
-    if (inOfs + count*bpp > inBuffer.length)
-      count = (inBuffer.length - inOfs) / bpp;
-    if (outOfs + count > outBuffer.length)
-      count = outBuffer.length - outOfs;
+  /**
+   * Converts an array of colors from the RGB color model into the HSL color model. This is needed
+   * if you want to use the method {@link #nearestColor(int, int[])}.
+   * @param rgbPalette The source RGB palette.
+   * @param hslPalette An array to store the resulting HSL colors into.
+   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
+   */
+  public static boolean toHslPalette(int[] rgbPalette, int[] hslPalette)
+  {
+    if (rgbPalette != null && hslPalette != null && hslPalette.length >= rgbPalette.length) {
+      for (int i = 0; i < rgbPalette.length; i++) {
+        hslPalette[i] = rgbToHsl(rgbPalette[i]);
+      }
+      return true;
+    }
+    return false;
+  }
 
-    for (int idx = 0; idx < count; idx++, inOfs+=bpp, outOfs++) {
-      int c = 0;
-      for (int i = 0; i < bpp; i++)
-        c |= (int)((inBuffer[inOfs+i] & 0xff) << (i << 3));
-      outBuffer[outOfs] = c;
+  /**
+   * Converts an RGB color value to HSL.
+   * @param color The color value in XRGB format (X is ignored).
+   * @return The HSL representation of the color in XHSL format (X is 0).
+   */
+  public static int rgbToHsl(int color)
+  {
+    float r = (float)((color >>> 16) & 0xff) / 255.0f;
+    float g = (float)((color >>> 8) & 0xff) / 255.0f;
+    float b = (float)(color & 0xff) / 255.0f;
+    float cmax = r; if (g > cmax) cmax = g; if (b > cmax) cmax = b;
+    float cmin = r; if (g < cmin) cmin = g; if (b < cmin) cmin = b;
+    float cdelta = cmax - cmin;
+    float h, s, l;
+
+    l = (cmax + cmin) / 2.0f;
+
+    if (cdelta == 0.0f) {
+      h = 0.0f;
+      s = 0.0f;
+    } else {
+      if (cmax == r) {
+        h = ((g - b) / cdelta) % 6.0f;
+      } else if (cmax == g) {
+        h = ((b - r) / cdelta) + 2.0f;
+      } else {    // if (cmax == b)
+        h = ((r - g) / cdelta) + 4.0f;
+      }
+      h /= 6.0f;
+
+      float v = 2.0f * l - 1.0f;
+      if (v < 0.0f) v += 1.0f;
+      if (v > 1.0f) v -= 1.0f;
+      s = cdelta / v;
     }
 
-    return count;
-  }
-
-//  /**
-//   * Convert the specified color into an array of bytes.
-//   * @param format The color format.
-//   * @param color The color.
-//   * @param buffer The output buffer to write the stream of bytes into.
-//   * @param ofs Start offset into the output buffer.
-//   * @return true if the conversion succeeded, false otherwise.
-//   */
-//  public static boolean ColorToBuffer(ColorFormat format, int color, byte[] buffer, int ofs)
-//  {
-//    int bpp = ColorBits(format) >> 3;
-//    if (buffer != null && buffer.length - ofs >= bpp) {
-//      for (int i = 0; i < bpp; i++)
-//        buffer[ofs+i] = (byte)((color >>> (i << 3)) & 0xff);
-//      return true;
-//    } else
-//      return false;
-//  }
-
-//  /**
-//   * Convert the array of colors into an array of bytes.
-//   * @param format The format of the colors.
-//   * @param inBuffer Input buffer containing the colors
-//   * @param inOfs Start offset into the input buffer.
-//   * @param outBuffer Output buffer to write the stream of bytes into.
-//   * @param outOfs Start offset into the output buffer.
-//   * @param count Number of colors to convert.
-//   * @return The actual number of converted colors.
-//   */
-//  public static int ColorToBuffer(ColorFormat format, int[] inBuffer, int inOfs, byte[] outBuffer, int outOfs, int count)
-//  {
-//    if (inBuffer == null || outBuffer == null || inOfs < 0 || outOfs < 0)
-//      return 0;
-//
-//    int bpp = ColorBits(format) >> 3;
-//    if (inOfs + count > inBuffer.length)
-//      count = inBuffer.length - inOfs;
-//    if (outOfs + count*bpp > outBuffer.length)
-//      count = (outBuffer.length - outOfs) / bpp;
-//
-//    for (int idx = 0; idx < count; idx++, inOfs++) {
-//      int c = inBuffer[inOfs];
-//      for (int i = 0; i < bpp; i++, outOfs++)
-//        outBuffer[outOfs] = (byte)(c >>> (i << 3) & 0xff);
-//    }
-//
-//    return count;
-//  }
-
-  /**
-   * Returns the number of bits required for the specified color format.
-   * @parem format The requested color format.
-   * @return Number of bits required by the specified color format.
-   */
-  public static int ColorBits(ColorFormat format)
-  {
-    int bits = 0;
-    int[] layout = ColorMap.get(format);
-    if (layout != null)
-      for (int i = 0; i < layout.length; i+=2)
-        bits += layout[i];
-
-    return bits;
+    if (h < 0.0f) h = 0.0f; if (h > 1.0f) h = 1.0f;
+    if (s < 0.0f) s = 0.0f; if (s > 1.0f) s = 1.0f;
+    if (l < 0.0f) l = 0.0f; if (l > 1.0f) l = 1.0f;
+    return ((int)(h * 255.0f) << 16) | ((int)(s * 255.0f) << 8) | (int)(l * 255.0f);
   }
 
   /**
-   * Returns the color format definition structure for the specified color format.
-   * @param format The color format to get structure information about.
-   * @return An array containing bit count and positions of the individual color channels.
+   * Reduces the number of colors of the specified pixel data block.
+   * @param pixels The pixel block of the image in ARGB format (alpha is ignored).
+   * @param desiredColors The resulting number of colors after reduction (range 1..256).
+   * @return An array containing the resulting colors, or <code>null</code> on error.
    */
-  public static int[] ColorDefinition(ColorFormat format)
+  public static int[] medianCut(int[] pixels, int desiredColors)
   {
-    return ColorMap.get(format);
+    if (desiredColors > 0 && desiredColors <= MAX_COLORS) {
+      int[] pal = new int[desiredColors];
+      if (medianCut(pixels, desiredColors, pal)) {
+        return pal;
+      } else {
+        pal = null;
+      }
+    }
+    return null;
   }
 
   /**
-   * Convert a specified number of pixel from one color format into another.
-   * @param inFormat The input color format.
-   * @param inBuffer Input buffer containing pixel data to convert.
-   * @param inOfs Start offset into input buffer.
-   * @param outFormat The desired output color format.
-   * @param outBuffer Output buffer to store the converted pixel data.
-   * @param outOfs Start offset into the output buffer.
-   * @param count Desired number of pixels to convert.
-   * @return Actual number of pixels converted.
+   * Reduces the number of colors of the specified pixel data block.
+   * @param pixels The pixel block of the image in ARGB format (alpha is ignored).
+   * @param desiredColors The resulting number of colors after reduction (range 1..256).
+   * @param palette The array to write the resulting colors into.
+   * @return <code>true</code> if color reduction succeeded, <code>false</code> otherwise.
    */
-  public static int Convert(ColorFormat inFormat, byte[] inBuffer, int inOfs,
-                            ColorFormat outFormat, byte[] outBuffer, int outOfs,
-                            int count)
+  public static boolean medianCut(int[] pixels, int desiredColors, int[] palette)
   {
-    if (inBuffer == null || inOfs < 0 || outBuffer == null || outOfs < 0 || count <= 0)
-      return 0;
+    if (pixels == null || palette == null)
+      throw new NullPointerException();
 
-    int inPixelSize = ColorBits(inFormat) >> 3;
-    int outPixelSize = ColorBits(outFormat) >> 3;
-    if ((inBuffer.length - inOfs) < (count * inPixelSize))
-      count = (inBuffer.length - inOfs) / inPixelSize;
-    if ((outBuffer.length - outOfs) < (count * outPixelSize))
-      count = (outBuffer.length - outOfs) / outPixelSize;
-    if (count < 0)
-      count = 0;
-
-    if (inFormat == outFormat) {
-      System.arraycopy(inBuffer, inOfs, outBuffer, outOfs, count * inPixelSize);
-    } else if (count > 0) {
-      int[] inLayout = ColorMap.get(inFormat);
-      int[] outLayout = ColorMap.get(outFormat);
-      int[] transform = new int[outLayout.length];
-
-      // calculating transformation array (position > 0: shift left, position < 0: shift right)
-      for (int i = 0; i < transform.length; i+=2) {
-        transform[i+1] = (outLayout[i+1] - inLayout[i+1]) + (outLayout[i] - inLayout[i]);
-        transform[i] = outLayout[i];    // bit count from output color layout
+    if (desiredColors > 0 && desiredColors <= MAX_COLORS && palette.length >= desiredColors) {
+      PriorityQueue<PixelBlock> blockQueue =
+          new PriorityQueue<PixelBlock>(desiredColors, PixelBlock.PixelBlockComparator);
+      Pixel[] p = new Pixel[pixels.length];
+      for (int i = 0; i < p.length; i++) {
+        p[i] = new Pixel(pixels[i]);
+      }
+      PixelBlock initialBlock = new PixelBlock(p);
+      initialBlock.shrink();
+      blockQueue.add(initialBlock);
+      while (blockQueue.size() < desiredColors) {
+        PixelBlock longestBlock = blockQueue.poll();
+        int ofsBegin = longestBlock.offset();
+        int ofsMedian = longestBlock.offset() + (longestBlock.size() + 1) / 2;
+        int ofsEnd = longestBlock.offset() + longestBlock.size();
+        Arrays.sort(longestBlock.getPixels(), longestBlock.offset(),
+                    longestBlock.offset() + longestBlock.size(),
+                    Pixel.PixelComparator.get(longestBlock.getLongestSideIndex()));
+        PixelBlock block1 = new PixelBlock(longestBlock.getPixels(), ofsBegin, ofsMedian - ofsBegin);
+        PixelBlock block2 = new PixelBlock(longestBlock.getPixels(), ofsMedian, ofsEnd - ofsMedian);
+        block1.shrink();
+        block2.shrink();
+        blockQueue.add(block1);
+        blockQueue.add(block2);
       }
 
-      for (int i = 0; i < count; i++) {
-        // reading input pixel
-        int inPixel = 0;
-        for (int j = 0; j < inPixelSize; j++)
-          inPixel |= (inBuffer[inOfs+j] & 0xff) << (j << 3);
-
-        // transforming input pixel to output pixel
-        int outPixel = 0;
-        for (int j = 0; j < transform.length; j+=2) {
-          if (outLayout[j] > 0) {
-            if (transform[j+1] > 0)
-              outPixel |= (inPixel << transform[j+1]) & (((1 << outLayout[j]) - 1) << outLayout[j+1]);    // left shift and mask
-            else if (transform[j+1] < 0)
-              outPixel |= (inPixel >> -transform[j+1]) & (((1 << outLayout[j]) - 1) << outLayout[j+1]);   // right shift and mask
-            else
-              outPixel |= inPixel & (((1 << outLayout[j]) - 1) << outLayout[j+1]);                        // mask only
+      int palIndex = 0;
+      while (!blockQueue.isEmpty() && palIndex < desiredColors) {
+        PixelBlock block = blockQueue.poll();
+        int[] sum = {0, 0, 0};
+        for (int i = 0; i < block.size(); i++) {
+          for (int j = 0; j < Pixel.MAX_SIZE; j++) {
+            sum[j] += block.getPixel(i).getElement(j);
           }
         }
-
-        // writing output pixel
-        for (int j = 0; j < outPixelSize; j++)
-          outBuffer[outOfs+j] = (byte)((outPixel >> (j << 3)) & 0xff);
-
-        inOfs += inPixelSize;
-        outOfs += outPixelSize;
+        Pixel avgPixel = new Pixel();
+        if (block.size() > 0) {
+          for (int i = 0; i < Pixel.MAX_SIZE; i++) {
+            avgPixel.color[i] = (byte)(sum[i] / block.size());
+          }
+        }
+        palette[palIndex++] = avgPixel.toColor();
       }
+      blockQueue.clear();
+
+      return true;
     }
-    return count;
+    return false;
   }
 
-//  /**
-//   * Returns a Windows BMP header structure as byte array.
-//   * @param width The image width in pixels.
-//   * @param height The image height in pixels.
-//   * @param format The color format of the image.
-//   * @return A byte array containing a complete Windows BMP header.
-//   * @throws Exception Thrown if color format is not supported by the graphics format.
-//   */
-//  public static byte[] CreateBMPHeader(int width, int height, ColorFormat format) throws Exception
-//  {
-//    if (width < 0 || height < 0)
-//      throw new Exception("Invalid image dimensions specified");
-//
-//    final int bmpFileHeaderSize = 14;
-//
-//    int bmpInfoHeaderSize;
-//    int compression;
-//    boolean useV5Header;
-//    // checking for supported BMP color formats
-//    switch (format) {
-//      case A8R8G8B8:
-//      case A8B8G8R8:
-//      case R8G8B8A8:
-//      case B8G8R8A8:
-//      case R5G6B5:
-//      case B5G5R5A1:
-//      case R5G5B5A1:
-//      case A4R4G4B4:
-//      case A4B4G4R4:
-//        // using BITMAPV5HEADER structure
-//        useV5Header = true;
-//        bmpInfoHeaderSize = 124;
-//        compression = 3;    // BITFIELD compression
-//        break;
-//      case A1R5G5B5:
-//      case R8G8B8:
-//        // using old BITMAPINFOHEADER structure
-//        useV5Header = false;
-//        bmpInfoHeaderSize = 40;
-//        compression = 0;    // RGB compression
-//        break;
-//      default:
-//        throw new Exception("Pixel format not supported.");
-//    }
-//
-//    int depth = ColorBits(format);
-//    int bpp = depth >> 3;
-//    int bmpHeaderSize = bmpFileHeaderSize + bmpInfoHeaderSize;
-//    int bytesPerLine = width*bpp;
-//    if ((bytesPerLine & 3) != 0)    // don't forget the padding
-//      bytesPerLine += 4 - (bytesPerLine & 3);
-//    long bmpSize = bmpHeaderSize + height*bytesPerLine;   // complete header size + pixel data size
-//    byte[] bmpHeader = new byte[bmpHeaderSize];
-//
-//    ByteBuffer bb = ByteBuffer.wrap(bmpHeader).order(ByteOrder.LITTLE_ENDIAN);
-//    // BITMAP header
-//    bb.putShort((short)0x4D42);         // BM
-//    bb.putLong(bmpSize);                // total file size
-//    bb.putInt(bmpHeaderSize);           // offset to pixel data block
-//    // BITMAPINFOHEADER structure
-//    bb.putInt(bmpInfoHeaderSize);       // BITMAPxxxHEADER size
-//    bb.putInt(width);                   // width
-//    bb.putInt(height);                  // height
-//    bb.putShort((short)1);              // # planes
-//    bb.putShort((short)depth);          // bpp
-//    bb.putInt(compression);             // Compression method
-//    bb.putInt(width*height*bpp);        // image size in bytes
-//    bb.putInt(2834);                    // X resolution in pixels/meter
-//    bb.putInt(2834);                    // Y resolution in pixels/meter
-//    bb.putInt(0);                       // # of palette entries
-//    bb.putInt(0);                       // # of important colors
-//    if (useV5Header) {
-//      // BITMAPV5HEADER additions
-//      final int csRGB  = 0x206e6957;    // linear RGB color space ID
-//      int[] colorFormat = ColorDefinition(format);
-//      int[] mask = new int[4];
-//      mask[0] = ((1 << colorFormat[2]) - 1) << colorFormat[3];
-//      mask[1] = ((1 << colorFormat[4]) - 1) << colorFormat[5];
-//      mask[2] = ((1 << colorFormat[6]) - 1) << colorFormat[7];
-//      mask[3] = ((1 << colorFormat[0]) - 1) << colorFormat[1];
-//      for (final int m: mask)           // color masks
-//        bb.putInt(m);
-//      bb.putInt(csRGB);                 // type of color space
-//      bb.put(new byte[0x24]);           // unused
-//      bb.putInt(0);                     // red gamma
-//      bb.putInt(0);                     // green gamma
-//      bb.putInt(0);                     // blue gamma
-//      bb.putInt(8);                     // intent (LCS_GM_ABS_COLORIMETRIC)
-//      bb.putInt(0);                     // profile data
-//      bb.putInt(0);                     // profile size
-//      bb.putInt(0);                     // reserved
-//    }
-//    return bmpHeader;
-//  }
+//-------------------------- INNER CLASSES --------------------------
+
+  private static class PixelBlock
+  {
+    private final Pixel minCorner, maxCorner;
+    private final Pixel[] pixels;
+    private final int ofs, len;
+
+    public PixelBlock(Pixel[] pixels)
+    {
+      this(pixels, 0, pixels != null ? pixels.length : 0);
+    }
+
+    public PixelBlock(Pixel[] pixels, int ofs, int len)
+    {
+      if (pixels == null)
+        throw new NullPointerException();
+
+      this.pixels = pixels;
+      this.ofs = ofs;
+      this.len = len;
+      minCorner = new Pixel(Byte.MIN_VALUE, Byte.MIN_VALUE, Byte.MIN_VALUE);
+      maxCorner = new Pixel(Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE);
+    }
+
+    public Pixel[] getPixels()
+    {
+      return pixels;
+    }
+
+    public int size()
+    {
+      return len;
+    }
+
+    public int offset()
+    {
+      return ofs;
+    }
+
+    public Pixel getPixel(int index)
+    {
+      if (index >= 0 && index < len) {
+        return pixels[ofs + index];
+      } else {
+        return new Pixel(0);
+      }
+    }
+
+    public int getLongestSideIndex()
+    {
+      int m = Integer.MIN_VALUE, maxIndex = -1;
+      for (int i = 0; i < Pixel.MAX_SIZE; i++) {
+        int diff = maxCorner.getElement(i) - minCorner.getElement(i);
+        if (diff > m) {
+          m = diff;
+          maxIndex = i;
+        }
+      }
+      return maxIndex;
+    }
+
+    public int getLongestSideLength()
+    {
+      int i = getLongestSideIndex();
+      return maxCorner.getElement(i) - minCorner.getElement(i);
+    }
+
+    public void shrink()
+    {
+      if (len > 0) {
+        for (int i = 0; i < Pixel.MAX_SIZE; i++) {
+          minCorner.color[i] = maxCorner.color[i] = pixels[ofs].color[i];
+        }
+      } else {
+        for (int i = 0; i < Pixel.MAX_SIZE; i++) {
+          minCorner.color[i] = maxCorner.color[i] = 0;
+        }
+      }
+
+      for (int i = ofs; i < ofs + len; i++) {
+        for (int j = 0; j < Pixel.MAX_SIZE; j++) {
+          if (pixels[i].getElement(j) < minCorner.getElement(j))
+            minCorner.color[j] = pixels[i].color[j];
+          if (pixels[i].getElement(j) > maxCorner.getElement(j))
+            maxCorner.color[j] = pixels[i].color[j];
+        }
+      }
+    }
+
+    public static Comparator<PixelBlock> PixelBlockComparator = new Comparator<PixelBlock>() {
+      @Override
+      public int compare(PixelBlock pb1, PixelBlock pb2)
+      {
+        // inverting natural order by switching sides
+        return pb2.getLongestSideLength() - pb1.getLongestSideLength();
+      }
+    };
+  }
+
+  private static class Pixel
+  {
+    public static final int MAX_SIZE = 3;
+    public final byte[] color;
+
+    public Pixel()
+    {
+      this.color = new byte[]{0, 0, 0};
+    }
+
+    public Pixel(int color)
+    {
+      this.color = new byte[]{(byte)((color >>> 16) & 0xff),
+                              (byte)((color >>> 8) & 0xff),
+                              (byte)(color & 0xff)};
+    }
+
+    public Pixel(byte r, byte g, byte b)
+    {
+      this.color = new byte[]{r, g, b};
+    }
+
+    public int toColor()
+    {
+      return ((color[0] & 0xff) << 16) | ((color[1] & 0xff) << 8) | (color[2] & 0xff);
+    }
+
+    public int getElement(int index)
+    {
+      if (index >= 0 && index < MAX_SIZE) {
+        return (color[index] & 0xff);
+      }  else {
+        return 0;
+      }
+    }
+
+    public static List<Comparator<Pixel>> PixelComparator = new ArrayList<Comparator<Pixel>>(3);
+    static {
+      PixelComparator.add(new Comparator<Pixel>() {
+        @Override
+        public int compare(Pixel p1, Pixel p2)
+        {
+          return p1.getElement(0) - p2.getElement(0);
+        }
+      });
+      PixelComparator.add(new Comparator<Pixel>() {
+        @Override
+        public int compare(Pixel p1, Pixel p2)
+        {
+          return p1.getElement(1) - p2.getElement(1);
+        }
+      });
+      PixelComparator.add(new Comparator<Pixel>() {
+        @Override
+        public int compare(Pixel p1, Pixel p2)
+        {
+          return p1.getElement(2) - p2.getElement(2);
+        }
+      });
+    }
+  }
 }

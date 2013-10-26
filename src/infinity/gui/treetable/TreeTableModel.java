@@ -1,7 +1,7 @@
 
 package infinity.gui.treetable;
 
-import javax.swing.tree.*;
+import javax.swing.tree.TreeModel;
 
 public interface TreeTableModel extends TreeModel
 {

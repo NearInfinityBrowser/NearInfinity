@@ -4,25 +4,52 @@
 
 package infinity.resource.bcs;
 
-import infinity.resource.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPopupMenu;
+import infinity.gui.ViewFrame;
+import infinity.icon.Icons;
 import infinity.resource.Closeable;
-import infinity.resource.key.ResourceEntry;
+import infinity.resource.ResourceFactory;
+import infinity.resource.TextResource;
+import infinity.resource.ViewableContainer;
+import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
+import infinity.resource.key.ResourceEntry;
+import infinity.search.TextResourceSearcher;
 import infinity.util.Decryptor;
 import infinity.util.Filewriter;
 import infinity.util.NIFile;
-import infinity.gui.*;
-import infinity.icon.Icons;
-import infinity.search.TextResourceSearcher;
-import infinity.util.*;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.SortedMap;
 
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener,
                                     DocumentListener
@@ -52,6 +79,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bcompile) {
@@ -141,11 +169,13 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         chooser.setDialogTitle("Save source code");
         chooser.setFileFilter(new javax.swing.filechooser.FileFilter()
         {
+          @Override
           public boolean accept(File pathname)
           {
             return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".bcs");
           }
 
+          @Override
           public String getDescription()
           {
             return "Infinity script (.BCS)";
@@ -178,6 +208,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close() throws Exception
   {
     if (sourceChanged) {
@@ -204,6 +235,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
+  @Override
   public void insertUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
@@ -216,6 +248,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     }
   }
 
+  @Override
   public void removeUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
@@ -228,6 +261,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     }
   }
 
+  @Override
   public void changedUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
@@ -245,6 +279,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bfind) {
@@ -284,6 +319,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -294,11 +330,13 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface TextResource ---------------------
 
+  @Override
   public String getText()
   {
     return text;
   }
 
+  @Override
   public void highlightText(int linenr, String highlightText)
   {
     String s = sourceText.getText();
@@ -321,6 +359,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     sourceText = new JTextArea(text);
@@ -419,6 +458,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (sourceText == null)

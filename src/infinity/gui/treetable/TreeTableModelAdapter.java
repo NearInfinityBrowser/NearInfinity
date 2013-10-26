@@ -1,10 +1,14 @@
 
 package infinity.gui.treetable;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import javax.swing.tree.*;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.tree.TreePath;
 
 final class TreeTableModelAdapter extends AbstractTableModel
 {
@@ -20,11 +24,13 @@ final class TreeTableModelAdapter extends AbstractTableModel
     {
       // Don't use fireTableRowsInserted() here; the selection model
       // would get updated twice.
+      @Override
       public void treeExpanded(TreeExpansionEvent event)
       {
         fireTableDataChanged();
       }
 
+      @Override
       public void treeCollapsed(TreeExpansionEvent event)
       {
         fireTableDataChanged();
@@ -37,21 +43,25 @@ final class TreeTableModelAdapter extends AbstractTableModel
     // the event before us.
     treeTableModel.addTreeModelListener(new TreeModelListener()
     {
+      @Override
       public void treeNodesChanged(TreeModelEvent e)
       {
         delayedFireTableDataChanged();
       }
 
+      @Override
       public void treeNodesInserted(TreeModelEvent e)
       {
         delayedFireTableDataChanged();
       }
 
+      @Override
       public void treeNodesRemoved(TreeModelEvent e)
       {
         delayedFireTableDataChanged();
       }
 
+      @Override
       public void treeStructureChanged(TreeModelEvent e)
       {
         delayedFireTableDataChanged();
@@ -61,6 +71,7 @@ final class TreeTableModelAdapter extends AbstractTableModel
 
 // --------------------- Begin Interface TableModel ---------------------
 
+  @Override
   public int getRowCount()
   {
     return tree.getRowCount();
@@ -68,11 +79,13 @@ final class TreeTableModelAdapter extends AbstractTableModel
 
   // Wrappers, implementing TableModel interface.
 
+  @Override
   public int getColumnCount()
   {
     return treeTableModel.getColumnCount();
   }
 
+  @Override
   public Object getValueAt(int row, int column)
   {
     return treeTableModel.getValueAt(nodeForRow(row), column);
@@ -80,21 +93,25 @@ final class TreeTableModelAdapter extends AbstractTableModel
 
 // --------------------- End Interface TableModel ---------------------
 
+  @Override
   public Class<? extends Object> getColumnClass(int column)
   {
     return treeTableModel.getColumnClass(column);
   }
 
+  @Override
   public String getColumnName(int column)
   {
     return treeTableModel.getColumnName(column);
   }
 
+  @Override
   public boolean isCellEditable(int row, int column)
   {
     return treeTableModel.isCellEditable(nodeForRow(row), column);
   }
 
+  @Override
   public void setValueAt(Object value, int row, int column)
   {
     treeTableModel.setValueAt(value, nodeForRow(row), column);
@@ -108,6 +125,7 @@ final class TreeTableModelAdapter extends AbstractTableModel
   {
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         fireTableDataChanged();

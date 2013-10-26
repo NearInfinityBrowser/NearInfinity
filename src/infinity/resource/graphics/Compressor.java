@@ -8,7 +8,10 @@ import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 
 import java.io.IOException;
-import java.util.zip.*;
+import java.util.Arrays;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 public final class Compressor
 {
@@ -18,12 +21,12 @@ public final class Compressor
   {
     byte header[] = ArrayUtil.mergeArrays(signature.getBytes(), version.getBytes());
     header = ArrayUtil.mergeArrays(header, DynamicArray.convertInt(data.length));
-    byte result[] = ArrayUtil.resizeArray(header, data.length * 2);
+    byte result[] = Arrays.copyOf(header, data.length * 2);
     Deflater deflater = new Deflater();
     deflater.setInput(data);
     deflater.finish();
     int clength = deflater.deflate(result, 12, result.length - 12);
-    return ArrayUtil.getSubArray(result, 0, clength + 12);
+    return Arrays.copyOfRange(result, 0, clength + 12);
   }
 
   public static byte[] decompress(byte buffer[]) throws IOException

@@ -146,7 +146,8 @@ public final class InfinityAmp extends ChildFrame
 
 //--------------------- Begin Interface ActionListener ---------------------
 
- public void actionPerformed(ActionEvent event)
+ @Override
+public void actionPerformed(ActionEvent event)
  {
    if (event.getSource() == bPlay) {
      new Thread(this).start();
@@ -188,7 +189,8 @@ public final class InfinityAmp extends ChildFrame
 
 //--------------------- Begin Interface Closeable ---------------------
 
- public void close()
+ @Override
+public void close()
  {
    keepPlaying = false;
    player.stopPlay();
@@ -200,7 +202,8 @@ public final class InfinityAmp extends ChildFrame
 
 //--------------------- Begin Interface ListSelectionListener ---------------------
 
- public void valueChanged(ListSelectionEvent event)
+ @Override
+public void valueChanged(ListSelectionEvent event)
  {
    if (event.getSource() == allMusList)
      bAdd.setEnabled(allMusList.getSelectedIndices().length != 0);
@@ -217,7 +220,8 @@ public final class InfinityAmp extends ChildFrame
 
 //--------------------- Begin Interface Runnable ---------------------
 
- public void run()
+ @Override
+public void run()
  {
    keepPlaying = true;
    bPlay.setEnabled(false);

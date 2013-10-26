@@ -6,13 +6,23 @@ package infinity.resource.key;
 
 import infinity.NearInfinity;
 import infinity.gui.WindowBlocker;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filereader;
 
-import javax.swing.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.zip.*;
+import java.util.Arrays;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
+
+import javax.swing.JOptionPane;
 
 public final class BIFFArchive
 {
@@ -489,7 +499,7 @@ public final class BIFFArchive
       }
       if (length == decompSize)
         return buffer;
-      return ArrayUtil.getSubArray(buffer, offset, length);
+      return Arrays.copyOfRange(buffer, offset, offset + length);
     }
   }
 
@@ -508,6 +518,7 @@ public final class BIFFArchive
       this.blockIndex = blockIndex;
     }
 
+    @Override
     public int read() throws IOException
     {
       if (size == 0)
@@ -524,6 +535,7 @@ public final class BIFFArchive
       return (int)b;
     }
 
+    @Override
     public int read(byte b[], int off, int len) throws IOException
     {
       if (size == 0)
@@ -545,16 +557,19 @@ public final class BIFFArchive
       return len - remainder;
     }
 
+    @Override
     public int available()
     {
       return size;
     }
 
+    @Override
     public boolean markSupported()
     {
       return false;
     }
 
+    @Override
     public void close() throws IOException
     {
       is.close();

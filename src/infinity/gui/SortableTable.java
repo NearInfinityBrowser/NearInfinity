@@ -6,14 +6,23 @@ package infinity.gui;
 
 import infinity.icon.Icons;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 public final class SortableTable extends JTable
 {
@@ -30,6 +39,7 @@ public final class SortableTable extends JTable
     getTableHeader().setDefaultRenderer(new TableHeaderRenderer());
     getTableHeader().addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         TableColumnModel columnModel = getColumnModel();
@@ -85,6 +95,7 @@ public final class SortableTable extends JTable
       setBorder(UIManager.getBorder("TableHeader.cellBorder"));
     }
 
+    @Override
     public Component getTableCellRendererComponent(JTable table, Object value,
                                                    boolean isSelected, boolean hasFocus, int row, int column)
     {
@@ -153,50 +164,60 @@ public final class SortableTable extends JTable
         listeners.get(i).tableChanged(event);
     }
 
+    @Override
     public Class<? extends Object> getColumnClass(int columnIndex)
     {
       return columnClasses.get(columnIndex);
     }
 
+    @Override
     public int getColumnCount()
     {
       return columnClasses.size();
     }
 
+    @Override
     public String getColumnName(int columnIndex)
     {
       return columnNames.get(columnIndex);
     }
 
+    @Override
     public int getRowCount()
     {
       return tableItems.size();
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       return tableItems.get(rowIndex).getObjectAt(columnIndex);
     }
 
+    @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex)
     {
     }
 
+    @Override
     public boolean isCellEditable(int rowIndex, int columnIndex)
     {
       return false;
     }
 
+    @Override
     public void addTableModelListener(TableModelListener l)
     {
       listeners.add(l);
     }
 
+    @Override
     public void removeTableModelListener(TableModelListener l)
     {
       listeners.remove(l);
     }
 
+    @Override
     public int compare(TableItem o1, TableItem o2)
     {
       int res;

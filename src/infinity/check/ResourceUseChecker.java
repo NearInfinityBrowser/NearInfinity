@@ -6,25 +6,53 @@ package infinity.check;
 
 import infinity.NearInfinity;
 import infinity.datatype.ResourceRef;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
-import infinity.resource.bcs.*;
-import infinity.resource.dlg.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.bcs.BcsResource;
+import infinity.resource.bcs.Decompiler;
+import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
+import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.other.PlainTextResource;
-import infinity.util.ArrayUtil;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class ResourceUseChecker implements Runnable, ListSelectionListener, ActionListener
 {
@@ -83,6 +111,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bstart) {
@@ -118,6 +147,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -129,6 +159,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -141,8 +172,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
     colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Name"}),
-                              colClasses, ArrayUtil.toList(new Integer[]{200, 200}));
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Name"}),
+                              colClasses, Arrays.asList(new Integer[]{200, 200}));
 
     checkList.addAll(ResourceFactory.getInstance().getResources(checkType));
     long startTime = System.currentTimeMillis();
@@ -197,6 +228,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       table.setFont(BrowserMenuBar.getInstance().getScriptFont());
       table.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseReleased(MouseEvent event)
         {
           if (event.getClickCount() == 2) {
@@ -306,6 +338,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       this.file = file;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)

@@ -4,7 +4,9 @@
 
 package infinity.datatype;
 
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.EffectFactory;
+import infinity.resource.StructEntry;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public final class EffectType extends Bitmap implements UpdateListener
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     super.updateValue(struct);
@@ -48,6 +51,7 @@ public final class EffectType extends Bitmap implements UpdateListener
 
 // --------------------- Begin Interface UpdateListener ---------------------
 
+  @Override
   public boolean valueUpdated(UpdateEvent event)
   {
     try {

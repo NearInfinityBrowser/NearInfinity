@@ -2,10 +2,12 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.tot;
+package infinity.resource.to;
 
-import infinity.resource.*;
 import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 
 public final class TotResource extends AbstractStruct implements Resource
@@ -15,6 +17,7 @@ public final class TotResource extends AbstractStruct implements Resource
     super(entry);
   }
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     if (buffer != null && buffer.length > 0) {

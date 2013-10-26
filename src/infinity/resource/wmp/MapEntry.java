@@ -4,10 +4,19 @@
 
 package infinity.resource.wmp;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetailViewer
 {
@@ -18,6 +27,7 @@ final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetai
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new AreaEntry()};
@@ -28,6 +38,7 @@ final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetai
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     return new ViewerMap(this);
@@ -35,6 +46,7 @@ final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetai
 
 // --------------------- End Interface HasDetailViewer ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Map", "MOS"));
@@ -66,6 +78,7 @@ final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetai
     return offset + 128 + 56;
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (datatype instanceof AreaLink) {
@@ -74,6 +87,7 @@ final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetai
     }
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (datatype instanceof AreaLink) {

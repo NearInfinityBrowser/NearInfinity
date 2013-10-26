@@ -10,15 +10,27 @@ import infinity.datatype.IdsBitmap;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceHitFrame;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.ProgressMonitor;
 
 public final class IDSRefChecker extends ChildFrame implements ActionListener, Runnable
 {
@@ -79,6 +91,7 @@ public final class IDSRefChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bstart) {
@@ -104,6 +117,7 @@ public final class IDSRefChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...", null, 0,

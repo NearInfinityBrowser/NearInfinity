@@ -4,7 +4,10 @@
 
 package infinity.util;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 public final class LongIntegerHashMap<V> extends HashMap<Long, V>
 {
@@ -40,6 +43,7 @@ public final class LongIntegerHashMap<V> extends HashMap<Long, V>
     return result;
   }
 
+  @Override
   public String toString()
   {
     StringBuffer buf = new StringBuffer();

@@ -10,10 +10,14 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IntegerHashMap;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+@Deprecated
 public final class NcsResource implements Resource
 {
   private static final IntegerHashMap<String> ARG_TYPES = new IntegerHashMap<String>();
@@ -79,6 +83,7 @@ public final class NcsResource implements Resource
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -89,6 +94,7 @@ public final class NcsResource implements Resource
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     StringBuffer sb = new StringBuffer();
@@ -337,6 +343,7 @@ public final class NcsResource implements Resource
       }
     }
 
+    @Override
     public String toString()
     {
       return code;

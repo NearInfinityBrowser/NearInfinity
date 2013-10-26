@@ -4,13 +4,20 @@
 
 package infinity.resource.wmp;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import javax.swing.JComponent;
+import javax.swing.JTabbedPane;
 
 public final class WmpResource extends AbstractStruct implements Resource, HasDetailViewer
 {
@@ -21,6 +28,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasDe
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     JTabbedPane tabbedPane = new JTabbedPane();
@@ -37,6 +45,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasDe
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -44,6 +53,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasDe
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

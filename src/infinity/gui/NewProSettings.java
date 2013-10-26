@@ -37,11 +37,13 @@ public final class NewProSettings extends NewAbstractSettings
     initDialog(parent);
   }
 
+  @Override
   public ProConfig getConfig()
   {
     return config;
   }
 
+  @Override
   protected void accept()
   {
     config.setProjectileType(cbType.getSelectedIndex() + 1);

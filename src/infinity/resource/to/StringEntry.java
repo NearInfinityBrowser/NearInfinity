@@ -2,9 +2,10 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.tot;
+package infinity.resource.to;
 
-import infinity.datatype.*;
+import infinity.datatype.HexNumber;
+import infinity.datatype.TextEdit;
 import infinity.resource.AbstractStruct;
 
 public final class StringEntry extends AbstractStruct
@@ -24,6 +25,7 @@ public final class StringEntry extends AbstractStruct
     super(superStruct, name, buffer, offset);
   }
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new HexNumber(buffer, offset, 4, "Offset to next free region"));

@@ -13,8 +13,14 @@ import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
 import infinity.util.*;
 
-import javax.swing.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 public abstract class ResourceEntry implements Comparable<ResourceEntry>
 {
@@ -43,6 +49,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
 // --------------------- Begin Interface Comparable ---------------------
 
+  @Override
   public int compareTo(ResourceEntry entry)
   {
     return getResourceName().compareToIgnoreCase(entry.getResourceName());

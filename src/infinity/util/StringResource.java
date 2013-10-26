@@ -6,9 +6,13 @@ package infinity.util;
 
 import infinity.resource.ResourceFactory;
 
-import javax.swing.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+
+import javax.swing.JOptionPane;
 
 public final class StringResource
 {
@@ -79,7 +83,7 @@ public final class StringResource
         }
       }
       if (max != buffer.length)
-        buffer = ArrayUtil.getSubArray(buffer, 0, max);
+        buffer = Arrays.copyOfRange(buffer, 0, max);
       return new String(buffer);
     } catch (Exception e) {
       e.printStackTrace();

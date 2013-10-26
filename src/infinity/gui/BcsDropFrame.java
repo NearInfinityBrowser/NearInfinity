@@ -10,18 +10,54 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.FileResourceEntry;
-import infinity.util.*;
+import infinity.util.FileCI;
+import infinity.util.FileReaderCI;
+import infinity.util.FileWriterCI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
@@ -52,12 +88,13 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Errors/Warnings", "Line"}),
-                              colClasses, ArrayUtil.toList(new Integer[]{200, 400, 100}));
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Errors/Warnings", "Line"}),
+                              colClasses, Arrays.asList(new Integer[]{200, 400, 100}));
 
     table.getSelectionModel().addListSelectionListener(this);
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseReleased(MouseEvent e)
       {
         if (e.getClickCount() == 2) {
@@ -164,6 +201,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bOpen) {
@@ -190,6 +228,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bOpen.setEnabled(table.getSelectedRowCount() > 0);
@@ -331,22 +370,27 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       this.component = component;
     }
 
+    @Override
     public void dragEnter(DropTargetDragEvent event)
     {
     }
 
+    @Override
     public void dragOver(DropTargetDragEvent event)
     {
     }
 
+    @Override
     public void dropActionChanged(DropTargetDragEvent event)
     {
     }
 
+    @Override
     public void dragExit(DropTargetEvent event)
     {
     }
 
+    @Override
     public void drop(DropTargetDropEvent event)
     {
       if (event.isLocalTransfer() || !event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
@@ -365,6 +409,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       new Thread(this).start();
     }
 
+    @Override
     public void run()
     {
       filesDropped(component, new ArrayList<File>(files));
@@ -384,6 +429,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       this.error = error;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)

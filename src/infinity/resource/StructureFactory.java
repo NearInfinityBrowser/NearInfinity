@@ -4,6 +4,14 @@
 
 package infinity.resource;
 
+import infinity.gui.NewChrSettings;
+import infinity.gui.NewProSettings;
+import infinity.gui.NewResSettings;
+import infinity.util.NIFile;
+import infinity.util.ResourceStructure;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
+
 import java.awt.Window;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -12,14 +20,6 @@ import java.util.EnumMap;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
-import infinity.gui.NewChrSettings;
-import infinity.gui.NewProSettings;
-import infinity.gui.NewResSettings;
-import infinity.util.NIFile;
-import infinity.util.ResourceStructure;
-import infinity.util.FileCI;
-import infinity.util.FileOutputStreamCI;
 
 // Create different pre-initialized IE game resources from scratch and writing them to disk.
 public final class StructureFactory

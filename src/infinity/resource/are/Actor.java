@@ -4,11 +4,23 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 public final class Actor extends AbstractStruct implements AddRemovable, HasDetailViewer, HasAddRemovable
 {
@@ -38,6 +50,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -48,6 +61,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables()
   {
     return new AddRemovable[]{};
@@ -58,6 +72,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     return new ViewerActor(this);
@@ -65,6 +80,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 
 // --------------------- End Interface HasDetailViewer ---------------------
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeAddedInChild(child, datatype);
@@ -72,6 +88,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
       ((DecNumber)getAttribute("CRE structure size")).setValue(child.getSize());
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof CreResource) {
@@ -80,6 +97,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     }
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeRemovedInChild(child, datatype);
@@ -94,6 +112,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
       ((HexNumber)getAttribute("CRE structure offset")).setValue(entry.getOffset());
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

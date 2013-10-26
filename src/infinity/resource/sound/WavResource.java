@@ -5,17 +5,35 @@
 package infinity.resource.sound;
 
 import infinity.icon.Icons;
-import infinity.resource.*;
 import infinity.resource.Closeable;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.WavReferenceSearcher;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Arrays;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 @Deprecated
 public final class WavResource implements Resource, ActionListener, Closeable, Runnable
@@ -47,7 +65,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 //        fileCreated = true;
 //      }
       else if (data.length > 60 && new String(data, 58, 3).equalsIgnoreCase("ID3"))
-        mp3data = ArrayUtil.getSubArray(data, 58, data.length - 58);
+        mp3data = Arrays.copyOfRange(data, 58, data.length);
       else if (entry instanceof FileResourceEntry)
         wavfile = entry.getActualFile();
       else {
@@ -72,7 +90,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
       fileCreated = true;
     }
     else if (signature.equals("BMU ")) {
-      mp3data = ArrayUtil.getSubArray(data, 8, data.length - 8);
+      mp3data = Arrays.copyOfRange(data, 8, data.length);
     }
     else if (data.length > 480 && new String(data, 470, 4).equals("RIFF")) {
       if (DynamicArray.getShort(data, 470 + 20) == 0x11) { // IMA ADPCM
@@ -93,6 +111,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bplay)
@@ -144,6 +163,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Closeable ---------------------
 
+  @Override
   public void close()
   {
     a2w.stopPlay();
@@ -158,6 +178,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -168,6 +189,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     bplay.setEnabled(false);
@@ -187,6 +209,7 @@ public final class WavResource implements Resource, ActionListener, Closeable, R
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     JPanel buttonpanel = new JPanel();

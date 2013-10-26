@@ -4,7 +4,12 @@
 
 package infinity.resource.other;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
@@ -27,6 +32,7 @@ public final class VvcResource extends AbstractStruct implements Resource
     super(entry);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

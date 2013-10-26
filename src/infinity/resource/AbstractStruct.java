@@ -4,7 +4,11 @@
 
 package infinity.resource;
 
-import infinity.datatype.*;
+import infinity.datatype.Editable;
+import infinity.datatype.InlineEditable;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.Unknown;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.StructViewer;
 import infinity.resource.are.Actor;
@@ -15,12 +19,21 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.NIFile;
 
-import javax.swing.*;
-import javax.swing.table.*;
-
 import java.awt.Component;
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.table.AbstractTableModel;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
 {
@@ -139,6 +152,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   // end - extends AbstractTableModel
 
   // begin - implements Closeable
+  @Override
   public void close() throws Exception
   {
     if (structChanged && viewer != null && this instanceof Resource && superStruct == null) {
@@ -168,6 +182,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- Begin Interface Comparable ---------------------
 
   // begin - implements StructEntry
+  @Override
   public int compareTo(StructEntry o)
   {
     return getOffset() - o.getOffset();
@@ -178,6 +193,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
 // --------------------- Begin Interface StructEntry ---------------------
 
+  @Override
   public Object clone() throws CloneNotSupportedException
   {
     AbstractStruct newstruct = (AbstractStruct)super.clone();
@@ -196,27 +212,32 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return newstruct;
   }
 
+  @Override
   public void copyNameAndOffset(StructEntry structEntry)
   {
     name = structEntry.getName();
     setOffset(structEntry.getOffset());
   }
 
+  @Override
   public String getName()
   {
     return name;
   }
 
+  @Override
   public int getOffset()
   {
     return startoffset;
   }
 
+  @Override
   public int getSize()
   {
     return endoffset - startoffset;
   }
 
+  @Override
   public void setOffset(int newoffset)
   {
     if (extraoffset != 0)
@@ -232,11 +253,13 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- Begin Interface TableModel ---------------------
 
   // start - extends AbstractTableModel
+  @Override
   public int getRowCount()
   {
     return list.size();
   }
 
+  @Override
   public int getColumnCount()
   {
     if (BrowserMenuBar.getInstance().showOffsets())
@@ -244,6 +267,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return 2;
   }
 
+  @Override
   public Object getValueAt(int row, int column)
   {
     if (list.get(row) instanceof StructEntry) {
@@ -265,6 +289,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   // end - implements Closeable
 
   // begin - implements Viewable
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     if (viewer == null) {
@@ -280,6 +305,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- Begin Interface Writeable ---------------------
 
   // begin - implements Writeable
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Collections.sort(list); // This way we can writeField out in the order in list - sorted by offset
@@ -289,6 +315,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String getColumnName(int columnIndex)
   {
     if (columnIndex == 0)
@@ -298,6 +325,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return "Offset";
   }
 
+  @Override
   public boolean isCellEditable(int row, int col)
   {
     if (col == 1) {
@@ -308,6 +336,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return false;
   }
 
+  @Override
   public void setValueAt(Object value, int row, int column)
   {
     Object o = getValueAt(row, column);
@@ -321,6 +350,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
+  @Override
   public String toString()
   {
     StringBuffer sb = new StringBuffer(80);
@@ -437,6 +467,24 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return null;
   }
 
+  // returns a specific StructEntry object located at the specified offset
+  public StructEntry getAttribute(int offset, Class<? extends StructEntry> type)
+  {
+    for (int i = 0; i < list.size(); i++) {
+      StructEntry structEntry = list.get(i);
+      if (offset >= structEntry.getOffset()) {
+        if (offset == structEntry.getOffset() && type.isInstance(structEntry)) {
+          return structEntry;
+        } else if (structEntry instanceof AbstractStruct) {
+          StructEntry res = ((AbstractStruct)structEntry).getAttribute(offset, type);
+          if (res != null)
+            return res;
+        }
+      }
+    }
+    return null;
+  }
+
   public StructEntry getAttribute(String ename)
   {
     for (int i = 0; i < list.size(); i++) {
@@ -444,7 +492,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       if (structEntry.getName().equalsIgnoreCase(ename))
         return structEntry;
     }
-    System.err.println("Could not find attribute " + ename + " in " + getName());
+//    System.err.println("Could not find attribute " + ename + " in " + getName());
     return null;
   }
 
@@ -706,6 +754,35 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         ((AbstractCode)o).addFlatList(flatList);
       else
         flatList.add(o);
+    }
+  }
+
+  public boolean hasViewTab()
+  {
+    return (viewer != null && viewer.hasViewTab());
+  }
+
+  public boolean isViewTabSelected()
+  {
+    return (viewer != null && viewer.isViewTabSelected());
+  }
+
+  public void selectViewTab()
+  {
+    if (viewer != null) {
+      viewer.selectViewTab();
+    }
+  }
+
+  public boolean isEditTabSelected()
+  {
+    return (viewer != null && viewer.isEditTabSelected());
+  }
+
+  public void selectEditTab()
+  {
+    if (viewer != null) {
+      viewer.selectEditTab();
     }
   }
 

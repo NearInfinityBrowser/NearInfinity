@@ -5,20 +5,48 @@
 package infinity.check;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.ArrayUtil;
+import infinity.util.FileCI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class StructChecker extends ChildFrame implements ActionListener, Runnable,
                                                                ListSelectionListener
@@ -43,8 +71,8 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(ArrayUtil.toList(new String[]{"File", "Offset", "Error message"}),
-                              colClasses, ArrayUtil.toList(new Integer[]{50, 50, 400}));
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Offset", "Error message"}),
+                              colClasses, Arrays.asList(new Integer[]{50, 50, 400}));
 
     boxes = new JCheckBox[filetypes.length];
     bstart.setMnemonic('s');
@@ -89,6 +117,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bstart) {
@@ -157,6 +186,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -168,6 +198,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...", null, 0,
@@ -222,6 +253,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       table.getSelectionModel().addListSelectionListener(this);
       table.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseReleased(MouseEvent event)
         {
           if (event.getClickCount() == 2) {
@@ -299,6 +331,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       this.errorMsg = errorMsg;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)
@@ -309,6 +342,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
         return errorMsg;
     }
 
+    @Override
     public String toString()
     {
       StringBuffer buf = new StringBuffer("File: ");

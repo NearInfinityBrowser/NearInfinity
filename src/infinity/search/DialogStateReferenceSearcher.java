@@ -10,7 +10,7 @@ import infinity.resource.dlg.DlgResource;
 import infinity.resource.dlg.Transition;
 import infinity.resource.key.ResourceEntry;
 
-import java.awt.*;
+import java.awt.Component;
 
 public final class DialogStateReferenceSearcher extends AbstractReferenceSearcher
 {
@@ -22,6 +22,7 @@ public final class DialogStateReferenceSearcher extends AbstractReferenceSearche
     targetStateNr = stateNr;
   }
 
+  @Override
   void search(ResourceEntry entry, Resource resource)
   {
     DlgResource dlg = (DlgResource)resource;

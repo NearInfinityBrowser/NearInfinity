@@ -38,11 +38,13 @@ public final class NewChrSettings extends NewAbstractSettings
     initDialog(parent);
   }
 
+  @Override
   public ChrConfig getConfig()
   {
     return config;
   }
 
+  @Override
   protected void accept()
   {
     config.setName(tfName.getText());
@@ -145,6 +147,7 @@ public final class NewChrSettings extends NewAbstractSettings
       maxLength = length >= 0 ? length : 0;
     }
 
+    @Override
     public void insertString(int offs, String str, AttributeSet a) throws BadLocationException
     {
       if (str == null || textField == null ||

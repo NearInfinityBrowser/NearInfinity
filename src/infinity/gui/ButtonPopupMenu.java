@@ -4,11 +4,17 @@
 
 package infinity.gui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.Comparator;
+
+import javax.swing.JButton;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 public final class ButtonPopupMenu extends JButton
 {
@@ -32,11 +38,13 @@ public final class ButtonPopupMenu extends JButton
     menu.removeAll();
     Arrays.sort(menuItems, new Comparator<JMenuItem>()
     {
+      @Override
       public int compare(JMenuItem jMenuItem, JMenuItem jMenuItem1)
       {
         return jMenuItem.toString().compareToIgnoreCase(jMenuItem1.toString());
       }
 
+      @Override
       public boolean equals(Object obj)
       {
         return this == obj;
@@ -67,6 +75,7 @@ public final class ButtonPopupMenu extends JButton
     {
     }
 
+    @Override
     public void mouseReleased(MouseEvent e)
     {
       if (!e.isPopupTrigger() && ((JMenuItem)e.getSource()).contains(e.getX(), e.getY()))
@@ -74,6 +83,7 @@ public final class ButtonPopupMenu extends JButton
       menu.setVisible(false);
     }
 
+    @Override
     public void mouseExited(MouseEvent e)
     {
       JMenuItem item = (JMenuItem)e.getSource();
@@ -88,12 +98,14 @@ public final class ButtonPopupMenu extends JButton
     {
     }
 
+    @Override
     public void mousePressed(MouseEvent e)
     {
       if (!e.isPopupTrigger() && e.getComponent().isEnabled())
         menu.show(e.getComponent(), 0, -(int)menu.getPreferredSize().getHeight());
     }
 
+    @Override
     public void mouseReleased(MouseEvent e)
     {
       if (!e.isPopupTrigger() && ((JButton)e.getSource()).contains(e.getX(), e.getY()) &&

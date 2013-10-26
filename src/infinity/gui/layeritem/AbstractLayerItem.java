@@ -4,6 +4,9 @@
 
 package infinity.gui.layeritem;
 
+import infinity.gui.ViewFrame;
+import infinity.resource.Viewable;
+
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -12,9 +15,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Vector;
-
-import infinity.gui.ViewFrame;
-import infinity.resource.Viewable;
 
 import javax.swing.JComponent;
 
@@ -207,6 +207,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   /**
    * Returns a String representation of this object.
    */
+  @Override
   public String toString()
   {
     return getMessage();
@@ -244,17 +245,19 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
    */
   public void showViewable()
   {
-    if (viewable != null) {
-      new ViewFrame(this.getTopLevelAncestor(), (Viewable)viewable);
+    if (viewable != null && getTopLevelAncestor() != null) {
+      new ViewFrame(getTopLevelAncestor(), (Viewable)viewable);
     }
   }
 
 //--------------------- Begin Interface MouseListener ---------------------
 
+  @Override
   public void mouseClicked(MouseEvent event)
   {
   }
 
+  @Override
   public void mouseEntered(MouseEvent event)
   {
     if (isMouseOver(event.getPoint())) {
@@ -262,11 +265,13 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     }
   }
 
+  @Override
   public void mouseExited(MouseEvent event)
   {
     setItemState(ItemState.NORMAL);
   }
 
+  @Override
   public void mousePressed(MouseEvent event)
   {
     if (isMouseOver(event.getPoint())) {
@@ -274,6 +279,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     }
   }
 
+  @Override
   public void mouseReleased(MouseEvent event)
   {
     if (isMouseOver(event.getPoint())) {
@@ -287,10 +293,12 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
 //--------------------- Begin Interface MouseMotionListener ---------------------
 
+  @Override
   public void mouseDragged(MouseEvent event)
   {
   }
 
+  @Override
   public void mouseMoved(MouseEvent event)
   {
     if (isMouseOver(event.getPoint())) {

@@ -7,14 +7,21 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.ArrayUtil;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 public class Unknown extends Datatype implements Editable
 {
@@ -25,17 +32,23 @@ public class Unknown extends Datatype implements Editable
   public Unknown(byte[] buffer, int offset, int length)
   {
     super(offset, length, UNKNOWN);
-    data = ArrayUtil.getSubArray(buffer, offset, length);
+    data = Arrays.copyOfRange(buffer, offset, offset + length);
   }
 
   public Unknown(byte[] buffer, int offset, int length, String name)
   {
     super(offset, length, name);
-    data = ArrayUtil.getSubArray(buffer, offset, length);
+    data = Arrays.copyOfRange(buffer, offset, offset + length);
+  }
+
+  public byte[] getData()
+  {
+    return data;
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     if (data != null && data.length > 0) {
@@ -79,10 +92,12 @@ public class Unknown extends Datatype implements Editable
     }
   }
 
+  @Override
   public void select()
   {
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim();
@@ -113,6 +128,7 @@ public class Unknown extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Filewriter.writeBytes(os, data);
@@ -120,6 +136,7 @@ public class Unknown extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     if (data != null && data.length > 0) {

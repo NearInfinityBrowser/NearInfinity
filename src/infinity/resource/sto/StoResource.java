@@ -4,11 +4,28 @@
 
 package infinity.resource.sto;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 
 public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
 {
@@ -36,6 +53,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     TextString version = (TextString)getAttribute("Version");
@@ -50,6 +68,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
@@ -59,6 +78,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface HasDetailViewer ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

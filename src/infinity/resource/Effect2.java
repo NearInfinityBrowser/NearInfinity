@@ -4,7 +4,14 @@
 
 package infinity.resource;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.EffectType;
+import infinity.datatype.Flag;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.resource.spl.SplResource;
 
 import java.util.List;
@@ -75,6 +82,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -82,6 +90,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

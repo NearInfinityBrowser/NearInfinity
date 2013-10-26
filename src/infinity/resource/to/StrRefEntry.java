@@ -2,9 +2,12 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.toh;
+package infinity.resource.to;
 
-import infinity.datatype.*;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
 public final class StrRefEntry extends AbstractStruct
@@ -24,6 +27,7 @@ public final class StrRefEntry extends AbstractStruct
     super(superStruct, name, buffer, offset);
   }
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new StringRef(buffer, offset, "Overridden strref"));

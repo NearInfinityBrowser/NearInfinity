@@ -4,8 +4,15 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
 public abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
@@ -21,6 +28,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Vertex()};
@@ -31,6 +39,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -38,6 +47,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {
@@ -77,6 +87,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     return count;
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new DecNumber(buffer, offset, 4, "Vertex index"));

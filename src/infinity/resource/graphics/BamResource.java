@@ -8,17 +8,33 @@ import infinity.NearInfinity;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
-import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.Timer;
 
 public final class BamResource implements Resource, ActionListener, ItemListener
 {
@@ -91,6 +107,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bnextframe) {
@@ -147,6 +164,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bexport) {
@@ -179,6 +197,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -189,6 +208,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     label = new JLabel("", JLabel.CENTER);
@@ -309,7 +329,7 @@ public final class BamResource implements Resource, ActionListener, ItemListener
       }
       byte imagedata[] = new byte[height * width];
       if (!rle)
-        imagedata = ArrayUtil.getSubArray(buffer, (int)frameDataOffset, imagedata.length);
+        imagedata = Arrays.copyOfRange(buffer, (int)frameDataOffset, (int)frameDataOffset + imagedata.length);
       else {
         int w_idx = 0;
         while (w_idx < imagedata.length) {

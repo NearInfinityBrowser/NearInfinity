@@ -5,22 +5,48 @@
 package infinity.check;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
-import infinity.resource.dlg.*;
+import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
+import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class DialogChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
@@ -38,6 +64,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     SortableTable table = errorTable;
@@ -68,6 +95,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     if (tabbedPane.getSelectedIndex() == 0)
@@ -82,6 +110,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (tabbedPane.getSelectedIndex() == 0)
@@ -96,6 +125,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -116,11 +146,11 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
     colClasses.add(Integer.class);
     errorTable = new SortableTable(
-        ArrayUtil.toList(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"}),
-        colClasses, ArrayUtil.toList(new Integer[]{50, 100, 350, 10}));
+        Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"}),
+        colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
     warningTable = new SortableTable(
-        ArrayUtil.toList(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"}),
-        colClasses, ArrayUtil.toList(new Integer[]{50, 100, 350, 10}));
+        Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"}),
+        colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
 
     for (int i = 0; i < dlgFiles.size(); i++) {
       ResourceEntry entry = dlgFiles.get(i);
@@ -190,6 +220,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       warningTable.getSelectionModel().addListSelectionListener(this);
       MouseListener listener = new MouseAdapter()
       {
+        @Override
         public void mouseReleased(MouseEvent event)
         {
           if (event.getClickCount() == 2) {
@@ -237,6 +268,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       this.error = error;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)

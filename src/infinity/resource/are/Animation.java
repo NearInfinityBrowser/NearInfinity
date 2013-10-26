@@ -4,10 +4,16 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.ResourceFactory;
 
-final class Animation extends AbstractStruct implements AddRemovable
+public final class Animation extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_flag = {"Not shown", "Is shown", "No shadow", "Not light source",
                                           "Partial animation", "Synchronized draw", "Random start",
@@ -27,6 +33,7 @@ final class Animation extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -34,6 +41,7 @@ final class Animation extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

@@ -29,6 +29,7 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     try {
@@ -48,6 +49,7 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, number);
@@ -55,6 +57,7 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     return Long.toString(number);

@@ -35,10 +35,12 @@ public class ScriptTextArea extends JTextArea {
   public ScriptTextArea() {
     super();
     addMouseListener(new MouseAdapter() {
+      @Override
       public void mousePressed(MouseEvent ev) {
         handlePopup(ev);
       }
 
+      @Override
       public void mouseReleased(MouseEvent ev) {
         handlePopup(ev);
       }
@@ -46,6 +48,7 @@ public class ScriptTextArea extends JTextArea {
   }
 
   // try to paint an indicator below "crosslinks"
+  @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
     Rectangle rect = g.getClipBounds();
@@ -373,6 +376,7 @@ public class ScriptTextArea extends JTextArea {
     public void setResEntry(ResourceEntry resEntry) {
       this.resourceEntry = resEntry;
     }
+    @Override
     public void actionPerformed(ActionEvent ev) {
       if (ev.getSource() == mi_open) {
         NearInfinity.getInstance().showResourceEntry(resourceEntry);

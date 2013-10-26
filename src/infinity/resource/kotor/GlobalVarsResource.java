@@ -4,18 +4,32 @@
 
 package infinity.resource.kotor;
 
-import infinity.resource.nwn.gff.GffResource;
-import infinity.resource.nwn.gff.field.*;
-import infinity.resource.key.ResourceEntry;
-import infinity.resource.ViewableContainer;
-import infinity.resource.ResourceFactory;
 import infinity.icon.Icons;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
+import infinity.resource.key.ResourceEntry;
+import infinity.resource.nwn.gff.GffResource;
+import infinity.resource.nwn.gff.field.GffExoString;
+import infinity.resource.nwn.gff.field.GffList;
+import infinity.resource.nwn.gff.field.GffStruct;
+import infinity.resource.nwn.gff.field.GffVoid;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+@Deprecated
 public final class GlobalVarsResource extends GffResource implements ActionListener
 {
   private final GffList catBoolean, catNumber, catLocation, catString, valString;
@@ -39,6 +53,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bExport)
@@ -49,6 +64,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
 
 // --------------------- End Interface ActionListener ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
     bExport = new JButton("Export...", Icons.getIcon("Export16.gif"));
@@ -115,6 +131,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       this.valBoolean = valBoolean;
     }
 
+    @Override
     public Object getValueAt(int row, int column)
     {
       if (column == 0) {
@@ -131,6 +148,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       }
     }
 
+    @Override
     public void setValueAt(Object aValue, int row, int column)
     {
       if (column == 1) {
@@ -140,11 +158,13 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       }
     }
 
+    @Override
     public boolean isCellEditable(int row, int column)
     {
       return column == 1;
     }
 
+    @Override
     public Class<? extends Object> getColumnClass(int columnIndex)
     {
       if (columnIndex == 0)
@@ -165,6 +185,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       this.valNumber = valNumber;
     }
 
+    @Override
     public Object getValueAt(int row, int column)
     {
       if (column == 0) {
@@ -178,6 +199,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       }
     }
 
+    @Override
     public void setValueAt(Object aValue, int row, int column)
     {
       if (column == 1) {
@@ -186,11 +208,13 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       }
     }
 
+    @Override
     public boolean isCellEditable(int row, int column)
     {
       return column == 1;
     }
 
+    @Override
     public Class<? extends Object> getColumnClass(int columnIndex)
     {
       if (columnIndex == 0)
@@ -210,6 +234,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       this.valString = valString;
     }
 
+    @Override
     public Object getValueAt(int row, int column)
     {
       if (column == 0) {
@@ -224,6 +249,7 @@ public final class GlobalVarsResource extends GffResource implements ActionListe
       }
     }
 
+    @Override
     public boolean isCellEditable(int row, int column)
     {
       return column == 1;

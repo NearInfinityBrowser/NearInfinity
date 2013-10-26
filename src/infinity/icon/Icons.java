@@ -4,9 +4,11 @@
 
 package infinity.icon;
 
-import javax.swing.*;
+import java.awt.Image;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.ImageIcon;
 
 public final class Icons
 {
@@ -20,6 +22,15 @@ public final class Icons
       ICONMAP.put(name, icon);
     }
     return icon;
+  }
+
+  public static Image getImage(String name)
+  {
+    ImageIcon icon = getIcon(name);
+    if (icon != null) {
+      return icon.getImage();
+    }
+    return null;
   }
 
   private Icons(){}

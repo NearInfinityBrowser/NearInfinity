@@ -7,8 +7,9 @@ package infinity.datatype;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 
-import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.ActionListener;
+
+import javax.swing.JComponent;
 
 public interface Editable extends StructEntry
 {

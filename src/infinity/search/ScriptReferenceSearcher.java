@@ -5,14 +5,18 @@
 package infinity.search;
 
 import infinity.datatype.ResourceRef;
-import infinity.resource.*;
-import infinity.resource.are.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
+import infinity.resource.are.Actor;
 import infinity.resource.are.Container;
+import infinity.resource.are.Door;
+import infinity.resource.are.ITEPoint;
 import infinity.resource.bcs.BcsResource;
 import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
 
-import java.awt.*;
+import java.awt.Component;
 import java.util.regex.Pattern;
 
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
@@ -30,6 +34,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
                        + targetResRef + "\")", Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
   }
 
+  @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
     if (resource instanceof BcsResource) {

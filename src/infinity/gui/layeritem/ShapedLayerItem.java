@@ -4,7 +4,6 @@
 
 package infinity.gui.layeritem;
 
-import infinity.gui.layeritem.LayerItemEvent;
 import infinity.resource.Viewable;
 
 import java.awt.BasicStroke;
@@ -329,6 +328,7 @@ import javax.swing.SwingConstants;
 
 //--------------------- Begin Interface LayerItemListener ---------------------
 
+  @Override
   public void layerItemChanged(LayerItemEvent event)
   {
     if (event.getSource() == this) {

@@ -26,11 +26,11 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.Viewable;
 import infinity.resource.dlg.AbstractCode;
-import infinity.resource.dlg.DialogItemRefSearcher;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.dlg.State;
 import infinity.resource.dlg.Transition;
 import infinity.search.AttributeSearcher;
+import infinity.search.DialogItemRefSearcher;
 import infinity.search.DialogStateReferenceSearcher;
 import infinity.search.ReferenceSearcher;
 import infinity.util.StructClipboard;
@@ -175,6 +175,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     table.setFont(BrowserMenuBar.getInstance().getScriptFont());
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2 && table.getSelectedRowCount() == 1) {
@@ -186,6 +187,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     });
     table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer()
     {
+      @Override
       public Component getTableCellRendererComponent(JTable table, Object value,
                                                      boolean isSelected, boolean hasFocus, int row,
                                                      int column)
@@ -341,6 +343,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getActionCommand().equals(CMD_VIEW)) {
@@ -439,6 +442,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     considerMenuEnabled();
@@ -449,6 +453,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == badd) {
@@ -494,6 +499,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (event.getValueIsAdjusting())
@@ -586,6 +592,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- Begin Interface TableModelListener ---------------------
 
+  @Override
   public void tableChanged(TableModelEvent event)
   {
     if (event.getType() == TableModelEvent.UPDATE) {
@@ -676,6 +683,41 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         selectEntry((AbstractStruct)entry, offset);
       else if (entry.getOffset() == offset)
         selectEntry(entry);
+    }
+  }
+
+  public boolean hasViewTab()
+  {
+    return (tabbedPane != null && tabbedPane.getTabCount() > 0);
+  }
+
+  public boolean isViewTabSelected()
+  {
+    if (tabbedPane != null) {
+      return tabbedPane.getSelectedIndex() == 0;
+    }
+    return false;
+  }
+
+  public void selectViewTab()
+  {
+    if (tabbedPane != null && tabbedPane.getSelectedIndex() != 0) {
+      tabbedPane.setSelectedIndex(0);
+    }
+  }
+
+  public boolean isEditTabSelected()
+  {
+    if (tabbedPane != null) {
+      return tabbedPane.getSelectedIndex() == 1;
+    }
+    return true;
+  }
+
+  public void selectEditTab()
+  {
+    if (tabbedPane != null && tabbedPane.getTabCount() > 1 && tabbedPane.getSelectedIndex() != 1) {
+      tabbedPane.setSelectedIndex(1);
     }
   }
 
@@ -804,11 +846,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   private final class PopupListener extends MouseAdapter
   {
+    @Override
     public void mousePressed(MouseEvent e)
     {
       maybeShowPopup(e);
     }
 
+    @Override
     public void mouseReleased(MouseEvent e)
     {
       maybeShowPopup(e);
@@ -827,6 +871,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     {
     }
 
+    @Override
     public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException
     {
       Graphics2D g2 = (Graphics2D)graphics;

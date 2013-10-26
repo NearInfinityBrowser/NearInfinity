@@ -4,7 +4,10 @@
 
 package infinity.datatype;
 
-import infinity.gui.*;
+import infinity.gui.ChildFrame;
+import infinity.gui.StringEditor;
+import infinity.gui.StructViewer;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
@@ -13,12 +16,25 @@ import infinity.search.StringReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public final class StringRef extends Datatype implements Editable, ActionListener
 {
@@ -41,6 +57,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
@@ -78,6 +95,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     if (tfRefNr == null) {
@@ -158,10 +176,12 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     return panel;
   }
 
+  @Override
   public void select()
   {
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     int newvalue = Integer.parseInt(tfRefNr.getText());
@@ -177,6 +197,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeInt(os, value);
@@ -184,6 +205,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     return StringResource.getStringRef(value);

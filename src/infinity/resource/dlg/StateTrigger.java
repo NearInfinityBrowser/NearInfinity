@@ -4,7 +4,7 @@
 
 package infinity.resource.dlg;
 
-final class StateTrigger extends AbstractCode
+public final class StateTrigger extends AbstractCode
 {
   StateTrigger()
   {

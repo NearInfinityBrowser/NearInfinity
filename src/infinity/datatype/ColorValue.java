@@ -11,13 +11,25 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.BmpResource;
 import infinity.util.DynamicArray;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public final class ColorValue extends Datatype implements Editable, ChangeListener, ActionListener
 {
@@ -80,6 +92,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tfield) {
@@ -102,6 +115,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     if (event.getSource() == slider) {
@@ -116,6 +130,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     if (tfield == null) {
@@ -176,10 +191,12 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
     return panel;
   }
 
+  @Override
   public void select()
   {
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     try {
@@ -201,6 +218,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeInt(os, number);
@@ -208,6 +226,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String toString()
   {
     return "Color index " + number;

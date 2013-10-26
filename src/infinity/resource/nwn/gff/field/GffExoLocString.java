@@ -4,12 +4,17 @@
 
 package infinity.resource.nwn.gff.field;
 
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
+import infinity.util.IntegerHashMap;
+import infinity.util.StringResource;
 
-import java.util.*;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
+@Deprecated
 public final class GffExoLocString extends GffField
 {
   private final IntegerHashMap<String> strings = new IntegerHashMap<String>();
@@ -33,6 +38,7 @@ public final class GffExoLocString extends GffField
     }
   }
 
+  @Override
   public List getChildren()
   {
     List<String> children = new ArrayList<String>();
@@ -42,6 +48,7 @@ public final class GffExoLocString extends GffField
     return children;
   }
 
+  @Override
   public int getFieldDataSize()
   {
     int size = 12;
@@ -51,11 +58,13 @@ public final class GffExoLocString extends GffField
     return size;
   }
 
+  @Override
   public String toString()
   {
     return getLabel() + " = " + StringResource.getStringRef(stringRef);
   }
 
+  @Override
   public void compare(GffField field)
   {
     if (!getLabel().equals(field.getLabel()))
@@ -69,11 +78,13 @@ public final class GffExoLocString extends GffField
         throw new IllegalStateException(toString() + " - " + field.toString());
   }
 
+  @Override
   public Object getValue()
   {
     return StringResource.getStringRef(stringRef);
   }
 
+  @Override
   public int writeField(OutputStream os, List<String> labels, byte[] fieldData, int fieldDataIndex) throws IOException
   {
     Filewriter.writeInt(os, 12);

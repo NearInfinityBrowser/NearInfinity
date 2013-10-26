@@ -6,7 +6,6 @@ package infinity.resource.key;
 
 import infinity.gui.BIFFEditor;
 import infinity.resource.ResourceFactory;
-import infinity.util.ArrayUtil;
 import infinity.util.Filewriter;
 import infinity.util.NIFile;
 import infinity.util.FileInputStreamCI;
@@ -14,8 +13,18 @@ import infinity.util.FileOutputStreamCI;
 import infinity.util.RandomAccessFileCI;
 import infinity.util.FileCI;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -33,7 +42,7 @@ public final class BIFFWriter
     deflater.setInput(data);
     deflater.finish();
     int clength = deflater.deflate(compr);
-    return ArrayUtil.getSubArray(compr, 0, clength);
+    return Arrays.copyOfRange(compr, 0, clength);
   }
 
   private static void compressBIF(File biff, File compr, String uncrfilename) throws IOException
@@ -92,7 +101,7 @@ public final class BIFFWriter
         break;
       bytesread += newread;
     }
-    return ArrayUtil.getSubArray(buffer, 0, bytesread);
+    return Arrays.copyOfRange(buffer, 0, bytesread);
   }
 
   public BIFFWriter(BIFFEntry bifentry, int format)

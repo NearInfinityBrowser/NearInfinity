@@ -4,11 +4,23 @@
 
 package infinity.resource.sound;
 
-import infinity.resource.sound.AudioConverter;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
 
-import javax.sound.sampled.*;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 @Deprecated
 public final class SoundUtilities

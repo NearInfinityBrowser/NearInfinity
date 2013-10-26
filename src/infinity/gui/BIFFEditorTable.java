@@ -8,13 +8,33 @@ import infinity.NearInfinity;
 import infinity.icon.Icons;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToggleButton;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
 final class BIFFEditorTable extends JPanel implements ActionListener
 {
@@ -59,6 +79,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     table.getColumnModel().setColumnSelectionAllowed(false);
     TableCellRenderer renderer = new TableCellRenderer()
     {
+      @Override
       public Component getTableCellRendererComponent(JTable table, Object o, boolean b, boolean b1, int i,
                                                      int i1)
       {
@@ -72,6 +93,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     table.getColumnModel().getColumn(2).setPreferredWidth(200);
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
@@ -82,6 +104,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     });
     table.getTableHeader().addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         TableColumnModel columnmodel = table.getColumnModel();
@@ -112,6 +135,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bbif)
@@ -255,6 +279,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
       entries.remove(line);
     }
 
+    @Override
     public int getRowCount()
     {
       int count = 0;
@@ -270,6 +295,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
       return count;
     }
 
+    @Override
     public Object getValueAt(int row, int column)
     {
       BifEditorTableLine line = get(row);
@@ -306,11 +332,13 @@ final class BIFFEditorTable extends JPanel implements ActionListener
       return entries;
     }
 
+    @Override
     public int getColumnCount()
     {
       return 3;
     }
 
+    @Override
     public String getColumnName(int i)
     {
       if (i == 0 || i == 1)
@@ -323,6 +351,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
       Collections.sort(entries, this);
     }
 
+    @Override
     public int compare(BifEditorTableLine line1, BifEditorTableLine line2)
     {
       int result = 0;

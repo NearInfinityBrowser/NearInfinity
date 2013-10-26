@@ -35,6 +35,7 @@ public class WavcBuffer extends AcmBuffer
 
 //--------------------- Begin Class AudioBuffer ---------------------
 
+  @Override
   protected void convert(byte[] buffer, int offset, AudioOverride override) throws Exception
   {
     // parsing WAVC buffer

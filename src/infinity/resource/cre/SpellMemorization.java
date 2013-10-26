@@ -4,8 +4,13 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.StructEntry;
 
 final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
@@ -23,6 +28,7 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -33,6 +39,7 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new MemorizedSpells()};
@@ -40,6 +47,7 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
 
 // --------------------- End Interface HasAddRemovable ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof MemorizedSpells) {
@@ -53,6 +61,7 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
     }
   }
 
+  @Override
   public int read(byte buffer[], int offset)
   {
     list.add(new DecNumber(buffer, offset, 2, "Spell level"));

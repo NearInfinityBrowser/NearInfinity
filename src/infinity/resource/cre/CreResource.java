@@ -5,21 +5,60 @@
 package infinity.resource.cre;
 
 import infinity.NearInfinity;
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.ColorValue;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HashBitmap;
+import infinity.datatype.HexNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.IdsFlag;
+import infinity.datatype.Kit2daBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.Effect;
+import infinity.resource.Effect2;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
-
-import javax.swing.*;
+import infinity.util.DynamicArray;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 public final class CreResource extends AbstractStruct implements Resource, HasAddRemovable, AddRemovable,
                                                                  HasDetailViewer, ItemListener
@@ -297,6 +336,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     DecNumber effectFlag = (DecNumber)getAttribute("Effect flag");
@@ -319,6 +359,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -329,6 +370,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     return new Viewer(this);
@@ -339,6 +381,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -346,6 +389,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateOffsets(datatype, datatype.getSize());
@@ -353,6 +397,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       updateMemorizedSpells();
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets(datatype, datatype.getSize());
@@ -361,6 +406,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     super.datatypeAddedInChild(child, datatype);
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateOffsets(datatype, -datatype.getSize());
@@ -368,6 +414,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       updateMemorizedSpells();
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets(datatype, -datatype.getSize());
@@ -376,6 +423,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     super.datatypeRemovedInChild(child, datatype);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     setExtraOffset(getExtraOffset() + offset);
@@ -1457,6 +1505,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected void viewerInitialized(StructViewer viewer)
   {
     if (isChr) {
@@ -1491,6 +1540,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 //--------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bExport) {

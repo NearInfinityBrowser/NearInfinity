@@ -4,8 +4,11 @@
 
 package infinity.resource.other;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.EffectType;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Effect2;
+import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 
 public final class EffResource extends AbstractStruct implements Resource
@@ -15,6 +18,7 @@ public final class EffResource extends AbstractStruct implements Resource
     super(entry);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));

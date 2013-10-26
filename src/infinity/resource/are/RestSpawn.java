@@ -4,16 +4,22 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.SpawnResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
-final class RestSpawn extends AbstractStruct // implements AddRemovable
+public final class RestSpawn extends AbstractStruct // implements AddRemovable
 {
   RestSpawn(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
     super(superStruct, "Rest encounters", buffer, offset);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

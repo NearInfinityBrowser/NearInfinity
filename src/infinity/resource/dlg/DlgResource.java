@@ -4,13 +4,22 @@
 
 package infinity.resource.dlg;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Flag;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasDetailViewer;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import javax.swing.JComponent;
 
 public final class DlgResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
 {
@@ -27,6 +36,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new State(), new Transition(), new StateTrigger(),
@@ -38,6 +48,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
+  @Override
   public JComponent getDetailViewer()
   {
     if (detailViewer == null)
@@ -50,6 +61,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     offsetState.setValue(0x30);
@@ -76,6 +88,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
