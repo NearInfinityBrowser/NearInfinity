@@ -29,6 +29,7 @@ import infinity.resource.nwn.gff.field.GffWord;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 import infinity.util.StringResource;
+import infinity.util.FileCI;
 
 import java.io.File;
 import java.io.IOException;

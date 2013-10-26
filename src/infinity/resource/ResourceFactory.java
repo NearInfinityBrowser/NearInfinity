@@ -65,6 +65,9 @@ import infinity.util.Decryptor;
 import infinity.util.IdsMapCache;
 import infinity.util.NIFile;
 import infinity.util.StringResource;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
+import infinity.util.FileReaderCI;
 
 import java.awt.Component;
 import java.io.BufferedOutputStream;

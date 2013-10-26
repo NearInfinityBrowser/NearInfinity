@@ -8,6 +8,8 @@ import infinity.NearInfinity;
 import infinity.gui.WindowBlocker;
 import infinity.util.DynamicArray;
 import infinity.util.Filereader;
+import infinity.util.FileInputStreamCI;
+import infinity.util.RandomAccessFileCI;
 
 import java.io.BufferedInputStream;
 import java.io.File;

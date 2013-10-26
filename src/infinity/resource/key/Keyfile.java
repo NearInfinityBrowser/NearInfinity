@@ -10,6 +10,9 @@ import infinity.util.DynamicArray;
 import infinity.util.Filereader;
 import infinity.util.Filewriter;
 import infinity.util.IntegerHashMap;
+import infinity.util.FileCI;
+import infinity.util.FileInputStreamCI;
+import infinity.util.FileOutputStreamCI;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

@@ -11,6 +11,7 @@ import infinity.util.DynamicArray;
 import infinity.util.Filereader;
 import infinity.util.Filewriter;
 import infinity.util.NIFile;
+import infinity.util.FileInputStreamCI;
 
 import java.io.BufferedInputStream;
 import java.io.File;

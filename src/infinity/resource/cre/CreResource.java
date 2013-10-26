@@ -38,6 +38,8 @@ import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;

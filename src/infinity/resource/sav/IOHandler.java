@@ -13,6 +13,8 @@ import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 import infinity.util.NIFile;
+import infinity.util.FileCI;
+import infinity.util.FileOutputStreamCI;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
