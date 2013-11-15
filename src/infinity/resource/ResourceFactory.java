@@ -257,7 +257,9 @@ public final class ResourceFactory
                  entry.getExtension().equalsIgnoreCase("TXT") ||
                  (entry.getExtension().equalsIgnoreCase("SRC") && getGameID() == ID_ICEWIND2) ||
                  entry.getExtension().equalsIgnoreCase("SQL") ||
-                 entry.getExtension().equalsIgnoreCase("GUI"))
+                 entry.getExtension().equalsIgnoreCase("GUI") ||
+                 (entry.getExtension().equalsIgnoreCase("GLSL") && (getGameID() == ID_BGEE ||
+                                                                    getGameID() == ID_BG2EE)))
           res = new PlainTextResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MVE"))
           res = new MveResource2(entry);
