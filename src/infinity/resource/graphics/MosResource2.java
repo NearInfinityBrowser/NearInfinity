@@ -247,7 +247,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
       } else {
         if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
             ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
+            ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+            ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
           miExportMOSC = new JMenuItem("compressed");
           miExportMOSC.addActionListener(this);
         }

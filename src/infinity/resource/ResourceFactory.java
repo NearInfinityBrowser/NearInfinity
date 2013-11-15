@@ -88,7 +88,7 @@ public final class ResourceFactory
   public static final int ID_UNKNOWNGAME = 0, ID_BG1 = 1, ID_BG1TOTSC = 2, ID_TORMENT = 3, ID_ICEWIND = 4;
   public static final int ID_ICEWINDHOW = 5, ID_ICEWINDHOWTOT = 6, ID_BG2 = 7, ID_BG2TOB = 8, ID_NWN = 9;
   public static final int ID_ICEWIND2 = 10, ID_KOTOR = 11, ID_TUTU = 12, ID_DEMO = 13, ID_KOTOR2 = 14;
-  public static final int ID_BGEE = 15;
+  public static final int ID_BGEE = 15, ID_BG2EE = 16;
   private static File rootDir, langRoot, userRoot;
   private static File[] rootDirs;
   private static final GameConfig[] games;
@@ -109,7 +109,7 @@ public final class ResourceFactory
     String bgeeDirs[] = {"Characters", "Movies", "MPsave", "Music", "Portraits", "Save", "Sounds",
                          "ScrnShot", "Scripts", "Temp", "TempSave"};
 
-    games = new GameConfig[16];
+    games = new GameConfig[17];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
     games[ID_BG1] = new GameConfig("Baldur's Gate", "baldur.ini", bgdirs);
     games[ID_BG1TOTSC] = new GameConfig("Baldur's Gate - Tales of the Sword Coast", "baldur.ini", bgdirs);
@@ -135,6 +135,7 @@ public final class ResourceFactory
                                      new String[]{"Lips", "Modules", "Rims", "Saves", "StreamMusic",
                                      "StreamSounds", "TexturePacks"});
     games[ID_BGEE] = new GameConfig("Baldur's Gate - Enhanced Edition", "baldur.ini", bgeeDirs);
+    games[ID_BG2EE] = new GameConfig("Baldur's Gate II - Enhanced Edition", "baldur.ini", bgeeDirs);
   }
 
   public static int getGameID()
@@ -310,9 +311,11 @@ public final class ResourceFactory
           res = new TohResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("TOT"))
           res = new TotResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("PVRZ") && getGameID() == ID_BGEE)
+        else if (entry.getExtension().equalsIgnoreCase("PVRZ") && (getGameID() == ID_BGEE ||
+                                                                   getGameID() == ID_BG2EE))
           res = new PvrzResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("FNT") && getGameID() == ID_BGEE)
+        else if (entry.getExtension().equalsIgnoreCase("FNT") && (getGameID() == ID_BGEE ||
+                                                                  getGameID() == ID_BG2EE))
           res = new FntResource(entry);
         else
           res = new UnknownResource(entry);
@@ -336,9 +339,9 @@ public final class ResourceFactory
    */
   public static File getUserRoot(int gameID)
   {
-    if (gameID == ID_BGEE) {
+    if (gameID == ID_BGEE || gameID == ID_BG2EE) {
       final String BGEE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
-      final String BGEE_DIR = "Baldur's Gate - Enhanced Edition";
+      final String BGEE_DIR = games[gameID].name;   //"Baldur's Gate - Enhanced Edition";
       File userDir = new File(BGEE_DOC_ROOT, BGEE_DIR);
       if (!userDir.exists()) {
         return userDir;
@@ -419,8 +422,10 @@ public final class ResourceFactory
     else if (new File(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
              (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "Config.exe").exists()))
       currentGame = ID_BG1;
-    else if (new File(rootDir, "movies/DEATHAND.wbm").exists())
+    else if (new File(rootDir, "movies/bgenter.wbm").exists())
       currentGame = ID_BGEE;
+    else if (new File(rootDir, "movies/pocketzz.wbm").exists())
+      currentGame = ID_BG2EE;
 
     // Considering three different sources of resource files
     // Note: The order of the root directories is important. NIFile will take the first one available.
@@ -475,7 +480,7 @@ public final class ResourceFactory
   private void fetchBIFFDirs()
   {
     // fetching the CD folders in a game installation
-    if (currentGame != ID_BGEE && games[currentGame].inifile != null) {
+    if (currentGame != ID_BGEE && currentGame != ID_BG2EE && games[currentGame].inifile != null) {
       File iniFile = NIFile.getFile(rootDirs, games[currentGame].inifile);
       List<File> dirList = new ArrayList<File>();
       try {
@@ -524,7 +529,7 @@ public final class ResourceFactory
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
 
-    if (currentGame == ID_BGEE) {
+    if (currentGame == ID_BGEE || currentGame == ID_BG2EE) {
       String iniFileName = games[currentGame].inifile;
       if (iniFileName == null || iniFileName.isEmpty())
         iniFileName = "baldur.ini";

@@ -80,7 +80,8 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
+        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
       list.add(new Bitmap(buffer, offset, 1, "Type", s_type));
       list.add(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
       list.add(new Bitmap(buffer, offset + 2, 1, "Ability location", s_abilityuse));

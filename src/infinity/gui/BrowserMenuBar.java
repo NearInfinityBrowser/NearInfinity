@@ -601,7 +601,7 @@ public final class BrowserMenuBar extends JMenuBar
                                  ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
                                  ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2,
                                  ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                                 ResourceFactory.ID_BGEE});
+                                 ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE});
       }
 
       public ResInfo(StructureFactory.ResType id, String text, int[] games) {
@@ -624,18 +624,18 @@ public final class BrowserMenuBar extends JMenuBar
       new ResInfo(StructureFactory.ResType.RES_BCS, "BCS"),
       new ResInfo(StructureFactory.ResType.RES_BIO, "BIO",
                   new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE}),
+                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE}),
       new ResInfo(StructureFactory.ResType.RES_CHR, "CHR",
                   new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
                             ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
                             ResourceFactory.ID_ICEWIND,
                             ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT,
-                            ResourceFactory.ID_ICEWIND2, ResourceFactory.ID_BGEE}),
+                            ResourceFactory.ID_ICEWIND2, ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE}),
       new ResInfo(StructureFactory.ResType.RES_CRE, "CRE"),
       new ResInfo(StructureFactory.ResType.RES_EFF, "EFF",
                   new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
                             ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE}),
+                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE}),
       new ResInfo(StructureFactory.ResType.RES_IDS, "IDS"),
       new ResInfo(StructureFactory.ResType.RES_ITM, "ITM"),
       new ResInfo(StructureFactory.ResType.RES_INI, "INI",
@@ -644,7 +644,7 @@ public final class BrowserMenuBar extends JMenuBar
                             ResourceFactory.ID_ICEWIND2}),
       new ResInfo(StructureFactory.ResType.RES_PRO, "PRO",
                   new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE}),
+                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE}),
       new ResInfo(StructureFactory.ResType.RES_RES, "RES",
                   new int[]{ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
                             ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2}),
@@ -654,14 +654,14 @@ public final class BrowserMenuBar extends JMenuBar
       new ResInfo(StructureFactory.ResType.RES_STO, "STO"),
       new ResInfo(StructureFactory.ResType.RES_VEF, "VEF",
                   new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE}),
+                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE}),
       new ResInfo(StructureFactory.ResType.RES_VVC, "VVC",
                   new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE}),
+                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE}),
       new ResInfo(StructureFactory.ResType.RES_WED, "WED"),
       new ResInfo(StructureFactory.ResType.RES_WFX, "WFX",
                   new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE}),
+                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE}),
       new ResInfo(StructureFactory.ResType.RES_WMAP, "WMAP"),
     };
 
