@@ -323,10 +323,16 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, 76, 4, "Weight"));
     list.add(new StringRef(buffer, 80, "General description"));
     list.add(new StringRef(buffer, 84, "Identified description"));
-    if (version.toString().equalsIgnoreCase("V1.1"))
+    if (version.toString().equalsIgnoreCase("V1.1")) {
       list.add(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
-    else
-      list.add(new ResourceRef(buffer, 88, "Description image", "BAM"));
+    } else {
+      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+        list.add(new ResourceRef(buffer, 88, "Description image", new String[]{"BAM", "BMP"}));
+      } else {
+        list.add(new ResourceRef(buffer, 88, "Description image", "BAM"));
+      }
+    }
     list.add(new DecNumber(buffer, 96, 4, "Enchantment"));
     SectionOffset abil_offset = new SectionOffset(buffer, 100, "Abilities offset",
                                                   Ability.class);
