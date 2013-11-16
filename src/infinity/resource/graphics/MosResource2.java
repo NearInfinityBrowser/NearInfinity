@@ -50,7 +50,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
   private final ResourceEntry entry;
   private MosDecoder.MosInfo.MosType mosType;
   private ButtonPopupMenu bpmExport;
-  private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportBMP;
+  private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportPNG;
   private JButton bFind;
 //  private JLabel lImage;
   private RenderCanvas rcImage;
@@ -126,12 +126,12 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
           }
         }
       }
-    } else if (event.getSource() == miExportBMP) {
+    } else if (event.getSource() == miExportPNG) {
       try {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        String fileName = entry.toString().replace(".MOS", ".BMP");
+        String fileName = entry.toString().replace(".MOS", ".PNG");
         BufferedImage image = getImage();
-        if (ImageIO.write(image, "bmp", os)) {
+        if (ImageIO.write(image, "png", os)) {
           ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
                                                        fileName, panel.getTopLevelAncestor());
         } else {
@@ -233,8 +233,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
-    miExportBMP = new JMenuItem("as BMP");
-    miExportBMP.addActionListener(this);
+    miExportPNG = new JMenuItem("as PNG");
+    miExportPNG.addActionListener(this);
     if (mosType == MosDecoder.MosInfo.MosType.PVRZ) {
       miExportMOSV1 = new JMenuItem("as MOS V1 (uncompressed)");
       miExportMOSV1.addActionListener(this);
@@ -261,8 +261,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
       list.add(miExportMOSV1);
     if (miExportMOSC != null)
       list.add(miExportMOSC);
-    if (miExportBMP != null)
-      list.add(miExportBMP);
+    if (miExportPNG != null)
+      list.add(miExportPNG);
     JMenuItem[] mi = new JMenuItem[list.size()];
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
@@ -319,7 +319,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
         compressed = decoder.info().isCompressed();
         mosType = decoder.info().type();
         image = ColorConvert.createCompatibleImage(decoder.info().width(),
-                                                   decoder.info().height(), false);
+                                                   decoder.info().height(), true);
         if (!decoder.decode(image)) {
           image = null;
         }

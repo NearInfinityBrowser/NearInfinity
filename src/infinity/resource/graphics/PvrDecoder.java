@@ -4,20 +4,20 @@
 
 package infinity.resource.graphics;
 
+import infinity.resource.graphics.PvrDecoder.PVRInfo.PixelFormat;
 import infinity.util.DynamicArray;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.EnumSet;
 
 /**
- * Decodes a PVR file. (Note: Only DXT1 compression supported)
+ * Decodes a PVR file. (Note: Only a few selected pixel formats are supported.)
  * @author argent77
  */
 public class PvrDecoder
 {
-  private static final String NOT_INITIALIZED = "Not initialized";
-
   private PVRInfo info;
   private DynamicArray inBuffer;
 
@@ -88,7 +88,7 @@ public class PvrDecoder
   {
     if (!empty()) {
       final BufferedImage image = ColorConvert.createCompatibleImage(info().width(),
-                                                                     info().height(), false);
+                                                                     info().height(), true);
       if (decode(image)) {
         return image;
       }
@@ -125,7 +125,7 @@ public class PvrDecoder
   {
     if (!empty()) {
       if (width > 0 && height > 0) {
-        BufferedImage image = ColorConvert.createCompatibleImage(width, height, false);
+        BufferedImage image = ColorConvert.createCompatibleImage(width, height, true);
         if (decode(image, x, y, width, height)) {
           return image;
         }
@@ -151,12 +151,12 @@ public class PvrDecoder
       if (x < 0 || y < 0 || width < 1 || height < 1 ||
           x + width > info().width() || (y + height > info().height()))
         throw new Exception("Invalid dimensions specified");
-      if (info().pixelFormat() != PVRInfo.PixelFormat.DXT1)
-        throw new Exception("Pixel compression format not supported");
+      if (!info().isSupported())
+        throw new Exception("Pixel format '" + info().pixelFormat().toString() + "' not supported");
       if (info().channelType() != PVRInfo.ChannelType.UBYTE_NORM)
         throw new Exception("Channel type not supported");
 
-      return decodeDXT1(image, x, y, width, height);
+      return decodeBlock(image, x, y, width, height);
     }
     return false;
   }
@@ -183,9 +183,10 @@ public class PvrDecoder
     inBuffer = DynamicArray.wrap(buffer, ofs, DynamicArray.ElementType.BYTE);
 
     info = new PVRInfo(inBuffer);
-    if (info.pixelFormat != PVRInfo.PixelFormat.DXT1) {
+    if (!info().isSupported()) {
+      String pf = info().pixelFormat.toString();
       info = null;
-      throw new Exception("Only DXT1 pixel format supported");
+      throw new Exception("Pixel format '" + pf + "' not supported");
     }
     if (buffer.length - ofs < info().headerSize() + info().dataSize()) {
       info = null;
@@ -213,7 +214,7 @@ public class PvrDecoder
    * @param height height of the pixel block
    * @return true if successful, false otherwise
    */
-  private boolean decodeDXT1(BufferedImage image, int left, int top, int width, int height) throws Exception
+  private boolean decodeBlock(BufferedImage image, int left, int top, int width, int height) throws Exception
   {
     if (!empty()) {
       if (image == null)
@@ -239,11 +240,31 @@ public class PvrDecoder
       int inBlocksX = info().width() >>> 2;
       int alignedBlocksX = alignedWidth >>> 2;
       int alignedBlocksY = alignedHeight >>> 2;
+      final PixelFormat pf = info().pixelFormat();
+      int bytesPerBlock = (pf == PixelFormat.DXT1) ? 8 : 16;
+      boolean preAlpha = (pf == PixelFormat.DXT2 || pf == PixelFormat.DXT4 ||
+                          info().flags() == PVRInfo.Flags.PRE_MULTIPLIED);
       for (int y = 0; y < alignedBlocksY; y++) {
-        int inOfs = (((alignedTop >>> 2) + y) * inBlocksX + (alignedLeft >>> 2)) << 3;
-        for (int x = 0; x < alignedBlocksX; x++, inOfs+=8) {
-          decodeDXT1Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
-                          (x << 2) - ofsX, (y << 2) - ofsY);
+        int inOfs = (((alignedTop >>> 2) + y) * inBlocksX + (alignedLeft >>> 2)) * bytesPerBlock;
+        for (int x = 0; x < alignedBlocksX; x++, inOfs+=bytesPerBlock) {
+          switch (pf) {
+            case DXT1:
+              decodeDXT1Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
+                              (x << 2) - ofsX, (y << 2) - ofsY);
+              break;
+            case DXT2:
+            case DXT3:
+              decodeDXT23Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
+                               (x << 2) - ofsX, (y << 2) - ofsY, preAlpha);
+              break;
+            case DXT4:
+            case DXT5:
+              decodeDXT45Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
+                               (x << 2) - ofsX, (y << 2) - ofsY, preAlpha);
+              break;
+            default:
+              break;
+          }
         }
       }
       return true;
@@ -251,13 +272,7 @@ public class PvrDecoder
     return false;
   }
 
-  /**
-   * Decodes a single logical DXT1 data block.
-   * @param inBuffer The buffer containing the encoded DXT1 data (8 bytes required).
-   * @param ofs Start start offset into the input buffer
-   * @return The decoded pixel data as a 4x4 32-bit color data block.
-   */
-//  private boolean decodeDXT1Block(DynamicArray buffer, BufferedImage image)
+  // Decodes a single logical DXT1 data block.
   private boolean decodeDXT1Block(DynamicArray buffer, BufferedImage image, int startX, int startY)
   {
     if (buffer == null || image == null)
@@ -328,6 +343,205 @@ public class PvrDecoder
     return true;
   }
 
+  //Decodes a single logical DXT2 or DXT3 data block.
+  private boolean decodeDXT23Block(DynamicArray buffer, BufferedImage image, int startX, int startY,
+                                   boolean preAlpha)
+  {
+    if (buffer == null || image == null)
+      throw new NullPointerException();
+    if (buffer.getArray().length - buffer.getBaseOffset() < 16)
+      return false;
+    if (startX >= image.getWidth() || startY >= image.getHeight())
+      return true;
+
+    int imgWidth = image.getWidth();
+    int imgHeight = image.getHeight();
+
+    // loading 4-bit alpha values
+    long tmp = buffer.getLong(0); buffer.addToBaseOffset(8);
+    int[] alpha = new int[16];
+    for (int i = 0; i < 16; i++) {
+      alpha[i] = (int)((tmp >>> (i * 4)) & 0x0f);
+    }
+    // loading reference color values
+    int c0 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
+    int c1 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
+    // loading color codes
+    int code = buffer.getInt(0);
+
+    int v, col = 0;
+    for (int i = 0; i < 16; i++, code>>>=2) {
+      int x = startX + (i & 3);
+      int y = startY + (i >>> 2);
+      if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
+        int a = alpha[i];
+        switch (code & 3) {
+          case 0:
+            // 100% c0, 0% c1
+//            col = ((c0 & 0xf800) << 8) | ((c0 & 0x7e0) << 5) | ((c0 & 0x1f) << 3);
+            v = (c0 & 0xf800) >>> 8;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = v << 16;
+            v = (c0 & 0x7e0) >>> 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v << 8;
+            v = (c0 & 0x1f) << 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v;
+            break;
+          case 1:
+            // 0% c0, 100% c1
+//            col = ((c1 & 0xf800) << 8) | ((c1 & 0x7e0) << 5) | ((c1 & 0x1f) << 3);
+            v = (c1 & 0xf800) >>> 8;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = v << 16;
+            v = (c1 & 0x7e0) >>> 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v << 8;
+            v = (c1 & 0x1f) << 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v;
+            break;
+          case 2:
+            // 66% c0, 33% c1
+            v = (((c0 >>> 7) & 0x1f0) + ((c1 >>> 8) & 0xf8)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = ((v > 255) ? 255 : v) << 16;
+            v = (((c0 >>> 2) & 0x1f8) + ((c1 >>> 3) & 0xfc)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v) << 8;
+            v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v);
+            break;
+          case 3:
+            // 33% c0, 66% c1
+            v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 7) & 0x1f0)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = ((v > 255) ? 255 : v) << 16;
+            v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 2) & 0x1f8)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v) << 8;
+            v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v);
+            break;
+        }
+        image.setRGB(x, y, col | (a << 24));
+      }
+    }
+    return true;
+  }
+
+  // Decodes a single logical DXT4 or DXT5 data block.
+  private boolean decodeDXT45Block(DynamicArray buffer, BufferedImage image, int startX, int startY,
+                                   boolean preAlpha)
+  {
+    if (buffer == null || image == null)
+      throw new NullPointerException();
+    if (buffer.getArray().length - buffer.getBaseOffset() < 16)
+      return false;
+    if (startX >= image.getWidth() || startY >= image.getHeight())
+      return true;
+
+    int imgWidth = image.getWidth();
+    int imgHeight = image.getHeight();
+
+    // generating alpha table
+    int[] alpha = new int[8];
+    alpha[0] = buffer.getUnsignedByte(0); buffer.addToBaseOffset(1);
+    alpha[1] = buffer.getUnsignedByte(0); buffer.addToBaseOffset(1);
+    if (alpha[0] > alpha[1]) {
+      alpha[2] = (6 * alpha[0] + 1 * alpha[1]) / 7;
+      alpha[3] = (5 * alpha[0] + 2 * alpha[1]) / 7;
+      alpha[4] = (4 * alpha[0] + 3 * alpha[1]) / 7;
+      alpha[5] = (3 * alpha[0] + 4 * alpha[1]) / 7;
+      alpha[6] = (2 * alpha[0] + 5 * alpha[1]) / 7;
+      alpha[7] = (1 * alpha[0] + 6 * alpha[1]) / 7;
+    } else {
+      alpha[2] = (4 * alpha[0] + 1 * alpha[1]) / 5;
+      alpha[3] = (3 * alpha[0] + 2 * alpha[1]) / 5;
+      alpha[4] = (2 * alpha[0] + 3 * alpha[1]) / 5;
+      alpha[5] = (1 * alpha[0] + 4 * alpha[1]) / 5;
+      alpha[6] = 0;
+      alpha[7] = 255;
+    }
+    // loading alpha table indices
+    long tmp = buffer.getLong(0) & 0xffffffffffffL; buffer.addToBaseOffset(6);
+    int[] tableIdx = new int[16];
+    for (int i = 0; i < 16; i++) {
+      tableIdx[i] = (int)((tmp >>> (i*3)) & 7);
+    }
+    // loading reference color values
+    int c0 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
+    int c1 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
+    // loading color codes
+    int code = buffer.getInt(0);
+
+    int v, col = 0;
+    for (int i = 0; i < 16; i++, code>>>=2) {
+      int x = startX + (i & 3);
+      int y = startY + (i >>> 2);
+      if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
+        int a = alpha[tableIdx[i]];
+        switch (code & 3) {
+          case 0:
+            // 100% c0, 0% c1
+//            col = ((c0 & 0xf800) << 8) | ((c0 & 0x7e0) << 5) | ((c0 & 0x1f) << 3);
+            v = (c0 & 0xf800) >>> 8;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = v << 16;
+            v = (c0 & 0x7e0) >>> 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v << 8;
+            v = (c0 & 0x1f) << 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v;
+            break;
+          case 1:
+            // 0% c0, 100% c1
+//            col = ((c1 & 0xf800) << 8) | ((c1 & 0x7e0) << 5) | ((c1 & 0x1f) << 3);
+            v = (c1 & 0xf800) >>> 8;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = v << 16;
+            v = (c1 & 0x7e0) >>> 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v << 8;
+            v = (c1 & 0x1f) << 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= v;
+            break;
+          case 2:
+            // 66% c0, 33% c1
+            v = (((c0 >>> 7) & 0x1f0) + ((c1 >>> 8) & 0xf8)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = ((v > 255) ? 255 : v) << 16;
+            v = (((c0 >>> 2) & 0x1f8) + ((c1 >>> 3) & 0xfc)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v) << 8;
+            v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v);
+            break;
+          case 3:
+            // 33% c0, 66% c1
+            v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 7) & 0x1f0)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = ((v > 255) ? 255 : v) << 16;
+            v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 2) & 0x1f8)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v) << 8;
+            v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
+            if (preAlpha && a > 0) v = (v << 8) / a;
+            col |= ((v > 255) ? 255 : v);
+            break;
+        }
+        image.setRGB(x, y, col | (a << 24));
+      }
+    }
+    return true;
+  }
+
 
   // ----------------------------- INNER CLASSES -----------------------------
 
@@ -372,6 +586,10 @@ public class PvrDecoder
       FLOAT
     }
 
+    // Supported pixel formats
+    private static final EnumSet<PixelFormat> SupportedFormat =
+        EnumSet.of(PixelFormat.DXT1, PixelFormat.DXT2, PixelFormat.DXT3, PixelFormat.DXT4, PixelFormat.DXT5);
+
     private int signature;
     private Flags flags;
     private PixelFormat pixelFormat;
@@ -404,12 +622,12 @@ public class PvrDecoder
      * Returns flags that indicate special properties of the color data.
      * @return Flags as enum.
      */
-    public Flags flags() throws Exception
+    public Flags flags()
     {
       if (!empty())
         return flags;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return null;
     }
 
     /**
@@ -418,12 +636,12 @@ public class PvrDecoder
      * @return Pixel format as enum.
      * @see pixelFormatEx
      */
-    public PixelFormat pixelFormat() throws Exception
+    public PixelFormat pixelFormat()
     {
       if (!empty())
         return pixelFormat;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return null;
     }
 
     /**
@@ -431,158 +649,170 @@ public class PvrDecoder
      * @return A custom pixel format, not covered pixelFormat().
      * @see pixelFormat
      */
-    public byte[] pixelFormatEx() throws Exception
+    public byte[] pixelFormatEx()
     {
       if (!empty())
         return pixelFormatEx;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return null;
     }
 
     /**
      * Returns the color space the image data is in.
      * @return Color space as enum.
      */
-    public ColorSpace colorSpace() throws Exception
+    public ColorSpace colorSpace()
     {
       if (!empty())
         return colorSpace;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return null;
     }
 
     /**
      * Returns the data type used to encode the image data within the PVR file.
      * @return Data type as enum.
      */
-    public ChannelType channelType() throws Exception
+    public ChannelType channelType()
     {
       if (!empty())
         return channelType;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return null;
     }
 
     /**
      * Returns width in pixels of the stored image.
      * @return Width in pixels.
      */
-    public int width() throws Exception
+    public int width()
     {
       if (!empty())
         return width;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns height in pixel of the stored image.
      * @return Height in pixels.
      */
-    public int height() throws Exception
+    public int height()
     {
       if (!empty())
         return height;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns the color depth of the pixel type used to encode the color data in bits/pixel.
      * @return Color depth of the input data in bits/pixel.
      */
-    public int bpp() throws Exception
+    public int bpp()
     {
       if (!empty())
         return colorDepth;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns the depth of the texture stored in the image data, in pixels.
      * @return Texture depth in pixels, stored in the image data.
      */
-    public int textureDepth() throws Exception
+    public int textureDepth()
     {
       if (!empty())
         return textureDepth;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns the number of surfaces within the texture array.
      * @return Number of surfaces.
      */
-    public int surfaceCount() throws Exception
+    public int surfaceCount()
     {
       if (!empty())
         return numSurfaces;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns the number of faces in a cube map.
      * @return Number of faces.
      */
-    public int faceCount() throws Exception
+    public int faceCount()
     {
       if (!empty())
         return numFaces;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns the number of MIP-Map levels present including the top level. ()
      * @return
      */
-    public int mipMapCount() throws Exception
+    public int mipMapCount()
     {
       if (!empty())
         return numMipMaps;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns the total size of meta data embedded in the PVR header.
      * @return Size in bytes.
      */
-    public int metaSize() throws Exception
+    public int metaSize()
     {
       if (!empty())
         return metaSize;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
     /**
      * Returns the content of the meta data, embedded in the PVR header. Can be empty (size = 0).
      * @return Byte array containing meta data.
      */
-    public byte[] metaData() throws Exception
+    public byte[] metaData()
     {
       if (!empty())
         return metaData;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return null;
     }
 
     /**
      * Returns the average number of bits used for each encoded pixel.
      * @return Bits per pixel.
      */
-    public int bitsPerPixel() throws Exception
+    public int bitsPerPixel()
     {
       if (!empty())
         return bitsPerInputPixel;
       else
-        throw new Exception(NOT_INITIALIZED);
+        return 0;
     }
 
+    /**
+     * Returns whether the pixel format is supported by the PvrDecoder class.
+     * @return
+     */
+    public boolean isSupported()
+    {
+      try {
+        return SupportedFormat.contains(pixelFormat());
+      } catch (Exception e) {
+      }
+      return false;
+    }
 
     private void init(DynamicArray buffer) throws Exception
     {

@@ -35,7 +35,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 {
   private final ResourceEntry entry;
   private ButtonPopupMenu mnuExport;
-  private JMenuItem miExport, miBMP;
+  private JMenuItem miExport, miPNG;
   private RenderCanvas rcImage;
   private JPanel panel;
 
@@ -52,12 +52,12 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     if (event.getSource() == miExport) {
       // export as original PVRZ
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
-    } else if (event.getSource() == miBMP) {
+    } else if (event.getSource() == miPNG) {
       try {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        String fileName = entry.toString().replace(".PVRZ", ".BMP");
+        String fileName = entry.toString().replace(".PVRZ", ".PNG");
         BufferedImage image = getImage();
-        if (ImageIO.write(image, "bmp", os)) {
+        if (ImageIO.write(image, "png", os)) {
           ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
                                                        fileName, panel.getTopLevelAncestor());
         } else {
@@ -105,9 +105,9 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   {
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
-    miBMP = new JMenuItem("as BMP");
-    miBMP.addActionListener(this);
-    mnuExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miBMP});
+    miPNG = new JMenuItem("as PNG");
+    miPNG.addActionListener(this);
+    mnuExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miPNG});
     mnuExport.setIcon(Icons.getIcon("Export16.gif"));
     mnuExport.setMnemonic('e');
     rcImage = new RenderCanvas();
@@ -164,7 +164,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
 
         decoder = new PvrDecoder(data);
         image = ColorConvert.createCompatibleImage(decoder.info().width(),
-                                                   decoder.info().height(), false);
+                                                   decoder.info().height(), true);
         if (!decoder.decode(image)) {
           image = null;
         }

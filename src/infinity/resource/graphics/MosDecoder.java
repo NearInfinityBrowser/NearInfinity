@@ -120,7 +120,7 @@ public class MosDecoder
   public BufferedImage decoder() throws Exception
   {
     if (!empty()) {
-      BufferedImage image = ColorConvert.createCompatibleImage(info().width(), info().height(), false);
+      BufferedImage image = ColorConvert.createCompatibleImage(info().width(), info().height(), true);
       if (decode(image)) {
         return image;
       } else {
@@ -167,7 +167,7 @@ public class MosDecoder
       if (blockIndex >= 0 && blockIndex < info.tiles.size()) {
         BlockInfo bi = info.tiles.get(blockIndex);
         if (bi != null) {
-          BufferedImage image = ColorConvert.createCompatibleImage(bi.width, bi.height, false);
+          BufferedImage image = ColorConvert.createCompatibleImage(bi.width, bi.height, true);
           if (decodeBlock(image, blockIndex)) {
             return image;
           } else {
