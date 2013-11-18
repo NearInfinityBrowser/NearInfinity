@@ -291,7 +291,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
 
     panel = new JPanel(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
-    panel.add(buttonPanel, BorderLayout.PAGE_END);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
     return panel;

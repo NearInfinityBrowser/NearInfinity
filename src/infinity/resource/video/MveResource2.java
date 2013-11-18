@@ -243,7 +243,7 @@ public class MveResource2 implements Resource, ActionListener, ChangeListener, C
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
-    panel.add(buttonPanel, BorderLayout.PAGE_END);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
 
     return panel;
   }

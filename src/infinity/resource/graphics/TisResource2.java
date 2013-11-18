@@ -367,9 +367,9 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
     // 4. packing all together
     panel = new JPanel(new BorderLayout());
-    panel.add(topPanel, BorderLayout.PAGE_START);
+    panel.add(topPanel, BorderLayout.NORTH);
     panel.add(centerPanel, BorderLayout.CENTER);
-    panel.add(bottomPanel, BorderLayout.PAGE_END);
+    panel.add(bottomPanel, BorderLayout.SOUTH);
     centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
     return panel;
   }

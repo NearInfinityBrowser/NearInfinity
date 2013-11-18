@@ -51,7 +51,7 @@ final class Viewer extends JPanel implements ActionListener
     bView.setActionCommand(CMD_VIEWAREA);
     bView.addActionListener(this);
     bView.setEnabled(AreaViewer.IsValid(are));
-    fieldBasePanel.add(bView, BorderLayout.PAGE_END);
+    fieldBasePanel.add(bView, BorderLayout.SOUTH);
 
     return fieldBasePanel;
   }

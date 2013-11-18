@@ -13,6 +13,7 @@ import infinity.resource.TextResource;
 import infinity.resource.Viewable;
 import infinity.resource.ViewableContainer;
 import infinity.resource.graphics.BamResource;
+import infinity.resource.graphics.BamResource2;
 import infinity.resource.key.Keyfile;
 import infinity.resource.key.ResourceEntry;
 
@@ -31,7 +32,7 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
     super(viewable.getClass().getName(), true);
     setViewable(viewable);
     if (viewable instanceof AbstractStruct || viewable instanceof TextResource ||
-        viewable instanceof BamResource)
+        viewable instanceof BamResource || viewable instanceof BamResource2)
       setSize(NearInfinity.getInstance().getWidth() - 200, NearInfinity.getInstance().getHeight() - 45);
     else
       pack();

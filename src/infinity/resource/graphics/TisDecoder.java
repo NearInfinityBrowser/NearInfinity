@@ -338,7 +338,7 @@ public class TisDecoder
             byte[] data = entry.getResourceData();
             if (data != null) {
               int size = DynamicArray.getInt(data, 0);
-              int marker = DynamicArray.getShort(data, 4) & 0xffff;
+              int marker = DynamicArray.getUnsignedShort(data, 4);
               if ((size & 0xff) != 0x34 || marker != 0x9c78)
                 throw new Exception("Invalid PVRZ resource: " + entry.getResourceName());
               data = Compressor.decompress(data, 0);

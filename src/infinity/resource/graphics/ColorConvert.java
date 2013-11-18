@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,12 +34,24 @@ public class ColorConvert
    */
   public static BufferedImage createCompatibleImage(int width, int height, boolean hasTransparency)
   {
+    return createCompatibleImage(width, height,
+                                 hasTransparency ? Transparency.TRANSLUCENT : Transparency.OPAQUE);
+  }
+
+  /**
+   * Creates a BufferedImage object in the native color format for best possible performance.
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @param transparency The transparency type (either one of OPAQUE, BITMASK or TRANSLUCENT)
+   * @return A new BufferedImage object with the specified properties.
+   */
+  public static BufferedImage createCompatibleImage(int width, int height, int transparency)
+  {
     // obtain the current system's graphical settings
     final GraphicsConfiguration gfxConfig =
         GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
-    return gfxConfig.createCompatibleImage(width, height,
-                                           hasTransparency ? BufferedImage.TRANSLUCENT : BufferedImage.OPAQUE);
+    return gfxConfig.createCompatibleImage(width, height, transparency);
   }
 
   /**

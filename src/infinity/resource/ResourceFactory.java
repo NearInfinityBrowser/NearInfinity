@@ -19,6 +19,7 @@ import infinity.resource.cre.CreResource;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.gam.GamResource;
 import infinity.resource.graphics.BamResource;
+import infinity.resource.graphics.BamResource2;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource2;
 import infinity.resource.graphics.PltResource;
@@ -237,7 +238,7 @@ public final class ResourceFactory
       }
       else {
         if (entry.getExtension().equalsIgnoreCase("BAM"))
-          res = new BamResource(entry);
+          res = new BamResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("TIS"))
           res = new TisResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("BMP"))
