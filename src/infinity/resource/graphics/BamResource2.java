@@ -40,7 +40,7 @@ import javax.swing.Timer;
 
 public class BamResource2 implements Resource, ActionListener
 {
-  private static final int ANIM_DELAY = 1000 / 15;    // 15 fps in milliseconds
+  private static final int ANIM_DELAY = 1000 / 10;    // 10 fps in milliseconds
 
   private final ResourceEntry entry;
 
@@ -350,8 +350,6 @@ public class BamResource2 implements Resource, ActionListener
   {
     if (filePath == null)
       filePath = ".";
-    if (filePath.charAt(filePath.length() - 1) != File.separatorChar)
-      filePath = filePath + File.separator;
 
     int max = 0, counter = 0, failCounter = 0;
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());

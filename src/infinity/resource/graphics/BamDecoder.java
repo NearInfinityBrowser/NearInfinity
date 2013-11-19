@@ -144,7 +144,6 @@ public class BamDecoder
     private BamType type = null;
     private ArrayList<BamFrame> frames = null;
     private ArrayList<ArrayList<Integer>> cycles = null;
-    private int[] palette = null;
     private int curCycle = 0, curFrame = 0;
 
     public BamDataV1(ResourceEntry entry)
@@ -384,7 +383,7 @@ public class BamDecoder
         int numCycles = src.getUnsignedByte(0x0a);
         if (numCycles <= 0)
           throw new Exception("Invalid number of cycles: " + numCycles);
-        int transColor = src.getUnsignedByte(0x0b);
+        int compColor = src.getUnsignedByte(0x0b);    // specifies the compressed color index in compressed frames
         int ofsFrameEntries = src.getInt(0x0c);
         if (ofsFrameEntries < 0x18)
           throw new Exception(String.format("Invalid frame entries offset: 0x%1$x", ofsFrameEntries));
@@ -397,13 +396,18 @@ public class BamDecoder
           throw new Exception(String.format("Invalid frame lookup table offset: 0x%1$x", ofsLookupTable));
 
         // processing palette
-        palette = new int[256];
+        int[] palette = new int[256];
+        int transColor = 0;   // specifies the transparent color index
         src.setBaseOffset(ofsPalette);
         for (int i = 0; i < 256; i++) {
           int col = src.getInt(0); src.addToBaseOffset(4);
           col |= 0xff000000;
+          if (transColor == 0 && col == 0xff00ff00)
+            transColor = i;
           palette[i] = col;
         }
+        if (palette[transColor] == 0xff00ff00)
+          palette[transColor] &= 0x00ffffff;
 
         // processing frame entries
         frames = new ArrayList<BamDecoder.BamFrame>(numFrames);
@@ -416,8 +420,8 @@ public class BamDecoder
           int ofsData = src.getInt(0x08);
           boolean isCompressed = (ofsData & 0x80000000) == 0;
           ofsData &= 0x7fffffff;
-          frames.add(new BamFrame(decodeImage(src.asByteArray(ofsData), w, h, transColor, isCompressed),
-                                  w, h, cx, cy));
+          Image image = decodeImage(src.asByteArray(ofsData), w, h, palette, compColor, isCompressed);
+          frames.add(new BamFrame(image, w, h, cx, cy));
           src.addToBaseOffset(0x0c);
         }
 
@@ -466,17 +470,17 @@ public class BamDecoder
           cycles.clear();
           cycles = null;
         }
-        palette = null;
         curCycle = curFrame = 0;
         e.printStackTrace();
       }
     }
 
     // Decodes a frame
-    private Image decodeImage(DynamicArray buffer, int w, int h, int transColor, boolean isCompressed)
+    private Image decodeImage(DynamicArray buffer, int w, int h, int[] palette, int compColor,
+                              boolean isCompressed)
     {
       BufferedImage image = null;
-      if (w > 0 && h > 0) {
+      if (w > 0 && h > 0 && palette != null && palette.length >= 256) {
         image = ColorConvert.createCompatibleImage(w, h, Transparency.BITMASK);
         int[] dstData = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
 
@@ -485,25 +489,24 @@ public class BamDecoder
           int srcIdx = 0, dstIdx = 0, dstIdxMax = w*h;
           while (dstIdx < dstIdxMax) {
             int v = buffer.getUnsignedByte(srcIdx++);
-            if (v == transColor) {
+            int color = palette[v];
+            if (v == compColor) {
               int cnt = buffer.getUnsignedByte(srcIdx++) + 1;
               if (dstIdx + cnt > dstIdxMax)
                 cnt = dstIdxMax - dstIdx;
-              Arrays.fill(dstData, dstIdx, dstIdx + cnt, palette[v] & 0x00ffffff);
+              Arrays.fill(dstData, dstIdx, dstIdx + cnt, color);
               dstIdx += cnt;
             } else {
-              dstData[dstIdx++] = palette[v];
+              dstData[dstIdx++] = color;
             }
           }
         } else {
           // simply convert palette indices into color entries pixel by pixel
           byte[] srcData = buffer.get(0, w*h);
           for (int i = 0; i < w*h; i++) {
-            if ((srcData[i] & 0xff) == transColor && palette[transColor] == 0xff00ff00) {
-              dstData[i] = palette[srcData[i] & 0xff] & 0x00ffffff;
-            } else {
-              dstData[i] = palette[srcData[i] & 0xff];
-            }
+            int v = srcData[i] & 0xff;
+            int color = palette[v];
+            dstData[i] = color;
           }
         }
       }
