@@ -818,7 +818,7 @@ public class BamDecoder
     private PvrDecoder getPVR(int page) throws Exception
     {
       synchronized (pvrTable) {
-        if (pvrTable.contains(page))
+        if (pvrTable.containsKey(page))
           return pvrTable.get(page);
 
         String pvrzName = String.format("MOS%1$04d.PVRZ", page);

@@ -232,7 +232,7 @@ public class MosDecoder
     if (!empty()) {
       if (info().type() == MosInfo.MosType.PVRZ) {
         synchronized (pvrTable) {
-          if (pvrTable.contains(page))
+          if (pvrTable.containsKey(page))
             return pvrTable.get(page);
 
           String pvrzName = String.format("MOS%1$04d.PVRZ", page);

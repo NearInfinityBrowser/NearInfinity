@@ -171,7 +171,12 @@ public class BamResource2 implements Resource, ActionListener
     bFind.setMnemonic('f');
     bFind.addActionListener(this);
 
-    initDecoder();
+    WindowBlocker.blockWindow(true);
+    try {
+      initDecoder();
+    } catch (Throwable t) {
+    }
+    WindowBlocker.blockWindow(false);
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
