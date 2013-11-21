@@ -27,8 +27,10 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -37,10 +39,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class BamResource2 implements Resource, ActionListener
+public class BamResource2 implements Resource, ActionListener, ChangeListener
 {
   private static final int ANIM_DELAY = 1000 / 10;    // 10 fps in milliseconds
+
+  private static boolean ignoreTransparency = false;
 
   private final ResourceEntry entry;
 
@@ -50,6 +56,7 @@ public class BamResource2 implements Resource, ActionListener
   private JButton bFind, bPrevCycle, bNextCycle, bPrevFrame, bNextFrame;
   private JLabel lDisplay, lCycle, lFrame;
   private JToggleButton bPlay;
+  private JCheckBox cbTransparency;
   private JPanel panel;
   private int curCycle, curFrame;
   private Timer timer;
@@ -150,6 +157,27 @@ public class BamResource2 implements Resource, ActionListener
 
 //--------------------- End Interface ActionListener ---------------------
 
+//--------------------- Begin Interface ChangeListener ---------------------
+
+  @Override
+  public void stateChanged(ChangeEvent event)
+  {
+    if (event.getSource() == cbTransparency) {
+      ignoreTransparency = cbTransparency.isSelected();
+      if (decoder != null && decoder.data() != null && decoder.data().type() != BamDecoder.BamType.BAMV2) {
+        WindowBlocker.blockWindow(true);
+        try {
+          decoder = new BamDecoder(entry, ignoreTransparency);
+        } catch (Throwable t) {
+        }
+        WindowBlocker.blockWindow(false);
+        showFrame();
+      }
+    }
+  }
+
+//--------------------- End Interface ChangeListener ---------------------
+
 //--------------------- Begin Interface Resource ---------------------
 
   @Override
@@ -173,7 +201,7 @@ public class BamResource2 implements Resource, ActionListener
 
     WindowBlocker.blockWindow(true);
     try {
-      initDecoder();
+      initDecoder(ignoreTransparency);
     } catch (Throwable t) {
     }
     WindowBlocker.blockWindow(false);
@@ -233,6 +261,14 @@ public class BamResource2 implements Resource, ActionListener
     bNextFrame.setMargin(bPrevCycle.getMargin());
     bNextFrame.addActionListener(this);
 
+    cbTransparency = new JCheckBox("Ignore transparency", ignoreTransparency);
+    cbTransparency.setToolTipText("Only legacy BAM resources (BAM V1) are affected.");
+    cbTransparency.addChangeListener(this);
+    JPanel optionsPanel = new JPanel();
+    BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
+    optionsPanel.setLayout(bl);
+    optionsPanel.add(cbTransparency);
+
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
     buttonPanel.add(lCycle);
     buttonPanel.add(bPrevCycle);
@@ -243,6 +279,7 @@ public class BamResource2 implements Resource, ActionListener
     buttonPanel.add(bPlay);
     buttonPanel.add(bFind);
     buttonPanel.add(bpmExport);
+    buttonPanel.add(optionsPanel);
 
     panel = new JPanel(new BorderLayout());
     panel.add(lDisplay, BorderLayout.CENTER);
@@ -285,8 +322,13 @@ public class BamResource2 implements Resource, ActionListener
 
   private void initDecoder()
   {
+    initDecoder(false);
+  }
+
+  private void initDecoder(boolean ignoreTransparency)
+  {
     if (decoder == null && entry != null) {
-      decoder = new BamDecoder(entry);
+      decoder = new BamDecoder(entry, ignoreTransparency);
     }
   }
 

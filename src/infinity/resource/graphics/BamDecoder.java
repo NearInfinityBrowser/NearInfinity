@@ -63,7 +63,22 @@ public class BamDecoder
     return BamType.INVALID;
   }
 
+  /**
+   * Initializes a BAM resource. Transparency information will be used.
+   * @param entry The BAM resource
+   */
   public BamDecoder(ResourceEntry entry)
+  {
+    this(entry, false);
+  }
+
+  /**
+   * Initializes a BAM resource.
+   * @param entry The BAM resource
+   * @param ignoreTransparency If <code>true</code>, transparency information is ignored
+   *                           (affects BAM V1 resources only).
+   */
+  public BamDecoder(ResourceEntry entry, boolean ignoreTransparency)
   {
     if (entry == null)
       throw new NullPointerException();
@@ -71,10 +86,10 @@ public class BamDecoder
     switch (getType(entry)) {
       case BAMC:
       case BAMV1:
-        data = new BamDataV1(entry);
+        data = new BamDataV1(entry, ignoreTransparency);
         break;
       case BAMV2:
-        data = new BamDataV2(entry);
+        data = new BamDataV2(entry, ignoreTransparency);
         break;
       default:
         data = null;
@@ -146,9 +161,9 @@ public class BamDecoder
     private ArrayList<ArrayList<Integer>> cycles = null;
     private int curCycle = 0, curFrame = 0;
 
-    public BamDataV1(ResourceEntry entry)
+    public BamDataV1(ResourceEntry entry, boolean ignoreTransparency)
     {
-      init(entry);
+      init(entry, ignoreTransparency);
     }
 
     @Override
@@ -351,7 +366,7 @@ public class BamDecoder
       return (type == null) || (frames == null) || (cycles == null);
     }
 
-    private void init(ResourceEntry entry)
+    private void init(ResourceEntry entry, boolean ignoreTransparency)
     {
       if (entry == null)
         throw new NullPointerException();
@@ -402,12 +417,12 @@ public class BamDecoder
         for (int i = 0; i < 256; i++) {
           int col = src.getInt(0); src.addToBaseOffset(4);
           col |= 0xff000000;
-          if (transColor == -1) {
+          if (!ignoreTransparency && transColor == -1) {
             // determining the transparent color index is very complicated
             int r = (col >> 16) & 0xff, g = (col >> 8) & 0xff, b = col & 0xff;
-            if ((i > 0 && r == 0x00 && g == 0xff && b == 0x00) ||
+            if ((i > 0 && r <= 0x04 && g >= 0xfc && b <= 0x04) ||
                 ((i == 0) &&
-                 ((r < 0x04 && g > 0xfa && b < 0x04) || (r > 0xfa && g < 0x04 && b > 0xfa) ||
+                 ((r <= 0x10 && g >= 0xfc && b <= 0x10) || (r >= 0xfc && g <= 0x10 && b >= 0xfc) ||
                  ((ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
                    ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) &&
                   (r == 0x00 && g == 0x97 && b == 0x97))))) {
@@ -416,7 +431,7 @@ public class BamDecoder
           }
           palette[i] = col;
         }
-        if (transColor >= 0)
+        if (!ignoreTransparency && transColor >= 0)
           palette[transColor] &= 0x00ffffff;
 
         // processing frame entries
@@ -534,7 +549,8 @@ public class BamDecoder
     private int curCycle = 0, curFrame = 0;
     private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;
 
-    public BamDataV2(ResourceEntry entry)
+    // ignoreTransparency will be ignored
+    public BamDataV2(ResourceEntry entry, boolean ignoreTransparency)
     {
       init(entry);
     }
