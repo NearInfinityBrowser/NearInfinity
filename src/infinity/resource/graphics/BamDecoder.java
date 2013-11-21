@@ -397,16 +397,26 @@ public class BamDecoder
 
         // processing palette
         int[] palette = new int[256];
-        int transColor = 0;   // specifies the transparent color index
+        int transColor = -1;   // specifies the transparent color index
         src.setBaseOffset(ofsPalette);
         for (int i = 0; i < 256; i++) {
           int col = src.getInt(0); src.addToBaseOffset(4);
           col |= 0xff000000;
-          if (transColor == 0 && col == 0xff00ff00)
-            transColor = i;
+          if (transColor == -1) {
+            // determining the transparent color index is very complicated
+            int r = (col >> 16) & 0xff, g = (col >> 8) & 0xff, b = col & 0xff;
+            if ((i > 0 && r == 0x00 && g == 0xff && b == 0x00) ||
+                ((i == 0) &&
+                 ((r < 0x04 && g > 0xfa && b < 0x04) || (r > 0xfa && g < 0x04 && b > 0xfa) ||
+                 ((ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+                   ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) &&
+                  (r == 0x00 && g == 0x97 && b == 0x97))))) {
+              transColor = i;
+            }
+          }
           palette[i] = col;
         }
-        if (palette[transColor] == 0xff00ff00)
+        if (transColor >= 0)
           palette[transColor] &= 0x00ffffff;
 
         // processing frame entries
