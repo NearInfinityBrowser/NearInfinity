@@ -309,7 +309,8 @@ public class TisDecoder
           int n = tisName.lastIndexOf('.');
           if (n > 0)
             tisName = tisName.substring(0, n);
-          if (tisName != null && Pattern.matches("[a-zA-Z]{2}[0-9]{4}[nN]?", tisName)) {
+//          if (tisName != null && Pattern.matches("[a-zA-Z]{2}[0-9]{4}[nN]?", tisName)) {
+          if (tisName != null && Pattern.matches(".{6}[nN]?", tisName)) {
             pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>(30, 0.75f);
             return true;
           }

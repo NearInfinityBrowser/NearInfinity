@@ -166,7 +166,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
         try {
           List<byte[]> l = workerConvert.get();
           if (l != null && !l.isEmpty()) {
-            mosData = workerConvert.get().get(0);
+            mosData = l.get(0);
             l.clear();
             l = null;
           }
@@ -409,7 +409,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
         }
 
         int[] pixels = tileList.get(tileIdx);
-        if (ColorConvert.medianCut(pixels, 256, palette)) {
+        if (ColorConvert.medianCut(pixels, 256, palette, true)) {
           ColorConvert.toHslPalette(palette, hslPalette);
           // filling palette
           for (int i = 0; i < 256; i++) {

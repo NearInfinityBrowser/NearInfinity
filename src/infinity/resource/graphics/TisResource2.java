@@ -456,7 +456,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
           g = null;
 
           int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-          if (ColorConvert.medianCut(pixels, 256, palette)) {
+          if (ColorConvert.medianCut(pixels, 256, palette, true)) {
             ColorConvert.toHslPalette(palette, hslPalette);
             // filling palette
             for (int i = 0; i < 256; i++) {
