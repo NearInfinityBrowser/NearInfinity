@@ -693,22 +693,24 @@ public final class ResourceFactory
 
     boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
                                   BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
-    File overrideDir = NIFile.getFile(rootDirs, OVERRIDEFOLDER);
-    if (overrideDir.exists()) {
-      File overrideFiles[] = overrideDir.listFiles();
-      for (final File overrideFile : overrideFiles) {
-        if (!overrideFile.isDirectory()) {
-          String filename = overrideFile.getName().toUpperCase();
-          ResourceEntry entry = getResourceEntry(filename);
-          if (entry == null) {
-            FileResourceEntry fileEntry = new FileResourceEntry(overrideFile, true);
-            treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder());
-          }
-          else if (entry instanceof BIFFResourceEntry) {
-            ((BIFFResourceEntry)entry).setOverride(true);
-            if (overrideInOverride) {
-              treeModel.removeResourceEntry(entry, entry.getExtension());
-              treeModel.addResourceEntry(new FileResourceEntry(overrideFile, true), OVERRIDEFOLDER);
+    for (final File rootDir: rootDirs) {
+      File overrideDir = NIFile.getFile(rootDir, OVERRIDEFOLDER);
+      if (overrideDir.exists()) {
+        File overrideFiles[] = overrideDir.listFiles();
+        for (final File overrideFile : overrideFiles) {
+          if (!overrideFile.isDirectory()) {
+            String filename = overrideFile.getName().toUpperCase();
+            ResourceEntry entry = getResourceEntry(filename);
+            if (entry == null) {
+              FileResourceEntry fileEntry = new FileResourceEntry(overrideFile, true);
+              treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder());
+            }
+            else if (entry instanceof BIFFResourceEntry) {
+              ((BIFFResourceEntry)entry).setOverride(true);
+              if (overrideInOverride) {
+                treeModel.removeResourceEntry(entry, entry.getExtension());
+                treeModel.addResourceEntry(new FileResourceEntry(overrideFile, true), OVERRIDEFOLDER);
+              }
             }
           }
         }
