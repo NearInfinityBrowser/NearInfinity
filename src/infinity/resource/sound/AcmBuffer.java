@@ -96,12 +96,12 @@ public class AcmBuffer extends AudioBuffer
     {
       signature = bufferB.getInt(0);
       numSamples = bufferB.getInt(4);
-      numChannels = bufferB.getShort(8);
+      numChannels = bufferB.getUnsignedShort(8);
       if (override.numChannels > 0)
         numChannels = override.numChannels;
-      sampleRate = bufferB.getShort(10);
+      sampleRate = bufferB.getUnsignedShort(10);
       if (override.sampleRate > 0)
-        numChannels = override.sampleRate;
+        sampleRate = override.sampleRate;
       short val = bufferB.getShort(12);
       levels = val & 0x0f;
       subBlocks = (val >>> 4) & 0x0fff;

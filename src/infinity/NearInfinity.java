@@ -49,6 +49,8 @@ import javax.swing.filechooser.FileFilter;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
+  private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
+
   private static final JTextArea consoletext = new JTextArea();
   private static NearInfinity browser;
   private static final String KEYFILENAME = "chitin.key";
@@ -129,13 +131,16 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public static void main(String args[])
   {
-    String javaVersion = System.getProperty("java.specification.version");
+    String[] javaVersion = System.getProperty("java.specification.version").split("\\.");
     try {
-      if (Integer.parseInt(javaVersion.substring(0, 1)) < 2 &&
-          Integer.parseInt(javaVersion.substring(2, 3)) < 5) {
-        JOptionPane.showMessageDialog(null, "Version 1.5 or newer of Java is required",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
-        System.exit(10);
+      for (int i = 0; i < Math.min(JAVA_VERSION.length, javaVersion.length); i++) {
+        if (Integer.parseInt(javaVersion[i]) < JAVA_VERSION[i]) {
+          JOptionPane.showMessageDialog(null,
+                                        String.format("Version %1$d.%2$d or newer of Java is required!",
+                                                      JAVA_VERSION[0], JAVA_VERSION[1]),
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          System.exit(10);
+        }
       }
     } catch (Exception e) { // Try starting anyway if the test goes sour
       e.printStackTrace();

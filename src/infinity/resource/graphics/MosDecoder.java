@@ -117,11 +117,11 @@ public class MosDecoder
    * @return A BufferedImage object of the resulting image data.
    * @throws Exception
    */
-  public BufferedImage decoder() throws Exception
+  public BufferedImage decoder(boolean ignoreTransparency) throws Exception
   {
     if (!empty()) {
-      BufferedImage image = ColorConvert.createCompatibleImage(info().width(), info().height(), false);
-      if (decode(image)) {
+      BufferedImage image = ColorConvert.createCompatibleImage(info().width(), info().height(), true);
+      if (decode(image, ignoreTransparency)) {
         return image;
       } else {
         image = null;
@@ -137,7 +137,7 @@ public class MosDecoder
    * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
    * @throws Exception
    */
-  public boolean decode(BufferedImage image) throws Exception
+  public boolean decode(BufferedImage image, boolean ignoreTransparency) throws Exception
   {
     if (!empty()) {
       if (image == null)
@@ -146,7 +146,7 @@ public class MosDecoder
         throw new Exception("Image dimensions too small");
 
       for (final BlockInfo blockInfo: info.tiles) {
-        if (!decodeMosBlock(image, blockInfo.dstX, blockInfo.dstY, blockInfo)) {
+        if (!decodeMosBlock(image, blockInfo.dstX, blockInfo.dstY, blockInfo, ignoreTransparency)) {
           return false;
         }
       }
@@ -161,14 +161,14 @@ public class MosDecoder
    * @return A BufferedImage object of the resulting image data.
    * @throws Exception
    */
-  public BufferedImage decodeBlock(int blockIndex) throws Exception
+  public BufferedImage decodeBlock(int blockIndex, boolean ignoreTransparency) throws Exception
   {
     if (!empty()) {
       if (blockIndex >= 0 && blockIndex < info.tiles.size()) {
         BlockInfo bi = info.tiles.get(blockIndex);
         if (bi != null) {
-          BufferedImage image = ColorConvert.createCompatibleImage(bi.width, bi.height, false);
-          if (decodeBlock(image, blockIndex)) {
+          BufferedImage image = ColorConvert.createCompatibleImage(bi.width, bi.height, true);
+          if (decodeBlock(image, blockIndex, ignoreTransparency)) {
             return image;
           } else {
             image = null;
@@ -187,7 +187,7 @@ public class MosDecoder
    * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
    * @throws Exception
    */
-  public boolean decodeBlock(BufferedImage image, int blockIndex) throws Exception
+  public boolean decodeBlock(BufferedImage image, int blockIndex, boolean ignoreTransparency) throws Exception
   {
     if (!empty()) {
       if (image == null)
@@ -200,7 +200,7 @@ public class MosDecoder
         if (image.getWidth() < bi.width || image.getHeight() < bi.height)
           throw new Exception("Image dimensions too small");
 
-        return decodeMosBlock(image, 0, 0, bi);
+        return decodeMosBlock(image, 0, 0, bi, ignoreTransparency);
       }
     }
     return false;
@@ -232,7 +232,7 @@ public class MosDecoder
     if (!empty()) {
       if (info().type() == MosInfo.MosType.PVRZ) {
         synchronized (pvrTable) {
-          if (pvrTable.contains(page))
+          if (pvrTable.containsKey(page))
             return pvrTable.get(page);
 
           String pvrzName = String.format("MOS%1$04d.PVRZ", page);
@@ -241,7 +241,7 @@ public class MosDecoder
             byte[] data = entry.getResourceData();
             if (data != null) {
               int size = DynamicArray.getInt(data, 0);
-              int marker = DynamicArray.getShort(data, 4) & 0xffff;
+              int marker = DynamicArray.getUnsignedShort(data, 4);
               if ((size & 0xff) != 0x34 || marker != 0x9c78)
                 throw new Exception("Invalid PVRZ resource: " + entry.getResourceName());
               data = Compressor.decompress(data, 0);
@@ -260,12 +260,12 @@ public class MosDecoder
 
   // Decodes a single MOS data block
   private boolean decodeMosBlock(BufferedImage image, int startX, int startY,
-                                 BlockInfo info) throws Exception
+                                 BlockInfo info, boolean ignoreTransparency) throws Exception
   {
     if (!empty()) {
       switch (info.type) {
         case PALETTE:
-          return decodeMosBlockInPlace(image, startX, startY, info);
+          return decodeMosBlockInPlace(image, startX, startY, info, ignoreTransparency);
         case PVRZ:
           return decodeMosBlockPVRZ(image, startX, startY, info);
       }
@@ -275,7 +275,7 @@ public class MosDecoder
 
   // Decodes a palette-based MOS tile
   private boolean decodeMosBlockInPlace(BufferedImage image, int startX, int startY,
-                                        BlockInfo info) throws Exception
+                                        BlockInfo info, boolean ignoreTransparency) throws Exception
   {
     if (!empty()) {
       if (image == null || info == null || info.data == null || info.palette == null)
@@ -289,8 +289,9 @@ public class MosDecoder
         throw new Exception("Image dimensions too small");
 
       int[] dataBlock = new int[info.width*info.height];
+      int alphaMask = ignoreTransparency ? 0xff000000 : 0;
       for (int i = 0; i < dataBlock.length; i++) {
-        dataBlock[i] = info.palette[info.data[i] & 0xff];
+        dataBlock[i] = info.palette[info.data[i] & 0xff] | alphaMask;
       }
       image.setRGB(startX, startY, info.width, info.height, dataBlock, 0, info.width);
       dataBlock = null;
@@ -505,6 +506,11 @@ public class MosDecoder
           for (int i = 0; i < 256; i++, ofs+=4) {
             info.palette[i] = (buffer[ofs] & 0xff) | ((buffer[ofs+1] & 0xff) << 8) |
                               ((buffer[ofs+2] & 0xff) << 16) | 0xff000000;
+            // making palette indices matching "green" transparent
+            int r = (info.palette[i] >>> 16) & 0xff, g = (info.palette[i] >>> 8) & 0xff, b = info.palette[i] & 0xff;
+            if ((r < 8 && g > 248 && b < 8)) {
+              info.palette[i] &= 0x00ffffff;
+            }
           }
         }
 

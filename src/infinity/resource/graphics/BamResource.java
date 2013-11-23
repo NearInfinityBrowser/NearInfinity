@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
 
+@Deprecated
 public final class BamResource implements Resource, ActionListener, ItemListener
 {
   private static final int ANIMDELAY = 100; // 10.0 fps

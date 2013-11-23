@@ -191,7 +191,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
     panel = new JPanel(new BorderLayout());
     panel.add(centerPanel, BorderLayout.CENTER);
-    panel.add(bottomPanel, BorderLayout.PAGE_END);
+    panel.add(bottomPanel, BorderLayout.SOUTH);
     centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
     loadSoundResource();

@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,12 +34,24 @@ public class ColorConvert
    */
   public static BufferedImage createCompatibleImage(int width, int height, boolean hasTransparency)
   {
+    return createCompatibleImage(width, height,
+                                 hasTransparency ? Transparency.TRANSLUCENT : Transparency.OPAQUE);
+  }
+
+  /**
+   * Creates a BufferedImage object in the native color format for best possible performance.
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @param transparency The transparency type (either one of OPAQUE, BITMASK or TRANSLUCENT)
+   * @return A new BufferedImage object with the specified properties.
+   */
+  public static BufferedImage createCompatibleImage(int width, int height, int transparency)
+  {
     // obtain the current system's graphical settings
     final GraphicsConfiguration gfxConfig =
         GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
-    return gfxConfig.createCompatibleImage(width, height,
-                                           hasTransparency ? BufferedImage.TRANSLUCENT : BufferedImage.OPAQUE);
+    return gfxConfig.createCompatibleImage(width, height, transparency);
   }
 
   /**
@@ -162,13 +175,14 @@ public class ColorConvert
    * Reduces the number of colors of the specified pixel data block.
    * @param pixels The pixel block of the image in ARGB format (alpha is ignored).
    * @param desiredColors The resulting number of colors after reduction (range 1..256).
+   * @param ignoreAlpha If <code>false</code>, only visible color values (alpha > 0) will be counted.
    * @return An array containing the resulting colors, or <code>null</code> on error.
    */
-  public static int[] medianCut(int[] pixels, int desiredColors)
+  public static int[] medianCut(int[] pixels, int desiredColors, boolean ignoreAlpha)
   {
     if (desiredColors > 0 && desiredColors <= MAX_COLORS) {
       int[] pal = new int[desiredColors];
-      if (medianCut(pixels, desiredColors, pal)) {
+      if (medianCut(pixels, desiredColors, pal, ignoreAlpha)) {
         return pal;
       } else {
         pal = null;
@@ -182,9 +196,10 @@ public class ColorConvert
    * @param pixels The pixel block of the image in ARGB format (alpha is ignored).
    * @param desiredColors The resulting number of colors after reduction (range 1..256).
    * @param palette The array to write the resulting colors into.
+   * @param ignoreAlpha If <code>false</code>, only visible color values (alpha > 0) will be counted.
    * @return <code>true</code> if color reduction succeeded, <code>false</code> otherwise.
    */
-  public static boolean medianCut(int[] pixels, int desiredColors, int[] palette)
+  public static boolean medianCut(int[] pixels, int desiredColors, int[] palette, boolean ignoreAlpha)
   {
     if (pixels == null || palette == null)
       throw new NullPointerException();
@@ -192,10 +207,26 @@ public class ColorConvert
     if (desiredColors > 0 && desiredColors <= MAX_COLORS && palette.length >= desiredColors) {
       PriorityQueue<PixelBlock> blockQueue =
           new PriorityQueue<PixelBlock>(desiredColors, PixelBlock.PixelBlockComparator);
-      Pixel[] p = new Pixel[pixels.length];
-      for (int i = 0; i < p.length; i++) {
-        p[i] = new Pixel(pixels[i]);
+
+      Pixel[] p = null;
+      if (ignoreAlpha) {
+        p = new Pixel[pixels.length];
+        for (int i = 0; i < p.length; i++) {
+          p[i] = new Pixel(pixels[i]);
+        }
+      } else {
+        int len = 0;
+        for (int i = 0; i < pixels.length; i++) {
+          if ((pixels[i] & 0xff000000) != 0)
+            len++;
+        }
+        p = new Pixel[len];
+        for (int i = 0, idx = 0; i < pixels.length && idx < len; i++) {
+          if ((pixels[i] & 0xff000000) != 0)
+            p[idx++] = new Pixel(pixels[i]);
+        }
       }
+
       PixelBlock initialBlock = new PixelBlock(p);
       initialBlock.shrink();
       blockQueue.add(initialBlock);

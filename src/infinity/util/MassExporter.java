@@ -55,10 +55,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 {
   private static final String TYPES[] = {"2DA", "ARE", "BAM", "BCS", "BIO", "BMP", "BS",
                                          "CHU", "CHR", "CRE", "DLG", "EFF", "FNT", "GAM",
-                                         "GUI", "IDS", "INI", "ITM", "MOS", "MVE", "PLT",
-                                         "PRO", "PVRZ", "SQL", "SRC", "SPL", "STO", "TOH",
-                                         "TOT", "TIS", "VEF", "VVC", "WAV", "WBM", "WED",
-                                         "WFX", "WMP"};
+                                         "GLSL", "GUI", "IDS", "INI", "ITM", "MOS", "MVE",
+                                         "PLT", "PRO", "PVRZ", "SQL", "SRC", "SPL", "STO",
+                                         "TOH", "TOT", "TIS", "VEF", "VVC", "WAV", "WBM",
+                                         "WED", "WFX", "WMP"};
   private final JButton bExport = new JButton("Export", Icons.getIcon("Export16.gif"));
   private final JButton bCancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
   private final JButton bDirectory = new JButton(Icons.getIcon("Open16.gif"));
@@ -230,8 +230,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
            entry.getExtension().equalsIgnoreCase("PWK") ||
            entry.getExtension().equalsIgnoreCase("NSS") ||
            entry.getExtension().equalsIgnoreCase("TXT") ||
+           (entry.getExtension().equalsIgnoreCase("GLSL") &&
+               (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+                ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE)) ||
            (entry.getExtension().equalsIgnoreCase("SRC") &&
-           ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)) &&
+               ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)) &&
           cbDecrypt.isSelected()) {
         byte data[] = entry.getResourceData();
         if (data[0] == -1)

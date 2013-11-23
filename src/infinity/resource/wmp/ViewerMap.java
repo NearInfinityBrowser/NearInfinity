@@ -8,10 +8,11 @@ import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
 import infinity.gui.ViewerUtil;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.resource.graphics.BamResource;
+import infinity.resource.graphics.BamResource2;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
@@ -32,34 +33,40 @@ import javax.swing.event.ListSelectionListener;
 final class ViewerMap extends JPanel implements ListSelectionListener
 {
   private static final ImageIcon areaIcon = Icons.getIcon("Stop16.gif");
-  private final BufferedImage map;
+  private BufferedImage map;
   private int xCoord = -1, yCoord, pixels[] = new int[16 * 16];
 
   ViewerMap(MapEntry wmpMap)
   {
-    BamResource icons = null;
-    ResourceRef iconRef = (ResourceRef)wmpMap.getAttribute("Map icons");
-    if (iconRef != null) {
-      ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
-      if (iconEntry != null)
-        icons = (BamResource)ResourceFactory.getResource(iconEntry);
-    }
-    if (ResourceFactory.getInstance().resourceExists(((ResourceRef)wmpMap.getAttribute("Map")).getResourceName())) {
-      JLabel mapLabel = ViewerUtil.makeImagePanel((ResourceRef)wmpMap.getAttribute("Map"));
-      map = (BufferedImage)((ImageIcon)mapLabel.getIcon()).getImage();
-      JPanel areas = ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Name",
-                                              new WmpAreaListRenderer(icons), this);
-      JScrollPane mapScroll = new JScrollPane(mapLabel);
-      mapScroll.getVerticalScrollBar().setUnitIncrement(16);
-      mapScroll.getHorizontalScrollBar().setUnitIncrement(16);
-      mapScroll.setBorder(BorderFactory.createEmptyBorder());
+    WindowBlocker.blockWindow(true);
+    try {
+      BamResource2 icons = null;
+      ResourceRef iconRef = (ResourceRef)wmpMap.getAttribute("Map icons");
+      if (iconRef != null) {
+        ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
+        if (iconEntry != null)
+          icons = (BamResource2)ResourceFactory.getResource(iconEntry);
+      }
+      if (ResourceFactory.getInstance().resourceExists(((ResourceRef)wmpMap.getAttribute("Map")).getResourceName())) {
+        JLabel mapLabel = ViewerUtil.makeImagePanel((ResourceRef)wmpMap.getAttribute("Map"));
+        map = (BufferedImage)((ImageIcon)mapLabel.getIcon()).getImage();
+        JPanel areas = ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Name",
+                                                new WmpAreaListRenderer(icons), this);
+        JScrollPane mapScroll = new JScrollPane(mapLabel);
+        mapScroll.getVerticalScrollBar().setUnitIncrement(16);
+        mapScroll.getHorizontalScrollBar().setUnitIncrement(16);
+        mapScroll.setBorder(BorderFactory.createEmptyBorder());
 
-      JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, areas);
-      split.setDividerLocation(NearInfinity.getInstance().getWidth() - 475);
-      setLayout(new BorderLayout());
-      add(split, BorderLayout.CENTER);
-    } else
-      map = null;
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, areas);
+        split.setDividerLocation(NearInfinity.getInstance().getWidth() - 475);
+        setLayout(new BorderLayout());
+        add(split, BorderLayout.CENTER);
+      } else
+        map = null;
+    } catch (Throwable t) {
+      t.printStackTrace();
+    }
+    WindowBlocker.blockWindow(false);
   }
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
@@ -87,9 +94,9 @@ final class ViewerMap extends JPanel implements ListSelectionListener
 
   private static final class WmpAreaListRenderer extends DefaultListCellRenderer
   {
-    private final BamResource icons;
+    private final BamResource2 icons;
 
-    private WmpAreaListRenderer(BamResource icons)
+    private WmpAreaListRenderer(BamResource2 icons)
     {
       this.icons = icons;
     }
@@ -104,7 +111,7 @@ final class ViewerMap extends JPanel implements ListSelectionListener
       DecNumber animNr = (DecNumber)struct.getAttribute("Icon number");
       setIcon(null);
       if (icons != null)
-        setIcon(new ImageIcon(icons.getFrame(icons.getFrameNr(animNr.getValue(), 0))));
+        setIcon(new ImageIcon(icons.getFrame(icons.getFrameIndex(animNr.getValue(), 0))));
       return label;
     }
   }

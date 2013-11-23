@@ -34,7 +34,8 @@ final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (game seconds)"), gbl, gbc, true);
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) // V2.0 - better check?
+        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) // V2.0 - better check?
       ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (real seconds)"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Party gold"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Master area"), gbl, gbc, true);

@@ -30,6 +30,8 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
@@ -58,7 +60,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class TisResource2 implements Resource, Closeable, ActionListener, ChangeListener,
-                                     KeyListener, PropertyChangeListener
+                                     ItemListener, KeyListener, PropertyChangeListener
 {
   private static final int DEFAULT_COLUMNS = 5;
 
@@ -130,7 +132,17 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
       int cols = slCols.getValue();
       tfCols.setText(Integer.toString(cols));
       tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), cols));
-    } else if (event.getSource() == cbGrid) {
+    }
+  }
+
+//--------------------- End Interface ChangeListener ---------------------
+
+//--------------------- Begin Interface ItemListener ---------------------
+
+  @Override
+  public void itemStateChanged(ItemEvent event)
+  {
+    if (event.getSource() == cbGrid) {
       showGrid = cbGrid.isSelected();
       tileGrid.setShowGrid(showGrid);
     }
@@ -306,7 +318,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
     // 1.4. configuring checkbox
     cbGrid = new JCheckBox("Show Grid", showGrid);
-    cbGrid.addChangeListener(this);
+    cbGrid.addItemListener(this);
     JPanel trPanel = new JPanel(new GridLayout());
     trPanel.add(cbGrid);
 
@@ -367,9 +379,9 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
     // 4. packing all together
     panel = new JPanel(new BorderLayout());
-    panel.add(topPanel, BorderLayout.PAGE_START);
+    panel.add(topPanel, BorderLayout.NORTH);
     panel.add(centerPanel, BorderLayout.CENTER);
-    panel.add(bottomPanel, BorderLayout.PAGE_END);
+    panel.add(bottomPanel, BorderLayout.SOUTH);
     centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
     return panel;
   }
@@ -456,7 +468,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
           g = null;
 
           int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-          if (ColorConvert.medianCut(pixels, 256, palette)) {
+          if (ColorConvert.medianCut(pixels, 256, palette, true)) {
             ColorConvert.toHslPalette(palette, hslPalette);
             // filling palette
             for (int i = 0; i < 256; i++) {

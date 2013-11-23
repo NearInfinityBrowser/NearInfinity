@@ -188,6 +188,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
       case ResourceFactory.ID_BG2:
       case ResourceFactory.ID_BG2TOB:
       case ResourceFactory.ID_BGEE:
+      case ResourceFactory.ID_BG2EE:
         gameId = 1;
         break;
       case ResourceFactory.ID_ICEWIND:

@@ -24,6 +24,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -34,7 +36,9 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -45,14 +49,16 @@ import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 
-public class MosResource2 implements Resource, Closeable, ActionListener, PropertyChangeListener
+public class MosResource2 implements Resource, Closeable, ActionListener, ItemListener, PropertyChangeListener
 {
+  private static boolean ignoreTransparency = false;
+
   private final ResourceEntry entry;
   private MosDecoder.MosInfo.MosType mosType;
   private ButtonPopupMenu bpmExport;
-  private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportBMP;
+  private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportPNG;
   private JButton bFind;
-//  private JLabel lImage;
+  private JCheckBox cbTransparency;
   private RenderCanvas rcImage;
   private JPanel panel;
   private RootPaneContainer rpc;
@@ -126,12 +132,12 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
           }
         }
       }
-    } else if (event.getSource() == miExportBMP) {
+    } else if (event.getSource() == miExportPNG) {
       try {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        String fileName = entry.toString().replace(".MOS", ".BMP");
+        String fileName = entry.toString().replace(".MOS", ".PNG");
         BufferedImage image = getImage();
-        if (ImageIO.write(image, "bmp", os)) {
+        if (ImageIO.write(image, "png", os)) {
           ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
                                                        fileName, panel.getTopLevelAncestor());
         } else {
@@ -150,6 +156,27 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
 
 //--------------------- End Interface ActionListener ---------------------
 
+//--------------------- Begin Interface ItemListener ---------------------
+
+  @Override
+  public void itemStateChanged(ItemEvent event)
+  {
+    if (event.getSource() == cbTransparency) {
+      ignoreTransparency = cbTransparency.isSelected();
+      if (mosType == MosDecoder.MosInfo.MosType.PALETTE) {
+        WindowBlocker.blockWindow(true);
+        try {
+          rcImage.setImage(loadImage());
+          WindowBlocker.blockWindow(false);
+        } catch (Exception e) {
+        }
+        WindowBlocker.blockWindow(false);
+      }
+    }
+  }
+
+//--------------------- End Interface ItemListener ---------------------
+
 //--------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
@@ -166,7 +193,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
         try {
           List<byte[]> l = workerConvert.get();
           if (l != null && !l.isEmpty()) {
-            mosData = workerConvert.get().get(0);
+            mosData = l.get(0);
             l.clear();
             l = null;
           }
@@ -233,8 +260,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
-    miExportBMP = new JMenuItem("as BMP");
-    miExportBMP.addActionListener(this);
+    miExportPNG = new JMenuItem("as PNG");
+    miExportPNG.addActionListener(this);
     if (mosType == MosDecoder.MosInfo.MosType.PVRZ) {
       miExportMOSV1 = new JMenuItem("as MOS V1 (uncompressed)");
       miExportMOSV1.addActionListener(this);
@@ -247,7 +274,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
       } else {
         if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
             ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) {
+            ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+            ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
           miExportMOSC = new JMenuItem("compressed");
           miExportMOSC.addActionListener(this);
         }
@@ -260,8 +288,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
       list.add(miExportMOSV1);
     if (miExportMOSC != null)
       list.add(miExportMOSC);
-    if (miExportBMP != null)
-      list.add(miExportBMP);
+    if (miExportPNG != null)
+      list.add(miExportPNG);
     JMenuItem[] mi = new JMenuItem[list.size()];
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
@@ -284,13 +312,22 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
+    cbTransparency = new JCheckBox("Ignore transparency", ignoreTransparency);
+    cbTransparency.setToolTipText("Only legacy MOS resources (MOS V1) are affected.");
+    cbTransparency.addItemListener(this);
+    JPanel optionsPanel = new JPanel();
+    BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
+    optionsPanel.setLayout(bl);
+    optionsPanel.add(cbTransparency);
+
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
     buttonPanel.add(bFind);
     buttonPanel.add(bpmExport);
+    buttonPanel.add(optionsPanel);
 
     panel = new JPanel(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
-    panel.add(buttonPanel, BorderLayout.PAGE_END);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
     return panel;
@@ -318,8 +355,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
         compressed = decoder.info().isCompressed();
         mosType = decoder.info().type();
         image = ColorConvert.createCompatibleImage(decoder.info().width(),
-                                                   decoder.info().height(), false);
-        if (!decoder.decode(image)) {
+                                                   decoder.info().height(), true);
+        if (!decoder.decode(image, ignoreTransparency)) {
           image = null;
         }
         decoder.close();
@@ -408,7 +445,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
         }
 
         int[] pixels = tileList.get(tileIdx);
-        if (ColorConvert.medianCut(pixels, 256, palette)) {
+        if (ColorConvert.medianCut(pixels, 256, palette, true)) {
           ColorConvert.toHslPalette(palette, hslPalette);
           // filling palette
           for (int i = 0; i < 256; i++) {

@@ -59,7 +59,8 @@ public final class Animation extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 63, 1, "Start delay (frames)"));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE)
+        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE)
       list.add(new ResourceRef(buffer, offset + 64, "Palette", "BMP"));
     else
       list.add(new Unknown(buffer, offset + 64, 8));

@@ -449,7 +449,8 @@ public final class EffectFactory
       int gameID = ResourceFactory.getGameID();
       if (gameID == ResourceFactory.ID_BG2 ||
           gameID == ResourceFactory.ID_BG2TOB ||
-          gameID == ResourceFactory.ID_BGEE) {
+          gameID == ResourceFactory.ID_BGEE ||
+          gameID == ResourceFactory.ID_BG2EE) {
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
         if (map.containsKey(EffectEntry.IDX_OPCODE)) {
           int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
@@ -481,7 +482,8 @@ public final class EffectFactory
       int gameID = ResourceFactory.getGameID();
       if (gameID == ResourceFactory.ID_BG2 ||
           gameID == ResourceFactory.ID_BG2TOB ||
-          gameID == ResourceFactory.ID_BGEE) {
+          gameID == ResourceFactory.ID_BGEE ||
+          gameID == ResourceFactory.ID_BG2EE) {
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
         if (map.containsKey(EffectEntry.IDX_OPCODE)) {
           int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
@@ -828,6 +830,7 @@ public final class EffectFactory
       case ResourceFactory.ID_BG2:
       case ResourceFactory.ID_BG2TOB:
       case ResourceFactory.ID_BGEE:
+      case ResourceFactory.ID_BG2EE:
       case ResourceFactory.ID_UNKNOWNGAME: // Default list
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
@@ -1234,7 +1237,8 @@ public final class EffectFactory
         restype = makeEffectParamsIWD(parent, buffer, offset, s, effectType, isV1);
       } else if (gameid == ResourceFactory.ID_BG2 ||
                  gameid == ResourceFactory.ID_BG2TOB ||
-                 gameid == ResourceFactory.ID_BGEE) {
+                 gameid == ResourceFactory.ID_BGEE ||
+                 gameid == ResourceFactory.ID_BG2EE) {
         restype = makeEffectParamsBG2(parent, buffer, offset, s, effectType, isV1);
       } else if (gameid == ResourceFactory.ID_ICEWIND2) {
         restype = makeEffectParamsIWD2(parent, buffer, offset, s, effectType, isV1);
@@ -1642,7 +1646,7 @@ public final class EffectFactory
         break;
 
       case 0x98: // Play movie (CGameEffectPlayMovie)
-        if (gameid == ResourceFactory.ID_BGEE) {
+        if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
           restype = "WBM";
         } else {
           restype = "MVE";
@@ -2118,7 +2122,7 @@ public final class EffectFactory
       {
         s.add(new Bitmap(buffer, offset, 4, "Target",
           new String[]{"Caster", "Last hit by", "Nearest enemy"}));
-        if (gameid == ResourceFactory.ID_BGEE) {
+        if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
           BitmapEx item = new BitmapEx(buffer, offset + 4, 4, "Condition",
               new String[]{"Target hit", "Enemy sighted", "HP below 50%",
               "HP below 25%", "HP below 10%", "If helpless",
@@ -2193,7 +2197,7 @@ public final class EffectFactory
 
       case 0xF3: // Drain item charges (CGameEffectDrainChargeFromAllItems)
         s.add(new Bitmap(buffer, offset, 4, "Include weapons?", s_noyes));
-        if (gameid == ResourceFactory.ID_BGEE) {
+        if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
           s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
         } else {
           s.add(new Unknown(buffer, offset + 4, 4));
@@ -3541,7 +3545,8 @@ public final class EffectFactory
     if (resourceType == null) {
       if ((gameid == ResourceFactory.ID_BG2 ||
           gameid == ResourceFactory.ID_BG2TOB ||
-          gameid == ResourceFactory.ID_BGEE) &&
+          gameid == ResourceFactory.ID_BGEE ||
+          gameid == ResourceFactory.ID_BG2EE) &&
           effectType == 0x13F && param2 == 11) {    // Restrict item (BGEE)
         s.add(new TextString(buffer, offset, 8, "Script name"));
       } else {
@@ -3598,7 +3603,8 @@ public final class EffectFactory
 
     if (gameid == ResourceFactory.ID_BG2 ||
         gameid == ResourceFactory.ID_BG2TOB ||
-        gameid == ResourceFactory.ID_BGEE) {
+        gameid == ResourceFactory.ID_BGEE ||
+        gameid == ResourceFactory.ID_BG2EE) {
       switch (effectType) {
         case 0xE8:    // Cast spell on condition (CGameEffectContingencyInstance)
           if (param2 == 13) {
