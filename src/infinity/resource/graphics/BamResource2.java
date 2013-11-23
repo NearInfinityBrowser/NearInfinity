@@ -15,6 +15,7 @@ import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
+import infinity.util.FileCI;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -177,7 +178,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.toString().replace(".BAM", ".PNG")));
+      fc.setSelectedFile(new FileCI(fc.getCurrentDirectory(), entry.toString().replace(".BAM", ".PNG")));
       if (fc.showSaveDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
         String filePath = fc.getSelectedFile().getParent();
         String fileName = fc.getSelectedFile().getName();
@@ -509,7 +510,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
           if (image != null) {
             try {
               ImageIO.write(ColorConvert.toBufferedImage(image, true), "png",
-                            new File(filePath, fileBase + fileIndex + fileExt));
+                            new FileCI(filePath, fileBase + fileIndex + fileExt));
               counter++;
             } catch (IOException e) {
               failCounter++;

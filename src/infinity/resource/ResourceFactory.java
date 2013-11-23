@@ -348,7 +348,7 @@ public final class ResourceFactory
     if (gameID == ID_BGEE || gameID == ID_BG2EE) {
       final String BGEE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
       final String BGEE_DIR = games[gameID].name;   //"Baldur's Gate - Enhanced Edition";
-      File userDir = new File(BGEE_DOC_ROOT, BGEE_DIR);
+      File userDir = new File(BGEE_DOC_ROOT, BGEE_DIR); // File is intentional
       if (!userDir.exists()) {
         return userDir;
       } else {
