@@ -298,10 +298,12 @@ public class PvrDecoder
           case 0:
             // 100% c0, 0% c1
             col = ((c0 & 0xf800) << 8) | ((c0 & 0x7e0) << 5) | ((c0 & 0x1f) << 3);
+            col |= 0xff000000;
             break;
           case 1:
             // 0% c0, 100% c1
             col = ((c1 & 0xf800) << 8) | ((c1 & 0x7e0) << 5) | ((c1 & 0x1f) << 3);
+            col |= 0xff000000;
             break;
           case 2:
             if (c0 > c1) {
@@ -312,6 +314,7 @@ public class PvrDecoder
               col |= ((v > 255) ? 255 : v) << 8;
               v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
               col |= ((v > 255) ? 255 : v);
+              col |= 0xff000000;
             } else {
               // 50% c0, 50% c1
               v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 8) & 0xf8)) >> 1;
@@ -320,6 +323,7 @@ public class PvrDecoder
               col |= ((v > 255) ? 255 : v) << 8;
               v = (((c0 << 3) & 0xf8) + ((c1 << 3) & 0xf8)) >> 1;
               col |= ((v > 255) ? 255 : v);
+              col |= 0xff000000;
             }
             break;
           case 3:
@@ -331,13 +335,14 @@ public class PvrDecoder
               col |= ((v > 255) ? 255 : v) << 8;
               v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
               col |= ((v > 255) ? 255 : v);
+              col |= 0xff000000;
             } else {
-              // black
+              // transparent
               col = 0;
             }
             break;
         }
-        image.setRGB(x, y, col | 0xff000000);
+        image.setRGB(x, y, col);
       }
     }
     return true;

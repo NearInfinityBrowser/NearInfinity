@@ -40,6 +40,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -502,12 +503,12 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
         // writing tiles
         int bufOfs = 24;
-        int[] palette = new int[256];
-        int[] hslPalette = new int[256];
+        int[] palette = new int[255];
+        int[] hslPalette = new int[255];
         byte[] tilePalette = new byte[1024];
         byte[] tileData = new byte[64*64];
         BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().tileWidth(),
-                                                                 decoder.info().tileHeight(), false);
+                                                                 decoder.info().tileHeight(), Transparency.BITMASK);
         IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
         for (int tileIdx = 0; tileIdx < decoder.info().tileCount(); tileIdx++) {
           colorCache.clear();
@@ -520,31 +521,39 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
             progress.setProgress(progressIndex);
             progress.setNote(String.format(note, progressIndex, progressMax));
           }
+          int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+          Arrays.fill(pixels, 0);   // clearing garbage data
 
           Graphics2D g = (Graphics2D)image.getGraphics();
           g.drawImage(tileImages.get(tileIdx), 0, 0, null);
           g.dispose();
           g = null;
 
-          int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-          if (ColorConvert.medianCut(pixels, 256, palette, true)) {
+          if (ColorConvert.medianCut(pixels, 255, palette, false)) {
             ColorConvert.toHslPalette(palette, hslPalette);
             // filling palette
-            for (int i = 0; i < 256; i++) {
-              tilePalette[(i << 2) + 0] = (byte)(palette[i] & 0xff);
-              tilePalette[(i << 2) + 1] = (byte)((palette[i] >>> 8) & 0xff);
-              tilePalette[(i << 2) + 2] = (byte)((palette[i] >>> 16) & 0xff);
+            // first palette entry denotes transparency
+            tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
+            for (int i = 1; i < 256; i++) {
+              tilePalette[(i << 2) + 0] = (byte)(palette[i - 1] & 0xff);
+              tilePalette[(i << 2) + 1] = (byte)((palette[i - 1] >>> 8) & 0xff);
+              tilePalette[(i << 2) + 2] = (byte)((palette[i - 1] >>> 16) & 0xff);
               tilePalette[(i << 2) + 3] = 0;
-              colorCache.put(palette[i], (byte)i);
+              colorCache.put(palette[i - 1], (byte)(i - 1));
             }
             // filling pixel data
             for (int i = 0; i < tileData.length; i++) {
-              Byte palIndex = colorCache.get(pixels[i]);
-              if (palIndex != null) {
-                tileData[i] = palIndex;
+              if ((pixels[i] & 0xff000000) == 0) {
+                tileData[i] = 0;
               } else {
-                tileData[i] = (byte)(ColorConvert.nearestColor(pixels[i], hslPalette));
-                colorCache.put(pixels[i], tileData[i]);
+                Byte palIndex = colorCache.get(pixels[i]);
+                if (palIndex != null) {
+                  tileData[i] = (byte)(palIndex + 1);
+                } else {
+                  byte color = (byte)ColorConvert.nearestColor(pixels[i], hslPalette);
+                  tileData[i] = (byte)(color + 1);
+                  colorCache.put(pixels[i], color);
+                }
               }
             }
           } else {
