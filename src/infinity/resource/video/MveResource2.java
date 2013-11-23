@@ -17,6 +17,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -27,10 +29,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-public class MveResource2 implements Resource, ActionListener, ChangeListener, Closeable, Runnable
+public class MveResource2 implements Resource, ActionListener, ItemListener, Closeable, Runnable
 {
   private static final int VIDEO_BUFFERS = 3;
 
@@ -100,10 +100,10 @@ public class MveResource2 implements Resource, ActionListener, ChangeListener, C
 
 //--------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ItemChangeListener ---------------------
+//--------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
+  public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == cbZoom) {
       if (renderer != null) {
@@ -119,7 +119,7 @@ public class MveResource2 implements Resource, ActionListener, ChangeListener, C
     }
   }
 
-//--------------------- End Interface ItemChangeListener ---------------------
+//--------------------- End Interface ItemListener ---------------------
 
 //--------------------- Begin Interface Resource ---------------------
 
@@ -209,9 +209,9 @@ public class MveResource2 implements Resource, ActionListener, ChangeListener, C
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
     cbZoom = new JCheckBox("Zoom video", isZoom);
-    cbZoom.addChangeListener(this);
+    cbZoom.addItemListener(this);
     cbFilter = new JCheckBox("Enable video filtering", isFilter);
-    cbFilter.addChangeListener(this);
+    cbFilter.addItemListener(this);
     cbFilter.setToolTipText("Uncheck for better video performance");
     JPanel optionsPanel = new JPanel();
     BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);

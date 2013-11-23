@@ -24,6 +24,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -34,7 +36,9 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -45,14 +49,16 @@ import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 
-public class MosResource2 implements Resource, Closeable, ActionListener, PropertyChangeListener
+public class MosResource2 implements Resource, Closeable, ActionListener, ItemListener, PropertyChangeListener
 {
+  private static boolean ignoreTransparency = false;
+
   private final ResourceEntry entry;
   private MosDecoder.MosInfo.MosType mosType;
   private ButtonPopupMenu bpmExport;
   private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportPNG;
   private JButton bFind;
-//  private JLabel lImage;
+  private JCheckBox cbTransparency;
   private RenderCanvas rcImage;
   private JPanel panel;
   private RootPaneContainer rpc;
@@ -149,6 +155,27 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
   }
 
 //--------------------- End Interface ActionListener ---------------------
+
+//--------------------- Begin Interface ItemListener ---------------------
+
+  @Override
+  public void itemStateChanged(ItemEvent event)
+  {
+    if (event.getSource() == cbTransparency) {
+      ignoreTransparency = cbTransparency.isSelected();
+      if (mosType == MosDecoder.MosInfo.MosType.PALETTE) {
+        WindowBlocker.blockWindow(true);
+        try {
+          rcImage.setImage(loadImage());
+          WindowBlocker.blockWindow(false);
+        } catch (Exception e) {
+        }
+        WindowBlocker.blockWindow(false);
+      }
+    }
+  }
+
+//--------------------- End Interface ItemListener ---------------------
 
 //--------------------- Begin Interface PropertyChangeListener ---------------------
 
@@ -285,9 +312,18 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
+    cbTransparency = new JCheckBox("Ignore transparency", ignoreTransparency);
+    cbTransparency.setToolTipText("Only legacy MOS resources (MOS V1) are affected.");
+    cbTransparency.addItemListener(this);
+    JPanel optionsPanel = new JPanel();
+    BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
+    optionsPanel.setLayout(bl);
+    optionsPanel.add(cbTransparency);
+
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
     buttonPanel.add(bFind);
     buttonPanel.add(bpmExport);
+    buttonPanel.add(optionsPanel);
 
     panel = new JPanel(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
@@ -320,7 +356,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, Proper
         mosType = decoder.info().type();
         image = ColorConvert.createCompatibleImage(decoder.info().width(),
                                                    decoder.info().height(), true);
-        if (!decoder.decode(image)) {
+        if (!decoder.decode(image, ignoreTransparency)) {
           image = null;
         }
         decoder.close();

@@ -24,6 +24,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
@@ -50,10 +52,8 @@ import javax.swing.JToggleButton;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-public class BamResource2 implements Resource, ActionListener, ChangeListener, PropertyChangeListener
+public class BamResource2 implements Resource, ActionListener, ItemListener, PropertyChangeListener
 {
   private static final int ANIM_DELAY = 1000 / 10;    // 10 fps in milliseconds
 
@@ -196,10 +196,10 @@ public class BamResource2 implements Resource, ActionListener, ChangeListener, P
 
 //--------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+//--------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
+  public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == cbTransparency) {
       ignoreTransparency = cbTransparency.isSelected();
@@ -218,7 +218,7 @@ public class BamResource2 implements Resource, ActionListener, ChangeListener, P
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+//--------------------- End Interface ItemListener ---------------------
 
 //--------------------- Begin Interface PropertyChangeListener ---------------------
 
@@ -362,7 +362,7 @@ public class BamResource2 implements Resource, ActionListener, ChangeListener, P
 
     cbTransparency = new JCheckBox("Ignore transparency", ignoreTransparency);
     cbTransparency.setToolTipText("Only legacy BAM resources (BAM V1) are affected.");
-    cbTransparency.addChangeListener(this);
+    cbTransparency.addItemListener(this);
     JPanel optionsPanel = new JPanel();
     BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
     optionsPanel.setLayout(bl);
