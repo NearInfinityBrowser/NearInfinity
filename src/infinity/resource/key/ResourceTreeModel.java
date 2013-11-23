@@ -192,7 +192,7 @@ public final class ResourceTreeModel implements TreeModel
     entries.remove(entry.toString().toUpperCase());
     if (parent.getChildCount() == 0) {
       root.removeFolder(parent);
-      folders.remove(entry.getTreeFolder());
+      folders.remove(parent.folderName());
     }
     for (int i = 0; i < treeModelListeners.size(); i++)
       treeModelListeners.get(i).treeNodesRemoved(event);
