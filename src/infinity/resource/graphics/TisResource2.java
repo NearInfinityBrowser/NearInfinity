@@ -22,12 +22,12 @@ import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -38,12 +38,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -74,11 +75,10 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
   private JTextField tfCols;              // input/output tiles per row
   private JCheckBox cbGrid;               // show/hide frame around each tile
   private ButtonPopupMenu bpmExport;      // "Export..." button menu
-  private JMenuItem miExport, miOldTis;
-  private JButton bExport;
+  private JMenuItem miExport, miExportLegacyTis, miExportPNG;
   private JPanel panel;                   // top-level panel of the viewer
   private RootPaneContainer rpc;
-  private SwingWorker<List<byte[]>, Void> workerConvert;
+  private SwingWorker<List<byte[]>, Void> workerConvert, workerExport;
   private WindowBlocker blocker;
 
 
@@ -93,10 +93,9 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if ((miExport != null && event.getSource() == miExport) ||
-        (bExport != null && event.getSource() == bExport)) {
+    if (event.getSource() == miExport) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
-    } else if (event.getSource() == miOldTis) {
+    } else if (event.getSource() == miExportLegacyTis) {
       blocker = new WindowBlocker(rpc);
       blocker.setBlocked(true);
       workerConvert = new SwingWorker<List<byte[]>, Void>() {
@@ -105,7 +104,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         {
           List<byte[]> list = new Vector<byte[]>(1);
           try {
-            byte[] buf = convertToOldTis();
+            byte[] buf = convertToLegacyTis();
             if (buf != null) {
               list.add(buf);
             }
@@ -117,6 +116,27 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
       };
       workerConvert.addPropertyChangeListener(this);
       workerConvert.execute();
+    } else if (event.getSource() == miExportPNG) {
+      blocker = new WindowBlocker(rpc);
+      blocker.setBlocked(true);
+      workerExport = new SwingWorker<List<byte[]>, Void>() {
+        @Override
+        public List<byte[]> doInBackground()
+        {
+          List<byte[]> list = new Vector<byte[]>(1);
+          try {
+            byte[] buf = exportPNG();
+            if (buf != null) {
+              list.add(buf);
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          return list;
+        }
+      };
+      workerExport.addPropertyChangeListener(this);
+      workerExport.execute();
     }
   }
 
@@ -210,7 +230,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         try {
           List<byte[]> l = workerConvert.get();
           if (l != null && !l.isEmpty()) {
-            tisData = workerConvert.get().get(0);
+            tisData = l.get(0);
             l.clear();
             l = null;
           }
@@ -223,10 +243,45 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
                                                          panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                          "Export has been cancelled." + entry, "Information",
+                                          "Export has been cancelled.", "Information",
                                           JOptionPane.INFORMATION_MESSAGE);
           }
           tisData = null;
+        } else {
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+                                        "Error while exporting " + entry, "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    } else if (event.getSource() == workerExport) {
+      if ("state".equals(event.getPropertyName()) &&
+          SwingWorker.StateValue.DONE == event.getNewValue()) {
+        if (blocker != null) {
+          blocker.setBlocked(false);
+          blocker = null;
+        }
+        byte[] pngData = null;
+        try {
+          List<byte[]> l = workerExport.get();
+          if (l != null && !l.isEmpty()) {
+            pngData = l.get(0);
+            l.clear();
+            l = null;
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        if (pngData != null) {
+          if (pngData.length > 0) {
+            String fileName = entry.toString().replace(".TIS", ".PNG");
+            ResourceFactory.getInstance().exportResource(entry, pngData, fileName,
+                                                         panel.getTopLevelAncestor());
+          } else {
+            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+                                          "Export has been cancelled.", "Information",
+                                          JOptionPane.INFORMATION_MESSAGE);
+          }
+          pngData = null;
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
@@ -332,7 +387,6 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
     // 2.1. creating tiles table and scroll pane
     tileGrid = new TileGrid(1, DEFAULT_COLUMNS, decoder.info().tileWidth(), decoder.info().tileHeight());
     tileGrid.addImage(tileImages);
-    tileGrid.setTileColor(Color.BLACK);
     if (tileGrid.getImageCount() > 6) {
       int colSize = calcTileWidth(entry, tileGrid.getImageCount());
       tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), colSize));
@@ -353,29 +407,33 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
     // 3. creating bottom panel
     // 3.1. creating export button
+    miExport = new JMenuItem("original");
+    miExport.addActionListener(this);
     if (decoder.info().type() == TisDecoder.TisInfo.TisType.PVRZ) {
-      miExport = new JMenuItem("original");
-      miExport.addActionListener(this);
-      miOldTis = new JMenuItem("as legacy TIS");
-      miOldTis.addActionListener(this);
-      bpmExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miOldTis});
-      bpmExport.setIcon(Icons.getIcon("Export16.gif"));
-      bpmExport.setMnemonic('e');
-      bExport = null;
-    } else {
-      bExport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-      bExport.setMnemonic('e');
-      bExport.addActionListener(this);
-      bpmExport = null;
+      miExportLegacyTis = new JMenuItem("as legacy TIS");
+      miExportLegacyTis.addActionListener(this);
     }
+    miExportPNG = new JMenuItem("as PNG");
+    miExportPNG.addActionListener(this);
+
+    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    if (miExport != null)
+      list.add(miExport);
+    if (miExportLegacyTis != null)
+      list.add(miExportLegacyTis);
+    if (miExportPNG != null)
+      list.add(miExportPNG);
+    JMenuItem[] mi = new JMenuItem[list.size()];
+    for (int i = 0; i < mi.length; i++) {
+      mi[i] = list.get(i);
+    }
+    bpmExport = new ButtonPopupMenu("Export...", mi);
+    bpmExport.setIcon(Icons.getIcon("Export16.gif"));
+    bpmExport.setMnemonic('e');
 
     // 3.2. putting bottom panel together
     JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    if (bpmExport != null) {
-      bottomPanel.add(bpmExport);
-    } else if (bExport != null) {
-      bottomPanel.add(bExport);
-    }
+    bottomPanel.add(bpmExport);
 
     // 4. packing all together
     panel = new JPanel(new BorderLayout());
@@ -402,7 +460,8 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
           tileImages.add(image);
         } else {
           tileImages.add(ColorConvert.createCompatibleImage(decoder.info().tileWidth(),
-                                                            decoder.info().tileHeight(), false));
+                                                            decoder.info().tileHeight(),
+                                                            Transparency.BITMASK));
         }
       }
       decoder.flush();
@@ -413,7 +472,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
       if (tileImages == null)
         tileImages = new ArrayList<Image>();
       if (tileImages.isEmpty())
-        tileImages.add(ColorConvert.createCompatibleImage(1, 1, false));
+        tileImages.add(ColorConvert.createCompatibleImage(1, 1, Transparency.BITMASK));
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                     "Error while loading TIS resource: " + entry.getResourceName(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -421,7 +480,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
   }
 
   // Converts the current PVRZ-based tileset into the old tileset variant. DO NOT call directly!
-  private byte[] convertToOldTis()
+  private byte[] convertToLegacyTis()
   {
     byte[] buf = null;
     if (tileImages != null && !tileImages.isEmpty()) {
@@ -502,6 +561,48 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         progress.close();
     }
     return buf;
+  }
+
+  // Converts the tileset into the PNG format. DO NOT call directly!
+  private byte[] exportPNG()
+  {
+    byte[] buffer = null;
+    if (tileImages != null && !tileImages.isEmpty()) {
+      int tilesX = tileGrid.getTileColumns();
+      int tilesY = tileGrid.getTileRows();
+      if (tilesX > 0 && tilesY > 0) {
+        BufferedImage image = null;
+        ProgressMonitor progress = new ProgressMonitor(panel.getTopLevelAncestor(),
+                                                       "Exporting TIS to PNG...", "", 0, 2);
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+        progress.setProgress(0);
+        try {
+          image = ColorConvert.createCompatibleImage(tilesX*64, tilesY*64, Transparency.BITMASK);
+          Graphics2D g = (Graphics2D)image.getGraphics();
+          for (int idx = 0; idx < tileImages.size(); idx++) {
+            if (tileImages.get(idx) != null) {
+              int tx = idx % tilesX;
+              int ty = idx / tilesX;
+              g.drawImage(tileImages.get(idx), tx*64, ty*64, null);
+            }
+          }
+          g.dispose();
+
+          progress.setProgress(1);
+          ByteArrayOutputStream os = new ByteArrayOutputStream();
+          if (ImageIO.write(image, "png", os)) {
+            buffer = os.toByteArray();
+          }
+        } catch (Exception e) {
+        }
+        if (progress.isCanceled()) {
+          buffer = new byte[0];
+        }
+        progress.close();
+      }
+    }
+    return buffer;
   }
 
   // calculates a Dimension structure with the correct number of columns and rows from the specified arguments

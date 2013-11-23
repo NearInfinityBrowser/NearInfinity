@@ -10,6 +10,7 @@ import infinity.util.DynamicArray;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -141,7 +142,8 @@ public class TisDecoder
   {
     if (!empty()) {
       BufferedImage image = ColorConvert.createCompatibleImage(tileColumns*info().tileWidth(),
-                                                               tileRows*info.tileHeight(), false);
+                                                               tileRows*info.tileHeight(),
+                                                               Transparency.BITMASK);
       if (decode(image, tileColumns, tileRows)) {
         return image;
       } else {
@@ -189,7 +191,7 @@ public class TisDecoder
         imgTileRows++;
 
       BufferedImage imgTile =
-          ColorConvert.createCompatibleImage(info().tileWidth(), info().tileHeight(), false);
+          ColorConvert.createCompatibleImage(info().tileWidth(), info().tileHeight(), Transparency.BITMASK);
       Graphics2D g = (Graphics2D)image.getGraphics();
       for (int y = 0; y < imgTileRows; y++) {
         for (int x = 0; x < imgTileCols; x++) {
@@ -221,7 +223,8 @@ public class TisDecoder
   {
     if (!empty()) {
       BufferedImage image = ColorConvert.createCompatibleImage(info().tileWidth(),
-                                                               info().tileHeight(), false);
+                                                               info().tileHeight(),
+                                                               Transparency.BITMASK);
       if (decodeTile(image, tileIndex)) {
         return image;
       } else {
@@ -387,6 +390,9 @@ public class TisDecoder
         int[] palette = new int[256];
         for (int i = 0; i < palette.length; i++, inOfs+=4) {
           palette[i] = DynamicArray.getInt(inBuffer, inOfs) | 0xff000000;
+          if (i == 0 && (palette[i] & 0x00ffffff) == 0x0000ff00) {
+            palette[i] &= 0x00ffffff;
+          }
         }
         int[] dataBlock = new int[info().tileWidth()*info().tileHeight()];
         for (int i = 0; i < dataBlock.length; i++, inOfs++) {
