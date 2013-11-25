@@ -30,7 +30,7 @@ public final class StringEntry extends AbstractStruct
   {
     list.add(new HexNumber(buffer, offset, 4, "Offset to next free region"));
     list.add(new HexNumber(buffer, offset + 4, 4, "Offset of preceeding entry"));
-    list.add(new TextEdit(buffer, offset + 8, 512, "String data", TextEdit.EOLType.UNIX));
+    list.add(new TextEdit(buffer, offset + 8, 512, "String data"));
     list.add(new HexNumber(buffer, offset + 520, 4, "Offset of following entry"));
     return offset + 524;
   }
