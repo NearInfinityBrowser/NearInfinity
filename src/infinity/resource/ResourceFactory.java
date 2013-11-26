@@ -694,6 +694,9 @@ public final class ResourceFactory
     boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
                                   BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
     for (final File rootDir: rootDirs) {
+      // excluding language folder from search
+      if (langRoot == rootDir)
+        continue;
       File overrideDir = NIFile.getFile(rootDir, OVERRIDEFOLDER);
       if (overrideDir.exists()) {
         File overrideFiles[] = overrideDir.listFiles();
