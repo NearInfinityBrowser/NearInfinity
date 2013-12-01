@@ -4,7 +4,6 @@
 
 package infinity.resource.are.viewer;
 
-import infinity.datatype.Datatype;
 import infinity.datatype.DecNumber;
 import infinity.datatype.HexNumber;
 import infinity.datatype.RemovableDecNumber;
@@ -31,10 +30,10 @@ import infinity.resource.are.TiledObject;
 import infinity.resource.are.Variable;
 import infinity.resource.vertex.Vertex;
 import infinity.resource.wed.Overlay;
-import infinity.resource.wed.Tilemap;
 import infinity.resource.wed.WallPolygon;
 import infinity.resource.wed.Wallgroup;
 import infinity.resource.wed.WedResource;
+import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 
 import java.util.ArrayList;
@@ -49,7 +48,7 @@ import java.util.List;
  * Manages map structures for the AreaViewer.
  * @author argent77
  */
-final class AreaStructures
+final class AreaStructure
 {
   // identifies preprocessed lists of StructEntry objects
   public static enum Structure {
@@ -59,7 +58,7 @@ final class AreaStructures
     ACTOR, AMBIENT, ANIMATION, AUTOMAP, CONTAINER, ENTRANCE, EXPLORED, PROTRAP, REGION,
     REST, SONG, SPAWNPOINT, TILE, VARIABLE,
     // WED related structures
-    DOORPOLY, DOORTILE, OVERLAY, POLYGONINDEX, TILEMAP, TILEINDEX, WALLGROUP, WALLPOLY,
+    DOORPOLY, DOORTILE, OVERLAY, POLYGONINDEX, TILEINDEX, WALLGROUP, WALLPOLY,
     // used in both super structures
     DOOR, VERTEX
   }
@@ -70,7 +69,7 @@ final class AreaStructures
 
   private final AreaViewer viewer;
 
-  AreaStructures(AreaViewer viewer)
+  public AreaStructure(AreaViewer viewer)
   {
     if (viewer == null)
       throw new NullPointerException();
@@ -84,7 +83,7 @@ final class AreaStructures
    * @param struct The type of the map structures to return.
    * @return A list of entries of the specified map structure type.
    */
-  List<StructEntry> getStructureList(Structure superStruct, Structure struct)
+  public List<StructEntry> getStructureList(Structure superStruct, Structure struct)
   {
     if (structures.containsKey(superStruct)) {
       if (structures.get(superStruct).containsKey(struct)) {
@@ -101,7 +100,7 @@ final class AreaStructures
    * @param offset The offset in bytes of the map structure entry to find.
    * @return The map structure entry found at the specified offset.
    */
-  StructEntry getEntryByOffset(Structure superStruct, Structure struct, int offset)
+  public StructEntry getStructureByOffset(Structure superStruct, Structure struct, int offset)
   {
     if (structures.containsKey(superStruct)) {
       if (structures.get(superStruct).containsKey(struct)) {
@@ -117,35 +116,13 @@ final class AreaStructures
   }
 
   /**
-   * Returns the list item index of the first map structure entry located at the specified offset.
-   * @param superStruct The super structure the map structure belongs to (ARE or WED).
-   * @param struct The type of map structure to search for the map structure entry.
-   * @param offset The offset in bytes of the map structure entry to find.
-   * @return The list item index of the map structure entry at the specified offset,
-   *         or -1 if no match has been found.
-   */
-  int getIndexByOffset(Structure superStruct, Structure struct, int offset)
-  {
-    if (structures.containsKey(superStruct)) {
-      if (structures.get(superStruct).containsKey(struct)) {
-        List<StructEntry> list = structures.get(superStruct).get(struct);
-        for (int i = 0; i < list.size(); i++) {
-          if (list.get(i).getOffset() == offset)
-            return i;
-        }
-      }
-    }
-    return -1;
-  }
-
-  /**
    * Returns a single map structure entry located at the specified list position.
    * @param superStruct The super structure the map structure belongs to (ARE or WED).
    * @param struct The type of map structure to search for the map structure entry.
    * @param index The list index of the map structure entry to find.
    * @return The map structure entry found at the specified list index.
    */
-  StructEntry getEntryByIndex(Structure superStruct, Structure struct, int index)
+  public StructEntry getStructureByIndex(Structure superStruct, Structure struct, int index)
   {
     if (structures.containsKey(superStruct)) {
       if (structures.get(superStruct).containsKey(struct)) {
@@ -161,7 +138,7 @@ final class AreaStructures
   /**
    * Removes all map structures and super structures from memory.
    */
-  void clear()
+  public void clear()
   {
     Collection<EnumMap<Structure, List<StructEntry>>> baseMapCol = structures.values();
     for (final EnumMap<Structure, List<StructEntry>> mapCol: baseMapCol) {
@@ -184,7 +161,7 @@ final class AreaStructures
    *               specified, all map structures of the current (or all) super structures will be
    *               removed.
    */
-  void clearStructure(Structure superStruct, Structure struct)
+  public void clearStructure(Structure superStruct, Structure struct)
   {
     if (superStruct != null) {
       if (structures.containsKey(superStruct)) {
@@ -219,17 +196,17 @@ final class AreaStructures
   /**
    * Initializes all ARE and WED structure entries.
    */
-  void init(WedResource wed)
+  public void init()
   {
     // preparing map entries
     initAre();
-    initWed(wed);
+    initWed();
   }
 
   /**
    * Initializes all ARE specific map structures.
    */
-  void initAre()
+  public void initAre()
   {
     // removing old ARE entry
     if (structures.containsKey(Structure.ARE)) {
@@ -281,7 +258,7 @@ final class AreaStructures
    * Initializes all WED specific map structures that belong to the current ARE resource.
    * Uses the currently active WED resource.
    */
-  void initWed(WedResource wed)
+  public void initWed()
   {
     // remove old WED entry
     if (structures.containsKey(Structure.WED)) {
@@ -289,6 +266,7 @@ final class AreaStructures
     }
 
     // create and add new WED entry
+    WedResource wed = viewer.getCurrentWed();
     if (wed != null) {
       EnumMap<Structure, List<StructEntry>> structMap = new EnumMap<Structure, List<StructEntry>>(Structure.class);
       ArrayList<StructEntry> entryList = new ArrayList<StructEntry>();
@@ -301,7 +279,7 @@ final class AreaStructures
       // adding doors
       initWedDoor(structMap);
       // adding tile maps
-      initWedTileMap(structMap);
+      initWedTileIndex(structMap);
       // adding door tiles
       initWedDoorTile(structMap);
       // adding tile indices
@@ -324,7 +302,7 @@ final class AreaStructures
    * @param superStruct The super structure (ARE or WED) the specified structure belongs to.
    * @param struct The structure to initialize.
    */
-  void initStructure(Structure superStruct, Structure struct)
+  public void initStructure(Structure superStruct, Structure struct)
   {
     if (superStruct == Structure.ARE) {
       EnumMap<Structure, List<StructEntry>> structMap = structures.get(Structure.ARE);
@@ -895,7 +873,12 @@ final class AreaStructures
         }
       }
       // sorting polygon entries by offset
-      Collections.sort(list, Utils.OffsetComparator);
+      Collections.sort(list, new Comparator<StructEntry>() {
+        @Override
+        public int compare(StructEntry e1, StructEntry e2) {
+          return e1.getOffset() - e2.getOffset();
+        }
+      });
       // removing duplicate entries
       int i = 1;
       while (i < list.size()) {
@@ -983,7 +966,7 @@ final class AreaStructures
     }
   }
 
-  // must be called AFTER initWedDoor()
+  // must be called AFTER initWedOverlay()
   private void initWedDoorTile(EnumMap<Structure, List<StructEntry>> wedMap)
   {
     // removing old list
@@ -997,83 +980,33 @@ final class AreaStructures
       HexNumber so = (HexNumber)wed.getAttribute("Door tilemap lookup offset");
 
       // getting correct number of door tilemaps
-      int tileCount = 0;
-      List<StructEntry> doorList = wedMap.get(Structure.DOOR);
-      if (doorList != null) {
-        for (int i = 0; i < doorList.size(); i++) {
-          infinity.resource.wed.Door door = (infinity.resource.wed.Door)doorList.get(i);
-          int count = ((DecNumber)door.getAttribute("Tilemap lookup index")).getValue();
-          count += ((DecNumber)door.getAttribute("# tilemap indexes")).getValue();
-          if (count > tileCount)
-            tileCount = count;
-        }
-      }
-
-      List<StructEntry> list = new ArrayList<StructEntry>(tileCount);
-      List<StructEntry> wedEntries = wed.getFlatList();
-      int firstEntry = -1;
-      for (int i = 0; i < wedEntries.size(); i++) {
-        if (wedEntries.get(i).getOffset() == so.getValue()) {
-          firstEntry = i;
-          break;
-        }
-      }
-      if (firstEntry >= 0 && firstEntry + tileCount <= wedEntries.size()) {
-        for (int i = firstEntry; i < firstEntry + tileCount; i++) {
-          RemovableDecNumber entry = (RemovableDecNumber)wedEntries.get(i);
-          if (entry != null) {
-            list.add(entry);
-          }
-        }
-      }
-      wedMap.put(Structure.DOORTILE, list);
-    }
-  }
-
-  // must be called AFTER initWedOverlay()
-  private void initWedTileMap(EnumMap<Structure, List<StructEntry>> wedMap)
-  {
-    // removing old list
-    if (wedMap.containsKey(Structure.TILEMAP)) {
-      wedMap.remove(Structure.TILEMAP);
-    }
-
-    // adding new list
-    if (wedMap.containsKey(Structure.WED) && !wedMap.get(Structure.WED).isEmpty()) {
-      int tileOfs = -1;
       int tileCount = -1;
       if (wedMap.containsKey(Structure.OVERLAY) && !wedMap.get(Structure.OVERLAY).isEmpty()) {
         Overlay ovl = (Overlay)wedMap.get(Structure.OVERLAY).get(0);
-        SectionOffset so = (SectionOffset)ovl.getAttribute("Tilemap offset");
-        tileOfs = so.getValue();
-        SectionOffset so2 = (SectionOffset)ovl.getAttribute("Tilemap lookup offset");
-        final int sizeTile = 10;    // XXX: get structure size dynamically
-        tileCount = (so2.getValue() - so.getValue()) / sizeTile;
+        HexNumber scOvl = (HexNumber)ovl.getAttribute("Tilemap lookup offset");
+        final int size = 2;
+        tileCount = (scOvl.getValue() - so.getValue()) / size;
       }
 
-      if (tileOfs > 0 && tileCount > 0) {
+      if (tileCount >= 0) {
         List<StructEntry> list = new ArrayList<StructEntry>(tileCount);
-        // parsing each overlay entry, adding all tilemap entries to the list
-        for (final StructEntry ovlEntry: wedMap.get(Structure.OVERLAY)) {
-          Overlay ovl = (Overlay)ovlEntry;
-          for (final StructEntry tileEntry: ovl.getList()) {
-            if (tileEntry instanceof Tilemap) {
-              list.add(tileEntry);
+        List<StructEntry> wedEntries = wed.getFlatList();
+        int firstEntry = -1;
+        for (int i = 0; i < wedEntries.size(); i++) {
+          if (wedEntries.get(i).getOffset() == so.getValue()) {
+            firstEntry = i;
+            break;
+          }
+        }
+        if (firstEntry >= 0 && firstEntry < wedEntries.size()) {
+          for (int i = firstEntry; i < firstEntry + tileCount; i++) {
+            RemovableDecNumber entry = (RemovableDecNumber)wedEntries.get(i);
+            if (entry != null) {
+              list.add(entry);
             }
           }
         }
-        // sorting polygon entries by offset
-        Collections.sort(list, Utils.OffsetComparator);
-        // removing duplicate entries
-        int i = 1;
-        while (i < list.size()) {
-          if (list.get(i).getOffset() == list.get(i-1).getOffset()) {
-            list.remove(i);
-            continue;
-          }
-          i++;
-        }
-        wedMap.put(Structure.TILEMAP, list);
+        wedMap.put(Structure.DOORTILE, list);
       }
     }
   }
@@ -1135,9 +1068,22 @@ final class AreaStructures
       WedResource wed = (WedResource)wedMap.get(Structure.WED).get(0);
       SectionOffset so = (SectionOffset)wed.getAttribute("Wall groups offset");
       if (so != null) {
+        HexNumber[] offsets =
+            new HexNumber[]{so, (HexNumber)wed.getAttribute("Overlays offset"),
+                            (HexNumber)wed.getAttribute("Second header offset"),
+                            (HexNumber)wed.getAttribute("Doors offset"),
+                            (HexNumber)wed.getAttribute("Door tilemap lookup offset"),
+                            (HexNumber)wed.getAttribute("Wall polygons offset"),
+                            (HexNumber)wed.getAttribute("Wall polygon lookup offset"),
+                            new HexNumber(DynamicArray.convertInt(wed.getSize()), 0, 4, "")};
+        Arrays.sort(offsets, new Comparator<HexNumber>() {
+          @Override
+          public int compare(HexNumber s1, HexNumber s2) {
+            return ((s1 != null) ? s1.getValue() : 0) - ((s2 != null) ? s2.getValue() : 0);
+          }
+        });
         final int sizeWallgroup = 4;   // XXX: get structure size dynamically
-        DecNumber[] offsets = Utils.getSortedWedOffsets(wed);
-        int count = (offsets[Utils.getIndexByOffset(offsets, so.getOffset()) + 1].getValue() - so.getValue()) / sizeWallgroup;
+        int count = (offsets[ArrayUtil.indexOf(offsets, so) + 1].getValue() - so.getValue()) / sizeWallgroup;
         if (so.getValue() > 0 && count >= 0) {
           List<StructEntry> list = new ArrayList<StructEntry>(count);
           List<StructEntry> wedEntries = wed.getList();
@@ -1223,7 +1169,12 @@ final class AreaStructures
         }
       }
       // sorting polygon entries by offset
-      Collections.sort(list, Utils.OffsetComparator);
+      Collections.sort(list, new Comparator<StructEntry>() {
+        @Override
+        public int compare(StructEntry e1, StructEntry e2) {
+          return e1.getOffset() - e2.getOffset();
+        }
+      });
       // removing duplicate entries
       int i = 1;
       while (i < list.size()) {
@@ -1249,9 +1200,23 @@ final class AreaStructures
       WedResource wed = (WedResource)wedMap.get(Structure.WED).get(0);
       SectionOffset so = (SectionOffset)wed.getAttribute("Wall polygon lookup offset");
       if (so != null) {
-        final int sizePoly = 2;
-        DecNumber[] offsets = Utils.getSortedWedOffsets(wed);
-        int count = (offsets[Utils.getIndexByOffset(offsets, so.getOffset()) + 1].getValue() - so.getValue()) / sizePoly;
+        HexNumber[] offsets =
+            new HexNumber[]{so, (HexNumber)wed.getAttribute("Overlays offset"),
+                            (HexNumber)wed.getAttribute("Second header offset"),
+                            (HexNumber)wed.getAttribute("Doors offset"),
+                            (HexNumber)wed.getAttribute("Door tilemap lookup offset"),
+                            (HexNumber)wed.getAttribute("Wall polygons offset"),
+                            (HexNumber)wed.getAttribute("Wall groups offset"),
+                            (HexNumber)wed.getAttribute("Vertices offset"),
+                            new HexNumber(DynamicArray.convertInt(wed.getSize()), 0, 4, "")};
+        Arrays.sort(offsets, new Comparator<HexNumber>() {
+          @Override
+          public int compare(HexNumber s1, HexNumber s2) {
+            return ((s1 != null) ? s1.getValue() : 0) - ((s2 != null) ? s2.getValue() : 0);
+          }
+        });
+        final int size = 2;
+        int count = (offsets[ArrayUtil.indexOf(offsets, so) + 1].getValue() - so.getValue()) / size;
         if (so.getValue() > 0 && count >= 0) {
           List<StructEntry> list = new ArrayList<StructEntry>(count);
           List<StructEntry> wedEntries = wed.getList();
@@ -1303,7 +1268,12 @@ final class AreaStructures
         }
       }
       // sorting polygon entries by offset
-      Collections.sort(list, Utils.OffsetComparator);
+      Collections.sort(list, new Comparator<StructEntry>() {
+        @Override
+        public int compare(StructEntry e1, StructEntry e2) {
+          return e1.getOffset() - e2.getOffset();
+        }
+      });
       // removing duplicate entries
       int i = 1;
       while (i < list.size()) {
@@ -1314,62 +1284,6 @@ final class AreaStructures
         i++;
       }
       wedMap.put(Structure.VERTEX, list);
-    }
-  }
-
-//----------------------------- INNER CLASSES -----------------------------
-
-  private static final class Utils
-  {
-    // compares by offsets
-    public static final Comparator<StructEntry> OffsetComparator = new Comparator<StructEntry>() {
-      @Override
-      public int compare(StructEntry e1, StructEntry e2) {
-        return e1.getOffset() - e2.getOffset();
-      }
-    };
-
-    // simple number comparator
-    public static final Comparator<DecNumber> NumberComparator = new Comparator<DecNumber>() {
-      @Override
-      public int compare(DecNumber s1, DecNumber s2) {
-        return ((s1 != null) ? s1.getValue() : 0) - ((s2 != null) ? s2.getValue() : 0);
-      }
-    };
-
-    // returns a sorted array of WED offsets
-    public static DecNumber[] getSortedWedOffsets(WedResource wed)
-    {
-      if (wed != null) {
-        DecNumber[] offsets = new HexNumber[]{
-            (HexNumber)wed.getAttribute("Overlays offset"),
-            (HexNumber)wed.getAttribute("Second header offset"),
-            (HexNumber)wed.getAttribute("Doors offset"),
-            (HexNumber)wed.getAttribute("Door tilemap lookup offset"),
-            (HexNumber)wed.getAttribute("Wall polygons offset"),
-            (HexNumber)wed.getAttribute("Vertices offset"),
-            (HexNumber)wed.getAttribute("Wall groups offset"),
-            (HexNumber)wed.getAttribute("Wall polygon lookup offset"),
-            new HexNumber(DynamicArray.convertInt(wed.getSize()), 0, 4, "")};
-        Arrays.sort(offsets, NumberComparator);
-        return offsets;
-      }
-      return null;
-    }
-
-    // returns the index of the item with the specified offset
-    public static int getIndexByOffset(Datatype[] array, int offset)
-    {
-      int index = -1;
-      if (array != null) {
-        for (int i = 0; i < array.length; i++) {
-          if (array[i] != null && array[i].getOffset() == offset) {
-            index = i;
-            break;
-          }
-        }
-      }
-      return index;
     }
   }
 }
