@@ -10,6 +10,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -65,15 +66,23 @@ public class ColorConvert
   {
     if (img != null) {
       if (img instanceof BufferedImage) {
-        return (BufferedImage)img;
-      } else {
-        final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
-                                                          hasTransparency);
-        Graphics2D g = (Graphics2D)image.getGraphics();
-        g.drawImage(img, 0, 0, null);
-        g.dispose();
-        return image;
+        try {
+          // the main purpose of this method is direct access to the underlying data buffer
+          BufferedImage image = (BufferedImage)img;
+          int[] tmp = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+          if (tmp == null)
+            throw new Exception();
+          tmp = null;
+          return image;
+        } catch (Exception e) {
+        }
       }
+      final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
+                                                        hasTransparency);
+      Graphics2D g = (Graphics2D)image.getGraphics();
+      g.drawImage(img, 0, 0, null);
+      g.dispose();
+      return image;
     }
     return null;
   }

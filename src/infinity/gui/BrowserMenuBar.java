@@ -933,6 +933,7 @@ public final class BrowserMenuBar extends JMenuBar
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
     private final JMenuItem toolCheckStringUse, toolCheckFileUse, toolMassExport;
     private final JMenuItem toolCheckEffectsIndex;
+    private final JMenuItem toolConvImageToMos, toolConvImageToTis, toolConvImageToPvrz;
 //    private JMenuItem toolBatchJob;
     private final JCheckBoxMenuItem toolConsole, toolClipBoard;
 
@@ -947,37 +948,43 @@ public final class BrowserMenuBar extends JMenuBar
       addSeparator();
 
       toolCleanKeyfile =
-      makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.getIcon("Refresh16.gif"), -1, this);
+          makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.getIcon("Refresh16.gif"), -1, this);
       add(toolCleanKeyfile);
 
       addSeparator();
 
-      JMenu checkMenu = new JMenu("Check Triggers & Actions For");
-      checkMenu.setIcon(Icons.getIcon("Refresh16.gif"));
-      toolCheckAllDialog = new JMenuItem("All Dialogues");
-      toolCheckAllDialog.addActionListener(this);
-      checkMenu.add(toolCheckAllDialog);
-      toolCheckOverrideDialog = new JMenuItem("Override Dialogues Only");
-      toolCheckOverrideDialog.addActionListener(this);
-      checkMenu.add(toolCheckOverrideDialog);
+      // *** Begin Check submenu ***
+      JMenu checkMenu = new JMenu("Check");
+//      checkMenu.setIcon(Icons.getIcon("Find16.gif"));
+      checkMenu.setMnemonic('c');
       add(checkMenu);
 
+      JMenu checkSubMenu = new JMenu("Triggers & Actions For");
+      checkSubMenu.setIcon(Icons.getIcon("Refresh16.gif"));
+      toolCheckAllDialog = new JMenuItem("All Dialogues");
+      toolCheckAllDialog.addActionListener(this);
+      checkSubMenu.add(toolCheckAllDialog);
+      toolCheckOverrideDialog = new JMenuItem("Override Dialogues Only");
+      toolCheckOverrideDialog.addActionListener(this);
+      checkSubMenu.add(toolCheckOverrideDialog);
+      checkMenu.add(checkSubMenu);
+
       toolCheckScripts =
-      makeMenuItem("Check Scripts", KeyEvent.VK_S, Icons.getIcon("Refresh16.gif"), -1, this);
-      add(toolCheckScripts);
+          makeMenuItem("Scripts", KeyEvent.VK_S, Icons.getIcon("Refresh16.gif"), -1, this);
+      checkMenu.add(toolCheckScripts);
 
       toolCheckCREInv =
-      makeMenuItem("Find CRE Items Not in Inventory", KeyEvent.VK_C, Icons.getIcon("Refresh16.gif"), -1,
-                   this);
+          makeMenuItem("For CRE Items Not in Inventory", KeyEvent.VK_C, Icons.getIcon("Refresh16.gif"),
+                       -1, this);
       toolCheckCREInv.setToolTipText("Reports items present in the file but not in the inventory");
-      add(toolCheckCREInv);
+      checkMenu.add(toolCheckCREInv);
 
       toolCheckResRef =
-      makeMenuItem("Find Illegal ResourceRefs...", KeyEvent.VK_R, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("For Illegal ResourceRefs...", KeyEvent.VK_R, Icons.getIcon("Find16.gif"), -1, this);
       toolCheckResRef.setToolTipText("Reports resource references pointing to nonexistent files");
-      add(toolCheckResRef);
+      checkMenu.add(toolCheckResRef);
 
-      JMenu findMenu = new JMenu("Find Unknown IDS References In");
+      JMenu findMenu = new JMenu("For Unknown IDS References In");
       findMenu.setIcon(Icons.getIcon("Find16.gif"));
       toolCheckIDSBCSRef = new JMenuItem("BCS & BS Files");
       toolCheckIDSBCSRef.addActionListener(this);
@@ -985,40 +992,62 @@ public final class BrowserMenuBar extends JMenuBar
       toolCheckIDSRef = new JMenuItem("Other Files...");
       toolCheckIDSRef.addActionListener(this);
       findMenu.add(toolCheckIDSRef);
-      add(findMenu);
+      checkMenu.add(findMenu);
       findMenu.setToolTipText("Reports IDS references to unknown IDS values");
       toolCheckIDSBCSRef.setToolTipText("Note: GTimes, Time, Scroll, ShoutIDs, and Specific are ignored");
       toolCheckIDSRef.setToolTipText("Note: \"0\" references are ignored");
 
       toolCheckStructs =
-      makeMenuItem("Find Corrupted Files...", KeyEvent.VK_F, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("For Corrupted Files...", KeyEvent.VK_F, Icons.getIcon("Find16.gif"), -1, this);
       toolCheckStructs.setToolTipText("Reports structured files with partially overlapping subsections");
-      add(toolCheckStructs);
+      checkMenu.add(toolCheckStructs);
 
       toolCheckStringUse =
-      makeMenuItem("Find Unused Strings", KeyEvent.VK_U, Icons.getIcon("Find16.gif"), -1, this);
-      add(toolCheckStringUse);
+          makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.getIcon("Find16.gif"), -1, this);
+      checkMenu.add(toolCheckStringUse);
 
-      toolCheckFileUse = makeMenuItem("Find Unused Files...", -1, Icons.getIcon("Find16.gif"), -1, this);
-      add(toolCheckFileUse);
+      toolCheckFileUse = makeMenuItem("For Unused Files...", -1, Icons.getIcon("Find16.gif"), -1, this);
+      checkMenu.add(toolCheckFileUse);
 
-      toolCheckEffectsIndex = makeMenuItem("Find Mis-indexed Effects", -1,
-                                           Icons.getIcon("Find16.gif"), -1, this);
-      add(toolCheckEffectsIndex);
+      toolCheckEffectsIndex =
+          makeMenuItem("For Mis-indexed Effects", -1, Icons.getIcon("Find16.gif"), -1, this);
+      checkMenu.add(toolCheckEffectsIndex);
+      // *** End Check submenu ***
+
+      // *** Begin Convert submenu ***
+      JMenu convertMenu = new JMenu("Convert");
+//      convertMenu.setIcon(Icons.getIcon("Export16.gif"));
+      convertMenu.setMnemonic('v');
+      add(convertMenu);
+
+      toolConvImageToPvrz =
+          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon("Export16.gif"), -1, this);
+      convertMenu.add(toolConvImageToPvrz);
+
+      toolConvImageToMos =
+          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
+      toolConvImageToMos.setEnabled(false);
+      convertMenu.add(toolConvImageToMos);
+
+      toolConvImageToTis =
+          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon("Export16.gif"), -1, this);
+      toolConvImageToTis.setEnabled(false);
+      convertMenu.add(toolConvImageToTis);
+      // *** End Convert submenu ***
 
       addSeparator();
 
       toolIDSBrowser =
-      makeMenuItem("IDS Browser", KeyEvent.VK_B, Icons.getIcon("History16.gif"), KeyEvent.VK_B, this);
+          makeMenuItem("IDS Browser", KeyEvent.VK_B, Icons.getIcon("History16.gif"), KeyEvent.VK_B, this);
       add(toolIDSBrowser);
       toolDropZone =
-      makeMenuItem("Script Drop Zone", KeyEvent.VK_Z, Icons.getIcon("History16.gif"), KeyEvent.VK_Z, this);
+          makeMenuItem("Script Drop Zone", KeyEvent.VK_Z, Icons.getIcon("History16.gif"), KeyEvent.VK_Z, this);
       add(toolDropZone);
 
       addSeparator();
 
       toolMassExport =
-      makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
       add(toolMassExport);
 
       addSeparator();
@@ -1141,6 +1170,16 @@ public final class BrowserMenuBar extends JMenuBar
         new MassExporter();
       else if (event.getSource() == toolCheckEffectsIndex)
         new EffectsIndexChecker();
+      else if (event.getSource() == toolConvImageToPvrz) {
+        ConvertToPvrz dlg = (ConvertToPvrz)ChildFrame.getFirstFrame(ConvertToPvrz.class);
+        if (dlg == null)
+          dlg = new ConvertToPvrz();
+        dlg.setVisible(true);
+      } else if (event.getSource() == toolConvImageToTis) {
+        // TODO
+      } else if (event.getSource() == toolConvImageToMos) {
+        // TODO
+      }
     }
   }
 
