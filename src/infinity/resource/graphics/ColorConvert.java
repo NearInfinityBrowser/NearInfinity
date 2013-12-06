@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
@@ -11,11 +12,17 @@ import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 /**
  * Contains a set of color-related static methods (little endian order only).
@@ -87,6 +94,34 @@ public class ColorConvert
     return null;
   }
 
+  /**
+   * Attempts to retrieve the width and height of the specified image file without loading it completely.
+   * @param fileName The image filename.
+   * @return The image dimensions.
+   */
+  public static Dimension getImageDimension(String fileName)
+  {
+    Dimension d = new Dimension();
+    try {
+      ImageInputStream iis = ImageIO.createImageInputStream(new File(fileName));
+      final Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+      if (readers.hasNext()) {
+        ImageReader reader = readers.next();
+        try {
+          reader.setInput(iis);
+          d.width = reader.getWidth(0);
+          d.height = reader.getHeight(0);
+        } finally {
+          reader.dispose();
+        }
+      }
+      iis.close();
+    } catch (Exception e) {
+      d.width = d.height = 0;
+    }
+
+    return d;
+  }
 
   /**
    * Calculates the nearest color available in the palette for the specified color value.

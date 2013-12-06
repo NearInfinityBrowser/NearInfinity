@@ -11,7 +11,6 @@ import infinity.resource.graphics.DxtEncoder;
 import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -74,7 +73,14 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     return filters;
   }
 
-  private static byte[] createPVRHeader(int width, int height, int pixelFormat)
+  /**
+   * Creates a PVR header based on the parameters specified.
+   * @param width Texture width in pixels.
+   * @param height Texture height in pixels.
+   * @param pixelFormat Internal pixel format code.
+   * @return The PVR header as byte array.
+   */
+  public static byte[] createPVRHeader(int width, int height, int pixelFormat)
   {
     byte[] header = new byte[0x34];
     DynamicArray.putInt(header, 0, 0x03525650);   // signature
@@ -93,7 +99,12 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     return header;
   }
 
-  private static int nextPowerOfTwo(int value)
+  /**
+   * Calculates the first available power of two value that is greater than the specified value.
+   * @param value The value that should fit into the resulting power of two value.
+   * @return A power of two value.
+   */
+  public static int nextPowerOfTwo(int value)
   {
     int count = 0, pos = 0;
     for (int i = 0, tmp = value; i < 32; i++) {
@@ -294,63 +305,27 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     GridBagConstraints c = new GridBagConstraints();
     bInputAdd = new JButton("Add...");
     bInputAdd.addActionListener(this);
-    c.anchor = GridBagConstraints.FIRST_LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(0, 0, 4, 0);
-    c.ipadx = 16;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 16, 0);
     pInputAdd.add(bInputAdd, c);
 
     bInputAddFolder = new JButton("Add folder...");
     bInputAddFolder.addActionListener(this);
-    c.anchor = GridBagConstraints.FIRST_LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 1;
-    c.insets = new Insets(4, 0, 0, 0);
-    c.ipadx = 16;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 16, 0);
     pInputAdd.add(bInputAddFolder, c);
 
     JPanel pInputRemove = new JPanel(new GridBagLayout());
     bInputRemove = new JButton("Remove");
     bInputRemove.addActionListener(this);
-    c.anchor = GridBagConstraints.FIRST_LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(0, 0, 4, 0);
-    c.ipadx = 16;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 16, 0);
     pInputRemove.add(bInputRemove, c);
 
     bInputRemoveAll = new JButton("Remove all");
     bInputRemoveAll.addActionListener(this);
-    c.anchor = GridBagConstraints.FIRST_LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 1;
-    c.insets = new Insets(4, 0, 0, 0);
-    c.ipadx = 16;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 16, 0);
     pInputRemove.add(bInputRemoveAll, c);
 
     JPanel pInputCtrl = new JPanel(new BorderLayout());
@@ -364,29 +339,11 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 
     JPanel pInput = new JPanel(new GridBagLayout());
     pInput.setBorder(BorderFactory.createTitledBorder("Input "));
-    c.anchor = GridBagConstraints.FIRST_LINE_START;
-    c.fill = GridBagConstraints.BOTH;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(0, 4, 0, 4);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 1.0;
-    c.weighty = 1.0;
+    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
     pInput.add(scroll, c);
-    c.anchor = GridBagConstraints.FIRST_LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 1;
-    c.insets = new Insets(8, 4, 4, 4);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 4), 0, 0);
     pInput.add(pInputCtrl, c);
 
     // setting up output section
@@ -407,116 +364,35 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
                                           bCompressionHelp.getMargin().bottom, 4));
 
     JPanel pOutputSub = new JPanel(new GridBagLayout());
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(0, 0, 0, 0);
-    c.ipadx = 8;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 8, 0);
     pOutputSub.add(cbOverwrite, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 1;
-    c.gridy = 0;
-    c.insets = new Insets(0, 16, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pOutputSub.add(lCompression, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 2;
-    c.gridy = 0;
-    c.insets = new Insets(0, 4, 0, 0);
-    c.ipadx = 8;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 8, 0);
     pOutputSub.add(cbCompression, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 2;
-    c.gridx = 3;
-    c.gridy = 0;
-    c.insets = new Insets(0, 4, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 3, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOutputSub.add(bCompressionHelp, c);
 
     JPanel pOutput = new JPanel(new GridBagLayout());
     pOutput.setBorder(BorderFactory.createTitledBorder("Output "));
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(0, 4, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOutput.add(lTargetDir, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 1;
-    c.gridy = 0;
-    c.insets = new Insets(0, 8, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 1.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pOutput.add(tfTargetDir, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 2;
-    c.gridy = 0;
-    c.insets = new Insets(0, 4, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
     pOutput.add(bTargetDir, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 1;
-    c.insets = new Insets(0, 4, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOutput.add(lOverwrite, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.NONE;
-    c.gridheight = 1;
-    c.gridwidth = GridBagConstraints.REMAINDER;
-    c.gridx = 1;
-    c.gridy = 1;
-    c.insets = new Insets(0, 8, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 1.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 1, 1, GridBagConstraints.REMAINDER, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(4, 8, 4, 0), 0, 0);
     pOutput.add(pOutputSub, c);
 
     // setting up bottom button bar
@@ -524,7 +400,6 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     bConvert = new JButton("Start Conversion");
     bConvert.addActionListener(this);
     bConvert.setEnabled(isReady());
-    getRootPane().setDefaultButton(bConvert);
     Insets i = bConvert.getInsets();
     bConvert.setMargin(new Insets(i.top + 2, i.left, i.bottom + 2, i.right));
     bCancel = new JButton("Cancel");
@@ -533,100 +408,58 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     bCancel.setMargin(new Insets(i.top + 2, i.left, i.bottom + 2, i.right));
 
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.NONE;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(0, 0, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(cbCloseOnExit, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 1;
-    c.gridy = 0;
-    c.insets = new Insets(0, 0, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 2.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(new JPanel(), c);
-    c.anchor = GridBagConstraints.LINE_END;
-    c.fill = GridBagConstraints.NONE;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 2;
-    c.gridy = 0;
-    c.insets = new Insets(0, 0, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
+               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bConvert, c);
-    c.anchor = GridBagConstraints.LINE_END;
-    c.fill = GridBagConstraints.NONE;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 3;
-    c.gridy = 0;
-    c.insets = new Insets(0, 0, 0, 0);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     // putting all together
     setLayout(new GridBagLayout());
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.BOTH;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(4, 4, 2, 4);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 1.0;
-    c.weighty = 1.0;
+    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
     add(pInput, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.BOTH;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 1;
-    c.insets = new Insets(2, 4, 4, 4);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 0.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
     add(pOutput, c);
-    c.anchor = GridBagConstraints.LINE_START;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridheight = 1;
-    c.gridwidth = 1;
-    c.gridx = 0;
-    c.gridy = 2;
-    c.insets = new Insets(2, 4, 4, 4);
-    c.ipadx = 0;
-    c.ipady = 0;
-    c.weightx = 1.0;
-    c.weighty = 0.0;
+    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
     add(pButtons, c);
 
     // finalizing dialog initialization
-    setPreferredSize(new Dimension(450, 400));
-    setMinimumSize(new Dimension(350, 280));
     pack();
+    setMinimumSize(getPreferredSize());
     setLocationRelativeTo(getParent());
     setVisible(true);
+  }
+
+  private GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
+                                    int gridWidth, int gridHeight, double weightX, double weightY,
+                                    int anchor, int fill, Insets insets, int iPadX, int iPadY)
+  {
+    if (gbc == null)
+      gbc = new GridBagConstraints();
+
+    gbc.gridx = gridX;
+    gbc.gridy = gridY;
+    gbc.gridwidth = gridWidth;
+    gbc.gridheight = gridHeight;
+    gbc.weightx = weightX;
+    gbc.weighty = weightY;
+    gbc.anchor = anchor;
+    gbc.fill = fill;
+    gbc.insets = (insets == null) ? new Insets(0, 0, 0, 0) : insets;
+    gbc.ipadx = iPadX;
+    gbc.ipady = iPadY;
+
+    return gbc;
   }
 
   private void hideWindow()

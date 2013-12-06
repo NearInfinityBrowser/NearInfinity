@@ -1020,18 +1020,16 @@ public final class BrowserMenuBar extends JMenuBar
       convertMenu.setMnemonic('v');
       add(convertMenu);
 
+      toolConvImageToMos =
+          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
+      convertMenu.add(toolConvImageToMos);
+
       toolConvImageToPvrz =
           makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon("Export16.gif"), -1, this);
       convertMenu.add(toolConvImageToPvrz);
 
-      toolConvImageToMos =
-          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
-      toolConvImageToMos.setEnabled(false);
-      convertMenu.add(toolConvImageToMos);
-
       toolConvImageToTis =
           makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon("Export16.gif"), -1, this);
-      toolConvImageToTis.setEnabled(false);
       convertMenu.add(toolConvImageToTis);
       // *** End Convert submenu ***
 
@@ -1172,13 +1170,22 @@ public final class BrowserMenuBar extends JMenuBar
         new EffectsIndexChecker();
       else if (event.getSource() == toolConvImageToPvrz) {
         ConvertToPvrz dlg = (ConvertToPvrz)ChildFrame.getFirstFrame(ConvertToPvrz.class);
-        if (dlg == null)
+        if (dlg == null) {
           dlg = new ConvertToPvrz();
+        }
         dlg.setVisible(true);
       } else if (event.getSource() == toolConvImageToTis) {
-        // TODO
+        ConvertToTis dlg = (ConvertToTis)ChildFrame.getFirstFrame(ConvertToTis.class);
+        if (dlg == null) {
+          dlg = new ConvertToTis();
+        }
+        dlg.setVisible(true);
       } else if (event.getSource() == toolConvImageToMos) {
-        // TODO
+        ConvertToMos dlg = (ConvertToMos)ChildFrame.getFirstFrame(ConvertToMos.class);
+        if (dlg == null) {
+          dlg = new ConvertToMos();
+        }
+        dlg.setVisible(true);
       }
     }
   }
