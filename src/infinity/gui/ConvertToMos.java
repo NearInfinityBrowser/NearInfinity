@@ -299,7 +299,7 @@ public class ConvertToMos extends ChildFrame
     try {
       if (showProgress) {
         // preparing progress meter
-        progress = new ProgressMonitor(parent, "Converting MOS...", "Preparing MOS", 0, 5);
+        progress = new ProgressMonitor(parent, "Converting MOS...", "Preparing data", 0, 5);
         progress.setMillisToDecideToPopup(0);
         progress.setMillisToPopup(0);
         progress.setProgress(0);
@@ -313,7 +313,8 @@ public class ConvertToMos extends ChildFrame
         int h = Math.min(pageDim, height - y);
         if (w == pageDim && h == pageDim) {
           // add page to complete pages list
-          GridManager gm = new GridManager(w, h, true);
+          GridManager gm = new GridManager(pageDim, pageDim);
+          gm.add(new Rectangle(0, 0, pageDim, pageDim));
           pageList.add(gm);
           // register page entry
           int pageIdx = pageList.size() - 1;
@@ -327,16 +328,13 @@ public class ConvertToMos extends ChildFrame
           Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
           for (int i = 0; i < pageList.size(); i++) {
             GridManager gm = pageList.get(i);
-            List<Rectangle> rectList = gm.getMatchingRegions(space, false, GridManager.SortOrder.Unsorted);
-            for (int j = 0; j < rectList.size(); j++) {
-              Rectangle rect = rectList.get(j);
-              if (rect.width < rectMatch.width || rect.height < rectMatch.height) {
-                pageIdx = i;
-                rectMatch = (Rectangle)rect.clone();
-                if (space.width == rectMatch.width && space.height == rectMatch.height) {
-                  // perfect match found
-                  break;
-                }
+            Rectangle rect = gm.findNext(space, GridManager.Alignment.TopLeftHorizontal);
+            if (rect != null) {
+              pageIdx = i;
+              rectMatch = (Rectangle)rect.clone();
+              if (space.width == rectMatch.width && space.height == rectMatch.height) {
+                // perfect match found
+                break;
               }
             }
             if (space.width == rectMatch.width && space.height == rectMatch.height) {
@@ -347,16 +345,16 @@ public class ConvertToMos extends ChildFrame
 
           // create new page if no match found
           if (pageIdx == -1) {
-            GridManager gm = new GridManager(pageDim, pageDim, false);
+            GridManager gm = new GridManager(pageDim, pageDim);
             pageList.add(gm);
             pageIdx = pageList.size() - 1;
             rectMatch.x = rectMatch.y = 0;
-            rectMatch.width = gm.getCols(); rectMatch.height = gm.getRows();
+            rectMatch.width = gm.getWidth(); rectMatch.height = gm.getHeight();
           }
 
           // add region to the page
           GridManager gm = pageList.get(pageIdx);
-          gm.setRectangle(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height), true);
+          gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
           // register page entry
           MosEntry entry = new MosEntry(pvrzIndex + pageIdx, new Point(rectMatch.x, rectMatch.y),
                                         w, h, new Point(x, y));
@@ -450,12 +448,13 @@ public class ConvertToMos extends ChildFrame
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getInputFilters()
   {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[4];
-    filters[0] = new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
-                                             "bmp", "png", "jpg", "jpeg");
-    filters[1] = new FileNameExtensionFilter("BMP files (*.bmp)", "bmp");
-    filters[2] = new FileNameExtensionFilter("PNG files (*.png)", "png");
-    filters[3] = new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg");
+    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
+                                    "bam", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
+        new FileNameExtensionFilter("PNG files (*.png)", "png"),
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
+    };
     return filters;
   }
 
@@ -523,8 +522,8 @@ public class ConvertToMos extends ChildFrame
       gm.shrink();
 
       // generating texture image
-      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getCols());
-      int th = ConvertToPvrz.nextPowerOfTwo(gm.getRows());
+      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth());
+      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight());
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = (Graphics2D)texture.getGraphics();
       g.setBackground(new Color(0, true));
@@ -591,15 +590,17 @@ public class ConvertToMos extends ChildFrame
 
   public ConvertToMos()
   {
-    super("Convert to MOS");
+    super("Convert to MOS", true);
     init();
   }
 
 //--------------------- Begin Class ChildFrame ---------------------
 
-  protected void windowClosing() throws Exception
+  @Override
+  protected boolean windowClosing(boolean forced) throws Exception
   {
     clear();
+    return super.windowClosing(forced);
   }
 
 //--------------------- End Class ChildFrame ---------------------
@@ -834,9 +835,8 @@ public class ConvertToMos extends ChildFrame
     pOptionsV2.setBorder(BorderFactory.createTitledBorder("Options "));
     JLabel lPvrzIndex = new JLabel("PVRZ index starts at:");
     JLabel lCompression = new JLabel("Compression type:");
-    sPvrzIndex = new JSpinner(new SpinnerNumberModel(0, 0, 999999, 1));
+    sPvrzIndex = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
     sPvrzIndex.setToolTipText("Enter a number from 0 to 99999");
-    sPvrzIndex.addChangeListener(this);
     cbCompression = new JComboBox(new Object[]{"Auto", "DXT1", "DXT5"});
     cbCompression.setSelectedIndex(0);
     bCompressionHelp = new JButton("?");

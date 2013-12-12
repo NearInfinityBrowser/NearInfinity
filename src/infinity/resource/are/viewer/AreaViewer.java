@@ -464,7 +464,7 @@ public final class AreaViewer extends ChildFrame
 //--------------------- Begin Class ChildFrame ---------------------
 
   @Override
-  protected void windowClosing() throws Exception
+  protected boolean windowClosing(boolean forced) throws Exception
   {
     mapCanvas.setImage(null);
     mapCanvas.removeAll();
@@ -474,6 +474,7 @@ public final class AreaViewer extends ChildFrame
     dayNightWed.clear();
     dispose();
     System.gc();
+    return super.windowClosing(forced);
   }
 
 //--------------------- End Class ChildFrame ---------------------

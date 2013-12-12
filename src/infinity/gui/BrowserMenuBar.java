@@ -933,7 +933,7 @@ public final class BrowserMenuBar extends JMenuBar
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
     private final JMenuItem toolCheckStringUse, toolCheckFileUse, toolMassExport;
     private final JMenuItem toolCheckEffectsIndex;
-    private final JMenuItem toolConvImageToMos, toolConvImageToTis, toolConvImageToPvrz;
+    private final JMenuItem toolConvImageToBam, toolConvImageToMos, toolConvImageToTis, toolConvImageToPvrz;
 //    private JMenuItem toolBatchJob;
     private final JCheckBoxMenuItem toolConsole, toolClipBoard;
 
@@ -1019,6 +1019,10 @@ public final class BrowserMenuBar extends JMenuBar
 //      convertMenu.setIcon(Icons.getIcon("Export16.gif"));
       convertMenu.setMnemonic('v');
       add(convertMenu);
+
+      toolConvImageToBam =
+          makeMenuItem("Image sequence to BAM...", KeyEvent.VK_B, Icons.getIcon("Export16.gif"), -1, this);
+      convertMenu.add(toolConvImageToBam);
 
       toolConvImageToMos =
           makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
@@ -1184,6 +1188,12 @@ public final class BrowserMenuBar extends JMenuBar
         ConvertToMos dlg = (ConvertToMos)ChildFrame.getFirstFrame(ConvertToMos.class);
         if (dlg == null) {
           dlg = new ConvertToMos();
+        }
+        dlg.setVisible(true);
+      } else if (event.getSource() == toolConvImageToBam) {
+        ConvertToBam dlg = (ConvertToBam)ChildFrame.getFirstFrame(ConvertToBam.class);
+        if (dlg == null) {
+          dlg = new ConvertToBam();
         }
         dlg.setVisible(true);
       }

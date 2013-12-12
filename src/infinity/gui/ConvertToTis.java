@@ -339,7 +339,8 @@ public class ConvertToTis extends ChildFrame
           int h = Math.min(pageDim, img.getHeight() - y);
           if (w == pageDim && h == pageDim) {
             // add page to complete pages list
-            GridManager gm = new GridManager(tilesPerDim, tilesPerDim, true);
+            GridManager gm = new GridManager(tilesPerDim, tilesPerDim);
+            gm.add(new Rectangle(0, 0, tilesPerDim, tilesPerDim));
             pageListComplete.add(gm);
             // register each tile entry in the page
             int pageIdx = pageListComplete.size() - 1;
@@ -359,16 +360,13 @@ public class ConvertToTis extends ChildFrame
             Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
             for (int i = 0; i < pageListIncomplete.size(); i++) {
               GridManager gm = pageListIncomplete.get(i);
-              List<Rectangle> rectList = gm.getMatchingRegions(space, false, GridManager.SortOrder.Unsorted);
-              for (int j = 0; j < rectList.size(); j++) {
-                Rectangle rect = rectList.get(j);
-                if (rect.width < rectMatch.width || rect.height < rectMatch.height) {
-                  pageIdx = i;
-                  rectMatch = (Rectangle)rect.clone();
-                  if (space.width == rectMatch.width && space.height == rectMatch.height) {
-                    // perfect match found
-                    break;
-                  }
+              Rectangle rect = gm.findNext(space, GridManager.Alignment.TopLeftHorizontal);
+              if (rect != null) {
+                pageIdx = i;
+                rectMatch = (Rectangle)rect.clone();
+                if (space.width == rectMatch.width && space.height == rectMatch.height) {
+                  // perfect match found
+                  break;
                 }
               }
               if (space.width == rectMatch.width && space.height == rectMatch.height) {
@@ -379,16 +377,16 @@ public class ConvertToTis extends ChildFrame
 
             // create new page if no match found
             if (pageIdx == -1) {
-              GridManager gm = new GridManager(tilesPerDim, tilesPerDim, false);
+              GridManager gm = new GridManager(tilesPerDim, tilesPerDim);
               pageListIncomplete.add(gm);
               pageIdx = pageListIncomplete.size() - 1;
               rectMatch.x = rectMatch.y = 0;
-              rectMatch.width = gm.getCols(); rectMatch.height = gm.getRows();
+              rectMatch.width = gm.getWidth(); rectMatch.height = gm.getHeight();
             }
 
             // add region to the page
             GridManager gm = pageListIncomplete.get(pageIdx);
-            gm.setRectangle(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height), true);
+            gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
             // registering tile entries
             int tileIdx = (y*img.getWidth())/(tileDim*tileDim) + x/tileDim;
             for (int ty = 0; ty < space.height; ty++, tileIdx += img.getWidth()/tileDim) {
@@ -518,12 +516,13 @@ public class ConvertToTis extends ChildFrame
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getInputFilters()
   {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[4];
-    filters[0] = new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
-                                             "bmp", "png", "jpg", "jpeg");
-    filters[1] = new FileNameExtensionFilter("BMP files (*.bmp)", "bmp");
-    filters[2] = new FileNameExtensionFilter("PNG files (*.png)", "png");
-    filters[3] = new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg");
+    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
+                                    "bam", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
+        new FileNameExtensionFilter("PNG files (*.png)", "png"),
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
+    };
     return filters;
   }
 
@@ -595,8 +594,8 @@ public class ConvertToTis extends ChildFrame
       GridManager gm = pages.get(pageIdx);
 
       // generating texture image
-      int w = ConvertToPvrz.nextPowerOfTwo(gm.getCols()*64);
-      int h = ConvertToPvrz.nextPowerOfTwo(gm.getRows()*64);
+      int w = ConvertToPvrz.nextPowerOfTwo(gm.getWidth()*64);
+      int h = ConvertToPvrz.nextPowerOfTwo(gm.getHeight()*64);
       BufferedImage texture = ColorConvert.createCompatibleImage(w, h, true);
       Graphics2D g = (Graphics2D)texture.getGraphics();
       g.setBackground(new Color(0, true));
@@ -662,15 +661,17 @@ public class ConvertToTis extends ChildFrame
 
   public ConvertToTis()
   {
-    super("Convert to TIS");
+    super("Convert to TIS", true);
     init();
   }
 
 //--------------------- Begin Class ChildFrame ---------------------
 
-  protected void windowClosing() throws Exception
+  @Override
+  protected boolean windowClosing(boolean forced) throws Exception
   {
     clear();
+    return super.windowClosing(forced);
   }
 
 //--------------------- End Class ChildFrame ---------------------

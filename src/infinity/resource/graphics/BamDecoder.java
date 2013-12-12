@@ -7,12 +7,14 @@ package infinity.resource.graphics;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
+import infinity.util.Filereader;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,10 +45,11 @@ public class BamDecoder
   {
     if (entry != null) {
       try {
-        byte[] data = entry.getResourceData();
-        if (data != null) {
-          String sig = DynamicArray.getString(data, 0, 4);
-          String ver = DynamicArray.getString(data, 4, 4);
+        InputStream is = entry.getResourceDataAsStream();
+        if (is != null) {
+          String sig = Filereader.readString(is, 4);
+          String ver = Filereader.readString(is, 4);
+          is.close();
           if ("BAMC".equals(sig)) {
             return BamType.BAMC;
           } else if ("BAM ".equals(sig)) {
@@ -58,6 +61,7 @@ public class BamDecoder
           }
         }
       } catch (Exception e) {
+        e.printStackTrace();
       }
     }
     return BamType.INVALID;

@@ -11,6 +11,7 @@ import infinity.resource.graphics.DxtEncoder;
 import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -64,12 +65,13 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getInputFilters()
   {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[4];
-    filters[0] = new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
-                                             "bmp", "png", "jpg", "jpeg");
-    filters[1] = new FileNameExtensionFilter("BMP files (*.bmp)", "bmp");
-    filters[2] = new FileNameExtensionFilter("PNG files (*.png)", "png");
-    filters[3] = new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg");
+    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
+                                    "bam", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
+        new FileNameExtensionFilter("PNG files (*.png)", "png"),
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
+    };
     return filters;
   }
 
@@ -124,15 +126,17 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 
   public ConvertToPvrz()
   {
-    super("Convert to PVRZ");
+    super("Convert to PVRZ", true);
     init();
   }
 
 //--------------------- Begin Class ChildFrame ---------------------
 
-  protected void windowClosing() throws Exception
+  @Override
+  protected boolean windowClosing(boolean forced) throws Exception
   {
     clear();
+    return super.windowClosing(forced);
   }
 
 //--------------------- End Class ChildFrame ---------------------
@@ -481,6 +485,19 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     return !lInputModel.isEmpty();
   }
 
+  // checks graphics input file properties
+  private static boolean isValidInput(File inFile)
+  {
+    boolean result = (inFile != null) && inFile.exists() && inFile.isFile();
+    if (result) {
+      Dimension d = ColorConvert.getImageDimension(inFile.toString());
+      if (d == null || d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
+        result = false;
+      }
+    }
+    return result;
+  }
+
   // Convert source image(s) into the PVRZ format. Returns a short summary of the conversion process.
   // Return value: First list element is used for success message, second element for error message.
   private List<String> convert()
@@ -540,7 +557,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         progressIndex += progressInc;
       }
       File inFile = inputFiles[fileIdx];
-      if (inFile != null && inFile.exists() && inFile.isFile()) {
+      if (isValidInput(inFile)) {
         String inFileName = inFile.getName();
 
         // generating output filename
