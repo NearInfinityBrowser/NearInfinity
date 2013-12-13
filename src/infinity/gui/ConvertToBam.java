@@ -1573,6 +1573,15 @@ public class ConvertToBam extends ChildFrame
     return idx;
   }
 
+  private DxtEncoder.DxtType getDxtType()
+  {
+    switch (cbCompression.getSelectedIndex()) {
+      case 1:  return DxtEncoder.DxtType.DXT1;
+      case 2:  return DxtEncoder.DxtType.DXT5;
+      default: return null;
+    }
+  }
+
   private int getLowestIndex(int[] indices)
   {
     int ret = -1;
@@ -2587,8 +2596,8 @@ public class ConvertToBam extends ChildFrame
     boolean isV2 = (cbVersion.getSelectedIndex() == 1);
 
     // handling "auto" compression
-    DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-    if (isV2) {
+    DxtEncoder.DxtType dxtType = getDxtType();
+    if (isV2 && dxtType == null) {
       for (int i = 0; i < modelFrames.size(); i++) {
         BufferedImage image = ((BamFrame)modelFrames.get(i)).image;
         int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
@@ -3120,7 +3129,7 @@ public class ConvertToBam extends ChildFrame
       if (pvrzIndex + gridList.size() > 100000) {
         result.add(null);
         result.add(String.format("One or more PVRZ indices exceed the max. possible value of 99999.\n" +
-                                 "Please choose a start index smaller or equal to %1$d.",
+                                 "Please choose a start index smaller than or equal to %1$d.",
                                  100000 - gridList.size()));
         return false;
       }
