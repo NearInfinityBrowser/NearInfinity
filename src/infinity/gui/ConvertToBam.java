@@ -2598,6 +2598,7 @@ public class ConvertToBam extends ChildFrame
     // handling "auto" compression
     DxtEncoder.DxtType dxtType = getDxtType();
     if (isV2 && dxtType == null) {
+      dxtType = DxtEncoder.DxtType.DXT1;
       for (int i = 0; i < modelFrames.size(); i++) {
         BufferedImage image = ((BamFrame)modelFrames.get(i)).image;
         int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
