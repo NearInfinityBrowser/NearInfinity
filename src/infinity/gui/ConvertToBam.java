@@ -1528,7 +1528,7 @@ public class ConvertToBam extends ChildFrame
           int cy = y + bf.centerY;
           if (cx >= 0 && cx < rcQuickPreview.getImage().getWidth(null) &&
               cy >= 0 && cy < rcQuickPreview.getImage().getHeight(null)) {
-            g.setColor(new Color(0x008000));
+            g.setColor(Color.RED);
             g.drawLine(cx-4, cy, cx+4, cy);
             g.drawLine(cx, cy-4, cx, cy+4);
           }
@@ -2504,7 +2504,8 @@ public class ConvertToBam extends ChildFrame
       if (cbPreviewShowMarker.isSelected()) {
         // draw bounding box
         g.setColor(new Color(0x00A000));
-        g.drawRect(5*zoom, 5*zoom, image.getWidth(null) - 12*zoom, image.getHeight(null) - 12*zoom);
+        g.drawRect(4*zoom+(zoom-1), 4*zoom+(zoom-1),
+                   image.getWidth(null) - 10*zoom-(zoom-1), image.getHeight(null) - 10*zoom-(zoom-1));
         // draw origin marker
         g.setStroke(new BasicStroke(3.0f));
         g.setColor(Color.BLACK);
@@ -2639,7 +2640,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-
     ProgressMonitor progress = new ProgressMonitor(this, "Converting BAM...", null, 0, 4);
     progress.setMillisToDecideToPopup(0);
     progress.setMillisToPopup(0);
@@ -2747,13 +2747,17 @@ public class ConvertToBam extends ChildFrame
         // storing uncompressed data
         int curIdx = 0, max = bf.image.getWidth()*bf.image.getHeight();
         while (curIdx < max) {
-          Byte colIdx = colorCache.get(pixels[curIdx] & 0x00ffffff);
-          if (colIdx != null) {
-            dstData[curIdx] = (byte)(colIdx + 1);
+          if ((pixels[curIdx] >>> 24) < transThreshold) {
+            dstData[curIdx] = 0;
           } else {
-            int color = ColorConvert.nearestColor(pixels[curIdx], hslPalette);
-            dstData[curIdx] = (byte)(color + 1);
-            colorCache.put(pixels[curIdx] & 0x00ffffff, (byte)color);
+            Byte colIdx = colorCache.get(pixels[curIdx] & 0x00ffffff);
+            if (colIdx != null) {
+              dstData[curIdx] = (byte)(colIdx + 1);
+            } else {
+              int color = ColorConvert.nearestColor(pixels[curIdx], hslPalette);
+              dstData[curIdx] = (byte)(color + 1);
+              colorCache.put(pixels[curIdx] & 0x00ffffff, (byte)color);
+            }
           }
           curIdx++;
         }
