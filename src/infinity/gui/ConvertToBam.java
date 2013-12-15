@@ -657,8 +657,11 @@ public class ConvertToBam extends ChildFrame
 
     JPanel pFramesAdd = new JPanel(new GridBagLayout());
     miFramesAdd = new JMenuItem("Add image(s)...");
+    miFramesAdd.setToolTipText("Adds one or more images to the frames list.");
     miFramesAdd.addActionListener(this);
     miFramesImport = new JMenuItem("Import BAM...");
+    miFramesImport.setToolTipText("Imports both frame and cycle definitions from the selected BAM. " +
+                                  "Current content (if any) will be discarded.");
     miFramesImport.addActionListener(this);
     bFramesAdd = new ButtonPopupMenu("Add/Import...", new JMenuItem[]{miFramesAdd, miFramesImport});
     bFramesAddFolder = new JButton("Add folder...");
@@ -719,6 +722,7 @@ public class ConvertToBam extends ChildFrame
 
     JPanel pFramesCurFrameVersionV1 = new JPanel(new GridBagLayout());
     cbCompressFrame = new JCheckBox("Compress frame");
+    cbCompressFrame.setToolTipText("Compresses transparent pixel data in the frame");
     cbCompressFrame.addActionListener(this);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -806,6 +810,7 @@ public class ConvertToBam extends ChildFrame
     // create "Export options" sections
     JPanel pFramesOptionsVersionV1 = new JPanel(new GridBagLayout());
     cbCompressBam = new JCheckBox("Compress BAM");
+    cbCompressBam.setToolTipText("Creates a zlib compressed BAM file (BAMC)");
     c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(0, 16, 0, 4), 0, 0);
     pFramesOptionsVersionV1.add(cbCompressBam, c);
@@ -1174,16 +1179,16 @@ public class ConvertToBam extends ChildFrame
     pOptions.add(cbPreviewMode, c);
     c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
-    pOptions.add(cbPreviewZoom, c);
-    c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
-    pOptions.add(cbPreviewShowMarker, c);
-    c = setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(lFps, c);
-    c = setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOptions.add(sPreviewFps, c);
+    c = setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    pOptions.add(cbPreviewZoom, c);
+    c = setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    pOptions.add(cbPreviewShowMarker, c);
 
     JPanel pCanvas = new JPanel(new GridBagLayout());
     rcPreview = new RenderCanvas();
@@ -1250,12 +1255,9 @@ public class ConvertToBam extends ChildFrame
     boolean isEmpty = (modelFrames.isEmpty() && modelCycles.isEmpty());
     if (!isEmpty) {
 
-      String msg = String.format("%1$d frame(s) and %2$d cycle(s) will be lost.\n" +
+      String msg = String.format("%1$d frame(s) and %2$d cycle(s) will be discarded.\n" +
                                  "Do you really want to close the dialog?",
                                  modelFrames.size(), modelCycles.size());
-//      String msg = String.format("There are still %1$d frame(s) and %2$d cycle(s) defined.\n" +
-//                                 "Do you really want to close the dialog?",
-//                                 modelFrames.size(), modelCycles.size());
       if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Close dialog",
                                                                   JOptionPane.YES_NO_OPTION)) {
         isEmpty = true;
@@ -1713,7 +1715,7 @@ public class ConvertToBam extends ChildFrame
             BufferedImage img = ColorConvert.toBufferedImage(decoder.data().frameGet(i), true);
             BamFrame bf = new BamFrame(entry.getActualFile().toString(), i, img,
                                        decoder.data().frameCenterX(i), decoder.data().frameCenterY(i),
-                                       false);
+                                       decoder.data().frameCompressed(i));
             frameList.add(bf);
           }
         }
@@ -1890,6 +1892,30 @@ public class ConvertToBam extends ChildFrame
     return false;
   }
 
+  // returns whether the specified image contains transparent areas that can be RLE compressed (BAM V1 only)
+  private boolean imageIsCompressable(BufferedImage image)
+  {
+    boolean isCompressable = false;
+    if (image != null) {
+      try {
+        int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        if (pixels != null) {
+          final int transThreshold = 0x20;
+          for (int i = 0; i < pixels.length; i++) {
+            if ((pixels[i] >>> 24) < transThreshold) {
+              isCompressable = true;
+              break;
+            }
+          }
+        }
+        pixels = null;
+        image.flush();
+      } catch (Exception e) {
+      }
+    }
+    return isCompressable;
+  }
+
   // returns a pixel block from a PVRZ
   private Image getPvrzBlock(PvrDecoder decoder, int x, int y, int width, int height)
   {
@@ -1914,7 +1940,8 @@ public class ConvertToBam extends ChildFrame
       try {
         BufferedImage image = ColorConvert.toBufferedImage(ImageIO.read(file), true);
         if (image != null) {
-          bf = new BamFrame(file.toString(), image, 0, 0, false);
+          boolean IsCompressable = imageIsCompressable(image);
+          bf = new BamFrame(file.toString(), image, 0, 0, IsCompressable);
         }
       } catch (Exception e) {
       }
@@ -2609,6 +2636,8 @@ public class ConvertToBam extends ChildFrame
             break;
           }
         }
+        pixels = null;
+        image.flush();
         if (dxtType == DxtEncoder.DxtType.DXT5)
           break;
       }
@@ -2776,6 +2805,8 @@ public class ConvertToBam extends ChildFrame
         System.arraycopy(dstData, 0, outData, 0, outData.length);
         frameDataList.add(outData);
       }
+      pixels = null;
+      bf.image.flush();
     }
     progress.setProgress(3);
 
@@ -3249,6 +3280,8 @@ public class ConvertToBam extends ChildFrame
           // non-critical error
           e.printStackTrace();
         }
+        textureData = null;
+        texture.flush();
         pvrz = null;
       } catch (Exception e) {
         e.printStackTrace();

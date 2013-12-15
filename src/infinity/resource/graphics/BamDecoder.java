@@ -155,6 +155,8 @@ public class BamDecoder
     public int frameCenterX(int frameIdx);
     /** Returns the center y coordinate of the specified frame in pixels. */
     public int frameCenterY(int frameIdx);
+    /** Returns whether the specified frame is compressed (BAM V1 only) */
+    public boolean frameCompressed(int frameIdx);
   }
 
   // Handles BAM V1 and BAMC V1 resources
@@ -365,6 +367,17 @@ public class BamDecoder
       return 0;
     }
 
+    @Override
+    public boolean frameCompressed(int frameIdx)
+    {
+      if (!empty()) {
+        if (frameIdx >= 0 && frameIdx < frames.size()) {
+          return frames.get(frameIdx).isCompressed;
+        }
+      }
+      return false;
+    }
+
     private boolean empty()
     {
       return (type == null) || (frames == null) || (cycles == null);
@@ -450,7 +463,7 @@ public class BamDecoder
           boolean isCompressed = (ofsData & 0x80000000) == 0;
           ofsData &= 0x7fffffff;
           Image image = decodeImage(src.asByteArray(ofsData), w, h, palette, compColor, isCompressed);
-          frames.add(new BamFrame(image, w, h, cx, cy));
+          frames.add(new BamFrame(image, w, h, cx, cy, isCompressed));
           src.addToBaseOffset(0x0c);
         }
 
@@ -754,6 +767,12 @@ public class BamDecoder
       return 0;
     }
 
+    @Override
+    public boolean frameCompressed(int frameIdx)
+    {
+      return false;
+    }
+
     private boolean empty()
     {
       return (type == null) || (frames == null) || (cycles == null);
@@ -912,14 +931,21 @@ public class BamDecoder
   {
     public Image image;
     public final int width, height, centerX, centerY;
+    public final boolean isCompressed;
 
     public BamFrame(Image img, int w, int h, int cx, int cy)
+    {
+      this(img, w, h, cx, cy, false);
+    }
+
+    public BamFrame(Image img, int w, int h, int cx, int cy, boolean compressed)
     {
       image = img;
       width = w;
       height = h;
       centerX = cx;
       centerY = cy;
+      isCompressed = compressed;
     }
   }
 }
