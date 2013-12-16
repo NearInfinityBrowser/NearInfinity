@@ -657,10 +657,10 @@ public class ConvertToBam extends ChildFrame
 
     JPanel pFramesAdd = new JPanel(new GridBagLayout());
     miFramesAdd = new JMenuItem("Add image(s)...");
-    miFramesAdd.setToolTipText("Adds one or more images to the frames list.");
+    miFramesAdd.setToolTipText("Add one or more images to the frames list");
     miFramesAdd.addActionListener(this);
     miFramesImport = new JMenuItem("Import BAM...");
-    miFramesImport.setToolTipText("Imports both frame and cycle definitions from the selected BAM. " +
+    miFramesImport.setToolTipText("Import both frame and cycle definitions from the selected BAM. " +
                                   "Current content (if any) will be discarded.");
     miFramesImport.addActionListener(this);
     bFramesAdd = new ButtonPopupMenu("Add/Import...", new JMenuItem[]{miFramesAdd, miFramesImport});
@@ -722,7 +722,7 @@ public class ConvertToBam extends ChildFrame
 
     JPanel pFramesCurFrameVersionV1 = new JPanel(new GridBagLayout());
     cbCompressFrame = new JCheckBox("Compress frame");
-    cbCompressFrame.setToolTipText("Compresses transparent pixel data in the frame");
+    cbCompressFrame.setToolTipText("Compress transparent pixel data in the frame");
     cbCompressFrame.addActionListener(this);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -810,7 +810,7 @@ public class ConvertToBam extends ChildFrame
     // create "Export options" sections
     JPanel pFramesOptionsVersionV1 = new JPanel(new GridBagLayout());
     cbCompressBam = new JCheckBox("Compress BAM");
-    cbCompressBam.setToolTipText("Creates a zlib compressed BAM file (BAMC)");
+    cbCompressBam.setToolTipText("Create a zlib compressed BAM file (BAMC)");
     c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(0, 16, 0, 4), 0, 0);
     pFramesOptionsVersionV1.add(cbCompressBam, c);
@@ -1135,7 +1135,7 @@ public class ConvertToBam extends ChildFrame
 
     JLabel lPreviewMode = new JLabel("Playback mode:");
     cbPreviewMode = new JComboBox(new Object[]{"Current cycle once", "Current cycle looped",
-        "All cycles once", "All cycles looped"});
+                                               "All cycles once", "All cycles looped"});
     cbPreviewMode.setSelectedIndex(1);
 
     cbPreviewShowMarker = new JCheckBox("Show markers");
@@ -2940,7 +2940,7 @@ public class ConvertToBam extends ChildFrame
     List<GridManager> gridList = new ArrayList<GridManager>();
 
     ProgressMonitor progress = new ProgressMonitor(this, "Converting BAM...",
-                                                  "Initializing (this may take a while)", 0, 5);
+                                                   "Calculating PVRZ layout", 0, 5);
     progress.setMillisToDecideToPopup(0);
     progress.setMillisToPopup(0);
     progress.setProgress(0);
@@ -3097,8 +3097,8 @@ public class ConvertToBam extends ChildFrame
           int h = Math.min(pageDim, height - y);
           if (w == pageDim && h == pageDim) {
             // Unlikely case: frame is bigger than max. texture size
-            GridManager gm = new GridManager(pageDim, pageDim);
-            gm.add(new Rectangle(0, 0, pageDim, pageDim));
+            GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
+            gm.add(new Rectangle(0, 0, pageDim >>> 2, pageDim >>> 2));
             gridList.add(gm);
             // register page entry
             int pageIdx = gridList.size() - 1;
@@ -3108,7 +3108,7 @@ public class ConvertToBam extends ChildFrame
             // The common case: frame is smaller than max. texture size
             // finding first available page containing sufficient space for the current region
             // (forcing 4 pixels alignment for better DXT compression)
-            Dimension space = new Dimension((w + 3) & 0xffc, (h + 3) & 0xffc);
+            Dimension space = new Dimension((w + 3) >>> 2, (h + 3) >>> 2);
             int pageIdx = -1;
             Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
             for (int i = 0; i < gridList.size(); i++) {
@@ -3117,20 +3117,16 @@ public class ConvertToBam extends ChildFrame
               if (rect != null) {
                 pageIdx = i;
                 rectMatch = (Rectangle)rect.clone();
-                if (space.width == rectMatch.width && space.height == rectMatch.height) {
-                  // perfect match found
-                  break;
-                }
+                break;
               }
-              if (space.width == rectMatch.width && space.height == rectMatch.height) {
-                // perfect match already found
+              if (pageIdx >= 0) {
                 break;
               }
             }
 
             // create new page if no match found
             if (pageIdx == -1) {
-              GridManager gm = new GridManager(pageDim, pageDim);
+              GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
               gridList.add(gm);
               pageIdx = gridList.size() - 1;
               rectMatch.x = rectMatch.y = 0;
@@ -3141,7 +3137,7 @@ public class ConvertToBam extends ChildFrame
             GridManager gm = gridList.get(pageIdx);
             gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
             // register page entry
-            FrameDataV2 entry = new FrameDataV2(pvrzIndex + pageIdx, rectMatch.x, rectMatch.y,
+            FrameDataV2 entry = new FrameDataV2(pvrzIndex + pageIdx, rectMatch.x << 2, rectMatch.y << 2,
                                                 w, h, x, y);
             frameDataList.add(entry);
           }
@@ -3219,8 +3215,8 @@ public class ConvertToBam extends ChildFrame
       gm.shrink();
 
       // generating texture image
-      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth());
-      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight());
+      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth() << 2);
+      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight() << 2);
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = (Graphics2D)texture.getGraphics();
       try {
