@@ -50,6 +50,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class ConvertToPvrz extends ChildFrame implements ActionListener, PropertyChangeListener
 {
+  private static String currentDir = ResourceFactory.getRootDir().toString();
+
   private JList lInputList;
   private DefaultListModel lInputModel;
   private JButton bConvert, bCancel;
@@ -162,7 +164,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     } else if (event.getSource() == bCancel) {
       hideWindow();
     } else if (event.getSource() == bInputAdd) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(currentDir);
       fc.setDialogTitle("Choose files");
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -176,6 +178,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       if (ret == JFileChooser.APPROVE_OPTION) {
         File[] files = fc.getSelectedFiles();
         if  (files != null && files.length > 0) {
+          currentDir = files[0].getParent();
           // add to list box
           for (final File f: files) {
             lInputModel.addElement(f);
@@ -185,7 +188,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       fc = null;
       bConvert.setEnabled(isReady());
     } else if (event.getSource() == bInputAddFolder) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(currentDir);
       fc.setDialogTitle("Choose directory");
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -194,6 +197,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         // adding all files in the directory
         File dir = fc.getSelectedFile();
         if (dir != null && dir.isDirectory()) {
+          currentDir = dir.toString();
           FileNameExtensionFilter[] filters = getInputFilters();
           File[] fileList = dir.listFiles();
           for (final File file: fileList) {
@@ -218,11 +222,15 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       lInputModel.clear();
       bConvert.setEnabled(isReady());
     } else if (event.getSource() == bTargetDir) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(currentDir);
       fc.setDialogTitle("Choose target directory");
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+      if (!tfTargetDir.getText().isEmpty()) {
+        fc.setSelectedFile(new File(tfTargetDir.getText()));
+      }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
+        currentDir = fc.getSelectedFile().toString();
         tfTargetDir.setText(fc.getSelectedFile().toString());
       }
       fc = null;

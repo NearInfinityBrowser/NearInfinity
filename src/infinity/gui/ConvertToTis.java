@@ -61,6 +61,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ConvertToTis extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener
 {
+  private static String currentDir = ResourceFactory.getRootDir().toString();
+
   private String inFileName;
   private JSlider sTileNum;
   private JTextField tfInput, tfOutput, tfTileNum;
@@ -364,13 +366,9 @@ public class ConvertToTis extends ChildFrame
               if (rect != null) {
                 pageIdx = i;
                 rectMatch = (Rectangle)rect.clone();
-                if (space.width == rectMatch.width && space.height == rectMatch.height) {
-                  // perfect match found
-                  break;
-                }
+                break;
               }
-              if (space.width == rectMatch.width && space.height == rectMatch.height) {
-                // perfect match already found
+              if (pageIdx >= 0) {
                 break;
               }
             }
@@ -696,7 +694,7 @@ public class ConvertToTis extends ChildFrame
     } else if (event.getSource() == bCancel) {
       hideWindow();
     } else if (event.getSource() == bInput) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(currentDir);
       fc.setDialogTitle("Select input graphics file");
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -711,6 +709,7 @@ public class ConvertToTis extends ChildFrame
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
         File file = fc.getSelectedFile();
+        currentDir = file.getParent();
         inFileName = file.toString();
         tfInput.setText(inFileName);
         validateInput(tfInput.getText());
@@ -736,6 +735,7 @@ public class ConvertToTis extends ChildFrame
       fc.setSelectedFile(new File(fileName));
       int ret = fc.showSaveDialog(this);
       while (ret == JFileChooser.APPROVE_OPTION) {
+        currentDir = fc.getSelectedFile().getParent();
         String orig = setFileExtension(fc.getSelectedFile().toString(), "TIS");
         String fixed = createValidTisName(orig, getTisVersion());
         if (!orig.equalsIgnoreCase(fixed)) {

@@ -165,7 +165,7 @@ public class ConvertToBmp extends ChildFrame
 
   public ConvertToBmp()
   {
-    super("Convert to BMP");
+    super("Convert to BMP", true);
     init();
   }
 
@@ -388,7 +388,7 @@ public class ConvertToBmp extends ChildFrame
     pOutput.add(pOutputFrame, c);
 
     cbCloseOnExit = new JCheckBox("Close dialog after conversion", true);
-    bConvert = new JButton("Convert");
+    bConvert = new JButton("Start Conversion");
     bConvert.addActionListener(this);
     Insets i = bConvert.getInsets();
     bConvert.setMargin(new Insets(i.top + 2, i.left, i.bottom + 2, i.right));
@@ -418,7 +418,7 @@ public class ConvertToBmp extends ChildFrame
                GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
     add(pButtons, c);
 
-    setPreferredSize(new Dimension(getPreferredSize().width+100, getPreferredSize().height + 100));
+    setPreferredSize(new Dimension(getPreferredSize().width+50, getPreferredSize().height + 50));
     setMinimumSize(getPreferredSize());
     pack();
     setLocationRelativeTo(getParent());

@@ -313,8 +313,8 @@ public class ConvertToMos extends ChildFrame
         int h = Math.min(pageDim, height - y);
         if (w == pageDim && h == pageDim) {
           // add page to complete pages list
-          GridManager gm = new GridManager(pageDim, pageDim);
-          gm.add(new Rectangle(0, 0, pageDim, pageDim));
+          GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
+          gm.add(new Rectangle(0, 0, pageDim >>> 2, pageDim >>> 2));
           pageList.add(gm);
           // register page entry
           int pageIdx = pageList.size() - 1;
@@ -323,7 +323,7 @@ public class ConvertToMos extends ChildFrame
         } else {
           // find first available page containing sufficient space for the current region
           // (forcing 4 pixels alignment for better DXT compression)
-          Dimension space = new Dimension((w + 3) & 0xffc, (h + 3) & 0xffc);
+          Dimension space = new Dimension((w + 3) >>> 2, (h + 3) >>> 2);
           int pageIdx = -1;
           Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
           for (int i = 0; i < pageList.size(); i++) {
@@ -332,20 +332,16 @@ public class ConvertToMos extends ChildFrame
             if (rect != null) {
               pageIdx = i;
               rectMatch = (Rectangle)rect.clone();
-              if (space.width == rectMatch.width && space.height == rectMatch.height) {
-                // perfect match found
-                break;
-              }
+              break;
             }
-            if (space.width == rectMatch.width && space.height == rectMatch.height) {
-              // perfect match already found
+            if (pageIdx >= 0) {
               break;
             }
           }
 
           // create new page if no match found
           if (pageIdx == -1) {
-            GridManager gm = new GridManager(pageDim, pageDim);
+            GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
             pageList.add(gm);
             pageIdx = pageList.size() - 1;
             rectMatch.x = rectMatch.y = 0;
@@ -356,7 +352,7 @@ public class ConvertToMos extends ChildFrame
           GridManager gm = pageList.get(pageIdx);
           gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
           // register page entry
-          MosEntry entry = new MosEntry(pvrzIndex + pageIdx, new Point(rectMatch.x, rectMatch.y),
+          MosEntry entry = new MosEntry(pvrzIndex + pageIdx, new Point(rectMatch.x << 2, rectMatch.y << 2),
                                         w, h, new Point(x, y));
           entryList.add(entry);
         }
@@ -522,8 +518,8 @@ public class ConvertToMos extends ChildFrame
       gm.shrink();
 
       // generating texture image
-      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth());
-      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight());
+      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth() << 2);
+      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight() << 2);
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = (Graphics2D)texture.getGraphics();
       g.setBackground(new Color(0, true));
