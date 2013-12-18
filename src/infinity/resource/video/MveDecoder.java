@@ -10,6 +10,7 @@ import infinity.util.Filereader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -177,7 +178,7 @@ public class MveDecoder
     byte[] buf = new byte[MVE_SIGNATURE.length()];
     if (info.mveInput.read(buf) < buf.length)
       throw new Exception("Unexpected end of file");
-    if (!Arrays.equals(MVE_SIGNATURE.getBytes(), buf))
+    if (!Arrays.equals(MVE_SIGNATURE.getBytes(Charset.forName("US-ASCII")), buf))
       throw new Exception("Invalid MVE signature found");
 
     // 2. initializing MveChunk structure

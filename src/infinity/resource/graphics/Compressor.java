@@ -8,6 +8,7 @@ import infinity.util.ArrayUtil;
 import infinity.util.DynamicArray;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -34,7 +35,8 @@ public final class Compressor
 //    deflater.finish();
 //    int clength = deflater.deflate(result, 12, result.length - 12);
 //    return Arrays.copyOfRange(result, 0, clength + 12);
-    byte header[] = ArrayUtil.mergeArrays(signature.getBytes(), version.getBytes());
+    byte header[] = ArrayUtil.mergeArrays(signature.getBytes(Charset.forName("US-ASCII")),
+                                          version.getBytes(Charset.forName("US-ASCII")));
     header = ArrayUtil.mergeArrays(header, DynamicArray.convertInt(data.length));
     byte[] result = compress(data, 0, data.length, false);
     if (result != null) {

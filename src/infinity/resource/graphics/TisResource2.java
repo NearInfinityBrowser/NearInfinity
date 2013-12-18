@@ -39,6 +39,7 @@ import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -495,7 +496,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
         buf = new byte[24 + decoder.info().tileCount()*5120];
         // writing header data
-        System.arraycopy("TIS V1  ".getBytes(), 0, buf, 0, 8);
+        System.arraycopy("TIS V1  ".getBytes(Charset.forName("US-ASCII")), 0, buf, 0, 8);
         DynamicArray.putInt(buf, 8, decoder.info().tileCount());
         DynamicArray.putInt(buf, 12, 0x1400);
         DynamicArray.putInt(buf, 16, 0x18);

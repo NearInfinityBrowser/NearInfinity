@@ -44,6 +44,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -2841,7 +2842,7 @@ public class ConvertToBam extends ChildFrame
     }
     byte[] bamArray = new byte[bamSize];
     // adding global header
-    System.arraycopy("BAM V1  ".getBytes(), 0, bamArray, 0, 8);
+    System.arraycopy("BAM V1  ".getBytes(Charset.forName("US-ASCII")), 0, bamArray, 0, 8);
     DynamicArray.putShort(bamArray, 0x08, (short)framesList.size());
     DynamicArray.putByte(bamArray, 0x0a, (byte)cyclesList.size());
     DynamicArray.putByte(bamArray, 0x0b, (byte)0);
@@ -2993,7 +2994,7 @@ public class ConvertToBam extends ChildFrame
       int bamSize = ofsFrameData + frameDataBlockList.size()*FrameDataV2.entrySize;
       byte[] bamArray = new byte[bamSize];
       // writing main header
-      System.arraycopy("BAM V2  ".getBytes(), 0, bamArray, 0, 8);
+      System.arraycopy("BAM V2  ".getBytes(Charset.forName("US-ASCII")), 0, bamArray, 0, 8);
       DynamicArray.putInt(bamArray, 8, framesList.size());
       DynamicArray.putInt(bamArray, 12, cyclesList.size());
       DynamicArray.putInt(bamArray, 16, frameDataBlockList.size());

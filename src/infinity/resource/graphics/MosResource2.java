@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -396,7 +397,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
       int tableOfs = palOfs + tileCount*1024;
       int dataOfs = tableOfs + tileCount*4;
       buf = new byte[dataOfs + width*height];
-      System.arraycopy("MOS V1  ".getBytes(), 0, buf, 0, 8);
+      System.arraycopy("MOS V1  ".getBytes(Charset.forName("US-ASCII")), 0, buf, 0, 8);
       DynamicArray.putShort(buf, 8, (short)width);
       DynamicArray.putShort(buf, 10, (short)height);
       DynamicArray.putShort(buf, 12, (short)cols);

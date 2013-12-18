@@ -58,7 +58,7 @@ public class ConvertToBmp extends ChildFrame
   private JTextField tfOutput;
   private JButton bOutput;
   private JButton bConvert, bCancel;
-  private JCheckBox cbCloseOnExit, cbEnableAlpha;
+  private JCheckBox cbCloseOnExit, cbEnableAlpha, cbFixPremultipliedAlpha;
   private JComboBox cbOverwrite;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
@@ -209,6 +209,8 @@ public class ConvertToBmp extends ChildFrame
       inputRemoveAll();
     } else if (event.getSource() == bOutput) {
       setOutput();
+    } else if (event.getSource() == cbEnableAlpha) {
+      cbFixPremultipliedAlpha.setEnabled(cbEnableAlpha.isSelected());
     }
   }
 
@@ -346,6 +348,17 @@ public class ConvertToBmp extends ChildFrame
     tfOutput.addFocusListener(this);
     bOutput = new JButton("...");
     bOutput.addActionListener(this);
+    JLabel lOverwrite = new JLabel("Overwrite:");
+    cbOverwrite = new JComboBox(new Object[]{"Ask", "Replace", "Skip"});
+    cbOverwrite.setSelectedIndex(1);
+    cbEnableAlpha = new JCheckBox("Enable transparency support", true);
+    cbEnableAlpha.setToolTipText("Activate to create bitmap files with alpha channel");
+    cbEnableAlpha.addActionListener(this);
+    cbFixPremultipliedAlpha = new JCheckBox("Fix premultiplied alpha", false);
+    cbFixPremultipliedAlpha.setEnabled(cbEnableAlpha.isSelected());
+    cbFixPremultipliedAlpha.setToolTipText("Activate if the resulting BMP image " +
+                                           "differs from the source image");
+
     JPanel pOutputDir = new JPanel(new GridBagLayout());
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
@@ -357,11 +370,6 @@ public class ConvertToBmp extends ChildFrame
         GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOutputDir.add(bOutput, c);
 
-    JLabel lOverwrite = new JLabel("Overwrite:");
-    cbOverwrite = new JComboBox(new Object[]{"Ask", "Replace", "Skip"});
-    cbOverwrite.setSelectedIndex(1);
-    cbEnableAlpha = new JCheckBox("Enable transparency support", true);
-    cbEnableAlpha.setToolTipText("Activate to create bitmap files with alpha channel");
     JPanel pOutputOptions = new JPanel(new GridBagLayout());
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
@@ -372,6 +380,12 @@ public class ConvertToBmp extends ChildFrame
     c = setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pOutputOptions.add(cbEnableAlpha, c);
+    c = setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    pOutputOptions.add(new JPanel(), c);
+    c = setGBC(c, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+    pOutputOptions.add(cbFixPremultipliedAlpha, c);
 
     JPanel pOutputFrame = new JPanel(new GridBagLayout());
     c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
@@ -703,6 +717,24 @@ public class ConvertToBmp extends ChildFrame
     if (srcImage != null && file != null) {
       BufferedImage image = ColorConvert.toBufferedImage(srcImage, true);
 
+      // "fixing" premultiplied alpha format
+      if (hasAlpha && cbFixPremultipliedAlpha.isSelected()) {
+        int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        if (pixels != null) {
+          for (int i = 0; i < pixels.length; i++) {
+            float anorm = (float)((pixels[i] >>> 24) & 0xff) / 255.0f;
+            anorm = (anorm > 0.0f) ? 1.0f / anorm : 0.0f;
+            int r = (int)(((float)((pixels[i] >>> 16) & 0xff) * anorm) + 0.5f);
+            if (r > 255) r = 255;
+            int g = (int)(((float)((pixels[i] >>> 8) & 0xff) * anorm) + 0.5f);
+            if (g > 255) g = 255;
+            int b = (int)(((float)(pixels[i] & 0xff) * anorm) + 0.5f);
+            if (b > 255) b = 255;
+            pixels[i] = (pixels[i] & 0xff000000) | (r << 16) | (g << 8) | b;
+          }
+        }
+      }
+
       int bpp = hasAlpha ? 32 : 24;
       int bytesPerPixel = bpp / 8;
       int bytesPerLine = image.getWidth()*bytesPerPixel;
@@ -718,8 +750,8 @@ public class ConvertToBmp extends ChildFrame
 
       // file header
       buffer.put("BM".getBytes(Charset.forName("US-ASCII")));   // File type ("BM")
-      buffer.putInt(fileSize);          // total file size
-      buffer.putInt(0);                 // reserved
+      buffer.putInt(fileSize);              // total file size
+      buffer.putInt(0);                     // reserved
       buffer.putInt(sizeFileHeader+sizeBitmapHeader);   // start of pixel data
       // bitmap header
       buffer.putInt(sizeBitmapHeader);      // bitmap header size
@@ -734,14 +766,14 @@ public class ConvertToBmp extends ChildFrame
       buffer.putInt(0);                     // colors used (palette only)
       buffer.putInt(0);                     // important colors (palette only)
       if (hasAlpha) {
-        buffer.putInt(0x00ff0000);            // red bitmask
-        buffer.putInt(0x0000ff00);            // green bitmask
-        buffer.putInt(0x000000ff);            // blue bitmask
-        buffer.putInt(0xff000000);            // alpha bitmask
+        buffer.putInt(0x00ff0000);          // red bitmask
+        buffer.putInt(0x0000ff00);          // green bitmask
+        buffer.putInt(0x000000ff);          // blue bitmask
+        buffer.putInt(0xff000000);          // alpha bitmask
         buffer.put("BGRs".getBytes(Charset.forName("US-ASCII")));   // color space type
         byte[] zero = new byte[16*4];
         Arrays.fill(zero, (byte)0);
-        buffer.put(zero);                     // remaining fields are empty
+        buffer.put(zero);                   // remaining fields are empty
         zero = null;
       }
 

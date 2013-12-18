@@ -34,6 +34,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -121,7 +122,7 @@ public class ConvertToTis extends ChildFrame
     int dstOfs = 0;   // current start offset for write operations
 
     // writing header data
-    System.arraycopy("TIS V1  ".getBytes(), 0, dst, 0, 8);
+    System.arraycopy("TIS V1  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
     DynamicArray.putInt(dst, 8, tileCount);
     DynamicArray.putInt(dst, 12, 0x1400);
     DynamicArray.putInt(dst, 16, 0x18);
@@ -320,7 +321,7 @@ public class ConvertToTis extends ChildFrame
       }
 
       // writing header data
-      System.arraycopy("TIS V1  ".getBytes(), 0, dst, 0, 8);
+      System.arraycopy("TIS V1  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
       DynamicArray.putInt(dst, 8, tileCount);
       DynamicArray.putInt(dst, 12, 0x0c);
       DynamicArray.putInt(dst, 16, 0x18);

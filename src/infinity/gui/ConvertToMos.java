@@ -34,6 +34,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -110,7 +111,7 @@ public class ConvertToMos extends ChildFrame
     int tableOfs = palOfs + tileCount*1024;
     int dataOfs = tableOfs + tileCount*4;
     byte[] dst = new byte[dataOfs + width*height];
-    System.arraycopy("MOS V1  ".getBytes(), 0, dst, 0, 8);
+    System.arraycopy("MOS V1  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
     DynamicArray.putShort(dst, 8, (short)width);
     DynamicArray.putShort(dst, 10, (short)height);
     DynamicArray.putShort(dst, 12, (short)cols);
@@ -380,7 +381,7 @@ public class ConvertToMos extends ChildFrame
       int dstOfs = 0;
 
       // writing MOS header and data
-      System.arraycopy("MOS V2  ".getBytes(), 0, dst, 0, 8);
+      System.arraycopy("MOS V2  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
       DynamicArray.putInt(dst, 8, width);
       DynamicArray.putInt(dst, 12, height);
       DynamicArray.putInt(dst, 16, entryList.size());

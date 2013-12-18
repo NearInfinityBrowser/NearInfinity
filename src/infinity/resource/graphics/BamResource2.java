@@ -32,6 +32,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -754,7 +755,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       // main header
       byte[] header = new byte[0x18];
       DynamicArray buf = DynamicArray.wrap(header, DynamicArray.ElementType.BYTE);
-      buf.put(0x00, "BAM V1  ".getBytes());
+      buf.put(0x00, "BAM V1  ".getBytes(Charset.forName("US-ASCII")));
       buf.putShort(0x08, (short)frameCount);
       buf.putByte(0x0a, (byte)cycleCount);
       buf.putByte(0x0b, (byte)0);   // compressed color index
