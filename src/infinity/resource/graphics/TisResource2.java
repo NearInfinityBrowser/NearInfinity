@@ -343,18 +343,19 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
     }
 
     int tileCount = decoder.info().tileCount();
+    int defaultColumns = Math.min(tileCount, DEFAULT_COLUMNS);
 
     // 1. creating top panel
     // 1.1. creating label with text field
     JLabel lblTPR = new JLabel("Tiles per row:");
-    tfCols = new JTextField(Integer.toString(DEFAULT_COLUMNS), 5);
+    tfCols = new JTextField(Integer.toString(defaultColumns), 5);
     tfCols.addKeyListener(this);
     JPanel tPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER));
     tPanel1.add(lblTPR);
     tPanel1.add(tfCols);
 
     // 1.2. creating slider
-    slCols = new JSlider(JSlider.HORIZONTAL, 1, tileCount, DEFAULT_COLUMNS);
+    slCols = new JSlider(JSlider.HORIZONTAL, 1, tileCount, defaultColumns);
     if (tileCount > 1000) {
       slCols.setMinorTickSpacing(100);
       slCols.setMajorTickSpacing(1000);
@@ -387,7 +388,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
     // 2. creating main panel
     // 2.1. creating tiles table and scroll pane
-    tileGrid = new TileGrid(1, DEFAULT_COLUMNS, decoder.info().tileWidth(), decoder.info().tileHeight());
+    tileGrid = new TileGrid(1, defaultColumns, decoder.info().tileWidth(), decoder.info().tileHeight());
     tileGrid.addImage(tileImages);
     if (tileGrid.getImageCount() > 6) {
       int colSize = calcTileWidth(entry, tileGrid.getImageCount());
