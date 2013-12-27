@@ -1497,12 +1497,12 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   {
     if (getStructEntryAt(0).toString().equalsIgnoreCase("CHR "))
       ((HexNumber)getAttribute("CRE structure length")).incValue(size);
-    if (!(datatype instanceof MemorizedSpells)) {
-      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
-      if (datatype.getOffset() < offsetMemSpells.getValue() + getExtraOffset() ||
-          datatype.getOffset() == offsetMemSpells.getValue() + getExtraOffset() && size > 0)
-        offsetMemSpells.incValue(size);
-    }
+//    if (!(datatype instanceof MemorizedSpells)) {
+//      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
+//      if (datatype.getOffset() < offsetMemSpells.getValue() + getExtraOffset() ||
+//          datatype.getOffset() == offsetMemSpells.getValue() + getExtraOffset() && size > 0)
+//        offsetMemSpells.incValue(size);
+//    }
   }
 
   @Override
