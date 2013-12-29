@@ -42,10 +42,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -89,8 +91,8 @@ public class ConvertToBam extends ChildFrame
   private DefaultListModel modelFrames, modelCycles, modelCurCycle;   // Frames == FramesAvail
   private JList listFrames, listCycles, listFramesAvail, listCurCycle;
   private JButton bConvert, bCancel;
-  private JMenuItem miFramesAdd, miFramesImport;
-  private ButtonPopupMenu bFramesAdd;
+  private JMenuItem miFramesAdd, miFramesImport, miBamPaletteClear, miBamPaletteSet;
+  private ButtonPopupMenu bFramesAdd, bBamPalette;
   private JButton bFramesAddFolder, bFramesRemove, bFramesRemoveAll, bBamOutput;
   private JButton bFramesUp, bFramesDown, bCyclesUp, bCyclesDown, bCurCycleUp, bCurCycleDown;
   private JButton bCyclesAdd, bCyclesRemove, bCyclesClear, bCurCycleAdd, bCurCycleRemove;
@@ -100,13 +102,13 @@ public class ConvertToBam extends ChildFrame
   private JButton bPreviewCyclePrev, bPreviewCycleNext, bPreviewFramePrev, bPreviewFrameNext,
                   bPreviewPlay, bPreviewStop;
   private JTextField tfFrameWidth, tfFrameHeight, tfFrameCenterX, tfFrameCenterY,
-                     tfBamOutput;
+                     tfBamOutput, tfBamPalette;
   private JCheckBox cbCloseOnExit, cbCompressFrame, cbCompressBam, cbPreviewShowMarker, cbPreviewZoom;
   private JPanel pFramesCurFrame, pCurrentCycle;
   private JPanel pFramesCurFrameVersion, pFramesOptionsVersion;
   private JComboBox cbVersion, cbCompression, cbPreviewMode;
   private RenderCanvas rcQuickPreview, rcPreview;
-  private JLabel lPreviewCycle, lPreviewFrame;
+  private JLabel lBamPalette, lPreviewCycle, lPreviewFrame;
   private JSpinner sPvrzIndex, sPreviewFps;
 
   // preview related data
@@ -130,6 +132,17 @@ public class ConvertToBam extends ChildFrame
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
+    };
+    return filters;
+  }
+
+  // Returns a list of supported file formats containing palettes
+  private static FileNameExtensionFilter[] getPaletteFilters()
+  {
+    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Palette files (*.bam, *.bmp)", "bam", "bmp"),
+        new FileNameExtensionFilter("BAM files (*.bam)", "bam"),
+        new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
     };
     return filters;
   }
@@ -321,6 +334,11 @@ public class ConvertToBam extends ChildFrame
       setBamVersionEnabled((cbVersion.getSelectedIndex() == 0) ? 1 : 2);
     } else if (event.getSource() == bBamOutput) {
       setBamOutput();
+    } else if (event.getSource() == miBamPaletteClear) {
+      tfBamPalette.setText("");
+      lBamPalette.setEnabled(false);
+    } else if (event.getSource() == miBamPaletteSet) {
+      setBamPalette();
     } else if (event.getSource() == miFramesAdd) {
       try {
         WindowBlocker.blockWindow(this, true);
@@ -528,6 +546,8 @@ public class ConvertToBam extends ChildFrame
         tfBamOutput.setText(fileName);
       }
       updateStatus();
+    } else if (event.getSource() == tfBamPalette) {
+      lBamPalette.setEnabled(!tfBamPalette.getText().isEmpty());
     }
   }
 
@@ -812,9 +832,30 @@ public class ConvertToBam extends ChildFrame
     JPanel pFramesOptionsVersionV1 = new JPanel(new GridBagLayout());
     cbCompressBam = new JCheckBox("Compress BAM");
     cbCompressBam.setToolTipText("Create a zlib compressed BAM file (BAMC)");
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(0, 16, 0, 4), 0, 0);
+    lBamPalette = new JLabel("Palette: ");
+    lBamPalette.setEnabled(false);
+    tfBamPalette = new JTextField();
+    tfBamPalette.addFocusListener(this);
+
+    miBamPaletteClear = new JMenuItem("Clear palette");
+    miBamPaletteClear.addActionListener(this);
+    miBamPaletteSet = new JMenuItem("Set palette");
+    miBamPaletteSet.addActionListener(this);
+    bBamPalette = new ButtonPopupMenu("...", new JMenuItem[]{miBamPaletteClear, miBamPaletteSet});
+    bBamPalette.setToolTipText("Use a predefined palette for the resulting BAM");
+    bBamPalette.addActionListener(this);
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV1.add(cbCompressBam, c);
+    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pFramesOptionsVersionV1.add(lBamPalette, c);
+    c = setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    pFramesOptionsVersionV1.add(tfBamPalette, c);
+    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    pFramesOptionsVersionV1.add(bBamPalette, c);
 
     JPanel pFramesOptionsVersionV2 = new JPanel(new GridBagLayout());
     JLabel lPvrzIndex = new JLabel("PVRZ index starts at:");
@@ -828,7 +869,7 @@ public class ConvertToBam extends ChildFrame
     bCompressionHelp.setToolTipText("About compression types");
     bCompressionHelp.addActionListener(this);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV2.add(lPvrzIndex, c);
     c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
@@ -871,7 +912,7 @@ public class ConvertToBam extends ChildFrame
                GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFramesExportOptions.add(bVersionHelp, c);
     c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pFramesExportOptions.add(pFramesOptionsVersion, c);
 
     JPanel pFramesExport = new JPanel(new GridBagLayout());
@@ -1666,6 +1707,167 @@ public class ConvertToBam extends ChildFrame
     }
     return null;
   }
+
+  // specify predefined BAM palette for BAM V1 export
+  private void setBamPalette()
+  {
+    String rootPath = null;
+    if (!tfBamPalette.getText().isEmpty()) {
+      rootPath = tfBamPalette.getText();
+    }
+    File outFile = getSaveFileName(this, "Specify palette file", rootPath, getPaletteFilters(), 0);
+    if (outFile != null) {
+      if (hasPalette(outFile)) {
+        tfBamPalette.setText(outFile.toString());
+        lBamPalette.setEnabled(true);
+      } else {
+        String msg = String.format("No palette found in \"%1$s\".", outFile.getName());
+        JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+
+  private boolean hasPalette(File palFile)
+  {
+    boolean retVal = false;
+    if (palFile != null && palFile.exists() && palFile.isFile()) {
+      FileInputStream fis = null;
+      try {
+        try {
+          fis = new FileInputStream(palFile);
+          byte[] signature = new byte[8];
+          int len = fis.read(signature);
+          if (len == signature.length) {
+            if (signature[0] == 0x42 && signature[1] == 0x4d) {
+              // BMP file?
+              byte[] header = new byte[54];
+              System.arraycopy(signature, 0, header, 0, signature.length);
+              len = fis.read(header, signature.length, header.length - signature.length);
+              if (len >= header.length - signature.length) {
+                if (DynamicArray.getShort(header, 0x00) == 0x4d42&&   // signature = 'BM'
+                    DynamicArray.getInt(header, 0x0e) == 0x28 &&      // correct BMP header size
+                    DynamicArray.getInt(header, 0x12) > 0 &&          // valid width
+                    DynamicArray.getInt(header, 0x16) > 0 &&          // valid height
+                    (DynamicArray.getShort(header, 0x1c) == 4 ||      // either 4bpp
+                     DynamicArray.getInt(header, 0x1c) == 8) &&       // or 8bpp
+                    DynamicArray.getInt(header, 0x1e) == 0) {         // no special encoding
+                  retVal = true;
+                }
+              }
+            } else {
+              // BAM V1 or BAMC V1?
+              String s = new String(signature, Charset.forName("US-ASCII"));
+              if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
+                retVal = true;
+              }
+            }
+          }
+          fis.close();
+        } catch (Exception e) {
+          e.printStackTrace();
+          if (fis != null) {
+            fis.close();
+          }
+        }
+      } catch (Exception e) {
+        fis = null;
+      }
+    }
+    return retVal;
+  }
+
+  // extracts the palette from the specified file
+  private int[] loadPaletteFromFile(String fileName)
+  {
+    if (fileName != null && !fileName.isEmpty()) {
+      File file = new File(fileName);
+      FileInputStream fis = null;
+      try {
+        try {
+          fis = new FileInputStream(file);
+          byte[] signature = new byte[8];
+          int len = fis.read(signature);
+          if (len == signature.length) {
+            if (signature[0] == 0x42 && signature[1] == 0x4d) {
+              // BMP file
+              byte[] data = new byte[(int)file.length()];
+              System.arraycopy(signature, 0, data, 0, signature.length);
+              fis.read(data, signature.length, data.length - signature.length);
+              fis.close();
+              return loadPaletteFromBMP(data);
+            } else {
+              String s = new String(signature, Charset.forName("US-ASCII"));
+              if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
+                // BAM V1 or BAMC V1
+                byte[] data = new byte[(int)file.length()];
+                System.arraycopy(signature, 0, data, 0, signature.length);
+                fis.read(data, signature.length, data.length - signature.length);
+                fis.close();
+                return loadPaletteFromBAM(data);
+              }
+            }
+          }
+          fis.close();
+        } catch (Exception e) {
+          if (fis != null) {
+            fis.close();
+          }
+        }
+      } catch (Exception e) {
+        fis = null;
+      }
+    }
+    return null;
+  }
+
+  // return palette from 4-bit or 8-bit uncompressed BMP
+  private int[] loadPaletteFromBMP(byte[] buf)
+  {
+    if (buf != null && buf.length > 54) {
+      int sig = DynamicArray.getUnsignedShort(buf, 0);
+      if (sig == 0x4d42) {
+        if (DynamicArray.getInt(buf, 0x0e) == 0x28 &&
+            DynamicArray.getInt(buf, 0x12) > 0 &&
+            DynamicArray.getInt(buf, 0x16) > 0 &&
+            (DynamicArray.getInt(buf, 0x1c) == 4 || DynamicArray.getInt(buf, 0x1c) == 8)) {
+          int colors = 1 << DynamicArray.getUnsignedShort(buf, 0x1c);
+          int[] palette = new int[colors];
+          int ofs = 0x36;
+          for (int i = 0; i < colors; i++) {
+            palette[i] = DynamicArray.getInt(buf, ofs + i*4);
+          }
+          return palette;
+        }
+      }
+    }
+    return null;
+  }
+
+  // return palette from BAM V1 or BAMC V1
+  private int[] loadPaletteFromBAM(byte[] buf)
+  {
+    if (buf != null) {
+      String sig = DynamicArray.getString(buf, 0, 8);
+      if ("BAMCV1  ".equals(sig)) {
+        try {
+          buf = Compressor.decompress(buf);
+          sig = DynamicArray.getString(buf, 0, 8);
+        } catch (Exception e) {
+          return null;
+        }
+      }
+      if ("BAM V1  ".equals(sig)) {
+        int ofs = DynamicArray.getInt(buf, 0x10);
+        int[] palette = new int[256];
+        for (int i = 0; i < 256; i++) {
+          palette[i] = DynamicArray.getInt(buf, ofs + i*4);
+        }
+        return palette;
+      }
+    }
+    return null;
+  }
+
 
   // imports both frames and cycles
   private boolean importBam(File bamFile)
@@ -2724,8 +2926,17 @@ public class ConvertToBam extends ChildFrame
     }
     progress.setProgress(1);
 
-    // creating global color table
-    int[] palette = ColorConvert.medianCut(pixels, 255, false);
+    // try to load palette from predefined palette first
+    int[] palette = null;
+    int[] presetPalette = loadPaletteFromFile(tfBamPalette.getText());
+    if (presetPalette != null) {
+      palette = new int[255];
+      Arrays.fill(palette, 0);
+      System.arraycopy(presetPalette, 1, palette, 0, presetPalette.length - 1);
+    } else {
+      // creating global color table
+      palette = ColorConvert.medianCut(pixels, 255, false);
+    }
     int[] hslPalette = new int[palette.length];
     ColorConvert.toHslPalette(palette, hslPalette);
     // initializing color cache
@@ -2737,7 +2948,11 @@ public class ConvertToBam extends ChildFrame
     // adding transparent color index to the palette if available
     int[] tmp = palette;
     palette = new int[tmp.length + 1];
-    palette[0] = 0x0000ff00;    // it's usually defined as RGB(0, 255, 0)
+    if (presetPalette != null) {
+      palette[0] = presetPalette[0];
+    } else {
+      palette[0] = 0x0000ff00;    // it's usually defined as RGB(0, 255, 0)
+    }
     System.arraycopy(tmp, 0, palette, 1, tmp.length);
     tmp = null;
     progress.setProgress(2);
