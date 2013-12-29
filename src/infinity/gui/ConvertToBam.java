@@ -71,6 +71,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
@@ -140,9 +141,9 @@ public class ConvertToBam extends ChildFrame
   private static FileNameExtensionFilter[] getPaletteFilters()
   {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Palette files (*.bam, *.bmp)", "bam", "bmp"),
-        new FileNameExtensionFilter("BAM files (*.bam)", "bam"),
-        new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
+        new FileNameExtensionFilter("Palette from files (*.bam, *.bmp)", "bam", "bmp"),
+        new FileNameExtensionFilter("Palette from BAM files (*.bam)", "bam"),
+        new FileNameExtensionFilter("Palette from BMP files (*.bmp)", "bmp"),
     };
     return filters;
   }
@@ -722,6 +723,7 @@ public class ConvertToBam extends ChildFrame
     modelFrames = new DefaultListModel();
     listFrames= new JList(modelFrames);
     listFrames.setCellRenderer(new IndexedCellRenderer());
+    listFrames.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFrames.addListSelectionListener(this);
     JScrollPane scroll = new JScrollPane(listFrames);
     c = setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -836,7 +838,6 @@ public class ConvertToBam extends ChildFrame
     lBamPalette.setEnabled(false);
     tfBamPalette = new JTextField();
     tfBamPalette.addFocusListener(this);
-
     miBamPaletteClear = new JMenuItem("Clear palette");
     miBamPaletteClear.addActionListener(this);
     miBamPaletteSet = new JMenuItem("Set palette");
@@ -989,6 +990,7 @@ public class ConvertToBam extends ChildFrame
     modelCycles = new DefaultListModel();
     listCycles = new JList(modelCycles);
     listCycles.setCellRenderer(new IndexedCellRenderer());
+    listCycles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listCycles.addListSelectionListener(this);
     JScrollPane scroll = new JScrollPane(listCycles);
     c = setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1098,12 +1100,14 @@ public class ConvertToBam extends ChildFrame
     JLabel lCurCycleFrames = new JLabel("Available frames:");
     listFramesAvail = new JList(modelFrames);
     listFramesAvail.setCellRenderer(new IndexedCellRenderer());
+    listFramesAvail.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFramesAvail.addListSelectionListener(this);
     scroll = new JScrollPane(listFramesAvail);
     JLabel lCurCycle = new JLabel("Current cycle:");
     modelCurCycle = new DefaultListModel();
     listCurCycle = new JList(modelCurCycle);
     listCurCycle.setCellRenderer(new IndexedCellRenderer());
+    listCurCycle.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCurCycle.addListSelectionListener(this);
     JScrollPane scroll2 = new JScrollPane(listCurCycle);
 
@@ -2926,7 +2930,7 @@ public class ConvertToBam extends ChildFrame
     }
     progress.setProgress(1);
 
-    // try to load palette from predefined palette first
+    // try to load predefined palette first
     int[] palette = null;
     int[] presetPalette = loadPaletteFromFile(tfBamPalette.getText());
     if (presetPalette != null) {
