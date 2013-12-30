@@ -48,7 +48,12 @@ public final class Animation extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 32, 2, "Location: X"));
     list.add(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
     list.add(new Flag(buffer, offset + 36, 4, "Active at", Actor.s_schedule));
-    list.add(new ResourceRef(buffer, offset + 40, "Animation", "BAM"));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      list.add(new ResourceRef(buffer, offset + 40, "Animation", new String[]{"BAM", "WBM"}));
+    } else {
+      list.add(new ResourceRef(buffer, offset + 40, "Animation", "BAM"));
+    }
     list.add(new DecNumber(buffer, offset + 48, 2, "Animation number"));
     list.add(new DecNumber(buffer, offset + 50, 2, "Frame number"));
     list.add(new Flag(buffer, offset + 52, 4, "Appearance", s_flag));
