@@ -834,6 +834,7 @@ public class ConvertToMos extends ChildFrame
     JLabel lCompression = new JLabel("Compression type:");
     sPvrzIndex = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
     sPvrzIndex.setToolTipText("Enter a number from 0 to 99999");
+    sPvrzIndex.addChangeListener(this);
     cbCompression = new JComboBox(new Object[]{"Auto", "DXT1", "DXT5"});
     cbCompression.setSelectedIndex(0);
     bCompressionHelp = new JButton("?");
