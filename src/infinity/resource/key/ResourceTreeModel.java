@@ -172,7 +172,11 @@ public final class ResourceTreeModel implements TreeModel
 
   public ResourceEntry getResourceEntry(String entryname)
   {
-    return entries.get(entryname.toUpperCase());
+    if (entryname != null) {
+      return entries.get(entryname.toUpperCase());
+    } else {
+      return null;
+    }
   }
 
   public void removeResourceEntry(ResourceEntry entry)
