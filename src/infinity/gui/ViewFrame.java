@@ -82,13 +82,14 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
 // --------------------- End Interface ViewableContainer ---------------------
 
   @Override
-  protected void windowClosing() throws Exception
+  protected boolean windowClosing(boolean forced) throws Exception
   {
     if (viewable instanceof Closeable)
       ((Closeable)viewable).close();
 
     this.viewable = null;
     this.getContentPane().removeAll();
+    return super.windowClosing(forced);
   }
 }
 

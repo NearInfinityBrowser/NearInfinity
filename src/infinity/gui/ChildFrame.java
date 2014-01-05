@@ -22,6 +22,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 public class ChildFrame extends JFrame
 {
@@ -35,8 +36,9 @@ public class ChildFrame extends JFrame
       if (frame.getClass() == frameClass) {
         i.remove();
         try {
-          frame.windowClosing();
+          frame.windowClosing(true);
           frame.setVisible(false);
+          frame.dispose();
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -52,7 +54,7 @@ public class ChildFrame extends JFrame
     for (int i = 0; i < copy.size(); i++) {
       ChildFrame frame = copy.get(i);
       try {
-        frame.windowClosing();
+        frame.windowClosing(true);
         frame.setVisible(false);
         WindowListener listeners[] = frame.getWindowListeners();
         for (final WindowListener listener : listeners)
@@ -106,6 +108,7 @@ public class ChildFrame extends JFrame
     JPanel pane = new JPanel();
     setContentPane(pane);
     final ChildFrame frame = this;
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     pane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                                                             pane);
     pane.getActionMap().put(pane, new AbstractAction()
@@ -115,7 +118,8 @@ public class ChildFrame extends JFrame
       {
         if (frame.closeOnInvisible) {
           try {
-            frame.windowClosing();
+            if (!frame.windowClosing(false))
+              return;
           } catch (Exception e2) {
             e2.printStackTrace();
             return;
@@ -131,12 +135,17 @@ public class ChildFrame extends JFrame
       public void windowClosing(WindowEvent e)
       {
         try {
-          frame.windowClosing();
+          if (!frame.windowClosing(false))
+            return;
         } catch (Exception e2) {
           throw new IllegalAccessError(); // ToDo: This is just too ugly
         }
-        if (frame.closeOnInvisible)
+        if (frame.closeOnInvisible) {
           windows.remove(frame);
+          frame.dispose();
+        } else {
+          frame.setVisible(false);
+        }
       }
     }
     );
@@ -148,8 +157,17 @@ public class ChildFrame extends JFrame
     windows.remove(this);
   }
 
-  protected void windowClosing() throws Exception
+  /**
+   * This method is called whenever the dialog is about to be closed and removed from memory.
+   * @param forced If <code>false</code>, the return value will be honored.
+   *               If <code>true</code>, the return value will be disregarded.
+   * @return If <code>true</code>, the closing procedure continues.
+   *         If <code>false</code>, the closing procedure will be cancelled.
+   * @throws Exception
+   */
+  protected boolean windowClosing(boolean forced) throws Exception
   {
+    return true;
   }
 }
 

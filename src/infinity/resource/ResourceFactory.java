@@ -694,6 +694,9 @@ public final class ResourceFactory
     boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
                                   BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
     for (final File rootDir: rootDirs) {
+      // excluding language folder from search
+      if (langRoot == rootDir)
+        continue;
       File overrideDir = NIFile.getFile(rootDir, OVERRIDEFOLDER);
       if (overrideDir.exists()) {
         File overrideFiles[] = overrideDir.listFiles();
@@ -734,8 +737,8 @@ public final class ResourceFactory
       if (filename != null) {
         if (filename.indexOf(".") == -1)
           filename += '.' + entry.getExtension();
-        if (filename.length() > 12 && currentGame != ID_NWN) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Filenames can only be up to 8+3 characters long",
+        if (filename.lastIndexOf('.') > 8 && currentGame != ID_NWN) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Filenames without extension can only be up to 8 characters long.",
                                         "Error", JOptionPane.ERROR_MESSAGE);
           filename = null;
         }

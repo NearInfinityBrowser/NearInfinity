@@ -7,7 +7,6 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
 import java.awt.GridBagConstraints;
@@ -15,6 +14,8 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.EnumMap;
 
@@ -44,17 +45,17 @@ public final class TextEdit extends Datatype implements Editable
   private byte[] bytes;
   private String text;
   private EOLType eolType;
+  private String charsetName;
+  private boolean terminateString, editable;
 
   public TextEdit(byte buffer[], int offset, int length, String name)
   {
-    this(buffer, offset, length, name, EOLType.UNIX);
-  }
-
-  public TextEdit(byte buffer[], int offset, int length, String name, EOLType eolType)
-  {
     super(offset, length, name);
     bytes = Arrays.copyOfRange(buffer, offset, offset + length);
-    this.eolType = (eolType != null) ? eolType : EOLType.UNIX;
+    this.eolType = EOLType.UNIX;
+    this.charsetName = Charset.defaultCharset().name();
+    this.terminateString = false;
+    this.editable = true;
   }
 
   // --------------------- Begin Interface Editable ---------------------
@@ -69,10 +70,12 @@ public final class TextEdit extends Datatype implements Editable
       textArea.setLineWrap(true);
       textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       textArea.setDocument(new FixedDocument(textArea, bytes.length));
+      textArea.setEditable(editable);
     }
     textArea.setText(toString());
 
     bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+    bUpdate.setEnabled(editable);
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     JScrollPane scroll = new JScrollPane(textArea);
@@ -127,21 +130,87 @@ public final class TextEdit extends Datatype implements Editable
   public String toString()
   {
     if (text == null)
-      text = eolConvert(DynamicArray.getString(bytes, 0, bytes.length), System.getProperty("line.separator"));
+      try {
+        int len = 0;
+        while (len < bytes.length && bytes[len] != 0) {
+          len++;
+        }
+        text = eolConvert(new String(bytes, 0, len, charsetName), System.getProperty("line.separator"));
+      } catch (UnsupportedEncodingException e) {
+        text = eolConvert(new String(bytes, 0, bytes.length), System.getProperty("line.separator"));
+        e.printStackTrace();
+      }
     return text;
   }
 
   public byte[] toArray()
   {
     if (text != null) {
-      byte[] buf = eolConvert(text).getBytes();
-      int imax = buf.length < bytes.length ? buf.length : bytes.length;
-      for (int i = 0; i < imax; i++)
-        bytes[i] = buf[i];
-      for (int i = imax; i < bytes.length; i++)
-        bytes[i] = 0;
+      byte[] buf = null;
+      try {
+        buf = eolConvert(text).getBytes(charsetName);
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+        buf = eolConvert(text).getBytes();
+      }
+      if (buf != null) {
+        // XXX: multibyte encodings may cause issues
+        int imax = buf.length < bytes.length ? buf.length : bytes.length;
+        for (int i = 0; i < imax; i++)
+          bytes[i] = buf[i];
+        for (int i = imax; i < bytes.length; i++)
+          bytes[i] = 0;
+        if (terminateString)
+          bytes[bytes.length - 1] = 0;    // ensure null-termination
+      }
     }
     return bytes;
+  }
+
+  public EOLType getEolType()
+  {
+    return eolType;
+  }
+
+  public void setEolType(EOLType type)
+  {
+    if (type != null)
+      eolType = type;
+  }
+
+  public boolean getStringTerminated()
+  {
+    return terminateString;
+  }
+
+  public void setStringTerminated(boolean terminated)
+  {
+    terminateString = terminated;
+  }
+
+  public String getCharset()
+  {
+    return charsetName;
+  }
+
+  public boolean setCharset(String charsetName)
+  {
+    if (Charset.isSupported(charsetName)) {
+      this.charsetName = charsetName;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public boolean getEditable()
+  {
+    return editable;
+  }
+
+  public void setEditable(boolean edit)
+  {
+    editable = edit;
   }
 
   private String eolConvert(String s)

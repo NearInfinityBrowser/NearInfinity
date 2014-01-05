@@ -10,7 +10,7 @@ import infinity.datatype.StringRef;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
-public final class StrRefEntry extends AbstractStruct
+public class StrRefEntry extends AbstractStruct
 {
   public StrRefEntry() throws Exception
   {

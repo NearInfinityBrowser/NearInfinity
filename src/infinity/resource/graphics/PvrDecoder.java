@@ -242,8 +242,6 @@ public class PvrDecoder
       int alignedBlocksY = alignedHeight >>> 2;
       final PixelFormat pf = info().pixelFormat();
       int bytesPerBlock = (pf == PixelFormat.DXT1) ? 8 : 16;
-      boolean preAlpha = (pf == PixelFormat.DXT2 || pf == PixelFormat.DXT4 ||
-                          info().flags() == PVRInfo.Flags.PRE_MULTIPLIED);
       for (int y = 0; y < alignedBlocksY; y++) {
         int inOfs = (((alignedTop >>> 2) + y) * inBlocksX + (alignedLeft >>> 2)) * bytesPerBlock;
         for (int x = 0; x < alignedBlocksX; x++, inOfs+=bytesPerBlock) {
@@ -252,15 +250,13 @@ public class PvrDecoder
               decodeDXT1Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
                               (x << 2) - ofsX, (y << 2) - ofsY);
               break;
-            case DXT2:
             case DXT3:
-              decodeDXT23Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
-                               (x << 2) - ofsX, (y << 2) - ofsY, preAlpha);
+              decodeDXT3Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
+                               (x << 2) - ofsX, (y << 2) - ofsY);
               break;
-            case DXT4:
             case DXT5:
-              decodeDXT45Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
-                               (x << 2) - ofsX, (y << 2) - ofsY, preAlpha);
+              decodeDXT5Block(inBuffer.asByteArray().addToBaseOffset(inOfs), image,
+                               (x << 2) - ofsX, (y << 2) - ofsY);
               break;
             default:
               break;
@@ -285,9 +281,13 @@ public class PvrDecoder
     int imgWidth = image.getWidth();
     int imgHeight = image.getHeight();
 
-    int c0 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
-    int c1 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
-    int code = buffer.getInt(0);
+    int c0 = buffer.getUnsignedShort(0);
+    int c1 = buffer.getUnsignedShort(2);
+    int code = buffer.getInt(4);
+    buffer.addToBaseOffset(8);
+    final int[] c = new int[6];
+    unpack565(c0, c, 0);
+    unpack565(c1, c, 3);
 
     int v, col = 0;
     for (int i = 0; i < 16; i++, code>>>=2) {
@@ -297,55 +297,57 @@ public class PvrDecoder
         switch (code & 3) {
           case 0:
             // 100% c0, 0% c1
-            col = ((c0 & 0xf800) << 8) | ((c0 & 0x7e0) << 5) | ((c0 & 0x1f) << 3);
+            col = 0xff000000 | (c[2] << 16) | (c[1] << 8) | c[0];
             break;
           case 1:
             // 0% c0, 100% c1
-            col = ((c1 & 0xf800) << 8) | ((c1 & 0x7e0) << 5) | ((c1 & 0x1f) << 3);
+            col = 0xff000000 | (c[5] << 16) | (c[4] << 8) | c[3];
             break;
           case 2:
             if (c0 > c1) {
               // 66% c0, 33% c1
-              v = (((c0 >>> 7) & 0x1f0) + ((c1 >>> 8) & 0xf8)) / 3;
-              col = ((v > 255) ? 255 : v) << 16;
-              v = (((c0 >>> 2) & 0x1f8) + ((c1 >>> 3) & 0xfc)) / 3;
+              col = 0xff000000;
+              v = ((c[0] << 1) + c[3]) / 3;
+              col |= (v > 255) ? 255 : v;
+              v = ((c[1] << 1) + c[4]) / 3;
               col |= ((v > 255) ? 255 : v) << 8;
-              v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
-              col |= ((v > 255) ? 255 : v);
+              v = ((c[2] << 1) + c[5]) / 3;
+              col |= ((v > 255) ? 255 : v) << 16;
             } else {
               // 50% c0, 50% c1
-              v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 8) & 0xf8)) >> 1;
-              col = ((v > 255) ? 255 : v) << 16;
-              v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 3) & 0xfc)) >> 1;
+              col = 0xff000000;
+              v = (c[0] + c[3]) >>> 1;
+              col |= (v > 255) ? 255 : v;
+              v = (c[1] + c[4]) >>> 1;
               col |= ((v > 255) ? 255 : v) << 8;
-              v = (((c0 << 3) & 0xf8) + ((c1 << 3) & 0xf8)) >> 1;
-              col |= ((v > 255) ? 255 : v);
+              v = (c[2] + c[5]) >>> 1;
+              col |= ((v > 255) ? 255 : v) << 16;
             }
             break;
           case 3:
             if (c0 > c1) {
               // 33% c0, 66% c1
-              v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 7) & 0x1f0)) / 3;
-              col = ((v > 255) ? 255 : v) << 16;
-              v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 2) & 0x1f8)) / 3;
+              col = 0xff000000;
+              v = (c[0] + (c[3] << 1)) / 3;
+              col |= (v > 255) ? 255 : v;
+              v = (c[1] + (c[4] << 1)) / 3;
               col |= ((v > 255) ? 255 : v) << 8;
-              v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
-              col |= ((v > 255) ? 255 : v);
+              v = (c[2] + (c[5] << 1)) / 3;
+              col |= ((v > 255) ? 255 : v) << 16;
             } else {
-              // black
+              // transparent
               col = 0;
             }
             break;
         }
-        image.setRGB(x, y, col | 0xff000000);
+        image.setRGB(x, y, col);
       }
     }
     return true;
   }
 
-  //Decodes a single logical DXT2 or DXT3 data block.
-  private boolean decodeDXT23Block(DynamicArray buffer, BufferedImage image, int startX, int startY,
-                                   boolean preAlpha)
+  //Decodes a single logical DXT3 data block.
+  private boolean decodeDXT3Block(DynamicArray buffer, BufferedImage image, int startX, int startY)
   {
     if (buffer == null || image == null)
       throw new NullPointerException();
@@ -361,81 +363,62 @@ public class PvrDecoder
     long tmp = buffer.getLong(0); buffer.addToBaseOffset(8);
     int[] alpha = new int[16];
     for (int i = 0; i < 16; i++) {
-      alpha[i] = (int)((tmp >>> (i * 4)) & 0x0f);
+      int v = (int)(tmp >>> (i * 4)) & 0x0f;
+      alpha[i] = (v << 4) | v;    // making full transparency and opacity possible
     }
     // loading reference color values
-    int c0 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
-    int c1 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
-    // loading color codes
-    int code = buffer.getInt(0);
+    int c0 = buffer.getUnsignedShort(0);
+    int c1 = buffer.getUnsignedShort(2);
+    int code = buffer.getInt(4);
+    buffer.addToBaseOffset(8);
+    final int[] c = new int[6];
+    unpack565(c0, c, 0);
+    unpack565(c1, c, 3);
 
     int v, col = 0;
     for (int i = 0; i < 16; i++, code>>>=2) {
       int x = startX + (i & 3);
       int y = startY + (i >>> 2);
       if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
-        int a = alpha[i];
+        int a = alpha[i] << 24;
         switch (code & 3) {
           case 0:
             // 100% c0, 0% c1
-//            col = ((c0 & 0xf800) << 8) | ((c0 & 0x7e0) << 5) | ((c0 & 0x1f) << 3);
-            v = (c0 & 0xf800) >>> 8;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = v << 16;
-            v = (c0 & 0x7e0) >>> 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v << 8;
-            v = (c0 & 0x1f) << 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v;
+            col = a | (c[2] << 16) | (c[1] << 8) | c[0];
             break;
           case 1:
             // 0% c0, 100% c1
-//            col = ((c1 & 0xf800) << 8) | ((c1 & 0x7e0) << 5) | ((c1 & 0x1f) << 3);
-            v = (c1 & 0xf800) >>> 8;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = v << 16;
-            v = (c1 & 0x7e0) >>> 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v << 8;
-            v = (c1 & 0x1f) << 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v;
+            col = a | (c[5] << 16) | (c[4] << 8) | c[3];
             break;
           case 2:
             // 66% c0, 33% c1
-            v = (((c0 >>> 7) & 0x1f0) + ((c1 >>> 8) & 0xf8)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = ((v > 255) ? 255 : v) << 16;
-            v = (((c0 >>> 2) & 0x1f8) + ((c1 >>> 3) & 0xfc)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = a;
+            v = ((c[0] << 1) + c[3]) / 3;
+            col |= (v > 255) ? 255 : v;
+            v = ((c[1] << 1) + c[4]) / 3;
             col |= ((v > 255) ? 255 : v) << 8;
-            v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= ((v > 255) ? 255 : v);
+            v = ((c[2] << 1) + c[5]) / 3;
+            col |= ((v > 255) ? 255 : v) << 16;
             break;
           case 3:
             // 33% c0, 66% c1
-            v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 7) & 0x1f0)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = ((v > 255) ? 255 : v) << 16;
-            v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 2) & 0x1f8)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = a;
+            v = (c[0] + (c[3] << 1)) / 3;
+            col |= (v > 255) ? 255 : v;
+            v = (c[1] + (c[4] << 1)) / 3;
             col |= ((v > 255) ? 255 : v) << 8;
-            v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= ((v > 255) ? 255 : v);
+            v = (c[2] + (c[5] << 1)) / 3;
+            col |= ((v > 255) ? 255 : v) << 16;
             break;
         }
-        image.setRGB(x, y, col | (a << 24));
+        image.setRGB(x, y, col);
       }
     }
     return true;
   }
 
-  // Decodes a single logical DXT4 or DXT5 data block.
-  private boolean decodeDXT45Block(DynamicArray buffer, BufferedImage image, int startX, int startY,
-                                   boolean preAlpha)
+  // Decodes a single logical DXT5 data block.
+  private boolean decodeDXT5Block(DynamicArray buffer, BufferedImage image, int startX, int startY)
   {
     if (buffer == null || image == null)
       throw new NullPointerException();
@@ -448,7 +431,7 @@ public class PvrDecoder
     int imgHeight = image.getHeight();
 
     // generating alpha table
-    int[] alpha = new int[8];
+    final int[] alpha = new int[8];
     alpha[0] = buffer.getUnsignedByte(0); buffer.addToBaseOffset(1);
     alpha[1] = buffer.getUnsignedByte(0); buffer.addToBaseOffset(1);
     if (alpha[0] > alpha[1]) {
@@ -473,73 +456,63 @@ public class PvrDecoder
       tableIdx[i] = (int)((tmp >>> (i*3)) & 7);
     }
     // loading reference color values
-    int c0 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
-    int c1 = buffer.getUnsignedShort(0); buffer.addToBaseOffset(2);
-    // loading color codes
-    int code = buffer.getInt(0);
+    int c0 = buffer.getUnsignedShort(0);
+    int c1 = buffer.getUnsignedShort(2);
+    int code = buffer.getInt(4);
+    buffer.addToBaseOffset(8);
+    final int[] c = new int[6];
+    unpack565(c0, c, 0);
+    unpack565(c1, c, 3);
 
     int v, col = 0;
     for (int i = 0; i < 16; i++, code>>>=2) {
       int x = startX + (i & 3);
       int y = startY + (i >>> 2);
       if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
-        int a = alpha[tableIdx[i]];
+        int a = alpha[tableIdx[i]] << 24;
         switch (code & 3) {
           case 0:
             // 100% c0, 0% c1
-//            col = ((c0 & 0xf800) << 8) | ((c0 & 0x7e0) << 5) | ((c0 & 0x1f) << 3);
-            v = (c0 & 0xf800) >>> 8;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = v << 16;
-            v = (c0 & 0x7e0) >>> 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v << 8;
-            v = (c0 & 0x1f) << 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v;
+            col = a | (c[2] << 16) | (c[1] << 8) | c[0];
             break;
           case 1:
             // 0% c0, 100% c1
-//            col = ((c1 & 0xf800) << 8) | ((c1 & 0x7e0) << 5) | ((c1 & 0x1f) << 3);
-            v = (c1 & 0xf800) >>> 8;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = v << 16;
-            v = (c1 & 0x7e0) >>> 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v << 8;
-            v = (c1 & 0x1f) << 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= v;
+            col = a | (c[5] << 16) | (c[4] << 8) | c[3];
             break;
           case 2:
             // 66% c0, 33% c1
-            v = (((c0 >>> 7) & 0x1f0) + ((c1 >>> 8) & 0xf8)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = ((v > 255) ? 255 : v) << 16;
-            v = (((c0 >>> 2) & 0x1f8) + ((c1 >>> 3) & 0xfc)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = a;
+            v = ((c[0] << 1) + c[3]) / 3;
+            col |= (v > 255) ? 255 : v;
+            v = ((c[1] << 1) + c[4]) / 3;
             col |= ((v > 255) ? 255 : v) << 8;
-            v = (((c0 << 4) & 0x1f0) + ((c1 << 3) & 0xfc)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= ((v > 255) ? 255 : v);
+            v = ((c[2] << 1) + c[5]) / 3;
+            col |= ((v > 255) ? 255 : v) << 16;
             break;
           case 3:
             // 33% c0, 66% c1
-            v = (((c0 >>> 8) & 0xf8) + ((c1 >>> 7) & 0x1f0)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col = ((v > 255) ? 255 : v) << 16;
-            v = (((c0 >>> 3) & 0xfc) + ((c1 >>> 2) & 0x1f8)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
+            col = a;
+            v = (c[0] + (c[3] << 1)) / 3;
+            col |= (v > 255) ? 255 : v;
+            v = (c[1] + (c[4] << 1)) / 3;
             col |= ((v > 255) ? 255 : v) << 8;
-            v = (((c0 << 3) & 0xf8) + ((c1 << 4) & 0x1f0)) / 3;
-            if (preAlpha && a > 0) v = (v << 8) / a;
-            col |= ((v > 255) ? 255 : v);
+            v = (c[2] + (c[5] << 1)) / 3;
+            col |= ((v > 255) ? 255 : v) << 16;
             break;
         }
-        image.setRGB(x, y, col | (a << 24));
+        image.setRGB(x, y, col);
       }
     }
     return true;
+  }
+
+  // Converts RGB565 into 8 bit color components, ordered { B, G, R }
+  private static int[] unpack565(int color, int[] components, int ofs)
+  {
+    components[ofs] = ((color << 3) & 0xf8) | (color >>> 2) & 0x07;       // b
+    components[ofs+1] = ((color >>> 3) & 0xfc) | (color >>> 9) & 0x03;    // g
+    components[ofs+2] = ((color >>> 8) & 0xf8) | (color >>> 13) & 0x07;   // r
+    return components;
   }
 
 
@@ -588,7 +561,7 @@ public class PvrDecoder
 
     // Supported pixel formats
     private static final EnumSet<PixelFormat> SupportedFormat =
-        EnumSet.of(PixelFormat.DXT1, PixelFormat.DXT2, PixelFormat.DXT3, PixelFormat.DXT4, PixelFormat.DXT5);
+        EnumSet.of(PixelFormat.DXT1, PixelFormat.DXT3, PixelFormat.DXT5);
 
     private int signature;
     private Flags flags;

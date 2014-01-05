@@ -141,7 +141,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
         if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN &&
             entry.toString().length() <= 20)
           values.add(new ResourceRefEntry(entry));
-        else if (entry.toString().length() <= 12 && isLegalEntry(entry))
+        else if (entry.toString().lastIndexOf('.') <= 8 && isLegalEntry(entry))
           values.add(new ResourceRefEntry(entry));
       }
       addExtraEntries(values);

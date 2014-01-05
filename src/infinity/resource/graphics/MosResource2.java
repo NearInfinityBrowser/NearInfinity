@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -30,6 +31,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -378,7 +380,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
       // preparing source image
       Image img = rcImage.getImage();
       BufferedImage srcImage = ColorConvert.createCompatibleImage(img.getWidth(null),
-                                                                  img.getHeight(null), false);
+                                                                  img.getHeight(null),
+                                                                  Transparency.BITMASK);
       Graphics2D g = (Graphics2D)srcImage.getGraphics();
       g.drawImage(getImage(), 0, 0, null);
       g.dispose();
@@ -394,7 +397,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
       int tableOfs = palOfs + tileCount*1024;
       int dataOfs = tableOfs + tileCount*4;
       buf = new byte[dataOfs + width*height];
-      System.arraycopy("MOS V1  ".getBytes(), 0, buf, 0, 8);
+      System.arraycopy("MOS V1  ".getBytes(Charset.forName("US-ASCII")), 0, buf, 0, 8);
       DynamicArray.putShort(buf, 8, (short)width);
       DynamicArray.putShort(buf, 10, (short)height);
       DynamicArray.putShort(buf, 12, (short)cols);
@@ -426,8 +429,8 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
       srcImage.flush(); srcImage = null;
 
       // applying color reduction to each tile
-      int[] palette = new int[256];
-      int[] hslPalette = new int[256];
+      int[] palette = new int[255];
+      int[] hslPalette = new int[255];
       byte[] tilePalette = new byte[1024];
       byte[] tileData = new byte[64*64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
@@ -445,24 +448,31 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
         }
 
         int[] pixels = tileList.get(tileIdx);
-        if (ColorConvert.medianCut(pixels, 256, palette, true)) {
+        if (ColorConvert.medianCut(pixels, 255, palette, false)) {
           ColorConvert.toHslPalette(palette, hslPalette);
           // filling palette
-          for (int i = 0; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte)(palette[i] & 0xff);
-            tilePalette[(i << 2) + 1] = (byte)((palette[i] >>> 8) & 0xff);
-            tilePalette[(i << 2) + 2] = (byte)((palette[i] >>> 16) & 0xff);
+          // first palette entry denotes transparency
+          tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
+          for (int i = 1; i < 256; i++) {
+            tilePalette[(i << 2) + 0] = (byte)(palette[i - 1] & 0xff);
+            tilePalette[(i << 2) + 1] = (byte)((palette[i - 1] >>> 8) & 0xff);
+            tilePalette[(i << 2) + 2] = (byte)((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
-            colorCache.put(palette[i], (byte)i);
+            colorCache.put(palette[i - 1], (byte)(i - 1));
           }
           // filling pixel data
           for (int i = 0; i < pixels.length; i++) {
-            Byte palIndex = colorCache.get(pixels[i]);
-            if (palIndex != null) {
-              tileData[i] = palIndex;
+            if ((pixels[i] & 0xff000000) == 0) {
+              tileData[i] = 0;
             } else {
-              tileData[i] = (byte)(ColorConvert.nearestColor(pixels[i], hslPalette));
-              colorCache.put(pixels[i], tileData[i]);
+              Byte palIndex = colorCache.get(pixels[i]);
+              if (palIndex != null) {
+                tileData[i] = (byte)(palIndex + 1);
+              } else {
+                byte color = (byte)ColorConvert.nearestColor(pixels[i], hslPalette);
+                tileData[i] = (byte)(color + 1);
+                colorCache.put(pixels[i], color);
+              }
             }
           }
         } else {

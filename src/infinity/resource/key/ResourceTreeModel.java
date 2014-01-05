@@ -172,7 +172,11 @@ public final class ResourceTreeModel implements TreeModel
 
   public ResourceEntry getResourceEntry(String entryname)
   {
-    return entries.get(entryname.toUpperCase());
+    if (entryname != null) {
+      return entries.get(entryname.toUpperCase());
+    } else {
+      return null;
+    }
   }
 
   public void removeResourceEntry(ResourceEntry entry)
@@ -192,7 +196,7 @@ public final class ResourceTreeModel implements TreeModel
     entries.remove(entry.toString().toUpperCase());
     if (parent.getChildCount() == 0) {
       root.removeFolder(parent);
-      folders.remove(entry.getTreeFolder());
+      folders.remove(parent.folderName());
     }
     for (int i = 0; i < treeModelListeners.size(); i++)
       treeModelListeners.get(i).treeNodesRemoved(event);
