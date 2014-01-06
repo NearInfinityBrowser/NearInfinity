@@ -738,7 +738,8 @@ public final class ResourceFactory
         if (filename.indexOf(".") == -1)
           filename += '.' + entry.getExtension();
         if (filename.lastIndexOf('.') > 8 && currentGame != ID_NWN) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Filenames without extension can only be up to 8 characters long.",
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                        "Filenames can only be up to 8 characters long (not including the file extension).",
                                         "Error", JOptionPane.ERROR_MESSAGE);
           filename = null;
         }

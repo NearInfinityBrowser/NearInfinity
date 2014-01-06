@@ -37,17 +37,19 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -60,7 +62,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 
@@ -72,35 +73,10 @@ public final class BrowserMenuBar extends JMenuBar
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
   public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
   private static BrowserMenuBar menuBar;
-  private static final Font FONTS[] = {new Font("Monospaced", Font.PLAIN, 12),
-                                       new Font("Serif", Font.PLAIN, 12),
-                                       new Font("SansSerif", Font.PLAIN, 12),
-                                       new Font("Lucida", Font.PLAIN, 12)};
-  private static final String BCSINDENT[] = {"  ", "    ", "\t"};
-  private static final String OPTION_SHOWOFFSETS = "ShowOffsets";
-  private static final String OPTION_IGNOREOVERRIDE = "IgnoreOverride";
-  private static final String OPTION_IGNOREREADERRORS = "IgnoreReadErrors";
-  private static final String OPTION_AUTOCHECK_BCS = "AutocheckBCS";
-  private static final String OPTION_CACHEOVERRIDE = "CacheOverride";
-  private static final String OPTION_CHECKSCRIPTNAMES = "CheckScriptNames";
-  private static final String OPTION_SHOWOVERRIDES = "ShowOverridesIn";
-  private static final String OPTION_SHOWRESREF = "ShowResRef";
-  private static final String OPTION_LOOKANDFEEL = "LookAndFeel";
-  private static final String OPTION_VIEWOREDITSHOWN = "ViewOrEditShown";
-  private static final String OPTION_FONT = "Font";
-  private static final String OPTION_BCSINDENT = "BcsIndent";
-  private static final String OPTION_TLKCHARSET = "TLKCharset";
   private final EditMenu editMenu;
   private final FileMenu fileMenu;
   private final GameMenu gameMenu;
-  private final JRadioButtonMenuItem showOverrides[] = new JRadioButtonMenuItem[3];
-  private final JRadioButtonMenuItem lookAndFeel[] = new JRadioButtonMenuItem[4];
-  private final JRadioButtonMenuItem showResRef[] = new JRadioButtonMenuItem[3];
-  private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
-  private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
-  private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
-  private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
-  private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
+  private final OptionsMenu optionsMenu;
 
   public static BrowserMenuBar getInstance()
   {
@@ -128,29 +104,30 @@ public final class BrowserMenuBar extends JMenuBar
     gameMenu = new GameMenu(prefs, browser);
     fileMenu = new FileMenu();
     editMenu = new EditMenu();
+    optionsMenu = new OptionsMenu(prefs, browser);
     add(gameMenu);
     add(fileMenu);
     add(editMenu);
     add(new SearchMenu());
     add(new ToolsMenu());
-    add(makeOptionsMenu(prefs, browser));
+    add(optionsMenu);
     add(new HelpMenu());
     menuBar = this;
   }
 
   public boolean autocheckBCS()
   {
-    return optionAutocheckBCS.isSelected();
+    return optionsMenu.optionAutocheckBCS.isSelected();
   }
 
   public boolean checkScriptNames()
   {
-    return optionCheckScriptNames.isSelected();
+    return optionsMenu.optionCheckScriptNames.isSelected();
   }
 
   public boolean cacheOverride()
   {
-    return optionCacheOverride.isSelected();
+    return optionsMenu.optionCacheOverride.isSelected();
   }
 
   public void gameLoaded(int oldGame, String oldFile)
@@ -158,66 +135,50 @@ public final class BrowserMenuBar extends JMenuBar
     gameMenu.gameLoaded(oldGame, oldFile);
     fileMenu.gameLoaded();
     editMenu.gameLoaded();
+    optionsMenu.gameLoaded();
   }
 
   public String getBcsIndent()
   {
-    for (int i = 0; i < BCSINDENT.length; i++)
-      if (selectBcsIndent[i].isSelected())
-        return BCSINDENT[i];
-    return BCSINDENT[2];
+    return optionsMenu.getBcsIndent();
   }
 
   public int getDefaultStructView()
   {
-    if (viewOrEditShown[DEFAULT_VIEW].isSelected())
-      return DEFAULT_VIEW;
-    return DEFAULT_EDIT;
+    return optionsMenu.getDefaultStructView();
   }
 
   public int getLookAndFeel()
   {
-    for (int i = 0; i < lookAndFeel.length; i++) {
-      if (lookAndFeel[i] != null && lookAndFeel[i].isSelected())
-        return i;
-    }
-    return LOOKFEEL_JAVA;
+    return optionsMenu.getLookAndFeel();
   }
 
   public int getOverrideMode()
   {
-    if (showOverrides[OVERRIDE_IN_THREE].isSelected())
-      return OVERRIDE_IN_THREE;
-    else if (showOverrides[OVERRIDE_IN_OVERRIDE].isSelected())
-      return OVERRIDE_IN_OVERRIDE;
-    return OVERRIDE_SPLIT;
+    return optionsMenu.getOverrideMode();
   }
 
   public int getResRefMode()
   {
-    if (showResRef[RESREF_ONLY].isSelected())
-      return RESREF_ONLY;
-    else if (showResRef[RESREF_NAME_REF].isSelected())
-      return RESREF_NAME_REF;
-    return RESREF_REF_NAME;
+    return optionsMenu.getResRefMode();
   }
 
   public Font getScriptFont()
   {
-    for (int i = 0; i < FONTS.length; i++)
-      if (selectFont[i].isSelected())
-        return FONTS[i];
-    return FONTS[0];
+    for (int i = 0; i < OptionsMenu.FONTS.length; i++)
+      if (optionsMenu.selectFont[i].isSelected())
+        return OptionsMenu.FONTS[i];
+    return OptionsMenu.FONTS[0];
   }
 
   public boolean ignoreOverrides()
   {
-    return optionIgnoreOverride.isSelected();
+    return optionsMenu.optionIgnoreOverride.isSelected();
   }
 
   public boolean ignoreReadErrors()
   {
-    return optionIgnoreReadErrors.isSelected();
+    return optionsMenu.optionIgnoreReadErrors.isSelected();
   }
 
   public void resourceEntrySelected(ResourceEntry entry)
@@ -232,213 +193,16 @@ public final class BrowserMenuBar extends JMenuBar
 
   public boolean showOffsets()
   {
-    return optionShowOffset.isSelected();
+    return optionsMenu.optionShowOffset.isSelected();
   }
 
   public void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
-    prefs.putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
-    prefs.putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
-    prefs.putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
-    prefs.putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
-    prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
-    prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
-    prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
-    prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
-    prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
-    prefs.putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
-    int selectedFont = 0;
-    for (int i = 0; i < selectFont.length; i++)
-      if (selectFont[i].isSelected())
-        selectedFont = i;
-    prefs.putInt(OPTION_FONT, selectedFont);
-    int selectedIndent = 0;
-    for (int i = 0; i < selectBcsIndent.length; i++)
-      if (selectBcsIndent[i].isSelected())
-        selectedIndent = i;
-    prefs.putInt(OPTION_BCSINDENT, selectedIndent);
-    prefs.put(OPTION_TLKCHARSET, StringResource.getCharset().name());
+    optionsMenu.storePreferences(prefs);
     gameMenu.storePreferences(prefs);
   }
 
-  ///////////////////////////////
-  // Options Menu
-  ///////////////////////////////
-
-  private JMenu makeOptionsMenu(Preferences prefs, NearInfinity browser)
-  {
-    final JMenu menu = new JMenu("Options");
-    menu.setMnemonic(KeyEvent.VK_O);
-
-    optionIgnoreOverride =
-    new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
-    menu.add(optionIgnoreOverride);
-    optionIgnoreReadErrors =
-    new JCheckBoxMenuItem("Ignore Read Errors", prefs.getBoolean(OPTION_IGNOREREADERRORS, false));
-    menu.add(optionIgnoreReadErrors);
-    optionShowOffset =
-    new JCheckBoxMenuItem("Show Hex Offsets", prefs.getBoolean(OPTION_SHOWOFFSETS, false));
-    menu.add(optionShowOffset);
-    optionAutocheckBCS =
-    new JCheckBoxMenuItem("Autocheck BCS", prefs.getBoolean(OPTION_AUTOCHECK_BCS, true));
-    menu.add(optionAutocheckBCS);
-    optionCacheOverride =
-    new JCheckBoxMenuItem("Autocheck for Overrides", prefs.getBoolean(OPTION_CACHEOVERRIDE, false));
-    optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
-                                       "to discover new override files added while NI is open");
-    menu.add(optionCacheOverride);
-    optionCheckScriptNames =
-    new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
-    optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
-                                          "but many features involving script names will be disabled.");
-    menu.add(optionCheckScriptNames);
-
-
-    menu.addSeparator();
-
-    JMenu bcsindentmenu = new JMenu("BCS Indent");
-    menu.add(bcsindentmenu);
-    ButtonGroup bg = new ButtonGroup();
-    int selectedbcsindent = prefs.getInt(OPTION_BCSINDENT, 2);
-    selectBcsIndent[0] = new JRadioButtonMenuItem("2 Spaces", selectedbcsindent == 0);
-    selectBcsIndent[1] = new JRadioButtonMenuItem("4 Spaces", selectedbcsindent == 1);
-    selectBcsIndent[2] = new JRadioButtonMenuItem("Tab", selectedbcsindent == 2);
-    for (int i = 0; i < BCSINDENT.length; i++) {
-      bcsindentmenu.add(selectBcsIndent[i]);
-      bg.add(selectBcsIndent[i]);
-    }
-
-    JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
-    menu.add(showresrefmenu);
-    int selectedresref = prefs.getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
-    showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
-    showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
-    showResRef[RESREF_REF_NAME] =
-    new JRadioButtonMenuItem("Filename (Name)", selectedresref == RESREF_REF_NAME);
-    showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
-    showResRef[RESREF_NAME_REF] =
-    new JRadioButtonMenuItem("Name (Filename)", selectedresref == RESREF_NAME_REF);
-    showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, ActionEvent.CTRL_MASK));
-    bg = new ButtonGroup();
-    for (int i = RESREF_ONLY; i <= RESREF_NAME_REF; i++) {
-      showresrefmenu.add(showResRef[i]);
-      bg.add(showResRef[i]);
-    }
-
-    JMenu overridesubmenu = new JMenu("Show Override Files");
-    menu.add(overridesubmenu);
-    int selectedmode = prefs.getInt(OPTION_SHOWOVERRIDES, OVERRIDE_SPLIT);
-    showOverrides[OVERRIDE_IN_THREE] =
-    new JRadioButtonMenuItem("In ??? Folders (CRE, SPL, ...)", selectedmode == OVERRIDE_IN_THREE);
-    showOverrides[OVERRIDE_IN_OVERRIDE] =
-    new JRadioButtonMenuItem("In Override Folder", selectedmode == OVERRIDE_IN_OVERRIDE);
-    showOverrides[OVERRIDE_SPLIT] =
-    new JRadioButtonMenuItem("Split Between ??? and Override Folders", selectedmode == OVERRIDE_SPLIT);
-    showOverrides[OVERRIDE_SPLIT].setToolTipText(
-            "Indexed by Chitin.key => ??? folders; Not indexed => Override folder");
-    bg = new ButtonGroup();
-    for (int i = OVERRIDE_IN_THREE; i <= OVERRIDE_SPLIT; i++) {
-      overridesubmenu.add(showOverrides[i]);
-      bg.add(showOverrides[i]);
-      showOverrides[i].setActionCommand("Refresh");
-      showOverrides[i].addActionListener(browser);
-    }
-
-    JMenu vieworeditmenu = new JMenu("Default Structure Display");
-    menu.add(vieworeditmenu);
-    int selectedview = prefs.getInt(OPTION_VIEWOREDITSHOWN, DEFAULT_VIEW);
-    viewOrEditShown[DEFAULT_VIEW] =
-    new JRadioButtonMenuItem("View", selectedview == DEFAULT_VIEW);
-    viewOrEditShown[DEFAULT_EDIT] =
-    new JRadioButtonMenuItem("Edit", selectedview == DEFAULT_EDIT);
-    bg = new ButtonGroup();
-    bg.add(viewOrEditShown[DEFAULT_VIEW]);
-    bg.add(viewOrEditShown[DEFAULT_EDIT]);
-    vieworeditmenu.add(viewOrEditShown[DEFAULT_VIEW]);
-    vieworeditmenu.add(viewOrEditShown[DEFAULT_EDIT]);
-
-    JMenu lookandfeelmenu = new JMenu("Look and Feel");
-    menu.add(lookandfeelmenu);
-    int selectedfeel = prefs.getInt(OPTION_LOOKANDFEEL, LOOKFEEL_JAVA);
-    lookAndFeel[LOOKFEEL_JAVA] = new JRadioButtonMenuItem("Java", selectedfeel == LOOKFEEL_JAVA);
-    lookAndFeel[LOOKFEEL_WINDOWS] = new JRadioButtonMenuItem("Native", selectedfeel == LOOKFEEL_WINDOWS);
-    lookAndFeel[LOOKFEEL_MOTIF] = new JRadioButtonMenuItem("Motif", selectedfeel == LOOKFEEL_MOTIF);
-    try {
-      Class.forName("com.jgoodies.plaf.plastic.PlasticLookAndFeel");
-      lookAndFeel[LOOKFEEL_PLASTICXP] =
-      new JRadioButtonMenuItem("Plastic XP", selectedfeel == LOOKFEEL_PLASTICXP);
-    } catch (ClassNotFoundException e) {
-      if (selectedfeel == LOOKFEEL_PLASTICXP)
-        lookAndFeel[LOOKFEEL_JAVA].setSelected(true);
-    }
-    bg = new ButtonGroup();
-    for (final JRadioButtonMenuItem lf : lookAndFeel) {
-      if (lf != null) {
-        lookandfeelmenu.add(lf);
-        bg.add(lf);
-        lf.setActionCommand("ChangeLook");
-        lf.addActionListener(browser);
-      }
-    }
-
-    JMenu scriptmenu = new JMenu("Text Font");
-    menu.add(scriptmenu);
-    bg = new ButtonGroup();
-    int selectedfont = prefs.getInt(OPTION_FONT, 0);
-    for (int i = 0; i < FONTS.length; i++) {
-      selectFont[i] =
-      new JRadioButtonMenuItem(FONTS[i].getName() + ' ' + FONTS[i].getSize(), i == selectedfont);
-      selectFont[i].setFont(FONTS[i]);
-      scriptmenu.add(selectFont[i]);
-      bg.add(selectFont[i]);
-    }
-
-    final JMenu charsetmenu = new JMenu("TLK Charset");
-    menu.add(charsetmenu);
-    String defaultCharset = StringResource.getCharset().name();
-    String charset = prefs.get(OPTION_TLKCHARSET, defaultCharset);
-    if (! charset.equals(defaultCharset)) {
-      StringResource.setCharset(charset);
-    }
-    final JTextField tf = new JTextField(charset, 15);
-    tf.setMargin(new Insets(2, 2, 2, 2));
-    tf.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent event) {
-        try {
-          StringResource.setCharset(event.getActionCommand());
-
-          // XXX: don't know how to deselect the menu properly
-          charsetmenu.setPopupMenuVisible(false);
-          menu.setPopupMenuVisible(false);
-          menu.setSelected(false);
-
-          // re-read strings
-          ActionEvent refresh = new ActionEvent(tf, 0, "Refresh");
-          NearInfinity.getInstance().actionPerformed(refresh);
-        }
-        catch (IllegalArgumentException e) {
-          tf.setText(StringResource.getCharset().name());
-          JOptionPane.showMessageDialog(null, "Illegal charset or charset not supported",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    });
-
-    tf.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent event) {
-        // only trigger when states differ
-        if (! tf.getText().equals(StringResource.getCharset().name())) {
-          tf.postActionEvent();
-        }
-      }
-    });
-    charsetmenu.add(tf);
-
-    return menu;
-  }
 
 // -------------------------- INNER CLASSES --------------------------
 
@@ -1212,6 +976,436 @@ public final class BrowserMenuBar extends JMenuBar
   }
 
   ///////////////////////////////
+  // Options Menu
+  ///////////////////////////////
+
+  private static final class OptionsMenu extends JMenu implements ActionListener
+  {
+    private static final Font FONTS[] = {
+      new Font("Monospaced", Font.PLAIN, 12), new Font("Serif", Font.PLAIN, 12),
+      new Font("SansSerif", Font.PLAIN, 12),  new Font("Lucida", Font.PLAIN, 12)};
+    private static final String BCSINDENT[] = {"  ", "    ", "\t"};
+    private static final String DefaultCharset = "Auto";
+    private static final List<String[]> CharsetsUsed = new ArrayList<String[]>();
+
+    static {
+      // Order: Display name, Canonical charset name, Tooltip
+      CharsetsUsed.add(new String[]{"UTF-8", "UTF-8", "The character set of choice for the Enhanced Editions of the Baldur's Gate games."});
+      CharsetsUsed.add(new String[]{"Windows-1252", "windows-1252", "Character set used in english and other latin-based languages, such as french, german, italian or spanish."});
+      CharsetsUsed.add(new String[]{"Windows-1251", "windows-1251", "Character set used in russian and other cyrillic-based languages."});
+      CharsetsUsed.add(new String[]{"Windows-1250", "windows-1250", "Character set used in central european and eastern european languages, such as polish or czech."});
+      CharsetsUsed.add(new String[]{"Windows-31J", "windows-31j", "Character set used in japanese localizations."});
+      CharsetsUsed.add(new String[]{"Windows-936", "GBK", "Character set for Simplified Chinese text."});
+      CharsetsUsed.add(new String[]{"Big5-HKSCS", "Big5-HKSCS", "Character set for Traditional Chinese text (may not be fully compatible)."});
+      CharsetsUsed.add(new String[]{"IBM-949", "x-IBM949", "Character set used in korean localizations."});
+    }
+
+    private static final String OPTION_SHOWOFFSETS = "ShowOffsets";
+    private static final String OPTION_IGNOREOVERRIDE = "IgnoreOverride";
+    private static final String OPTION_IGNOREREADERRORS = "IgnoreReadErrors";
+    private static final String OPTION_AUTOCHECK_BCS = "AutocheckBCS";
+    private static final String OPTION_CACHEOVERRIDE = "CacheOverride";
+    private static final String OPTION_CHECKSCRIPTNAMES = "CheckScriptNames";
+    private static final String OPTION_SHOWOVERRIDES = "ShowOverridesIn";
+    private static final String OPTION_SHOWRESREF = "ShowResRef";
+    private static final String OPTION_LOOKANDFEEL = "LookAndFeel";
+    private static final String OPTION_VIEWOREDITSHOWN = "ViewOrEditShown";
+    private static final String OPTION_FONT = "Font";
+    private static final String OPTION_BCSINDENT = "BcsIndent";
+    private static final String OPTION_TLKCHARSET = "TLKCharsetType";
+
+    private final JRadioButtonMenuItem showOverrides[] = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem lookAndFeel[] = new JRadioButtonMenuItem[4];
+    private final JRadioButtonMenuItem showResRef[] = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
+    private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
+    private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
+    private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
+    private final JMenu mCharsetMenu;
+    private ButtonGroup bgCharsetButtons;
+
+    private OptionsMenu(Preferences prefs, NearInfinity browser)
+    {
+      super("Options");
+      setMnemonic(KeyEvent.VK_O);
+
+      optionIgnoreOverride =
+          new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
+      add(optionIgnoreOverride);
+      optionIgnoreReadErrors =
+      new JCheckBoxMenuItem("Ignore Read Errors", prefs.getBoolean(OPTION_IGNOREREADERRORS, false));
+      add(optionIgnoreReadErrors);
+      optionShowOffset =
+      new JCheckBoxMenuItem("Show Hex Offsets", prefs.getBoolean(OPTION_SHOWOFFSETS, false));
+      add(optionShowOffset);
+      optionAutocheckBCS =
+      new JCheckBoxMenuItem("Autocheck BCS", prefs.getBoolean(OPTION_AUTOCHECK_BCS, true));
+      add(optionAutocheckBCS);
+      optionCacheOverride =
+      new JCheckBoxMenuItem("Autocheck for Overrides", prefs.getBoolean(OPTION_CACHEOVERRIDE, false));
+      optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
+                                         "to discover new override files added while NI is open");
+      add(optionCacheOverride);
+      optionCheckScriptNames =
+      new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
+      optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
+                                            "but many features involving script names will be disabled.");
+      add(optionCheckScriptNames);
+
+      addSeparator();
+
+      JMenu bcsindentmenu = new JMenu("BCS Indent");
+      add(bcsindentmenu);
+      ButtonGroup bg = new ButtonGroup();
+      int selectedbcsindent = prefs.getInt(OPTION_BCSINDENT, 2);
+      selectBcsIndent[0] = new JRadioButtonMenuItem("2 Spaces", selectedbcsindent == 0);
+      selectBcsIndent[1] = new JRadioButtonMenuItem("4 Spaces", selectedbcsindent == 1);
+      selectBcsIndent[2] = new JRadioButtonMenuItem("Tab", selectedbcsindent == 2);
+      for (int i = 0; i < BCSINDENT.length; i++) {
+        bcsindentmenu.add(selectBcsIndent[i]);
+        bg.add(selectBcsIndent[i]);
+      }
+
+      JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
+      add(showresrefmenu);
+      int selectedresref = prefs.getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
+      showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
+      showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_REF_NAME] =
+      new JRadioButtonMenuItem("Filename (Name)", selectedresref == RESREF_REF_NAME);
+      showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_NAME_REF] =
+      new JRadioButtonMenuItem("Name (Filename)", selectedresref == RESREF_NAME_REF);
+      showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, ActionEvent.CTRL_MASK));
+      bg = new ButtonGroup();
+      for (int i = RESREF_ONLY; i <= RESREF_NAME_REF; i++) {
+        showresrefmenu.add(showResRef[i]);
+        bg.add(showResRef[i]);
+      }
+
+      JMenu overridesubmenu = new JMenu("Show Override Files");
+      add(overridesubmenu);
+      int selectedmode = prefs.getInt(OPTION_SHOWOVERRIDES, OVERRIDE_SPLIT);
+      showOverrides[OVERRIDE_IN_THREE] =
+      new JRadioButtonMenuItem("In ??? Folders (CRE, SPL, ...)", selectedmode == OVERRIDE_IN_THREE);
+      showOverrides[OVERRIDE_IN_OVERRIDE] =
+      new JRadioButtonMenuItem("In Override Folder", selectedmode == OVERRIDE_IN_OVERRIDE);
+      showOverrides[OVERRIDE_SPLIT] =
+      new JRadioButtonMenuItem("Split Between ??? and Override Folders", selectedmode == OVERRIDE_SPLIT);
+      showOverrides[OVERRIDE_SPLIT].setToolTipText(
+              "Indexed by Chitin.key => ??? folders; Not indexed => Override folder");
+      bg = new ButtonGroup();
+      for (int i = OVERRIDE_IN_THREE; i <= OVERRIDE_SPLIT; i++) {
+        overridesubmenu.add(showOverrides[i]);
+        bg.add(showOverrides[i]);
+        showOverrides[i].setActionCommand("Refresh");
+        showOverrides[i].addActionListener(browser);
+      }
+
+      JMenu vieworeditmenu = new JMenu("Default Structure Display");
+      add(vieworeditmenu);
+      int selectedview = prefs.getInt(OPTION_VIEWOREDITSHOWN, DEFAULT_VIEW);
+      viewOrEditShown[DEFAULT_VIEW] =
+      new JRadioButtonMenuItem("View", selectedview == DEFAULT_VIEW);
+      viewOrEditShown[DEFAULT_EDIT] =
+      new JRadioButtonMenuItem("Edit", selectedview == DEFAULT_EDIT);
+      bg = new ButtonGroup();
+      bg.add(viewOrEditShown[DEFAULT_VIEW]);
+      bg.add(viewOrEditShown[DEFAULT_EDIT]);
+      vieworeditmenu.add(viewOrEditShown[DEFAULT_VIEW]);
+      vieworeditmenu.add(viewOrEditShown[DEFAULT_EDIT]);
+
+      JMenu lookandfeelmenu = new JMenu("Look and Feel");
+      add(lookandfeelmenu);
+      int selectedfeel = prefs.getInt(OPTION_LOOKANDFEEL, LOOKFEEL_JAVA);
+      lookAndFeel[LOOKFEEL_JAVA] = new JRadioButtonMenuItem("Java", selectedfeel == LOOKFEEL_JAVA);
+      lookAndFeel[LOOKFEEL_WINDOWS] = new JRadioButtonMenuItem("Native", selectedfeel == LOOKFEEL_WINDOWS);
+      lookAndFeel[LOOKFEEL_MOTIF] = new JRadioButtonMenuItem("Motif", selectedfeel == LOOKFEEL_MOTIF);
+      try {
+        Class.forName("com.jgoodies.plaf.plastic.PlasticLookAndFeel");
+        lookAndFeel[LOOKFEEL_PLASTICXP] =
+        new JRadioButtonMenuItem("Plastic XP", selectedfeel == LOOKFEEL_PLASTICXP);
+      } catch (ClassNotFoundException e) {
+        if (selectedfeel == LOOKFEEL_PLASTICXP)
+          lookAndFeel[LOOKFEEL_JAVA].setSelected(true);
+      }
+      bg = new ButtonGroup();
+      for (final JRadioButtonMenuItem lf : lookAndFeel) {
+        if (lf != null) {
+          lookandfeelmenu.add(lf);
+          bg.add(lf);
+          lf.setActionCommand("ChangeLook");
+          lf.addActionListener(browser);
+        }
+      }
+
+      JMenu scriptmenu = new JMenu("Text Font");
+      add(scriptmenu);
+      bg = new ButtonGroup();
+      int selectedfont = prefs.getInt(OPTION_FONT, 0);
+      for (int i = 0; i < FONTS.length; i++) {
+        selectFont[i] =
+        new JRadioButtonMenuItem(FONTS[i].getName() + ' ' + FONTS[i].getSize(), i == selectedfont);
+        selectFont[i].setFont(FONTS[i]);
+        scriptmenu.add(selectFont[i]);
+        bg.add(selectFont[i]);
+      }
+
+      String charset = prefs.get(OPTION_TLKCHARSET, DefaultCharset);
+      if (!charsetName(charset).equals(StringResource.getCharset().name())) {
+        StringResource.setCharset(charsetName(charset));
+      }
+      mCharsetMenu = initCharsetMenu(charset);
+      add(mCharsetMenu);
+    }
+
+    private JMenu initCharsetMenu(String charset)
+    {
+      bgCharsetButtons = new ButtonGroup();
+      JMenu menu = new JMenu("TLK Charset");
+      DataRadioButtonMenuItem dmi = new DataRadioButtonMenuItem("Autodetect Charset", (Object)DefaultCharset);
+      dmi.setToolTipText("Attempts to determine the correct character encoding automatically. May not work reliably for non-english games.");
+      dmi.addActionListener(this);
+      bgCharsetButtons.add(dmi);
+      menu.add(dmi);
+
+      // creating primary list of charsets
+      for (int i = 0; i < CharsetsUsed.size(); i++) {
+        String[] info = CharsetsUsed.get(i);
+        if (info != null && info.length > 2) {
+          dmi = new DataRadioButtonMenuItem(info[0], (Object)info[1]);
+          StringBuilder sb = new StringBuilder();
+          sb.append(info[2]);
+          Charset cs = Charset.forName(info[1]);
+          if (cs != null && !cs.aliases().isEmpty()) {
+            sb.append(" Charset aliases: ");
+            Iterator<String> iter = cs.aliases().iterator();
+            while (iter.hasNext()) {
+              sb.append(iter.next());
+              if (iter.hasNext())
+                sb.append(", ");
+            }
+          }
+          dmi.setToolTipText(sb.toString());
+          dmi.addActionListener(this);
+          bgCharsetButtons.add(dmi);
+          menu.add(dmi);
+        }
+      }
+
+      int count = 0;
+      JMenu menu2 = new JMenu("More character sets");
+      menu.add(menu2);
+
+      // creating secondary list(s) of charsets
+      Iterator<String> iter = Charset.availableCharsets().keySet().iterator();
+      if (iter != null) {
+        while (iter.hasNext()) {
+          String name= iter.next();
+
+          // check whether charset has already been added
+          boolean match = false;
+          for (int i = 0; i < CharsetsUsed.size(); i++) {
+            String[] info = CharsetsUsed.get(i);
+            if (info != null && info.length > 2) {
+              if (name.equalsIgnoreCase(info[1])) {
+                match = true;
+                break;
+              }
+            }
+          }
+          if (match) {
+            continue;
+          }
+
+          boolean official = !(name.startsWith("x-") || name.startsWith("X-"));
+          String desc = official ? name : String.format("%1$s (unofficial)", name.substring(2));
+          dmi = new DataRadioButtonMenuItem(desc, (Object)name);
+          Charset cs = Charset.forName(name);
+          if (cs != null && !cs.aliases().isEmpty()) {
+            StringBuilder sb = new StringBuilder("Charset aliases: ");
+            Iterator<String> csIter = cs.aliases().iterator();
+            while (csIter.hasNext()) {
+              sb.append(csIter.next());
+              if (csIter.hasNext())
+                sb.append(", ");
+            }
+            dmi.setToolTipText(sb.toString());
+          }
+          dmi.addActionListener(this);
+          bgCharsetButtons.add(dmi);
+          menu2.add(dmi);
+
+          count++;
+
+          // splitting list of charsets into manageable segments
+          if (count % 30 == 0) {
+            JMenu tmpMenu = new JMenu("More character sets");
+            menu2.add(tmpMenu);
+            menu2 = tmpMenu;
+          }
+        }
+      }
+
+      // Selecting specified menu item
+      dmi = findCharsetButton(charset);
+      if (dmi == null) {
+        dmi = findCharsetButton(DefaultCharset);
+      }
+      if (dmi != null) {
+        dmi.setSelected(true);
+      }
+
+      return menu;
+    }
+
+    // Returns the menuitem that is associated with the specified string
+    private DataRadioButtonMenuItem findCharsetButton(String charset)
+    {
+      if (bgCharsetButtons != null && charset != null && !charset.isEmpty()) {
+        Enumeration<AbstractButton> buttonSet = bgCharsetButtons.getElements();
+        while (buttonSet.hasMoreElements()) {
+          AbstractButton b = buttonSet.nextElement();
+          if (b instanceof DataRadioButtonMenuItem) {
+            String data = (String)((DataRadioButtonMenuItem)b).getData();
+            if (data != null) {
+              if (charset.equalsIgnoreCase(data)) {
+                return (DataRadioButtonMenuItem)b;
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    // Returns the charset string associated with the currently selected charset menuitem
+    private String getSelectedButtonData()
+    {
+      Enumeration<AbstractButton> buttonSet = bgCharsetButtons.getElements();
+      if (buttonSet != null) {
+        while (buttonSet.hasMoreElements()) {
+          AbstractButton b = buttonSet.nextElement();
+          if (b instanceof DataRadioButtonMenuItem) {
+            DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)b;
+            if (dmi.isSelected()) {
+              return (dmi.hasData() ? (String)dmi.getData() : DefaultCharset);
+            }
+          }
+        }
+      }
+      return DefaultCharset;
+    }
+
+    // Attempts to determine the correct charset for the current game
+    private String charsetName(String charset)
+    {
+      // TODO: detect specific localizations
+      if (DefaultCharset.equalsIgnoreCase(charset)) {
+        switch (ResourceFactory.getGameID()) {
+          case ResourceFactory.ID_BGEE:
+          case ResourceFactory.ID_BG2EE:
+            return "UTF-8";
+          default:
+            return "windows-1252";
+        }
+      } else {
+        return charset;
+      }
+    }
+
+    private void gameLoaded()
+    {
+      // update charset selection
+      StringResource.setCharset(charsetName(getSelectedButtonData()));
+    }
+
+    private void storePreferences(Preferences prefs)
+    {
+      prefs.putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
+      prefs.putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
+      prefs.putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
+      prefs.putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
+      prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
+      prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
+      prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
+      prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
+      prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
+      prefs.putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
+      int selectedFont = 0;
+      for (int i = 0; i < selectFont.length; i++)
+        if (selectFont[i].isSelected())
+          selectedFont = i;
+      prefs.putInt(OPTION_FONT, selectedFont);
+      int selectedIndent = 0;
+      for (int i = 0; i < selectBcsIndent.length; i++)
+        if (selectBcsIndent[i].isSelected())
+          selectedIndent = i;
+      prefs.putInt(OPTION_BCSINDENT, selectedIndent);
+      String charset = getSelectedButtonData();
+      prefs.put(OPTION_TLKCHARSET, charset);
+    }
+
+    public String getBcsIndent()
+    {
+      for (int i = 0; i < BCSINDENT.length; i++)
+        if (selectBcsIndent[i].isSelected())
+          return BCSINDENT[i];
+      return BCSINDENT[2];
+    }
+
+    public int getResRefMode()
+    {
+      if (showResRef[RESREF_ONLY].isSelected())
+        return RESREF_ONLY;
+      else if (showResRef[RESREF_NAME_REF].isSelected())
+        return RESREF_NAME_REF;
+      return RESREF_REF_NAME;
+    }
+
+    public int getOverrideMode()
+    {
+      if (showOverrides[OVERRIDE_IN_THREE].isSelected())
+        return OVERRIDE_IN_THREE;
+      else if (showOverrides[OVERRIDE_IN_OVERRIDE].isSelected())
+        return OVERRIDE_IN_OVERRIDE;
+      return OVERRIDE_SPLIT;
+    }
+
+    public int getLookAndFeel()
+    {
+      for (int i = 0; i < lookAndFeel.length; i++) {
+        if (lookAndFeel[i] != null && lookAndFeel[i].isSelected())
+          return i;
+      }
+      return LOOKFEEL_JAVA;
+    }
+
+    public int getDefaultStructView()
+    {
+      if (viewOrEditShown[DEFAULT_VIEW].isSelected())
+        return DEFAULT_VIEW;
+      return DEFAULT_EDIT;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event)
+    {
+      if (event.getSource() instanceof DataRadioButtonMenuItem) {
+        DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
+        String csName = (String)dmi.getData();
+        if (csName != null) {
+          StringResource.setCharset(charsetName(csName));
+          // re-read strings
+          ActionEvent refresh = new ActionEvent(dmi, 0, "Refresh");
+          NearInfinity.getInstance().actionPerformed(refresh);
+        }
+      }
+    }
+  }
+
+  ///////////////////////////////
   // Help Menu
   ///////////////////////////////
 
@@ -1359,6 +1553,33 @@ public final class BrowserMenuBar extends JMenuBar
 
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, title,
                                     JOptionPane.PLAIN_MESSAGE);
+    }
+  }
+
+  // JRadioButtonMenuItem with associated data object
+  private static class DataRadioButtonMenuItem extends JRadioButtonMenuItem
+  {
+    private Object data;
+
+    public DataRadioButtonMenuItem(String text, Object data)
+    {
+      super(text);
+      this.data = data;
+    }
+
+    public void setData(Object data)
+    {
+      this.data = data;
+    }
+
+    public Object getData()
+    {
+      return data;
+    }
+
+    public boolean hasData()
+    {
+      return data != null;
     }
   }
 }
