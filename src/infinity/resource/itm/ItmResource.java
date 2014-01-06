@@ -123,6 +123,38 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Long sword", "Two-handed sword", "Katana", "Scimitar",
            "Sling", "Spear", "Short sword", "War hammer"
           };
+  private static final String[] s_tag_1pp = {"  ", "2A", "3A", "4A", "2W", "3W", "4W", "AX",
+                                             "BS", "BW", "C0", "C1", "C2", "C3", "C4", "C5",
+                                             "C6", "C7", "CB", "CL", "D1", "D2", "D3", "D4",
+                                             "DD", "F0", "F1", "F2", "F3",
+                                             "FL", "FS", "GS",
+                                             "H0", "H1", "H2", "H3", "H4", "H5", "H6", "HB",
+                                             "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7",
+                                             "J8", "J9", "JA", "JB", "JC", "M2", "MC",
+                                             "MS", "Q2", "Q3", "Q4",
+                                             "QS", "S0", "S1", "S2", "S3", "SC", "SL", "SP",
+                                             "SS", "WH", "YW", "ZW"};
+  private static final String[] s_anim_1pp =
+          {"None", "Leather armor", "Chain mail", "Plate mail",
+           "Mage robe 1", "Mage robe 2", "Mage robe 3",
+           "Battle axe", "Bow?", "Bow",
+           "Small shield (alternate 1)", "Medium shield (alternate 1)", "Large shield (alternate 1)",
+           "Medium shield (alternate 2)", "Small shield (alternate 2)", "Large shield (alternate 2)",
+           "Large shield (alternate 3)", "Medium shield (alternate 3)",
+           "Crossbow", "Club",
+           "Buckler", "Small shield", "Medium shield", "Large shield",
+           "Dagger",
+           "Flail (alternate 1)", "Flail (alternate 2)", "Flaming sword (blue)", "Flail (alternate 3",
+           "Flail", "Flaming sword", "Glowing staff",
+           "Helmet 1", "Helmet 2", "Helmet 3", "Helmet 4", "Helmet 5", "Helmet 6", "Helmet 7",
+           "Halberd",
+           "Helmet 8", "Helmet 9", "Helmet 10", "Helmet 11", "Helmet 12", "Helmet 13", "Helmet 14",
+           "Helmet 15", "Helmet 16", "Helmet 17", "Helmet 18", "Circlet", "Helmet 20",
+           "Mace (alternate)", "Mace", "Morning star",
+           "Quarterstaff (alternate 1)", "Quarterstaff (alternate 2)", "Quarterstaff (alternate 3)",
+           "Quarterstaff", "Bastard sword", "Long sword", "Two-handed sword", "Katana", "Scimitar",
+           "Sling", "Spear", "Short sword", "War hammer", "Wings?", "Feathered wings"
+          };
 
   public static String getSearchString(byte buffer[])
   {
@@ -281,7 +313,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability20));
       else
         list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability));
-      list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag, s_anim));
+      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+        list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag_1pp, s_anim_1pp));
+      }
+      else {
+        list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag, s_anim));
+      }
     }
     list.add(new DecNumber(buffer, 36, 2, "Minimum level"));
     list.add(new DecNumber(buffer, 38, 2, "Minimum strength"));
