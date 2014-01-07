@@ -995,7 +995,7 @@ public final class BrowserMenuBar extends JMenuBar
       CharsetsUsed.add(new String[]{"Windows-1251", "windows-1251", "Character set used in russian and other cyrillic-based languages."});
       CharsetsUsed.add(new String[]{"Windows-1250", "windows-1250", "Character set used in central european and eastern european languages, such as polish or czech."});
       CharsetsUsed.add(new String[]{"Windows-31J", "windows-31j", "Character set used in japanese localizations."});
-      CharsetsUsed.add(new String[]{"Windows-936", "GBK", "Character set for Simplified Chinese text."});
+      CharsetsUsed.add(new String[]{"GBK", "GBK", "Character set for Simplified Chinese text."});
       CharsetsUsed.add(new String[]{"Big5-HKSCS", "Big5-HKSCS", "Character set for Traditional Chinese text (may not be fully compatible)."});
       CharsetsUsed.add(new String[]{"IBM-949", "x-IBM949", "Character set used in korean localizations."});
     }
@@ -1153,6 +1153,10 @@ public final class BrowserMenuBar extends JMenuBar
       }
 
       String charset = prefs.get(OPTION_TLKCHARSET, DefaultCharset);
+      if (!charsetAvailable(charset)) {
+        System.err.println(String.format("Charset \"%1$s\" not available.", charset));
+        charset = DefaultCharset;
+      }
       if (!charsetName(charset).equals(StringResource.getCharset().name())) {
         StringResource.setCharset(charsetName(charset));
       }
@@ -1313,6 +1317,21 @@ public final class BrowserMenuBar extends JMenuBar
       } else {
         return charset;
       }
+    }
+
+    private boolean charsetAvailable(String charset)
+    {
+      if (charset != null && !charset.isEmpty()) {
+        if (DefaultCharset.equalsIgnoreCase(charset)) {
+          return true;
+        }
+        try {
+          return (Charset.forName(charset) != null);
+        } catch (Throwable t) {
+          return false;
+        }
+      }
+      return false;
     }
 
     private void gameLoaded()
