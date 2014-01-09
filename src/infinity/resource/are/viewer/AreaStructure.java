@@ -983,9 +983,13 @@ final class AreaStructure
       int tileCount = -1;
       if (wedMap.containsKey(Structure.OVERLAY) && !wedMap.get(Structure.OVERLAY).isEmpty()) {
         Overlay ovl = (Overlay)wedMap.get(Structure.OVERLAY).get(0);
-        HexNumber scOvl = (HexNumber)ovl.getAttribute("Tilemap lookup offset");
-        final int size = 2;
-        tileCount = (scOvl.getValue() - so.getValue()) / size;
+        HexNumber scOvl1 = (HexNumber)ovl.getAttribute("Tilemap offset");
+        HexNumber scOvl2 = (HexNumber)ovl.getAttribute("Tilemap lookup offset");
+
+        // including all available offsets to handle irregularly ordered WEDs as well
+        HexNumber[] offsets = sortedWedOffsets(wed, scOvl1, scOvl2);
+        final int tileSize = 2;
+        tileCount = (offsets[ArrayUtil.indexOf(offsets, so) + 1].getValue() - so.getValue()) / tileSize;
       }
 
       if (tileCount >= 0) {
@@ -1000,7 +1004,7 @@ final class AreaStructure
         }
         if (firstEntry >= 0 && firstEntry < wedEntries.size()) {
           for (int i = firstEntry; i < firstEntry + tileCount; i++) {
-            RemovableDecNumber entry = (RemovableDecNumber)wedEntries.get(i);
+            DecNumber entry = (DecNumber)wedEntries.get(i);
             if (entry != null) {
               list.add(entry);
             }
@@ -1028,9 +1032,11 @@ final class AreaStructure
         Overlay ovl = (Overlay)wedMap.get(Structure.OVERLAY).get(0);
         SectionOffset so = (SectionOffset)ovl.getAttribute("Tilemap lookup offset");
         tileOfs = so.getValue();
-        SectionOffset so2 = (SectionOffset)wed.getAttribute("Wall groups offset");
-        final int size = 2;
-        tileCount = (so2.getValue() - so.getValue()) / size;
+
+        // including all available offsets to handle irregularly ordered WEDs as well
+        HexNumber[] offsets = sortedWedOffsets(wed, so);
+        final int tileSize = 2;
+        tileCount = (offsets[ArrayUtil.indexOf(offsets, so) + 1].getValue() - so.getValue()) / tileSize;
       }
 
       if (tileOfs > 0 && tileCount >= 0) {
@@ -1068,20 +1074,7 @@ final class AreaStructure
       WedResource wed = (WedResource)wedMap.get(Structure.WED).get(0);
       SectionOffset so = (SectionOffset)wed.getAttribute("Wall groups offset");
       if (so != null) {
-        HexNumber[] offsets =
-            new HexNumber[]{so, (HexNumber)wed.getAttribute("Overlays offset"),
-                            (HexNumber)wed.getAttribute("Second header offset"),
-                            (HexNumber)wed.getAttribute("Doors offset"),
-                            (HexNumber)wed.getAttribute("Door tilemap lookup offset"),
-                            (HexNumber)wed.getAttribute("Wall polygons offset"),
-                            (HexNumber)wed.getAttribute("Wall polygon lookup offset"),
-                            new HexNumber(DynamicArray.convertInt(wed.getSize()), 0, 4, "")};
-        Arrays.sort(offsets, new Comparator<HexNumber>() {
-          @Override
-          public int compare(HexNumber s1, HexNumber s2) {
-            return ((s1 != null) ? s1.getValue() : 0) - ((s2 != null) ? s2.getValue() : 0);
-          }
-        });
+        HexNumber[] offsets = sortedWedOffsets(wed, so);
         final int sizeWallgroup = 4;   // XXX: get structure size dynamically
         int count = (offsets[ArrayUtil.indexOf(offsets, so) + 1].getValue() - so.getValue()) / sizeWallgroup;
         if (so.getValue() > 0 && count >= 0) {
@@ -1200,21 +1193,7 @@ final class AreaStructure
       WedResource wed = (WedResource)wedMap.get(Structure.WED).get(0);
       SectionOffset so = (SectionOffset)wed.getAttribute("Wall polygon lookup offset");
       if (so != null) {
-        HexNumber[] offsets =
-            new HexNumber[]{so, (HexNumber)wed.getAttribute("Overlays offset"),
-                            (HexNumber)wed.getAttribute("Second header offset"),
-                            (HexNumber)wed.getAttribute("Doors offset"),
-                            (HexNumber)wed.getAttribute("Door tilemap lookup offset"),
-                            (HexNumber)wed.getAttribute("Wall polygons offset"),
-                            (HexNumber)wed.getAttribute("Wall groups offset"),
-                            (HexNumber)wed.getAttribute("Vertices offset"),
-                            new HexNumber(DynamicArray.convertInt(wed.getSize()), 0, 4, "")};
-        Arrays.sort(offsets, new Comparator<HexNumber>() {
-          @Override
-          public int compare(HexNumber s1, HexNumber s2) {
-            return ((s1 != null) ? s1.getValue() : 0) - ((s2 != null) ? s2.getValue() : 0);
-          }
-        });
+        HexNumber[] offsets = sortedWedOffsets(wed, so);
         final int size = 2;
         int count = (offsets[ArrayUtil.indexOf(offsets, so) + 1].getValue() - so.getValue()) / size;
         if (so.getValue() > 0 && count >= 0) {
@@ -1285,5 +1264,47 @@ final class AreaStructure
       }
       wedMap.put(Structure.VERTEX, list);
     }
+  }
+
+  // returns an ordered array of WED-related offsets
+  private HexNumber[] sortedWedOffsets(WedResource wed, HexNumber... extraOfs)
+  {
+    int value = 0;
+    if (wed != null) {
+      value += 9;
+    }
+    if (extraOfs != null) {
+      value += extraOfs.length;
+    }
+
+    HexNumber[] offsets = new HexNumber[value];
+    if (wed != null) {
+      offsets[0] = (HexNumber)wed.getAttribute("Overlays offset");
+      offsets[1] = (HexNumber)wed.getAttribute("Second header offset");
+      offsets[2] = (HexNumber)wed.getAttribute("Doors offset");
+      offsets[3] = (HexNumber)wed.getAttribute("Door tilemap lookup offset");
+      offsets[4] = (HexNumber)wed.getAttribute("Wall polygons offset");
+      offsets[5] = (HexNumber)wed.getAttribute("Vertices offset");
+      offsets[6] = (HexNumber)wed.getAttribute("Wall groups offset");
+      offsets[7] = (HexNumber)wed.getAttribute("Wall polygon lookup offset");
+      offsets[8] = new HexNumber(DynamicArray.convertInt(wed.getSize()), 0, 4, "");
+      value = 9;
+    } else {
+      value = 0;
+    }
+    if (extraOfs != null) {
+      for (HexNumber hex: extraOfs) {
+        offsets[value++] = hex;
+      }
+    }
+
+    Arrays.sort(offsets, new Comparator<HexNumber>() {
+      @Override
+      public int compare(HexNumber s1, HexNumber s2) {
+        return ((s1 != null) ? s1.getValue() : 0) - ((s2 != null) ? s2.getValue() : 0);
+      }
+    });
+
+    return offsets;
   }
 }
