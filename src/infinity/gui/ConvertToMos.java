@@ -1006,7 +1006,7 @@ public class ConvertToMos extends ChildFrame
 
   private String getImageFileName(File path)
   {
-    JFileChooser fc = new JFileChooser();
+    JFileChooser fc = new JFileChooser(path);
     fc.setDialogTitle("Select input graphics file");
     fc.setDialogType(JFileChooser.OPEN_DIALOG);
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1015,9 +1015,6 @@ public class ConvertToMos extends ChildFrame
       fc.addChoosableFileFilter(filter);
     }
     fc.setFileFilter(filters[0]);
-    if (path != null) {
-      fc.setSelectedFile(path);
-    }
     int ret = fc.showOpenDialog(this);
     if (ret == JFileChooser.APPROVE_OPTION) {
       return fc.getSelectedFile().toString();
@@ -1028,16 +1025,13 @@ public class ConvertToMos extends ChildFrame
 
   private String getMosFileName(File path)
   {
-    JFileChooser fc = new JFileChooser();
+    JFileChooser fc = new JFileChooser(path);
     fc.setDialogTitle("Specify output filename");
     fc.setDialogType(JFileChooser.SAVE_DIALOG);
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     FileNameExtensionFilter filter = new FileNameExtensionFilter("MOS files (*.mos)", "mos");
     fc.addChoosableFileFilter(filter);
     fc.setFileFilter(filter);
-    if (path != null) {
-      fc.setSelectedFile(path);
-    }
     int ret = fc.showSaveDialog(this);
     if (ret == JFileChooser.APPROVE_OPTION) {
       return fc.getSelectedFile().toString();
