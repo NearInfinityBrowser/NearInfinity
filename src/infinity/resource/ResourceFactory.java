@@ -346,7 +346,7 @@ public final class ResourceFactory
       final String BGEE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
       final String BGEE_DIR = games[gameID].name;   //"Baldur's Gate - Enhanced Edition";
       File userDir = new File(BGEE_DOC_ROOT, BGEE_DIR);
-      if (!userDir.exists()) {
+      if (userDir.exists()) {
         return userDir;
       } else {
         // fallback solution
@@ -371,8 +371,9 @@ public final class ResourceFactory
         }
         if (userSuffix != null) {
           userDir = new File(userPrefix, userSuffix);
-          if (userDir.exists())
+          if (userDir.exists()) {
             return userDir;
+          }
         }
       }
     }
