@@ -220,7 +220,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
       list.add(numPocket);
       if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
-        list.add(new DecNumber(buffer, offset + 128, 1, "Zoom factor"));  // TODO: field size=1 needs to be confirmed
+        list.add(new DecNumber(buffer, offset + 128, 1, "Zoom level"));  // TODO: field size=1 needs to be confirmed
         list.add(new Unknown(buffer, offset + 129, 51));
       } else {
         list.add(new Unknown(buffer, offset + 128, 52));
