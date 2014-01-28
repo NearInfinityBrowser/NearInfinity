@@ -186,6 +186,11 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
     return "None (" + value + ')';
   }
 
+  public long getValue()
+  {
+    return value;
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class SplRefEntry implements Comparable<SplRefEntry>

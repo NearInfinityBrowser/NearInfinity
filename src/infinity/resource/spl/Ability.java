@@ -21,10 +21,10 @@ import infinity.resource.ResourceFactory;
 
 import javax.swing.JComponent;
 
-final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
+public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
 {
-  private static final String s_hostility[] = {"Hostile", "", "", "", "Non-hostile"};
-  private static final String s_abilityuse[] = {"", "", "Spell slots", "", "Innate slots"};
+  public static final String s_hostility[] = {"Hostile", "", "", "", "Non-hostile"};
+  public static final String s_abilityuse[] = {"", "", "Spell slots", "", "Innate slots"};
 
   Ability() throws Exception
   {

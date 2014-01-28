@@ -20,17 +20,19 @@ import infinity.resource.HasAddRemovable;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.other.EffResource;
+import infinity.search.SearchOptions;
 import infinity.util.LongIntegerHashMap;
 
 public final class ProResource extends AbstractStruct implements Resource, HasAddRemovable, UpdateListener
 {
-  private static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
+  public static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
                                            "Green", "Purple", "Red", "White", "Ice",
                                            "Stone", "Magenta", "Orange"};
-  private static final String[] s_behave = {"No flags set", "Show sparks", "Use height",
+  public static final String[] s_behave = {"No flags set", "Show sparks", "Use height",
                                             "Loop fire sound", "Loop impact sound", "Ignore center",
                                             "Draw as background"};
-  private static final LongIntegerHashMap<String> m_projtype = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_projtype = new LongIntegerHashMap<String>();
   static {
     m_projtype.put(1L, "No BAM");
     m_projtype.put(2L, "Single target");
@@ -137,5 +139,74 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     }
 
     return offset;
+  }
+
+
+  // Called by "Extended Search"
+  // Checks whether the specified resource entry matches all available search options.
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
+  {
+    if (entry != null && searchOptions != null) {
+      try {
+        ProResource pro = new ProResource(entry);
+        ProSingleType single = (ProSingleType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_SingleTarget));
+        ProAreaType area = (ProAreaType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_AreaOfEffect));
+        boolean retVal = true;
+        String key;
+        Object o;
+
+        String[] keyList = new String[]{SearchOptions.PRO_Type, SearchOptions.PRO_Speed,
+                                        SearchOptions.PRO_TrapSize, SearchOptions.PRO_ExplosionSize,
+                                        SearchOptions.PRO_ExplosionEffect};
+        AbstractStruct[] structList = new AbstractStruct[]{pro, pro, area, area, area};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            if (structList[idx] != null) {
+              StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key));
+              retVal &= SearchOptions.Utils.matchNumber(struct, o);
+            } else {
+              retVal &= (o == null);
+            }
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.PRO_Behavior, SearchOptions.PRO_Flags,
+                               SearchOptions.PRO_AreaFlags};
+        structList = new AbstractStruct[]{pro, single, area};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            if (structList[idx] != null) {
+              StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key));
+              retVal &= SearchOptions.Utils.matchFlags(struct, o);
+            } else {
+              retVal &= (o == null);
+            }
+          } else {
+            break;
+          }
+        }
+
+        if (retVal) {
+          key = SearchOptions.PRO_Animation;
+          o = searchOptions.getOption(key);
+          if (single != null) {
+            StructEntry struct = single.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
+          } else {
+            retVal &= (o == null);
+          }
+        }
+
+        return retVal;
+      } catch (Exception e) {
+      }
+    }
+    return false;
   }
 }

@@ -34,6 +34,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
@@ -65,24 +66,24 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 {
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
-  private static final String s_flag[] = {"No flags set", "Identified", "No corpse", "Permanent corpse",
-                                          "Original class: Fighter",
-                                          "Original class: Mage", "Original class: Cleric",
-                                          "Original class: Thief", "Original class: Druid",
-                                          "Original class: Ranger", "Fallen paladin", "Fallen ranger",
-                                          "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-                                          "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
-                                          "General tracking", "Race tracking", "Class tracking",
-                                          "Specifics tracking", "Gender tracking", "Alignment tracking",
-                                          "Uninterruptible"};
-  private static final String s_feats1[] = {
+  public static final String s_flag[] = {"No flags set", "Identified", "No corpse", "Permanent corpse",
+                                         "Original class: Fighter",
+                                         "Original class: Mage", "Original class: Cleric",
+                                         "Original class: Thief", "Original class: Druid",
+                                         "Original class: Ranger", "Fallen paladin", "Fallen ranger",
+                                         "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
+                                         "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
+                                         "General tracking", "Race tracking", "Class tracking",
+                                         "Specifics tracking", "Gender tracking", "Alignment tracking",
+                                         "Uninterruptible"};
+  public static final String s_feats1[] = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
     "Dash", "Deflect arrows", "Dirty fighting", "Discipline", "Dodge", "Envenom weapon", "Exotic bastard",
     "Expertise", "Extra rage", "Extra shapeshifting", "Extra smiting", "Extra turning", "Fiendslayer",
     "Forester", "Great fortitude", "Hamstring", "Heretic's bane", "Heroic inspiration", "Improved critical",
     "Improved evasion"};
-  private static final String s_feats2[] = {
+  public static final String s_feats2[] = {
     "No feats selected", "Improved initiative", "Improved turning", "Iron will", "Lightning reflexes",
     "Lingering song", "Luck of heroes", "Martial axe", "Martial bow", "Martial flail", "Martial greatsword",
     "Martial hammer", "Martial large sword", "Martial polearm", "Maximized attacks", "Mercantile background",
@@ -90,14 +91,19 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     "Simple crossbow", "Simple mace", "Simple missile", "Simple quarterstaff", "Simple small blade",
     "Slippery mind", "Snake blood", "Spell focus enchantment", "Spell focus evocation", "Spell focus necromancy",
     "Spell focus transmutation"};
-  private static final String s_feats3[] = {
+  public static final String s_feats3[] = {
     "No feats selected", "Spell penetration", "Spirit of flame", "Strong back", "Stunning fist",
     "Subvocal casting",
     "Toughness", "Two-weapon fighting", "Weapon finesse", "Wild shape boar", "Wild shape panther",
     "Wild shape shambler"};
-  private static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
-  private static final String s_noyes[] = {"No", "Yes"};
-  private static final String s_visible[] = {"Shown", "Hidden"};
+  public static final String s_attributes[] = {
+    "No flags set", "", "Transparent", "", "", "Increment death variable", "Increment kill count",
+    "Script name only", "Increment faction kills", "Increment team kills", "Invulnerable",
+    "Good increment on death", "Law increment on death", "Lady increment on death", "Murder increment on death",
+    "Don't face speaker", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Died"};
+  public static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
+  public static final String s_noyes[] = {"No", "Yes"};
+  public static final String s_visible[] = {"Shown", "Hidden"};
 
   static
   {
@@ -1227,15 +1233,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 725, 1, "Collision radius")); // 0x2dd
       list.add(new Unknown(buffer, offset + 726, 1));
       list.add(new DecNumber(buffer, offset + 727, 1, "# colors"));
-      list.add(new Flag(buffer, offset + 728, 4, "Attributes",
-                        new String[]{"No flags set", "", "Transparent", "", "",
-                                     "Increment death variable", "Increment kill count",
-                                     "Script name only", "Increment faction kills",
-                                     "Increment team kills", "Invulnerable",
-                                     "Good increment on death", "Law increment on death",
-                                     "Lady increment on death", "Murder increment on death",
-                                     "Don't face speaker", "Call for help", "", "", "", "",
-                                     "", "", "", "", "", "", "", "", "", "", "Died"}));
+      list.add(new Flag(buffer, offset + 728, 4, "Attributes", s_attributes));
 //      list.add(new Flag(buffer, offset + 729, 1, "Attribute flags 2",
 //                        new String[]{"No flags set", "", "Invulnerable"}));
 //      list.add(new Unknown(buffer, offset + 730, 2));
@@ -1554,5 +1552,97 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   }
 
 //--------------------- End Interface ItemListener ---------------------
+
+
+  // Called by "Extended Search"
+  // Checks whether the specified resource entry matches all available search options.
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
+  {
+    if (entry != null && searchOptions != null) {
+      try {
+        CreResource cre = new CreResource(entry);
+        boolean retVal = true;
+        String key;
+        Object o;
+
+        // checking options
+        String[] keyList = new String[]{SearchOptions.CRE_Name, SearchOptions.CRE_ScriptName};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Script1, SearchOptions.CRE_Script2};
+        String[] scriptFields;
+        if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+          scriptFields = new String[]{"Team script", "Special script 1", "Override script",
+                                      "Special script 2", "Combat script", "Special script 3",
+                                      "Movement script"};
+        } else {
+          scriptFields = new String[]{"Override script", "Class script", "Race script",
+                                      "General script", "Default script"};
+        }
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < scriptFields.length; idx2++) {
+              StructEntry struct = cre.getAttribute(scriptFields[idx2]);
+              found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+            }
+            retVal &= found;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Flags, SearchOptions.CRE_Feats1,
+                               SearchOptions.CRE_Feats2, SearchOptions.CRE_Feats3,
+                               SearchOptions.CRE_Attributes};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Animation, SearchOptions.CRE_General,
+                               SearchOptions.CRE_Class, SearchOptions.CRE_Specifics,
+                               SearchOptions.CRE_Alignment, SearchOptions.CRE_Gender,
+                               SearchOptions.CRE_Sex, SearchOptions.CRE_Race,
+                               SearchOptions.CRE_Allegiance, SearchOptions.CRE_Level1,
+                               SearchOptions.CRE_Level2, SearchOptions.CRE_Level3,
+                               SearchOptions.CRE_IWD2LevelTotal, SearchOptions.CRE_IWD2LevelBarbarian,
+                               SearchOptions.CRE_IWD2LevelBard, SearchOptions.CRE_IWD2LevelCleric,
+                               SearchOptions.CRE_IWD2LevelDruid, SearchOptions.CRE_IWD2LevelFighter,
+                               SearchOptions.CRE_IWD2LevelMonk, SearchOptions.CRE_IWD2LevelPaladin,
+                               SearchOptions.CRE_IWD2LevelRanger, SearchOptions.CRE_IWD2LevelRogue,
+                               SearchOptions.CRE_IWD2LevelSorcerer, SearchOptions.CRE_IWD2LevelWizard};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchNumber(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        return retVal;
+      } catch (Exception e) {
+      }
+    }
+    return false;
+  }
 }
 

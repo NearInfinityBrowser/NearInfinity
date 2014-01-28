@@ -118,6 +118,27 @@ public final class TextBitmap extends Datatype implements Editable
     return text;
   }
 
+  public String getIdsName()
+  {
+    if (text != null) {
+      for (int i = 0; i < ids.length; i++) {
+        if (text.equals(ids[i])) {
+          if (i < names.length) {
+            return names[i];
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    return "";
+  }
+
+  public String getIdsValue()
+  {
+    return (text != null) ? text : "";
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
   private final class BitmapTableModel extends AbstractTableModel

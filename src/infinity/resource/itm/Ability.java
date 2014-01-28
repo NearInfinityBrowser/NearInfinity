@@ -22,25 +22,25 @@ import infinity.resource.spl.SplResource;
 
 import javax.swing.JComponent;
 
-final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
+public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
 {
-  private static final String[] s_yesno = {"No", "Yes"};
-  private static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
-  private static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
-  private static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
-  private static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
-                                              "", "", "", "", "", "", "Hostile", "Recharge after resting",
-                                              "", "", "", "", "Bypass armor", "Keen edge", "", "", "", "", "", "",
-                                              "", "Ex: toggle backstab", "Ex: cannot target invisible"};
+  public static final String[] s_yesno = {"No", "Yes"};
+  public static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
+  public static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
+  public static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
+  public static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
+                                             "", "", "", "", "", "", "Hostile", "Recharge after resting",
+                                             "", "", "", "", "Bypass armor", "Keen edge", "", "", "", "", "", "",
+                                             "", "Ex: toggle backstab", "Ex: cannot target invisible"};
 
   Ability() throws Exception
   {
     super(null, "Item ability", new byte[56], 0);
   }
 
-  Ability(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Ability(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Item ability", buffer, offset);
+    super(superStruct, "Item ability " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------

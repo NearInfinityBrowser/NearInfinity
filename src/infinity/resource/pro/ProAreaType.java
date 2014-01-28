@@ -18,13 +18,13 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable
 {
-  private static final LongIntegerHashMap<String> s_proj = new LongIntegerHashMap<String>();
-  private static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
-                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
-                                               "Fragments", "Not affecting allies", "Not affecting enemies",
-                                               "Mage-level duration", "Cleric-level duration", "Draw animation",
-                                               "Cone-shaped", "Ignore visibility", "Delayed explosion",
-                                               "Skip first condition", "Single target"};
+  public static final LongIntegerHashMap<String> s_proj = new LongIntegerHashMap<String>();
+  public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
+                                              "Triggered by condition", "Delayed trigger", "Secondary projectile",
+                                              "Fragments", "Not affecting allies", "Not affecting enemies",
+                                              "Mage-level duration", "Cleric-level duration", "Draw animation",
+                                              "Cone-shaped", "Ignore visibility", "Delayed explosion",
+                                              "Skip first condition", "Single target"};
 
   static {
     s_proj.put(0L, "Fireball");

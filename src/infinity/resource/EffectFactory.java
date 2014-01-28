@@ -92,12 +92,12 @@ public final class EffectFactory
   // contains IDS mappings for BGEE's opcode 319 "Item Usability"
   public static final LongIntegerHashMap<String> m_itemids = new LongIntegerHashMap<String>();
 
-  private static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
-  private static final String s_inctype[] = {"Increment", "Set", "Set % of"};
-  private static final String s_yesno[] = {"Yes", "No"};
-  private static final String s_noyes[] = {"No", "Yes"};
+  public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
+  public static final String s_inctype[] = {"Increment", "Set", "Set % of"};
+  public static final String s_yesno[] = {"Yes", "No"};
+  public static final String s_noyes[] = {"No", "Yes"};
 
-  private static final String s_visuals[] = {"None", "Hit abjuration",
+  public static final String s_visuals[] = {"None", "Hit abjuration",
     "Hit alteration", "Hit invocation", "Hit necromancy", "Hit conjuration",
     "Hit enchantment", "Hit illusion", "Hit divination", "Armor",
     "Spirit armor", "Ghost armor", "Strength", "Confusion", "Shroud of flame",
@@ -130,30 +130,30 @@ public final class EffectFactory
     "Animal summoning circle", "Earth summoning circle",
     "Fire summoning circle", "Water summoning circle", "Gedlee's electric loop",
     "Darktree attack"};
-  private static final String s_actype[] = {"All weapons", "Crushing weapons",
+  public static final String s_actype[] = {"All weapons", "Crushing weapons",
     "Missile weapons", "Piercing weapons", "Slashing weapons",
     "Set base AC to value"};
-  private static final String s_button[] = {"Stealth", "Thieving",
+  public static final String s_button[] = {"Stealth", "Thieving",
     "Spell select", "Quick spell 1", "Quick spell 2", "Quick spell 3",
     "Turn undead", "Talk", "Use item", "Quick item 1", "", "Quick item 2",
     "Quick item 3", "Special abilities"};
-  private static final String s_school[] = {"None", "Abjuration",
+  public static final String s_school[] = {"None", "Abjuration",
     "Conjuration", "Divination", "Enchantment", "Illusion", "Evocation",
     "Necromancy", "Alteration", "Generalist"};
 
-  private static final String s_duration[] = {"Instant/Limited", "Instant/Permanent until death",
+  public static final String s_duration[] = {"Instant/Limited", "Instant/Permanent until death",
      "Instant/While equipped", "Delay/Limited", "Delay/Permanent",
      "Delay/While equipped", "Limited after duration",
      "Permanent after duration", "Equipped after duration",
      "Instant/Permanent", "Instant/Limited (ticks)"};
 
-  static final String s_savetype[] = {"No save", "Spell", "Breath weapon",
+  public static final String s_savetype[] = {"No save", "Spell", "Breath weapon",
     "Paralyze/Poison/Death", "Rod/Staff/Wand",
     "Petrify/Polymorph", "", "", "",
     "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "",
     "Ex: bypass mirror image", "EE: ignore difficulty"};
-  static final String s_savetype2[] = {"No save", "", "", "Fortitude", "Reflex", "Will"};
+  public static final String s_savetype2[] = {"No save", "", "", "Fortitude", "Reflex", "Will"};
 
   static {
     m_itemids.put(2L, "EA.IDS");

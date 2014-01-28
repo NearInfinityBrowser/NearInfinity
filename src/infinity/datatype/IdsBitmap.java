@@ -164,5 +164,19 @@ public final class IdsBitmap extends Datatype implements Editable
   {
     return value;
   }
+
+  public int getIdsMapEntryCount()
+  {
+    return idsmap.size();
+  }
+
+  public IdsMapEntry getIdsMapEntry(int index)
+  {
+    if (index >= 0 && index < idsmap.size()) {
+      return idsmap.get(idsmap.keys()[index]);
+    } else {
+      return null;
+    }
+  }
 }
 

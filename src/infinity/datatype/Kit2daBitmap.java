@@ -209,6 +209,11 @@ public final class Kit2daBitmap extends Datatype implements Editable
       return o.toString();
   }
 
+  public long getValue()
+  {
+    return value;
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class KitlistEntry

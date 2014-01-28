@@ -189,12 +189,31 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     return NONE + " (" + value + ')';
   }
 
+  public long getValue()
+  {
+    return value - 1L;
+  }
+
   public ResourceEntry getSelectedEntry()
   {
     if (!idsmap.containsKey(value - (long)1))
       return null;
     return ResourceFactory.getInstance().getResourceEntry(
             ((IdsMapEntry)idsmap.get(value - 1)).getString() + ".PRO");
+  }
+
+  public int getIdsMapEntryCount()
+  {
+    return idsmap.size();
+  }
+
+  public IdsMapEntry getIdsMapEntry(int index)
+  {
+    if (index >= 0 && index < idsmap.size()) {
+      return idsmap.get(idsmap.keys()[index]);
+    } else {
+      return null;
+    }
   }
 
 // -------------------------- INNER CLASSES --------------------------

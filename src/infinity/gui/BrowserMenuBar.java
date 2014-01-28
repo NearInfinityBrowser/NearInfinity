@@ -23,6 +23,7 @@ import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.DialogSearcher;
 import infinity.search.SearchFrame;
+import infinity.search.SearchResource;
 import infinity.search.TextResourceSearcher;
 import infinity.util.MassExporter;
 import infinity.util.NIFile;
@@ -35,6 +36,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -630,7 +632,7 @@ public final class BrowserMenuBar extends JMenuBar
   private static final class SearchMenu extends JMenu implements ActionListener
   {
     private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS"};
-    private final JMenuItem searchString, searchFile;
+    private final JMenuItem searchString, searchFile, searchResource;
 
     private SearchMenu()
     {
@@ -638,11 +640,16 @@ public final class BrowserMenuBar extends JMenuBar
       setMnemonic(KeyEvent.VK_S);
 
       searchString =
-      makeMenuItem("StringRef...", KeyEvent.VK_S, Icons.getIcon("Find16.gif"), KeyEvent.VK_L, this);
+          makeMenuItem("StringRef...", KeyEvent.VK_S, Icons.getIcon("Find16.gif"), KeyEvent.VK_L, this);
       add(searchString);
       searchFile =
-      makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.getIcon("Find16.gif"), KeyEvent.VK_F, this);
+          makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.getIcon("Find16.gif"), KeyEvent.VK_F, this);
       add(searchFile);
+      searchResource =
+          makeMenuItem("Extended search...", KeyEvent.VK_X, Icons.getIcon("Find16.gif"), -1, this);
+      searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,
+          Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.ALT_MASK));
+      add(searchResource);
 
       JMenu textSearchMenu = new JMenu("Text Search");
       textSearchMenu.setIcon(Icons.getIcon("Edit16.gif"));
@@ -669,6 +676,13 @@ public final class BrowserMenuBar extends JMenuBar
         if (search == null)
           search = new SearchFrame();
         search.setVisible(true);
+      }
+      else if (event.getSource() == searchResource) {
+        SearchResource resource = (SearchResource)ChildFrame.getFirstFrame(SearchResource.class);
+        if (resource == null) {
+          resource = new SearchResource();
+        }
+        resource.setVisible(true);
       }
       else {
         for (final String type : TEXTSEARCH) {
