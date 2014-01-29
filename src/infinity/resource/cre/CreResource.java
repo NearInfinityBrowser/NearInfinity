@@ -7,6 +7,7 @@ package infinity.resource.cre;
 import infinity.NearInfinity;
 import infinity.datatype.Bitmap;
 import infinity.datatype.ColorValue;
+import infinity.datatype.Datatype;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
@@ -96,11 +97,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     "Subvocal casting",
     "Toughness", "Two-weapon fighting", "Weapon finesse", "Wild shape boar", "Wild shape panther",
     "Wild shape shambler"};
-  public static final String s_attributes[] = {
+  public static final String s_attributes_pst[] = {
     "No flags set", "", "Transparent", "", "", "Increment death variable", "Increment kill count",
     "Script name only", "Increment faction kills", "Increment team kills", "Invulnerable",
     "Good increment on death", "Law increment on death", "Lady increment on death", "Murder increment on death",
     "Don't face speaker", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Died"};
+  public static final String s_attributes_iwd2[] = {"No flags set", "Mental fortitude", "Critical hit immunity",
+                                                    "Cannot be paladin", "Cannot be monk"};
   public static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
   public static final String s_noyes[] = {"No", "Yes"};
   public static final String s_visible[] = {"Shown", "Hidden"};
@@ -738,10 +741,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new Unknown(buffer, offset + 746, 15));
     list.add(new DecNumber(buffer, offset + 761, 1, "Fade amount"));
     list.add(new DecNumber(buffer, offset + 762, 1, "Fade speed"));
-    list.add(new Flag(buffer, offset + 763, 1, "Attributes",
-                      new String[]{"No flags set", "Mental fortitude",
-                                   "Critical hit immunity", "Cannot be paladin",
-                                   "Cannot be monk"}));
+    list.add(new Flag(buffer, offset + 763, 1, "Attributes", s_attributes_iwd2));
     list.add(new DecNumber(buffer, offset + 764, 1, "Visibility"));
     list.add(new Unknown(buffer, offset + 765, 2));
     list.add(new DecNumber(buffer, offset + 767, 1, "Unused skill points"));
@@ -1233,7 +1233,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 725, 1, "Collision radius")); // 0x2dd
       list.add(new Unknown(buffer, offset + 726, 1));
       list.add(new DecNumber(buffer, offset + 727, 1, "# colors"));
-      list.add(new Flag(buffer, offset + 728, 4, "Attributes", s_attributes));
+      list.add(new Flag(buffer, offset + 728, 4, "Attributes", s_attributes_pst));
 //      list.add(new Flag(buffer, offset + 729, 1, "Attribute flags 2",
 //                        new String[]{"No flags set", "", "Invulnerable"}));
 //      list.add(new Unknown(buffer, offset + 730, 2));
@@ -1561,9 +1561,85 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     if (entry != null && searchOptions != null) {
       try {
         CreResource cre = new CreResource(entry);
+        AbstractStruct[] effects;
+        AbstractStruct[] items;
+        Datatype[] spells;
         boolean retVal = true;
         String key;
         Object o;
+
+        // preparing substructures
+        DecNumber ofs = (DecNumber)cre.getAttribute("Effects offset");
+        DecNumber cnt = (DecNumber)cre.getAttribute("# effects");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          effects = new AbstractStruct[cnt.getValue()];
+          for (int idx = 0; idx < cnt.getValue(); idx++) {
+            String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Effect), idx);
+            effects[idx] = (AbstractStruct)cre.getAttribute(label);
+          }
+        } else {
+          effects = new AbstractStruct[0];
+        }
+
+        ofs = (DecNumber)cre.getAttribute("Items offset");
+        cnt = (DecNumber)cre.getAttribute("# items");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          items = new AbstractStruct[cnt.getValue()];
+          for (int idx = 0; idx < cnt.getValue(); idx++) {
+            String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Item), idx);
+            items[idx] = (AbstractStruct)cre.getAttribute(label);
+          }
+        } else {
+          items = new AbstractStruct[0];
+        }
+
+        if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+          final String[] spellTypes = new String[]{
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellCleric),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDruid),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellPaladin),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellRanger),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellSorcerer),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellWizard),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDomain)};
+          final String spellTypesStruct = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell);
+          final String spellTypesRef = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell_ResRef);
+          List<Datatype> listSpells = new ArrayList<Datatype>(64);
+          for (int i = 0; i < spellTypes.length; i++) {
+            for (int j = 1; j < 10; j++) {
+              String label = String.format(spellTypes[i], j);
+              AbstractStruct struct1 = (AbstractStruct)cre.getAttribute(label);
+              if (struct1 != null) {
+                AbstractStruct struct2 = (AbstractStruct)struct1.getAttribute(spellTypesStruct);
+                if (struct2 != null) {
+                  Datatype struct3 = (Datatype)struct2.getAttribute(spellTypesRef);
+                  if (struct3 != null) {
+                    listSpells.add(struct3);
+                  }
+                }
+              }
+            }
+          }
+          spells = new Datatype[listSpells.size()];
+          for (int i = 0; i < spells.length; i++) {
+            spells[i] = listSpells.get(i);
+          }
+        } else {
+          ofs = (DecNumber)cre.getAttribute("Known spells offset");
+          cnt = (DecNumber)cre.getAttribute("# known spells");
+          if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+            spells = new Datatype[cnt.getValue()];
+            final String spellLabel = SearchOptions.getResourceName(SearchOptions.CRE_Spell_Spell1);
+            for (int idx = 0; idx < cnt.getValue(); idx++) {
+              String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Spell), idx);
+              AbstractStruct struct = (AbstractStruct)cre.getAttribute(label);
+              spells[idx] = (Datatype)struct.getAttribute(spellLabel);
+            }
+          } else {
+            spells = new Datatype[0];
+          }
+        }
 
         // checking options
         String[] keyList = new String[]{SearchOptions.CRE_Name, SearchOptions.CRE_ScriptName};
@@ -1633,6 +1709,74 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
             o = searchOptions.getOption(key);
             StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Effect_Type1, SearchOptions.CRE_Effect_Type2,
+                               SearchOptions.CRE_Effect_Type3, SearchOptions.CRE_Effect_Type4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < effects.length; idx2++) {
+              if (!found) {
+                if (effects[idx2] != null) {
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  found |= SearchOptions.Utils.matchNumber(struct, o);
+                }
+              } else {
+                break;
+              }
+            }
+            retVal &= found || (o == null);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Item_Item1, SearchOptions.CRE_Item_Item2,
+                               SearchOptions.CRE_Item_Item3, SearchOptions.CRE_Item_Item4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < items.length; idx2++) {
+              if (!found) {
+                if (items[idx2] != null) {
+                  StructEntry struct = items[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+                }
+              } else {
+                break;
+              }
+            }
+            retVal &= found || (o == null);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Spell_Spell1, SearchOptions.CRE_Spell_Spell2,
+                               SearchOptions.CRE_Spell_Spell3, SearchOptions.CRE_Spell_Spell4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < spells.length; idx2++) {
+              if (!found) {
+                if (spells[idx2] != null) {
+                  found |= SearchOptions.Utils.matchResourceRef(spells[idx2], o, false);
+                }
+              } else {
+                break;
+              }
+            }
+            retVal &= found || (o == null);
           } else {
             break;
           }

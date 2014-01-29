@@ -191,6 +191,44 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
     return value;
   }
 
+  public long getValue(String ref)
+  {
+    if (ref != null && !ref.isEmpty()) {
+      if (ref.lastIndexOf('.') > 0) {
+        ref = ref.substring(0, ref.lastIndexOf(',')).toUpperCase();
+      } else {
+        ref = ref.toUpperCase();
+      }
+      if (idsmap.containsValue(ref)) {
+        long[] keys = idsmap.keys();
+        for (int i = 0; i < keys.length; i++) {
+          if (idsmap.get(keys[i]).equals(ref)) {
+            return keys[i];
+          }
+        }
+      }
+    }
+    return -1L;
+  }
+
+  public String getValueRef()
+  {
+    if (idsmap.containsKey(value)) {
+      return idsmap.get(value).getString() + ".SPL";
+    } else {
+      return "None";
+    }
+  }
+
+  public String getValueRef(long id)
+  {
+    if (idsmap.containsKey(id)) {
+      return idsmap.get(id).getString() + ".SPL";
+    } else {
+      return "None";
+    }
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class SplRefEntry implements Comparable<SplRefEntry>

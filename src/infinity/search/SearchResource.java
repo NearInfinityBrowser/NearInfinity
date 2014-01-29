@@ -821,30 +821,34 @@ public class SearchResource extends ChildFrame
   private static class OptionsCREPanel extends OptionsBasePanel
   {
     // indices of the options checkboxes
-    public static final int ID_Name       = 0;
-    public static final int ID_ScriptName = 1;
-    public static final int ID_Flags      = 2;
-    public static final int ID_Level      = 3;
-    public static final int ID_Type       = 4;
-    public static final int ID_Animation  = 5;
-    public static final int ID_Script1    = 6;
-    public static final int ID_Script2    = 7;
-    public static final int ID_Feats1     = 8;
-    public static final int ID_Feats2     = 9;
-    public static final int ID_Feats3     = 10;
-    public static final int ID_Attributes = 11;
+    public static final int ID_Name         = 0;
+    public static final int ID_ScriptName   = 1;
+    public static final int ID_Flags        = 2;
+    public static final int ID_Level        = 3;
+    public static final int ID_Type         = 4;
+    public static final int ID_Animation    = 5;
+    public static final int ID_Script1      = 6;
+    public static final int ID_Script2      = 7;
+    public static final int ID_GameSpecific = 8;
+    public static final int ID_Spells       = 9;
+    public static final int ID_Items        = 10;
+    public static final int ID_Effects      = 11;
 
     public static final int OptionsCount  = 12;
 
-    private final FlagsPanel[] pFeats = new FlagsPanel[3];
     private final JComboBox[] cbScripts = new JComboBox[2];
 
-    private FlagsPanel pFlags, pAttributes;
+    private FlagsPanel pFlags;
     private CreatureLevelPanel pLevel;
     private IWD2CreatureLevelPanel pLevelIWD2;
     private CreatureTypePanel pType;
+    private GameSpecificPanel pGameSpecific;
+    private CreEffectsPanel pEffects;
+    private CreItemsPanel pItems;
+    private CreSpellsPanel pSpells;
     private JTextField tfName, tfScriptName;
-    private ButtonPopupWindow bpwFlags, bpwTypes, bpwLevel, bpwFeats1, bpwFeats2, bpwFeats3, bpwAttributes;
+    private ButtonPopupWindow bpwFlags, bpwTypes, bpwLevel, bpwGameSpecific, bpwEffects,
+                              bpwItems, bpwSpells;
     private JComboBox cbAnimation;
 
 
@@ -895,21 +899,21 @@ public class SearchResource extends ChildFrame
               cbAnimation.setEnabled(cbOptions[idx].isSelected());
               if (cbOptions[idx].isSelected()) { cbAnimation.requestFocusInWindow(); }
               break;
-            case ID_Feats1:
-              bpwFeats1.setEnabled(cbOptions[idx].isSelected());
-              if (cbOptions[idx].isSelected()) { bpwFeats1.requestFocusInWindow(); }
+            case ID_GameSpecific:
+              bpwGameSpecific.setEnabled(cbOptions[idx].isSelected());
+              if (cbOptions[idx].isSelected()) { bpwGameSpecific.requestFocusInWindow(); }
               break;
-            case ID_Feats2:
-              bpwFeats2.setEnabled(cbOptions[idx].isSelected());
-              if (cbOptions[idx].isSelected()) { bpwFeats2.requestFocusInWindow(); }
+            case ID_Effects:
+              bpwEffects.setEnabled(cbOptions[idx].isSelected());
+              if (cbOptions[idx].isSelected()) { bpwEffects.requestFocusInWindow(); }
               break;
-            case ID_Feats3:
-              bpwFeats3.setEnabled(cbOptions[idx].isSelected());
-              if (cbOptions[idx].isSelected()) { bpwFeats3.requestFocusInWindow(); }
+            case ID_Items:
+              bpwItems.setEnabled(cbOptions[idx].isSelected());
+              if (cbOptions[idx].isSelected()) { bpwItems.requestFocusInWindow(); }
               break;
-            case ID_Attributes:
-              bpwAttributes.setEnabled(cbOptions[idx].isSelected());
-              if (cbOptions[idx].isSelected()) { bpwAttributes.requestFocusInWindow(); }
+            case ID_Spells:
+              bpwSpells.setEnabled(cbOptions[idx].isSelected());
+              if (cbOptions[idx].isSelected()) { bpwSpells.requestFocusInWindow(); }
               break;
           }
           fireOptionsPropertyChanged();
@@ -1043,17 +1047,65 @@ public class SearchResource extends ChildFrame
             case ID_Animation:
               retVal.setOption(SearchOptions.CRE_Animation, new Integer(getOptionAnimation()));
               break;
-            case ID_Feats1:
-              retVal.setOption(SearchOptions.CRE_Feats1, pFeats[0].getOptionFlags());
+            case ID_GameSpecific:
+              if (pGameSpecific.isActive(GameSpecificPanel.TYPE_FEATS1)) {
+                retVal.setOption(SearchOptions.CRE_Feats1,
+                                 pGameSpecific.getOptionFlags(GameSpecificPanel.TYPE_FEATS1));
+              }
+              if (pGameSpecific.isActive(GameSpecificPanel.TYPE_FEATS2)) {
+                retVal.setOption(SearchOptions.CRE_Feats2,
+                                 pGameSpecific.getOptionFlags(GameSpecificPanel.TYPE_FEATS2));
+              }
+              if (pGameSpecific.isActive(GameSpecificPanel.TYPE_FEATS3)) {
+                retVal.setOption(SearchOptions.CRE_Feats3,
+                                 pGameSpecific.getOptionFlags(GameSpecificPanel.TYPE_FEATS3));
+              }
+              if (pGameSpecific.isActive(GameSpecificPanel.TYPE_ATTRIBUTES)) {
+                retVal.setOption(SearchOptions.CRE_Attributes,
+                                 pGameSpecific.getOptionFlags(GameSpecificPanel.TYPE_ATTRIBUTES));
+              }
               break;
-            case ID_Feats2:
-              retVal.setOption(SearchOptions.CRE_Feats2, pFeats[1].getOptionFlags());
+            case ID_Effects:
+              if (pEffects.isActive(0)) {
+                retVal.setOption(SearchOptions.CRE_Effect_Type1, pEffects.getOptionEffect(0));
+              }
+              if (pEffects.isActive(1)) {
+                retVal.setOption(SearchOptions.CRE_Effect_Type2, pEffects.getOptionEffect(1));
+              }
+              if (pEffects.isActive(2)) {
+                retVal.setOption(SearchOptions.CRE_Effect_Type3, pEffects.getOptionEffect(2));
+              }
+              if (pEffects.isActive(3)) {
+                retVal.setOption(SearchOptions.CRE_Effect_Type4, pEffects.getOptionEffect(3));
+              }
               break;
-            case ID_Feats3:
-              retVal.setOption(SearchOptions.CRE_Feats3, pFeats[2].getOptionFlags());
+            case ID_Items:
+              if (pItems.isActive(0)) {
+                retVal.setOption(SearchOptions.CRE_Item_Item1, pItems.getOptionItem(0));
+              }
+              if (pItems.isActive(1)) {
+                retVal.setOption(SearchOptions.CRE_Item_Item2, pItems.getOptionItem(1));
+              }
+              if (pItems.isActive(2)) {
+                retVal.setOption(SearchOptions.CRE_Item_Item3, pItems.getOptionItem(2));
+              }
+              if (pItems.isActive(3)) {
+                retVal.setOption(SearchOptions.CRE_Item_Item4, pItems.getOptionItem(3));
+              }
               break;
-            case ID_Attributes:
-              retVal.setOption(SearchOptions.CRE_Attributes, pAttributes.getOptionFlags());
+            case ID_Spells:
+              if (pSpells.isActive(0)) {
+                retVal.setOption(SearchOptions.CRE_Spell_Spell1, pSpells.getOptionSpell(0));
+              }
+              if (pSpells.isActive(1)) {
+                retVal.setOption(SearchOptions.CRE_Spell_Spell2, pSpells.getOptionSpell(1));
+              }
+              if (pSpells.isActive(2)) {
+                retVal.setOption(SearchOptions.CRE_Spell_Spell3, pSpells.getOptionSpell(2));
+              }
+              if (pSpells.isActive(3)) {
+                retVal.setOption(SearchOptions.CRE_Spell_Spell4, pSpells.getOptionSpell(3));
+              }
               break;
           }
         }
@@ -1113,42 +1165,20 @@ public class SearchResource extends ChildFrame
       cb = new JCheckBox("Script 2:");
       cb.addActionListener(this);
       cbOptions[ID_Script2] = cb;
-      cb = new JCheckBox("Feats 1:");
+      cb = new JCheckBox("Game-specific:");
+      cb.setEnabled(GameSpecificPanel.isGameSpecificEnabled());
+      cb.setToolTipText("Icewind Dale 2 and Planescape: Torment only");
       cb.addActionListener(this);
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-        cb.setEnabled(true);
-      } else {
-        cb.setEnabled(false);
-        cb.setToolTipText("Icewind Dale 2 only");
-      }
-      cbOptions[ID_Feats1] = cb;
-      cb = new JCheckBox("Feats 2:");
+      cbOptions[ID_GameSpecific] = cb;
+      cb = new JCheckBox("Spells:");
       cb.addActionListener(this);
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-        cb.setEnabled(true);
-      } else {
-        cb.setEnabled(false);
-        cb.setToolTipText("Icewind Dale 2 only");
-      }
-      cbOptions[ID_Feats2] = cb;
-      cb = new JCheckBox("Feats 3:");
+      cbOptions[ID_Spells] = cb;
+      cb = new JCheckBox("Items:");
       cb.addActionListener(this);
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-        cb.setEnabled(true);
-      } else {
-        cb.setEnabled(false);
-        cb.setToolTipText("Icewind Dale 2 only");
-      }
-      cbOptions[ID_Feats3] = cb;
-      cb = new JCheckBox("Attributes:");
+      cbOptions[ID_Items] = cb;
+      cb = new JCheckBox("Effects:");
       cb.addActionListener(this);
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
-        cb.setEnabled(true);
-      } else {
-        cb.setEnabled(false);
-        cb.setToolTipText("Planescape: Torment only");
-      }
-      cbOptions[ID_Attributes] = cb;
+      cbOptions[ID_Effects] = cb;
 
       tfName = Utils.defaultWidth(new JTextField());
       tfScriptName = Utils.defaultWidth(new JTextField(new FormattedDocument(32, false), "", 0));
@@ -1170,20 +1200,17 @@ public class SearchResource extends ChildFrame
 
       cbAnimation = Utils.defaultWidth(
           new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0,0,0,0}, 0, 4, "Animation", "ANIMATE.IDS"))));
-      // IWD2-specific
-      pFeats[0] = new FlagsPanel(4, CreResource.s_feats1);
-      bpwFeats1 = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pFeats[0]));
-      bpwFeats1.setEnabled(ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
-      pFeats[1] = new FlagsPanel(4, CreResource.s_feats2);
-      bpwFeats2 = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pFeats[1]));
-      bpwFeats2.setEnabled(ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
-      pFeats[2] = new FlagsPanel(4, CreResource.s_feats3);
-      bpwFeats3 = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pFeats[2]));
-      bpwFeats3.setEnabled(ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
-      // PST-specific
-      pAttributes = new FlagsPanel(4, CreResource.s_attributes);
-      bpwAttributes = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pAttributes));
-      bpwAttributes.setEnabled(ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+      pGameSpecific = new GameSpecificPanel();
+      bpwGameSpecific = new ButtonPopupWindow(setOptionsText, pGameSpecific);
+
+      pSpells = new CreSpellsPanel(4);
+      bpwSpells = new ButtonPopupWindow(setOptionsText, pSpells);
+
+      pItems = new CreItemsPanel(4);
+      bpwItems = new ButtonPopupWindow(setOptionsText, pItems);
+
+      pEffects = new CreEffectsPanel(4);
+      bpwEffects = new ButtonPopupWindow(setOptionsText, pEffects);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
       c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -1237,28 +1264,28 @@ public class SearchResource extends ChildFrame
       pOptions.add(cbScripts[1], c);
       c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
-      pOptions.add(cbOptions[ID_Feats1], c);
+      pOptions.add(cbOptions[ID_GameSpecific], c);
       c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
-      pOptions.add(bpwFeats1, c);
+      pOptions.add(bpwGameSpecific, c);
       c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
-      pOptions.add(cbOptions[ID_Feats2], c);
+      pOptions.add(cbOptions[ID_Spells], c);
       c = setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
-      pOptions.add(bpwFeats2, c);
+      pOptions.add(bpwSpells, c);
       c = setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
-      pOptions.add(cbOptions[ID_Feats3], c);
+      pOptions.add(cbOptions[ID_Items], c);
       c = setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
-      pOptions.add(bpwFeats3, c);
+      pOptions.add(bpwItems, c);
       c = setGBC(c, 2, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
-      pOptions.add(cbOptions[ID_Attributes], c);
+      pOptions.add(cbOptions[ID_Effects], c);
       c = setGBC(c, 3, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                  GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
-      pOptions.add(bpwAttributes, c);
+      pOptions.add(bpwEffects, c);
 
       triggerActions(cbOptions);
 
@@ -3621,8 +3648,8 @@ public class SearchResource extends ChildFrame
 
     private static final int EntryCount     = 7;
     private static final String[] label = new String[]{"General:", "Class:", "Specifics:",
-      "Alignment:", "Gender:", "Race:",
-      "Allegiance:", "Sex:"};
+                                                       "Alignment:", "Gender:", "Race:",
+                                                       "Allegiance:", "Sex:"};
 
     private final JCheckBox[] cbLabel = new JCheckBox[EntryCount];
     private final JComboBox[] cbType = new JComboBox[EntryCount];
@@ -3734,6 +3761,462 @@ public class SearchResource extends ChildFrame
       add(pMain, BorderLayout.CENTER);
     }
 
+  }
+
+
+  // creates a dialog that allows to specify game-specific settings for CRE resources
+  private static final class GameSpecificPanel extends BasePanel implements ActionListener
+  {
+    public static final int TYPE_FEATS1     = 0;
+    public static final int TYPE_FEATS2     = 1;
+    public static final int TYPE_FEATS3     = 2;
+    public static final int TYPE_ATTRIBUTES = 3;
+
+    private static final int EntryCount     = 4;
+    private static final String[] label = new String[]{"Feats 1:", "Feats 2:",
+                                                       "Feats 3:", "Attributes:"};
+
+    private final JCheckBox[] cbLabel = new JCheckBox[EntryCount];
+    private final FlagsPanel[] pFlags = new FlagsPanel[EntryCount];
+    private final ButtonPopupWindow[] bpwFlags = new ButtonPopupWindow[EntryCount];
+
+    public static boolean isGameSpecificEnabled()
+    {
+      return (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ||
+          ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+    }
+
+    public GameSpecificPanel()
+    {
+      super();
+      init();
+    }
+
+    // --------------------- Begin Interface ActionListener ---------------------
+
+    @Override
+    public void actionPerformed(ActionEvent event)
+    {
+      if (event.getSource() instanceof JCheckBox) {
+        for (int i = 0; i < EntryCount; i++) {
+          if (event.getSource() == cbLabel[i]) {
+            bpwFlags[i].setEnabled(cbLabel[i].isSelected());
+            if (cbLabel[i].isSelected()) { bpwFlags[i].requestFocusInWindow(); }
+            break;
+          }
+        }
+      }
+    }
+
+    // --------------------- End Interface ActionListener ---------------------
+
+    @Override
+    public boolean isEmpty()
+    {
+      for (int i = 0; i < EntryCount; i++) {
+        if (cbLabel[i].isSelected()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public boolean isActive(int id)
+    {
+      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
+      return cbLabel[id].isSelected();
+    }
+
+    public Pair<Integer> getOptionFlags(int id)
+    {
+      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
+      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<Integer>(0, 0);
+    }
+
+
+    private void init()
+    {
+      boolean isIWD2 = (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
+      boolean isBoth = isIWD2 || (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+
+      // initializing components
+      for (int i = 0; i < EntryCount; i++) {
+        cbLabel[i] = new JCheckBox(label[i]);
+        cbLabel[i].setEnabled((i == TYPE_ATTRIBUTES) ? isBoth : isIWD2);
+        cbLabel[i].addActionListener(this);
+      }
+
+      // IWD2
+      pFlags[TYPE_FEATS1] = new FlagsPanel(4, CreResource.s_feats1);
+      bpwFlags[TYPE_FEATS1] = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pFlags[TYPE_FEATS1]));
+      bpwFlags[TYPE_FEATS1].setEnabled(isIWD2);
+      pFlags[TYPE_FEATS2] = new FlagsPanel(4, CreResource.s_feats2);
+      bpwFlags[TYPE_FEATS2] = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pFlags[TYPE_FEATS2]));
+      bpwFlags[TYPE_FEATS2].setEnabled(isIWD2);
+      pFlags[TYPE_FEATS3] = new FlagsPanel(4, CreResource.s_feats3);
+      bpwFlags[TYPE_FEATS3] = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pFlags[TYPE_FEATS3]));
+      bpwFlags[TYPE_FEATS3].setEnabled(isIWD2);
+      // IWD2 and PST
+      if (isIWD2) {
+        pFlags[TYPE_ATTRIBUTES] = new FlagsPanel(1, CreResource.s_attributes_iwd2);
+      } else {
+        pFlags[TYPE_ATTRIBUTES] = new FlagsPanel(4, CreResource.s_attributes_pst);
+      }
+      bpwFlags[TYPE_ATTRIBUTES] = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, pFlags[TYPE_ATTRIBUTES]));
+      bpwFlags[TYPE_ATTRIBUTES].setEnabled(isBoth);
+
+      // placing components
+      GridBagConstraints c = new GridBagConstraints();
+      JPanel panel = new JPanel(new GridBagLayout());
+      for (int i = 0; i < EntryCount; i++) {
+        c = setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
+        panel.add(cbLabel[i], c);
+        c = setGBC(c, 1, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        panel.add(bpwFlags[i], c);
+      }
+
+      triggerActions(cbLabel);
+
+      JPanel pMain = new JPanel(new GridBagLayout());
+      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      pMain.add(panel, c);
+      add(pMain, BorderLayout.CENTER);
+    }
+
+  }
+
+
+  // creates a dialog that allows to specify effect opcodes for CRE resources
+  private static final class CreEffectsPanel extends BasePanel implements ActionListener
+  {
+    private static final int MaxEntryCount     = 16;
+
+    private final int entryCount;
+    private final JCheckBox[] cbLabel;
+    private final JSpinner[][] sEffects;
+
+    public CreEffectsPanel(int effectCount)
+    {
+      super();
+      if (effectCount < 1) effectCount = 1; else if (effectCount > MaxEntryCount) effectCount = MaxEntryCount;
+      entryCount = effectCount;
+      cbLabel = new JCheckBox[entryCount];
+      sEffects = new JSpinner[entryCount][2];
+      init();
+    }
+
+    // --------------------- Begin Interface ActionListener ---------------------
+
+    @Override
+    public void actionPerformed(ActionEvent event)
+    {
+      if (event.getSource() instanceof JCheckBox) {
+        for (int i = 0; i < entryCount; i++) {
+          if (event.getSource() == cbLabel[i]) {
+            sEffects[i][0].setEnabled(cbLabel[i].isSelected());
+            sEffects[i][1].setEnabled(cbLabel[i].isSelected());
+            if (cbLabel[i].isSelected()) { sEffects[i][0].requestFocusInWindow(); }
+            break;
+          }
+        }
+      }
+    }
+
+    // --------------------- End Interface ActionListener ---------------------
+
+    @Override
+    public boolean isEmpty()
+    {
+      for (int i = 0; i < entryCount; i++) {
+        if (cbLabel[i].isSelected()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public boolean isActive(int id)
+    {
+      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
+      return cbLabel[id].isSelected();
+    }
+
+    public Pair<Integer> getOptionEffect(int id)
+    {
+      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
+      return Utils.getRangeValues(cbLabel[id].isSelected(), sEffects[id]);
+    }
+
+    public int getOptionEffectCount()
+    {
+      return entryCount;
+    }
+
+    private void init()
+    {
+      // initializing components
+      for (int i = 0; i < entryCount; i++) {
+        cbLabel[i] = new JCheckBox(String.format("Effect %1$d:", i+1));
+        cbLabel[i].addActionListener(this);
+
+        sEffects[i][0] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, 0, 999, 0, 1);
+        sEffects[i][1] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, 0, 999, 999, 1);
+      }
+
+      // placing components
+      GridBagConstraints c = new GridBagConstraints();
+      JPanel panel = new JPanel(new GridBagLayout());
+      for (int i = 0; i < entryCount; i++) {
+        int row, col;
+        if (entryCount > 4) {
+          row = i % ((entryCount+1) / 2);
+          col = (i < ((entryCount+1) / 2)) ? 0 : 2;
+        } else {
+          row = i;
+          col = 0;
+        }
+        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        panel.add(cbLabel[i], c);
+        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        panel.add(Utils.createNumberRangePanel(sEffects[i][0], sEffects[i][1]), c);
+      }
+
+      triggerActions(cbLabel);
+
+      JPanel pMain = new JPanel(new GridBagLayout());
+      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      pMain.add(panel, c);
+      add(pMain, BorderLayout.CENTER);
+    }
+
+  }
+
+
+  // creates a dialog that allows to specify inventory items for CRE resources
+  private static final class CreItemsPanel extends BasePanel implements ActionListener
+  {
+    private static final int MaxEntryCount     = 16;
+
+    private final int entryCount;
+    private final JCheckBox[] cbLabel;
+    private final JComboBox[] cbItems;
+
+    public CreItemsPanel(int itemCount)
+    {
+      super();
+      if (itemCount < 1) itemCount = 1; else if (itemCount > MaxEntryCount) itemCount = MaxEntryCount;
+      entryCount = itemCount;
+      cbLabel = new JCheckBox[entryCount];
+      cbItems = new JComboBox[entryCount];
+      init();
+    }
+
+    // --------------------- Begin Interface ActionListener ---------------------
+
+    @Override
+    public void actionPerformed(ActionEvent event)
+    {
+      if (event.getSource() instanceof JCheckBox) {
+        for (int i = 0; i < entryCount; i++) {
+          if (event.getSource() == cbLabel[i]) {
+            cbItems[i].setEnabled(cbLabel[i].isSelected());
+            if (cbLabel[i].isSelected()) { cbItems[i].requestFocusInWindow(); }
+            break;
+          }
+        }
+      }
+    }
+
+    // --------------------- End Interface ActionListener ---------------------
+
+    @Override
+    public boolean isEmpty()
+    {
+      for (int i = 0; i < entryCount; i++) {
+        if (cbLabel[i].isSelected()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public boolean isActive(int id)
+    {
+      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
+      return cbLabel[id].isSelected();
+    }
+
+    public String getOptionItem(int id)
+    {
+      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
+      return Utils.getResourceName(cbItems[id].isEnabled(),
+          (ResourceEntry)((NamedResourceEntry)cbItems[id].getSelectedItem()).getResourceEntry());
+    }
+
+    public int getOptionItemCount()
+    {
+      return entryCount;
+    }
+
+    private void init()
+    {
+      // initializing components
+      int maxWidth = 250;
+      for (int i = 0; i < entryCount; i++) {
+        cbLabel[i] = new JCheckBox(String.format("Item resource %1$d:", i+1));
+        cbLabel[i].addActionListener(this);
+
+        cbItems[i] = Utils.createNamedResourceList(new String[]{"ITM"});
+        if (cbItems[i].getPreferredSize().width > maxWidth) {
+          cbItems[i].setPreferredSize(new Dimension(maxWidth, cbItems[i].getPreferredSize().height));
+        }
+      }
+
+      // placing components
+      GridBagConstraints c = new GridBagConstraints();
+      JPanel panel = new JPanel(new GridBagLayout());
+      for (int i = 0; i < entryCount; i++) {
+        int row, col;
+        if (entryCount > 4) {
+          row = i % ((entryCount+1) / 2);
+          col = (i < ((entryCount+1) / 2)) ? 0 : 2;
+        } else {
+          row = i;
+          col = 0;
+        }
+        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        panel.add(cbLabel[i], c);
+        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        panel.add(cbItems[i], c);
+      }
+
+      triggerActions(cbLabel);
+
+      JPanel pMain = new JPanel(new GridBagLayout());
+      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      pMain.add(panel, c);
+      add(pMain, BorderLayout.CENTER);
+    }
+  }
+
+
+  // creates a dialog that allows to specify spells for CRE resources
+  private static final class CreSpellsPanel extends BasePanel implements ActionListener
+  {
+    private static final int MaxEntryCount     = 16;
+
+    private final int entryCount;
+    private final JCheckBox[] cbLabel;
+    private final JComboBox[] cbSpells;
+
+    public CreSpellsPanel(int spellCount)
+    {
+      super();
+      if (spellCount < 1) spellCount = 1; else if (spellCount > MaxEntryCount) spellCount = MaxEntryCount;
+      entryCount = spellCount;
+      cbLabel = new JCheckBox[entryCount];
+      cbSpells = new JComboBox[entryCount];
+      init();
+    }
+
+    // --------------------- Begin Interface ActionListener ---------------------
+
+    @Override
+    public void actionPerformed(ActionEvent event)
+    {
+      if (event.getSource() instanceof JCheckBox) {
+        for (int i = 0; i < entryCount; i++) {
+          if (event.getSource() == cbLabel[i]) {
+            cbSpells[i].setEnabled(cbLabel[i].isSelected());
+            if (cbLabel[i].isSelected()) { cbSpells[i].requestFocusInWindow(); }
+            break;
+          }
+        }
+      }
+    }
+
+    // --------------------- End Interface ActionListener ---------------------
+
+    @Override
+    public boolean isEmpty()
+    {
+      for (int i = 0; i < entryCount; i++) {
+        if (cbLabel[i].isSelected()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public boolean isActive(int id)
+    {
+      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
+      return cbLabel[id].isSelected();
+    }
+
+    public String getOptionSpell(int id)
+    {
+      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
+      return Utils.getResourceName(cbSpells[id].isEnabled(),
+          (ResourceEntry)((NamedResourceEntry)cbSpells[id].getSelectedItem()).getResourceEntry());
+    }
+
+    public int getOptionSpellCount()
+    {
+      return entryCount;
+    }
+
+    private void init()
+    {
+      // initializing components
+      int maxWidth = 250;
+      for (int i = 0; i < entryCount; i++) {
+        cbLabel[i] = new JCheckBox(String.format("Spell resource %1$d:", i+1));
+        cbLabel[i].addActionListener(this);
+
+        cbSpells[i] = Utils.createNamedResourceList(new String[]{"SPL"});
+        if (cbSpells[i].getPreferredSize().width > maxWidth) {
+          cbSpells[i].setPreferredSize(new Dimension(maxWidth, cbSpells[i].getPreferredSize().height));
+        }
+      }
+
+      // placing components
+      GridBagConstraints c = new GridBagConstraints();
+      JPanel panel = new JPanel(new GridBagLayout());
+      for (int i = 0; i < entryCount; i++) {
+        int row, col;
+        if (entryCount > 4) {
+          row = i % ((entryCount+1) / 2);
+          col = (i < ((entryCount+1) / 2)) ? 0 : 2;
+        } else {
+          row = i;
+          col = 0;
+        }
+        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        panel.add(cbLabel[i], c);
+        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        panel.add(cbSpells[i], c);
+      }
+
+      triggerActions(cbLabel);
+
+      JPanel pMain = new JPanel(new GridBagLayout());
+      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      pMain.add(panel, c);
+      add(pMain, BorderLayout.CENTER);
+    }
   }
 
 

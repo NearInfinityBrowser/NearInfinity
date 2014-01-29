@@ -527,7 +527,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         for (int idx = 0; idx < keyList.length; idx++) {
           if (retVal) {
             boolean found = false;
-            key = SearchOptions.ITM_Effect_Type1;
+            key = keyList[idx];
             o = searchOptions.getOption(key);
             for (int idx2 = 0; idx2 < effects.length; idx2++) {
               if (!found) {

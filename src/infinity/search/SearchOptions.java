@@ -85,6 +85,45 @@ public class SearchOptions
   public static final String CRE_Feats2     = "CRE.Feats (2/3).0";
   public static final String CRE_Feats3     = "CRE.Feats (3/3).0";
   public static final String CRE_Attributes = "CRE.Attributes.0";
+  public static final String CRE_Effect       = "CRE.Effect %1$d.0";    // marks substructure
+  public static final String CRE_Effect_Type1 = "CRE.Effect.Type.0";
+  public static final String CRE_Effect_Type2 = "CRE.Effect.Type.1";
+  public static final String CRE_Effect_Type3 = "CRE.Effect.Type.2";
+  public static final String CRE_Effect_Type4 = "CRE.Effect.Type.3";
+  public static final String CRE_Item         = "CRE.Item %1$d.0";    // marks substructure
+  public static final String CRE_Item_Item1   = "CRE.Item.Item.0";
+  public static final String CRE_Item_Item2   = "CRE.Item.Item.1";
+  public static final String CRE_Item_Item3   = "CRE.Item.Item.2";
+  public static final String CRE_Item_Item4   = "CRE.Item.Item.3";
+  public static final String CRE_Spell         = "CRE.Known spell %1$d.0";  // marks substructure
+  public static final String CRE_Spell_Spell1  = "CRE.Known spell.Spell.0";
+  public static final String CRE_Spell_Spell2  = "CRE.Known spell.Spell.1";
+  public static final String CRE_Spell_Spell3  = "CRE.Known spell.Spell.2";
+  public static final String CRE_Spell_Spell4  = "CRE.Known spell.Spell.3";
+  public static final String CRE_IWD2SpellBard                  = "CRE.Bard spells %1$d.0";     // marks substructure
+  public static final String CRE_IWD2SpellBard_Spell            = "CRE.Bard spells.Spell.0";    // marks substructure
+  public static final String CRE_IWD2SpellBard_Spell_ResRef     = "CRE.Bard spells.Spell.ResRef.0";    // marks substructure
+  public static final String CRE_IWD2SpellCleric                = "CRE.Cleric spells %1$d.0";   // marks substructure
+  public static final String CRE_IWD2SpellCleric_Spell          = "CRE.Cleric spells.Spell.0";  // marks substructure
+  public static final String CRE_IWD2SpellCleric_Spell_ResRef   = "CRE.Cleric spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellDruid                 = "CRE.Druid spells %1$d.0";   // marks substructure
+  public static final String CRE_IWD2SpellDruid_Spell           = "CRE.Druid spells.Spell.0";  // marks substructure
+  public static final String CRE_IWD2SpellDruid_Spell_ResRef    = "CRE.Druid spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellPaladin               = "CRE.Paladin spells %1$d.0";   // marks substructure
+  public static final String CRE_IWD2SpellPaladin_Spell         = "CRE.Paladin spells.Spell.0";  // marks substructure
+  public static final String CRE_IWD2SpellPaladin_Spell_ResRef  = "CRE.Paladin spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellRanger                = "CRE.Ranger spells %1$d.0";   // marks substructure
+  public static final String CRE_IWD2SpellRanger_Spell          = "CRE.Ranger spells.Spell.0";  // marks substructure
+  public static final String CRE_IWD2SpellRanger_Spell_ResRef   = "CRE.Ranger spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellSorcerer              = "CRE.Sorcerer spells %1$d.0";   // marks substructure
+  public static final String CRE_IWD2SpellSorcerer_Spell        = "CRE.Sorcerer spells.Spell.0";  // marks substructure
+  public static final String CRE_IWD2SpellSorcerer_Spell_ResRef = "CRE.Sorcerer spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellWizard                = "CRE.Wizard spells %1$d.0";   // marks substructure
+  public static final String CRE_IWD2SpellWizard_Spell          = "CRE.Wizard spells.Spell.0";  // marks substructure
+  public static final String CRE_IWD2SpellWizard_Spell_ResRef   = "CRE.Wizard spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellDomain                = "CRE.Domain spells %1$d.0";   // marks substructure
+  public static final String CRE_IWD2SpellDomain_Spell          = "CRE.Domain spells.Spell.0";  // marks substructure
+  public static final String CRE_IWD2SpellDomain_Spell_ResRef   = "CRE.Domain spells.Spell.ResRef.0";  // marks substructure
 
   public static final String EFF            = "EFF.0";                // marks structure
   public static final String EFF_Effect     = "EFF.Type.0";
@@ -398,9 +437,26 @@ public class SearchOptions
     // Returns whether ref and value are equal, optionally taking case-sensitivity into account.
     public static boolean matchResourceRef(StructEntry ref, Object value, boolean caseSensitive)
     {
-      if (ref != null && ref instanceof ResourceRef && value != null && value instanceof String) {
-        String s1 = (String)value;
-        String s2 = ((ResourceRef)ref).getResourceName();
+//      if (ref != null && ref instanceof ResourceRef && value != null && value instanceof String) {
+      if (ref != null && value != null ) {
+        String s1, s2;
+        if (ref instanceof ResourceRef && value instanceof String) {
+          s1 = (String)value;
+          s2 = ((ResourceRef)ref).getResourceName();
+        } else if (ref instanceof IwdRef) {
+          if (value instanceof Integer) {
+            s1 = ((IwdRef)ref).getValueRef((Integer)value);
+          } else if (value instanceof Long) {
+            s1 = ((IwdRef)ref).getValueRef((Long)value);
+          } else if (value instanceof String) {
+            s1 = (String)value;
+          } else {
+            return false;
+          }
+          s2 = ((IwdRef) ref).getValueRef();
+        } else {
+          return false;
+        }
 
         // special case: "NONE"
         if ((s1.isEmpty() || "NONE".equalsIgnoreCase(s1)) &&
