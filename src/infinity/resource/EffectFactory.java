@@ -23,6 +23,7 @@ import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.datatype.UpdateListener;
 import infinity.resource.are.Actor;
+import infinity.resource.itm.ItmResource;
 import infinity.resource.spl.SplResource;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
@@ -918,7 +919,7 @@ public final class EffectFactory
           "Ranged hit effect", "Maximum damage each hit", "Change bard song",
           "Set trap", "Set automap note", "Remove automap note",
           "Create item (days)", "Spell sequencer", "Create spell sequencer",
-          "Activate spell sequencer", "Spell trap", "Unknown (104)",
+          "Activate spell sequencer", "Spell trap", "Activate spell sequencer at point",
           "Wondrous recall", "Visual range bonus", "Backstab bonus",
           "Drop item", "Set global variable", "Remove protection from spell",
           "Disable display string", "Clear fog of war", "Shake screen",
@@ -1954,6 +1955,14 @@ public final class EffectFactory
         s.add(new Unknown(buffer, offset, 4));
         s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
           new String[]{"Wizard", "Priest", "Innate"}));
+        break;
+
+      case 0xB5: // Disallow itemtype (CGameEffectRestrictEquipItem)
+        if (gameid == ResourceFactory.ID_BGEE ||
+            gameid == ResourceFactory.ID_BG2EE) {
+          s.add(new Bitmap(buffer, offset, 4, "Item category", ItmResource.s_categories));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Restriction", new String[]{"Equip", "Use"}));
+        }
         break;
 
       case 0xB8: // No collision detection (CGameEffectSetDoNotJump)

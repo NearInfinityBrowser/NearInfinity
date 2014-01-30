@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.ResourceFactory;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 import infinity.util.IdsMapCache;
@@ -33,9 +34,8 @@ import javax.swing.event.ListSelectionListener;
 
 public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
 {
-  private final String sIDS[] = new String[]
-  {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
-   "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS"};
+  private final String sIDS[] = new String[]{"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
+                                             "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS", ""};
   private LongIntegerHashMap<IdsMapEntry> idsMap;
   private TextListPanel fileList, valueList;
   private long idsValue, idsFile;
@@ -51,6 +51,10 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     idsValue = DynamicArray.getUnsignedInt(buffer, offset);
     idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
     sIDS[2] = secondIDS;
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      sIDS[9] = "KIT.IDS";
+    }
     if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals(""))
       idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
     else
