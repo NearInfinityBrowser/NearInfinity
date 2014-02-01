@@ -3526,9 +3526,9 @@ public class SearchResource extends ChildFrame
       return false;
     }
 
-    public Pair<Integer> getOptionFlags()
+    public Pair<Object> getOptionFlags()
     {
-      return new Pair<Integer>(getFlagData(), new Integer(isExact() ? 1 : 0));
+      return new Pair<Object>(getFlagData(), new Boolean(isExact()));
     }
 
     private boolean isExact()
@@ -4616,10 +4616,10 @@ public class SearchResource extends ChildFrame
       return cbLabel[id].isSelected();
     }
 
-    public Pair<Integer> getOptionFlags(int id)
+    public Pair<Object> getOptionFlags(int id)
     {
       if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
-      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<Integer>(0, 0);
+      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<Object>(0, false);
     }
 
 
@@ -5058,10 +5058,10 @@ public class SearchResource extends ChildFrame
       return cbLabel[id].isSelected();
     }
 
-    public Pair<Integer> getOptionFlags(int id)
+    public Pair<Object> getOptionFlags(int id)
     {
       if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
-      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<Integer>(0, 0);
+      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<Object>(0, false);
     }
 
 
@@ -5486,9 +5486,9 @@ public class SearchResource extends ChildFrame
       return cbItems[ITEM_EFFECTS].isSelected() ? pEffects.getOptionEffect(idx) : new Pair<Integer>(0, 0);
     }
 
-    public Pair<Integer> getOptionFlags()
+    public Pair<Object> getOptionFlags()
     {
-      return (cbItems[ITEM_FLAGS].isSelected()) ? flagsPanel.getOptionFlags() : new Pair<Integer>(0, 0);
+      return (cbItems[ITEM_FLAGS].isSelected()) ? flagsPanel.getOptionFlags() : new Pair<Object>(0, false);
     }
 
     private void init()

@@ -568,9 +568,10 @@ public class SearchOptions
         int v;
         boolean isExact;
 
-        if (value instanceof Pair) {
-          v = ((Pair<Integer>)value).getFirst();
-          isExact = ((Pair<Integer>)value).getSecond() != 0;
+        if (value instanceof Pair && ((Pair<Object>)value).getFirst() instanceof Integer &&
+            ((Pair<Object>)value).getSecond() instanceof Boolean) {
+          v = (Integer)((Pair<Object>)value).getFirst();
+          isExact = (Boolean)((Pair<Object>)value).getSecond();
         } else if (value instanceof Integer) {
           v = (Integer)value;
           isExact = false;
@@ -663,10 +664,14 @@ public class SearchOptions
                   // field name matches
                   if (value instanceof String) {
                     bRet |= matchResourceRef(entry, value, false) || matchString(entry, value, false, false);
-                  } else if (value instanceof Pair &&
-                             ((Pair<Object>)value).getFirst() instanceof Integer &&
-                             ((Pair<Object>)value).getSecond() instanceof Integer) {
-                    bRet |= matchNumber(entry, value) || matchFlags(entry, value);
+                  } else if (value instanceof Pair) {
+                    if (((Pair<Object>)value).getFirst() instanceof Integer) {
+                      if (((Pair<Object>)value).getSecond() instanceof Integer) {
+                        bRet |= matchNumber(entry, value);
+                      } else if (((Pair<Object>)value).getSecond() instanceof Boolean) {
+                        bRet |= matchFlags(entry, value);
+                      }
+                    }
                   }
                 }
               }
