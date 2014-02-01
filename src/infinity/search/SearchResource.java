@@ -140,21 +140,27 @@ public class SearchResource extends ChildFrame
                                       JOptionPane.ERROR_MESSAGE);
         return;
       } else {
-        ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
-        if (entry != null) {
-          String resname = entry.getResourceName().substring(0, entry.getResourceName().indexOf('.'));
-          ((BcsResource)viewable).insertString('\"' + resname + '\"');
+        if (listResults.getSelectedIndex() >= 0) {
+          ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
+          if (entry != null) {
+            String resname = entry.getResourceName().substring(0, entry.getResourceName().indexOf('.'));
+            ((BcsResource)viewable).insertString('\"' + resname + '\"');
+          }
         }
       }
     } else if (event.getSource() == bOpen) {
-      ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
-      if (entry != null) {
-        NearInfinity.getInstance().showResourceEntry(entry);
+      if (listResults.getSelectedIndex() >= 0) {
+        ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
+        if (entry != null) {
+          NearInfinity.getInstance().showResourceEntry(entry);
+        }
       }
     } else if (event.getSource() == bOpenNew) {
-      ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
-      if (entry != null) {
-        new ViewFrame(this, ResourceFactory.getResource(entry));
+      if (listResults.getSelectedIndex() >= 0) {
+        ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
+        if (entry != null) {
+          new ViewFrame(this, ResourceFactory.getResource(entry));
+        }
       }
     }
   }
