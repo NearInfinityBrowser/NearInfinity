@@ -374,21 +374,28 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           }
         }
 
-        if (retVal) {
-          boolean found = false;
-          key = SearchOptions.SPL_Effect_Type;
-          o = searchOptions.getOption(key);
-          for (int idx = 0; idx < effects.length; idx++) {
-            if (!found) {
-              if (effects[idx] != null) {
-                StructEntry struct = effects[idx].getAttribute(SearchOptions.getResourceName(key));
-                found |= SearchOptions.Utils.matchNumber(struct, o);
+
+        keyList = new String[]{SearchOptions.SPL_Effect_Type1, SearchOptions.SPL_Effect_Type2,
+                               SearchOptions.SPL_Effect_Type3};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < effects.length; idx2++) {
+              if (!found) {
+                if (effects[idx2] != null) {
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  found |= SearchOptions.Utils.matchNumber(struct, o);
+                }
+              } else {
+                break;
               }
-            } else {
-              break;
             }
+            retVal &= found || (o == null);
+          } else {
+            break;
           }
-          retVal &= found || (o == null);
         }
 
         SearchOptions abilityOption = (SearchOptions)searchOptions.getOption(SearchOptions.SPL_Ability);
@@ -478,6 +485,18 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
             retVal &= resultSingle;
           } else {
             retVal &= resultMulti;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.SPL_Custom1, SearchOptions.SPL_Custom2,
+                               SearchOptions.SPL_Custom3, SearchOptions.SPL_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(spl, o);
+          } else {
+            break;
           }
         }
 

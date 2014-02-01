@@ -17,6 +17,7 @@ import infinity.datatype.TextEdit;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
+import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
@@ -25,6 +26,7 @@ import infinity.util.StringResource;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the
@@ -50,12 +52,17 @@ public class SearchOptions
   public static final String ARE_Container            = "ARE.Container %1$d.0";    // marks substructure
   public static final String ARE_Container_Item       = "ARE.Container.Item %1$d.0";  // marks substructure
   public static final String ARE_Container_Item_Item  = "ARE.Container.Item.Item.0";
+  public static final String ARE_Custom1              = "ARE.+Custom.0";
+  public static final String ARE_Custom2              = "ARE.+Custom.1";
+  public static final String ARE_Custom3              = "ARE.+Custom.2";
+  public static final String ARE_Custom4              = "ARE.+Custom.3";
 
   public static final String CRE            = "CRE.0";            // marks structure
   public static final String CRE_Name       = "CRE.Name.0";
   public static final String CRE_ScriptName = "CRE.Script name.0";
   public static final String CRE_Script1    = "CRE.+Script.0";    // special: matches all available scripts
   public static final String CRE_Script2    = "CRE.+Script.1";    // special: matches all available scripts
+  public static final String CRE_Script3    = "CRE.+Script.2";    // special: matches all available scripts
   public static final String CRE_Flags      = "CRE.Flags.0";
   public static final String CRE_Level1     = "CRE.Level first class.0";
   public static final String CRE_Level2     = "CRE.Level second class.0";
@@ -80,6 +87,7 @@ public class SearchOptions
   public static final String CRE_Sex        = "CRE.Sex.0";        // IWD2 only
   public static final String CRE_Race       = "CRE.Race.0";
   public static final String CRE_Allegiance = "CRE.Allegiance.0";
+  public static final String CRE_Kit        = "CRE.Kit.0";
   public static final String CRE_Animation  = "CRE.Animation.0";
   public static final String CRE_Feats1     = "CRE.Feats (1/3).0";
   public static final String CRE_Feats2     = "CRE.Feats (2/3).0";
@@ -102,28 +110,32 @@ public class SearchOptions
   public static final String CRE_Spell_Spell4  = "CRE.Known spell.Spell.3";
   public static final String CRE_IWD2SpellBard                  = "CRE.Bard spells %1$d.0";     // marks substructure
   public static final String CRE_IWD2SpellBard_Spell            = "CRE.Bard spells.Spell.0";    // marks substructure
-  public static final String CRE_IWD2SpellBard_Spell_ResRef     = "CRE.Bard spells.Spell.ResRef.0";    // marks substructure
+  public static final String CRE_IWD2SpellBard_Spell_ResRef     = "CRE.Bard spells.Spell.ResRef.0";
   public static final String CRE_IWD2SpellCleric                = "CRE.Cleric spells %1$d.0";   // marks substructure
   public static final String CRE_IWD2SpellCleric_Spell          = "CRE.Cleric spells.Spell.0";  // marks substructure
-  public static final String CRE_IWD2SpellCleric_Spell_ResRef   = "CRE.Cleric spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellCleric_Spell_ResRef   = "CRE.Cleric spells.Spell.ResRef.0";
   public static final String CRE_IWD2SpellDruid                 = "CRE.Druid spells %1$d.0";   // marks substructure
   public static final String CRE_IWD2SpellDruid_Spell           = "CRE.Druid spells.Spell.0";  // marks substructure
-  public static final String CRE_IWD2SpellDruid_Spell_ResRef    = "CRE.Druid spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellDruid_Spell_ResRef    = "CRE.Druid spells.Spell.ResRef.0";
   public static final String CRE_IWD2SpellPaladin               = "CRE.Paladin spells %1$d.0";   // marks substructure
   public static final String CRE_IWD2SpellPaladin_Spell         = "CRE.Paladin spells.Spell.0";  // marks substructure
-  public static final String CRE_IWD2SpellPaladin_Spell_ResRef  = "CRE.Paladin spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellPaladin_Spell_ResRef  = "CRE.Paladin spells.Spell.ResRef.0";
   public static final String CRE_IWD2SpellRanger                = "CRE.Ranger spells %1$d.0";   // marks substructure
   public static final String CRE_IWD2SpellRanger_Spell          = "CRE.Ranger spells.Spell.0";  // marks substructure
-  public static final String CRE_IWD2SpellRanger_Spell_ResRef   = "CRE.Ranger spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellRanger_Spell_ResRef   = "CRE.Ranger spells.Spell.ResRef.0";
   public static final String CRE_IWD2SpellSorcerer              = "CRE.Sorcerer spells %1$d.0";   // marks substructure
   public static final String CRE_IWD2SpellSorcerer_Spell        = "CRE.Sorcerer spells.Spell.0";  // marks substructure
-  public static final String CRE_IWD2SpellSorcerer_Spell_ResRef = "CRE.Sorcerer spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellSorcerer_Spell_ResRef = "CRE.Sorcerer spells.Spell.ResRef.0";
   public static final String CRE_IWD2SpellWizard                = "CRE.Wizard spells %1$d.0";   // marks substructure
   public static final String CRE_IWD2SpellWizard_Spell          = "CRE.Wizard spells.Spell.0";  // marks substructure
-  public static final String CRE_IWD2SpellWizard_Spell_ResRef   = "CRE.Wizard spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellWizard_Spell_ResRef   = "CRE.Wizard spells.Spell.ResRef.0";
   public static final String CRE_IWD2SpellDomain                = "CRE.Domain spells %1$d.0";   // marks substructure
   public static final String CRE_IWD2SpellDomain_Spell          = "CRE.Domain spells.Spell.0";  // marks substructure
-  public static final String CRE_IWD2SpellDomain_Spell_ResRef   = "CRE.Domain spells.Spell.ResRef.0";  // marks substructure
+  public static final String CRE_IWD2SpellDomain_Spell_ResRef   = "CRE.Domain spells.Spell.ResRef.0";
+  public static final String CRE_Custom1                        = "CRE.+Custom.0";
+  public static final String CRE_Custom2                        = "CRE.+Custom.1";
+  public static final String CRE_Custom3                        = "CRE.+Custom.2";
+  public static final String CRE_Custom4                        = "CRE.+Custom.3";
 
   public static final String EFF            = "EFF.0";                // marks structure
   public static final String EFF_Effect     = "EFF.Type.0";
@@ -135,6 +147,10 @@ public class SearchOptions
   public static final String EFF_Resource2  = "EFF.Resource 2.0";
   public static final String EFF_Resource3  = "EFF.Resource 3.0";
   public static final String EFF_SaveType   = "EFF.Save type.0";
+  public static final String EFF_Custom1    = "EFF.+Custom.0";
+  public static final String EFF_Custom2    = "EFF.+Custom.1";
+  public static final String EFF_Custom3    = "EFF.+Custom.2";
+  public static final String EFF_Custom4    = "EFF.+Custom.3";
 
   public static final String ITM                      = "ITM.0";            // marks structure
   public static final String ITM_Name                 = "ITM.Identified name.0";
@@ -177,6 +193,10 @@ public class SearchOptions
   public static final String ITM_Effect_Type1         = "ITM.Effect.Type.0";
   public static final String ITM_Effect_Type2         = "ITM.Effect.Type.1";
   public static final String ITM_Effect_Type3         = "ITM.Effect.Type.2";
+  public static final String ITM_Custom1              = "ITM.+Custom.0";
+  public static final String ITM_Custom2              = "ITM.+Custom.1";
+  public static final String ITM_Custom3              = "ITM.+Custom.2";
+  public static final String ITM_Custom4              = "ITM.+Custom.3";
 
   public static final String PRO                  = "PRO.0";                    // marks structure
   public static final String PRO_Animation        = "PRO.Projectile animation.0";
@@ -190,6 +210,10 @@ public class SearchOptions
   public static final String PRO_ExplosionEffect  = "PRO.Explosion effect.0";
   public static final String PRO_SingleTarget     = "PRO.Projectile info.0";    // marks substructure
   public static final String PRO_AreaOfEffect     = "PRO.Area effect info.0";   // marks substructure
+  public static final String PRO_Custom1          = "PRO.+Custom.0";
+  public static final String PRO_Custom2          = "PRO.+Custom.1";
+  public static final String PRO_Custom3          = "PRO.+Custom.2";
+  public static final String PRO_Custom4          = "PRO.+Custom.3";
 
   public static final String SPL                      = "SPL.0";                  // marks structure
   public static final String SPL_Name                 = "SPL.Spell name.0";
@@ -214,7 +238,13 @@ public class SearchOptions
   public static final String SPL_Ability_Effect_Type2 = "SPL.Spell ability.Effect.Type.1";
   public static final String SPL_Ability_Effect_Type3 = "SPL.Spell ability.Effect.Type.2";
   public static final String SPL_Effect               = "SPL.Effect %1$d.0";     // marks substructure
-  public static final String SPL_Effect_Type          = "SPL.Effect.Type.0";
+  public static final String SPL_Effect_Type1         = "SPL.Effect.Type.0";
+  public static final String SPL_Effect_Type2         = "SPL.Effect.Type.1";
+  public static final String SPL_Effect_Type3         = "SPL.Effect.Type.2";
+  public static final String SPL_Custom1              = "SPL.+Custom.0";
+  public static final String SPL_Custom2              = "SPL.+Custom.1";
+  public static final String SPL_Custom3              = "SPL.+Custom.2";
+  public static final String SPL_Custom4              = "SPL.+Custom.3";
 
   public static final String STO                = "STO.0";    // marks structure
   public static final String STO_Name           = "STO.Name.0";
@@ -238,6 +268,10 @@ public class SearchOptions
   public static final String STO_Item_Item3     = "STO.Item for sale.Item.2";
   public static final String STO_Item_Item4     = "STO.Item for sale.Item.3";
   public static final String STO_Item_Item5     = "STO.Item for sale.Item.4";
+  public static final String STO_Custom1        = "STO.+Custom.0";
+  public static final String STO_Custom2        = "STO.+Custom.1";
+  public static final String STO_Custom3        = "STO.+Custom.2";
+  public static final String STO_Custom4        = "STO.+Custom.3";
 
   public static final String VVC                  = "VVC.0";    // marks structure
   public static final String VVC_Animation        = "VVC.Animation.0";
@@ -245,6 +279,10 @@ public class SearchOptions
   public static final String VVC_ColorAdjustment  = "VVC.Color adjustment.0";
   public static final String VVC_Sequencing       = "VVC.Sequencing.0";
   public static final String VVC_Orientation      = "VVC.Travel orientation.0";
+  public static final String VVC_Custom1          = "VVC.+Custom.0";
+  public static final String VVC_Custom2          = "VVC.+Custom.1";
+  public static final String VVC_Custom3          = "VVC.+Custom.2";
+  public static final String VVC_Custom4          = "VVC.+Custom.3";
 
 
   private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
@@ -437,7 +475,6 @@ public class SearchOptions
     // Returns whether ref and value are equal, optionally taking case-sensitivity into account.
     public static boolean matchResourceRef(StructEntry ref, Object value, boolean caseSensitive)
     {
-//      if (ref != null && ref instanceof ResourceRef && value != null && value instanceof String) {
       if (ref != null && value != null ) {
         String s1, s2;
         if (ref instanceof ResourceRef && value instanceof String) {
@@ -453,7 +490,7 @@ public class SearchOptions
           } else {
             return false;
           }
-          s2 = ((IwdRef) ref).getValueRef();
+          s2 = ((IwdRef)ref).getValueRef();
         } else {
           return false;
         }
@@ -605,6 +642,42 @@ public class SearchOptions
         return (n3 >= n1 && n3 <= n2);
       }
       return (value == null);
+    }
+
+
+    public static boolean matchCustomFilter(AbstractStruct struct, Object match)
+    {
+      if (struct != null && match != null && match instanceof Pair &&
+          ((Pair<Object>)match).getFirst() instanceof String) {
+        String fieldName = (String)((Pair<Object>)match).getFirst();
+        Object value = ((Pair<Object>)match).getSecond();
+        if (!fieldName.isEmpty() && value != null) {
+          boolean bRet = false;
+          List<StructEntry> structList = struct.getFlatList();
+          if (structList != null && !structList.isEmpty()) {
+            for (int i = 0; i < structList.size(); i++) {
+              StructEntry entry = structList.get(i);
+              if (entry != null) {
+                String name = entry.getName();
+                if (name.toUpperCase().contains(fieldName.toUpperCase())) {
+                  // field name matches
+                  if (value instanceof String) {
+                    bRet |= matchResourceRef(entry, value, false) || matchString(entry, value, false, false);
+                  } else if (value instanceof Pair &&
+                             ((Pair<Object>)value).getFirst() instanceof Integer &&
+                             ((Pair<Object>)value).getSecond() instanceof Integer) {
+                    bRet |= matchNumber(entry, value) || matchFlags(entry, value);
+                  }
+                }
+              }
+            }
+            return bRet;
+          } else {
+            return false;
+          }
+        }
+      }
+      return (match == null);
     }
   }
 }

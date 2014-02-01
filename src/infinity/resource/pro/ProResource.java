@@ -203,6 +203,18 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
           }
         }
 
+        keyList = new String[]{SearchOptions.PRO_Custom1, SearchOptions.PRO_Custom2,
+                               SearchOptions.PRO_Custom3, SearchOptions.PRO_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(pro, o);
+          } else {
+            break;
+          }
+        }
+
         return retVal;
       } catch (Exception e) {
       }

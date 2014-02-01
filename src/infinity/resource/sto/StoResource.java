@@ -346,6 +346,18 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
           }
         }
 
+        keyList = new String[]{SearchOptions.STO_Custom1, SearchOptions.STO_Custom2,
+                               SearchOptions.STO_Custom3, SearchOptions.STO_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(sto, o);
+          } else {
+            break;
+          }
+        }
+
         return retVal;
       } catch (Exception e) {
       }

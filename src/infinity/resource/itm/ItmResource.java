@@ -645,6 +645,19 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           }
         }
 
+        keyList = new String[]{SearchOptions.ITM_Custom1, SearchOptions.ITM_Custom2,
+                               SearchOptions.ITM_Custom3, SearchOptions.ITM_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(itm, o);
+          } else {
+            break;
+          }
+        }
+
+
         return retVal;
       } catch (Exception e) {
       }

@@ -108,6 +108,18 @@ public final class VvcResource extends AbstractStruct implements Resource
           }
         }
 
+        keyList = new String[]{SearchOptions.VVC_Custom1, SearchOptions.VVC_Custom2,
+                               SearchOptions.VVC_Custom3, SearchOptions.VVC_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(vvc, o);
+          } else {
+            break;
+          }
+        }
+
         return retVal;
       } catch (Exception e) {
       }

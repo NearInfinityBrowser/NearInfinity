@@ -1695,8 +1695,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
                                SearchOptions.CRE_Class, SearchOptions.CRE_Specifics,
                                SearchOptions.CRE_Alignment, SearchOptions.CRE_Gender,
                                SearchOptions.CRE_Sex, SearchOptions.CRE_Race,
-                               SearchOptions.CRE_Allegiance, SearchOptions.CRE_Level1,
-                               SearchOptions.CRE_Level2, SearchOptions.CRE_Level3,
+                               SearchOptions.CRE_Allegiance, SearchOptions.CRE_Kit,
+                               SearchOptions.CRE_Level1, SearchOptions.CRE_Level2, SearchOptions.CRE_Level3,
                                SearchOptions.CRE_IWD2LevelTotal, SearchOptions.CRE_IWD2LevelBarbarian,
                                SearchOptions.CRE_IWD2LevelBard, SearchOptions.CRE_IWD2LevelCleric,
                                SearchOptions.CRE_IWD2LevelDruid, SearchOptions.CRE_IWD2LevelFighter,
@@ -1777,6 +1777,18 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
               }
             }
             retVal &= found || (o == null);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Custom1, SearchOptions.CRE_Custom2,
+                               SearchOptions.CRE_Custom3, SearchOptions.CRE_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(cre, o);
           } else {
             break;
           }

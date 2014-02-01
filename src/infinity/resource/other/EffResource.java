@@ -95,6 +95,18 @@ public final class EffResource extends AbstractStruct implements Resource
           }
         }
 
+        keyList = new String[]{SearchOptions.EFF_Custom1, SearchOptions.EFF_Custom2,
+                               SearchOptions.EFF_Custom3, SearchOptions.EFF_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(eff, o);
+          } else {
+            break;
+          }
+        }
+
         return retVal;
       } catch (Exception e) {
       }

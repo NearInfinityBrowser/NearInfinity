@@ -214,9 +214,22 @@ public final class Kit2daBitmap extends Datatype implements Editable
     return value;
   }
 
+  public KitlistEntry getKit(int index)
+  {
+    if (index >= 0 && index < kitsNumber.size()) {
+      return kitsNumber.get(kitsNumber.keys()[index]);
+    }
+    return null;
+  }
+
+  public int getKitsCount()
+  {
+    return kitsNumber.size();
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class KitlistEntry
+  public static final class KitlistEntry
   {
     private final long number;
     private final String name;
@@ -231,6 +244,16 @@ public final class Kit2daBitmap extends Datatype implements Editable
     public String toString()
     {
       return name + " - " + number;
+    }
+
+    public long getValue()
+    {
+      return number;
+    }
+
+    public String getName()
+    {
+      return name;
     }
   }
 }

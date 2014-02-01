@@ -739,6 +739,18 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
           retVal &= found || (o == null);
         }
 
+        keyList = new String[]{SearchOptions.ARE_Custom1, SearchOptions.ARE_Custom2,
+                               SearchOptions.ARE_Custom3, SearchOptions.ARE_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(are, o);
+          } else {
+            break;
+          }
+        }
+
         return retVal;
       } catch (Exception e) {
       }
