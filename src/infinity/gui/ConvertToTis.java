@@ -131,7 +131,7 @@ public class ConvertToTis extends ChildFrame
 
     int[] srcBlock = new int[64*64];      // temp. storage for a single tile
     int[] palette = new int[255];         // temp. storage for generated palette
-    int[] hslPalette = new int[255];      // needed for finding nearest color
+    int[] hclPalette = new int[255];      // needed for finding nearest color
     byte[] tilePalette = new byte[1024];  // final palette for output
     byte[] tileData = new byte[64*64];    // final tile data for output
     int tw = img.getWidth() / 64;         // tiles per row
@@ -175,7 +175,7 @@ public class ConvertToTis extends ChildFrame
 
         // reducing colors
         if (ColorConvert.medianCut(srcBlock, 255, palette, false)) {
-          ColorConvert.toHslPalette(palette, hslPalette);
+          ColorConvert.toHclPalette(palette, hclPalette);
 
           // filling palette and color cache, index 0 denotes transparency
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
@@ -196,7 +196,7 @@ public class ConvertToTis extends ChildFrame
               if (palIndex != null) {
                 tileData[i] = (byte)(palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.nearestColor(srcBlock[i], hslPalette);
+                byte color = (byte)ColorConvert.nearestColor(srcBlock[i], hclPalette);
                 tileData[i] = (byte)(color + 1);
                 colorCache.put(srcBlock[i], color);
               }

@@ -668,8 +668,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       g.dispose();
       int[] chainedImageData = ((DataBufferInt)composedImage.getRaster().getDataBuffer()).getData();
       int[] palette = ColorConvert.medianCut(chainedImageData, hasTransparency ? 255 : 256, false);
-      int[] hslPalette = new int[palette.length];
-      ColorConvert.toHslPalette(palette, hslPalette);
+      int[] hclPalette = new int[palette.length];
+      ColorConvert.toHclPalette(palette, hclPalette);
       // initializing color cache
       IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);
       for (int i = 0; i < palette.length; i++) {
@@ -712,7 +712,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
                 if (colIdx != null) {
                   dstData[dstIdx++] = (byte)(colIdx + colorShift);
                 } else {
-                  int color = ColorConvert.nearestColor(srcData[srcIdx], hslPalette);
+                  int color = ColorConvert.nearestColor(srcData[srcIdx], hclPalette);
                   dstData[dstIdx++] = (byte)(color + colorShift);
                   colorCache.put(srcData[srcIdx] & 0x00ffffff, (byte)color);
                 }
@@ -734,7 +734,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
               if (colIdx != null) {
                 dstData[idx] = (byte)(colIdx + colorShift);
               } else {
-                int color = ColorConvert.nearestColor(srcData[idx], hslPalette);
+                int color = ColorConvert.nearestColor(srcData[idx], hclPalette);
                 dstData[idx] = (byte)(color + colorShift);
                 colorCache.put(srcData[idx] & 0x00ffffff, (byte)color);
               }
@@ -825,7 +825,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       }
       frameList.clear(); frameList = null;
       colorCache.clear(); colorCache = null;
-      palette = null; hslPalette = null;
+      palette = null; hclPalette = null;
 
       // optionally compressing to MOSC V1
       if (compressed) {

@@ -125,25 +125,27 @@ public class ColorConvert
 
   /**
    * Calculates the nearest color available in the palette for the specified color value.
-   * Note: For better color matching results the palette is expected in HSL color model.
-   * @param rgbColor The source color value in XRGB format (X is ignored).
-   * @param hslPalette A HSL palette with the available color entries. Use the method
-   *                   {@link #toHslPalette(int[], int[])} to convert a RGB palette into the HSL format.
+   * Note: For better color matching results the palette is expected in HCL color model.
+   * @param rgbColor The source color value in ARGB format (A is ignored).
+   * @param hclPalette A HCL palette with the available color entries. Use the method
+   *                   {@link #toHclPalette(int[], int[])} to convert a RGB palette into the HCL format.
    * @return The palette index pointing to the nearest color, or -1 on error.
    */
-  public static int nearestColor(int rgbColor, int[] hslPalette)
+  public static int nearestColor(int rgbColor, int[] hclPalette)
   {
     int index = -1;
-    if (hslPalette != null && hslPalette.length > 0) {
+    if (hclPalette != null && hclPalette.length > 0) {
       int distance = Integer.MAX_VALUE;
-      int v = rgbToHsl(rgbColor);
-      int h = (v >>> 16) & 0xff, s = (v >>> 8) & 0xff, l = v & 0xff;
-      final int wh = 4, ws = 1, wl = 16;  // different weights for a more visually appealing color table
-      for (int i = 0; i < hslPalette.length; i++) {
-        int dh = ((hslPalette[i] >>> 16) & 0xff) - h;
-        int ds = ((hslPalette[i] >>> 8) & 0xff) - s;
-        int dl = (hslPalette[i] & 0xff) - l;
-        int curDistance = (wh*dh*dh) + (ws*ds*ds) + (wl*dl*dl);
+      int v = rgbToHcl(rgbColor);
+      int h = (byte)((v >>> 16) & 0xff), s = (byte)((v >>> 8) & 0xff), l = (byte)(v & 0xff);
+      for (int i = 0; i < hclPalette.length; i++) {
+        int h2 = (byte)((hclPalette[i] >>> 16) & 0xff);
+        int s2 = (byte)((hclPalette[i] >>> 8) & 0xff);
+        int l2 = (byte)(hclPalette[i] & 0xff);
+        int dh = (h2 - h);
+        int ds = (s2 - s);
+        int dl = (l2 - l);
+        int curDistance = dh*dh + ds*ds + dl*dl;
         if (curDistance < distance) {
           distance = curDistance;
           index = i;
@@ -156,17 +158,17 @@ public class ColorConvert
   }
 
   /**
-   * Converts an array of colors from the RGB color model into the HSL color model. This is needed
+   * Converts an array of colors from the RGB color model into the HCL color model. This is needed
    * if you want to use the method {@link #nearestColor(int, int[])}.
    * @param rgbPalette The source RGB palette.
-   * @param hslPalette An array to store the resulting HSL colors into.
+   * @param hclPalette An array to store the resulting HCL colors into.
    * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
    */
-  public static boolean toHslPalette(int[] rgbPalette, int[] hslPalette)
+  public static boolean toHclPalette(int[] rgbPalette, int[] hclPalette)
   {
-    if (rgbPalette != null && hslPalette != null && hslPalette.length >= rgbPalette.length) {
+    if (rgbPalette != null && hclPalette != null && hclPalette.length >= rgbPalette.length) {
       for (int i = 0; i < rgbPalette.length; i++) {
-        hslPalette[i] = rgbToHsl(rgbPalette[i]);
+        hclPalette[i] = rgbToHcl(rgbPalette[i]);
       }
       return true;
     }
@@ -174,45 +176,63 @@ public class ColorConvert
   }
 
   /**
-   * Converts an RGB color value to HSL.
-   * @param color The color value in XRGB format (X is ignored).
-   * @return The HSL representation of the color in XHSL format (X is 0).
+   * Converts an RGB color value into a normalized HCL color (hue, chroma, luminance).
+   * @param color The color value in ARGB format (A is ignored).
+   * @return The normalized HCL representation of the color. Range of each component: [-128..127]
    */
-  public static int rgbToHsl(int color)
+  public static int rgbToHcl(int color)
   {
+    // using HCL (hue, chrome, luminance) approach
     float r = (float)((color >>> 16) & 0xff) / 255.0f;
     float g = (float)((color >>> 8) & 0xff) / 255.0f;
     float b = (float)(color & 0xff) / 255.0f;
     float cmax = r; if (g > cmax) cmax = g; if (b > cmax) cmax = b;
     float cmin = r; if (g < cmin) cmin = g; if (b < cmin) cmin = b;
     float cdelta = cmax - cmin;
-    float h, s, l;
+    float h, c, l;
 
     l = (cmax + cmin) / 2.0f;
+    if (l < 0.0f) l = 0.0f; else if (l > 1.0f) l = 1.0f;
 
     if (cdelta == 0.0f) {
       h = 0.0f;
-      s = 0.0f;
+      c = 0.0f;
     } else {
-      if (cmax == r) {
-        h = ((g - b) / cdelta) % 6.0f;
-      } else if (cmax == g) {
-        h = ((b - r) / cdelta) + 2.0f;
-      } else {    // if (cmax == b)
-        h = ((r - g) / cdelta) + 4.0f;
-      }
-      h /= 6.0f;
+      c = cdelta;
 
-      float v = 2.0f * l - 1.0f;
-      if (v < 0.0f) v += 1.0f;
-      if (v > 1.0f) v -= 1.0f;
-      s = cdelta / v;
+      final float cdelta2 = cdelta / 2.0f;
+      float dr = (((cmax - r) / 6.0f) + cdelta2) / cdelta;
+      float dg = (((cmax - g) / 6.0f) + cdelta2) / cdelta;
+      float db = (((cmax - b) / 6.0f) + cdelta2) / cdelta;
+
+      final float c13 = 1.0f/3.0f;
+      final float c23 = 2.0f/3.0f;
+      if (r == cmax) {
+        h = db - dg;
+      } else if (g == cmax) {
+        h = c13 + dr - db;
+      } else {
+        h = c23 + dg - dr;
+      }
+
+      if (h < 0.0f) h += 1.0f;
+      if (h > 1.0f) h -= 1.0f;
     }
 
-    if (h < 0.0f) h = 0.0f; if (h > 1.0f) h = 1.0f;
-    if (s < 0.0f) s = 0.0f; if (s > 1.0f) s = 1.0f;
-    if (l < 0.0f) l = 0.0f; if (l > 1.0f) l = 1.0f;
-    return ((int)(h * 255.0f) << 16) | ((int)(s * 255.0f) << 8) | (int)(l * 255.0f);
+    // normalizing: h = [0..2], c = [0..1], l = [-1..1]
+    h *= 2.0f;
+    l = (l - 0.5f) * 2.0f;
+
+    double x= c * Math.cos(h*Math.PI);
+    double y = c * Math.sin(h*Math.PI);
+    double z = l;
+
+    // re-normalizing values for conversion into integer range [-128..127]
+    x = Math.floor(x * 127.5);
+    y = Math.floor(y * 127.5);
+    z = Math.floor(z * 127.5);
+
+    return (((int)x & 0xff) << 16) | (((int)y & 0xff) << 8) | ((int)z & 0xff);
   }
 
   /**

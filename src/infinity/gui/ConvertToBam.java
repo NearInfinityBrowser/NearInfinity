@@ -2941,8 +2941,8 @@ public class ConvertToBam extends ChildFrame
       // creating global color table
       palette = ColorConvert.medianCut(pixels, 255, false);
     }
-    int[] hslPalette = new int[palette.length];
-    ColorConvert.toHslPalette(palette, hslPalette);
+    int[] hclPalette = new int[palette.length];
+    ColorConvert.toHclPalette(palette, hclPalette);
     // initializing color cache
     IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(2048);
     for (int i = 0; i < palette.length; i++) {
@@ -2991,7 +2991,7 @@ public class ConvertToBam extends ChildFrame
             if (colIdx != null) {
               dstData[dstIdx++] = (byte)(colIdx + 1);
             } else {
-              int color = ColorConvert.nearestColor(pixels[srcIdx], hslPalette);
+              int color = ColorConvert.nearestColor(pixels[srcIdx], hclPalette);
               dstData[dstIdx++] = (byte)(color + 1);
               colorCache.put(pixels[srcIdx] & 0x00ffffff, (byte)color);
             }
@@ -3013,7 +3013,7 @@ public class ConvertToBam extends ChildFrame
             if (colIdx != null) {
               dstData[curIdx] = (byte)(colIdx + 1);
             } else {
-              int color = ColorConvert.nearestColor(pixels[curIdx], hslPalette);
+              int color = ColorConvert.nearestColor(pixels[curIdx], hclPalette);
               dstData[curIdx] = (byte)(color + 1);
               colorCache.put(pixels[curIdx] & 0x00ffffff, (byte)color);
             }

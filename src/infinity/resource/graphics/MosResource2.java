@@ -138,8 +138,16 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
       try {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         String fileName = entry.toString().replace(".MOS", ".PNG");
-        BufferedImage image = getImage();
-        if (ImageIO.write(image, "png", os)) {
+        boolean bRet = false;
+        WindowBlocker.blockWindow(true);
+        try {
+          BufferedImage image = getImage();
+          bRet = ImageIO.write(image, "png", os);
+          image = null;
+        } finally {
+          WindowBlocker.blockWindow(false);
+        }
+        if (bRet) {
           ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
                                                        fileName, panel.getTopLevelAncestor());
         } else {
@@ -149,7 +157,6 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
         }
         os.close();
         os = null;
-        image = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -430,7 +437,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
 
       // applying color reduction to each tile
       int[] palette = new int[255];
-      int[] hslPalette = new int[255];
+      int[] hclPalette = new int[255];
       byte[] tilePalette = new byte[1024];
       byte[] tileData = new byte[64*64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
@@ -449,7 +456,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
 
         int[] pixels = tileList.get(tileIdx);
         if (ColorConvert.medianCut(pixels, 255, palette, false)) {
-          ColorConvert.toHslPalette(palette, hslPalette);
+          ColorConvert.toHclPalette(palette, hclPalette);
           // filling palette
           // first palette entry denotes transparency
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
@@ -469,7 +476,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
               if (palIndex != null) {
                 tileData[i] = (byte)(palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.nearestColor(pixels[i], hslPalette);
+                byte color = (byte)ColorConvert.nearestColor(pixels[i], hclPalette);
                 tileData[i] = (byte)(color + 1);
                 colorCache.put(pixels[i], color);
               }
@@ -488,7 +495,7 @@ public class MosResource2 implements Resource, Closeable, ActionListener, ItemLi
         curDataOfs += pixels.length;
       }
       tileList.clear(); tileList = null;
-      tileData = null; tilePalette = null; hslPalette = null; palette = null;
+      tileData = null; tilePalette = null; hclPalette = null; palette = null;
 
       // optionally compressing to MOSC V1
       if (compressed) {
