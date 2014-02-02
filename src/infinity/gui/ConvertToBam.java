@@ -519,27 +519,31 @@ public class ConvertToBam extends ChildFrame
   public void focusLost(FocusEvent event)
   {
     if (event.getSource() == tfFrameCenterX) {
-      int idx = listFrames.getSelectedIndex();
-      if (idx >= 0) {
-        final BamFrame bc = (BamFrame)modelFrames.get(idx);
-        int value = numberValidator(tfFrameCenterX.getText(), Short.MIN_VALUE, Short.MAX_VALUE, bc.centerX);
-        bc.centerX = value;
+      int[] indices = listFrames.getSelectedIndices();
+      int value = numberValidator(tfFrameCenterX.getText(), Short.MIN_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE);
+      if (value != Integer.MAX_VALUE) {
         tfFrameCenterX.setText(Integer.toString(value));
+        for (int i = 0; i < indices.length; i++) {
+          final BamFrame bc = (BamFrame)modelFrames.get(indices[i]);
+          bc.centerX = value;
+        }
       } else {
-        tfFrameCenterX.setText(Integer.toString(numberValidator(tfFrameCenterX.getText(), 0, 0, 0)));
+        updateFrameInfo(indices);
       }
-      updateFramePreview(listFrames.getSelectedIndices());
+      updateFramePreview(indices);
     } else if (event.getSource() == tfFrameCenterY) {
-      int idx = listFrames.getSelectedIndex();
-      if (idx >= 0) {
-        final BamFrame bc = (BamFrame)modelFrames.get(idx);
-        int value = numberValidator(tfFrameCenterY.getText(), Short.MIN_VALUE, Short.MAX_VALUE, bc.centerY);
-        bc.centerY = value;
+      int[] indices = listFrames.getSelectedIndices();
+      int value = numberValidator(tfFrameCenterY.getText(), Short.MIN_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE);
+      if (value != Integer.MAX_VALUE) {
         tfFrameCenterY.setText(Integer.toString(value));
+        for (int i = 0; i < indices.length; i++) {
+          final BamFrame bc = (BamFrame)modelFrames.get(indices[i]);
+          bc.centerY = value;
+        }
       } else {
-        tfFrameCenterY.setText(Integer.toString(numberValidator(tfFrameCenterY.getText(), 0, 0, 0)));
+        updateFrameInfo(indices);
       }
-      updateFramePreview(listFrames.getSelectedIndices());
+      updateFramePreview(indices);
     } else if (event.getSource() == tfBamOutput) {
       String fileName = tfBamOutput.getText();
       if (!fileName.isEmpty()) {
