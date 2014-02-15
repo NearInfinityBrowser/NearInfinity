@@ -732,6 +732,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         outBlock = null;
         header = null;
       } else {
+        warnings++;
         skippedFiles++;
       }
     }

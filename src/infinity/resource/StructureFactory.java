@@ -75,14 +75,14 @@ public final class StructureFactory
       case RES_RES:
         savedir = NIFile.getFile(ResourceFactory.getRootDirs(), "Characters");
         if (!savedir.exists())
-          savedir = NIFile.getFile(ResourceFactory.getRootDirs(), ResourceFactory.OVERRIDEFOLDER);
+          savedir = NIFile.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
       default:
-        savedir = NIFile.getFile(ResourceFactory.getRootDirs(), ResourceFactory.OVERRIDEFOLDER);
+        savedir = NIFile.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
     }
     if (savedir == null || !savedir.exists())
-      savedir = ResourceFactory.getRootDirs()[0];
+      savedir = ResourceFactory.getRootDir();
     JFileChooser fc = new JFileChooser(savedir);
     String title = "Create new " + resExt.get(type) + " resource";
     fc.setDialogTitle(title);
