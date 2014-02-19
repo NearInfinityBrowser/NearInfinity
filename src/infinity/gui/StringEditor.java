@@ -439,7 +439,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
                                        0, 2 * entries_count.getValue());
         progress.setMillisToDecideToPopup(100);
         for (int i = 0; i < entries_count.getValue(); i++) {
-          entries[i] = new StringEntry(Filereader.readBytes(bis, entry_size));
+          entries[i] = new StringEntry(Filereader.readBytes(bis, entry_size), charset);
           progress.setProgress(i + 1);
           if (progress.isCanceled()) {
             entries = null;
@@ -451,7 +451,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
         RandomAccessFile ranfile = new RandomAccessFile(stringfile, "r");
         for (int i = 0; i < entries.length; i++) {
-          entries[i].readString(ranfile, entries_offset.getValue(), charset);
+          entries[i].readString(ranfile, entries_offset.getValue());
           progress.setProgress(i + 1 + entries_count.getValue());
           if (progress.isCanceled()) {
             entries = null;
@@ -562,7 +562,6 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     @Override
     public void run()
     {
-      Charset charset = StringResource.getCharset();
       bexport.setEnabled(false);
       bsave.setEnabled(false);
       breread.setEnabled(false);
@@ -613,11 +612,11 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
         for (int i = 0; i < entries.length; i++) {
           if (entries[i] != null)
-            entries[i].writeString(bos, charset);
+            entries[i].writeString(bos);
           progress.setProgress(i + 1 + entries_count.getValue());
         }
         for (int i = 0; i < added_entries.size(); i++) {
-          added_entries.get(i).writeString(bos, charset);
+          added_entries.get(i).writeString(bos);
           progress.setProgress(entries_count.getValue() + entries.length + i + 1);
         }
         bos.close();
@@ -642,15 +641,18 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     private int doffset, dlength;
     private String string = "";
     private byte data[];
+    private Charset charset;
 
     private StringEntry() throws Exception
     {
       super(null, null, new byte[entry_size], 0);
+      this.charset = StringResource.getCharset();
     }
 
-    StringEntry(byte buffer[]) throws Exception
+    StringEntry(byte buffer[], Charset charset) throws Exception
     {
       super(null, null, buffer, 0);
+      this.charset = (charset != null) ? charset : StringResource.getCharset();
     }
 
     @Override
@@ -693,7 +695,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       }
     }
 
-    public void readString(RandomAccessFile ranfile, int baseoffset, Charset charset) throws IOException
+    public void readString(RandomAccessFile ranfile, int baseoffset) throws IOException
     {
       ranfile.seek((long)(baseoffset + doffset));
       string = Filereader.readString(ranfile, dlength, charset);
@@ -702,7 +704,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     public int update(int newoffset)
     {
       doffset = newoffset;
-      dlength = string.length();
+      dlength = string.getBytes(charset).length;
       return dlength;
     }
 
@@ -736,7 +738,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       }
     }
 
-    public void writeString(OutputStream os, Charset charset) throws IOException
+    public void writeString(OutputStream os) throws IOException
     {
       Filewriter.writeString(os, string, dlength, charset);
     }

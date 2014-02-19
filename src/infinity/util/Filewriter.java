@@ -97,12 +97,14 @@ public final class Filewriter
     writeString(os, s, length, Charset.forName("ISO-8859-1")); // For NWN, no other conflicts?
   }
 
-  public static void writeString(OutputStream os, String s, int length, Charset charset) throws IOException
+  public static void writeString(OutputStream os, String s, int minLength, Charset charset) throws IOException
   {
-    writeBytes(os, s.getBytes(charset));
-    byte buffer[] = new byte[length - s.length()];
-    if (buffer.length != 0)
+    byte[] stringBytes = s.getBytes(charset);
+    writeBytes(os, stringBytes);
+    if (minLength > stringBytes.length) {
+      byte buffer[] = new byte[minLength - stringBytes.length];
       writeBytes(os, buffer);
+    }
   }
 
   private Filewriter(){}
