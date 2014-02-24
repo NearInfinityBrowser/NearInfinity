@@ -300,7 +300,10 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getResourceName()
   {
-    return new StringBuffer(resname).append('.').append(curtype).toString();
+    if (resname.equals(NONE))
+      return resname;
+    else
+      return new StringBuffer(resname).append('.').append(curtype).toString();
   }
 
   public String getSearchName()

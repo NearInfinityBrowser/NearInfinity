@@ -22,6 +22,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -391,6 +392,43 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
 
 //--------------------- End Interface Viewable ---------------------
 
+  public int getFrameCount()
+  {
+    int retVal = 0;
+    initDecoder();
+    if (decoder != null && decoder.data() != null) {
+      retVal = decoder.data().frameCount();
+    }
+    return retVal;
+  }
+
+  public int getFrameCount(int cycleIdx)
+  {
+    int retVal = 0;
+    initDecoder();
+    if (decoder != null && decoder.data() != null) {
+      if (cycleIdx >= 0 && cycleIdx < decoder.data().cycleCount()) {
+        int cycle = decoder.data().cycleGet();
+        int frame = decoder.data().cycleGetFrameIndex();
+        decoder.data().cycleSet(cycleIdx);
+        retVal = decoder.data().cycleFrameCount();
+        decoder.data().cycleSet(cycle);
+        decoder.data().cycleSetFrameIndex(frame);
+      }
+    }
+    return retVal;
+  }
+
+  public int getCycleCount()
+  {
+    int retVal = 0;
+    initDecoder();
+    if (decoder != null && decoder.data() != null) {
+      retVal = decoder.data().cycleCount();
+    }
+    return retVal;
+  }
+
   public Image getFrame(int frameIdx)
   {
     initDecoder();
@@ -418,6 +456,17 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     } else {
       return 0;
     }
+  }
+
+  public Point getFrameCenter(int frameIdx)
+  {
+    Point p = new Point();
+    initDecoder();
+    if (decoder != null && decoder.data() != null) {
+      p.x = decoder.data().frameCenterX(frameIdx);
+      p.y = decoder.data().frameCenterY(frameIdx);
+    }
+    return p;
   }
 
   private void initDecoder()

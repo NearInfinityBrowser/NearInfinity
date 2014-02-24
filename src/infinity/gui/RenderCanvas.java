@@ -86,6 +86,10 @@ public class RenderCanvas extends JComponent implements SwingConstants
   public void setImage(Image image)
   {
     if (currentImage != image) {
+      if (currentImage != null) {
+        currentImage.flush();
+        currentImage = null;
+      }
       currentImage = image;
       updateSize();
     }
@@ -159,7 +163,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
    * Returns whether scaling has been activated.
    * @return <code>true</code> if scaling has been activated.
    */
-  public boolean getScalingEnabled()
+  public boolean isScalingEnabled()
   {
     return isScaling;
   }
@@ -209,7 +213,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
   }
 
 
-  private void updateSize()
+  protected void updateSize()
   {
     if (currentImage != null) {
       setPreferredSize(new Dimension(currentImage.getWidth(null), currentImage.getHeight(null)));
@@ -223,10 +227,11 @@ public class RenderCanvas extends JComponent implements SwingConstants
     repaint();
   }
 
-//--------------------- Begin Class Component ---------------------
-
-  @Override
-  public void paint(Graphics g)
+  /**
+   * Renders the image to the canvas.
+   * @param g The graphics context in which to paint.
+   */
+  protected void paintCanvas(Graphics g)
   {
     if (currentImage != null && currentImage.getWidth(null) > 0 && currentImage.getHeight(null) > 0) {
       Graphics2D g2 = (Graphics2D)g;
@@ -263,6 +268,14 @@ public class RenderCanvas extends JComponent implements SwingConstants
         g2.drawImage(currentImage, srcPos.x, srcPos.y, null);
       }
     }
+  }
+
+//--------------------- Begin Class Component ---------------------
+
+  @Override
+  public void paint(Graphics g)
+  {
+    paintCanvas(g);
     super.paint(g);
   }
 

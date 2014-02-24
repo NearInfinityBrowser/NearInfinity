@@ -650,6 +650,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     fireTableRowsUpdated(index, index);
   }
 
+  public boolean hasStructChanged()
+  {
+    return structChanged;
+  }
+
   public void setStructChanged(boolean changed)
   {
     structChanged = changed;

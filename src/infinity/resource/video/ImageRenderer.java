@@ -158,7 +158,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
    */
   public boolean getScalingEnabled()
   {
-    return canvas.getScalingEnabled();
+    return canvas.isScalingEnabled();
   }
 
   /**
@@ -167,7 +167,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
    */
   public void setScalingEnabled(boolean enable)
   {
-    if (enable != canvas.getScalingEnabled()) {
+    if (enable != canvas.isScalingEnabled()) {
       canvas.setScalingEnabled(enable);
       updateDefaultSize();
       updateCanvasBounds();
@@ -212,7 +212,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
   {
     if (enable != isAspect) {
       isAspect = enable;
-      if (canvas.getScalingEnabled()) {
+      if (canvas.isScalingEnabled()) {
         updateCanvasBounds();
       }
     }
@@ -327,7 +327,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
       Rectangle newBounds = new Rectangle();
 
       // updating canvas size
-      if (canvas.getScalingEnabled()) {
+      if (canvas.isScalingEnabled()) {
         newBounds.width = getWidth();
         newBounds.height = getHeight();
         if (isAspect && getBufferHeight() > 0) {
