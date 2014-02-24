@@ -25,10 +25,10 @@ import infinity.resource.are.AreResource;
 public class LayerObjectAnimation extends LayerObject
 {
   private static final Image[][] Icon = new Image[][]{
-    {Icons.getImage("Animation.png"), Icons.getImage("Animation_s.png")},
-    {Icons.getImage("AnimationWBM.png"), Icons.getImage("AnimationWBM_s.png")},
-    {Icons.getImage("AnimationPVRZ.png"), Icons.getImage("AnimationPVRZ_s.png")},
-    {Icons.getImage("AnimationBAM.png"), Icons.getImage("AnimationBAM_s.png")}
+    {Icons.getImage("itm_Anim1.png"), Icons.getImage("itm_Anim2.png")},
+    {Icons.getImage("itm_AnimWBM1.png"), Icons.getImage("itm_AnimWBM2.png")},
+    {Icons.getImage("itm_AnimPVRZ1.png"), Icons.getImage("itm_AnimPVRZ2.png")},
+    {Icons.getImage("itm_AnimBAM1.png"), Icons.getImage("itm_AnimBAM2.png")}
   };
   private static Point Center = new Point(16, 17);
 
@@ -104,9 +104,9 @@ public class LayerObjectAnimation extends LayerObject
       try {
         location.x = ((DecNumber)anim.getAttribute("Location: X")).getValue();
         location.y = ((DecNumber)anim.getAttribute("Location: Y")).getValue();
-        Flag flags = (Flag)anim.getAttribute("Appearance");
         if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
             ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+          Flag flags = (Flag)anim.getAttribute("Appearance");
           if (flags.isFlagSet(13)) {
             iconIdx = 1;
           } else if (flags.isFlagSet(15)) {

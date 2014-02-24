@@ -22,8 +22,8 @@ import infinity.resource.are.SpawnPoint;
  */
 public class LayerObjectSpawnPoint extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("SpawnPoint.png"),
-                                                  Icons.getImage("SpawnPoint_s.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage("itm_SpawnPoint1.png"),
+                                                  Icons.getImage("itm_SpawnPoint2.png")};
   private static Point Center = new Point(22, 22);
 
   private final SpawnPoint sp;

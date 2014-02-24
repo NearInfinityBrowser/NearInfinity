@@ -34,8 +34,8 @@ import infinity.resource.to.TotResource;
  */
 public class LayerObjectAutomap extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("Automap.png"),
-                                                  Icons.getImage("Automap_s.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage("itm_Automap1.png"),
+                                                  Icons.getImage("itm_Automap2.png")};
   private static Point Center = new Point(26, 26);
 
   private final AutomapNote note;

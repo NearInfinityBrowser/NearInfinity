@@ -48,8 +48,8 @@ public class TilesetRenderer extends RenderCanvas
   public static final int MODE_BG2 = 2;     // forces BG2 rendering mode
 
   private static final int MaxOverlays = 8;   // max. supported overlay entries
-  private static final double MinZoomFactor = 0.001;  // lower zoom factor limit
-  private static final double MaxZoomFactor = 16.0;   // upper zoom factor limit
+  private static final double MinZoomFactor = 1.0/64.0;   // lower zoom factor limit
+  private static final double MaxZoomFactor = 16.0;       // upper zoom factor limit
 
   // Lighting adjustment for day/twilight/night times (multiplied by 10.24 for faster calculations)
   // Formula:

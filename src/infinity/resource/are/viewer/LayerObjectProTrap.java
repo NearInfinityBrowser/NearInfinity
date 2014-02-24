@@ -22,8 +22,8 @@ import infinity.resource.are.ProTrap;
  */
 public class LayerObjectProTrap extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("ProTrap.png"),
-                                                  Icons.getImage("ProTrap_s.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage("itm_ProTrap1.png"),
+                                                  Icons.getImage("itm_ProTrap2.png")};
   private static Point Center = new Point(14, 14);
 
   private final ProTrap trap;

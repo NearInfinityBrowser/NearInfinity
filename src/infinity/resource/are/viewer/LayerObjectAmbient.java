@@ -33,10 +33,10 @@ public class LayerObjectAmbient extends LayerObject
   public static final int ItemIcon  = 0;
   public static final int ItemRange = 1;
 
-  private static final Image[] IconGlobal = new Image[]{Icons.getImage("Ambient.png"),
-                                                        Icons.getImage("Ambient_s.png")};
-  private static final Image[] IconLocal = new Image[]{Icons.getImage("AmbientRanged.png"),
-                                                       Icons.getImage("AmbientRanged_s.png")};
+  private static final Image[] IconGlobal = new Image[]{Icons.getImage("itm_AmbientG1.png"),
+                                                        Icons.getImage("itm_AmbientG2.png")};
+  private static final Image[] IconLocal = new Image[]{Icons.getImage("itm_AmbientL1.png"),
+                                                       Icons.getImage("itm_AmbientL2.png")};
   private static final Point Center = new Point(16, 16);
   final Color[] ColorRange = new Color[]{new Color(0xA0000080, true), new Color(0xA0000080, true),
                                          new Color(0x00204080, true), new Color(0x004060C0, true)};

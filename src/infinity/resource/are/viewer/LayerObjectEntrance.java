@@ -24,8 +24,8 @@ import infinity.resource.are.Entrance;
  */
 public class LayerObjectEntrance extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("Entrance.png"),
-                                                  Icons.getImage("Entrance_s.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage("itm_Entrance1.png"),
+                                                  Icons.getImage("itm_Entrance2.png")};
   private static Point Center = new Point(11, 18);
 
   private final Entrance entrance;

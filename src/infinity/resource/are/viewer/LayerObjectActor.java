@@ -28,12 +28,12 @@ import infinity.resource.cre.CreResource;
  */
 public class LayerObjectActor extends LayerObject
 {
-  private static final Image[] IconGood = new Image[]{Icons.getImage("ActorGreen.png"),
-                                                      Icons.getImage("ActorGreen_s.png")};
-  private static final Image[] IconNeutral = new Image[]{Icons.getImage("ActorBlue.png"),
-                                                         Icons.getImage("ActorBlue_s.png")};
-  private static final Image[] IconEvil = new Image[]{Icons.getImage("ActorRed.png"),
-                                                      Icons.getImage("ActorRed_s.png")};
+  private static final Image[] IconGood = new Image[]{Icons.getImage("itm_ActorG1.png"),
+                                                      Icons.getImage("itm_ActorG2.png")};
+  private static final Image[] IconNeutral = new Image[]{Icons.getImage("itm_ActorB1.png"),
+                                                         Icons.getImage("itm_ActorB2.png")};
+  private static final Image[] IconEvil = new Image[]{Icons.getImage("itm_ActorR1.png"),
+                                                      Icons.getImage("itm_ActorR2.png")};
   private static final Point Center = new Point(12, 40);
 
   private final Actor actor;
