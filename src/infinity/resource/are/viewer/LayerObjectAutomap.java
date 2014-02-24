@@ -134,7 +134,7 @@ public class LayerObjectAutomap extends LayerObject
                       if (strref != null) {
                         int v = ((StringRef)strref.getAttribute("Overridden strref")).getValue();
                         if (v == srcStrref) {
-                          StringEntry2 se = (StringEntry2)toh.getAttribute("String entry" + i);
+                          StringEntry2 se = (StringEntry2)toh.getAttribute("String entry " + i);
                           if (se != null) {
                             TextEdit te = (TextEdit)se.getAttribute("Override string");
                             if (te != null) {
