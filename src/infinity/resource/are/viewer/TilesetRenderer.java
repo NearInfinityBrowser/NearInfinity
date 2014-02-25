@@ -417,7 +417,6 @@ public class TilesetRenderer extends RenderCanvas
   protected void updateSize()
   {
     if (isInitialized()) {
-      getImage().flush();
       int w = getMapWidth(true);
       int h = getMapHeight(true);
       Dimension newDim = new Dimension(w, h);
@@ -465,7 +464,6 @@ public class TilesetRenderer extends RenderCanvas
       if (curImg == null || curImg.getWidth() != getMapWidth(false) ||
           curImg.getHeight() != getMapHeight(false)) {
         if (curImg != null) {
-          curImg.flush();
           curImg = null;
         }
         BufferedImage newImg = ColorConvert.createCompatibleImage(getMapWidth(false), getMapHeight(false), true);
@@ -527,7 +525,6 @@ public class TilesetRenderer extends RenderCanvas
           g.dispose();
           repaint();
         }
-        img.flush();
       }
 
       hasChangedMap = false;
@@ -651,7 +648,7 @@ public class TilesetRenderer extends RenderCanvas
   }
 
   // draws the specified tile into the target graphics buffer
-  private void drawTile(Tile tile, boolean isDoorTile)
+  private synchronized void drawTile(Tile tile, boolean isDoorTile)
   {
     if (tile != null) {
       boolean isDoorClosed = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) ? !isClosed : isClosed;
