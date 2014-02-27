@@ -41,9 +41,6 @@ public final class LayerManager
                              Automap, SpawnPoint, Transition, ProTrap, DoorPoly, WallPoly }
   private static final int LayerSize = Layer.values().length;
 
-  // door state indices
-  public static final int Open   = 0;
-  public static final int Closed = 1;
 
   // Defines order of drawing
   public static final Layer[] LayerOrdered = new Layer[]{
@@ -143,7 +140,7 @@ public final class LayerManager
   public LayerManager(AreResource are, WedResource wed, AreaViewer viewer)
   {
     this.viewer = viewer;
-    doorState = Open;
+    doorState = ViewerConstants.DOOR_OPEN;
     init(are, wed, true);
   }
 
@@ -321,7 +318,7 @@ public final class LayerManager
    */
   public void setDoorState(int state)
   {
-    state = (state == Closed) ? Closed : Open;
+    state = (state == ViewerConstants.DOOR_CLOSED) ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN;
     if (state != doorState) {
       doorState = state;
       setLayerVisible(Layer.Door, isLayerVisible(Layer.Door));
@@ -354,7 +351,7 @@ public final class LayerManager
     if (layer != null && layersVisible.containsKey(layer)) {
       layersVisible.put(layer, visible);
       List<LayerObject> list = getLayerObjects(layer);
-      int oppositeDoorState = (doorState == Open) ? Closed : Open;
+      int oppositeDoorState = (doorState == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN;
       if (list != null && !list.isEmpty()) {
         for (int i = 0; i < list.size(); i++) {
           switch (layer) {
@@ -397,7 +394,7 @@ public final class LayerManager
             case Ambient:
             {
               // process only sound icon items
-              AbstractLayerItem item = ((LayerObjectAmbient)list.get(i)).getLayerItem(LayerObjectAmbient.ItemIcon);
+              AbstractLayerItem item = ((LayerObjectAmbient)list.get(i)).getLayerItem(ViewerConstants.AMBIENT_ICON);
               if (item != null) {
                 item.setVisible(visible);
               }
@@ -406,7 +403,7 @@ public final class LayerManager
             case AmbientRange:
             {
               // process only sound range items
-              AbstractLayerItem item = ((LayerObjectAmbient)list.get(i)).getLayerItem(LayerObjectAmbient.ItemRange);
+              AbstractLayerItem item = ((LayerObjectAmbient)list.get(i)).getLayerItem(ViewerConstants.AMBIENT_RANGE);
               if (item != null) {
                 item.setVisible(visible);
               }

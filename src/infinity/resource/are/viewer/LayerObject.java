@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 import java.util.List;
 
 import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
@@ -142,6 +143,31 @@ public abstract class LayerObject
    */
   public abstract Point[] getMapLocations();
 
+  /**
+   * Returns whether the layer object is active during the specified day time.
+   * (Day/Twilight: 06:30..21:29, Night: 21:30..06:29)
+   * @param dayTime One of the constants: <code>TilesetRenderer.LIGHTING_DAY</code>,
+   *                <code>TilesetRenderer.LIGHTING_TWILIGHT</code>, <code>TilesetRenderer.LIGHTING_NIGHT</code>.
+   * @return <code>true</code> if the animation is active at any time during the specified day time,
+   *         <code>false</code> otherwise.
+   */
+  public boolean isActiveAt(int dayTime)
+  {
+    // Default implementation: always active
+    return true;
+  }
+
+  /**
+   * Returns whether the layer object is active at a specific hour.
+   * @param time The desired hour (use <code>ViewerConstants.TIME_XX</code> constants).
+   * @return <code>true</code> if the animation is active at the specified hour,
+   *         <code>false</code> otherwise.
+   */
+  public boolean isActiveAtHour(int time)
+  {
+    // Default implementation: always active
+    return true;
+  }
 
   /**
    * Loads vertices from the superStruct and stores them in an array of Point objects.
@@ -217,6 +243,32 @@ public abstract class LayerObject
       return r;
     } else {
       return new Rectangle();
+    }
+  }
+
+  /**
+   * A helper method for easily finding out whether the object is active during the specified day time.
+   * @param flags The appearance schedule.
+   * @param dayTime The desired day time.
+   */
+  protected boolean isActiveAt(Flag flags, int dayTime)
+  {
+    if (flags != null && flags.getSize() > 2) {
+      if (dayTime == ViewerConstants.LIGHTING_NIGHT) {
+        // Night: 21:30..06:29
+        return (flags.isFlagSet(0) || flags.isFlagSet(1) || flags.isFlagSet(2) ||
+                flags.isFlagSet(3) || flags.isFlagSet(4) || flags.isFlagSet(5) ||
+                flags.isFlagSet(21) || flags.isFlagSet(22) || flags.isFlagSet(23));
+      } else {
+        // Day: 06:30..21:29
+        return (flags.isFlagSet(6) || flags.isFlagSet(7) || flags.isFlagSet(8) ||
+            flags.isFlagSet(9) || flags.isFlagSet(10) || flags.isFlagSet(11) ||
+            flags.isFlagSet(12) || flags.isFlagSet(13) || flags.isFlagSet(14) ||
+            flags.isFlagSet(15) || flags.isFlagSet(16) || flags.isFlagSet(17) ||
+            flags.isFlagSet(18) || flags.isFlagSet(19) || flags.isFlagSet(20));
+      }
+    } else {
+      return false;
     }
   }
 }

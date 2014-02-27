@@ -20,11 +20,6 @@ import infinity.resource.are.AreResource;
  */
 public class LayerObjectTransition extends LayerObject
 {
-  // Edge of the map transition
-  public static final int EDGE_NORTH  = 0;
-  public static final int EDGE_EAST   = 1;
-  public static final int EDGE_SOUTH  = 2;
-  public static final int EDGE_WEST   = 3;
   public static final String[] FieldName = new String[]{"Area north", "Area east", "Area south", "Area west"};
 
   private static final Color[] Color = new Color[]{new Color(0xFF404000, true), new Color(0xFF404000, true),
@@ -43,7 +38,7 @@ public class LayerObjectTransition extends LayerObject
   {
     super("Transition", AreResource.class, parent);
     this.are = are;
-    this.edge = Math.min(EDGE_WEST, Math.max(EDGE_NORTH, edge));
+    this.edge = Math.min(ViewerConstants.EDGE_WEST, Math.max(ViewerConstants.EDGE_NORTH, edge));
     this.renderer = renderer;
     init();
   }
@@ -85,25 +80,25 @@ public class LayerObjectTransition extends LayerObject
       int mapW = renderer.getMapWidth(true);
       int mapH = renderer.getMapHeight(true);
       switch (edge) {
-        case EDGE_NORTH:
+        case ViewerConstants.EDGE_NORTH:
           shapeCoords[0].x = 0;    shapeCoords[0].y = 0;
           shapeCoords[1].x = mapW; shapeCoords[1].y = 0;
           shapeCoords[2].x = mapW; shapeCoords[2].y = Width;
           shapeCoords[3].x = 0;    shapeCoords[3].y = Width;
           break;
-        case EDGE_EAST:
+        case ViewerConstants.EDGE_EAST:
           shapeCoords[0].x = mapW - Width; shapeCoords[0].y = 0;
           shapeCoords[1].x = mapW;         shapeCoords[1].y = 0;
           shapeCoords[2].x = mapW;         shapeCoords[2].y = mapH;
           shapeCoords[3].x = mapW - Width; shapeCoords[3].y = mapH;
           break;
-        case EDGE_SOUTH:
+        case ViewerConstants.EDGE_SOUTH:
           shapeCoords[0].x = 0;    shapeCoords[0].y = mapH - Width;
           shapeCoords[1].x = mapW; shapeCoords[1].y = mapH - Width;
           shapeCoords[2].x = mapW; shapeCoords[2].y = mapH;
           shapeCoords[3].x = 0;    shapeCoords[3].y = mapH;
           break;
-        case EDGE_WEST:
+        case ViewerConstants.EDGE_WEST:
           shapeCoords[0].x = 0;     shapeCoords[0].y = 0;
           shapeCoords[1].x = Width; shapeCoords[1].y = 0;
           shapeCoords[2].x = Width; shapeCoords[2].y = mapH;

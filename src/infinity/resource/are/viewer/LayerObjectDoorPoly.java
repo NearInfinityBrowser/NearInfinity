@@ -119,9 +119,9 @@ public class LayerObjectDoorPoly extends LayerObject
    */
   public int getLayerItemCount(int state)
   {
-    if (state == LayerManager.Open) {
+    if (state == ViewerConstants.DOOR_OPEN) {
       return openCount;
-    } else if (state == LayerManager.Closed) {
+    } else if (state == ViewerConstants.DOOR_CLOSED) {
       return items.length - openCount;
     } else {
       return 0;
@@ -136,10 +136,10 @@ public class LayerObjectDoorPoly extends LayerObject
   public AbstractLayerItem[] getLayerItems(int state)
   {
     AbstractLayerItem[] retVal = new AbstractLayerItem[getLayerItemCount(state)];
-    if (state == LayerManager.Open) {
-      System.arraycopy(items, 0, retVal, 0, getLayerItemCount(LayerManager.Open));
-    } else if (state == LayerManager.Closed) {
-      System.arraycopy(items, getLayerItemCount(LayerManager.Open), retVal, 0, getLayerItemCount(LayerManager.Closed));
+    if (state == ViewerConstants.DOOR_OPEN) {
+      System.arraycopy(items, 0, retVal, 0, getLayerItemCount(ViewerConstants.DOOR_OPEN));
+    } else if (state == ViewerConstants.DOOR_CLOSED) {
+      System.arraycopy(items, getLayerItemCount(ViewerConstants.DOOR_OPEN), retVal, 0, getLayerItemCount(ViewerConstants.DOOR_CLOSED));
     }
     return retVal;
   }

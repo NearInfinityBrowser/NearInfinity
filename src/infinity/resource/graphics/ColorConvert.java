@@ -50,7 +50,8 @@ public class ColorConvert
    * Creates a BufferedImage object in the native color format for best possible performance.
    * @param width Image width in pixels
    * @param height Image height in pixels
-   * @param transparency The transparency type (either one of OPAQUE, BITMASK or TRANSLUCENT)
+   * @param transparency The transparency type (either one of <code>Transparency.OPAQUE</code>,
+   *                     <code>Transparency.BITMASK</code> or <code>Transparency.TRANSLUCENT</code>).
    * @return A new BufferedImage object with the specified properties.
    */
   public static BufferedImage createCompatibleImage(int width, int height, int transparency)

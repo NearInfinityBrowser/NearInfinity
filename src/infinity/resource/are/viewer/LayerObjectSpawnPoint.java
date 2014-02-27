@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.Point;
 
 import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
 import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
@@ -30,6 +31,8 @@ public class LayerObjectSpawnPoint extends LayerObject
   private final Point location = new Point();
 
   private IconLayerItem item;
+  private Flag scheduleFlags;
+
 
   public LayerObjectSpawnPoint(AreResource parent, SpawnPoint sp)
   {
@@ -89,6 +92,23 @@ public class LayerObjectSpawnPoint extends LayerObject
     return new Point[]{location};
   }
 
+  @Override
+  public boolean isActiveAt(int dayTime)
+  {
+    return isActiveAt(scheduleFlags, dayTime);
+  }
+
+  @Override
+  public boolean isActiveAtHour(int time)
+  {
+    if (time >= ViewerConstants.TIME_0 && time <= ViewerConstants.TIME_23) {
+      return (scheduleFlags.isFlagSet(time));
+    } else {
+      return false;
+    }
+  }
+
+
   private void init()
   {
     if (sp != null) {
@@ -96,6 +116,9 @@ public class LayerObjectSpawnPoint extends LayerObject
       try {
         location.x = ((DecNumber)sp.getAttribute("Location: X")).getValue();
         location.y = ((DecNumber)sp.getAttribute("Location: Y")).getValue();
+
+        scheduleFlags = ((Flag)sp.getAttribute("Active at"));
+
         msg = ((TextString)sp.getAttribute("Name")).toString();
       } catch (Exception e) {
         e.printStackTrace();

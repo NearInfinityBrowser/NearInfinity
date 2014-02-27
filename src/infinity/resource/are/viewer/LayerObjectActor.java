@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.Point;
 
 import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
@@ -40,6 +41,7 @@ public class LayerObjectActor extends LayerObject
   private final Point location = new Point();
 
   private IconLayerItem item;
+  private Flag scheduleFlags;
 
 
   public LayerObjectActor(AreResource parent, Actor actor)
@@ -100,6 +102,23 @@ public class LayerObjectActor extends LayerObject
     return new Point[]{location};
   }
 
+  @Override
+  public boolean isActiveAt(int dayTime)
+  {
+    return isActiveAt(scheduleFlags, dayTime);
+  }
+
+  @Override
+  public boolean isActiveAtHour(int time)
+  {
+    if (time >= ViewerConstants.TIME_0 && time <= ViewerConstants.TIME_23) {
+      return (scheduleFlags.isFlagSet(time));
+    } else {
+      return false;
+    }
+  }
+
+
   private void init()
   {
     if (actor != null) {
@@ -109,6 +128,9 @@ public class LayerObjectActor extends LayerObject
       try {
         location.x = ((DecNumber)actor.getAttribute("Position: X")).getValue();
         location.y = ((DecNumber)actor.getAttribute("Position: Y")).getValue();
+
+        scheduleFlags = ((Flag)actor.getAttribute("Present at"));
+
         StructEntry obj = actor.getAttribute("Character");
         CreResource cre = null;
         if (obj instanceof TextString) {

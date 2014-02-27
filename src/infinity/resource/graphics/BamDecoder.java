@@ -73,7 +73,7 @@ public class BamDecoder
    */
   public BamDecoder(ResourceEntry entry)
   {
-    this(entry, false);
+    this(entry, false, null);
   }
 
   /**
@@ -84,13 +84,25 @@ public class BamDecoder
    */
   public BamDecoder(ResourceEntry entry, boolean ignoreTransparency)
   {
+    this(entry, ignoreTransparency, null);
+  }
+
+  /**
+   * Initializes a BAM resource.
+   * @param entry The BAM resource
+   * @param ignoreTransparency If <code>true</code>, transparency information is ignored
+   *                           (affects BAM V1 resources only).
+   * @param palette A replacement palette for the BAM graphics data (affects only BAM V1 resources).
+   */
+  public BamDecoder(ResourceEntry entry, boolean ignoreTransparency, int[] palette)
+  {
     if (entry == null)
       throw new NullPointerException();
 
     switch (getType(entry)) {
       case BAMC:
       case BAMV1:
-        data = new BamDataV1(entry, ignoreTransparency);
+        data = new BamDataV1(entry, ignoreTransparency, palette);
         break;
       case BAMV2:
         data = new BamDataV2(entry, ignoreTransparency);
@@ -167,9 +179,9 @@ public class BamDecoder
     private ArrayList<ArrayList<Integer>> cycles = null;
     private int curCycle = 0, curFrame = 0;
 
-    public BamDataV1(ResourceEntry entry, boolean ignoreTransparency)
+    public BamDataV1(ResourceEntry entry, boolean ignoreTransparency, int[] palette)
     {
-      init(entry, ignoreTransparency);
+      init(entry, ignoreTransparency, palette);
     }
 
     @Override
@@ -383,7 +395,7 @@ public class BamDecoder
       return (type == null) || (frames == null) || (cycles == null);
     }
 
-    private void init(ResourceEntry entry, boolean ignoreTransparency)
+    private void init(ResourceEntry entry, boolean ignoreTransparency, int[] exPalette)
     {
       if (entry == null)
         throw new NullPointerException();
@@ -428,15 +440,29 @@ public class BamDecoder
           throw new Exception(String.format("Invalid frame lookup table offset: 0x%1$x", ofsLookupTable));
 
         // processing palette
+        boolean hasExternalPalette = false;
         int[] palette = new int[256];
+        if (exPalette != null && exPalette.length > 0) {
+          // applying external palette
+          int imax = (exPalette.length <= palette.length) ? exPalette.length : palette.length;
+          for (int i = 0; i < imax; i++) {
+            palette[i] = exPalette[i];
+          }
+          for (int i = exPalette.length; i < palette.length; i++) {
+            palette[i] = 0;
+          }
+          hasExternalPalette = true;
+        }
+
         int transColor = -1;   // specifies the transparent color index
         src.setBaseOffset(ofsPalette);
         for (int i = 0; i < 256; i++) {
-          int col = src.getInt(0); src.addToBaseOffset(4);
+          int col = hasExternalPalette ? palette[i] : src.getInt(0);
+          src.addToBaseOffset(4);
           col |= 0xff000000;
           if (!ignoreTransparency && transColor == -1) {
             // determining the transparent color index is very complicated
-            int r = (col >> 16) & 0xff, g = (col >> 8) & 0xff, b = col & 0xff;
+            int r = (col >>> 16) & 0xff, g = (col >>> 8) & 0xff, b = col & 0xff;
             if ((i > 0 && r <= 0x04 && g >= 0xfc && b <= 0x04) ||
                 ((i == 0) &&
                  ((r <= 0x10 && g >= 0xfc && b <= 0x10) || (r >= 0xfc && g <= 0x10 && b >= 0xfc) ||

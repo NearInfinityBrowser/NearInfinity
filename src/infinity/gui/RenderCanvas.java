@@ -231,7 +231,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
    * Renders the image to the canvas.
    * @param g The graphics context in which to paint.
    */
-  protected void paintCanvas(Graphics g)
+  protected synchronized void paintCanvas(Graphics g)
   {
     if (currentImage != null && currentImage.getWidth(null) > 0 && currentImage.getHeight(null) > 0) {
       Graphics2D g2 = (Graphics2D)g;

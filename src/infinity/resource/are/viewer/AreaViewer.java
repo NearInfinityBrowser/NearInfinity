@@ -49,6 +49,7 @@ import infinity.gui.RenderCanvas;
 import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.gui.layeritem.AbstractLayerItem;
+import infinity.gui.layeritem.AnimatedLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.gui.layeritem.LayerItemEvent;
 import infinity.gui.layeritem.LayerItemListener;
@@ -73,8 +74,8 @@ public class AreaViewer extends ChildFrame
 {
   private static final String[] LabelZoomFactor = new String[]{"Auto-fit", "25%", "33%", "50%", "100%", "200%", "300%", "400%"};
   private static final double[] ItemZoomFactor = new double[]{0.0, 0.25, 1.0/3.0, 0.5, 1.0, 2.0, 3.0, 4.0};
-  private static final int ItemZoomFactorIndexAuto = 0;       // points to the auto-fit zoom factor
-  private static final int ItemZoomFactorIndexDefault = 4;    // points to the default zoom factor (1x)
+  private static final int ZoomFactorIndexAuto = 0;       // points to the auto-fit zoom factor
+  private static final int ZoomFactorIndexDefault = 4;    // points to the default zoom factor (1x)
   private static final String LabelInfoX = "Position X:";
   private static final String LabelInfoY = "Position Y:";
   private static final String LabelDrawClosed = "Draw closed";
@@ -86,24 +87,26 @@ public class AreaViewer extends ChildFrame
   private static boolean DrawOverlays = true;
   private static boolean DrawGrid = false;
   private static int LayerFlags = 0;    // bitmask of selected layers
+  private static int showRealAnimations = ViewerConstants.ANIM_SHOW_NONE;
+  private static int VisualState = ViewerConstants.LIGHTING_DAY;
+  private static int ZoomLevel = ZoomFactorIndexDefault;
 
   private final Component parent;
   private final Map map;
   private final Point mapCoordinate = new Point();
   private final String windowTitle;
-  private int zoomLevel;   // keeps track of current zoom level
+  private final JCheckBox[] cbLayerRealAnimation = new JCheckBox[2];
   private LayerManager layerManager;
   private TilesetRenderer rcCanvas;
   private JPanel pCanvas;
   private JScrollPane spCanvas;
+//  private Rectangle vpCenterExtent;   // combines map center and viewport extent in one structure
   private JRadioButton[] rbVisualState;
   private JCheckBox cbDrawClosed, cbDrawOverlays, cbAnimateOverlays, cbDrawGrid;
   private JComboBox cbZoomLevel;
   private JCheckBox[] cbLayers;
-//  private JCheckBox cbLayerShowAnimation;
   private JLabel lPosX, lPosY;
   private JTextArea taInfo;
-  private int visualState;
   private boolean bMapDragging;
   private Point mapDraggingPosStart, mapDraggingScrollStart, mapDraggingPos;
   private Timer timerOverlays;
@@ -183,16 +186,16 @@ public class AreaViewer extends ChildFrame
       JRadioButton rb = (JRadioButton)event.getSource();
       int vsIndex = getVisualState(rb);
       if (vsIndex >= 0) {
-        if (vsIndex != visualState) {
+        if (vsIndex != VisualState) {
           // loading map in a separate thread
-          visualState = vsIndex;
+          VisualState = vsIndex;
           blocker = new WindowBlocker(this);
           blocker.setBlocked(true);
           workerLoadMap = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception
             {
-              setVisualState(visualState);
+              setVisualState(VisualState);
               return null;
             }
           };
@@ -210,12 +213,27 @@ public class AreaViewer extends ChildFrame
           JCheckBox cbRange = cbLayers[LayerManager.getLayerIndex(LayerManager.Layer.AmbientRange)];
           cbRange.setEnabled(cb.isSelected());
           showLayer(LayerManager.Layer.AmbientRange, cbRange.isEnabled() && cbRange.isSelected());
-//        } else if (layer == LayerManager.Layer.Animation) {
-//          cbLayerShowAnimation.setEnabled(cb.isEnabled() && cb.isSelected());
-//          showRealAnimations(cbLayerShowAnimation.isEnabled() && cbLayerShowAnimation.isSelected());
+        } else if (layer == LayerManager.Layer.Animation) {
+          cbLayerRealAnimation[0].setEnabled(cb.isEnabled() && cb.isSelected());
+          cbLayerRealAnimation[1].setEnabled(cb.isEnabled() && cb.isSelected());
+          int state = ViewerConstants.ANIM_SHOW_NONE;
+          if (cbLayerRealAnimation[0].isSelected()) {
+            state = ViewerConstants.ANIM_SHOW_STILL;
+          } else if (cbLayerRealAnimation[1].isSelected()) {
+            state = ViewerConstants.ANIM_SHOW_ANIMATED;
+          }
+          showRealAnimations(state);
         }
-//      } else if (cb == cbLayerShowAnimation) {
-//        showRealAnimations(cbLayerShowAnimation.isSelected());
+      } else if (cb == cbLayerRealAnimation[0]) {
+        if (cbLayerRealAnimation[0].isSelected()) {
+          cbLayerRealAnimation[1].setSelected(false);
+        }
+        showRealAnimations(cbLayerRealAnimation[0].isSelected() ? ViewerConstants.ANIM_SHOW_STILL : ViewerConstants.ANIM_SHOW_NONE);
+      } else if (cb == cbLayerRealAnimation[1]) {
+        if (cbLayerRealAnimation[1].isSelected()) {
+          cbLayerRealAnimation[0].setSelected(false);
+        }
+        showRealAnimations(cbLayerRealAnimation[1].isSelected() ? ViewerConstants.ANIM_SHOW_ANIMATED : ViewerConstants.ANIM_SHOW_NONE);
       } else if (cb == cbDrawClosed) {
         WindowBlocker.blockWindow(this, true);
         try {
@@ -256,8 +274,8 @@ public class AreaViewer extends ChildFrame
           String msg = "Not enough memory to set selected zoom level.\n"
                        + "(Note: It is highly recommended to close and reopen the area viewer.)";
           JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-          cbZoomLevel.setSelectedIndex(zoomLevel);
-          setZoomLevel(zoomLevel);
+          cbZoomLevel.setSelectedIndex(ZoomLevel);
+          setZoomLevel(ZoomLevel);
         }
       } finally {
         WindowBlocker.blockWindow(this, false);
@@ -350,6 +368,7 @@ public class AreaViewer extends ChildFrame
     if (event.getSource() == rcCanvas) {
       if (event.hasChangedMap()) {
         updateLayerItems();
+        showRealAnimations(showRealAnimations);
       } else if (event.hasChangedDoorState()) {
       }
     }
@@ -413,7 +432,7 @@ public class AreaViewer extends ChildFrame
     }
     if (event.getSource() == spCanvas || event.getSource() == rcCanvas) {
       if (isAutoZoom()) {
-        setZoomLevel(ItemZoomFactorIndexAuto);
+        setZoomLevel(ZoomFactorIndexAuto);
       }
       // centering the tileset if it fits into the viewport
       Dimension pDim = rcCanvas.getPreferredSize();
@@ -569,6 +588,7 @@ public class AreaViewer extends ChildFrame
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
     cbZoomLevel = new JComboBox(LabelZoomFactor);
+    cbZoomLevel.setSelectedIndex(ZoomLevel);
     cbZoomLevel.addActionListener(this);
     JPanel pZoom = new JPanel(new GridBagLayout());
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -618,16 +638,23 @@ public class AreaViewer extends ChildFrame
       c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                  GridBagConstraints.NONE, new Insets(0, (layer != LayerManager.Layer.AmbientRange) ? 0 : 12, 0, 0), 0, 0);
       p.add(cbLayers[i], c);
-//      if (i == LayerManager.getLayerIndex(LayerManager.Layer.Animation)) {
-//        idx++;
-//        cbLayerShowAnimation = new JCheckBox("Show actual animations");
-//        cbLayerShowAnimation.setEnabled(false);
-//        cbLayerShowAnimation.setToolTipText(msgAnimate);
-//        cbLayerShowAnimation.addActionListener(this);
-//        c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-//                   GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
-//        p.add(cbLayerShowAnimation, c);
-//      }
+      if (i == LayerManager.getLayerIndex(LayerManager.Layer.Animation)) {
+        cbLayerRealAnimation[0] = new JCheckBox("Show actual animations");
+        cbLayerRealAnimation[0].setEnabled(false);
+        cbLayerRealAnimation[0].addActionListener(this);
+        cbLayerRealAnimation[1] = new JCheckBox("Animate actual animations");
+        cbLayerRealAnimation[1].setEnabled(false);
+        cbLayerRealAnimation[1].setToolTipText(msgAnimate);
+        cbLayerRealAnimation[1].addActionListener(this);
+        idx++;
+        c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
+        p.add(cbLayerRealAnimation[0], c);
+        idx++;
+        c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                   GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
+        p.add(cbLayerRealAnimation[1], c);
+      }
     }
 
     JPanel pLayers = new JPanel(new GridBagLayout());
@@ -706,13 +733,19 @@ public class AreaViewer extends ChildFrame
     add(pMain, BorderLayout.CENTER);
     pack();
 
-    initGuiSettings(true);
-    advanceProgressMonitor("Ready!");
-
     // setting window size and state
     setSize(NearInfinity.getInstance().getSize());
     Center.center(this, NearInfinity.getInstance().getBounds());
     setExtendedState(NearInfinity.getInstance().getExtendedState());
+
+    try {
+      initGuiSettings();
+    } catch (OutOfMemoryError e) {
+      JOptionPane.showMessageDialog(this, "Not enough memory to load area!", "Error", JOptionPane.ERROR_MESSAGE);
+      throw e;
+    }
+    rcCanvas.requestFocusInWindow();    // put focus on a safe component
+    advanceProgressMonitor("Ready!");
 
     updateWindowTitle();
     setVisible(true);
@@ -723,6 +756,8 @@ public class AreaViewer extends ChildFrame
   private void showMapCoordinates(Point coord)
   {
     if (coord != null) {
+      coord.x = (int)((double)coord.x / getZoomLevel());
+      coord.y = (int)((double)coord.y / getZoomLevel());
       if (coord.x != mapCoordinate.x) {
         mapCoordinate.x = coord.x;
         lPosX.setText(Integer.toString(mapCoordinate.x));
@@ -747,17 +782,19 @@ public class AreaViewer extends ChildFrame
   }
 
   // Sets the state of all GUI components and their associated actions
-  private void initGuiSettings(boolean reset)
+  private void initGuiSettings()
   {
     // initializing visual state of the map
-    visualState = TilesetRenderer.LIGHTING_DAY;
+    if (!map.hasDayNight()) {
+      VisualState = ViewerConstants.LIGHTING_DAY;
+    }
     for (int i = 0; i < rbVisualState.length; i++) {
-      if (i != TilesetRenderer.LIGHTING_DAY) {
+      if (i != ViewerConstants.LIGHTING_DAY) {
         rbVisualState[i].setEnabled(map.hasDayNight());
       }
     }
-    rbVisualState[visualState].setSelected(true);
-    setVisualState(visualState);
+    rbVisualState[VisualState].setSelected(true);
+    setVisualState(VisualState);
 
     // initializing closed state of doors
     cbDrawClosed.setSelected(DrawClosed);
@@ -780,14 +817,11 @@ public class AreaViewer extends ChildFrame
     }
 
     // initializing zoom level
-    if (reset) {
-      zoomLevel = ItemZoomFactorIndexDefault;
-      cbZoomLevel.setSelectedIndex(zoomLevel);
-      setZoomLevel(zoomLevel);
-    }
+    cbZoomLevel.setSelectedIndex(ZoomLevel);
 
     // initializing layers
     layerManager = new LayerManager(getCurrentAre(), getCurrentWed(), this);
+    layerManager.setDoorState(DrawClosed ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN);
     addLayerItems();
     for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
       LayerManager.Layer layer = LayerManager.getLayerType(i);
@@ -808,6 +842,18 @@ public class AreaViewer extends ChildFrame
       updateLayerItems(layer);
       showLayer(LayerManager.getLayerType(i), cbLayers[i].isSelected());
     }
+
+    // initializing background animation display
+    // Disabling animated frames for performance and safety reasons
+    if (showRealAnimations == ViewerConstants.ANIM_SHOW_ANIMATED) {
+      showRealAnimations = ViewerConstants.ANIM_SHOW_STILL;
+    }
+    int idx = LayerManager.getLayerIndex(LayerManager.Layer.Animation);
+    cbLayerRealAnimation[0].setEnabled(cbLayers[idx].isEnabled() && cbLayers[idx].isSelected());
+    cbLayerRealAnimation[0].setSelected(showRealAnimations == ViewerConstants.ANIM_SHOW_STILL);
+    cbLayerRealAnimation[1].setEnabled(cbLayers[idx].isEnabled() && cbLayers[idx].isSelected());
+    cbLayerRealAnimation[1].setSelected(false);
+    showRealAnimations(showRealAnimations);
   }
 
   // Updates the window title
@@ -817,10 +863,10 @@ public class AreaViewer extends ChildFrame
 
     String dayNight;
     switch (getCurrentVisualState()) {
-      case TilesetRenderer.LIGHTING_TWILIGHT:
+      case ViewerConstants.LIGHTING_TWILIGHT:
         dayNight = "twilight";
         break;
-      case TilesetRenderer.LIGHTING_NIGHT:
+      case ViewerConstants.LIGHTING_NIGHT:
         dayNight = "night";
         break;
       default:
@@ -858,12 +904,7 @@ public class AreaViewer extends ChildFrame
   private WedResource getCurrentWed()
   {
     if (map != null) {
-      for (int i = 0; i < rbVisualState.length; i++) {
-        if (rbVisualState[i].isSelected()) {
-          int type = (i == TilesetRenderer.LIGHTING_NIGHT) ? Map.MAP_NIGHT : Map.MAP_DAY;
-          return map.getWed(type);
-        }
-      }
+      return map.getWed(getCurrentWedIndex());
     }
     return null;
   }
@@ -874,7 +915,7 @@ public class AreaViewer extends ChildFrame
     if (map != null) {
       for (int i = 0; i < rbVisualState.length; i++) {
         if (rbVisualState[i].isSelected()) {
-          int type = (i == TilesetRenderer.LIGHTING_NIGHT) ? Map.MAP_NIGHT : Map.MAP_DAY;
+          int type = (i == ViewerConstants.LIGHTING_NIGHT) ? Map.MAP_NIGHT : Map.MAP_DAY;
           return type;
         }
       }
@@ -898,7 +939,7 @@ public class AreaViewer extends ChildFrame
   // Returns the currently selected visual state (day/twilight/night)
   private int getCurrentVisualState()
   {
-    return visualState;
+    return VisualState;
   }
 
   // Set the lighting condition of the current map (day/twilight/night)
@@ -906,34 +947,34 @@ public class AreaViewer extends ChildFrame
   {
     if (index >= 0 && index < TilesetRenderer.getLightingModesCount()) {
       switch (index) {
-        case TilesetRenderer.LIGHTING_DAY:
+        case ViewerConstants.LIGHTING_DAY:
           if (!isProgressMonitorActive() && map.getWed(Map.MAP_DAY) != rcCanvas.getWed()) {
             initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
           }
           if (rcCanvas.getWed() != map.getWed(Map.MAP_DAY)) {
             rcCanvas.loadMap(map.getWed(Map.MAP_DAY));
-            updateWedLayers();
+            reloadWedLayers();
           }
           rcCanvas.setLighting(index);
           break;
-        case TilesetRenderer.LIGHTING_TWILIGHT:
+        case ViewerConstants.LIGHTING_TWILIGHT:
           if (!isProgressMonitorActive() && map.getWed(Map.MAP_DAY) != rcCanvas.getWed()) {
             initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
           }
           if (rcCanvas.getWed() != map.getWed(Map.MAP_DAY)) {
             rcCanvas.loadMap(map.getWed(Map.MAP_DAY));
-            updateWedLayers();
+            reloadWedLayers();
           }
           rcCanvas.setLighting(index);
           break;
-        case TilesetRenderer.LIGHTING_NIGHT:
+        case ViewerConstants.LIGHTING_NIGHT:
           if (!isProgressMonitorActive() && map.getWed(Map.MAP_NIGHT) != rcCanvas.getWed()) {
             initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
           }
           if (map.hasExtendedNight()) {
             if (rcCanvas.getWed() != map.getWed(Map.MAP_NIGHT)) {
               rcCanvas.loadMap(map.getWed(Map.MAP_NIGHT));
-              updateWedLayers();
+              reloadWedLayers();
             }
           } else {
             rcCanvas.setLighting(index);
@@ -942,14 +983,39 @@ public class AreaViewer extends ChildFrame
       }
       // updating current visual state
       if (index >= 0) {
-        visualState = index;
+        VisualState = index;
       }
+      updateRealAnimations(index);
       updateWindowTitle();
     }
   }
 
+  // Updates all available layer items
+  private void reloadLayers()
+  {
+    reloadAreLayers();
+    reloadWedLayers();
+  }
+
+  // Updates ARE-related layer items
+  private void reloadAreLayers()
+  {
+    if (layerManager != null) {
+      for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
+        LayerManager.Layer layer = LayerManager.getLayerType(i);
+        if (layer != LayerManager.Layer.DoorPoly && layer != LayerManager.Layer.WallPoly) {
+          removeLayerItems(layer);
+          layerManager.setAreResource(getCurrentAre());
+          updateLayerItems(layer);
+          addLayerItems(layer);
+          showLayer(layer, cbLayers[i].isSelected());
+        }
+      }
+    }
+  }
+
   // Updates WED-related layer items
-  private void updateWedLayers()
+  private void reloadWedLayers()
   {
     if (layerManager != null) {
       removeLayerItems(LayerManager.Layer.DoorPoly);
@@ -984,22 +1050,52 @@ public class AreaViewer extends ChildFrame
   private void setLayerDoorState(boolean isClosed)
   {
     if (layerManager != null) {
-      layerManager.setDoorState(isClosed ? LayerManager.Closed : LayerManager.Open);
+      layerManager.setDoorState(isClosed ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN);
     }
   }
 
   // Toggles between static animation icon and real animations
-  private void showRealAnimations(boolean showAnim)
+  private void showRealAnimations(int animState)
   {
-    // TODO
+    if (layerManager != null) {
+      if (layerManager.isLayerVisible(LayerManager.Layer.Animation)) {
+        if (animState < ViewerConstants.ANIM_SHOW_NONE) {
+          animState = ViewerConstants.ANIM_SHOW_NONE;
+        } else if (animState > ViewerConstants.ANIM_SHOW_ANIMATED) {
+          animState = ViewerConstants.ANIM_SHOW_ANIMATED;
+        }
+        showRealAnimations = animState;
+        List<LayerObject> list = layerManager.getLayerObjects(LayerManager.Layer.Animation);
+        if (list != null) {
+          for (int i = 0; i < list.size(); i++) {
+            boolean isActive = ((LayerObjectAnimation)list.get(i)).isActiveAt(getCurrentVisualState());
+            LayerObjectAnimation obj = (LayerObjectAnimation)list.get(i);
+            obj.getLayerItem(ViewerConstants.ANIM_ICON).setVisible((showRealAnimations == ViewerConstants.ANIM_SHOW_NONE) && isActive);
+            AnimatedLayerItem item = (AnimatedLayerItem)obj.getLayerItem(ViewerConstants.ANIM_REAL);
+            item.setVisible((showRealAnimations != ViewerConstants.ANIM_SHOW_NONE) && isActive);
+            if (showRealAnimations != ViewerConstants.ANIM_SHOW_NONE) {
+              if (showRealAnimations == ViewerConstants.ANIM_SHOW_ANIMATED) {
+                item.setAutoPlay(true);
+                item.play();
+              } else {
+                item.stop();
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void updateRealAnimations(int visualState)
+  {
     if (layerManager != null) {
       if (layerManager.isLayerVisible(LayerManager.Layer.Animation)) {
         List<LayerObject> list = layerManager.getLayerObjects(LayerManager.Layer.Animation);
         if (list != null) {
-//          for (int i = 0; i < list.size(); i++) {
-//            ((LayerObjectAnimation)list.get(i)).getLayerItem(LayerObjectAnimation.ITEM_STATIC).setVisible(!showAnim);
-//            ((LayerObjectAnimation)list.get(i)).getLayerItem(LayerObjectAnimation.ITEM_ANIMATION).setVisible(showAnim);
-//          }
+          for (int i = 0; i < list.size(); i++) {
+            ((LayerObjectAnimation)list.get(i)).setLighting(visualState);
+          }
         }
       }
     }
@@ -1047,12 +1143,12 @@ public class AreaViewer extends ChildFrame
     if (object != null) {
       // Dealing with ambient icons and ambient ranges separately
       if (layer == LayerManager.Layer.Ambient) {
-        AbstractLayerItem item = ((LayerObjectAmbient)object).getLayerItem(LayerObjectAmbient.ItemIcon);
+        AbstractLayerItem item = ((LayerObjectAmbient)object).getLayerItem(ViewerConstants.AMBIENT_ICON);
         if (item != null) {
           rcCanvas.add(item);
         }
       } else if (layer == LayerManager.Layer.AmbientRange) {
-        AbstractLayerItem item = ((LayerObjectAmbient)object).getLayerItem(LayerObjectAmbient.ItemRange);
+        AbstractLayerItem item = ((LayerObjectAmbient)object).getLayerItem(ViewerConstants.AMBIENT_RANGE);
         if (item != null) {
           rcCanvas.add(item);
         }
@@ -1143,7 +1239,7 @@ public class AreaViewer extends ChildFrame
     rcCanvas.setDoorsClosed(DrawClosed);
     setLayerDoorState(DrawClosed);
     if (layerManager != null) {
-      layerManager.setDoorState(DrawClosed ? LayerManager.Closed : LayerManager.Open);
+      layerManager.setDoorState(DrawClosed ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN);
     }
     updateWindowTitle();
   }
@@ -1206,8 +1302,10 @@ public class AreaViewer extends ChildFrame
   private void setZoomLevel(int zoomIndex)
   {
     if (zoomIndex >= 0) {
+//      updateViewpointCenter();
+
       double zoom = 1.0;
-      if (zoomIndex == ItemZoomFactorIndexAuto) {
+      if (zoomIndex == ZoomFactorIndexAuto) {
         // removing scrollbars (not needed in this mode)
         spCanvas.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         spCanvas.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
@@ -1226,8 +1324,7 @@ public class AreaViewer extends ChildFrame
         zoom = ItemZoomFactor[zoomIndex];
       }
       rcCanvas.setZoomFactor(zoom);
-      zoomLevel = zoomIndex;
-      // TODO: center of visible map portion should not change
+      ZoomLevel = zoomIndex;
       updateWindowTitle();
     }
   }
@@ -1235,8 +1332,66 @@ public class AreaViewer extends ChildFrame
   // Returns whether auto-fit has been selected
   private boolean isAutoZoom()
   {
-    return cbZoomLevel.getSelectedIndex() == ItemZoomFactorIndexAuto;
+    return cbZoomLevel.getSelectedIndex() == ZoomFactorIndexAuto;
   }
+
+  // Updates the map coordinate at the center of the current viewport
+//  private void updateViewpointCenter()
+//  {
+//    if (vpCenterExtent == null) {
+//      vpCenterExtent = new Rectangle();
+//    }
+//    Dimension mapDim = new Dimension(rcCanvas.getMapWidth(true), rcCanvas.getMapHeight(true));
+//    JViewport vp = spCanvas.getViewport();
+//    Rectangle view = vp.getViewRect();
+//    vpCenterExtent.x = view.x + (view.width / 2);
+//    vpCenterExtent.y = view.y + (view.height / 2);
+//    if (view.width > mapDim.width) {
+//      vpCenterExtent.x = mapDim.width / 2;
+//    }
+//    if (view.height > mapDim.height) {
+//      vpCenterExtent.y = mapDim.height / 2;
+//    }
+//    // canvas coordinate -> map coordinate
+//    vpCenterExtent.x = (int)((double)vpCenterExtent.x / getZoomLevel());
+//    vpCenterExtent.y = (int)((double)vpCenterExtent.y / getZoomLevel());
+//
+//    vpCenterExtent.width = spCanvas.getHorizontalScrollBar().getMaximum();
+//    vpCenterExtent.height = spCanvas.getVerticalScrollBar().getMaximum();
+//  }
+
+  // Attempts to re-center the last known center coordinate in the current viewport
+//  private void setViewpointCenter()
+//  {
+//    if (vpCenterExtent != null) {
+//      if (vpCenterExtent.width != spCanvas.getHorizontalScrollBar().getMaximum() &&
+//          vpCenterExtent.height != spCanvas.getVerticalScrollBar().getMaximum()) {
+//
+//        Dimension mapDim = new Dimension(rcCanvas.getMapWidth(true), rcCanvas.getMapHeight(true));
+//
+//        // map coordinate -> canvas coordinate
+//        vpCenterExtent.x = (int)((double)vpCenterExtent.x * getZoomLevel());
+//        vpCenterExtent.y = (int)((double)vpCenterExtent.y * getZoomLevel());
+//
+//        JViewport vp = spCanvas.getViewport();
+//        Rectangle view = vp.getViewRect();
+//        Point newViewPos = new Point(vpCenterExtent.x - (view.width / 2), vpCenterExtent.y - (view.height / 2));
+//        if (newViewPos.x < 0) {
+//          newViewPos.x = 0;
+//        } else if (newViewPos.x + view.width > mapDim.width) {
+//          newViewPos.x = mapDim.width - view.width;
+//        }
+//        if (newViewPos.y < 0) {
+//          newViewPos.y = 0;
+//        } else if (newViewPos.y + view.height > mapDim.height) {
+//          newViewPos.y = mapDim.height - view.height;
+//        }
+//
+//        vpCenterExtent = null;
+//        vp.setViewPosition(newViewPos);
+//      }
+//    }
+//  }
 
   private void advanceOverlayAnimation()
   {

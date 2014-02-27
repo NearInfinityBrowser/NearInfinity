@@ -56,7 +56,7 @@ public class LayerObjectDoor extends LayerObject
   @Override
   public AbstractLayerItem getLayerItem()
   {
-    return items[LayerManager.Open];
+    return items[ViewerConstants.DOOR_OPEN];
   }
 
   @Override
@@ -106,7 +106,7 @@ public class LayerObjectDoor extends LayerObject
    */
   public AbstractLayerItem getLayerItem(int state)
   {
-    state = (state != LayerManager.Open) ? LayerManager.Closed : LayerManager.Open;
+    state = (state == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
     if (items != null && items.length > state) {
       return items[state];
     } else {
@@ -118,8 +118,8 @@ public class LayerObjectDoor extends LayerObject
   private void init()
   {
     if (door != null) {
-      shapeCoords[LayerManager.Open] = null;
-      shapeCoords[LayerManager.Closed] = null;
+      shapeCoords[ViewerConstants.DOOR_OPEN] = null;
+      shapeCoords[ViewerConstants.DOOR_CLOSED] = null;
       String[] msg = new String[]{"", ""};
       Polygon[] poly = new Polygon[]{null, null};
       Rectangle[] bounds = new Rectangle[]{null, null};
@@ -128,17 +128,17 @@ public class LayerObjectDoor extends LayerObject
         msg[0] = String.format("%1$s (Open)", ((TextString)door.getAttribute("Name")).toString());
         int vNum = ((DecNumber)door.getAttribute("# vertices (open)")).getValue();
         int vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
-        shapeCoords[LayerManager.Open] = loadVertices(door, vOfs, 0, vNum, OpenVertex.class);
-        poly[LayerManager.Open] = createPolygon(shapeCoords[LayerManager.Open], 1.0);
-        bounds[LayerManager.Open] = normalizePolygon(poly[LayerManager.Open]);
+        shapeCoords[ViewerConstants.DOOR_OPEN] = loadVertices(door, vOfs, 0, vNum, OpenVertex.class);
+        poly[ViewerConstants.DOOR_OPEN] = createPolygon(shapeCoords[ViewerConstants.DOOR_OPEN], 1.0);
+        bounds[ViewerConstants.DOOR_OPEN] = normalizePolygon(poly[ViewerConstants.DOOR_OPEN]);
 
         // processing closed state door
         msg[1] = String.format("%1$s (Closed)", ((TextString)door.getAttribute("Name")).toString());
         vNum = ((DecNumber)door.getAttribute("# vertices (closed)")).getValue();
         vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
-        shapeCoords[LayerManager.Closed] = loadVertices(door, vOfs, 0, vNum, ClosedVertex.class);
-        poly[LayerManager.Closed] = createPolygon(shapeCoords[LayerManager.Closed], 1.0);
-        bounds[LayerManager.Closed] = normalizePolygon(poly[LayerManager.Closed]);
+        shapeCoords[ViewerConstants.DOOR_CLOSED] = loadVertices(door, vOfs, 0, vNum, ClosedVertex.class);
+        poly[ViewerConstants.DOOR_CLOSED] = createPolygon(shapeCoords[ViewerConstants.DOOR_CLOSED], 1.0);
+        bounds[ViewerConstants.DOOR_CLOSED] = normalizePolygon(poly[ViewerConstants.DOOR_CLOSED]);
       } catch (Exception e) {
         e.printStackTrace();
         for (int i = 0; i < 2; i++) {

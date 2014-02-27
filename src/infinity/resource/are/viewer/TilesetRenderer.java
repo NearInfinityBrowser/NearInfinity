@@ -36,10 +36,6 @@ import infinity.resource.wed.WedResource;
  */
 public class TilesetRenderer extends RenderCanvas
 {
-  // Lighting conditions that can be used to draw the map (for day maps only)
-  public static final int LIGHTING_DAY = 0;
-  public static final int LIGHTING_TWILIGHT = 1;
-  public static final int LIGHTING_NIGHT = 2;
   public static final String[] LabelVisualStates = new String[]{"Day", "Twilight", "Night"};
 
   // Rendering modes for tiles (affects how to render overlayed tiles)
@@ -56,10 +52,10 @@ public class TilesetRenderer extends RenderCanvas
   // red   = (red   * LightingAdjustment[lighting][0]) >>> LightingAdjustmentShift;
   // green = (green * LightingAdjustment[lighting][1]) >>> LightingAdjustmentShift;
   // blue  = (blue  * LightingAdjustment[lighting][2]) >>> LightingAdjustmentShift;
-  private static final int[][] LightingAdjustment = new int[][]
+  public static final int[][] LightingAdjustment = new int[][]
       // (100%, 100%, 100%),   (100%, 85%, 80%),      (45%, 45%, 85%)
       { {0x400, 0x400, 0x400}, {0x400, 0x366, 0x333}, {0x1cd, 0x1cd, 0x366} };
-  private static final int LightingAdjustmentShift = 10;   // use in place of division
+  public static final int LightingAdjustmentShift = 10;   // use in place of division
 
   // keeps track of registered listener objects
   private final List<TilesetChangeListener> listChangeListener = new ArrayList<TilesetChangeListener>();
@@ -78,7 +74,7 @@ public class TilesetRenderer extends RenderCanvas
   private boolean showGrid = false;       // indicates whether to draw a grid on the tiles
   private boolean forcedInterpolation = false;  // indicates whether to use a pre-defined interpolation type or set one based on zoom factor
   private double zoomFactor = 1.0;        // zoom factor for drawing the map
-  private int lighting = LIGHTING_DAY;    // the lighting condition to be used (day/twilight/night)
+  private int lighting = ViewerConstants.LIGHTING_DAY;    // the lighting condition to be used (day/twilight/night)
 
   /**
    * Returns the number of supported lighting modes.
@@ -325,8 +321,8 @@ public class TilesetRenderer extends RenderCanvas
    */
   public void setLighting(int lighting)
   {
-    if (lighting < LIGHTING_DAY) lighting = LIGHTING_DAY;
-    else if (lighting > LIGHTING_NIGHT) lighting = LIGHTING_NIGHT;
+    if (lighting < ViewerConstants.LIGHTING_DAY) lighting = ViewerConstants.LIGHTING_DAY;
+    else if (lighting > ViewerConstants.LIGHTING_NIGHT) lighting = ViewerConstants.LIGHTING_NIGHT;
 
     if (lighting != this.lighting) {
       this.lighting = lighting;
@@ -420,7 +416,6 @@ public class TilesetRenderer extends RenderCanvas
       int w = getMapWidth(true);
       int h = getMapHeight(true);
       Dimension newDim = new Dimension(w, h);
-      invalidate();
       setScalingEnabled(zoomFactor != 1.0);
       if (!forcedInterpolation) {
         setInterpolationType((zoomFactor < 1.0) ? TYPE_BILINEAR : TYPE_NEAREST_NEIGHBOR);
@@ -428,8 +423,6 @@ public class TilesetRenderer extends RenderCanvas
       setSize(newDim);
       setPreferredSize(newDim);
       setMinimumSize(newDim);
-      validate();
-      repaint();
     } else {
       super.updateSize();
     }
@@ -487,7 +480,7 @@ public class TilesetRenderer extends RenderCanvas
     blendedOverlays = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
                        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
                        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE);
-    lighting = LIGHTING_DAY;
+    lighting = ViewerConstants.LIGHTING_DAY;
 
     // loading map data
     if (wed != null) {
@@ -617,6 +610,15 @@ public class TilesetRenderer extends RenderCanvas
     }
   }
 
+  // Returns if the specified overlay index points to valid overlay data
+  private boolean hasOverlay(int ovlIdx)
+  {
+    if (ovlIdx > 0 && ovlIdx < listTilesets.size()) {
+      return !listTilesets.get(ovlIdx).listTiles.isEmpty();
+    }
+    return false;
+  }
+
   // draws all tiles of the map
   private void drawAllTiles()
   {
@@ -655,7 +657,7 @@ public class TilesetRenderer extends RenderCanvas
       int[] target = ((DataBufferInt)workingTile.getRaster().getDataBuffer()).getData();
 
       int fa = 255, fr = 0, fg = 0, fb = 0;
-      if (overlaysEnabled && tile.hasOverlay()) {   // overlayed tile
+      if (overlaysEnabled && tile.hasOverlay() && hasOverlay(tile.getOverlayIndex())) {   // overlayed tile
         // preparing graphics data
         int overlay = tile.getOverlayIndex();
         if (overlay < listTilesets.size() && !listTilesets.get(overlay).listTiles.isEmpty()) {
@@ -790,6 +792,7 @@ public class TilesetRenderer extends RenderCanvas
         BufferedImage imgTile = null;
         int[] srcTile = null;
         int tileIdx = (!isDoorClosed || !isDoorTile) ? tile.getPrimaryIndex() : tile.getSecondaryIndex();
+        if (tileIdx < 0) { tileIdx = tile.getPrimaryIndex(); }    // XXX: hackish work-around for faulty tile definitions
         if (tileIdx >= 0) {
           imgTile = listTilesets.get(0).listTileData.get(tileIdx);
           srcTile = ((DataBufferInt)imgTile.getRaster().getDataBuffer()).getData();

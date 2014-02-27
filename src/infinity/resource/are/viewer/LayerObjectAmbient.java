@@ -29,10 +29,6 @@ import infinity.resource.are.AreResource;
  */
 public class LayerObjectAmbient extends LayerObject
 {
-  // The layer item types used
-  public static final int ItemIcon  = 0;
-  public static final int ItemRange = 1;
-
   private static final Image[] IconGlobal = new Image[]{Icons.getImage("itm_AmbientG1.png"),
                                                         Icons.getImage("itm_AmbientG2.png")};
   private static final Image[] IconLocal = new Image[]{Icons.getImage("itm_AmbientL1.png"),
@@ -47,6 +43,7 @@ public class LayerObjectAmbient extends LayerObject
   private IconLayerItem itemIcon;   // for sound icon
   private ShapedLayerItem itemShape;  // for sound range
   private int radiusLocal, volume;
+  private Flag scheduleFlags;
 
 
   public LayerObjectAmbient(AreResource parent, Ambient ambient)
@@ -134,10 +131,10 @@ public class LayerObjectAmbient extends LayerObject
    */
   public AbstractLayerItem getLayerItem(int iconType)
   {
-    iconType = (iconType == ItemIcon) ? ItemIcon : ItemRange;
-    if (iconType == ItemRange && isLocal()) {
+    iconType = (iconType == ViewerConstants.AMBIENT_ICON) ? ViewerConstants.AMBIENT_ICON : ViewerConstants.AMBIENT_RANGE;
+    if (iconType == ViewerConstants.AMBIENT_RANGE && isLocal()) {
       return itemShape;
-    } else if (iconType == ItemIcon) {
+    } else if (iconType == ViewerConstants.AMBIENT_ICON) {
       return itemIcon;
     } else {
       return null;
@@ -168,6 +165,23 @@ public class LayerObjectAmbient extends LayerObject
     return volume;
   }
 
+  @Override
+  public boolean isActiveAt(int dayTime)
+  {
+    return isActiveAt(scheduleFlags, dayTime);
+  }
+
+  @Override
+  public boolean isActiveAtHour(int time)
+  {
+    if (time >= ViewerConstants.TIME_0 && time <= ViewerConstants.TIME_23) {
+      return (scheduleFlags.isFlagSet(time));
+    } else {
+      return false;
+    }
+  }
+
+
   private void init()
   {
     if (ambient != null) {
@@ -186,6 +200,9 @@ public class LayerObjectAmbient extends LayerObject
         } else {
           icon = IconLocal;
         }
+
+        scheduleFlags = ((Flag)ambient.getAttribute("Active at"));
+
         msg = ((TextString)ambient.getAttribute("Name")).toString();
         if (icon == IconLocal) {
           circle = createShape(1.0);
