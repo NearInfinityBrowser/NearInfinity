@@ -35,7 +35,7 @@ public class LayerObjectAutomapPST extends LayerObject
 
   public LayerObjectAutomapPST(AreResource parent, AutomapNotePST note)
   {
-    super("Automap", AutomapNotePST.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Automap", AutomapNotePST.class, parent);
     this.note = note;
     init();
   }
@@ -59,6 +59,12 @@ public class LayerObjectAutomapPST extends LayerObject
   }
 
   @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    return (type == 0) ? item : null;
+  }
+
+  @Override
   public AbstractLayerItem[] getLayerItems()
   {
     return new AbstractLayerItem[]{item};
@@ -71,11 +77,11 @@ public class LayerObjectAutomapPST extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (note != null && mapOrigin != null) {
-      item.setItemLocation(mapOrigin.x + (int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                           mapOrigin.y + (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+    if (note != null) {
+      item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
+                           (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
   }
 

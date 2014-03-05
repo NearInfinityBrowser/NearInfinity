@@ -41,7 +41,7 @@ public class LayerObjectDoorPoly extends LayerObject
 
   public LayerObjectDoorPoly(WedResource parent, Door doorPoly)
   {
-    super("Door Poly", Door.class, parent);
+    super(ViewerConstants.RESOURCE_WED, "Door Poly", Door.class, parent);
     this.door = doorPoly;
     init();
   }
@@ -69,6 +69,17 @@ public class LayerObjectDoorPoly extends LayerObject
   }
 
   @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
+    if (type == ViewerConstants.DOOR_OPEN) {
+      return (openCount > 0) ? items[0] : null;
+    } else {
+      return (items.length - openCount > 0) ? items[openCount] : null;
+    }
+  }
+
+  @Override
   public AbstractLayerItem[] getLayerItems()
   {
     return items;
@@ -81,18 +92,15 @@ public class LayerObjectDoorPoly extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (mapOrigin != null) {
-      for (int i = 0; i < items.length; i++) {
-        items[i].setItemLocation(mapOrigin.x + (int)(location[i].x*zoomFactor + (zoomFactor / 2.0)),
-                                 mapOrigin.y + (int)(location[i].y*zoomFactor + (zoomFactor / 2.0)));
+    for (int i = 0; i < items.length; i++) {
+      items[i].setItemLocation((int)(location[i].x*zoomFactor + (zoomFactor / 2.0)),
+                               (int)(location[i].y*zoomFactor + (zoomFactor / 2.0)));
 
-        Polygon poly = createPolygon(shapeCoords[i], zoomFactor);
-        normalizePolygon(poly);
-        items[i].setShape(poly);
-//        items[i].setShape(createPolygon(shapeCoords[i], zoomFactor));
-      }
+      Polygon poly = createPolygon(shapeCoords[i], zoomFactor);
+      normalizePolygon(poly);
+      items[i].setShape(poly);
     }
   }
 

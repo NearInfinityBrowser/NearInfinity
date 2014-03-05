@@ -36,7 +36,7 @@ public class LayerObjectTransition extends LayerObject
 
   public LayerObjectTransition(AreResource parent, AreResource are, int edge, TilesetRenderer renderer)
   {
-    super("Transition", AreResource.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Transition", AreResource.class, parent);
     this.are = are;
     this.edge = Math.min(ViewerConstants.EDGE_WEST, Math.max(ViewerConstants.EDGE_NORTH, edge));
     this.renderer = renderer;
@@ -62,6 +62,12 @@ public class LayerObjectTransition extends LayerObject
   }
 
   @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    return (type == 0) ? item : null;
+  }
+
+  @Override
   public AbstractLayerItem[] getLayerItems()
   {
     return new AbstractLayerItem[]{item};
@@ -74,7 +80,7 @@ public class LayerObjectTransition extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
     if (item != null && renderer != null) {
       int mapW = renderer.getMapWidth(true);
@@ -111,7 +117,6 @@ public class LayerObjectTransition extends LayerObject
       Polygon poly = createPolygon(shapeCoords, 1.0);
       normalizePolygon(poly);
       item.setShape(poly);
-//      item.setShape(createPolygon(shapeCoords, 1.0));
     }
   }
 
@@ -153,7 +158,7 @@ public class LayerObjectTransition extends LayerObject
       item = new ShapedLayerItem(location, are, msg);
       item.setName(getCategory());
       item.setToolTipText(msg);
-      update(new Point(), 1.0);
+      update(1.0);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
       item.setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);

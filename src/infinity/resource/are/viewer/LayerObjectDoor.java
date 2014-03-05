@@ -36,7 +36,7 @@ public class LayerObjectDoor extends LayerObject
 
   public LayerObjectDoor(AreResource parent, Door door)
   {
-    super("Door", Door.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Door", Door.class, parent);
     this.door = door;
     init();
   }
@@ -59,6 +59,22 @@ public class LayerObjectDoor extends LayerObject
     return items[ViewerConstants.DOOR_OPEN];
   }
 
+  /**
+   * Returns the layer item of specified state.
+   * @param type The open/closed state of the item.
+   * @return The layer item of the specified state.
+   */
+  @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
+    if (items != null && items.length > type) {
+      return items[type];
+    } else {
+      return null;
+    }
+  }
+
   @Override
   public AbstractLayerItem[] getLayerItems()
   {
@@ -72,17 +88,15 @@ public class LayerObjectDoor extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (mapOrigin != null) {
-      for (int i = 0; i < items.length; i++) {
-        if (items[i] != null) {
-          items[i].setItemLocation(mapOrigin.x + (int)(location[i].x*zoomFactor + (zoomFactor / 2.0)),
-                                   mapOrigin.y + (int)(location[i].y*zoomFactor + (zoomFactor / 2.0)));
-          Polygon poly = createPolygon(shapeCoords[i], zoomFactor);
-          normalizePolygon(poly);
-          items[i].setShape(poly);
-        }
+    for (int i = 0; i < items.length; i++) {
+      if (items[i] != null) {
+        items[i].setItemLocation((int)(location[i].x*zoomFactor + (zoomFactor / 2.0)),
+                                 (int)(location[i].y*zoomFactor + (zoomFactor / 2.0)));
+        Polygon poly = createPolygon(shapeCoords[i], zoomFactor);
+        normalizePolygon(poly);
+        items[i].setShape(poly);
       }
     }
   }
@@ -97,21 +111,6 @@ public class LayerObjectDoor extends LayerObject
   public Point[] getMapLocations()
   {
     return location;
-  }
-
-  /**
-   * Returns the layer item of specified state.
-   * @param state The open/closed state of the item.
-   * @return The layer item of the specified state.
-   */
-  public AbstractLayerItem getLayerItem(int state)
-  {
-    state = (state == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
-    if (items != null && items.length > state) {
-      return items[state];
-    } else {
-      return null;
-    }
   }
 
 

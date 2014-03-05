@@ -22,19 +22,29 @@ import infinity.resource.vertex.Vertex;
  */
 public abstract class LayerObject
 {
+  private final int resourceType;
   private final String category;
   private final Class<? extends AbstractStruct> classType;
   private final AbstractStruct parent;    // base structure (e.g. AreResource or WedResource)
 
   private boolean visible;
 
-  protected LayerObject(String category, Class<? extends AbstractStruct> classType,
+  protected LayerObject(int resourceType, String category, Class<? extends AbstractStruct> classType,
                         AbstractStruct parent)
   {
+    this.resourceType = resourceType;
     this.category = (category != null && !category.isEmpty()) ? category : "Layer object";
     this.classType = (classType != null) ? classType : AbstractStruct.class;
     this.parent = parent;
     visible = false;
+  }
+
+  /**
+   * Returns the type of the parent resource (either RESOURCE_ARE or RESOURCE_WED).
+   */
+  public int getResourceType()
+  {
+    return resourceType;
   }
 
   /**
@@ -110,6 +120,14 @@ public abstract class LayerObject
   public abstract AbstractLayerItem getLayerItem();
 
   /**
+   * Returns the specified layer item. <code>type</code> is layer type specific, usually defined
+   * as an identifier in <code>ViewerConstants</code>.
+   * @param type A layer-specific type to identify the item to return.
+   * @return The desired layer item, or <code>null</code> if not available.
+   */
+  public abstract AbstractLayerItem getLayerItem(int type);
+
+  /**
    * Returns all layer items associated with the layer object. This method is useful for layer objects
    * consisting of multiple layer items (e.g. door polygons or ambient sounds/sound ranges).
    * @return A list of layer items associated with the layer object.
@@ -123,10 +141,10 @@ public abstract class LayerObject
   public abstract void reload();
 
   /**
-   * Updates the layer item positions. Takes relative map position on canvas and zoom factor
-   * into account. Note: Always call this method after loading/reloading structure data.
+   * Updates the layer item positions. Takes zoom factor into account.
+   * Note: Always call this method after loading/reloading structure data.
    */
-  public abstract void update(Point mapOrigin, double zoomFactor);
+  public abstract void update(double zoomFactor);
 
   /**
    * Returns the original map position of the first available layer item (center or top-left,
@@ -144,26 +162,12 @@ public abstract class LayerObject
   public abstract Point[] getMapLocations();
 
   /**
-   * Returns whether the layer object is active during the specified day time.
-   * (Day/Twilight: 06:30..21:29, Night: 21:30..06:29)
-   * @param dayTime One of the constants: <code>TilesetRenderer.LIGHTING_DAY</code>,
-   *                <code>TilesetRenderer.LIGHTING_TWILIGHT</code>, <code>TilesetRenderer.LIGHTING_NIGHT</code>.
-   * @return <code>true</code> if the animation is active at any time during the specified day time,
+   * Returns whether the layer object is active at a specific scheduled time.
+   * @param time The desired scheduled time index.
+   * @return <code>true</code> if the animation is active at the specified scheduled time,
    *         <code>false</code> otherwise.
    */
-  public boolean isActiveAt(int dayTime)
-  {
-    // Default implementation: always active
-    return true;
-  }
-
-  /**
-   * Returns whether the layer object is active at a specific hour.
-   * @param time The desired hour (use <code>ViewerConstants.TIME_XX</code> constants).
-   * @return <code>true</code> if the animation is active at the specified hour,
-   *         <code>false</code> otherwise.
-   */
-  public boolean isActiveAtHour(int time)
+  public boolean isScheduled(int schedule)
   {
     // Default implementation: always active
     return true;

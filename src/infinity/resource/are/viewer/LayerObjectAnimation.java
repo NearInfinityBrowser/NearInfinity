@@ -49,7 +49,7 @@ public class LayerObjectAnimation extends LayerObject
 
   public LayerObjectAnimation(AreResource parent, Animation anim)
   {
-    super("Animation", Animation.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Animation", Animation.class, parent);
     this.anim = anim;
     init();
   }
@@ -72,6 +72,18 @@ public class LayerObjectAnimation extends LayerObject
     return items[0];
   }
 
+  /**
+   * Returns the layer item of the specific state. (either ANIM_ITEM_ICON or ANIM_ITEM_REAL).
+   * @param type The state of the item to be returned.
+   * @return The desired layer item, or <code>null</code> if not available.
+   */
+  @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    type = (type == ViewerConstants.ANIM_ITEM_REAL) ? ViewerConstants.ANIM_ITEM_REAL : ViewerConstants.ANIM_ITEM_ICON;
+    return items[type];
+  }
+
   @Override
   public AbstractLayerItem[] getLayerItems()
   {
@@ -85,16 +97,14 @@ public class LayerObjectAnimation extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (mapOrigin != null) {
-      for (int i = 0; i < items.length; i++) {
-        if (items[i] != null) {
-          items[i].setItemLocation(mapOrigin.x + (int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                                   mapOrigin.y + (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
-          if (i == ViewerConstants.ANIM_REAL) {
-            ((AnimatedLayerItem)items[i]).setZoomFactor(zoomFactor);
-          }
+    for (int i = 0; i < items.length; i++) {
+      if (items[i] != null) {
+        items[i].setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
+                                 (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+        if (i == ViewerConstants.ANIM_ITEM_REAL) {
+          ((AnimatedLayerItem)items[i]).setZoomFactor(zoomFactor);
         }
       }
     }
@@ -112,28 +122,11 @@ public class LayerObjectAnimation extends LayerObject
     return new Point[]{location, location};
   }
 
-  /**
-   * Returns the layer item of the specific state. (either ITEM_STATIC or ITEM_ANIMATION).
-   * @param state The state of the item to be returned.
-   * @return The desired layer item, or <code>null</code> if not available.
-   */
-  public AbstractLayerItem getLayerItem(int state)
-  {
-    state = (state == ViewerConstants.ANIM_REAL) ? ViewerConstants.ANIM_REAL : ViewerConstants.ANIM_ICON;
-    return items[state];
-  }
-
   @Override
-  public boolean isActiveAt(int dayTime)
+  public boolean isScheduled(int schedule)
   {
-    return isActiveAt(scheduleFlags, dayTime);
-  }
-
-  @Override
-  public boolean isActiveAtHour(int time)
-  {
-    if (time >= ViewerConstants.TIME_0 && time <= ViewerConstants.TIME_23) {
-      return (scheduleFlags.isFlagSet(time));
+    if (schedule >= ViewerConstants.TIME_0 && schedule <= ViewerConstants.TIME_23) {
+      return (scheduleFlags.isFlagSet(schedule));
     } else {
       return false;
     }
@@ -147,8 +140,8 @@ public class LayerObjectAnimation extends LayerObject
    */
   public void setLighting(int dayTime)
   {
-    if (items[ViewerConstants.ANIM_REAL] != null) {
-      ((AnimatedLayerItem)items[ViewerConstants.ANIM_REAL]).setLighting(dayTime);
+    if (items[ViewerConstants.ANIM_ITEM_REAL] != null) {
+      ((AnimatedLayerItem)items[ViewerConstants.ANIM_ITEM_REAL]).setLighting(dayTime);
     }
   }
 

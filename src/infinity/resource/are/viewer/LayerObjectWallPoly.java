@@ -37,7 +37,7 @@ public class LayerObjectWallPoly extends LayerObject
 
   public LayerObjectWallPoly(WedResource parent, WallPolygon wallPoly)
   {
-    super("Wall Poly", WallPolygon.class, parent);
+    super(ViewerConstants.RESOURCE_WED, "Wall Poly", WallPolygon.class, parent);
     this.wall = wallPoly;
     init();
   }
@@ -61,6 +61,12 @@ public class LayerObjectWallPoly extends LayerObject
   }
 
   @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    return (type == 0) ? item : null;
+  }
+
+  @Override
   public AbstractLayerItem[] getLayerItems()
   {
     return new AbstractLayerItem[]{item};
@@ -73,11 +79,11 @@ public class LayerObjectWallPoly extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (item != null && mapOrigin != null) {
-      item.setItemLocation(mapOrigin.x + (int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                           mapOrigin.y + (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+    if (item != null) {
+      item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
+                           (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
 
       Polygon poly = createPolygon(shapeCoords, zoomFactor);
       normalizePolygon(poly);

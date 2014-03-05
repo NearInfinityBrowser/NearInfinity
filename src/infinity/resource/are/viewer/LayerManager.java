@@ -4,29 +4,11 @@
 
 package infinity.resource.are.viewer;
 
-import infinity.datatype.ResourceRef;
-import infinity.datatype.SectionCount;
-import infinity.datatype.SectionOffset;
 import infinity.gui.layeritem.AbstractLayerItem;
-import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
-import infinity.resource.StructEntry;
-import infinity.resource.Viewable;
-import infinity.resource.are.Actor;
-import infinity.resource.are.Ambient;
-import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
-import infinity.resource.are.AutomapNote;
-import infinity.resource.are.AutomapNotePST;
-import infinity.resource.are.Container;
-import infinity.resource.are.Door;
-import infinity.resource.are.Entrance;
-import infinity.resource.are.ITEPoint;
-import infinity.resource.are.ProTrap;
-import infinity.resource.are.SpawnPoint;
+import infinity.resource.are.viewer.ViewerConstants.LayerType;
 import infinity.resource.wed.WedResource;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -34,77 +16,74 @@ import java.util.List;
  * Manages all layer objects of a single ARE map.
  * @author argent77
  */
+/*
+ * TODO: add interpolation type support for animations
+ * TODO: add update layer item methods for all layers
+ */
 public final class LayerManager
 {
-  // Supported layer types
-  public static enum Layer { Actor, Region, Entrance, Container, Ambient, AmbientRange, Door, Animation,
-                             Automap, SpawnPoint, Transition, ProTrap, DoorPoly, WallPoly }
-  private static final int LayerSize = Layer.values().length;
-
-
   // Defines order of drawing
-  public static final Layer[] LayerOrdered = new Layer[]{
-    Layer.Actor, Layer.Entrance, Layer.Ambient, Layer.ProTrap, Layer.Animation, Layer.SpawnPoint,
-    Layer.Automap, Layer.Container, Layer.Door, Layer.Region, Layer.AmbientRange,
-    Layer.Transition, Layer.DoorPoly, Layer.WallPoly
+  public static final LayerType[] LayerOrdered = new LayerType[]{
+    LayerType.Actor, LayerType.Entrance, LayerType.Ambient, LayerType.ProTrap, LayerType.Animation,
+    LayerType.SpawnPoint, LayerType.Automap, LayerType.Container, LayerType.Door, LayerType.Region,
+    LayerType.Transition, LayerType.DoorPoly, LayerType.WallPoly
   };
 
-  private static final EnumMap<Layer, String> LayerLabels = new EnumMap<Layer, String>(Layer.class);
-  private static final EnumMap<Layer, String> LayerAvailabilityFmt = new EnumMap<Layer, String>(Layer.class);
+  private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<LayerType, String>(LayerType.class);
+  private static final EnumMap<LayerType, String> LayerAvailabilityFmt = new EnumMap<LayerType, String>(LayerType.class);
   static {
-    LayerLabels.put(Layer.Actor, "Actors");
-    LayerLabels.put(Layer.Region, "Regions");
-    LayerLabels.put(Layer.Entrance, "Entrances");
-    LayerLabels.put(Layer.Container, "Containers");
-    LayerLabels.put(Layer.Ambient, "Ambient Sounds");
-    LayerLabels.put(Layer.AmbientRange, "Show Sound Ranges");
-    LayerLabels.put(Layer.Door, "Doors");
-    LayerLabels.put(Layer.Animation, "Background Animations");
-    LayerLabels.put(Layer.Automap, "Automap Notes");
-    LayerLabels.put(Layer.SpawnPoint, "Spawn Points");
-    LayerLabels.put(Layer.Transition, "Map Transitions");
-    LayerLabels.put(Layer.ProTrap, "Projectile Traps");
-    LayerLabels.put(Layer.DoorPoly, "Door Polygons");
-    LayerLabels.put(Layer.WallPoly, "Wall Polygons");
-    LayerAvailabilityFmt.put(Layer.Actor, "%1$d actors available");
-    LayerAvailabilityFmt.put(Layer.Region, "%1$d regions available");
-    LayerAvailabilityFmt.put(Layer.Entrance, "%1$d entrances available");
-    LayerAvailabilityFmt.put(Layer.Container, "%1$d containers available");
-    LayerAvailabilityFmt.put(Layer.Ambient, "%1$d ambient sounds available");
-    LayerAvailabilityFmt.put(Layer.AmbientRange, "%1$d ambient sounds with local radius available");
-    LayerAvailabilityFmt.put(Layer.Door, "%1$d doors available");
-    LayerAvailabilityFmt.put(Layer.Animation, "%1$d background animations available");
-    LayerAvailabilityFmt.put(Layer.Automap, "%1$d automap notes available");
-    LayerAvailabilityFmt.put(Layer.SpawnPoint, "%1$d spawn points available");
-    LayerAvailabilityFmt.put(Layer.Transition, "%1$d map transitions available");
-    LayerAvailabilityFmt.put(Layer.ProTrap, "%1$d projectile traps available");
-    LayerAvailabilityFmt.put(Layer.DoorPoly, "%1$d door polygons available");
-    LayerAvailabilityFmt.put(Layer.WallPoly, "%1$d wall polygons available");
+    LayerLabels.put(LayerType.Actor, "Actors");
+    LayerLabels.put(LayerType.Region, "Regions");
+    LayerLabels.put(LayerType.Entrance, "Entrances");
+    LayerLabels.put(LayerType.Container, "Containers");
+    LayerLabels.put(LayerType.Ambient, "Ambient Sounds");
+    LayerLabels.put(LayerType.Door, "Doors");
+    LayerLabels.put(LayerType.Animation, "Background Animations");
+    LayerLabels.put(LayerType.Automap, "Automap Notes");
+    LayerLabels.put(LayerType.SpawnPoint, "Spawn Points");
+    LayerLabels.put(LayerType.Transition, "Map Transitions");
+    LayerLabels.put(LayerType.ProTrap, "Projectile Traps");
+    LayerLabels.put(LayerType.DoorPoly, "Door Polygons");
+    LayerLabels.put(LayerType.WallPoly, "Wall Polygons");
+    LayerAvailabilityFmt.put(LayerType.Actor, "%1$d actor%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Region, "%1$d region%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Entrance, "%1$d entrance%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Container, "%1$d container%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Ambient, "%1$d ambient sound%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Door, "%1$d door%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Animation, "%1$d background animation%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Automap, "%1$d automap note%2$s available");
+    LayerAvailabilityFmt.put(LayerType.SpawnPoint, "%1$d spawn point%2$s available");
+    LayerAvailabilityFmt.put(LayerType.Transition, "%1$d map transition%2$s available");
+    LayerAvailabilityFmt.put(LayerType.ProTrap, "%1$d projectile trap%2$s available");
+    LayerAvailabilityFmt.put(LayerType.DoorPoly, "%1$d door polygon%2$s available");
+    LayerAvailabilityFmt.put(LayerType.WallPoly, "%1$d wall polygon%2$s available");
   }
 
-  private final EnumMap<Layer, List<LayerObject>> layers = new EnumMap<Layer, List<LayerObject>>(Layer.class);
-  private final EnumMap<Layer, Boolean> layersVisible = new EnumMap<Layer, Boolean>(Layer.class);
+  @SuppressWarnings("rawtypes")
+  private final EnumMap<LayerType, BasicLayer> layers = new EnumMap<LayerType, BasicLayer>(LayerType.class);
   private final AreaViewer viewer;
 
   private AreResource are;
   private WedResource wed;
-  private int doorState;
+  private boolean scheduleEnabled, forcedInterpolation;
+  private int schedule, interpolationType;
 
   /**
    * Returns the number of supported layer types.
    */
   public static int getLayerTypeCount()
   {
-    return LayerSize;
+    return LayerType.values().length;
   }
 
   /**
    * Returns the layer type located at the specified index.
    */
-  public static Layer getLayerType(int index)
+  public static LayerType getLayerType(int index)
   {
-    if (index >= 0 && index < LayerSize) {
-      return Layer.values()[index];
+    if (index >= 0 && index < LayerType.values().length) {
+      return LayerType.values()[index];
     } else {
       return null;
     }
@@ -113,10 +92,10 @@ public final class LayerManager
   /**
    * Returns the index of the specified layer.
    */
-  public static int getLayerIndex(Layer layer)
+  public static int getLayerTypeIndex(LayerType layer)
   {
-    Layer[] l = Layer.values();
-    for (int i = 0; i < LayerSize; i++) {
+    LayerType[] l = LayerType.values();
+    for (int i = 0; i < LayerType.values().length; i++) {
       if (l[i] == layer) {
         return i;
       }
@@ -127,7 +106,7 @@ public final class LayerManager
   /**
    * Returns the label associated with the specified layer.
    */
-  public static String getLayerLabel(Layer layer)
+  public static String getLayerTypeLabel(LayerType layer)
   {
     String s = LayerLabels.get(layer);
     if (s != null) {
@@ -137,11 +116,45 @@ public final class LayerManager
     }
   }
 
+  /**
+   * Converts hours into scheduled time indices.
+   * @param hour The hour to convert (0..23).
+   * @return The schedule index.
+   */
+  public static int toSchedule(int hour)
+  {
+    int schedule = hour - 1;
+    while (schedule < 0) { schedule += 24; }
+    schedule %= 24;
+    return schedule;
+  }
+
+  /**
+   * Converts scheduled time indices into hours.
+   * @param schedule The schedule index to convert (0..23).
+   * @return The hour.
+   */
+  public static int toHour(int schedule)
+  {
+    int hour = schedule + 1;
+    while (hour < 0) { hour += 24; }
+    hour %= 24;
+    return hour;
+  }
+
+
   public LayerManager(AreResource are, WedResource wed, AreaViewer viewer)
   {
     this.viewer = viewer;
-    doorState = ViewerConstants.DOOR_OPEN;
     init(are, wed, true);
+  }
+
+  /**
+   * Returns the associated area viewer instance.
+   */
+  public AreaViewer getViewer()
+  {
+    return viewer;
   }
 
   /**
@@ -182,25 +195,101 @@ public final class LayerManager
     }
   }
 
-  public String getLayerAvailability(Layer layer)
+  /**
+   * Returns a formatted string that indicates how many objects of the specified layer type have been
+   * loaded.
+   * @param layer The layer to query.
+   * @return A formatted string telling about number of layer objects.
+   */
+  public String getLayerAvailability(LayerType layer)
   {
-    String fmt = LayerAvailabilityFmt.get(layer);
-    if (fmt != null && !fmt.isEmpty()) {
-      if (layer == Layer.AmbientRange) {
-        // special handling for ambient sounds with local radius
-        int cnt = 0;
-        List<LayerObject> list = getLayerObjects(layer);
-        for (int j = 0; j < list.size(); j++) {
-          if (((LayerObjectAmbient)list.get(j)).isLocal()) {
-            cnt++;
-          }
-        }
-        return String.format(fmt, cnt);
-      } else {
-        return String.format(fmt, getLayerObjects(layer).size());
-      }
+    if (layers.containsKey(layer)) {
+      return layers.get(layer).getAvailability();
     }
     return "";
+  }
+
+  /**
+   * Same as {@link #getLayerAvailability(LayerType)}, but also considers special states for layer
+   * managers that supports it.
+   * @param layer The layer to query.
+   * @param type A layer-specific type (currently only LayerAmbient is supported).
+   * @return A formatted string telling about number of layer objects.
+   */
+  public String getLayerAvailability(LayerType layer, int type)
+  {
+    if (layer == LayerType.Ambient) {
+      return getLayerAvailability(layer, type);
+    } else {
+      return getLayerAvailability(layer);
+    }
+  }
+
+  /**
+   * Returns whether time schedules for layer items will be considered in their visibility state.
+   */
+  public boolean isScheduleEnabled()
+  {
+    return scheduleEnabled;
+  }
+
+  /**
+   * Specify whether time schedules for layer items will be considered.
+   */
+  public void setScheduleEnabled(boolean enable)
+  {
+    if (enable != scheduleEnabled) {
+      scheduleEnabled = enable;
+      for (int i = 0; i < getLayerTypeCount(); i++) {
+        @SuppressWarnings("rawtypes")
+        BasicLayer bl = getLayer(getLayerType(i));
+        if (bl != null) {
+          bl.setScheduleEnabled(enable);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the currently defined schedule value (hour = schedule + 1).
+   */
+  public int getSchedule()
+  {
+    return schedule;
+  }
+
+  /**
+   * Specifiy the current schedule for layer items.
+   * @param schedule The schedule value (0 = 00:30-01:29, ..., 23 = 23:30-00:29)
+   */
+  public void setSchedule(int schedule)
+  {
+    while (schedule < 0) { schedule += 24; }
+    schedule %= 24;
+    if (schedule != this.schedule) {
+      this.schedule = schedule;
+      for (int i = 0; i < getLayerTypeCount(); i++) {
+        @SuppressWarnings("rawtypes")
+        BasicLayer bl = getLayer(getLayerType(i));
+        if (bl != null) {
+          bl.setSchedule(schedule);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns whether the specified layer object is active at the current scheduled time.
+   * @param obj The layer object to query
+   * @return <code>true</code> if the layer object is scheduled at the currently set hour or
+   *         schedule is disabled, <code>false</code> otherwise.
+   */
+  public boolean isScheduled(LayerObject obj)
+  {
+    if (obj != null) {
+      return !isScheduleEnabled() || (isScheduleEnabled() && obj.isScheduled(getSchedule()));
+    }
+    return false;
   }
 
   /**
@@ -216,40 +305,9 @@ public final class LayerManager
    * @param layer The layer to reload.
    * @return Number of layer objects found.
    */
-  public int reload(Layer layer)
+  public int reload(LayerType layer)
   {
-    switch (layer) {
-      case Actor:
-        return loadActors(true);
-      case Region:
-        return loadRegions(true);
-      case Entrance:
-        return loadEntrances(true);
-      case Container:
-        return loadContainers(true);
-      case Ambient:
-        return loadAmbientSounds(true);
-      case AmbientRange:
-        return loadAmbientRanges(true);
-      case Door:
-        return loadDoors(true);
-      case Animation:
-        return loadAnimations(true);
-      case Automap:
-        return loadAutomapNotes(true);
-      case SpawnPoint:
-        return loadSpawnPoints(true);
-      case Transition:
-        return loadTransitions(true);
-      case ProTrap:
-        return loadProTraps(true);
-      case DoorPoly:
-        return loadDoorPolys(true);
-      case WallPoly:
-        return loadWallPolys(true);
-      default:
-        return 0;
-    }
+    return loadLayer(layer, true);
   }
 
   /**
@@ -257,12 +315,11 @@ public final class LayerManager
    */
   public void clear()
   {
-    layersVisible.clear();
-    for (Layer layer: Layer.values()) {
-      List<LayerObject> list = layers.get(layer);
-      if (list != null) {
-        list.clear();
-        list = null;
+    for (LayerType layer: LayerType.values()) {
+      @SuppressWarnings("rawtypes")
+      BasicLayer bl = layers.get(layer);
+      if (bl != null) {
+        bl.clear();
       }
     }
     layers.clear();
@@ -271,18 +328,33 @@ public final class LayerManager
   }
 
   /**
+   * Returns a layer-specific manager.
+   * @param layer
+   * @return
+   */
+  @SuppressWarnings("rawtypes")
+  public BasicLayer getLayer(LayerType layer)
+  {
+    if (layer != null) {
+      return layers.get(layer);
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Returns the number of objects in the specified layer.
    * @param layer The layer to check.
    * @return Number of objects in the specified layer.
    */
-  public int getLayerObjectCount(Layer layer)
+  public int getLayerObjectCount(LayerType layer)
   {
-    List<LayerObject> list = layers.get(layer);
-    if (list != null) {
-      return list.size();
-    } else {
-      return 0;
+    @SuppressWarnings("rawtypes")
+    BasicLayer bl = layers.get(layer);
+    if (bl != null) {
+      return bl.getLayerObjectCount();
     }
+    return 0;
   }
 
   /**
@@ -291,14 +363,14 @@ public final class LayerManager
    * @param index The index of the object.
    * @return The layer object if found, <code>null</code> otherwise.
    */
-  public LayerObject getLayerObject(Layer layer, int index)
+  public LayerObject getLayerObject(LayerType layer, int index)
   {
-    List<LayerObject> list = layers.get(layer);
-    if (list != null && index >= 0 && index < list.size()) {
-      return list.get(index);
-    } else {
-      return null;
+    @SuppressWarnings("rawtypes")
+    BasicLayer bl = layers.get(layer);
+    if (bl != null) {
+      return bl.getLayerObject(index);
     }
+    return null;
   }
 
   /**
@@ -306,23 +378,136 @@ public final class LayerManager
    * @param layer The layer of the objects
    * @return A list of objects or <code>null</code> if not found.
    */
-  public List<LayerObject> getLayerObjects(Layer layer)
+  @SuppressWarnings("unchecked")
+  public List<LayerObject> getLayerObjects(LayerType layer)
   {
-    return layers.get(layer);
+    @SuppressWarnings("rawtypes")
+    BasicLayer bl = layers.get(layer);
+    if (bl != null) {
+      return bl.getLayerObjects();
+    }
+    return null;
+  }
+
+  /**
+   * Returns the current state of the door.
+   * @return Either <code>ViewerConstants.DOOR_OPEN</code> or <code>ViewerConstants.DOOR_CLOSED</code>.
+   */
+  public int getDoorState()
+  {
+    return ((LayerDoor)getLayer(LayerType.Door)).getDoorState();
   }
 
   /**
    * Sets the door state used by certain layers. Automatically updates the visibility state of
    * related layers.
-   * @param state One of <code>Open</code> or <code>Closed</code>.
+   * @param state Either <code>ViewerConstants.DOOR_OPEN</code> or <code>ViewerConstants.DOOR_CLOSED</code>.
    */
   public void setDoorState(int state)
   {
-    state = (state == ViewerConstants.DOOR_CLOSED) ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN;
-    if (state != doorState) {
-      doorState = state;
-      setLayerVisible(Layer.Door, isLayerVisible(Layer.Door));
-      setLayerVisible(Layer.DoorPoly, isLayerVisible(Layer.DoorPoly));
+    ((LayerDoor)getLayer(LayerType.Door)).setDoorState(state);
+    ((LayerDoorPoly)getLayer(LayerType.DoorPoly)).setDoorState(state);
+  }
+
+  /**
+   * Returns whether to show iconic representations of background animations or the real thing.
+   */
+  public boolean isRealAnimationEnabled()
+  {
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    if (layer != null) {
+      return layer.isRealAnimationEnabled();
+    }
+    return false;
+  }
+
+  /**
+   * Specify whether to show iconic representations of background animations or the real thing.
+   */
+  public void setRealAnimationEnabled(boolean enable)
+  {
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    if (layer != null) {
+      layer.setRealAnimationEnabled(enable);
+    }
+  }
+
+  /**
+   * Returns whether real animations are enabled and animated.
+   */
+  public boolean isRealAnimationPlaying()
+  {
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    if (layer != null) {
+      return layer.isRealAnimationPlaying();
+    }
+    return false;
+  }
+
+  /**
+   * Specify whether to animate real background animations. Setting to <code>true</code> implicitly
+   * enables real animations.
+   */
+  public void setRealAnimationPlaying(boolean play)
+  {
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    if (layer != null) {
+      layer.setRealAnimationPlaying(play);
+    }
+  }
+
+  /**
+   * Returns the currently active interpolation type for real animations.
+   * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
+   *         or ViewerConstants.TYPE_BICUBIC.
+   */
+  public int getRealAnimationInterpolation()
+  {
+    return interpolationType;
+  }
+
+  /**
+   * Sets the interpolation type for real animations
+   * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
+   *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
+   */
+  public void setRealAnimationInterpolation(int interpolationType)
+  {
+    switch (interpolationType) {
+      case ViewerConstants.TYPE_NEAREST_NEIGHBOR:
+      case ViewerConstants.TYPE_BILINEAR:
+      case ViewerConstants.TYPE_BICUBIC:
+        if (interpolationType != this.interpolationType) {
+          this.interpolationType = interpolationType;
+          LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+          if (layer != null) {
+            layer.setRealAnimationInterpolation(this.interpolationType);
+          }
+        }
+    }
+  }
+
+  /**
+   * Returns whether to force the specified interpolation type or use the best one available, depending
+   * on the current zoom factor.
+   */
+  public boolean isRealAnimationForcedInterpolation()
+  {
+    return forcedInterpolation;
+  }
+
+  /**
+   * Specify whether to force the specified interpolation type or use the best one available, depending
+   * on the current zoom factor.
+   */
+  public void setRealAnimationForcedInterpolation(boolean forced)
+  {
+    if (forced != forcedInterpolation) {
+      forcedInterpolation = forced;
+      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+      if (layer != null) {
+        layer.setRealAnimationForcedInterpolation(forcedInterpolation);
+      }
     }
   }
 
@@ -331,13 +516,16 @@ public final class LayerManager
    * @param layer The layer to check for visibility.
    * @return <code>true</code> if one or more items of the specified layer are visible, <code>false</code> otherwise.
    */
-  public boolean isLayerVisible(Layer layer)
+  public boolean isLayerVisible(LayerType layer)
   {
-    if (layer != null && layersVisible.containsKey(layer)) {
-      return layersVisible.get(layer);
-    } else {
-      return false;
+    if (layer != null) {
+      @SuppressWarnings("rawtypes")
+      BasicLayer bl = layers.get(layer);
+      if (bl != null) {
+        return bl.isLayerVisible();
+      }
     }
+    return false;
   }
 
   /**
@@ -346,82 +534,13 @@ public final class LayerManager
    * @param layer The layer of the items to change.
    * @param visible The visibility state to set.
    */
-  public void setLayerVisible(Layer layer, boolean visible)
+  public void setLayerVisible(LayerType layer, boolean visible)
   {
-    if (layer != null && layersVisible.containsKey(layer)) {
-      layersVisible.put(layer, visible);
-      List<LayerObject> list = getLayerObjects(layer);
-      int oppositeDoorState = (doorState == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN;
-      if (list != null && !list.isEmpty()) {
-        for (int i = 0; i < list.size(); i++) {
-          switch (layer) {
-            case Door:
-            {
-              // affect only door items of specific state
-              AbstractLayerItem item = ((LayerObjectDoor)list.get(i)).getLayerItem(doorState);
-              if (item != null) {
-                item.setVisible(visible);
-              }
-              // inactive door states are always invisible
-              item = ((LayerObjectDoor)list.get(i)).getLayerItem(oppositeDoorState);
-              if (item != null) {
-                item.setVisible(false);
-              }
-              break;
-            }
-            case DoorPoly:
-            {
-              // affect only door poly items of specific state
-              AbstractLayerItem[] items = ((LayerObjectDoorPoly)list.get(i)).getLayerItems(doorState);
-              if (items != null) {
-                for (int j = 0; j < items.length; j++) {
-                  if (items[j] != null) {
-                    items[j].setVisible(visible);
-                  }
-                }
-              }
-              // inactive door states are always invisible
-              items = ((LayerObjectDoorPoly)list.get(i)).getLayerItems(oppositeDoorState);
-              if (items != null) {
-                for (int j = 0; j < items.length; j++) {
-                  if (items[j] != null) {
-                    items[j].setVisible(false);
-                  }
-                }
-              }
-              break;
-            }
-            case Ambient:
-            {
-              // process only sound icon items
-              AbstractLayerItem item = ((LayerObjectAmbient)list.get(i)).getLayerItem(ViewerConstants.AMBIENT_ICON);
-              if (item != null) {
-                item.setVisible(visible);
-              }
-              break;
-            }
-            case AmbientRange:
-            {
-              // process only sound range items
-              AbstractLayerItem item = ((LayerObjectAmbient)list.get(i)).getLayerItem(ViewerConstants.AMBIENT_RANGE);
-              if (item != null) {
-                item.setVisible(visible);
-              }
-              break;
-            }
-            default:
-            {
-              AbstractLayerItem[] items = list.get(i).getLayerItems();
-              if (items != null) {
-                for (int j = 0; j < items.length; j++) {
-                  if (items[j] != null) {
-                    items[j].setVisible(visible);
-                  }
-                }
-              }
-            }
-          }
-        }
+    if (layer != null) {
+      @SuppressWarnings("rawtypes")
+      BasicLayer bl = layers.get(layer);
+      if (bl != null) {
+        bl.setLayerVisible(visible);
       }
     }
   }
@@ -434,22 +553,14 @@ public final class LayerManager
   public LayerObject getLayerObjectOf(AbstractLayerItem item)
   {
     if (item != null) {
-      Viewable v = item.getViewable();
-      for (int i = 0; i < Layer.values().length; i++) {
-        List<LayerObject> list = getLayerObjects(Layer.values()[i]);
-        if (list != null) {
-          for (int j = 0; j < list.size(); j++) {
-            if (!list.get(j).getClassType().isAssignableFrom(v.getClass())) {
-              break;
-            }
-            AbstractLayerItem[] items = list.get(j).getLayerItems();
-            if (items != null) {
-              for (int k = 0; k < items.length; k++) {
-                if (items[k] == item) {
-                  return list.get(j);
-                }
-              }
-            }
+      for (final LayerType type: LayerType.values())
+      {
+        @SuppressWarnings("rawtypes")
+        BasicLayer bl = layers.get(type);
+        if (bl != null) {
+          LayerObject obj = bl.getLayerObjectOf(item);
+          if (obj != null) {
+            return obj;
           }
         }
       }
@@ -457,10 +568,9 @@ public final class LayerManager
     return null;
   }
 
-
   // Loads objects for each layer if the parent resource (are, wed) has changed.
   // If forceReload is true, layer objects are always reloaded.
-  private void init(AreResource are, WedResource wed, boolean forceReload)
+  private void init(AreResource are, WedResource wed, boolean forced)
   {
     if (are != null && wed != null) {
       boolean areChanged = (are != this.are);
@@ -474,550 +584,185 @@ public final class LayerManager
         this.wed = wed;
       }
 
-      Layer[] ids = Layer.values();
-      for (int i = 0; i < ids.length; i++) {
-        switch (ids[i]) {
+      for (final LayerType layer: LayerType.values()) {
+        switch (layer) {
           case Actor:
-            loadActors(forceReload || areChanged);
-            break;
           case Region:
-            loadRegions(forceReload || areChanged);
-            break;
           case Entrance:
-            loadEntrances(forceReload || areChanged);
-            break;
           case Container:
-            loadContainers(forceReload || areChanged);
-            break;
           case Ambient:
-            loadAmbientSounds(forceReload || areChanged);
-            break;
-          case AmbientRange:
-            loadAmbientRanges(forceReload || areChanged);
-            break;
           case Door:
-              loadDoors(forceReload || areChanged);
-            break;
           case Animation:
-            loadAnimations(forceReload || areChanged);
-            break;
           case Automap:
-            loadAutomapNotes(forceReload || areChanged);
-            break;
           case SpawnPoint:
-            loadSpawnPoints(forceReload || areChanged);
-            break;
           case Transition:
-              loadTransitions(forceReload || areChanged);
-            break;
           case ProTrap:
-            loadProTraps(forceReload || areChanged);
+            loadLayer(layer, forced || areChanged);
             break;
           case DoorPoly:
-            loadDoorPolys(forceReload || wedChanged);
-            break;
           case WallPoly:
-            loadWallPolys(forceReload || wedChanged);
+            loadLayer(layer, forced || wedChanged);
             break;
           default:
-            System.err.println("Error: Unknown layer entry");
+            System.err.println(String.format("Unsupported layer type: %1$s", layer.toString()));
         }
       }
     }
   }
 
-  private int loadActors(boolean forceLoad)
+  // (Re-)loads the specified layer
+  private int loadLayer(LayerType layer, boolean forced)
   {
-    if (forceLoad || !layers.containsKey(Layer.Actor)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Actors offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# actors");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, Actor.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectActor obj = new LayerObjectActor(are, (Actor)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Actor, list);
-      layersVisible.put(Layer.Actor, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Actor).size();
-    }
-  }
-
-  private int loadRegions(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Region)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Triggers offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# triggers");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, ITEPoint.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectRegion obj = new LayerObjectRegion(are, (ITEPoint)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Region, list);
-      layersVisible.put(Layer.Region, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Region).size();
-    }
-  }
-
-  private int loadEntrances(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Entrance)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Entrances offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# entrances");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, Entrance.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectEntrance obj = new LayerObjectEntrance(are, (Entrance)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Entrance, list);
-      layersVisible.put(Layer.Entrance, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Entrance).size();
-    }
-  }
-
-  private int loadContainers(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Container)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Containers offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# containers");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, Container.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectContainer obj = new LayerObjectContainer(are, (Container)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Container, list);
-      layersVisible.put(Layer.Container, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Container).size();
-    }
-  }
-
-  private int loadAmbientSounds(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Ambient)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Ambients offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# ambients");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, Ambient.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectAmbient obj = new LayerObjectAmbient(are, (Ambient)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Ambient, list);
-      layersVisible.put(Layer.Ambient, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Ambient).size();
-    }
-  }
-
-  // Special: References layer objects from the ambient list that have local sound radius.
-  private int loadAmbientRanges(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.AmbientRange)) {
-      List<LayerObject> list = null;
-      if (!layers.containsKey(Layer.Ambient)) {
-        loadAmbientSounds(true);
-      }
-      List<LayerObject> listBase = layers.get(Layer.Ambient);
-      if (listBase != null) {
-        list = new ArrayList<LayerObject>(listBase.size());
-        for (int i = 0; i < listBase.size(); i++) {
-          LayerObjectAmbient obj = (LayerObjectAmbient)listBase.get(i);
-          if (obj.isLocal()) {
-            list.add(obj);
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.AmbientRange, list);
-      layersVisible.put(Layer.AmbientRange, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.AmbientRange).size();
-    }
-  }
-
-  private int loadDoors(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Door)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Doors offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# doors");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, Door.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectDoor obj = new LayerObjectDoor(are, (Door)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Door, list);
-      layersVisible.put(Layer.Door, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Door).size();
-    }
-  }
-
-  private int loadAnimations(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Animation)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Animations offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# animations");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, Animation.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectAnimation obj = new LayerObjectAnimation(are, (Animation)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
-        }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Animation, list);
-      layersVisible.put(Layer.Animation, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Animation).size();
-    }
-  }
-
-  private int loadAutomapNotes(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Automap)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Automap notes offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# automap notes");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          if ((ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)) {
-            List<StructEntry> structList = getStruct(are, ofs, count, AutomapNotePST.class);
-            for (int i = 0; i < count; i++) {
-              if (i < structList.size()) {
-                LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, (AutomapNotePST)structList.get(i));
-                setListeners(obj);
-                list.add(obj);
-              }
-            }
+    int retVal = 0;
+    if (layer != null) {
+      switch (layer) {
+        case Actor:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
           } else {
-            List<StructEntry> structList = getStruct(are, ofs, count, AutomapNote.class);
-            for (int i = 0; i < count; i++) {
-              if (i < structList.size()) {
-                LayerObjectAutomap obj = new LayerObjectAutomap(are, (AutomapNote)structList.get(i));
-                setListeners(obj);
-                list.add(obj);
-              }
-            }
+            LayerActor obj = new LayerActor(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
           }
+          break;
         }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Automap, list);
-      layersVisible.put(Layer.Automap, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Automap).size();
-    }
-  }
-
-  private int loadSpawnPoints(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.SpawnPoint)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Spawn points offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# spawn points");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, SpawnPoint.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectSpawnPoint obj = new LayerObjectSpawnPoint(are, (SpawnPoint)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
+        case Region:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerRegion obj = new LayerRegion(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
           }
+          break;
         }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.SpawnPoint, list);
-      layersVisible.put(Layer.SpawnPoint, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.SpawnPoint).size();
-    }
-  }
-
-  private int loadTransitions(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.Transition)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        list = new ArrayList<LayerObject>(4);
-        for (int i = 0; i < LayerObjectTransition.FieldName.length; i++) {
-          ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FieldName[i]);
-          if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
-            try {
-              AreResource destAre = new AreResource(ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
-              LayerObjectTransition obj = new LayerObjectTransition(are, destAre, i, viewer.getRenderer());
-              setListeners(obj);
-              list.add(obj);
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
+        case Entrance:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerEntrance obj = new LayerEntrance(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
           }
+          break;
         }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.Transition, list);
-      layersVisible.put(Layer.Transition, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.Transition).size();
-    }
-  }
-
-  private int loadProTraps(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.ProTrap)) {
-      List<LayerObject> list = null;
-      if (are != null) {
-        SectionOffset so = (SectionOffset)are.getAttribute("Projectile traps offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# projectile traps");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(are, ofs, count, ProTrap.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectProTrap obj = new LayerObjectProTrap(are, (ProTrap)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
+        case Container:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerContainer obj = new LayerContainer(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
           }
+          break;
         }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.ProTrap, list);
-      layersVisible.put(Layer.ProTrap, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.ProTrap).size();
-    }
-  }
-
-  private int loadDoorPolys(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.DoorPoly)) {
-      List<LayerObject> list = null;
-      if (wed != null) {
-        SectionOffset so = (SectionOffset)wed.getAttribute("Doors offset");
-        SectionCount sc = (SectionCount)wed.getAttribute("# doors");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(wed, ofs, count, infinity.resource.wed.Door.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectDoorPoly obj = new LayerObjectDoorPoly(wed, (infinity.resource.wed.Door)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
+        case Ambient:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerAmbient obj = new LayerAmbient(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
           }
+          break;
         }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.DoorPoly, list);
-      layersVisible.put(Layer.DoorPoly, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.DoorPoly).size();
-    }
-  }
-
-  private int loadWallPolys(boolean forceLoad)
-  {
-    if (forceLoad || !layers.containsKey(Layer.WallPoly)) {
-      List<LayerObject> list = null;
-      if (wed != null) {
-        SectionOffset so = (SectionOffset)wed.getAttribute("Wall polygons offset");
-        SectionCount sc = (SectionCount)wed.getAttribute("# wall polygons");
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          list = new ArrayList<LayerObject>(count);
-          List<StructEntry> structList = getStruct(wed, ofs, count, infinity.resource.wed.WallPolygon.class);
-          for (int i = 0; i < count; i++) {
-            if (i < structList.size()) {
-              LayerObjectWallPoly obj = new LayerObjectWallPoly(wed, (infinity.resource.wed.WallPolygon)structList.get(i));
-              setListeners(obj);
-              list.add(obj);
-            }
+        case Door:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerDoor obj = new LayerDoor(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
           }
+          break;
         }
-      }
-      if (list == null) {
-        list = new ArrayList<LayerObject>();
-      }
-      layers.put(Layer.WallPoly, list);
-      layersVisible.put(Layer.WallPoly, false);
-      return list.size();
-    } else {
-      return layers.get(Layer.WallPoly).size();
-    }
-  }
-
-
-  // Returns a list of structures matching the specified arguments
-  private List<StructEntry> getStruct(AbstractStruct parent, int baseOfs, int count, Class<? extends StructEntry> classType)
-  {
-    List<StructEntry> outList = null;
-    if (parent != null && baseOfs >= 0 && count > 0 && classType != null) {
-      List<StructEntry> list = parent.getList();
-      outList = new ArrayList<StructEntry>(count);
-      int cnt = 0;
-      for (int i = 0; i < list.size(); i++) {
-        if (list.get(i).getOffset() >= baseOfs && list.get(i).getClass().isAssignableFrom(classType)) {
-          outList.add(list.get(i));
-          cnt++;
-          if(cnt >= count) {
-            break;
+        case Animation:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerAnimation obj = new LayerAnimation(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
           }
+          break;
         }
-      }
-    } else {
-      outList = new ArrayList<StructEntry>();
-    }
-    return outList;
-  }
-
-  // Adds listeners to the layer items provided by the specified LayerObject instance.
-  private void setListeners(LayerObject obj)
-  {
-    if (obj != null && viewer != null) {
-      AbstractLayerItem[] items = obj.getLayerItems();
-      for (int i = 0; i < items.length; i++) {
-        if (items[i] != null) {
-          items[i].addActionListener(viewer);
-          items[i].addLayerItemListener(viewer);
-          items[i].addMouseListener(viewer);
-          items[i].addMouseMotionListener(viewer);
+        case Automap:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerAutomap obj = new LayerAutomap(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
         }
+        case SpawnPoint:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerSpawnPoint obj = new LayerSpawnPoint(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
+        }
+        case Transition:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerTransition obj = new LayerTransition(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
+        }
+        case ProTrap:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerProTrap obj = new LayerProTrap(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
+        }
+        case DoorPoly:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerDoorPoly obj = new LayerDoorPoly(wed, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
+        }
+        case WallPoly:
+        {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerWallPoly obj = new LayerWallPoly(wed, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
+        }
+        default:
+          System.err.println(String.format("Unsupported layer type: %1$s", layer.toString()));
       }
     }
+    return retVal;
   }
 }

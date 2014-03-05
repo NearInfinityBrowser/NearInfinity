@@ -33,7 +33,7 @@ public class LayerObjectProTrap extends LayerObject
 
   public LayerObjectProTrap(AreResource parent, ProTrap trap)
   {
-    super("Trap", ProTrap.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Trap", ProTrap.class, parent);
     this.trap = trap;
     init();
   }
@@ -57,6 +57,12 @@ public class LayerObjectProTrap extends LayerObject
   }
 
   @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    return (type == 0) ? item : null;
+  }
+
+  @Override
   public AbstractLayerItem[] getLayerItems()
   {
     return new AbstractLayerItem[]{item};
@@ -69,11 +75,11 @@ public class LayerObjectProTrap extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (item != null && mapOrigin != null) {
-      item.setItemLocation(mapOrigin.x + (int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                           mapOrigin.y + (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+    if (item != null) {
+      item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
+                           (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
   }
 

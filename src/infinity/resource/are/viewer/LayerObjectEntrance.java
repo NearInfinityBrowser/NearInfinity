@@ -35,7 +35,7 @@ public class LayerObjectEntrance extends LayerObject
 
   public LayerObjectEntrance(AreResource parent, Entrance entrance)
   {
-    super("Entrance", Entrance.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Entrance", Entrance.class, parent);
     this.entrance = entrance;
     init();
   }
@@ -59,6 +59,12 @@ public class LayerObjectEntrance extends LayerObject
   }
 
   @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    return (type == 0) ? item : null;
+  }
+
+  @Override
   public AbstractLayerItem[] getLayerItems()
   {
     return new AbstractLayerItem[]{item};
@@ -71,11 +77,11 @@ public class LayerObjectEntrance extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (item != null && mapOrigin != null) {
-      item.setItemLocation(mapOrigin.x + (int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                           mapOrigin.y + (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+    if (item != null) {
+      item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
+                           (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
   }
 

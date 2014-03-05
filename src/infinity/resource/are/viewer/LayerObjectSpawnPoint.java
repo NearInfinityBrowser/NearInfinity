@@ -36,7 +36,7 @@ public class LayerObjectSpawnPoint extends LayerObject
 
   public LayerObjectSpawnPoint(AreResource parent, SpawnPoint sp)
   {
-    super("Spawn Point", SpawnPoint.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Spawn Point", SpawnPoint.class, parent);
     this.sp = sp;
     init();
   }
@@ -60,6 +60,12 @@ public class LayerObjectSpawnPoint extends LayerObject
   }
 
   @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    return (type == 0) ? item : null;
+  }
+
+  @Override
   public AbstractLayerItem[] getLayerItems()
   {
     return new AbstractLayerItem[]{item};
@@ -72,11 +78,11 @@ public class LayerObjectSpawnPoint extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (item != null && mapOrigin != null) {
-      item.setItemLocation(mapOrigin.x + (int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                           mapOrigin.y + (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+    if (item != null) {
+      item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
+                           (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
   }
 
@@ -93,16 +99,10 @@ public class LayerObjectSpawnPoint extends LayerObject
   }
 
   @Override
-  public boolean isActiveAt(int dayTime)
+  public boolean isScheduled(int schedule)
   {
-    return isActiveAt(scheduleFlags, dayTime);
-  }
-
-  @Override
-  public boolean isActiveAtHour(int time)
-  {
-    if (time >= ViewerConstants.TIME_0 && time <= ViewerConstants.TIME_23) {
-      return (scheduleFlags.isFlagSet(time));
+    if (schedule >= ViewerConstants.TIME_0 && schedule <= ViewerConstants.TIME_23) {
+      return (scheduleFlags.isFlagSet(schedule));
     } else {
       return false;
     }

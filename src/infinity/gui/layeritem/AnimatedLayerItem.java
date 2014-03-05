@@ -470,6 +470,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
         frameInfos[1].setEnabled(enabled);
         break;
     }
+    updateFrame();
   }
 
   /**
@@ -501,6 +502,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
         frameInfos[1].setStroke(new BasicStroke((float)width));
         break;
     }
+    updateFrame();
   }
 
   /**
@@ -531,6 +533,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
         frameInfos[1].setColor(color);
         break;
     }
+    updateFrame();
   }
 
 

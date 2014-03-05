@@ -12,6 +12,31 @@ import java.awt.image.AffineTransformOp;
  */
 public final class ViewerConstants
 {
+  /**
+   * Supported layer types.
+   */
+  public static enum LayerType {Actor, Region, Entrance, Container, Ambient, Door, Animation,
+                                Automap, SpawnPoint, Transition, ProTrap, DoorPoly, WallPoly }
+
+  // Used for setting stacking order on map
+  public static enum LayerStackingType {Actor, Region, Entrance, Container, Ambient, AmbientRange,
+                                        Door, Animation, Automap, SpawnPoint, Transition,
+                                        ProTrap, DoorPoly, WallPoly }
+
+  // Interpolation types used in different graphics components
+  public static final int INTERPOLATION_AUTO            = 0;
+  public static final int INTERPOLATION_NEARESTNEIGHBOR = 1;
+  public static final int INTERPOLATION_BILINEAR        = 2;
+
+  // Frames around layer items
+  public static final int FRAME_NEVER   = 0;  // never show frame
+  public static final int FRAME_AUTO    = 1;  // show frame on mouse-over
+  public static final int FRAME_ALWAYS  = 2;  // always show frame
+
+  // Parent resource for layer objects
+  public static final int RESOURCE_ARE = 0;
+  public static final int RESOURCE_WED = 1;
+
   // Lighting conditions to simulate different day times (AnimatedLayerItem, TilesetRenderer)
   public static final int LIGHTING_DAY      = 0;
   public static final int LIGHTING_TWILIGHT = 1;
@@ -23,8 +48,8 @@ public final class ViewerConstants
   public static final int TYPE_BICUBIC          = AffineTransformOp.TYPE_BICUBIC;
 
   // Specifies the item type for animation objects (LayerObjectAnimation)
-  public static int ANIM_ICON = 0;
-  public static int ANIM_REAL = 1;
+  public static int ANIM_ITEM_ICON = 0;
+  public static int ANIM_ITEM_REAL = 1;
 
   // Different states of showing background animations (AreaViewer)
   public static final int ANIM_SHOW_NONE      = 0;
@@ -36,8 +61,13 @@ public final class ViewerConstants
   public static final int DOOR_CLOSED = 1;
 
   // The layer item types used (LayerObjectAmbient)
-  public static final int AMBIENT_ICON  = 0;
-  public static final int AMBIENT_RANGE = 1;
+  public static final int AMBIENT_ITEM_ICON  = 0;
+  public static final int AMBIENT_ITEM_RANGE = 1;
+
+  // The ambient sound type
+  public static final int AMBIENT_TYPE_GLOBAL = 1 << 0;
+  public static final int AMBIENT_TYPE_LOCAL  = 1 << 1;
+  public static final int AMBIENT_TYPE_ALL    = AMBIENT_TYPE_GLOBAL | AMBIENT_TYPE_LOCAL;
 
   // Edge of the map transition (LayerObjectTransition)
   public static final int EDGE_NORTH  = 0;
@@ -70,4 +100,55 @@ public final class ViewerConstants
   public static final int TIME_21 = 21;   // 21:30 to 22:29
   public static final int TIME_22 = 22;   // 22:30 to 23:29
   public static final int TIME_23 = 23;   // 23:30 to 00:29
+
+  // symbolic day times
+  public static final int TIME_DAY      = 12;
+  public static final int TIME_TWILIGHT = 21;
+  public static final int TIME_NIGHT    = 1;
+
+
+  /**
+   * Returns the general day time (day/twilight/night) of the specified hour.
+   * @param hour The hour in range [0..23].
+   * @return Either of {@link #LIGHTING_DAY}, {@link #LIGHTING_TWILIGHT} or {@link #LIGHTING_NIGHT}.
+   */
+  public static int getDayTime(int hour)
+  {
+    while (hour < 0) { hour += 24; }
+    hour %= 24;
+
+    switch (hour) {
+      case 0:
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 22:
+      case 23:
+        return ViewerConstants.LIGHTING_NIGHT;
+      case 6:
+      case 21:
+        return ViewerConstants.LIGHTING_TWILIGHT;
+      default:
+        return ViewerConstants.LIGHTING_DAY;
+    }
+  }
+
+  /**
+   * Returns the default hour of the specified day time (day/twilight/night)
+   * @param dayTime Either of {@link #LIGHTING_DAY}, {@link #LIGHTING_TWILIGHT} or {@link #LIGHTING_NIGHT}.
+   * @return The default hour of the specified day time.
+   */
+  public static int getHourOf(int dayTime)
+  {
+    switch (dayTime) {
+      case ViewerConstants.LIGHTING_TWILIGHT:
+        return ViewerConstants.TIME_TWILIGHT;
+      case ViewerConstants.LIGHTING_NIGHT:
+        return ViewerConstants.TIME_NIGHT;
+      default:
+        return ViewerConstants.TIME_DAY;
+    }
+  }
 }

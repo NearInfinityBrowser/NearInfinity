@@ -48,7 +48,7 @@ public class LayerObjectAmbient extends LayerObject
 
   public LayerObjectAmbient(AreResource parent, Ambient ambient)
   {
-    super("Sound", Ambient.class, parent);
+    super(ViewerConstants.RESOURCE_ARE, "Sound", Ambient.class, parent);
     this.ambient = ambient;
     init();
   }
@@ -75,6 +75,24 @@ public class LayerObjectAmbient extends LayerObject
     return itemIcon;
   }
 
+  /**
+   * Returns the layer item of specified type.
+   * @param type The type of the item to return (either <code>ViewerConstants.AMBIENT_ITEM_ICON</code> or
+   *              <code>ViewerConstants.AMBIENT_ITEM_RANGE</code>).
+   * @return The layer item of specified type.
+   */
+  @Override
+  public AbstractLayerItem getLayerItem(int type)
+  {
+    if (type == ViewerConstants.AMBIENT_ITEM_RANGE && isLocal()) {
+      return itemShape;
+    } else if (type == ViewerConstants.AMBIENT_ITEM_ICON) {
+      return itemIcon;
+    } else {
+      return null;
+    }
+  }
+
   @Override
   public AbstractLayerItem[] getLayerItems()
   {
@@ -92,23 +110,21 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public void update(Point mapOrigin, double zoomFactor)
+  public void update(double zoomFactor)
   {
-    if (mapOrigin != null) {
-      int x = mapOrigin.x + (int)(location.x*zoomFactor + (zoomFactor / 2.0));
-      int y = mapOrigin.y + (int)(location.y*zoomFactor + (zoomFactor / 2.0));
+    int x = (int)(location.x*zoomFactor + (zoomFactor / 2.0));
+    int y = (int)(location.y*zoomFactor + (zoomFactor / 2.0));
 
-      if (itemIcon != null) {
-        itemIcon.setItemLocation(x, y);
-      }
+    if (itemIcon != null) {
+      itemIcon.setItemLocation(x, y);
+    }
 
-      if (isLocal()) {
-        Shape circle = createShape(zoomFactor);
-        Rectangle rect = circle.getBounds();
-        itemShape.setItemLocation(x, y);
-        itemShape.setCenterPosition(new Point(rect.width / 2, rect.height / 2));
-        itemShape.setShape(circle);
-      }
+    if (isLocal()) {
+      Shape circle = createShape(zoomFactor);
+      Rectangle rect = circle.getBounds();
+      itemShape.setItemLocation(x, y);
+      itemShape.setCenterPosition(new Point(rect.width / 2, rect.height / 2));
+      itemShape.setShape(circle);
     }
   }
 
@@ -122,23 +138,6 @@ public class LayerObjectAmbient extends LayerObject
   public Point[] getMapLocations()
   {
     return new Point[]{location, location};
-  }
-
-  /**
-   * Returns the layer item of specified type.
-   * @param iconType The type of the item to return (either <code>ItemIcon</code> or <code>ItemRange</code>).
-   * @return The layer item of specified type.
-   */
-  public AbstractLayerItem getLayerItem(int iconType)
-  {
-    iconType = (iconType == ViewerConstants.AMBIENT_ICON) ? ViewerConstants.AMBIENT_ICON : ViewerConstants.AMBIENT_RANGE;
-    if (iconType == ViewerConstants.AMBIENT_RANGE && isLocal()) {
-      return itemShape;
-    } else if (iconType == ViewerConstants.AMBIENT_ICON) {
-      return itemIcon;
-    } else {
-      return null;
-    }
   }
 
   /**
@@ -166,16 +165,10 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public boolean isActiveAt(int dayTime)
+  public boolean isScheduled(int schedule)
   {
-    return isActiveAt(scheduleFlags, dayTime);
-  }
-
-  @Override
-  public boolean isActiveAtHour(int time)
-  {
-    if (time >= ViewerConstants.TIME_0 && time <= ViewerConstants.TIME_23) {
-      return (scheduleFlags.isFlagSet(time));
+    if (schedule >= ViewerConstants.TIME_0 && schedule <= ViewerConstants.TIME_23) {
+      return (scheduleFlags.isFlagSet(schedule));
     } else {
       return false;
     }
