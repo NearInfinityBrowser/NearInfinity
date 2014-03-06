@@ -67,22 +67,28 @@ public class Settings
   public static int TimeOfDay = getDefaultTimeOfDay();
   // The current zoom level of the map (as combobox item index)
   public static int ZoomLevel = getDefaultZoomLevel();
+  // The frame rate for animated overlays
+  public static double FrameRateOverlays = getDefaultFrameRateOverlays();
+  // The frame rate for animated background animations
+  public static double FrameRateAnimations = getDefaultFrameRateAnimations();
 
   // Preferences keys for specific settings
-  private static final String PREFS_STORESETTINGS = "StoreSettings";
-  private static final String PREFS_DRAWCLOSED = "DrawClosed";
-  private static final String PREFS_DRAWOVERLAYS = "DrawOverlays";
-  private static final String PREFS_DRAWGRID = "DrawGrid";
-  private static final String PREFS_SHOWFRAME = "ShowFrame";
-  private static final String PREFS_SHOWAMBIENT = "ShowAmbientRanges";
-  private static final String PREFS_ENABLESCHEDULES = "EnableSchedules";
-  private static final String PREFS_LAYERFLAGS = "LayerFlags";
-  private static final String PREFS_SHOWREALANIMS = "ShowRealAnimations";
-  private static final String PREFS_TIMEOFDAY = "TimeOfDay";
-  private static final String PREFS_ZOOMLEVEL = "ZoomLevel";
-  private static final String PREFS_LAYERZORDER_FMT = "LayerZOrder%1$d";
-  private static final String PREFS_INTERPOLATION_MAP = "InterpolationMap";
+  private static final String PREFS_STORESETTINGS       = "StoreSettings";
+  private static final String PREFS_DRAWCLOSED          = "DrawClosed";
+  private static final String PREFS_DRAWOVERLAYS        = "DrawOverlays";
+  private static final String PREFS_DRAWGRID            = "DrawGrid";
+  private static final String PREFS_SHOWFRAME           = "ShowFrame";
+  private static final String PREFS_SHOWAMBIENT         = "ShowAmbientRanges";
+  private static final String PREFS_ENABLESCHEDULES     = "EnableSchedules";
+  private static final String PREFS_LAYERFLAGS          = "LayerFlags";
+  private static final String PREFS_SHOWREALANIMS       = "ShowRealAnimations";
+  private static final String PREFS_TIMEOFDAY           = "TimeOfDay";
+  private static final String PREFS_ZOOMLEVEL           = "ZoomLevel";
+  private static final String PREFS_LAYERZORDER_FMT     = "LayerZOrder%1$d";
+  private static final String PREFS_INTERPOLATION_MAP   = "InterpolationMap";
   private static final String PREFS_INTERPOLATION_ANIMS = "InterpolationAnims";
+  private static final String PREFS_FRAMERATE_OVERLAYS  = "FrameRateOverlays";
+  private static final String PREFS_FRAMERATE_ANIMS     = "FrameRateAnims";
 
   private static boolean SettingsLoaded = false;
 
@@ -100,6 +106,8 @@ public class Settings
       ShowFrame = prefs.getInt(PREFS_SHOWFRAME, getDefaultShowFrame());
       InterpolationMap = prefs.getInt(PREFS_INTERPOLATION_MAP, getDefaultInterpolationMap());
       InterpolationAnim = prefs.getInt(PREFS_INTERPOLATION_ANIMS, getDefaultInterpolationAnim());
+      FrameRateOverlays = prefs.getDouble(PREFS_FRAMERATE_OVERLAYS, getDefaultFrameRateOverlays());
+      FrameRateAnimations = prefs.getDouble(PREFS_FRAMERATE_ANIMS, getDefaultFrameRateAnimations());
 
       // loading layer z-order
       ListLayerOrder.clear();
@@ -143,6 +151,8 @@ public class Settings
     prefs.putInt(PREFS_SHOWFRAME, ShowFrame);
     prefs.putInt(PREFS_INTERPOLATION_MAP, InterpolationMap);
     prefs.putInt(PREFS_INTERPOLATION_ANIMS, InterpolationAnim);
+    prefs.putDouble(PREFS_FRAMERATE_OVERLAYS, FrameRateOverlays);
+    prefs.putDouble(PREFS_FRAMERATE_ANIMS, FrameRateAnimations);
 
     // storing layer z-order
     for (int i = 0; i < ListLayerOrder.size(); i++) {
@@ -182,6 +192,8 @@ public class Settings
                                 ViewerConstants.INTERPOLATION_BILINEAR);
     InterpolationAnim = Math.min(Math.max(InterpolationAnim, ViewerConstants.INTERPOLATION_AUTO),
                                  ViewerConstants.INTERPOLATION_BILINEAR);
+    FrameRateOverlays = Math.min(Math.max(FrameRateOverlays, 1.0), 30.0);
+    FrameRateAnimations = Math.min(Math.max(FrameRateAnimations, 1.0), 30.0);
 
     // validating layers z-order
     mask = 0;
@@ -278,6 +290,16 @@ public class Settings
   public static int getDefaultZoomLevel()
   {
     return ZoomFactorIndexDefault;
+  }
+
+  public static double getDefaultFrameRateOverlays()
+  {
+    return 7.5;
+  }
+
+  public static double getDefaultFrameRateAnimations()
+  {
+    return 15.0;
   }
 
   // Converts values from LayerStackingType to LayerType

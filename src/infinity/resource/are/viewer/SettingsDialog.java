@@ -34,9 +34,11 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -63,6 +65,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
   private JComboBox cbQualityMap, cbQualityAnim;
   private JCheckBox cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
+  private JSpinner sOverlaysFps, sAnimationsFps;
   private boolean settingsChanged;
 
   public SettingsDialog(Window owner)
@@ -131,6 +134,9 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     Settings.InterpolationMap = cbQualityMap.getSelectedIndex();
     Settings.InterpolationAnim = cbQualityAnim.getSelectedIndex();
 
+    Settings.FrameRateOverlays = (Double)sOverlaysFps.getValue();
+    Settings.FrameRateAnimations = (Double)sAnimationsFps.getValue();
+
     Settings.StoreVisualSettings = cbStoreSettings.isSelected();
 
     settingsChanged = true;
@@ -163,6 +169,9 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
 
     cbQualityMap.setSelectedIndex(Settings.getDefaultInterpolationMap());
     cbQualityAnim.setSelectedIndex(Settings.getDefaultInterpolationAnim());
+
+    sOverlaysFps.setValue(Double.valueOf(Settings.getDefaultFrameRateOverlays()));
+    sAnimationsFps.setValue(Double.valueOf(Settings.getDefaultFrameRateAnimations()));
 
     cbStoreSettings.setSelected(Settings.getDefaultStoreVisualSettings());
   }
@@ -235,7 +244,6 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     taOrderNote.setSelectionColor(lDummy.getBackground());
     taOrderNote.setSelectedTextColor(lDummy.getForeground());
     taOrderNote.setText("Note: Layers of higher priority are drawn on top of layers of lower priority.");
-    lDummy = null;
 
     JPanel pLayersArrows = new JPanel(new GridBagLayout());
     bUp = new JButton(Icons.getIcon("Up16.gif"));
@@ -321,6 +329,43 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
                GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
     pQuality.add(cbQualityAnim, c);
 
+    // Frame rates
+    JPanel pFrameRates = new JPanel(new GridBagLayout());
+    pFrameRates.setBorder(BorderFactory.createTitledBorder("Frame rates: "));
+    JTextArea taFrameRatesNote = new JTextArea();
+    taFrameRatesNote.setEditable(false);
+    taFrameRatesNote.setWrapStyleWord(true);
+    taFrameRatesNote.setLineWrap(true);
+    taFrameRatesNote.setFont(lDummy.getFont());
+    taFrameRatesNote.setBackground(lDummy.getBackground());
+    taFrameRatesNote.setSelectionColor(lDummy.getBackground());
+    taFrameRatesNote.setSelectedTextColor(lDummy.getForeground());
+    taFrameRatesNote.setText("Caution: The area viewer may become less responsive on higher frame rates.");
+
+    sOverlaysFps = new JSpinner(new SpinnerNumberModel(Settings.FrameRateOverlays, 1.0, 30.0, 0.5));
+    sAnimationsFps = new JSpinner(new SpinnerNumberModel(Settings.FrameRateAnimations, 1.0, 30.0, 0.5));
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 4, 0), 0, 0);
+    pFrameRates.add(new JLabel("Overlays:"), c);
+    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 8, 4, 0), 0, 0);
+    pFrameRates.add(sOverlaysFps, c);
+    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 4, 0), 0, 0);
+    pFrameRates.add(new JLabel("fps"), c);
+    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 16, 4, 0), 0, 0);
+    pFrameRates.add(new JLabel("Animations:"), c);
+    c = setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 8, 4, 0), 0, 0);
+    pFrameRates.add(sAnimationsFps, c);
+    c = setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 4, 4), 0, 0);
+    pFrameRates.add(new JLabel("fps"), c);
+    c = setGBC(c, 0, 1, 6, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    pFrameRates.add(taFrameRatesNote, c);
+
     // Misc. settings
     JPanel pMisc = new JPanel(new GridBagLayout());
     pMisc.setBorder(BorderFactory.createTitledBorder("Misc. settings: "));
@@ -359,11 +404,14 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     pOptions.add(pQuality, c);
     c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    pOptions.add(pFrameRates, c);
+    c = setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pOptions.add(pMisc, c);
-    c = setGBC(c, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    c = setGBC(c, 0, 4, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(new JPanel(), c);
-    c = setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    c = setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(pButtons, c);
 

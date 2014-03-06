@@ -25,6 +25,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 
   private boolean realEnabled, realPlaying, forcedInterpolation;
   private int frameState, interpolationType;
+  private double frameRate;
 
   public LayerAnimation(AreResource are, AreaViewer viewer)
   {
@@ -234,6 +235,36 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
           updateFrameState();
         }
         break;
+      }
+    }
+  }
+
+  /**
+   * Returns the frame rate used for playing back background animations.
+   * @return Frame rate in frames/second.
+   */
+  public double getRealAnimationFrameRate()
+  {
+    return frameRate;
+  }
+
+  /**
+   * Specify a new frame rate for real animations.
+   * @param frameRate Frame rate in frames/second.
+   */
+  public void setRealAnimationFrameRate(double frameRate)
+  {
+    frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
+    if (frameRate != this.frameRate) {
+      this.frameRate = frameRate;
+      List<LayerObjectAnimation> list = getLayerObjects();
+      if (list != null) {
+        for (int i = 0; i < list.size(); i++) {
+          AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+          if (item != null) {
+            item.setFrameRate(this.frameRate);
+          }
+        }
       }
     }
   }

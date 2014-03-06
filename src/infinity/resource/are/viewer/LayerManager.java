@@ -16,10 +16,6 @@ import java.util.List;
  * Manages all layer objects of a single ARE map.
  * @author argent77
  */
-/*
- * TODO: add interpolation type support for animations
- * TODO: add update layer item methods for all layers
- */
 public final class LayerManager
 {
   // Defines order of drawing
@@ -66,8 +62,9 @@ public final class LayerManager
 
   private AreResource are;
   private WedResource wed;
-  private boolean scheduleEnabled, forcedInterpolation;
-  private int schedule, interpolationType;
+  private boolean scheduleEnabled, animForcedInterpolation;
+  private int schedule, animInterpolationType;
+  private double animFrameRate;
 
   /**
    * Returns the number of supported layer types.
@@ -463,7 +460,7 @@ public final class LayerManager
    */
   public int getRealAnimationInterpolation()
   {
-    return interpolationType;
+    return animInterpolationType;
   }
 
   /**
@@ -477,11 +474,11 @@ public final class LayerManager
       case ViewerConstants.TYPE_NEAREST_NEIGHBOR:
       case ViewerConstants.TYPE_BILINEAR:
       case ViewerConstants.TYPE_BICUBIC:
-        if (interpolationType != this.interpolationType) {
-          this.interpolationType = interpolationType;
+        if (interpolationType != animInterpolationType) {
+          animInterpolationType = interpolationType;
           LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
           if (layer != null) {
-            layer.setRealAnimationInterpolation(this.interpolationType);
+            layer.setRealAnimationInterpolation(animInterpolationType);
           }
         }
     }
@@ -493,7 +490,7 @@ public final class LayerManager
    */
   public boolean isRealAnimationForcedInterpolation()
   {
-    return forcedInterpolation;
+    return animForcedInterpolation;
   }
 
   /**
@@ -502,11 +499,36 @@ public final class LayerManager
    */
   public void setRealAnimationForcedInterpolation(boolean forced)
   {
-    if (forced != forcedInterpolation) {
-      forcedInterpolation = forced;
+    if (forced != animForcedInterpolation) {
+      animForcedInterpolation = forced;
       LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
       if (layer != null) {
-        layer.setRealAnimationForcedInterpolation(forcedInterpolation);
+        layer.setRealAnimationForcedInterpolation(animForcedInterpolation);
+      }
+    }
+  }
+
+  /**
+   * Returns the frame rate used for playing back background animations.
+   * @return Frame rate in frames/second.
+   */
+  public double getRealAnimationFrameRate()
+  {
+    return animFrameRate;
+  }
+
+  /**
+   * Specify a new frame rate for background animations.
+   * @param frameRate Frame rate in frames/second.
+   */
+  public void setRealAnimationFrameRate(double frameRate)
+  {
+    frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
+    if (frameRate != this.animFrameRate) {
+      animFrameRate = frameRate;
+      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+      if (layer != null) {
+        layer.setRealAnimationFrameRate(animFrameRate);
       }
     }
   }

@@ -233,7 +233,6 @@ public class AreaViewer extends ChildFrame
         } finally {
           WindowBlocker.blockWindow(this, false);
         }
-        WindowBlocker.blockWindow(this, false);
       } else if (cb == cbDrawClosed) {
         WindowBlocker.blockWindow(this, true);
         try {
@@ -306,8 +305,12 @@ public class AreaViewer extends ChildFrame
     } else if (event.getSource() == tbSettings) {
       viewSettings();
     } else if (event.getSource() == tbRefresh) {
-      // TODO: add "Refresh map structures" functionality
-      JOptionPane.showMessageDialog(this, "Not yet implemented...", "Reload map structures", JOptionPane.INFORMATION_MESSAGE);
+      WindowBlocker.blockWindow(this, true);
+      try {
+        reloadLayers();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
     } else if (ArrayUtil.indexOf(tbAddLayerItem, event.getSource()) >= 0) {
       // TODO: include "Add layer item" functionality
       int index = ArrayUtil.indexOf(tbAddLayerItem, event.getSource());
@@ -912,7 +915,7 @@ public class AreaViewer extends ChildFrame
     tbRefresh = new JButton(Icons.getIcon("icn_refresh.png"));
     tbRefresh.setToolTipText("Update map");
     tbRefresh.addActionListener(this);
-//    toolBar.add(tbRefresh);
+    toolBar.add(tbRefresh);
 
     updateToolBarButtons();
 
@@ -991,7 +994,7 @@ public class AreaViewer extends ChildFrame
     // initializing layers
     layerManager = new LayerManager(getCurrentAre(), getCurrentWed(), this);
     layerManager.setDoorState(Settings.DrawClosed ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN);
-    layerManager.setScheduleEnabled(true);
+    layerManager.setScheduleEnabled(Settings.EnableSchedules);
     layerManager.setSchedule(LayerManager.toSchedule(getHour()));
     addLayerItems();
     updateScheduledItems();
@@ -1047,6 +1050,8 @@ public class AreaViewer extends ChildFrame
         dayNight = "day";
     }
 
+    String scheduleState = Settings.EnableSchedules ? "enabled" : "disabled";
+
     String doorState = isDoorStateClosed() ? "closed" : "open";
 
     String overlayState;
@@ -1060,8 +1065,8 @@ public class AreaViewer extends ChildFrame
 
     String gridState = isTileGridEnabled() ? "enabled" : "disabled";
 
-    setTitle(String.format("%1$s  (Time: %2$02d:00 (%3$s), Doors: %4$s, Overlays: %5$s, Grid: %6$s, Zoom: %7$d%%)",
-                           windowTitle, getHour(), dayNight, doorState, overlayState, gridState, zoom));
+    setTitle(String.format("%1$s  (Time: %2$02d:00 (%3$s), Schedules: %4$s, Doors: %5$s, Overlays: %6$s, Grid: %7$s, Zoom: %8$d%%)",
+                           windowTitle, getHour(), dayNight, scheduleState, doorState, overlayState, gridState, zoom));
   }
 
   // Returns the general day time (day/twilight/night)
@@ -1146,7 +1151,7 @@ public class AreaViewer extends ChildFrame
           }
           if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(Map.MAP_DAY)) {
             rcCanvas.loadMap(map.getWed(Map.MAP_DAY));
-            reloadWedLayers();
+            reloadWedLayers(true);
           }
           rcCanvas.setLighting(index);
           break;
@@ -1156,7 +1161,7 @@ public class AreaViewer extends ChildFrame
           }
           if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(Map.MAP_DAY)) {
             rcCanvas.loadMap(map.getWed(Map.MAP_DAY));
-            reloadWedLayers();
+            reloadWedLayers(true);
           }
           rcCanvas.setLighting(index);
           break;
@@ -1167,7 +1172,7 @@ public class AreaViewer extends ChildFrame
           if (!rcCanvas.isMapLoaded() || map.hasExtendedNight()) {
             if (rcCanvas.getWed() != map.getWed(Map.MAP_NIGHT)) {
               rcCanvas.loadMap(map.getWed(Map.MAP_NIGHT));
-              reloadWedLayers();
+              reloadWedLayers(true);
             }
           }
           if (!map.hasExtendedNight()) {
@@ -1548,18 +1553,22 @@ public class AreaViewer extends ChildFrame
               AbstractLayerItem[] items = itemList.get(j).getLayerItems();
               // for each layer item...
               for (int k = 0; k < items.length; k++) {
-                // special case: Ambient/Ambient range (avoid duplicates)
+                // special case: Ambient/Ambient range (avoiding duplicates)
                 if (stacking == LayerStackingType.Ambient &&
-                    isLayerEnabled(LayerStackingType.AmbientRange) &&
+                    cbLayerAmbientRange.isSelected() &&
                     ((LayerObjectAmbient)itemList.get(j)).isLocal()) {
                   // skipped: will be handled in AmbientRange layer
                   break;
                 }
-                if (stacking == LayerStackingType.AmbientRange &&
-                    ((LayerObjectAmbient)itemList.get(j)).isLocal() &&
-                    k == ViewerConstants.AMBIENT_ITEM_ICON) {
-                  // considering ranged item only
-                  continue;
+                if (stacking == LayerStackingType.AmbientRange) {
+                  if (((LayerObjectAmbient)itemList.get(j)).isLocal() &&
+                      k == ViewerConstants.AMBIENT_ITEM_ICON) {
+                    // considering ranged item only
+                    continue;
+                  } else if (!((LayerObjectAmbient)itemList.get(j)).isLocal()) {
+                    // global sounds don't have ambient ranges
+                    break;
+                  }
                 }
                 itemLocation.x = canvasCoords.x - items[k].getX();
                 itemLocation.y = canvasCoords.y - items[k].getY();
@@ -1631,33 +1640,45 @@ public class AreaViewer extends ChildFrame
   // Updates all available layer items
   private void reloadLayers()
   {
-    reloadAreLayers();
-    reloadWedLayers();
+    reloadAreLayers(false);
+    reloadWedLayers(false);
+    orderLayerItems();
   }
 
   // Updates ARE-related layer items
-  private void reloadAreLayers()
+  private void reloadAreLayers(boolean order)
   {
     if (layerManager != null) {
-      for (int i = 0; i < LayerStackingType.values().length; i++) {
-        LayerStackingType layer = LayerStackingType.values()[i];
-        if (layer != LayerStackingType.DoorPoly && layer != LayerStackingType.WallPoly) {
-          removeLayerItems(layer);
-          layerManager.setAreResource(getCurrentAre());
-          updateLayerItems(layer);
-          addLayerItems(layer);
-          if (layer != LayerStackingType.AmbientRange) {
-            showLayer(Settings.stackingToLayer(layer), cbLayers[i].isSelected());
+//      layerManager.setAreResource(getCurrentAre());
+      for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
+        LayerType layer = LayerManager.getLayerType(i);
+        LayerStackingType layer2 = Settings.layerToStacking(layer);
+        if (layer != LayerType.DoorPoly && layer != LayerType.WallPoly) {
+          removeLayerItems(layer2);
+          if (layer == LayerType.Ambient) {
+            removeLayerItems(LayerStackingType.AmbientRange);
           }
+          layerManager.reload(layer);
+          updateLayerItems(layer2);
+          addLayerItems(layer2);
+          if (layer == LayerType.Ambient) {
+            updateLayerItems(LayerStackingType.AmbientRange);
+            addLayerItems(LayerStackingType.AmbientRange);
+          }
+          showLayer(layer, cbLayers[i].isSelected());
         }
       }
-      updateAmbientRange();
-      updateRealAnimation();
     }
+    updateAmbientRange();
+    updateRealAnimation();
+    if (order) {
+      orderLayerItems();
+    }
+    rcCanvas.repaint();
   }
 
   // Updates WED-related layer items
-  private void reloadWedLayers()
+  private void reloadWedLayers(boolean order)
   {
     if (layerManager != null) {
       removeLayerItems(LayerStackingType.DoorPoly);
@@ -1665,11 +1686,15 @@ public class AreaViewer extends ChildFrame
       layerManager.setWedResource(getCurrentWed());
       updateLayerItems(LayerStackingType.DoorPoly);
       addLayerItems(LayerStackingType.DoorPoly);
-      showLayer(LayerType.DoorPoly, cbLayers[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)].isSelected());
       updateLayerItems(LayerStackingType.WallPoly);
       addLayerItems(LayerStackingType.WallPoly);
+      showLayer(LayerType.DoorPoly, cbLayers[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)].isSelected());
       showLayer(LayerType.WallPoly, cbLayers[LayerManager.getLayerTypeIndex(LayerType.WallPoly)].isSelected());
     }
+    if (order) {
+      orderLayerItems();
+    }
+    rcCanvas.repaint();
   }
 
 
@@ -1769,11 +1794,11 @@ public class AreaViewer extends ChildFrame
     return NearInfinity.getInstance();
   }
 
-
   // Applying time schedule settings to layer items
   private void updateTimeSchedules()
   {
     layerManager.setScheduleEnabled(Settings.EnableSchedules);
+    updateWindowTitle();
   }
 
   // Updates the state of the ambient sound range checkbox and associated functionality
@@ -1953,14 +1978,16 @@ public class AreaViewer extends ChildFrame
           for (int j = 0; j < list.size(); j++) {
             if (Settings.ListLayerOrder.get(i) == LayerStackingType.AmbientRange) {
               // Special: process ambient ranges only
-              AbstractLayerItem item = list.get(j).getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
+              LayerObjectAmbient obj = (LayerObjectAmbient)list.get(j);
+              AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
               if (item != null) {
                 rcCanvas.setComponentZOrder(item, index);
                 index++;
               }
             } else if (Settings.ListLayerOrder.get(i) == LayerStackingType.Ambient) {
               // Special: process ambient icons only
-              AbstractLayerItem item = list.get(j).getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
+              LayerObjectAmbient obj = (LayerObjectAmbient)list.get(j);
+              AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
               rcCanvas.setComponentZOrder(item, index);
               index++;
             } else {
@@ -2096,6 +2123,13 @@ public class AreaViewer extends ChildFrame
           layerManager.setRealAnimationInterpolation(ViewerConstants.TYPE_NEAREST_NEIGHBOR);
           break;
       }
+      // applying frame rate to animated overlays
+      int interval = (int)(1000.0 / Settings.FrameRateOverlays);
+      if (interval != timerOverlays.getDelay()) {
+        timerOverlays.setDelay(interval);
+      }
+      // applying frame rate to background animations
+      layerManager.setRealAnimationFrameRate(Settings.FrameRateAnimations);
     }
   }
 
