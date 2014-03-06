@@ -95,6 +95,7 @@ public class AreaViewer extends ChildFrame
 {
   private static final String LabelInfoX = "Position X:";
   private static final String LabelInfoY = "Position Y:";
+  private static final String LabelEnableSchedule = "Enable time schedules";
   private static final String LabelDrawClosed = "Draw closed";
   private static final String LabelDrawOverlays = "Enable overlays";
   private static final String LabelAnimateOverlays = "Animate overlays";
@@ -117,7 +118,7 @@ public class AreaViewer extends ChildFrame
   private JButton tbAre, tbWed, tbSongs, tbRest, tbSettings, tbRefresh;
   private ButtonPopupWindow bpwDayTime;
   private DayTimePanel pDayTime;
-  private JCheckBox cbDrawClosed, cbDrawOverlays, cbAnimateOverlays, cbDrawGrid;
+  private JCheckBox cbDrawClosed, cbDrawOverlays, cbAnimateOverlays, cbDrawGrid, cbEnableSchedules;
   private JComboBox cbZoomLevel;
   private JCheckBox cbLayerAmbientRange;
   private JLabel lPosX, lPosY;
@@ -224,6 +225,15 @@ public class AreaViewer extends ChildFrame
           cbLayerRealAnimation[0].setSelected(false);
         }
         updateRealAnimation();
+      } else if (cb == cbEnableSchedules) {
+        WindowBlocker.blockWindow(this, true);
+        try {
+          Settings.EnableSchedules = cbEnableSchedules.isSelected();
+          updateTimeSchedules();
+        } finally {
+          WindowBlocker.blockWindow(this, false);
+        }
+        WindowBlocker.blockWindow(this, false);
       } else if (cb == cbDrawClosed) {
         WindowBlocker.blockWindow(this, true);
         try {
@@ -628,6 +638,10 @@ public class AreaViewer extends ChildFrame
     bpwDayTime.setContent(pDayTime);
     bpwDayTime.setMargin(new Insets(4, bpwDayTime.getMargin().left, 4, bpwDayTime.getMargin().right));
 
+    cbEnableSchedules = new JCheckBox(LabelEnableSchedule);
+    cbEnableSchedules.setToolTipText("Enable activity schedules on layer structures that support them (e.g. actors, ambient sounds or background animations.");
+    cbEnableSchedules.addActionListener(this);
+
     cbDrawClosed = new JCheckBox(LabelDrawClosed);
     cbDrawClosed.setToolTipText("Draw opened or closed states of doors");
     cbDrawClosed.addActionListener(this);
@@ -661,17 +675,20 @@ public class AreaViewer extends ChildFrame
     p.add(bpwDayTime, c);
     c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
-    p.add(cbDrawClosed, c);
+    p.add(cbEnableSchedules, c);
     c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
-    p.add(cbDrawGrid, c);
+    p.add(cbDrawClosed, c);
     c = setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
-    p.add(cbDrawOverlays, c);
+    p.add(cbDrawGrid, c);
     c = setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    p.add(cbDrawOverlays, c);
+    c = setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
     p.add(cbAnimateOverlays, c);
-    c = setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+    c = setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
     p.add(pZoom, c);
 
@@ -945,6 +962,9 @@ public class AreaViewer extends ChildFrame
     // initializing visual state of the map
     setHour(Settings.TimeOfDay);
 
+    // initializing time schedules for layer items
+    cbEnableSchedules.setSelected(Settings.EnableSchedules);
+
     // initializing closed state of doors
     cbDrawClosed.setSelected(Settings.DrawClosed);
     cbDrawClosed.setEnabled(rcCanvas.hasDoors());
@@ -1005,6 +1025,7 @@ public class AreaViewer extends ChildFrame
     cbLayerRealAnimation[1].setSelected(false);
     updateRealAnimation();
 
+    updateTimeSchedules();
     applySettings();
   }
 
@@ -1749,6 +1770,12 @@ public class AreaViewer extends ChildFrame
   }
 
 
+  // Applying time schedule settings to layer items
+  private void updateTimeSchedules()
+  {
+    layerManager.setScheduleEnabled(Settings.EnableSchedules);
+  }
+
   // Updates the state of the ambient sound range checkbox and associated functionality
   private void updateAmbientRange()
   {
@@ -2055,8 +2082,6 @@ public class AreaViewer extends ChildFrame
     if (layerManager != null) {
       // applying animation frame settings
       ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationFrameState(Settings.ShowFrame);
-      // applying time schedule settings to layer items
-      layerManager.setScheduleEnabled(!Settings.IgnoreSchedules);
       // applying interpolation settings to animations
       switch (Settings.InterpolationAnim) {
         case ViewerConstants.INTERPOLATION_AUTO:

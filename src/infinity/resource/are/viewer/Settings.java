@@ -52,7 +52,7 @@ public class Settings
   // Current visibility state of ambient range items
   public static boolean ShowAmbientRanges = getDefaultAmbientRanges();
   // Defines whether to ignore time schedules on layer items
-  public static boolean IgnoreSchedules = getDefaultIgnoreSchedules();
+  public static boolean EnableSchedules = getDefaultEnableSchedules();
   // Indicates whether to show frames around real background animations all the time
   public static int ShowFrame = getDefaultShowFrame();
   // Interpolation state of map tileset
@@ -75,7 +75,7 @@ public class Settings
   private static final String PREFS_DRAWGRID = "DrawGrid";
   private static final String PREFS_SHOWFRAME = "ShowFrame";
   private static final String PREFS_SHOWAMBIENT = "ShowAmbientRanges";
-  private static final String PREFS_IGNORESCHEDULES = "IgnoreSchedules";
+  private static final String PREFS_ENABLESCHEDULES = "EnableSchedules";
   private static final String PREFS_LAYERFLAGS = "LayerFlags";
   private static final String PREFS_SHOWREALANIMS = "ShowRealAnimations";
   private static final String PREFS_TIMEOFDAY = "TimeOfDay";
@@ -97,7 +97,6 @@ public class Settings
 
       // loading required settings
       StoreVisualSettings = prefs.getBoolean(PREFS_STORESETTINGS, getDefaultStoreVisualSettings());
-      IgnoreSchedules = prefs.getBoolean(PREFS_IGNORESCHEDULES, getDefaultIgnoreSchedules());
       ShowFrame = prefs.getInt(PREFS_SHOWFRAME, getDefaultShowFrame());
       InterpolationMap = prefs.getInt(PREFS_INTERPOLATION_MAP, getDefaultInterpolationMap());
       InterpolationAnim = prefs.getInt(PREFS_INTERPOLATION_ANIMS, getDefaultInterpolationAnim());
@@ -115,6 +114,7 @@ public class Settings
 
       // loading optional settings
       if (StoreVisualSettings || force) {
+        EnableSchedules = prefs.getBoolean(PREFS_ENABLESCHEDULES, getDefaultEnableSchedules());
         DrawClosed = prefs.getBoolean(PREFS_DRAWCLOSED, getDefaultDrawClosed());
         DrawOverlays = prefs.getBoolean(PREFS_DRAWOVERLAYS, getDefaultDrawOverlays());
         DrawGrid = prefs.getBoolean(PREFS_DRAWGRID, getDefaultDrawGrid());
@@ -140,7 +140,6 @@ public class Settings
 
     // storing basic settings
     prefs.putBoolean(PREFS_STORESETTINGS, StoreVisualSettings);
-    prefs.putBoolean(PREFS_IGNORESCHEDULES, IgnoreSchedules);
     prefs.putInt(PREFS_SHOWFRAME, ShowFrame);
     prefs.putInt(PREFS_INTERPOLATION_MAP, InterpolationMap);
     prefs.putInt(PREFS_INTERPOLATION_ANIMS, InterpolationAnim);
@@ -152,6 +151,7 @@ public class Settings
 
     // storing optional settings
     if (StoreVisualSettings || force) {
+      prefs.putBoolean(PREFS_ENABLESCHEDULES, EnableSchedules);
       prefs.putBoolean(PREFS_DRAWCLOSED, DrawClosed);
       prefs.putBoolean(PREFS_DRAWOVERLAYS, DrawOverlays);
       prefs.putBoolean(PREFS_DRAWGRID, DrawGrid);
@@ -240,7 +240,7 @@ public class Settings
     return false;
   }
 
-  public static boolean getDefaultIgnoreSchedules()
+  public static boolean getDefaultEnableSchedules()
   {
     return false;
   }

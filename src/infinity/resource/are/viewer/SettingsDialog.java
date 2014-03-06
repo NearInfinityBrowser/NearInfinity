@@ -61,7 +61,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
   private JList listLayers;
   private JButton bUp, bDown, bDefaultOrder;
   private JComboBox cbQualityMap, cbQualityAnim;
-  private JCheckBox cbIgnoreSchedules, cbStoreSettings;
+  private JCheckBox cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private boolean settingsChanged;
 
@@ -132,7 +132,6 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     Settings.InterpolationAnim = cbQualityAnim.getSelectedIndex();
 
     Settings.StoreVisualSettings = cbStoreSettings.isSelected();
-    Settings.IgnoreSchedules = cbIgnoreSchedules.isSelected();
 
     settingsChanged = true;
   }
@@ -165,7 +164,6 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     cbQualityMap.setSelectedIndex(Settings.getDefaultInterpolationMap());
     cbQualityAnim.setSelectedIndex(Settings.getDefaultInterpolationAnim());
 
-    cbIgnoreSchedules.setSelected(Settings.getDefaultIgnoreSchedules());
     cbStoreSettings.setSelected(Settings.getDefaultStoreVisualSettings());
   }
 
@@ -281,13 +279,13 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     JPanel pShowFrame = new JPanel(new GridBagLayout());
     ButtonGroup bg = new ButtonGroup();
     pShowFrame.setBorder(BorderFactory.createTitledBorder("Background animations: "));
-    rbFrames[ViewerConstants.FRAME_NEVER] = new JRadioButton("Never show frame around items");
+    rbFrames[ViewerConstants.FRAME_NEVER] = new JRadioButton("Never show frame around animations");
     rbFrames[ViewerConstants.FRAME_NEVER].addActionListener(this);
     bg.add(rbFrames[ViewerConstants.FRAME_NEVER]);
     rbFrames[ViewerConstants.FRAME_AUTO] = new JRadioButton("Show frame on mouse-over only");
     rbFrames[ViewerConstants.FRAME_AUTO].addActionListener(this);
     bg.add(rbFrames[ViewerConstants.FRAME_AUTO]);
-    rbFrames[ViewerConstants.FRAME_ALWAYS] = new JRadioButton("Always show frame around items");
+    rbFrames[ViewerConstants.FRAME_ALWAYS] = new JRadioButton("Always show frame around animations");
     rbFrames[ViewerConstants.FRAME_ALWAYS].addActionListener(this);
     bg.add(rbFrames[ViewerConstants.FRAME_ALWAYS]);
     bg.setSelected(rbFrames[Settings.ShowFrame].getModel(), true);
@@ -326,13 +324,8 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     // Misc. settings
     JPanel pMisc = new JPanel(new GridBagLayout());
     pMisc.setBorder(BorderFactory.createTitledBorder("Misc. settings: "));
-    cbIgnoreSchedules = new JCheckBox("Ignore time schedules for layer structures");
-    cbIgnoreSchedules.setSelected(Settings.IgnoreSchedules);
-    cbStoreSettings = new JCheckBox("Permanently store visual state and layer settings");
+    cbStoreSettings = new JCheckBox("Permanently store visual state and layers settings");
     cbStoreSettings.setSelected(Settings.StoreVisualSettings);
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
-    pMisc.add(cbIgnoreSchedules, c);
     c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
     pMisc.add(cbStoreSettings, c);
