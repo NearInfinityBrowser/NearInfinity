@@ -241,7 +241,7 @@ public final class LayerManager
         @SuppressWarnings("rawtypes")
         BasicLayer bl = getLayer(getLayerType(i));
         if (bl != null) {
-          bl.setScheduleEnabled(enable);
+          bl.setScheduleEnabled(scheduleEnabled);
         }
       }
     }
@@ -269,7 +269,7 @@ public final class LayerManager
         @SuppressWarnings("rawtypes")
         BasicLayer bl = getLayer(getLayerType(i));
         if (bl != null) {
-          bl.setSchedule(schedule);
+          bl.setSchedule(this.schedule);
         }
       }
     }

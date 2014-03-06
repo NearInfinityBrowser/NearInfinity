@@ -62,12 +62,6 @@ public abstract class BasicLayer<O extends LayerObject>
 
     // setting associated area viewer instance
     this.viewer = viewer;
-
-    // initializing misc. variables
-    schedule = 0;
-    scheduleEnabled = true;
-    visible = false;
-    initialized = false;
   }
 
   /**

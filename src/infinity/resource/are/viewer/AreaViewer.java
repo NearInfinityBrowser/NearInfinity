@@ -1028,7 +1028,7 @@ public class AreaViewer extends ChildFrame
     cbLayerRealAnimation[1].setSelected(false);
     updateRealAnimation();
 
-    updateTimeSchedules();
+    updateWindowTitle();
     applySettings();
   }
 
