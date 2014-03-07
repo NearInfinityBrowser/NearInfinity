@@ -86,10 +86,6 @@ public class RenderCanvas extends JComponent implements SwingConstants
   public void setImage(Image image)
   {
     if (currentImage != image) {
-      if (currentImage != null) {
-        currentImage.flush();
-        currentImage = null;
-      }
       currentImage = image;
       updateSize();
     }

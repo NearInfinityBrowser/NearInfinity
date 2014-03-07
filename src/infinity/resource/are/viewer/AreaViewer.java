@@ -1193,33 +1193,6 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Sets visibility state of scheduled layer items depending on current day time
-  private void updateScheduledItems()
-  {
-    if (layerManager != null) {
-      for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
-        LayerType layer = LayerManager.getLayerType(i);
-        layerManager.setLayerVisible(layer, isLayerEnabled(layer));
-      }
-    }
-  }
-
-
-  // Applies the specified lighting condition to real animation items
-  private void updateRealAnimationsLighting(int visualState)
-  {
-    if (layerManager != null) {
-      List<LayerObject> list = layerManager.getLayerObjects(LayerType.Animation);
-      if (list != null) {
-        for (int i = 0; i < list.size(); i++) {
-          LayerObjectAnimation obj = (LayerObjectAnimation)list.get(i);
-          obj.setLighting(visualState);
-        }
-      }
-    }
-  }
-
-
   // Returns whether map dragging is enabled; updates current and previous mouse positions
   private boolean isMapDragging(Point mousePos)
   {
@@ -1794,6 +1767,17 @@ public class AreaViewer extends ChildFrame
     return NearInfinity.getInstance();
   }
 
+  // Sets visibility state of scheduled layer items depending on current day time
+  private void updateScheduledItems()
+  {
+    if (layerManager != null) {
+      for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
+        LayerType layer = LayerManager.getLayerType(i);
+        layerManager.setLayerVisible(layer, isLayerEnabled(layer));
+      }
+    }
+  }
+
   // Applying time schedule settings to layer items
   private void updateTimeSchedules()
   {
@@ -1817,6 +1801,20 @@ public class AreaViewer extends ChildFrame
 
       // Storing settings
       Settings.ShowAmbientRanges = cbLayerAmbientRange.isSelected();
+    }
+  }
+
+  // Applies the specified lighting condition to real animation items
+  private void updateRealAnimationsLighting(int visualState)
+  {
+    if (layerManager != null) {
+      List<LayerObject> list = layerManager.getLayerObjects(LayerType.Animation);
+      if (list != null) {
+        for (int i = 0; i < list.size(); i++) {
+          LayerObjectAnimation obj = (LayerObjectAnimation)list.get(i);
+          obj.setLighting(visualState);
+        }
+      }
     }
   }
 

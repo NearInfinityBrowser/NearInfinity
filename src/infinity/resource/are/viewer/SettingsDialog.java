@@ -343,7 +343,11 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     taFrameRatesNote.setText("Caution: The area viewer may become less responsive on higher frame rates.");
 
     sOverlaysFps = new JSpinner(new SpinnerNumberModel(Settings.FrameRateOverlays, 1.0, 30.0, 0.5));
+    d = sOverlaysFps.getPreferredSize();
+    sOverlaysFps.setPreferredSize(new Dimension(d.width + 16, d.height));
     sAnimationsFps = new JSpinner(new SpinnerNumberModel(Settings.FrameRateAnimations, 1.0, 30.0, 0.5));
+    d = sAnimationsFps.getPreferredSize();
+    sAnimationsFps.setPreferredSize(new Dimension(d.width + 16, d.height));
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 4, 4, 0), 0, 0);
     pFrameRates.add(new JLabel("Overlays:"), c);
