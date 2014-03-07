@@ -4,8 +4,11 @@
 
 package infinity.resource.are.viewer;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
+import infinity.datatype.Flag;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.gui.layeritem.AbstractLayerItem;
@@ -59,6 +62,29 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
           setInitialized(true);
         }
       }
+
+      // sorting entries (animations not flagged as "draw as background" come first)
+      Collections.sort(list, new Comparator<LayerObjectAnimation>() {
+        @Override
+        public int compare(LayerObjectAnimation o1, LayerObjectAnimation o2) {
+          boolean isBackground1, isBackground2;
+          try {
+            isBackground1 = ((Flag)((Animation)o1.getStructure()).getAttribute("Appearance")).isFlagSet(8);
+            isBackground2 = ((Flag)((Animation)o2.getStructure()).getAttribute("Appearance")).isFlagSet(8);
+          } catch (Exception e) {
+            isBackground1 = false;
+            isBackground2 = false;
+          }
+          if (!isBackground1 && isBackground2) {
+            return -1;
+          } else if (isBackground1 && !isBackground2) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
+      });
+
       return list.size();
     }
     return 0;

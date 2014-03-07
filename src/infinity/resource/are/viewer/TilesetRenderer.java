@@ -22,6 +22,7 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.TextString;
 import infinity.gui.RenderCanvas;
 import infinity.resource.ResourceFactory;
+import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.TisDecoder;
 import infinity.resource.key.ResourceEntry;
@@ -75,6 +76,9 @@ public class TilesetRenderer extends RenderCanvas
   private boolean forcedInterpolation = false;  // indicates whether to use a pre-defined interpolation type or set one based on zoom factor
   private double zoomFactor = 1.0;        // zoom factor for drawing the map
   private int lighting = ViewerConstants.LIGHTING_DAY;    // the lighting condition to be used (day/twilight/night)
+  private int miniMapType = ViewerConstants.MAP_NONE;     // the currently overlayed mini map (one of the MAP_XXX constants)
+  private int miniMapAlpha = 128;                         // alpha transparency for overlayed mini maps
+  private BmpResource miniMap = null;                     // the current mini map resource
 
   /**
    * Returns the number of supported lighting modes.
@@ -406,6 +410,71 @@ public class TilesetRenderer extends RenderCanvas
       hasChangedOverlays = true;
     }
     if (hasChangedOverlays) {
+      updateDisplay();
+    }
+  }
+
+  /**
+   * Returns the type of the current mini map.
+   * @return One of the MAP_XXX constants.
+   */
+  public int getMiniMapType()
+  {
+    return miniMapType;
+  }
+
+  /**
+   * Returns the BmpResource instance of the current mini map.
+   * @return BmpResource instance of the current mini map, or <code>null</code> if not available.
+   */
+  public BmpResource getMiniMap()
+  {
+    return miniMap;
+  }
+
+  /**
+   * Specify a new mini map to be overlayed.
+   * @param mapType The type of the mini map.
+   * @param bmp The mini map resource.
+   */
+  public void setMiniMap(int mapType, BmpResource bmp)
+  {
+    if (mapType != miniMapType || bmp != miniMap) {
+      switch (mapType) {
+        case ViewerConstants.MAP_SEARCH:
+        case ViewerConstants.MAP_HEIGHT:
+        case ViewerConstants.MAP_LIGHT:
+          miniMap = (bmp.getImage() != null) ? bmp : null;
+          miniMapType = (miniMap != null) ? mapType : ViewerConstants.MAP_NONE;
+          break;
+        default:
+          miniMap = null;
+          miniMapType = ViewerConstants.MAP_NONE;
+      }
+      hasChangedAppearance = true;
+      updateDisplay();
+    }
+  }
+
+  /**
+   * Returns the currently set transparency for overlayed mini maps.
+   * @return The alpha transparency of mini maps. Range: [0..255]
+   */
+  public int getMiniMapTransparency()
+  {
+    return miniMapAlpha;
+  }
+
+  /**
+   * Specify the alpha transparency for overlayed mini maps.
+   * @param alpha Alpha transparency in range [0..255] for overlayed mini maps.
+   */
+  public void setMiniMapTransparency(int alpha)
+  {
+    alpha = Math.min(Math.max(alpha, 0), 255);
+    if (miniMapAlpha != alpha) {
+      miniMapAlpha = alpha;
+      hasChangedAppearance = true;
       updateDisplay();
     }
   }
@@ -820,6 +889,56 @@ public class TilesetRenderer extends RenderCanvas
           srcTile = null;
           imgTile.flush();
           imgTile = null;
+        }
+      }
+
+      // drawing mini map if available
+      if (miniMap != null && miniMapType != -1) {
+        BufferedImage miniMapImage = miniMap.getImage();
+        int miniMapWidth = miniMapImage.getWidth();
+        int miniMapHeight = miniMapImage.getHeight();
+        int[] map = ((DataBufferInt)miniMapImage.getRaster().getDataBuffer()).getData();
+
+        double scaleX = (double)miniMapWidth / (double)getMapWidth(false);
+        double scaleY = (double)miniMapHeight / (double)getMapHeight(false);
+        double curX = (double)tile.getX() * scaleX;
+        double nextX = Math.floor(curX) + 1.0;
+        double curY = (double)tile.getY() * scaleY;
+        double nextY = Math.floor(curY) + 1.0;
+        int startPixelX = (int)Math.floor(curX);
+        int curPixelX = startPixelX;
+        int curPixelY = (int)Math.floor(curY);
+
+        int srcAlpha = miniMapAlpha;
+        int dstAlpha = 256 - srcAlpha;
+        int dstOfs = 0;
+        for (int y = 0; y < 64; y++) {
+          curPixelX = startPixelX;
+          int srcOfs = curPixelY*miniMapWidth + curPixelX;
+          for (int x = 0; x < 64; x++) {
+            // blending pixels
+            int sr = (((map[srcOfs] >>> 16) & 0xff) * srcAlpha) >>> 8;
+            int sg = (((map[srcOfs] >>> 8) & 0xff) * srcAlpha) >>> 8;
+            int sb = ((map[srcOfs] & 0xff) * srcAlpha) >>> 8;
+            int dr = (((target[dstOfs] >>> 16) & 0xff) * dstAlpha) >>> 8;
+            int dg = (((target[dstOfs] >>> 8) & 0xff) * dstAlpha) >>> 8;
+            int db = ((target[dstOfs] & 0xff) * dstAlpha) >>> 8;
+            int color = ((sr + dr) << 16) | ((sg + dg) << 8) | (sb + db);
+            target[dstOfs] = 0xff000000 | color;
+
+            curX += scaleX;
+            if (curX >= nextX) {
+              nextX += 1.0;
+              curPixelX++;
+              srcOfs++;
+            }
+            dstOfs++;
+          }
+          curY += scaleY;
+          if (curY >= nextY) {
+            nextY += 1.0;
+            curPixelY++;
+          }
         }
       }
 

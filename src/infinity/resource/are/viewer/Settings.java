@@ -71,6 +71,10 @@ public class Settings
   public static double FrameRateOverlays = getDefaultFrameRateOverlays();
   // The frame rate for animated background animations
   public static double FrameRateAnimations = getDefaultFrameRateAnimations();
+  // The alpha transparency for mini map overlays (search/height/light maps), range: [0.0, 1.0]
+  public static double MiniMapAlpha = getDefaultMiniMapAlpha();
+  // One of the MAP_XXX constants for minimaps
+  public static int MiniMap = getDefaultMiniMap();
 
   // Preferences keys for specific settings
   private static final String PREFS_STORESETTINGS       = "StoreSettings";
@@ -89,6 +93,8 @@ public class Settings
   private static final String PREFS_INTERPOLATION_ANIMS = "InterpolationAnims";
   private static final String PREFS_FRAMERATE_OVERLAYS  = "FrameRateOverlays";
   private static final String PREFS_FRAMERATE_ANIMS     = "FrameRateAnims";
+  private static final String PREFS_MINIMAP_ALPHA       = "MiniMapAlpha";
+  private static final String PREFS_MINIMAP             = "MiniMap";
 
   private static boolean SettingsLoaded = false;
 
@@ -108,6 +114,7 @@ public class Settings
       InterpolationAnim = prefs.getInt(PREFS_INTERPOLATION_ANIMS, getDefaultInterpolationAnim());
       FrameRateOverlays = prefs.getDouble(PREFS_FRAMERATE_OVERLAYS, getDefaultFrameRateOverlays());
       FrameRateAnimations = prefs.getDouble(PREFS_FRAMERATE_ANIMS, getDefaultFrameRateAnimations());
+      MiniMapAlpha = prefs.getDouble(PREFS_MINIMAP_ALPHA, getDefaultMiniMapAlpha());
 
       // loading layer z-order
       ListLayerOrder.clear();
@@ -131,6 +138,7 @@ public class Settings
         ShowRealAnimations = prefs.getInt(PREFS_SHOWREALANIMS, getDefaultShowRealAnimations());
         TimeOfDay = prefs.getInt(PREFS_TIMEOFDAY, getDefaultTimeOfDay());
         ZoomLevel = prefs.getInt(PREFS_ZOOMLEVEL, getDefaultZoomLevel());
+        MiniMap = prefs.getInt(PREFS_MINIMAP, getDefaultMiniMap());
       }
       validateSettings();
       SettingsLoaded = true;
@@ -153,6 +161,7 @@ public class Settings
     prefs.putInt(PREFS_INTERPOLATION_ANIMS, InterpolationAnim);
     prefs.putDouble(PREFS_FRAMERATE_OVERLAYS, FrameRateOverlays);
     prefs.putDouble(PREFS_FRAMERATE_ANIMS, FrameRateAnimations);
+    prefs.putDouble(PREFS_MINIMAP_ALPHA, MiniMapAlpha);
 
     // storing layer z-order
     for (int i = 0; i < ListLayerOrder.size(); i++) {
@@ -170,6 +179,7 @@ public class Settings
       prefs.putInt(PREFS_SHOWREALANIMS, ShowRealAnimations);
       prefs.putInt(PREFS_TIMEOFDAY, TimeOfDay);
       prefs.putInt(PREFS_ZOOMLEVEL, ZoomLevel);
+      prefs.putInt(PREFS_MINIMAP, MiniMap);
     }
     try {
       prefs.flush();
@@ -194,6 +204,8 @@ public class Settings
                                  ViewerConstants.INTERPOLATION_BILINEAR);
     FrameRateOverlays = Math.min(Math.max(FrameRateOverlays, 1.0), 30.0);
     FrameRateAnimations = Math.min(Math.max(FrameRateAnimations, 1.0), 30.0);
+    MiniMapAlpha = Math.min(Math.max(MiniMapAlpha, 0.0), 1.0);
+    MiniMap = Math.min(Math.max(MiniMap, ViewerConstants.MAP_NONE), ViewerConstants.MAP_HEIGHT);
 
     // validating layers z-order
     mask = 0;
@@ -301,6 +313,17 @@ public class Settings
   {
     return 15.0;
   }
+
+  public static double getDefaultMiniMapAlpha()
+  {
+    return 0.5;
+  }
+
+  public static int getDefaultMiniMap()
+  {
+    return ViewerConstants.MAP_NONE;
+  }
+
 
   // Converts values from LayerStackingType to LayerType
   public static LayerType stackingToLayer(LayerStackingType type)

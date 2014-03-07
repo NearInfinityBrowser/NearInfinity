@@ -18,6 +18,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -34,11 +35,14 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -46,7 +50,8 @@ import javax.swing.event.ListSelectionListener;
  * A settings dialog for the area viewer.
  * @author argent77
  */
-public class SettingsDialog extends JDialog implements ActionListener, ListSelectionListener
+public class SettingsDialog extends JDialog
+  implements ActionListener, ListSelectionListener, ChangeListener
 {
   private static final String[] QualityItems = new String[]{"Choose optimal interpolation automatically",
                                                             "Always use nearest neighbor interpolation",
@@ -66,6 +71,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
   private JCheckBox cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
+  private JSlider sMiniMapAlpha;
   private boolean settingsChanged;
 
   public SettingsDialog(Window owner)
@@ -114,6 +120,18 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
 
   // --------------------- End Interface ListSelectionListener ---------------------
 
+  // --------------------- Begin Interface ChangeListener ---------------------
+
+  @Override
+  public void stateChanged(ChangeEvent event)
+  {
+    if (event.getSource() == sMiniMapAlpha) {
+      // TODO
+    }
+  }
+
+  // --------------------- End Interface ChangeListener ---------------------
+
   // Applies dialog settings to the global Settings entries
   private void updateSettings()
   {
@@ -136,6 +154,8 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
 
     Settings.FrameRateOverlays = (Double)sOverlaysFps.getValue();
     Settings.FrameRateAnimations = (Double)sAnimationsFps.getValue();
+
+    Settings.MiniMapAlpha = (double)sMiniMapAlpha.getValue() / 100.0;
 
     Settings.StoreVisualSettings = cbStoreSettings.isSelected();
 
@@ -172,6 +192,8 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
 
     sOverlaysFps.setValue(Double.valueOf(Settings.getDefaultFrameRateOverlays()));
     sAnimationsFps.setValue(Double.valueOf(Settings.getDefaultFrameRateAnimations()));
+
+    sMiniMapAlpha.setValue((int)(Settings.getDefaultMiniMapAlpha()*100.0));
 
     cbStoreSettings.setSelected(Settings.getDefaultStoreVisualSettings());
   }
@@ -370,10 +392,31 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
                GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
     pFrameRates.add(taFrameRatesNote, c);
 
+    // Minimap transparency
+    JPanel pMiniMap = new JPanel(new GridBagLayout());
+    pMiniMap.setBorder(BorderFactory.createTitledBorder("Mini map transparency: "));
+
+    Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
+    for (int i = 0; i <= 100; i+=25) {
+      table.put(Integer.valueOf(i), new JLabel(String.format("%1$d%%", i)));
+    }
+    sMiniMapAlpha = new JSlider(0, 100, (int)(Settings.MiniMapAlpha*100.0));
+    sMiniMapAlpha.addChangeListener(this);
+    sMiniMapAlpha.setSnapToTicks(false);
+    sMiniMapAlpha.setLabelTable(table);
+    sMiniMapAlpha.setPaintLabels(true);
+    sMiniMapAlpha.setMinorTickSpacing(5);
+    sMiniMapAlpha.setMajorTickSpacing(25);
+    sMiniMapAlpha.setPaintTicks(true);
+    sMiniMapAlpha.setPaintTrack(true);
+    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    pMiniMap.add(sMiniMapAlpha, c);
+
     // Misc. settings
     JPanel pMisc = new JPanel(new GridBagLayout());
     pMisc.setBorder(BorderFactory.createTitledBorder("Misc. settings: "));
-    cbStoreSettings = new JCheckBox("Permanently store visual state and layers settings");
+    cbStoreSettings = new JCheckBox("Remember all visual settings");
     cbStoreSettings.setSelected(Settings.StoreVisualSettings);
     c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
@@ -411,11 +454,14 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     pOptions.add(pFrameRates, c);
     c = setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    pOptions.add(pMiniMap, c);
+    c = setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pOptions.add(pMisc, c);
-    c = setGBC(c, 0, 4, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    c = setGBC(c, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(new JPanel(), c);
-    c = setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    c = setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(pButtons, c);
 

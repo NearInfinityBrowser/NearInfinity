@@ -23,6 +23,16 @@ public final class ViewerConstants
                                         Door, Animation, Automap, SpawnPoint, Transition,
                                         ProTrap, DoorPoly, WallPoly }
 
+  // Identifiers for specifying day/night versions of ARE/WED resources
+  public static final int AREA_DAY    = 0;
+  public static final int AREA_NIGHT  = 1;
+
+  // Identifiers for specifying the search/light/height maps for the current area
+  public static final int MAP_NONE    = -1;
+  public static final int MAP_SEARCH  = 0;
+  public static final int MAP_LIGHT   = 1;
+  public static final int MAP_HEIGHT  = 2;
+
   // Interpolation types used in different graphics components
   public static final int INTERPOLATION_AUTO            = 0;
   public static final int INTERPOLATION_NEARESTNEIGHBOR = 1;

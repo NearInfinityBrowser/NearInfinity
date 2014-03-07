@@ -77,6 +77,7 @@ import infinity.resource.are.RestSpawn;
 import infinity.resource.are.Song;
 import infinity.resource.are.viewer.ViewerConstants.LayerStackingType;
 import infinity.resource.are.viewer.ViewerConstants.LayerType;
+import infinity.resource.graphics.BmpResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
@@ -106,6 +107,7 @@ public class AreaViewer extends ChildFrame
   private final String windowTitle;
   private final JCheckBox[] cbLayers = new JCheckBox[LayerManager.getLayerTypeCount()];;
   private final JCheckBox[] cbLayerRealAnimation = new JCheckBox[2];
+  private final JCheckBox[] cbMiniMaps = new JCheckBox[3];
   private final JToggleButton[] tbAddLayerItem = new JToggleButton[LayerManager.getLayerTypeCount()];
 
   private LayerManager layerManager;
@@ -263,6 +265,39 @@ public class AreaViewer extends ChildFrame
         WindowBlocker.blockWindow(this, true);
         try {
           setOverlaysAnimated(cb.isSelected());
+        } finally {
+          WindowBlocker.blockWindow(this, false);
+        }
+      } else if (cb == cbMiniMaps[ViewerConstants.MAP_SEARCH]) {
+        if (cb.isSelected()) {
+          cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
+          cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
+        }
+        WindowBlocker.blockWindow(this, true);
+        try {
+          updateMiniMap();
+        } finally {
+          WindowBlocker.blockWindow(this, false);
+        }
+      } else if (cb == cbMiniMaps[ViewerConstants.MAP_LIGHT]) {
+        if (cb.isSelected()) {
+          cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
+          cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
+        }
+        WindowBlocker.blockWindow(this, true);
+        try {
+          updateMiniMap();
+        } finally {
+          WindowBlocker.blockWindow(this, false);
+        }
+      } else if (cb == cbMiniMaps[ViewerConstants.MAP_HEIGHT]) {
+        if (cb.isSelected()) {
+          cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
+          cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
+        }
+        WindowBlocker.blockWindow(this, true);
+        try {
+          updateMiniMap();
         } finally {
           WindowBlocker.blockWindow(this, false);
         }
@@ -545,10 +580,10 @@ public class AreaViewer extends ChildFrame
   {
     Settings.storeSettings(false);
 
-    if (!map.closeWed(Map.MAP_DAY, true)) {
+    if (!map.closeWed(ViewerConstants.AREA_DAY, true)) {
       return false;
     }
-    if (!map.closeWed(Map.MAP_NIGHT, true)) {
+    if (!map.closeWed(ViewerConstants.AREA_NIGHT, true)) {
       return false;
     }
     if (map != null) {
@@ -627,10 +662,8 @@ public class AreaViewer extends ChildFrame
     spCanvas.getViewport().addChangeListener(this);
     spCanvas.getVerticalScrollBar().setUnitIncrement(16);
     spCanvas.getHorizontalScrollBar().setUnitIncrement(16);
-    JPanel pView = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
-    pView.add(spCanvas, c);
+    JPanel pView = new JPanel(new BorderLayout());
+    pView.add(spCanvas, BorderLayout.CENTER);
 
     // Creating right side bar
     // Creating Visual State area
@@ -744,6 +777,26 @@ public class AreaViewer extends ChildFrame
     pLayers.add(p, c);
 
 
+    // Creating minimap area
+    cbMiniMaps[ViewerConstants.MAP_SEARCH] = new JCheckBox("Display search map");
+    cbMiniMaps[ViewerConstants.MAP_SEARCH].addActionListener(this);
+    cbMiniMaps[ViewerConstants.MAP_LIGHT] = new JCheckBox("Display light map");
+    cbMiniMaps[ViewerConstants.MAP_LIGHT].addActionListener(this);
+    cbMiniMaps[ViewerConstants.MAP_HEIGHT] = new JCheckBox("Display height map");
+    cbMiniMaps[ViewerConstants.MAP_HEIGHT].addActionListener(this);
+    JPanel pMiniMaps = new JPanel(new GridBagLayout());
+    pMiniMaps.setBorder(BorderFactory.createTitledBorder("Mini maps: "));
+    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    pMiniMaps.add(cbMiniMaps[ViewerConstants.MAP_SEARCH], c);
+    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    pMiniMaps.add(cbMiniMaps[ViewerConstants.MAP_LIGHT], c);
+    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 4, 4), 0, 0);
+    pMiniMaps.add(cbMiniMaps[ViewerConstants.MAP_HEIGHT], c);
+
+
     // Creating Info Box area
     JLabel lPosXLabel = new JLabel(LabelInfoX);
     JLabel lPosYLabel = new JLabel(LabelInfoY);
@@ -791,8 +844,11 @@ public class AreaViewer extends ChildFrame
     pSideBar.add(pLayers, c);
     c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 4), 0, 0);
+    pSideBar.add(pMiniMaps, c);
+    c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 4), 0, 0);
     pSideBar.add(pInfoBox, c);
-    c = setGBC(c, 0, 3, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    c = setGBC(c, 0, 4, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
     pSideBar.add(new JPanel(), c);
 
@@ -916,6 +972,7 @@ public class AreaViewer extends ChildFrame
     tbRefresh.setToolTipText("Update map");
     tbRefresh.addActionListener(this);
     toolBar.add(tbRefresh);
+    pView.add(toolBar, BorderLayout.NORTH);
 
     updateToolBarButtons();
 
@@ -935,7 +992,7 @@ public class AreaViewer extends ChildFrame
     Container pane = getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(pMain, BorderLayout.CENTER);
-    pane.add(toolBar, BorderLayout.NORTH);
+//    pane.add(toolBar, BorderLayout.NORTH);
     pack();
 
     // setting window size and state
@@ -961,6 +1018,11 @@ public class AreaViewer extends ChildFrame
   private void initGuiSettings()
   {
     Settings.loadSettings(false);
+
+    // initializing minimap state (needs to be set before the first call to setHour)
+    cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(Settings.MiniMap == ViewerConstants.MAP_SEARCH);
+    cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(Settings.MiniMap == ViewerConstants.MAP_LIGHT);
+    cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(Settings.MiniMap == ViewerConstants.MAP_HEIGHT);
 
     // initializing visual state of the map
     setHour(Settings.TimeOfDay);
@@ -1120,9 +1182,9 @@ public class AreaViewer extends ChildFrame
   private int getCurrentWedIndex()
   {
     if (map != null) {
-      return getDayTime() == ViewerConstants.LIGHTING_NIGHT ? Map.MAP_NIGHT : Map.MAP_DAY;
+      return getDayTime() == ViewerConstants.LIGHTING_NIGHT ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
     } else {
-      return Map.MAP_DAY;
+      return ViewerConstants.AREA_DAY;
     }
   }
 
@@ -1146,32 +1208,32 @@ public class AreaViewer extends ChildFrame
         index <= ViewerConstants.LIGHTING_NIGHT) {
       switch (index) {
         case ViewerConstants.LIGHTING_DAY:
-          if (!isProgressMonitorActive() && map.getWed(Map.MAP_DAY) != rcCanvas.getWed()) {
+          if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_DAY) != rcCanvas.getWed()) {
             initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
           }
-          if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(Map.MAP_DAY)) {
-            rcCanvas.loadMap(map.getWed(Map.MAP_DAY));
+          if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
+            rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
             reloadWedLayers(true);
           }
           rcCanvas.setLighting(index);
           break;
         case ViewerConstants.LIGHTING_TWILIGHT:
-          if (!isProgressMonitorActive() && map.getWed(Map.MAP_DAY) != rcCanvas.getWed()) {
+          if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_DAY) != rcCanvas.getWed()) {
             initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
           }
-          if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(Map.MAP_DAY)) {
-            rcCanvas.loadMap(map.getWed(Map.MAP_DAY));
+          if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
+            rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
             reloadWedLayers(true);
           }
           rcCanvas.setLighting(index);
           break;
         case ViewerConstants.LIGHTING_NIGHT:
-          if (!isProgressMonitorActive() && map.getWed(Map.MAP_NIGHT) != rcCanvas.getWed()) {
+          if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_NIGHT) != rcCanvas.getWed()) {
             initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
           }
           if (!rcCanvas.isMapLoaded() || map.hasExtendedNight()) {
-            if (rcCanvas.getWed() != map.getWed(Map.MAP_NIGHT)) {
-              rcCanvas.loadMap(map.getWed(Map.MAP_NIGHT));
+            if (rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_NIGHT)) {
+              rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_NIGHT));
               reloadWedLayers(true);
             }
           }
@@ -1185,6 +1247,7 @@ public class AreaViewer extends ChildFrame
         Settings.TimeOfDay = hour;
       }
 
+      updateMiniMap();
       updateToolBarButtons();
       updateRealAnimationsLighting(getDayTime());
       updateScheduledItems();
@@ -1609,7 +1672,6 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-
   // Updates all available layer items
   private void reloadLayers()
   {
@@ -1765,6 +1827,25 @@ public class AreaViewer extends ChildFrame
     }
     // Last resort: returning NearInfinity instance
     return NearInfinity.getInstance();
+  }
+
+  // Updates the visibility state of minimaps (search/height/light maps)
+  private void updateMiniMap()
+  {
+    if (map != null) {
+      int type;
+      if (cbMiniMaps[ViewerConstants.MAP_SEARCH].isSelected()) {
+        type = ViewerConstants.MAP_SEARCH;
+      } else if (cbMiniMaps[ViewerConstants.MAP_LIGHT].isSelected()) {
+        type = ViewerConstants.MAP_LIGHT;
+      } else if (cbMiniMaps[ViewerConstants.MAP_HEIGHT].isSelected()) {
+        type = ViewerConstants.MAP_HEIGHT;
+      } else {
+        type = ViewerConstants.MAP_NONE;
+      }
+      Settings.MiniMap = type;
+      rcCanvas.setMiniMap(Settings.MiniMap, map.getMiniMap(Settings.MiniMap, getDayTime() == ViewerConstants.LIGHTING_NIGHT));
+    }
   }
 
   // Sets visibility state of scheduled layer items depending on current day time
@@ -2104,6 +2185,9 @@ public class AreaViewer extends ChildFrame
     // applying interpolation settings to map
     rcCanvas.setInterpolationType(Settings.InterpolationMap);
     rcCanvas.setForcedInterpolation(Settings.InterpolationMap != ViewerConstants.INTERPOLATION_AUTO);
+    // applying minimap alpha
+    rcCanvas.setMiniMapTransparency((int)(Settings.MiniMapAlpha*255.0));
+
     if (layerManager != null) {
       // applying animation frame settings
       ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationFrameState(Settings.ShowFrame);
@@ -2155,16 +2239,15 @@ public class AreaViewer extends ChildFrame
   // Handles map-specific properties
   private static class Map
   {
-    private static final int MAP_DAY    = 0;
-    private static final int MAP_NIGHT  = 1;
-
     private final Window parent;
     private final WedResource[] wed = new WedResource[2];
     private final AbstractLayerItem[] wedItem = new IconLayerItem[]{null, null};
+    private final BmpResource[] mapLight = new BmpResource[]{null, null};
 
     private AreResource are;
     private boolean hasDayNight, hasExtendedNight;
     private AbstractLayerItem areItem, songItem, restItem;
+    private BmpResource mapSearch, mapHeight;
 
     public Map(Window parent, AreResource are)
     {
@@ -2182,33 +2265,71 @@ public class AreaViewer extends ChildFrame
       restItem = null;
       are = null;
       areItem = null;
-      closeWed(MAP_DAY, false);
-      wed[MAP_DAY] = null;
-      closeWed(MAP_NIGHT, false);
-      wed[MAP_NIGHT] = null;
-      wedItem[MAP_DAY] = null;
-      wedItem[MAP_NIGHT] = null;
+      closeWed(ViewerConstants.AREA_DAY, false);
+      wed[ViewerConstants.AREA_DAY] = null;
+      closeWed(ViewerConstants.AREA_NIGHT, false);
+      wed[ViewerConstants.AREA_NIGHT] = null;
+      wedItem[ViewerConstants.AREA_DAY] = null;
+      wedItem[ViewerConstants.AREA_NIGHT] = null;
     }
 
-    // Returns the current AreResource instance
+    /**
+     * Returns the current AreResource instance.
+     * @return The current AreResource instance.
+     */
     public AreResource getAre()
     {
       return are;
     }
 
-    // Returns the WedResource instance of day or night map
+    /**
+     * Returns the WedResource instance of day or night map.
+     * @param dayNight Either one of AREA_DAY or AREA_NIGHT.
+     * @return The desired WedResource instance.
+     */
     public WedResource getWed(int dayNight)
     {
       switch (dayNight) {
-        case MAP_DAY: return wed[MAP_DAY];
-        case MAP_NIGHT: return wed[MAP_NIGHT];
+        case ViewerConstants.AREA_DAY: return wed[ViewerConstants.AREA_DAY];
+        case ViewerConstants.AREA_NIGHT: return wed[ViewerConstants.AREA_NIGHT];
         default: return null;
       }
     }
 
     /**
+     * Returns the specifie minimap.
+     * @param mapType One of MAP_SEARCH, MAP_HEIGHT or MAP_LIGHT.
+     * @return The specified BmpResource instance. (Note: Always returns the day version of the light map.)
+     */
+    public BmpResource getMiniMap(int mapType)
+    {
+      return getMiniMap(mapType, false);
+    }
+
+    /**
+     * Returns the specifie minimap.
+     * @param mapType One of MAP_SEARCH, MAP_HEIGHT or MAP_LIGHT.
+     * @param isNight Specify <code>true</code> to return the night-specific light map,
+     *                or <code>false</code> to return the day-specific light map.
+     * @return The specified BmpResource instance.
+     */
+    public BmpResource getMiniMap(int mapType, boolean isNight)
+    {
+      switch (mapType) {
+        case ViewerConstants.MAP_SEARCH:
+          return mapSearch;
+        case ViewerConstants.MAP_HEIGHT:
+          return mapHeight;
+        case ViewerConstants.MAP_LIGHT:
+          return isNight ? mapLight[1] : mapLight[0];
+        default:
+          return null;
+      }
+    }
+
+    /**
      * Attempts to close the specified WED. If changes have been done, a dialog asks for saving.
-     * @param dayNight Either MAP_DAY or MAP_NIGHT.
+     * @param dayNight Either AREA_DAY or AREA_NIGHT.
      * @param allowCancel Indicates whether to allow cancelling the saving process.
      * @return <code>true</code> if the resource has been closed, <code>false</code> otherwise (e.g.
      *         if the user chooses to cancel saving changes.)
@@ -2216,7 +2337,7 @@ public class AreaViewer extends ChildFrame
     public boolean closeWed(int dayNight, boolean allowCancel)
     {
       boolean bRet = false;
-      dayNight = (dayNight == MAP_NIGHT) ? MAP_NIGHT : MAP_DAY;
+      dayNight = (dayNight == ViewerConstants.AREA_NIGHT) ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
       if (wed[dayNight] != null) {
         if (wed[dayNight].hasStructChanged()) {
           File output;
@@ -2257,7 +2378,7 @@ public class AreaViewer extends ChildFrame
     public void reloadWed(int dayNight)
     {
       if (are != null) {
-        dayNight = (dayNight == MAP_NIGHT) ? MAP_NIGHT : MAP_DAY;
+        dayNight = (dayNight == ViewerConstants.AREA_NIGHT) ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
         String wedName = "";
         ResourceRef wedRef = (ResourceRef)are.getAttribute("WED resource");
         if (wedRef != null) {
@@ -2266,20 +2387,21 @@ public class AreaViewer extends ChildFrame
             wedName = "";
           }
 
-          if (dayNight == MAP_DAY) {
+          if (dayNight == ViewerConstants.AREA_DAY) {
             if (!wedName.isEmpty()) {
               try {
-                wed[MAP_DAY] = new WedResource(ResourceFactory.getInstance().getResourceEntry(wedName));
+                wed[ViewerConstants.AREA_DAY] = new WedResource(ResourceFactory.getInstance().getResourceEntry(wedName));
               } catch (Exception e) {
-                wed[MAP_DAY] = null;
+                wed[ViewerConstants.AREA_DAY] = null;
               }
             } else {
-              wed[MAP_DAY] = null;
+              wed[ViewerConstants.AREA_DAY] = null;
             }
 
-            if (wed[MAP_DAY] != null) {
-              wedItem[MAP_DAY] = new IconLayerItem(new Point(), wed[MAP_DAY], wed[MAP_DAY].getName());
-              wedItem[MAP_DAY].setVisible(false);
+            if (wed[ViewerConstants.AREA_DAY] != null) {
+              wedItem[ViewerConstants.AREA_DAY] = new IconLayerItem(new Point(), wed[ViewerConstants.AREA_DAY],
+                                                                    wed[ViewerConstants.AREA_DAY].getName());
+              wedItem[ViewerConstants.AREA_DAY].setVisible(false);
             }
           } else {
             // getting extended night map
@@ -2288,23 +2410,72 @@ public class AreaViewer extends ChildFrame
               if (pos > 0) {
                 String wedNameNight = wedName.substring(0, pos) + "N" + wedName.substring(pos);
                 try {
-                  wed[MAP_NIGHT] = new WedResource(ResourceFactory.getInstance().getResourceEntry(wedNameNight));
+                  wed[ViewerConstants.AREA_NIGHT] = new WedResource(ResourceFactory.getInstance().getResourceEntry(wedNameNight));
                 } catch (Exception e) {
-                  wed[MAP_NIGHT] = wed[MAP_DAY];
+                  wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
                 }
               } else {
-                wed[MAP_NIGHT] = wed[MAP_DAY];
+                wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
               }
             } else {
-              wed[MAP_NIGHT] = wed[MAP_DAY];
+              wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
             }
 
-            if (wed[MAP_NIGHT] != null) {
-              wedItem[MAP_NIGHT] = new IconLayerItem(new Point(), wed[MAP_NIGHT], wed[MAP_NIGHT].getName());
-              wedItem[MAP_NIGHT].setVisible(false);
+            if (wed[ViewerConstants.AREA_NIGHT] != null) {
+              wedItem[ViewerConstants.AREA_NIGHT] = new IconLayerItem(new Point(), wed[ViewerConstants.AREA_NIGHT],
+                                                                      wed[ViewerConstants.AREA_NIGHT].getName());
+              wedItem[ViewerConstants.AREA_NIGHT].setVisible(false);
             }
           }
         }
+      }
+    }
+
+    /**
+     * Reloads the search/light/height maps associated with the area.
+     */
+    public void reloadMiniMaps()
+    {
+      if (are != null) {
+        String mapName = are.getName().toUpperCase();
+        if (mapName.lastIndexOf('.') >= 0) {
+          mapName = mapName.substring(0, mapName.lastIndexOf('.'));
+        }
+
+        // loading search map
+        String name = mapName + "SR.BMP";
+        try {
+          mapSearch = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+        } catch (Exception e) {
+          mapSearch = null;
+        }
+
+        // loading height map
+        name = mapName + "HT.BMP";
+        try {
+          mapHeight = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+        } catch (Exception e) {
+          mapHeight = null;
+        }
+
+        // loading light map(s)
+        name = mapName + "LM.BMP";
+        try {
+          mapLight[0] = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+        } catch (Exception e) {
+          mapLight[0] = null;
+        }
+        if (hasExtendedNight()) {
+          name = mapName + "LN.BMP";
+          try {
+            mapLight[1] = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+          } catch (Exception e) {
+            mapLight[1] = mapLight[0];
+          }
+        } else {
+          mapLight[1] = mapLight[0];
+        }
+
       }
     }
 
@@ -2317,10 +2488,10 @@ public class AreaViewer extends ChildFrame
     // Returns the pseudo layer item for the WedResource structure of the selected day time
     public AbstractLayerItem getWedItem(int dayNight)
     {
-      if (dayNight == MAP_NIGHT) {
-        return wedItem[MAP_NIGHT];
+      if (dayNight == ViewerConstants.AREA_NIGHT) {
+        return wedItem[ViewerConstants.AREA_NIGHT];
       } else {
-        return wedItem[MAP_DAY];
+        return wedItem[ViewerConstants.AREA_DAY];
       }
     }
 
@@ -2380,8 +2551,9 @@ public class AreaViewer extends ChildFrame
         }
 
         // getting associated WED resources
-        reloadWed(MAP_DAY);
-        reloadWed(MAP_NIGHT);
+        reloadWed(ViewerConstants.AREA_DAY);
+        reloadWed(ViewerConstants.AREA_NIGHT);
+        reloadMiniMaps();
       }
     }
   }
