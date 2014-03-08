@@ -2746,8 +2746,8 @@ public class SearchResource extends ChildFrame
         IdsBitmap ids = new IdsBitmap(new byte[]{0}, 0, 1, "", "SCHOOL.IDS");
         prim = new ObjectString[ids.getIdsMapEntryCount()];
         for (int i = 0; i < prim.length; i++) {
-          prim[i] = new ObjectString(ids.getIdsMapEntry(i).getString(),
-                                     new Integer((int)ids.getIdsMapEntry(i).getID()));
+          prim[i] = new ObjectString(ids.getIdsMapEntryByIndex(i).getString(),
+                                     new Integer((int)ids.getIdsMapEntryByIndex(i).getID()));
         }
       } else {
         prim = new ObjectString[SplResource.s_school.length];
@@ -6468,7 +6468,7 @@ public class SearchResource extends ChildFrame
       if (ids != null) {
         list = new IdsMapEntry[ids.getIdsMapEntryCount()];
         for (int i = 0; i < list.length; i++) {
-          list[i] = ids.getIdsMapEntry(i);
+          list[i] = ids.getIdsMapEntryByIndex(i);
         }
       } else {
         list = new IdsMapEntry[]{};

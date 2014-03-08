@@ -170,10 +170,19 @@ public final class IdsBitmap extends Datatype implements Editable
     return idsmap.size();
   }
 
-  public IdsMapEntry getIdsMapEntry(int index)
+  public IdsMapEntry getIdsMapEntryByIndex(int index)
   {
     if (index >= 0 && index < idsmap.size()) {
       return idsmap.get(idsmap.keys()[index]);
+    } else {
+      return null;
+    }
+  }
+
+  public IdsMapEntry getIdsMapEntryById(long id)
+  {
+    if (idsmap.containsKey(Long.valueOf(id))) {
+      return idsmap.get(Long.valueOf(id));
     } else {
       return null;
     }
