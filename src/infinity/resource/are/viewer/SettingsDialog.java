@@ -23,7 +23,6 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -34,15 +33,12 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -51,8 +47,11 @@ import javax.swing.event.ListSelectionListener;
  * @author argent77
  */
 public class SettingsDialog extends JDialog
-  implements ActionListener, ListSelectionListener, ChangeListener
+  implements ActionListener, ListSelectionListener
 {
+  private static final String[] AnimationFrames = new String[]{"Never",
+                                                               "On mouse-over only",
+                                                               "Always"};
   private static final String[] QualityItems = new String[]{"Choose optimal interpolation automatically",
                                                             "Always use nearest neighbor interpolation",
                                                             "Always use bilinear interpolation"};
@@ -62,12 +61,10 @@ public class SettingsDialog extends JDialog
                                                          "Spawn Points", "Map Transitions", "Projectile Traps",
                                                          "Door Polygons", "Wall Polygons" };
 
-  private final JRadioButton[] rbFrames = new JRadioButton[3];
-
   private DefaultListModel modelLayers;
   private JList listLayers;
   private JButton bUp, bDown, bDefaultOrder;
-  private JComboBox cbQualityMap, cbQualityAnim;
+  private JComboBox cbFrames, cbQualityMap, cbQualityAnim;
   private JCheckBox cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
@@ -120,18 +117,6 @@ public class SettingsDialog extends JDialog
 
   // --------------------- End Interface ListSelectionListener ---------------------
 
-  // --------------------- Begin Interface ChangeListener ---------------------
-
-  @Override
-  public void stateChanged(ChangeEvent event)
-  {
-    if (event.getSource() == sMiniMapAlpha) {
-      // TODO
-    }
-  }
-
-  // --------------------- End Interface ChangeListener ---------------------
-
   // Applies dialog settings to the global Settings entries
   private void updateSettings()
   {
@@ -140,14 +125,7 @@ public class SettingsDialog extends JDialog
       Settings.ListLayerOrder.set(i, lt.getLayer());
     }
 
-    int idx = Settings.getDefaultShowFrame();
-    for (int i = 0; i < rbFrames.length; i++) {
-      if (rbFrames[i].isSelected()) {
-        idx = i;
-        break;
-      }
-    }
-    Settings.ShowFrame = idx;
+    Settings.ShowFrame = cbFrames.getSelectedIndex();
 
     Settings.InterpolationMap = cbQualityMap.getSelectedIndex();
     Settings.InterpolationAnim = cbQualityAnim.getSelectedIndex();
@@ -185,7 +163,7 @@ public class SettingsDialog extends JDialog
   {
     resetLayerOrder();
 
-    rbFrames[Settings.getDefaultShowFrame()].setSelected(true);
+    cbFrames.setSelectedIndex(Settings.getDefaultShowFrame());
 
     cbQualityMap.setSelectedIndex(Settings.getDefaultInterpolationMap());
     cbQualityAnim.setSelectedIndex(Settings.getDefaultInterpolationAnim());
@@ -307,27 +285,16 @@ public class SettingsDialog extends JDialog
     // Initializing options
     // Background animation frame
     JPanel pShowFrame = new JPanel(new GridBagLayout());
-    ButtonGroup bg = new ButtonGroup();
     pShowFrame.setBorder(BorderFactory.createTitledBorder("Background animations: "));
-    rbFrames[ViewerConstants.FRAME_NEVER] = new JRadioButton("Never show frame around animations");
-    rbFrames[ViewerConstants.FRAME_NEVER].addActionListener(this);
-    bg.add(rbFrames[ViewerConstants.FRAME_NEVER]);
-    rbFrames[ViewerConstants.FRAME_AUTO] = new JRadioButton("Show frame on mouse-over only");
-    rbFrames[ViewerConstants.FRAME_AUTO].addActionListener(this);
-    bg.add(rbFrames[ViewerConstants.FRAME_AUTO]);
-    rbFrames[ViewerConstants.FRAME_ALWAYS] = new JRadioButton("Always show frame around animations");
-    rbFrames[ViewerConstants.FRAME_ALWAYS].addActionListener(this);
-    bg.add(rbFrames[ViewerConstants.FRAME_ALWAYS]);
-    bg.setSelected(rbFrames[Settings.ShowFrame].getModel(), true);
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
-    pShowFrame.add(rbFrames[ViewerConstants.FRAME_NEVER], c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
-    pShowFrame.add(rbFrames[ViewerConstants.FRAME_AUTO], c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
-    pShowFrame.add(rbFrames[ViewerConstants.FRAME_ALWAYS], c);
+    JLabel lFrames = new JLabel("Show frame:");
+    cbFrames = new JComboBox(AnimationFrames);
+    cbFrames.setSelectedIndex(Settings.ShowFrame);
+    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    pShowFrame.add(lFrames, c);
+    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 4, 4), 0, 0);
+    pShowFrame.add(cbFrames, c);
 
     // Interpolation type
     JPanel pQuality = new JPanel(new GridBagLayout());
@@ -394,14 +361,13 @@ public class SettingsDialog extends JDialog
 
     // Minimap transparency
     JPanel pMiniMap = new JPanel(new GridBagLayout());
-    pMiniMap.setBorder(BorderFactory.createTitledBorder("Mini map transparency: "));
+    pMiniMap.setBorder(BorderFactory.createTitledBorder("Mini map opacity: "));
 
     Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
     for (int i = 0; i <= 100; i+=25) {
       table.put(Integer.valueOf(i), new JLabel(String.format("%1$d%%", i)));
     }
     sMiniMapAlpha = new JSlider(0, 100, (int)(Settings.MiniMapAlpha*100.0));
-    sMiniMapAlpha.addChangeListener(this);
     sMiniMapAlpha.setSnapToTicks(false);
     sMiniMapAlpha.setLabelTable(table);
     sMiniMapAlpha.setPaintLabels(true);
