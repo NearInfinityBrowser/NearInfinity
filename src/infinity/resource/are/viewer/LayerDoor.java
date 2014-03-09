@@ -33,7 +33,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectDoor> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

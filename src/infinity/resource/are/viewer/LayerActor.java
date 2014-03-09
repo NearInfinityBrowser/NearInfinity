@@ -30,7 +30,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectActor> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

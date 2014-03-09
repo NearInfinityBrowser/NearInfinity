@@ -28,7 +28,7 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectTransition> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

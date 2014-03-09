@@ -34,7 +34,7 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectDoorPoly> list = getLayerObjects();
       if (hasWed()) {
         WedResource wed = getWed();

@@ -5,18 +5,13 @@
 package infinity.resource.are.viewer;
 
 import infinity.gui.layeritem.AbstractLayerItem;
-import infinity.gui.layeritem.LayerItemListener;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.viewer.ViewerConstants.LayerType;
 import infinity.resource.wed.WedResource;
 
-import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.List;
 
 /**
@@ -210,43 +205,13 @@ public abstract class BasicLayer<O extends LayerObject>
    * Removes all objects of the layer from memory. Additionally all associated layer items will be
    * removed from their associated container(s).
    */
-  public void clear()
+  public void close()
   {
     if (getViewer() != null) {
       for (int i = 0; i < listObjects.size(); i++) {
-        AbstractLayerItem[] items = listObjects.get(i).getLayerItems();
-        if (items != null) {
-          for (int j = 0; j < items.length; j++) {
-            // removing listeners from layer item
-            EventListener[][] listeners = new EventListener[4][];
-            listeners[0] = items[j].getActionListeners();
-            listeners[1] = items[j].getLayerItemListeners();
-            listeners[2] = items[j].getMouseListeners();
-            listeners[3] = items[j].getMouseMotionListeners();
-            for (int k = 0; k < listeners.length; k++) {
-              if (listeners[k] != null) {
-                for (int l = 0; l < listeners[k].length; l++) {
-                  if (listeners[k][l] instanceof ActionListener) {
-                    items[j].removeActionListener((ActionListener)listeners[k][l]);
-                  } else if (listeners[k][l] instanceof LayerItemListener) {
-                    items[j].removeLayerItemListener((LayerItemListener)listeners[k][l]);
-                  } else if (listeners[k][l] instanceof MouseListener) {
-                    items[j].removeMouseListener((MouseListener)listeners[k][l]);
-                  } else if (listeners[k][l] instanceof MouseMotionListener) {
-                    items[j].removeMouseMotionListener((MouseMotionListener)listeners[k][l]);
-                  }
-                }
-              }
-            }
-            // removing layer item from container
-            if (items[j].getParent() != null) {
-              items[j].getParent().remove(items[j]);
-            }
-          }
-        }
+        listObjects.get(i).close();
       }
     }
-
     listObjects.clear();
     setInitialized(false);
   }

@@ -30,7 +30,7 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectSpawnPoint> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

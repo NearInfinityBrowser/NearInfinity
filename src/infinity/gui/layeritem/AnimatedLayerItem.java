@@ -54,7 +54,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
   private boolean isBlended, isMirrored, isLooping, isAuto, forcedInterpolation, isSelfIlluminated;
   private Timer timer;
   private int curFrame;
-  private int interpolationType;
+  private Object interpolationType;
   private double zoomFactor;
   private int lighting;
   private Rectangle canvasBounds;   // Rectangle.[x,y] points to frame center [0,0]
@@ -226,7 +226,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
   /**
    * Returns the currently used interpolation type.
    */
-  public int getInterpolationType()
+  public Object getInterpolationType()
   {
     return interpolationType;
   }
@@ -235,20 +235,16 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
    * Specifies the interpolation type used for scaled items.
    * @param type One of the TYPE_xxx constants.
    */
-  public void setInterpolationType(int type)
+  public void setInterpolationType(Object type)
   {
     if (this.interpolationType != type) {
-      switch (type) {
-        case ViewerConstants.TYPE_NEAREST_NEIGHBOR:
-        case ViewerConstants.TYPE_BILINEAR:
-        case ViewerConstants.TYPE_BICUBIC:
-          this.interpolationType = type;
-          break;
-        default:
-          return;
-      }
-      if (forcedInterpolation) {
-        rcCanvas.setInterpolationType(interpolationType);
+      if (type == ViewerConstants.TYPE_NEAREST_NEIGHBOR ||
+          type == ViewerConstants.TYPE_BILINEAR ||
+          type == ViewerConstants.TYPE_BICUBIC) {
+        this.interpolationType = type;
+        if (forcedInterpolation) {
+          rcCanvas.setInterpolationType(interpolationType);
+        }
       }
     }
   }

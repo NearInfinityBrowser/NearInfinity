@@ -52,6 +52,13 @@ public class LayerObjectActor extends LayerObject
   }
 
   @Override
+  public void close()
+  {
+    // TODO
+    super.close();
+  }
+
+  @Override
   public AbstractStruct getStructure()
   {
     return actor;

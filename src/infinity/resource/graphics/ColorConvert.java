@@ -12,6 +12,7 @@ import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +62,35 @@ public class ColorConvert
         GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
     return gfxConfig.createCompatibleImage(width, height, transparency);
+  }
+
+  /**
+   * Creates a VolatileImage object in the native color format for best possible performance.
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @param hasTransparency Transparency support
+   * @return A new VolatileImage object with the specified properties.
+   */
+  public static VolatileImage createVolatileImage(int width, int height, boolean hasTransparency)
+  {
+    return createVolatileImage(width, height,
+                               hasTransparency ? Transparency.TRANSLUCENT : Transparency.OPAQUE);
+  }
+
+  /**
+   * Creates a VolatileImage object in the native color format for best possible performance.
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @param transparency The transparency type (either one of <code>Transparency.OPAQUE</code>,
+   *                     <code>Transparency.BITMASK</code> or <code>Transparency.TRANSLUCENT</code>).
+   * @return A new VolatileImage object with the specified properties.
+   */
+  public static VolatileImage createVolatileImage(int width, int height, int transparency)
+  {
+    GraphicsConfiguration gc =
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+    return gc.createCompatibleVolatileImage(width, height, transparency);
   }
 
   /**

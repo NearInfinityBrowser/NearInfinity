@@ -44,7 +44,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
     if (forced || !isInitialized()) {
       listGlobalSounds.clear();
       listLocalSounds.clear();
-      clear();
+      close();
       List<LayerObjectAmbient> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

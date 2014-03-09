@@ -55,6 +55,13 @@ public class LayerObjectAnimation extends LayerObject
   }
 
   @Override
+  public void close()
+  {
+    // TODO
+    super.close();
+  }
+
+  @Override
   public AbstractStruct getStructure()
   {
     return anim;

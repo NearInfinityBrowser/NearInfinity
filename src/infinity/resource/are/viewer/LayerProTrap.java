@@ -30,7 +30,7 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectProTrap> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

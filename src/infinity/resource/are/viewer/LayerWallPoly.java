@@ -30,7 +30,7 @@ public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectWallPoly> list = getLayerObjects();
       if (hasWed()) {
         WedResource wed = getWed();

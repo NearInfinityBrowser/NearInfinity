@@ -30,7 +30,7 @@ public class LayerRegion extends BasicLayer<LayerObjectRegion>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectRegion> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

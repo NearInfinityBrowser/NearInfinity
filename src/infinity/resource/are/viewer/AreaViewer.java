@@ -9,6 +9,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -26,6 +27,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -45,14 +47,24 @@ import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.JViewport;
 import javax.swing.ProgressMonitor;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.ToolTipManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellEditor;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import infinity.NearInfinity;
 import infinity.datatype.Flag;
@@ -82,7 +94,6 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
-import infinity.util.ArrayUtil;
 import infinity.util.NIFile;
 
 /**
@@ -92,7 +103,7 @@ import infinity.util.NIFile;
  */
 public class AreaViewer extends ChildFrame
     implements ActionListener, MouseListener, MouseMotionListener, ChangeListener, TilesetChangeListener,
-               PropertyChangeListener, LayerItemListener, ComponentListener
+               PropertyChangeListener, LayerItemListener, ComponentListener, TreeExpansionListener
 {
   private static final String LabelInfoX = "Position X:";
   private static final String LabelInfoY = "Position Y:";
@@ -118,6 +129,7 @@ public class AreaViewer extends ChildFrame
   private JToolBar toolBar;
   private JToggleButton tbView, tbEdit;
   private JButton tbAre, tbWed, tbSongs, tbRest, tbSettings, tbRefresh;
+  private JTree treeControls;
   private ButtonPopupWindow bpwDayTime;
   private DayTimePanel pDayTime;
   private JCheckBox cbDrawClosed, cbDrawOverlays, cbAnimateOverlays, cbDrawGrid, cbEnableSchedules;
@@ -258,6 +270,7 @@ public class AreaViewer extends ChildFrame
             cbAnimateOverlays.setSelected(false);
             setOverlaysAnimated(false);
           }
+          updateTreeNode(cbAnimateOverlays);
         } finally {
           WindowBlocker.blockWindow(this, false);
         }
@@ -309,6 +322,7 @@ public class AreaViewer extends ChildFrame
         try {
           setZoomLevel(cbZoomLevel.getSelectedIndex());
         } catch (OutOfMemoryError e) {
+          e.printStackTrace();
           cbZoomLevel.hidePopup();
           WindowBlocker.blockWindow(this, false);
           String msg = "Not enough memory to set selected zoom level.\n"
@@ -346,25 +360,25 @@ public class AreaViewer extends ChildFrame
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
-    } else if (ArrayUtil.indexOf(tbAddLayerItem, event.getSource()) >= 0) {
-      // TODO: include "Add layer item" functionality
-      int index = ArrayUtil.indexOf(tbAddLayerItem, event.getSource());
-      switch (LayerManager.getLayerType(index)) {
-        case Actor:
-        case Ambient:
-        case Animation:
-        case Automap:
-        case Container:
-        case Door:
-        case DoorPoly:
-        case Entrance:
-        case ProTrap:
-        case Region:
-        case SpawnPoint:
-        case Transition:
-        case WallPoly:
-          break;
-      }
+//    } else if (ArrayUtil.indexOf(tbAddLayerItem, event.getSource()) >= 0) {
+//      // TODO: include "Add layer item" functionality
+//      int index = ArrayUtil.indexOf(tbAddLayerItem, event.getSource());
+//      switch (LayerManager.getLayerType(index)) {
+//        case Actor:
+//        case Ambient:
+//        case Animation:
+//        case Automap:
+//        case Container:
+//        case Door:
+//        case DoorPoly:
+//        case Entrance:
+//        case ProTrap:
+//        case Region:
+//        case SpawnPoint:
+//        case Transition:
+//        case WallPoly:
+//          break;
+//      }
     }
   }
 
@@ -573,6 +587,64 @@ public class AreaViewer extends ChildFrame
 
 //--------------------- End Interface ComponentListener ---------------------
 
+//--------------------- Begin Interface TreeExpansionListener ---------------------
+
+  @Override
+  public void treeExpanded(TreeExpansionEvent event)
+  {
+    if (event.getPath().getLastPathComponent() instanceof DefaultMutableTreeNode) {
+      // Storing the expanded state of the node if it marks a sidebar section
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
+      if (node.getLevel() == 1) {
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
+        for (int i = 0; i < root.getChildCount(); i++) {
+          if (root.getChildAt(i) == node) {
+            switch (1 << i) {
+              case ViewerConstants.SIDEBAR_VISUALSTATE:
+                Settings.SidebarControls |= ViewerConstants.SIDEBAR_VISUALSTATE;
+                break;
+              case ViewerConstants.SIDEBAR_LAYERS:
+                Settings.SidebarControls |= ViewerConstants.SIDEBAR_LAYERS;
+                break;
+              case ViewerConstants.SIDEBAR_MINIMAPS:
+                Settings.SidebarControls |= ViewerConstants.SIDEBAR_MINIMAPS;
+                break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @Override
+  public void treeCollapsed(TreeExpansionEvent event)
+  {
+    if (event.getPath().getLastPathComponent() instanceof DefaultMutableTreeNode) {
+      // Storing the collapsed state of the node if it marks a sidebar section
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
+      if (node.getLevel() == 1) {
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
+        for (int i = 0; i < root.getChildCount(); i++) {
+          if (root.getChildAt(i) == node) {
+            switch (1 << i) {
+              case ViewerConstants.SIDEBAR_VISUALSTATE:
+                Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_VISUALSTATE;
+                break;
+              case ViewerConstants.SIDEBAR_LAYERS:
+                Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_LAYERS;
+                break;
+              case ViewerConstants.SIDEBAR_MINIMAPS:
+                Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_MINIMAPS;
+                break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+//--------------------- End Interface TreeExpansionListener ---------------------
+
 //--------------------- Begin Class ChildFrame ---------------------
 
   @Override
@@ -595,7 +667,7 @@ public class AreaViewer extends ChildFrame
       rcCanvas.setImage(null);
     }
     if (layerManager != null) {
-      layerManager.clear();
+      layerManager.close();
       layerManager = null;
     }
     dispose();
@@ -666,13 +738,22 @@ public class AreaViewer extends ChildFrame
     pView.add(spCanvas, BorderLayout.CENTER);
 
     // Creating right side bar
-    // Creating Visual State area
-    bpwDayTime = new ButtonPopupWindow("", Icons.getIcon("ArrowDown15.png"));
+    JPanel pTree = new JPanel(new GridBagLayout());
+    pTree.setBorder(BorderFactory.createTitledBorder("Area Viewer Controls: "));
+    DefaultMutableTreeNode t, t2, t3;
+    DefaultMutableTreeNode top = new DefaultMutableTreeNode("");
+
+    // Adding Visual State elements
+    // Note: the string is required for setting the correct size of the button
+    bpwDayTime = new ButtonPopupWindow(String.format("  %1$s  ", DayTimePanel.getButtonText(21)),
+                                       Icons.getIcon("ArrowDown15.png"));
+    Dimension d = bpwDayTime.getPreferredSize();
     bpwDayTime.setIconTextGap(8);
     pDayTime = new DayTimePanel(bpwDayTime, getHour());
     pDayTime.addChangeListener(this);
     bpwDayTime.setContent(pDayTime);
-    bpwDayTime.setMargin(new Insets(4, bpwDayTime.getMargin().left, 4, bpwDayTime.getMargin().right));
+    bpwDayTime.setPreferredSize(d);
+    bpwDayTime.setMargin(new Insets(2, bpwDayTime.getMargin().left, 2, bpwDayTime.getMargin().right));
 
     cbEnableSchedules = new JCheckBox(LabelEnableSchedule);
     cbEnableSchedules.setToolTipText("Enable activity schedules on layer structures that support them (e.g. actors, ambient sounds or background animations.");
@@ -705,97 +786,84 @@ public class AreaViewer extends ChildFrame
                GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pZoom.add(cbZoomLevel, c);
 
-    p = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    p.add(bpwDayTime, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
-    p.add(cbEnableSchedules, c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
-    p.add(cbDrawClosed, c);
-    c = setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
-    p.add(cbDrawGrid, c);
-    c = setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
-    p.add(cbDrawOverlays, c);
-    c = setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
-    p.add(cbAnimateOverlays, c);
-    c = setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
-    p.add(pZoom, c);
+    JLabel l = new JLabel("Visual State");
+    l.setFont(new Font(l.getFont().getFontName(), Font.BOLD, l.getFont().getSize()+1));
+    t = new DefaultMutableTreeNode(l);
+    top.add(t);
+    t.add(new DefaultMutableTreeNode(bpwDayTime));
+    t.add(new DefaultMutableTreeNode(cbEnableSchedules));
+    t.add(new DefaultMutableTreeNode(cbDrawClosed));
+    t.add(new DefaultMutableTreeNode(cbDrawGrid));
+    t2 = new DefaultMutableTreeNode(cbDrawOverlays);
+    t2.add(new DefaultMutableTreeNode(cbAnimateOverlays));
+    t.add(t2);
+    t.add(new DefaultMutableTreeNode(pZoom));
 
-    JPanel pVisualState = new JPanel(new GridBagLayout());
-    pVisualState.setBorder(BorderFactory.createTitledBorder("Visual State: "));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 4, 4, 4), 0, 0);
-    pVisualState.add(p, c);
-
-
-    // Creating Layers area
-    p = new JPanel(new GridBagLayout());
-    for (int idx = 0, i = 0; i < LayerManager.getLayerTypeCount(); i++, idx++) {
+    // Adding Layer elements
+    l = new JLabel("Layers");
+    l.setFont(new Font(l.getFont().getFontName(), Font.BOLD, l.getFont().getSize()+1));
+    t = new DefaultMutableTreeNode(l);
+    top.add(t);
+    for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
       LayerType layer = LayerManager.getLayerType(i);
       cbLayers[i] = new JCheckBox(LayerManager.getLayerTypeLabel(layer));
       cbLayers[i].addActionListener(this);
-      c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
-      p.add(cbLayers[i], c);
+      t2 = new DefaultMutableTreeNode(cbLayers[i]);
+      t.add(t2);
       if (i == LayerManager.getLayerTypeIndex(LayerType.Ambient)) {
         // Initializing ambient sound range checkbox
         cbLayerAmbientRange = new JCheckBox("Show local sound ranges");
         cbLayerAmbientRange.addActionListener(this);
-        idx++;
-        c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                   GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
-        p.add(cbLayerAmbientRange, c);
+        t3 = new DefaultMutableTreeNode(cbLayerAmbientRange);
+        t2.add(t3);
       } else if (i == LayerManager.getLayerTypeIndex(LayerType.Animation)) {
         // Initializing real animation checkboxes
         cbLayerRealAnimation[0] = new JCheckBox("Show actual animations");
         cbLayerRealAnimation[0].addActionListener(this);
+        t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[0]);
+        t2.add(t3);
         cbLayerRealAnimation[1] = new JCheckBox("Animate actual animations");
         cbLayerRealAnimation[1].setToolTipText(msgAnimate);
         cbLayerRealAnimation[1].addActionListener(this);
-        idx++;
-        c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-            GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
-        p.add(cbLayerRealAnimation[0], c);
-        idx++;
-        c = setGBC(c, 0, idx, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                   GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
-        p.add(cbLayerRealAnimation[1], c);
+        t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[1]);
+        t2.add(t3);
       }
     }
 
-    JPanel pLayers = new JPanel(new GridBagLayout());
-    pLayers.setBorder(BorderFactory.createTitledBorder("Layers: "));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
-    pLayers.add(p, c);
-
-
-    // Creating minimap area
+    // Adding mini map entries
     cbMiniMaps[ViewerConstants.MAP_SEARCH] = new JCheckBox("Display search map");
     cbMiniMaps[ViewerConstants.MAP_SEARCH].addActionListener(this);
     cbMiniMaps[ViewerConstants.MAP_LIGHT] = new JCheckBox("Display light map");
     cbMiniMaps[ViewerConstants.MAP_LIGHT].addActionListener(this);
     cbMiniMaps[ViewerConstants.MAP_HEIGHT] = new JCheckBox("Display height map");
     cbMiniMaps[ViewerConstants.MAP_HEIGHT].addActionListener(this);
-    JPanel pMiniMaps = new JPanel(new GridBagLayout());
-    pMiniMaps.setBorder(BorderFactory.createTitledBorder("Mini maps: "));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
-    pMiniMaps.add(cbMiniMaps[ViewerConstants.MAP_SEARCH], c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
-    pMiniMaps.add(cbMiniMaps[ViewerConstants.MAP_LIGHT], c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 4, 4), 0, 0);
-    pMiniMaps.add(cbMiniMaps[ViewerConstants.MAP_HEIGHT], c);
 
+    l = new JLabel("Mini maps");
+    l.setFont(new Font(l.getFont().getFontName(), Font.BOLD, l.getFont().getSize()+1));
+    t = new DefaultMutableTreeNode(l);
+    top.add(t);
+    t.add(new DefaultMutableTreeNode(cbMiniMaps[0]));
+    t.add(new DefaultMutableTreeNode(cbMiniMaps[1]));
+    t.add(new DefaultMutableTreeNode(cbMiniMaps[2]));
+
+    treeControls = new JTree(new DefaultTreeModel(top));
+    treeControls.addTreeExpansionListener(this);
+    treeControls.setBackground(getBackground());
+    treeControls.setRootVisible(false);
+    treeControls.setShowsRootHandles(true);
+    treeControls.setRowHeight(bpwDayTime.getPreferredSize().height);
+    treeControls.setEditable(true);
+    ComponentTreeCellRenderer renderer = new ComponentTreeCellRenderer();
+    treeControls.setCellRenderer(renderer);
+    treeControls.setCellEditor(new ComponentTreeCellEditor(treeControls, renderer));
+    ToolTipManager.sharedInstance().registerComponent(treeControls);
+    for (int i = 0; i < treeControls.getRowCount(); i++) {
+      treeControls.expandRow(i);
+    }
+    treeControls.setMinimumSize(treeControls.getPreferredSize());
+    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(0, 4, 4, 4), 0, 0);
+    pTree.add(treeControls, c);
 
     // Creating Info Box area
     JLabel lPosXLabel = new JLabel(LabelInfoX);
@@ -838,19 +906,15 @@ public class AreaViewer extends ChildFrame
     JPanel pSideBar = new JPanel(new GridBagLayout());
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
-    pSideBar.add(pVisualState, c);
+    pSideBar.add(pTree, c);
     c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 4), 0, 0);
-    pSideBar.add(pLayers, c);
-    c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 4), 0, 0);
-    pSideBar.add(pMiniMaps, c);
-    c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 4), 0, 0);
+               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
     pSideBar.add(pInfoBox, c);
-    c = setGBC(c, 0, 4, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
-    pSideBar.add(new JPanel(), c);
+    p = new JPanel();
+    p.setPreferredSize(new Dimension(pTree.getPreferredSize().width, p.getMinimumSize().height));
+    c = setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+               GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    pSideBar.add(p, c);
 
     // Creating toolbar
     Dimension dimSeparator = new Dimension(24, 40);
@@ -1003,6 +1067,7 @@ public class AreaViewer extends ChildFrame
     try {
       initGuiSettings();
     } catch (OutOfMemoryError e) {
+      e.printStackTrace();
       JOptionPane.showMessageDialog(this, "Not enough memory to load area!", "Error", JOptionPane.ERROR_MESSAGE);
       throw e;
     }
@@ -1018,6 +1083,19 @@ public class AreaViewer extends ChildFrame
   private void initGuiSettings()
   {
     Settings.loadSettings(false);
+
+    // expanding main sections in sidebar based on current settings
+    DefaultTreeModel model = (DefaultTreeModel)treeControls.getModel();
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
+    for (int i = 0; i < root.getChildCount(); i++) {
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)root.getChildAt(i);
+      int bit = 1 << i;
+      if ((Settings.SidebarControls & bit) != 0) {
+        treeControls.expandPath(new TreePath(node.getPath()));
+      } else {
+        treeControls.collapsePath(new TreePath(node.getPath()));
+      }
+    }
 
     // initializing minimap state (needs to be set before the first call to setHour)
     cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(Settings.MiniMap == ViewerConstants.MAP_SEARCH);
@@ -1076,7 +1154,9 @@ public class AreaViewer extends ChildFrame
 
     // Setting up ambient sound ranges
     LayerAmbient layerAmbient = (LayerAmbient)layerManager.getLayer(ViewerConstants.LayerType.Ambient);
-    cbLayerAmbientRange.setToolTipText(layerAmbient.getAvailability(ViewerConstants.AMBIENT_TYPE_LOCAL));
+    if (layerAmbient.getLayerObjectCount(ViewerConstants.AMBIENT_TYPE_LOCAL) > 0) {
+      cbLayerAmbientRange.setToolTipText(layerAmbient.getAvailability(ViewerConstants.AMBIENT_TYPE_LOCAL));
+    }
     cbLayerAmbientRange.setSelected(Settings.ShowAmbientRanges);
     updateAmbientRange();
 
@@ -1675,6 +1755,7 @@ public class AreaViewer extends ChildFrame
   // Updates all available layer items
   private void reloadLayers()
   {
+    rcCanvas.reload(true);
     reloadAreLayers(false);
     reloadWedLayers(false);
     orderLayerItems();
@@ -1843,6 +1924,9 @@ public class AreaViewer extends ChildFrame
       } else {
         type = ViewerConstants.MAP_NONE;
       }
+      updateTreeNode(cbMiniMaps[ViewerConstants.MAP_SEARCH]);
+      updateTreeNode(cbMiniMaps[ViewerConstants.MAP_LIGHT]);
+      updateTreeNode(cbMiniMaps[ViewerConstants.MAP_HEIGHT]);
       Settings.MiniMap = type;
       rcCanvas.setMiniMap(Settings.MiniMap, map.getMiniMap(Settings.MiniMap, getDayTime() == ViewerConstants.LIGHTING_NIGHT));
     }
@@ -1879,6 +1963,7 @@ public class AreaViewer extends ChildFrame
       } else {
         cbLayerAmbientRange.setEnabled(false);
       }
+      updateTreeNode(cbLayerAmbientRange);
 
       // Storing settings
       Settings.ShowAmbientRanges = cbLayerAmbientRange.isSelected();
@@ -1925,6 +2010,8 @@ public class AreaViewer extends ChildFrame
         cbLayerRealAnimation[0].setEnabled(false);
         cbLayerRealAnimation[1].setEnabled(false);
       }
+      updateTreeNode(cbLayerRealAnimation[0]);
+      updateTreeNode(cbLayerRealAnimation[1]);
 
       // Storing settings
       if (!cbLayerRealAnimation[0].isSelected() && !cbLayerRealAnimation[1].isSelected()) {
@@ -2167,6 +2254,38 @@ public class AreaViewer extends ChildFrame
     return progress != null;
   }
 
+
+  // Updates the tree node containing the specified component
+  private void updateTreeNode(Component c)
+  {
+    if (treeControls != null) {
+      DefaultTreeModel model = (DefaultTreeModel)treeControls.getModel();
+      if (model.getRoot() instanceof TreeNode) {
+        TreeNode node = getTreeNodeOf((TreeNode)model.getRoot(), c);
+        if (node != null) {
+          model.nodeChanged(node);
+        }
+      }
+    }
+  }
+
+  // Recursive function to find the node containing c
+  private TreeNode getTreeNodeOf(TreeNode node, Component c)
+  {
+    if (node != null && node instanceof DefaultMutableTreeNode && c != null) {
+      if (((DefaultMutableTreeNode)node).getUserObject() == c) {
+        return node;
+      }
+      for (int i = 0; i < node.getChildCount(); i++) {
+        TreeNode retVal = getTreeNodeOf(node.getChildAt(i), c);
+        if (retVal != null) {
+          return retVal;
+        }
+      }
+    }
+    return null;
+  }
+
   // Shows settings dialog and updates respective controls if needed
   private void viewSettings()
   {
@@ -2183,8 +2302,19 @@ public class AreaViewer extends ChildFrame
     // applying layer stacking order
     orderLayerItems();
     // applying interpolation settings to map
-    rcCanvas.setInterpolationType(Settings.InterpolationMap);
-    rcCanvas.setForcedInterpolation(Settings.InterpolationMap != ViewerConstants.INTERPOLATION_AUTO);
+    switch (Settings.InterpolationMap) {
+      case ViewerConstants.FILTERING_AUTO:
+        rcCanvas.setForcedInterpolation(false);
+        break;
+      case ViewerConstants.FILTERING_NEARESTNEIGHBOR:
+        rcCanvas.setInterpolationType(ViewerConstants.TYPE_NEAREST_NEIGHBOR);
+        rcCanvas.setForcedInterpolation(true);
+        break;
+      case ViewerConstants.FILTERING_BILINEAR:
+        rcCanvas.setInterpolationType(ViewerConstants.TYPE_BILINEAR);
+        rcCanvas.setForcedInterpolation(true);
+        break;
+    }
     // applying minimap alpha
     rcCanvas.setMiniMapTransparency((int)(Settings.MiniMapAlpha*255.0));
 
@@ -2193,16 +2323,16 @@ public class AreaViewer extends ChildFrame
       ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationFrameState(Settings.ShowFrame);
       // applying interpolation settings to animations
       switch (Settings.InterpolationAnim) {
-        case ViewerConstants.INTERPOLATION_AUTO:
+        case ViewerConstants.FILTERING_AUTO:
           layerManager.setRealAnimationForcedInterpolation(false);
           break;
-        case ViewerConstants.INTERPOLATION_BILINEAR:
-          layerManager.setRealAnimationForcedInterpolation(true);
-          layerManager.setRealAnimationInterpolation(ViewerConstants.TYPE_BILINEAR);
-          break;
-        case ViewerConstants.INTERPOLATION_NEARESTNEIGHBOR:
-          layerManager.setRealAnimationForcedInterpolation(true);
+        case ViewerConstants.FILTERING_NEARESTNEIGHBOR:
           layerManager.setRealAnimationInterpolation(ViewerConstants.TYPE_NEAREST_NEIGHBOR);
+          layerManager.setRealAnimationForcedInterpolation(true);
+          break;
+        case ViewerConstants.FILTERING_BILINEAR:
+          layerManager.setRealAnimationInterpolation(ViewerConstants.TYPE_BILINEAR);
+          layerManager.setRealAnimationForcedInterpolation(true);
           break;
       }
       // applying frame rate to animated overlays
@@ -2568,6 +2698,15 @@ public class AreaViewer extends ChildFrame
 
     private JSlider sHours;
 
+    // Creates and returns a string describing the time for display on the parent button
+    public static String getButtonText(int hour)
+    {
+      final String[] dayTime = new String[]{"Day", "Twilight", "Night"};
+      String desc = dayTime[ViewerConstants.getDayTime(hour)];
+      return String.format("Time (%1$02d:00 - %2$s)", hour, desc);
+    }
+
+
     public DayTimePanel(ButtonPopupWindow bpw, int hour)
     {
       super(new BorderLayout());
@@ -2680,12 +2819,8 @@ public class AreaViewer extends ChildFrame
     // Updates the text of the parent button
     private void updateButton()
     {
-      final String[] dayTime = new String[]{"Day", "Twilight", "Night"};
-
-      int hour = sHours.getValue();
-      String desc = dayTime[ViewerConstants.getDayTime(hour)];
       if (bpwDayTime != null) {
-        bpwDayTime.setText(String.format("Time (%1$02d:00 - %2$s)", hour, desc));
+        bpwDayTime.setText(getButtonText(sHours.getValue()));
       }
     }
 
@@ -2756,5 +2891,62 @@ public class AreaViewer extends ChildFrame
 
       updateButton();
     }
+  }
+
+
+  // Adds support for visual components in JTree instances
+  private static class ComponentTreeCellRenderer extends DefaultTreeCellRenderer
+  {
+    public ComponentTreeCellRenderer()
+    {
+      super();
+    }
+
+    // --------------------- Begin Interface TreeCellRenderer ---------------------
+
+    @Override
+    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
+                                                  boolean expanded, boolean leaf, int row,
+                                                  boolean hasFocus) {
+      if (value instanceof DefaultMutableTreeNode) {
+        value = ((DefaultMutableTreeNode)value).getUserObject();
+      }
+      Component c = null;
+      if (value instanceof Component) {
+        c = (Component)value;
+      } else {
+        c = new JLabel((value != null) ? value.toString() : "");
+      }
+      return c;
+    }
+
+    // --------------------- End Interface TreeCellRenderer ---------------------
+  }
+
+
+  // Adds support for editable visual components in JTree instances
+  private static class ComponentTreeCellEditor extends DefaultTreeCellEditor
+  {
+    public ComponentTreeCellEditor(JTree tree, ComponentTreeCellRenderer renderer)
+    {
+      super(tree, renderer);
+    }
+
+    // --------------------- Begin Interface TreeCellEditor ---------------------
+
+    @Override
+    public boolean isCellEditable(EventObject event)
+    {
+      return true;
+    }
+
+    @Override
+    public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected,
+                                                boolean expanded, boolean leaf, int row)
+    {
+      return renderer.getTreeCellRendererComponent(tree, value, isSelected, expanded, leaf, row, true);
+    }
+
+    // --------------------- End Interface TreeCellEditor ---------------------
   }
 }

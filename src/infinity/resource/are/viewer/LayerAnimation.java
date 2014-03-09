@@ -27,7 +27,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   private static final String AvailableFmt = "%1$d background animation%2$s available";
 
   private boolean realEnabled, realPlaying, forcedInterpolation;
-  private int frameState, interpolationType;
+  private int frameState;
+  private Object interpolationType;
   private double frameRate;
 
   public LayerAnimation(AreResource are, AreaViewer viewer)
@@ -44,7 +45,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectAnimation> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
@@ -131,7 +132,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
    * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
    *         or ViewerConstants.TYPE_BICUBIC.
    */
-  public int getRealAnimationInterpolation()
+  public Object getRealAnimationInterpolation()
   {
     return interpolationType;
   }
@@ -141,7 +142,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
    * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
    *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
    */
-  public void setRealAnimationInterpolation(int interpolationType)
+  public void setRealAnimationInterpolation(Object interpolationType)
   {
     if (interpolationType != this.interpolationType) {
       this.interpolationType = interpolationType;

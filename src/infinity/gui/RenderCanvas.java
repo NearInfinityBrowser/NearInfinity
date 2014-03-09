@@ -4,17 +4,12 @@
 
 package infinity.gui;
 
-import infinity.resource.graphics.ColorConvert;
-
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
+import java.awt.RenderingHints;
 
 import javax.swing.JComponent;
 import javax.swing.SwingConstants;
@@ -26,12 +21,12 @@ import javax.swing.SwingConstants;
 public class RenderCanvas extends JComponent implements SwingConstants
 {
   // interpolation types used in scaling
-  public static final int TYPE_NEAREST_NEIGHBOR = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
-  public static final int TYPE_BILINEAR         = AffineTransformOp.TYPE_BILINEAR;
-  public static final int TYPE_BICUBIC          = AffineTransformOp.TYPE_BICUBIC;
+  public static final Object TYPE_NEAREST_NEIGHBOR  = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+  public static final Object TYPE_BILINEAR          = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+  public static final Object TYPE_BICUBIC           = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
   private Image currentImage;
-  private int interpolationType;
+  private Object interpolationType;
   private boolean isScaling;
   private int verticalAlignment, horizontalAlignment;
 
@@ -50,12 +45,12 @@ public class RenderCanvas extends JComponent implements SwingConstants
     this(image, scaled, TYPE_NEAREST_NEIGHBOR, CENTER, CENTER);
   }
 
-  public RenderCanvas(Image image, boolean scaled, int interpolationType)
+  public RenderCanvas(Image image, boolean scaled, Object interpolationType)
   {
     this(image, scaled, interpolationType, CENTER, CENTER);
   }
 
-  public RenderCanvas(Image image, boolean scaled, int interpolationType,
+  public RenderCanvas(Image image, boolean scaled, Object interpolationType,
                       int horizontalAlign, int verticalAlign)
   {
     setOpaque(false);
@@ -86,6 +81,9 @@ public class RenderCanvas extends JComponent implements SwingConstants
   public void setImage(Image image)
   {
     if (currentImage != image) {
+      if (image == null) {
+        currentImage.flush();
+      }
       currentImage = image;
       updateSize();
     }
@@ -180,7 +178,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
    * Returns the interpolation type used when scaling has been enabled.
    * @return The interpolation type.
    */
-  public int getInterpolationType()
+  public Object getInterpolationType()
   {
     return interpolationType;
   }
@@ -190,20 +188,16 @@ public class RenderCanvas extends JComponent implements SwingConstants
    * One of TYPE_NEAREST_NEIGHBOR, TYPE_BILINEAR and TYPE_BICUBIC (Default: TYPE_NEAREST_NEIGHBOR).
    * @param interpolationType The new interpolation type to set.
    */
-  public void setInterpolationType(int interpolationType)
+  public void setInterpolationType(Object interpolationType)
   {
     if (this.interpolationType != interpolationType) {
-      switch (interpolationType) {
-        case TYPE_NEAREST_NEIGHBOR:
-        case TYPE_BILINEAR:
-        case TYPE_BICUBIC:
-          this.interpolationType = interpolationType;
-          break;
-        default:
-          return;
-      }
-      if (isScaling) {
-        repaint();
+      if (interpolationType == TYPE_NEAREST_NEIGHBOR ||
+          interpolationType == TYPE_BILINEAR ||
+          interpolationType == TYPE_BICUBIC) {
+        this.interpolationType = interpolationType;
+        if (isScaling) {
+          repaint();
+        }
       }
     }
   }
@@ -227,18 +221,13 @@ public class RenderCanvas extends JComponent implements SwingConstants
    * Renders the image to the canvas.
    * @param g The graphics context in which to paint.
    */
-  protected synchronized void paintCanvas(Graphics g)
+  protected void paintCanvas(Graphics g)
   {
     if (currentImage != null && currentImage.getWidth(null) > 0 && currentImage.getHeight(null) > 0) {
       Graphics2D g2 = (Graphics2D)g;
       if (isScaling) {
-        BufferedImage image = ColorConvert.toBufferedImage(currentImage, true);
-        double sx = (double)getWidth() / (double)currentImage.getWidth(null);
-        double sy = (double)getHeight() / (double)currentImage.getHeight(null);
-        BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(sx, sy),
-                                                   interpolationType);
-        g2.drawImage(image, op, 0, 0);
-        image = null;
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolationType);
+        g2.drawImage(currentImage, 0, 0, getWidth(), getHeight(), null);
       } else {
         Point srcPos = new Point(0, 0);
         switch (horizontalAlignment) {

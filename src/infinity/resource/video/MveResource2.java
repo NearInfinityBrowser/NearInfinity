@@ -113,7 +113,7 @@ public class MveResource2 implements Resource, ActionListener, ItemListener, Clo
     } else if (event.getSource() == cbFilter) {
       if (renderer != null) {
         isFilter = cbFilter.isSelected();
-        int filter = isFilter ? ImageRenderer.TYPE_BILINEAR : ImageRenderer.TYPE_NEAREST_NEIGHBOR;
+        Object filter = isFilter ? ImageRenderer.TYPE_BILINEAR : ImageRenderer.TYPE_NEAREST_NEIGHBOR;
         renderer.setInterpolationType(filter);
       }
     }

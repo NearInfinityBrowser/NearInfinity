@@ -53,6 +53,8 @@ public class Settings
   public static boolean ShowAmbientRanges = getDefaultAmbientRanges();
   // Defines whether to ignore time schedules on layer items
   public static boolean EnableSchedules = getDefaultEnableSchedules();
+  // Bitmask that controls the collapsed/expanded state of the sidebar controls
+  public static int SidebarControls = getDefaultSidebarControls();
   // Indicates whether to show frames around real background animations all the time
   public static int ShowFrame = getDefaultShowFrame();
   // Interpolation state of map tileset
@@ -81,6 +83,7 @@ public class Settings
   private static final String PREFS_DRAWCLOSED          = "DrawClosed";
   private static final String PREFS_DRAWOVERLAYS        = "DrawOverlays";
   private static final String PREFS_DRAWGRID            = "DrawGrid";
+  private static final String PREFS_SIDEBARCONTROLS     = "SidebarControls";
   private static final String PREFS_SHOWFRAME           = "ShowFrame";
   private static final String PREFS_SHOWAMBIENT         = "ShowAmbientRanges";
   private static final String PREFS_ENABLESCHEDULES     = "EnableSchedules";
@@ -134,6 +137,7 @@ public class Settings
         DrawOverlays = prefs.getBoolean(PREFS_DRAWOVERLAYS, getDefaultDrawOverlays());
         DrawGrid = prefs.getBoolean(PREFS_DRAWGRID, getDefaultDrawGrid());
         ShowAmbientRanges = prefs.getBoolean(PREFS_SHOWAMBIENT, getDefaultAmbientRanges());
+        SidebarControls = prefs.getInt(PREFS_SIDEBARCONTROLS, getDefaultSidebarControls());
         LayerFlags = prefs.getInt(PREFS_LAYERFLAGS, getDefaultLayerFlags());
         ShowRealAnimations = prefs.getInt(PREFS_SHOWREALANIMS, getDefaultShowRealAnimations());
         TimeOfDay = prefs.getInt(PREFS_TIMEOFDAY, getDefaultTimeOfDay());
@@ -175,6 +179,7 @@ public class Settings
       prefs.putBoolean(PREFS_DRAWOVERLAYS, DrawOverlays);
       prefs.putBoolean(PREFS_DRAWGRID, DrawGrid);
       prefs.putBoolean(PREFS_SHOWAMBIENT, ShowAmbientRanges);
+      prefs.putInt(PREFS_SIDEBARCONTROLS, SidebarControls);
       prefs.putInt(PREFS_LAYERFLAGS, LayerFlags);
       prefs.putInt(PREFS_SHOWREALANIMS, ShowRealAnimations);
       prefs.putInt(PREFS_TIMEOFDAY, TimeOfDay);
@@ -194,14 +199,17 @@ public class Settings
     int mask = (1 << LayerManager.getLayerTypeCount()) - 1;
     LayerFlags &= mask;
 
+    SidebarControls &= (ViewerConstants.SIDEBAR_VISUALSTATE |
+                        ViewerConstants.SIDEBAR_LAYERS |
+                        ViewerConstants.SIDEBAR_MINIMAPS);
     ShowRealAnimations = Math.min(Math.max(ShowRealAnimations, ViewerConstants.ANIM_SHOW_NONE),
                                   ViewerConstants.ANIM_SHOW_ANIMATED);
     TimeOfDay = Math.min(Math.max(TimeOfDay, ViewerConstants.TIME_0), ViewerConstants.TIME_23);
     ZoomLevel = Math.min(Math.max(ZoomLevel, 0), ItemZoomFactor.length - 1);
-    InterpolationMap = Math.min(Math.max(InterpolationMap, ViewerConstants.INTERPOLATION_AUTO),
-                                ViewerConstants.INTERPOLATION_BILINEAR);
-    InterpolationAnim = Math.min(Math.max(InterpolationAnim, ViewerConstants.INTERPOLATION_AUTO),
-                                 ViewerConstants.INTERPOLATION_BILINEAR);
+    InterpolationMap = Math.min(Math.max(InterpolationMap, ViewerConstants.FILTERING_AUTO),
+                                ViewerConstants.FILTERING_BILINEAR);
+    InterpolationAnim = Math.min(Math.max(InterpolationAnim, ViewerConstants.FILTERING_AUTO),
+                                 ViewerConstants.FILTERING_BILINEAR);
     FrameRateOverlays = Math.min(Math.max(FrameRateOverlays, 1.0), 30.0);
     FrameRateAnimations = Math.min(Math.max(FrameRateAnimations, 1.0), 30.0);
     MiniMapAlpha = Math.min(Math.max(MiniMapAlpha, 0.0), 1.0);
@@ -269,6 +277,11 @@ public class Settings
     return false;
   }
 
+  public static int getDefaultSidebarControls()
+  {
+    return ViewerConstants.SIDEBAR_VISUALSTATE | ViewerConstants.SIDEBAR_LAYERS | ViewerConstants.SIDEBAR_MINIMAPS;
+  }
+
   public static int getDefaultShowFrame()
   {
     return ViewerConstants.FRAME_AUTO;
@@ -276,12 +289,12 @@ public class Settings
 
   public static int getDefaultInterpolationMap()
   {
-    return ViewerConstants.INTERPOLATION_AUTO;
+    return ViewerConstants.FILTERING_AUTO;
   }
 
   public static int getDefaultInterpolationAnim()
   {
-    return ViewerConstants.INTERPOLATION_AUTO;
+    return ViewerConstants.FILTERING_AUTO;
   }
 
   public static int getDefaultLayerFlags()

@@ -63,7 +63,8 @@ public final class LayerManager
   private AreResource are;
   private WedResource wed;
   private boolean scheduleEnabled, animForcedInterpolation;
-  private int schedule, animInterpolationType;
+  private int schedule;
+  private Object animInterpolationType;
   private double animFrameRate;
 
   /**
@@ -310,13 +311,13 @@ public final class LayerManager
   /**
    * Removes all layer objects from memory.
    */
-  public void clear()
+  public void close()
   {
     for (LayerType layer: LayerType.values()) {
       @SuppressWarnings("rawtypes")
       BasicLayer bl = layers.get(layer);
       if (bl != null) {
-        bl.clear();
+        bl.close();
       }
     }
     layers.clear();
@@ -458,7 +459,7 @@ public final class LayerManager
    * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
    *         or ViewerConstants.TYPE_BICUBIC.
    */
-  public int getRealAnimationInterpolation()
+  public Object getRealAnimationInterpolation()
   {
     return animInterpolationType;
   }
@@ -468,19 +469,18 @@ public final class LayerManager
    * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
    *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
    */
-  public void setRealAnimationInterpolation(int interpolationType)
+  public void setRealAnimationInterpolation(Object interpolationType)
   {
-    switch (interpolationType) {
-      case ViewerConstants.TYPE_NEAREST_NEIGHBOR:
-      case ViewerConstants.TYPE_BILINEAR:
-      case ViewerConstants.TYPE_BICUBIC:
-        if (interpolationType != animInterpolationType) {
-          animInterpolationType = interpolationType;
-          LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
-          if (layer != null) {
-            layer.setRealAnimationInterpolation(animInterpolationType);
-          }
+    if (interpolationType != animInterpolationType) {
+      if (interpolationType == ViewerConstants.TYPE_NEAREST_NEIGHBOR ||
+          interpolationType == ViewerConstants.TYPE_BILINEAR ||
+          interpolationType == ViewerConstants.TYPE_BICUBIC) {
+        animInterpolationType = interpolationType;
+        LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+        if (layer != null) {
+          layer.setRealAnimationInterpolation(animInterpolationType);
         }
+      }
     }
   }
 

@@ -7,11 +7,16 @@ package infinity.resource.are.viewer;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.EventListener;
 import java.util.List;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.gui.layeritem.AbstractLayerItem;
+import infinity.gui.layeritem.LayerItemListener;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
@@ -37,6 +42,49 @@ public abstract class LayerObject
     this.classType = (classType != null) ? classType : AbstractStruct.class;
     this.parent = parent;
     visible = false;
+  }
+
+  /**
+   * Closes and cleans up the current layer object.
+   */
+  public void close()
+  {
+    AbstractLayerItem[] items = getLayerItems();
+    if (items != null) {
+      for (int i = 0; i < items.length; i++) {
+        // removing listeners from layer item
+        EventListener[][] listeners = new EventListener[4][];
+        listeners[0] = items[i].getActionListeners();
+        listeners[1] = items[i].getLayerItemListeners();
+        listeners[2] = items[i].getMouseListeners();
+        listeners[3] = items[i].getMouseMotionListeners();
+        for (int j = 0; j < listeners.length; j++) {
+          if (listeners[j] != null) {
+            for (int k = 0; k < listeners[j].length; k++) {
+              switch (j) {
+                case 0:
+                  items[i].removeActionListener((ActionListener)listeners[j][k]);
+                  break;
+                case 1:
+                  items[i].removeLayerItemListener((LayerItemListener)listeners[j][k]);
+                  break;
+                case 2:
+                  items[i].removeMouseListener((MouseListener)listeners[j][k]);
+                  break;
+                case 3:
+                  items[i].removeMouseMotionListener((MouseMotionListener)listeners[j][k]);
+                  break;
+              }
+            }
+          }
+        }
+
+        // removing items from container
+        if (items[i].getParent() != null) {
+          items[i].getParent().remove(items[i]);
+        }
+      }
+    }
   }
 
   /**

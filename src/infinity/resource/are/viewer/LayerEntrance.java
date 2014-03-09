@@ -30,7 +30,7 @@ public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectEntrance> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

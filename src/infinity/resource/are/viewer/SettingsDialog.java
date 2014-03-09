@@ -52,9 +52,9 @@ public class SettingsDialog extends JDialog
   private static final String[] AnimationFrames = new String[]{"Never",
                                                                "On mouse-over only",
                                                                "Always"};
-  private static final String[] QualityItems = new String[]{"Choose optimal interpolation automatically",
-                                                            "Always use nearest neighbor interpolation",
-                                                            "Always use bilinear interpolation"};
+  private static final String[] QualityItems = new String[]{"Choose optimal filtering automatically",
+                                                            "Always use nearest neighbor filtering",
+                                                            "Always use bilinear filtering"};
   private static final String[] LayerDesc = new String[]{"Actors", "Regions", "Entrances", "Containers",
                                                          "Ambient Sounds", "Ambient Sound Ranges",
                                                          "Doors", "Background Animations", "Automap Notes",
@@ -376,7 +376,7 @@ public class SettingsDialog extends JDialog
     sMiniMapAlpha.setPaintTicks(true);
     sMiniMapAlpha.setPaintTrack(true);
     c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+               GridBagConstraints.HORIZONTAL, new Insets(0, 4, 4, 4), 0, 0);
     pMiniMap.add(sMiniMapAlpha, c);
 
     // Misc. settings

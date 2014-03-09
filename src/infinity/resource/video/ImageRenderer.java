@@ -11,9 +11,9 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JComponent;
@@ -27,9 +27,9 @@ import javax.swing.SwingConstants;
 public class ImageRenderer extends JComponent implements VideoBuffer, ComponentListener, SwingConstants
 {
   // interpolation types used in scaling
-  public static final int TYPE_NEAREST_NEIGHBOR = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
-  public static final int TYPE_BILINEAR         = AffineTransformOp.TYPE_BILINEAR;
-  public static final int TYPE_BICUBIC          = AffineTransformOp.TYPE_BICUBIC;
+  public static final Object TYPE_NEAREST_NEIGHBOR  = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+  public static final Object TYPE_BILINEAR          = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+  public static final Object TYPE_BICUBIC           = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
   private final BasicVideoBuffer videoBuffer;
   private final RenderCanvas canvas;
@@ -178,7 +178,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
    * Returns the interpolation type used when scaling has been enabled.
    * @return The interpolation type.
    */
-  public int getInterpolationType()
+  public Object getInterpolationType()
   {
     return canvas.getInterpolationType();
   }
@@ -188,7 +188,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
    * One of TYPE_NEAREST_NEIGHBOR, TYPE_BILINEAR and TYPE_BICUBIC (Default: TYPE_NEAREST_NEIGHBOR).
    * @param interpolationType The new interpolation type to set.
    */
-  public void setInterpolationType(int interpolationType)
+  public void setInterpolationType(Object interpolationType)
   {
     canvas.setInterpolationType(interpolationType);
   }

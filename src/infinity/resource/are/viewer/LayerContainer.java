@@ -30,7 +30,7 @@ public class LayerContainer extends BasicLayer<LayerObjectContainer>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObjectContainer> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();

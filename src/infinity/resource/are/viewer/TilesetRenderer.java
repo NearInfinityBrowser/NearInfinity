@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -479,6 +480,19 @@ public class TilesetRenderer extends RenderCanvas
     }
   }
 
+  /**
+   * Redraw all tiles of the current map if needed.
+   * @param force If <code>true</code>, the map will be redrawn regardless of the current map state.
+   */
+  public void reload(boolean force)
+  {
+    boolean b = false;
+    if (getImage() != null && getImage() instanceof VolatileImage) {
+      b = ((VolatileImage)getImage()).contentsLost();
+    }
+    updateDisplay(b || force);
+  }
+
   protected void updateSize()
   {
     if (isInitialized()) {
@@ -522,13 +536,13 @@ public class TilesetRenderer extends RenderCanvas
   private boolean updateImageSize()
   {
     if (isInitialized()) {
-      BufferedImage curImg = (BufferedImage)getImage();
-      if (curImg == null || curImg.getWidth() != getMapWidth(false) ||
-          curImg.getHeight() != getMapHeight(false)) {
+      Image curImg = getImage();
+      if (curImg == null || curImg.getWidth(null) != getMapWidth(false) ||
+          curImg.getHeight(null) != getMapHeight(false)) {
         if (curImg != null) {
           curImg = null;
         }
-        BufferedImage newImg = ColorConvert.createCompatibleImage(getMapWidth(false), getMapHeight(false), true);
+        Image newImg = ColorConvert.createVolatileImage(getMapWidth(false), getMapHeight(false), false);
         if (newImg == null) {
           return false;
         }
@@ -652,12 +666,24 @@ public class TilesetRenderer extends RenderCanvas
     }
   }
 
-  // (Re-)draw display, resize if needed
+  // For compatibility reasons only
   private void updateDisplay()
+  {
+    updateDisplay(false);
+  }
+
+  // (Re-)draw display, resize if needed
+  private void updateDisplay(boolean forced)
   {
     if (isInitialized()) {
       updateImageSize();
-      if (hasChangedMap || hasChangedAppearance) {
+
+      // VolatileImage objects may lose their content under specific circumstances
+      if (!forced && getImage() != null && getImage() instanceof VolatileImage) {
+        forced |= ((VolatileImage)getImage()).contentsLost();
+      }
+
+      if (hasChangedMap || hasChangedAppearance || forced) {
         // redraw each tile
         drawAllTiles();
       } else {
@@ -943,9 +969,11 @@ public class TilesetRenderer extends RenderCanvas
       }
 
       // drawing tile on canvas
-      Graphics2D g = (Graphics2D)getImage().getGraphics();
-      g.drawImage(workingTile, tile.getX(), tile.getY(), null);
-      g.dispose();
+      if (getImage() != null) {
+        Graphics2D g = (Graphics2D)getImage().getGraphics();
+        g.drawImage(workingTile, tile.getX(), tile.getY(), null);
+        g.dispose();
+      }
       target = null;
     }
   }

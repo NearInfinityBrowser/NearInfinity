@@ -4,7 +4,7 @@
 
 package infinity.resource.are.viewer;
 
-import java.awt.image.AffineTransformOp;
+import java.awt.RenderingHints;
 
 /**
  * Definitions of constants and custom types used throughout the area viewer classes.
@@ -23,6 +23,11 @@ public final class ViewerConstants
                                         Door, Animation, Automap, SpawnPoint, Transition,
                                         ProTrap, DoorPoly, WallPoly }
 
+  // Flags that identify the different control sections in the sidebar
+  public static final int SIDEBAR_VISUALSTATE = 1 << 0;
+  public static final int SIDEBAR_LAYERS      = 1 << 1;
+  public static final int SIDEBAR_MINIMAPS    = 1 << 2;
+
   // Identifiers for specifying day/night versions of ARE/WED resources
   public static final int AREA_DAY    = 0;
   public static final int AREA_NIGHT  = 1;
@@ -33,10 +38,10 @@ public final class ViewerConstants
   public static final int MAP_LIGHT   = 1;
   public static final int MAP_HEIGHT  = 2;
 
-  // Interpolation types used in different graphics components
-  public static final int INTERPOLATION_AUTO            = 0;
-  public static final int INTERPOLATION_NEARESTNEIGHBOR = 1;
-  public static final int INTERPOLATION_BILINEAR        = 2;
+  // Filtering methods for graphics objects
+  public static final int FILTERING_AUTO            = 0;
+  public static final int FILTERING_NEARESTNEIGHBOR = 1;
+  public static final int FILTERING_BILINEAR        = 2;
 
   // Frames around layer items
   public static final int FRAME_NEVER   = 0;  // never show frame
@@ -53,9 +58,9 @@ public final class ViewerConstants
   public static final int LIGHTING_NIGHT    = 2;
 
   // Interpolation types used in scaling (AnimatedLayerItem, TilesetRenderer)
-  public static final int TYPE_NEAREST_NEIGHBOR = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
-  public static final int TYPE_BILINEAR         = AffineTransformOp.TYPE_BILINEAR;
-  public static final int TYPE_BICUBIC          = AffineTransformOp.TYPE_BICUBIC;
+  public static final Object TYPE_NEAREST_NEIGHBOR  = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+  public static final Object TYPE_BILINEAR          = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+  public static final Object TYPE_BICUBIC           = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
   // Specifies the item type for animation objects (LayerObjectAnimation)
   public static int ANIM_ITEM_ICON = 0;

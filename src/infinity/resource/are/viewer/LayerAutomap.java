@@ -40,7 +40,7 @@ public class LayerAutomap extends BasicLayer<LayerObject>
   public int loadLayer(boolean forced)
   {
     if (forced || !isInitialized()) {
-      clear();
+      close();
       List<LayerObject> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
