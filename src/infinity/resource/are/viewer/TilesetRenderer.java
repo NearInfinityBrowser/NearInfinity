@@ -8,6 +8,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -493,6 +495,21 @@ public class TilesetRenderer extends RenderCanvas
     updateDisplay(b || force);
   }
 
+  @Override
+  public void paint(Graphics g)
+  {
+    // checking whether VolatileImage instance needs to be updated
+    if (getImage() != null && getImage() instanceof VolatileImage) {
+      VolatileImage image = (VolatileImage)getImage();
+      GraphicsConfiguration gc =
+          GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+      if (image.validate(gc) == VolatileImage.IMAGE_RESTORED) {
+        updateDisplay(true);
+      }
+    }
+    super.paint(g);
+  }
+
   protected void updateSize()
   {
     if (isInitialized()) {
@@ -536,17 +553,9 @@ public class TilesetRenderer extends RenderCanvas
   private boolean updateImageSize()
   {
     if (isInitialized()) {
-      Image curImg = getImage();
-      if (curImg == null || curImg.getWidth(null) != getMapWidth(false) ||
-          curImg.getHeight(null) != getMapHeight(false)) {
-        if (curImg != null) {
-          curImg = null;
-        }
-        Image newImg = ColorConvert.createVolatileImage(getMapWidth(false), getMapHeight(false), false);
-        if (newImg == null) {
-          return false;
-        }
-        setImage(newImg);
+      if (getImage() == null || getImage().getWidth(null) != getMapWidth(false) ||
+          getImage().getHeight(null) != getMapHeight(false)) {
+        setImage(ColorConvert.createVolatileImage(getMapWidth(false), getMapHeight(false), false));
       }
       updateSize();
       return true;

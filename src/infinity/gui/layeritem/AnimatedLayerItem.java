@@ -32,12 +32,6 @@ import javax.swing.Timer;
  * Represents a game resource structure visually as a bitmap animation.
  * @author argent77
  */
-/*
- * TODO: Add proper support for mirrored animations (mirrored on Y axis)
- * - sprites are already mirrored correctly
- * - center position has yet to be mirrored
- * Example map using mirrored animationsL AR3016
- */
 public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemListener, ActionListener
 {
   // lookup table for alpha transparency on blended animations

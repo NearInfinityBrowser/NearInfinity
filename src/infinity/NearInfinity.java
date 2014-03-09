@@ -48,6 +48,12 @@ import javax.swing.filechooser.FileFilter;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
+  static {
+    // XXX: Works around a known bug in Java's Swing layouts when using FocusTraversalPolicy
+    // Note: Required for Area Viewer's JTree control; must be set before executing main()
+    System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+  }
+
   private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
 
   private static final JTextArea consoletext = new JTextArea();
