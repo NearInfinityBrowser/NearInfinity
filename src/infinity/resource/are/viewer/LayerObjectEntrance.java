@@ -112,10 +112,22 @@ public class LayerObjectEntrance extends LayerObject
         e.printStackTrace();
       }
 
-      item = new IconLayerItem(location, entrance, msg, Icon[0], Center);
+      // Using cached icons
+      Image[] icon;
+      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[0]),
+                                                 SharedResourceCache.createKey(Icon[1]));
+      if (SharedResourceCache.contains(SharedResourceCache.Type.Icon, keyIcon)) {
+        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.Icon, keyIcon)).getData();
+        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon);
+      } else {
+        icon = Icon;
+        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon, new ResourceIcon(keyIcon, icon));
+      }
+
+      item = new IconLayerItem(location, entrance, msg, icon[0], Center);
       item.setName(getCategory());
       item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, Icon[1]);
+      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }
   }

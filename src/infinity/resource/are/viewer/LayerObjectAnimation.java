@@ -57,8 +57,23 @@ public class LayerObjectAnimation extends LayerObject
   @Override
   public void close()
   {
-    // TODO
     super.close();
+    // removing cached references
+    for (int i = 0; i < items.length; i++) {
+      if (items[i] != null) {
+        Object key = items[i].getData();
+        if (key != null) {
+          switch (i) {
+            case ViewerConstants.ANIM_ITEM_ICON:
+              SharedResourceCache.remove(SharedResourceCache.Type.Icon, key);
+              break;
+            case ViewerConstants.ANIM_ITEM_REAL:
+              SharedResourceCache.remove(SharedResourceCache.Type.Animation, key);
+              break;
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -156,6 +171,7 @@ public class LayerObjectAnimation extends LayerObject
   private void init()
   {
     if (anim != null) {
+      String keyAnim = "";
       String msg = "";
       int iconIdx = 0;
       AnimatedLayerItem.Frame[] frames = null;
@@ -197,12 +213,28 @@ public class LayerObjectAnimation extends LayerObject
         // initializing frames
         if (isWBM) {
           // using icon as placeholder
-          frames = new AnimatedLayerItem.Frame[1];
-          frames[0] = new AnimatedLayerItem.Frame(Icon[1][0], Center, baseAlpha);
+          // generating key from icon hashcode
+          keyAnim = String.format(String.format("%1$08x", Icon[1][0].hashCode()));
+          if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
+            frames = new AnimatedLayerItem.Frame[1];
+            frames[0] = new AnimatedLayerItem.Frame(Icon[1][0], Center, baseAlpha);
+            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, frames));
+          } else {
+            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
+            frames = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
+          }
         } else if (isPVRZ) {
           // using icon as placeholder
-          frames = new AnimatedLayerItem.Frame[1];
-          frames[0] = new AnimatedLayerItem.Frame(Icon[2][0], Center, baseAlpha);
+          // generating key from icon hashcode
+          keyAnim = String.format(String.format("%1$08x", Icon[2][0].hashCode()));
+          if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
+            frames = new AnimatedLayerItem.Frame[1];
+            frames[0] = new AnimatedLayerItem.Frame(Icon[2][0], Center, baseAlpha);
+            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, frames));
+          } else {
+            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
+            frames = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
+          }
         } else {
           // setting up BAM frames
           String animFile = ((ResourceRef)anim.getAttribute("Animation")).getResourceName();
@@ -220,10 +252,11 @@ public class LayerObjectAnimation extends LayerObject
           }
 
           int[] palette = null;
+          String paletteFile = null;
           if (hasExternalPalette) {
             ResourceRef ref = (ResourceRef)anim.getAttribute("Palette");
             if (ref != null) {
-              String paletteFile = ref.getResourceName();
+              paletteFile = ref.getResourceName();
               if (paletteFile == null || paletteFile.isEmpty() || "None".equalsIgnoreCase(paletteFile)) {
                 paletteFile = "";
               }
@@ -246,20 +279,29 @@ public class LayerObjectAnimation extends LayerObject
                 frameCount = Math.min(frameCount, bam.data().cycleFrameCount());
               }
 
-              // building frames list
-              frames = new AnimatedLayerItem.Frame[frameCount];
-              for (int cycleIdx = 0; cycleIdx < bam.data().cycleCount(); cycleIdx++) {
-                bam.data().cycleSet(cycleIdx);
-                for (int frameIdx = 0; frameIdx < bam.data().cycleFrameCount(); frameIdx++) {
-                  int absFrameIdx = bam.data().cycleGetFrameIndexAbs(frameIdx);
-                  Image img = bam.data().frameGet(absFrameIdx);
-                  Point p = new Point(bam.data().frameCenterX(absFrameIdx), bam.data().frameCenterY(absFrameIdx));
-                  if (frames[frameIdx] == null) {
-                    frames[frameIdx] = new AnimatedLayerItem.Frame(new Image[]{img}, new Point[]{p}, baseAlpha);
-                  } else {
-                    frames[frameIdx].add(img, p);
+              // generating unique key from name, all cycles constant and palette hashcode
+              keyAnim = String.format("%1$s@%2$d@%3$08x",
+                                  animFile, -1, (paletteFile != null) ? paletteFile.hashCode() : 0);
+              if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
+                // building frames list
+                frames = new AnimatedLayerItem.Frame[frameCount];
+                for (int cycleIdx = 0; cycleIdx < bam.data().cycleCount(); cycleIdx++) {
+                  bam.data().cycleSet(cycleIdx);
+                  for (int frameIdx = 0; frameIdx < bam.data().cycleFrameCount(); frameIdx++) {
+                    int absFrameIdx = bam.data().cycleGetFrameIndexAbs(frameIdx);
+                    Image img = bam.data().frameGet(absFrameIdx);
+                    Point p = new Point(bam.data().frameCenterX(absFrameIdx), bam.data().frameCenterY(absFrameIdx));
+                    if (frames[frameIdx] == null) {
+                      frames[frameIdx] = new AnimatedLayerItem.Frame(new Image[]{img}, new Point[]{p}, baseAlpha);
+                    } else {
+                      frames[frameIdx].add(img, p);
+                    }
                   }
                 }
+                SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, frames));
+              } else {
+                SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
+                frames = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
               }
             } else {
               // loading a single cycle
@@ -269,13 +311,23 @@ public class LayerObjectAnimation extends LayerObject
               }
               if (skippedFrames >= frameCount) skippedFrames = frameCount - 1;
 
-              // building frames list
-              frames = new AnimatedLayerItem.Frame[frameCount];
-              for (int i = 0; i < frames.length; i++) {
-                int frameIdx = bam.data().cycleGetFrameIndexAbs(i);
-                Image img = bam.data().frameGet(frameIdx);
-                Point p = new Point(bam.data().frameCenterX(frameIdx), bam.data().frameCenterY(frameIdx));
-                frames[i] = new AnimatedLayerItem.Frame(img, p, baseAlpha);
+              // generating unique key from name, cycle and palette hashcode
+              keyAnim = String.format("%1$s@%2$d@%3$08x",
+                                  animFile, cycle, (paletteFile != null) ? paletteFile.hashCode() : 0);
+
+              if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
+                // building frames list
+                frames = new AnimatedLayerItem.Frame[frameCount];
+                for (int i = 0; i < frames.length; i++) {
+                  int frameIdx = bam.data().cycleGetFrameIndexAbs(i);
+                  Image img = bam.data().frameGet(frameIdx);
+                  Point p = new Point(bam.data().frameCenterX(frameIdx), bam.data().frameCenterY(frameIdx));
+                  frames[i] = new AnimatedLayerItem.Frame(img, p, baseAlpha);
+                }
+                SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, frames));
+              } else {
+                SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
+                frames = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
               }
             }
           }
@@ -284,14 +336,28 @@ public class LayerObjectAnimation extends LayerObject
         e.printStackTrace();
       }
 
-      IconLayerItem item1 = new IconLayerItem(location, anim, msg, Icon[iconIdx][0], Center);
+      // Using cached icons
+      Image[] icon;
+      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[iconIdx][0]),
+                                                 SharedResourceCache.createKey(Icon[iconIdx][1]));
+      if (SharedResourceCache.contains(SharedResourceCache.Type.Icon, keyIcon)) {
+        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.Icon, keyIcon)).getData();
+        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon);
+      } else {
+        icon = Icon[iconIdx];
+        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon, new ResourceIcon(keyIcon, icon));
+      }
+
+      IconLayerItem item1 = new IconLayerItem(location, anim, msg, icon[0], Center);
+      item1.setData(keyIcon);
       item1.setName(getCategory());
       item1.setToolTipText(msg);
-      item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, Icon[iconIdx][1]);
+      item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item1.setVisible(isVisible());
       items[0] = item1;
 
       AnimatedLayerItem item2 = new AnimatedLayerItem(location, anim, msg, frames);
+      item2.setData(keyAnim);
       item2.setName(getCategory());
       item2.setToolTipText(msg);
       item2.setVisible(false);

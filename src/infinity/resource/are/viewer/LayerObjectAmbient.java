@@ -211,6 +211,16 @@ public class LayerObjectAmbient extends LayerObject
         e.printStackTrace();
       }
 
+      // Using cached icons
+      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(icon[0]),
+                                                 SharedResourceCache.createKey(icon[1]));
+      if (SharedResourceCache.contains(SharedResourceCache.Type.Icon, keyIcon)) {
+        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.Icon, keyIcon)).getData();
+        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon);
+      } else {
+        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon, new ResourceIcon(keyIcon, icon));
+      }
+
       // creating sound item
       itemIcon = new IconLayerItem(location, ambient, msg, icon[0], Center);
       itemIcon.setName(getCategory());

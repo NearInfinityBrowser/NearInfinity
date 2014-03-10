@@ -63,8 +63,8 @@ public final class ViewerConstants
   public static final Object TYPE_BICUBIC           = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
   // Specifies the item type for animation objects (LayerObjectAnimation)
-  public static int ANIM_ITEM_ICON = 0;
-  public static int ANIM_ITEM_REAL = 1;
+  public static final int ANIM_ITEM_ICON = 0;
+  public static final int ANIM_ITEM_REAL = 1;
 
   // Different states of showing background animations (AreaViewer)
   public static final int ANIM_SHOW_NONE      = 0;
