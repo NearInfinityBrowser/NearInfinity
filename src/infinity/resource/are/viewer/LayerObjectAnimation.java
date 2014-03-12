@@ -22,6 +22,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
 import infinity.resource.graphics.BamDecoder;
+import infinity.resource.graphics.BamV1Decoder;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
@@ -33,10 +34,16 @@ import infinity.util.DynamicArray;
 public class LayerObjectAnimation extends LayerObject
 {
   private static final Image[][] Icon = new Image[][]{
+    // active versions
     {Icons.getImage("itm_Anim1.png"), Icons.getImage("itm_Anim2.png")},
     {Icons.getImage("itm_AnimWBM1.png"), Icons.getImage("itm_AnimWBM2.png")},
     {Icons.getImage("itm_AnimPVRZ1.png"), Icons.getImage("itm_AnimPVRZ2.png")},
-    {Icons.getImage("itm_AnimBAM1.png"), Icons.getImage("itm_AnimBAM2.png")}
+    {Icons.getImage("itm_AnimBAM1.png"), Icons.getImage("itm_AnimBAM2.png")},
+    // inactive versions
+    {Icons.getImage("itm_Anim1_bw.png"), Icons.getImage("itm_Anim2_bw.png")},
+    {Icons.getImage("itm_AnimWBM1_bw.png"), Icons.getImage("itm_AnimWBM2_bw.png")},
+    {Icons.getImage("itm_AnimPVRZ1_bw.png"), Icons.getImage("itm_AnimPVRZ2_bw.png")},
+    {Icons.getImage("itm_AnimBAM1_bw.png"), Icons.getImage("itm_AnimBAM2_bw.png")}
   };
   private static Point Center = new Point(16, 17);
 
@@ -176,7 +183,7 @@ public class LayerObjectAnimation extends LayerObject
       int iconIdx = 0;
       AnimatedLayerItem.Frame[] frames = null;
       int skippedFrames = 0;
-      boolean isBlended = false, isMirrored = false, isSelfIlluminated = false;
+      boolean isActive = true, isBlended = false, isMirrored = false, isSelfIlluminated = false;
       try {
         // PST seems to ignore a couple of animation settings
         boolean isTorment = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
@@ -186,6 +193,7 @@ public class LayerObjectAnimation extends LayerObject
         location.x = ((DecNumber)anim.getAttribute("Location: X")).getValue();
         location.y = ((DecNumber)anim.getAttribute("Location: Y")).getValue();
         Flag flags = (Flag)anim.getAttribute("Appearance");
+        isActive = flags.isFlagSet(0);
         isBlended = flags.isFlagSet(1) || isTorment;
         isMirrored = flags.isFlagSet(11);
         isSelfIlluminated = !flags.isFlagSet(2);
@@ -265,18 +273,23 @@ public class LayerObjectAnimation extends LayerObject
           }
           ResourceEntry bamEntry = ResourceFactory.getInstance().getResourceEntry(animFile);
           if (bamEntry != null) {
-            BamDecoder bam = new BamDecoder(bamEntry, false, palette);
-            if (cycle < 0) cycle = 0; else if (cycle >= bam.data().cycleCount()) cycle = bam.data().cycleCount() - 1;
-            bam.data().cycleSet(cycle);
+            BamDecoder bam = BamDecoder.loadBam(bamEntry);
+            bam.setMode(BamDecoder.Mode.Individual);
+            if (bam instanceof BamV1Decoder && hasExternalPalette) {
+              ((BamV1Decoder)bam).setPalette(palette);
+              ((BamV1Decoder)bam).setPaletteEnabled(true);
+            }
+            if (cycle < 0) cycle = 0; else if (cycle >= bam.cycleCount()) cycle = bam.cycleCount() - 1;
+            bam.cycleSet(cycle);
 
             // loading BAM frames
             if (playAllFrames) {
               // loading all cycles
               // determining frame count
               frameCount = Integer.MAX_VALUE;
-              for (int i = 0; i < bam.data().cycleCount(); i++) {
-                bam.data().cycleSet(i);
-                frameCount = Math.min(frameCount, bam.data().cycleFrameCount());
+              for (int i = 0; i < bam.cycleCount(); i++) {
+                bam.cycleSet(i);
+                frameCount = Math.min(frameCount, bam.cycleFrameCount());
               }
 
               // generating unique key from name, all cycles constant and palette hashcode
@@ -285,12 +298,12 @@ public class LayerObjectAnimation extends LayerObject
               if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
                 // building frames list
                 frames = new AnimatedLayerItem.Frame[frameCount];
-                for (int cycleIdx = 0; cycleIdx < bam.data().cycleCount(); cycleIdx++) {
-                  bam.data().cycleSet(cycleIdx);
-                  for (int frameIdx = 0; frameIdx < bam.data().cycleFrameCount(); frameIdx++) {
-                    int absFrameIdx = bam.data().cycleGetFrameIndexAbs(frameIdx);
-                    Image img = bam.data().frameGet(absFrameIdx);
-                    Point p = new Point(bam.data().frameCenterX(absFrameIdx), bam.data().frameCenterY(absFrameIdx));
+                for (int cycleIdx = 0; cycleIdx < bam.cycleCount(); cycleIdx++) {
+                  bam.cycleSet(cycleIdx);
+                  for (int frameIdx = 0; frameIdx < bam.cycleFrameCount(); frameIdx++) {
+                    int absFrameIdx = bam.cycleGetFrameIndexAbsolute(frameIdx);
+                    Image img = bam.frameGet(absFrameIdx);
+                    Point p = new Point(bam.frameCenterX(absFrameIdx), bam.frameCenterY(absFrameIdx));
                     if (frames[frameIdx] == null) {
                       frames[frameIdx] = new AnimatedLayerItem.Frame(new Image[]{img}, new Point[]{p}, baseAlpha);
                     } else {
@@ -306,7 +319,7 @@ public class LayerObjectAnimation extends LayerObject
             } else {
               // loading a single cycle
               if (!isPartial) {
-                frameCount = bam.data().cycleFrameCount();
+                frameCount = bam.cycleFrameCount();
                 if (frameCount < 0) frameCount = 0;
               }
               if (skippedFrames >= frameCount) skippedFrames = frameCount - 1;
@@ -319,9 +332,9 @@ public class LayerObjectAnimation extends LayerObject
                 // building frames list
                 frames = new AnimatedLayerItem.Frame[frameCount];
                 for (int i = 0; i < frames.length; i++) {
-                  int frameIdx = bam.data().cycleGetFrameIndexAbs(i);
-                  Image img = bam.data().frameGet(frameIdx);
-                  Point p = new Point(bam.data().frameCenterX(frameIdx), bam.data().frameCenterY(frameIdx));
+                  int frameIdx = bam.cycleGetFrameIndexAbsolute(i);
+                  Image img = bam.frameGet(frameIdx);
+                  Point p = new Point(bam.frameCenterX(frameIdx), bam.frameCenterY(frameIdx));
                   frames[i] = new AnimatedLayerItem.Frame(img, p, baseAlpha);
                 }
                 SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, frames));
@@ -337,6 +350,9 @@ public class LayerObjectAnimation extends LayerObject
       }
 
       // Using cached icons
+      if (!(isActive || Settings.OverrideAnimVisibility)) {
+        iconIdx += 4;   // adjusting to display inactive versions of the icons
+      }
       Image[] icon;
       String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[iconIdx][0]),
                                                  SharedResourceCache.createKey(Icon[iconIdx][1]));
@@ -363,6 +379,7 @@ public class LayerObjectAnimation extends LayerObject
       item2.setVisible(false);
       item2.setFrameRate(10.0);
       item2.setAutoPlay(false);
+      item2.setActive(isActive || Settings.OverrideAnimVisibility);
       item2.setBlended(isBlended);
       item2.setMirrored(isMirrored);
       item2.setSelfIlluminated(isSelfIlluminated);

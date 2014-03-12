@@ -305,6 +305,7 @@ public final class LayerManager
    */
   public int reload(LayerType layer)
   {
+    close(layer);
     return loadLayer(layer, true);
   }
 
@@ -323,6 +324,20 @@ public final class LayerManager
     layers.clear();
     are = null;
     wed = null;
+  }
+
+  /**
+   * Removes the specified layer from memory.
+   */
+  public void close(LayerType layer)
+  {
+    if (layer != null) {
+      @SuppressWarnings("rawtypes")
+      BasicLayer bl = layers.get(layer);
+      if (bl != null) {
+        bl.close();
+      }
+    }
   }
 
   /**
@@ -471,15 +486,13 @@ public final class LayerManager
    */
   public void setRealAnimationInterpolation(Object interpolationType)
   {
-    if (interpolationType != animInterpolationType) {
-      if (interpolationType == ViewerConstants.TYPE_NEAREST_NEIGHBOR ||
-          interpolationType == ViewerConstants.TYPE_BILINEAR ||
-          interpolationType == ViewerConstants.TYPE_BICUBIC) {
-        animInterpolationType = interpolationType;
-        LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
-        if (layer != null) {
-          layer.setRealAnimationInterpolation(animInterpolationType);
-        }
+    if (interpolationType == ViewerConstants.TYPE_NEAREST_NEIGHBOR ||
+        interpolationType == ViewerConstants.TYPE_BILINEAR ||
+        interpolationType == ViewerConstants.TYPE_BICUBIC) {
+      animInterpolationType = interpolationType;
+      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+      if (layer != null) {
+        layer.setRealAnimationInterpolation(animInterpolationType);
       }
     }
   }
@@ -499,12 +512,10 @@ public final class LayerManager
    */
   public void setRealAnimationForcedInterpolation(boolean forced)
   {
-    if (forced != animForcedInterpolation) {
-      animForcedInterpolation = forced;
-      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
-      if (layer != null) {
-        layer.setRealAnimationForcedInterpolation(animForcedInterpolation);
-      }
+    animForcedInterpolation = forced;
+    LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+    if (layer != null) {
+      layer.setRealAnimationForcedInterpolation(animForcedInterpolation);
     }
   }
 
@@ -594,6 +605,7 @@ public final class LayerManager
   // If forceReload is true, layer objects are always reloaded.
   private void init(AreResource are, WedResource wed, boolean forced)
   {
+    close();
     if (are != null && wed != null) {
       boolean areChanged = (are != this.are);
       boolean wedChanged = (wed != this.wed);

@@ -766,25 +766,19 @@ public class TilesetRenderer extends RenderCanvas
         int overlay = tile.getOverlayIndex();
         if (overlay < listTilesets.size() && !listTilesets.get(overlay).listTiles.isEmpty()) {
           int tileIdx = listTilesets.get(overlay).listTiles.get(0).getPrimaryIndex();
-          BufferedImage imgOvl = null;
           int[] srcOvl = null;
           if (tileIdx >= 0) {
-            imgOvl = listTilesets.get(overlay).listTileData.get(tileIdx);
-            srcOvl = ((DataBufferInt)imgOvl.getRaster().getDataBuffer()).getData();
+            srcOvl = listTilesets.get(overlay).listTileData.get(tileIdx);
           }
-          BufferedImage imgPri = null;
           int[] srcPri = null;
           tileIdx = tile.getPrimaryIndex();
           if (tileIdx >= 0) {
-            imgPri = listTilesets.get(0).listTileData.get(tileIdx);
-            srcPri = ((DataBufferInt)imgPri.getRaster().getDataBuffer()).getData();
+            srcPri = listTilesets.get(0).listTileData.get(tileIdx);
           }
-          BufferedImage imgSec = null;
           int[] srcSec = null;
           tileIdx = tile.getSecondaryIndex();
           if (tileIdx >= 0) {
-            imgSec = listTilesets.get(0).listTileData.get(tileIdx);
-            srcSec = ((DataBufferInt)imgSec.getRaster().getDataBuffer()).getData();
+            srcSec = listTilesets.get(0).listTileData.get(tileIdx);
           }
 
           // determining correct rendering mode
@@ -875,31 +869,17 @@ public class TilesetRenderer extends RenderCanvas
             fb = (fb * LightingAdjustment[lighting][2]) >>> LightingAdjustmentShift;
             target[ofs] = (fa << 24) | (fr << 16) | (fg << 8) | fb;
           }
-          if (imgOvl != null) {
-            srcOvl = null;
-            imgOvl.flush();
-            imgOvl = null;
-          }
-          if (imgPri != null) {
-            srcPri = null;
-            imgPri.flush();
-            imgPri = null;
-          }
-          if (imgSec != null) {
-            srcSec = null;
-            imgSec.flush();
-            imgSec = null;
-          }
+          srcOvl = null;
+          srcPri = null;
+          srcSec = null;
         }
       } else {    // no overlay or disabled overlay
         // preparing tile graphics
-        BufferedImage imgTile = null;
         int[] srcTile = null;
         int tileIdx = (!isDoorClosed || !isDoorTile) ? tile.getPrimaryIndex() : tile.getSecondaryIndex();
         if (tileIdx < 0) { tileIdx = tile.getPrimaryIndex(); }    // XXX: hackish work-around for faulty tile definitions
         if (tileIdx >= 0) {
-          imgTile = listTilesets.get(0).listTileData.get(tileIdx);
-          srcTile = ((DataBufferInt)imgTile.getRaster().getDataBuffer()).getData();
+          srcTile = listTilesets.get(0).listTileData.get(tileIdx);
         }
 
         // drawing tile graphics
@@ -919,12 +899,7 @@ public class TilesetRenderer extends RenderCanvas
             target[ofs] = 0;
           }
         }
-
-        if (imgTile != null) {
-          srcTile = null;
-          imgTile.flush();
-          imgTile = null;
-        }
+        srcTile = null;
       }
 
       // drawing mini map if available
@@ -1021,8 +996,8 @@ public class TilesetRenderer extends RenderCanvas
   // Stores data of a specific overlay structure
   private static class Tileset
   {
-    // graphics data for all tiles of this overlay
-    public final List<BufferedImage> listTileData = new ArrayList<BufferedImage>();
+    // graphics data for all tiles of this overlay (as int arrays of 64*64 pixels)
+    public final List<int[]> listTileData = new ArrayList<int[]>();
     // info structures for all tiles of this overlay
     public final List<Tile> listTiles = new ArrayList<Tile>();
     // lists references to all tiles containing overlays from listTiles
@@ -1059,9 +1034,18 @@ public class TilesetRenderer extends RenderCanvas
           try {
             TisDecoder decoder = new TisDecoder(tisEntry);
             isTilesetV1 = decoder.info().type() == TisDecoder.TisInfo.TisType.PALETTE;
+            BufferedImage tileImage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
             for (int i = 0; i < decoder.info().tileCount(); i++) {
-              listTileData.add(decoder.decodeTile(i));
+              decoder.decodeTile(tileImage, i);
+              int[] srcData = ((DataBufferInt)tileImage.getRaster().getDataBuffer()).getData();
+              int[] dstData = new int[64*64];
+              System.arraycopy(srcData, 0, dstData, 0, 64*64);
+              listTileData.add(dstData);
             }
+            tileImage.flush();
+            tileImage = null;
+            decoder.close();
+            decoder = null;
           } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -1151,7 +1135,6 @@ public class TilesetRenderer extends RenderCanvas
 
             // XXX: not sure whether this check is correct
             if (wedName.length() > 6 && wedName.charAt(6) == 'N' && tisName.length() == 6) {
-//            if (wedName.equalsIgnoreCase(tisName + "N")) {
               entry = ResourceFactory.getInstance().getResourceEntry(tisName + "N.TIS");
             }
             if (entry == null) {

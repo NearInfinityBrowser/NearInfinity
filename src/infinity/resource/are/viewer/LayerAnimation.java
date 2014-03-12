@@ -257,10 +257,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
       case ViewerConstants.FRAME_AUTO:
       case ViewerConstants.FRAME_ALWAYS:
       {
-        if (frameState != state) {
-          frameState = state;
-          updateFrameState();
-        }
+        frameState = state;
+        updateFrameState();
         break;
       }
     }

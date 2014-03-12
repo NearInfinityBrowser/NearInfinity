@@ -53,6 +53,8 @@ public class Settings
   public static boolean ShowAmbientRanges = getDefaultAmbientRanges();
   // Defines whether to ignore time schedules on layer items
   public static boolean EnableSchedules = getDefaultEnableSchedules();
+  // Defines whether to ignore the "Is shown" flag of background animations
+  public static boolean OverrideAnimVisibility = getDefaultOverrideAnimVisibility();
   // Bitmask that controls the collapsed/expanded state of the sidebar controls
   public static int SidebarControls = getDefaultSidebarControls();
   // Indicates whether to show frames around real background animations all the time
@@ -79,25 +81,26 @@ public class Settings
   public static int MiniMap = getDefaultMiniMap();
 
   // Preferences keys for specific settings
-  private static final String PREFS_STORESETTINGS       = "StoreSettings";
-  private static final String PREFS_DRAWCLOSED          = "DrawClosed";
-  private static final String PREFS_DRAWOVERLAYS        = "DrawOverlays";
-  private static final String PREFS_DRAWGRID            = "DrawGrid";
-  private static final String PREFS_SIDEBARCONTROLS     = "SidebarControls";
-  private static final String PREFS_SHOWFRAME           = "ShowFrame";
-  private static final String PREFS_SHOWAMBIENT         = "ShowAmbientRanges";
-  private static final String PREFS_ENABLESCHEDULES     = "EnableSchedules";
-  private static final String PREFS_LAYERFLAGS          = "LayerFlags";
-  private static final String PREFS_SHOWREALANIMS       = "ShowRealAnimations";
-  private static final String PREFS_TIMEOFDAY           = "TimeOfDay";
-  private static final String PREFS_ZOOMLEVEL           = "ZoomLevel";
-  private static final String PREFS_LAYERZORDER_FMT     = "LayerZOrder%1$d";
-  private static final String PREFS_INTERPOLATION_MAP   = "InterpolationMap";
-  private static final String PREFS_INTERPOLATION_ANIMS = "InterpolationAnims";
-  private static final String PREFS_FRAMERATE_OVERLAYS  = "FrameRateOverlays";
-  private static final String PREFS_FRAMERATE_ANIMS     = "FrameRateAnims";
-  private static final String PREFS_MINIMAP_ALPHA       = "MiniMapAlpha";
-  private static final String PREFS_MINIMAP             = "MiniMap";
+  private static final String PREFS_STORESETTINGS           = "StoreSettings";
+  private static final String PREFS_DRAWCLOSED              = "DrawClosed";
+  private static final String PREFS_DRAWOVERLAYS            = "DrawOverlays";
+  private static final String PREFS_DRAWGRID                = "DrawGrid";
+  private static final String PREFS_SIDEBARCONTROLS         = "SidebarControls";
+  private static final String PREFS_SHOWFRAME               = "ShowFrame";
+  private static final String PREFS_SHOWAMBIENT             = "ShowAmbientRanges";
+  private static final String PREFS_ENABLESCHEDULES         = "EnableSchedules";
+  private static final String PREFS_OVERRIDEANIMVISIBILITY  = "OverrideAnimVisibility";
+  private static final String PREFS_LAYERFLAGS              = "LayerFlags";
+  private static final String PREFS_SHOWREALANIMS           = "ShowRealAnimations";
+  private static final String PREFS_TIMEOFDAY               = "TimeOfDay";
+  private static final String PREFS_ZOOMLEVEL               = "ZoomLevel";
+  private static final String PREFS_LAYERZORDER_FMT         = "LayerZOrder%1$d";
+  private static final String PREFS_INTERPOLATION_MAP       = "InterpolationMap";
+  private static final String PREFS_INTERPOLATION_ANIMS     = "InterpolationAnims";
+  private static final String PREFS_FRAMERATE_OVERLAYS      = "FrameRateOverlays";
+  private static final String PREFS_FRAMERATE_ANIMS         = "FrameRateAnims";
+  private static final String PREFS_MINIMAP_ALPHA           = "MiniMapAlpha";
+  private static final String PREFS_MINIMAP                 = "MiniMap";
 
   private static boolean SettingsLoaded = false;
 
@@ -112,6 +115,7 @@ public class Settings
 
       // loading required settings
       StoreVisualSettings = prefs.getBoolean(PREFS_STORESETTINGS, getDefaultStoreVisualSettings());
+      OverrideAnimVisibility = prefs.getBoolean(PREFS_OVERRIDEANIMVISIBILITY, getDefaultOverrideAnimVisibility());
       ShowFrame = prefs.getInt(PREFS_SHOWFRAME, getDefaultShowFrame());
       InterpolationMap = prefs.getInt(PREFS_INTERPOLATION_MAP, getDefaultInterpolationMap());
       InterpolationAnim = prefs.getInt(PREFS_INTERPOLATION_ANIMS, getDefaultInterpolationAnim());
@@ -160,6 +164,7 @@ public class Settings
 
     // storing basic settings
     prefs.putBoolean(PREFS_STORESETTINGS, StoreVisualSettings);
+    prefs.putBoolean(PREFS_OVERRIDEANIMVISIBILITY, OverrideAnimVisibility);
     prefs.putInt(PREFS_SHOWFRAME, ShowFrame);
     prefs.putInt(PREFS_INTERPOLATION_MAP, InterpolationMap);
     prefs.putInt(PREFS_INTERPOLATION_ANIMS, InterpolationAnim);
@@ -273,6 +278,11 @@ public class Settings
   }
 
   public static boolean getDefaultEnableSchedules()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultOverrideAnimVisibility()
   {
     return false;
   }

@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -31,11 +32,13 @@ import java.util.EventObject;
 import java.util.Hashtable;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -49,6 +52,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
@@ -141,7 +145,7 @@ public class AreaViewer extends ChildFrame
   private Point mapDraggingPosStart, mapDraggingScrollStart, mapDraggingPos;
   private Timer timerOverlays;
   private JPopupMenu pmItems;
-  private SwingWorker<Void, Void> workerInitGui, workerLoadMap;
+  private SwingWorker<Void, Void> workerInitGui, workerLoadMap, workerOverlays;
   private ProgressMonitor progress;
   private int pmCur, pmMax;
   private WindowBlocker blocker;
@@ -335,7 +339,18 @@ public class AreaViewer extends ChildFrame
         WindowBlocker.blockWindow(this, false);
       }
     } else if (event.getSource() == timerOverlays) {
-      advanceOverlayAnimation();
+      // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
+      if (workerOverlays == null) {
+        workerOverlays = new SwingWorker<Void, Void>() {
+          @Override
+          protected Void doInBackground() throws Exception {
+            advanceOverlayAnimation();
+            return null;
+          }
+        };
+        workerOverlays.addPropertyChangeListener(this);
+        workerOverlays.execute();
+      }
     } else if (event.getSource() instanceof AbstractLayerItem) {
       AbstractLayerItem item = (AbstractLayerItem)event.getSource();
       showTable(item);
@@ -531,6 +546,12 @@ public class AreaViewer extends ChildFrame
         }
         releaseProgressMonitor();
         workerLoadMap = null;
+      }
+    } else if (event.getSource() == workerOverlays) {
+      if ("state".equals(event.getPropertyName()) &&
+          SwingWorker.StateValue.DONE == event.getNewValue()) {
+        // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
+        workerOverlays = null;
       }
     }
   }
@@ -769,9 +790,7 @@ public class AreaViewer extends ChildFrame
     cbDrawOverlays = new JCheckBox(LabelDrawOverlays);
     cbDrawOverlays.addActionListener(this);
 
-    String msgAnimate = "Warning: The area viewer may become less responsive when activating this feature.";
     cbAnimateOverlays = new JCheckBox(LabelAnimateOverlays);
-    cbAnimateOverlays.setToolTipText(msgAnimate);
     cbAnimateOverlays.addActionListener(this);
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
@@ -823,7 +842,6 @@ public class AreaViewer extends ChildFrame
         t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[0]);
         t2.add(t3);
         cbLayerRealAnimation[1] = new JCheckBox("Animate actual animations");
-        cbLayerRealAnimation[1].setToolTipText(msgAnimate);
         cbLayerRealAnimation[1].addActionListener(this);
         t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[1]);
         t2.add(t3);
@@ -1056,7 +1074,6 @@ public class AreaViewer extends ChildFrame
     Container pane = getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(pMain, BorderLayout.CENTER);
-//    pane.add(toolBar, BorderLayout.NORTH);
     pack();
 
     // setting window size and state
@@ -1073,6 +1090,22 @@ public class AreaViewer extends ChildFrame
     }
     rcCanvas.requestFocusInWindow();    // put focus on a safe component
     advanceProgressMonitor("Ready!");
+
+    // adding context menu key support for calling the popup menu on map items
+    rcCanvas.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0), rcCanvas);
+    rcCanvas.getActionMap().put(rcCanvas, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent event)
+      {
+        Point pt = rcCanvas.getMousePosition();
+        if (pt != null) {
+          Point pts = rcCanvas.getLocationOnScreen();
+          pts.x += pt.x;
+          pts.y += pt.y;
+          showItemPopup(new MouseEvent(rcCanvas, MouseEvent.MOUSE_PRESSED, 0, 0, pt.x, pt.y, pts.x, pts.y, 1, true, MouseEvent.BUTTON2));
+        }
+      }
+    });
 
     updateWindowTitle();
     setVisible(true);
@@ -1614,14 +1647,22 @@ public class AreaViewer extends ChildFrame
     }
   }
 
+  // Converts canvas coordinates into actual map coordinates
+  private Point canvasToMapCoordinates(Point coords)
+  {
+    if (coords != null) {
+      coords.x = (int)((double)coords.x / getZoomFactor());
+      coords.y = (int)((double)coords.y / getZoomFactor());
+    }
+    return coords;
+  }
 
   // Updates the map coordinates pointed to by the current cursor position
   private void showMapCoordinates(Point coords)
   {
     if (coords != null) {
       // Converting canvas coordinates -> map coordinates
-      coords.x = (int)((double)coords.x / getZoomFactor());
-      coords.y = (int)((double)coords.y / getZoomFactor());
+      coords = canvasToMapCoordinates(coords);
       if (coords.x != mapCoordinates.x) {
         mapCoordinates.x = coords.x;
         lPosX.setText(Integer.toString(mapCoordinates.x));
@@ -1758,22 +1799,17 @@ public class AreaViewer extends ChildFrame
     rcCanvas.reload(true);
     reloadAreLayers(false);
     reloadWedLayers(false);
-    orderLayerItems();
+    applySettings();
   }
 
   // Updates ARE-related layer items
   private void reloadAreLayers(boolean order)
   {
     if (layerManager != null) {
-//      layerManager.setAreResource(getCurrentAre());
       for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
         LayerType layer = LayerManager.getLayerType(i);
         LayerStackingType layer2 = Settings.layerToStacking(layer);
         if (layer != LayerType.DoorPoly && layer != LayerType.WallPoly) {
-          removeLayerItems(layer2);
-          if (layer == LayerType.Ambient) {
-            removeLayerItems(LayerStackingType.AmbientRange);
-          }
           layerManager.reload(layer);
           updateLayerItems(layer2);
           addLayerItems(layer2);
@@ -1790,19 +1826,20 @@ public class AreaViewer extends ChildFrame
     if (order) {
       orderLayerItems();
     }
-    rcCanvas.repaint();
   }
 
   // Updates WED-related layer items
   private void reloadWedLayers(boolean order)
   {
     if (layerManager != null) {
-      removeLayerItems(LayerStackingType.DoorPoly);
-      removeLayerItems(LayerStackingType.WallPoly);
+      layerManager.close(LayerType.DoorPoly);
+      layerManager.close(LayerType.WallPoly);
       layerManager.setWedResource(getCurrentWed());
+      layerManager.reload(LayerType.DoorPoly);
+      layerManager.reload(LayerType.WallPoly);
       updateLayerItems(LayerStackingType.DoorPoly);
-      addLayerItems(LayerStackingType.DoorPoly);
       updateLayerItems(LayerStackingType.WallPoly);
+      addLayerItems(LayerStackingType.DoorPoly);
       addLayerItems(LayerStackingType.WallPoly);
       showLayer(LayerType.DoorPoly, cbLayers[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)].isSelected());
       showLayer(LayerType.WallPoly, cbLayers[LayerManager.getLayerTypeIndex(LayerType.WallPoly)].isSelected());
@@ -1810,7 +1847,6 @@ public class AreaViewer extends ChildFrame
     if (order) {
       orderLayerItems();
     }
-    rcCanvas.repaint();
   }
 
 

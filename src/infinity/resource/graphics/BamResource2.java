@@ -6,6 +6,7 @@ package infinity.resource.graphics;
 
 import infinity.NearInfinity;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
@@ -18,6 +19,7 @@ import infinity.util.IntegerHashMap;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -41,7 +43,6 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -52,6 +53,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.RootPaneContainer;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
@@ -59,7 +61,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
 {
   private static final int ANIM_DELAY = 1000 / 10;    // 10 fps in milliseconds
 
-  private static boolean ignoreTransparency = false;
+  private static boolean transparencyEnabled = true;
 
   private final ResourceEntry entry;
 
@@ -67,7 +69,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   private ButtonPopupMenu bpmExport;
   private JMenuItem miExport, miExportBAM, miExportBAMC, miExportFramesPNG;
   private JButton bFind, bPrevCycle, bNextCycle, bPrevFrame, bNextFrame;
-  private JLabel lDisplay, lCycle, lFrame;
+  private RenderCanvas rcDisplay;
+  private JLabel lCycle, lFrame;
   private JToggleButton bPlay;
   private JCheckBox cbTransparency;
   private JPanel panel;
@@ -91,8 +94,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   {
     if (event.getSource() == bPrevCycle) {
       curCycle--;
-      decoder.data().cycleSet(curCycle);
-      if (timer != null && timer.isRunning() && decoder.data().cycleFrameCount() == 0) {
+      decoder.cycleSet(curCycle);
+      if (timer != null && timer.isRunning() && decoder.cycleFrameCount() == 0) {
         timer.stop();
         bPlay.setSelected(false);
       }
@@ -100,8 +103,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       showFrame();
     } else if (event.getSource() == bNextCycle) {
       curCycle++;
-      decoder.data().cycleSet(curCycle);
-      if (timer != null && timer.isRunning() && decoder.data().cycleFrameCount() == 0) {
+      decoder.cycleSet(curCycle);
+      if (timer != null && timer.isRunning() && decoder.cycleFrameCount() == 0) {
         timer.stop();
         bPlay.setSelected(false);
       }
@@ -128,16 +131,16 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == timer) {
       if (curCycle >= 0) {
-        curFrame = (curFrame + 1) % decoder.data().cycleFrameCount();
+        curFrame = (curFrame + 1) % decoder.cycleFrameCount();
       } else {
-        curFrame = (curFrame + 1) % decoder.data().frameCount();
+        curFrame = (curFrame + 1) % decoder.frameCount();
       }
       showFrame();
     } else if (event.getSource() == miExport) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportBAM) {
-      if (decoder != null && decoder.data() != null) {
-        if (decoder.data().type() == BamDecoder.BamType.BAMV2) {
+      if (decoder != null) {
+        if (decoder.getType() == BamDecoder.Type.BAMV2) {
           // create new BAM V1 from scratch
           if (checkCompatibility(panel.getTopLevelAncestor())) {
             blocker = new WindowBlocker(rpc);
@@ -156,8 +159,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
         }
       }
     } else if (event.getSource() == miExportBAMC) {
-      if (decoder != null && decoder.data() != null) {
-        if (decoder.data().type() == BamDecoder.BamType.BAMV2) {
+      if (decoder != null) {
+        if (decoder.getType() == BamDecoder.Type.BAMV2) {
           // create new BAMC V1 from scratch
           if (checkCompatibility(panel.getTopLevelAncestor())) {
             blocker = new WindowBlocker(rpc);
@@ -204,17 +207,9 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == cbTransparency) {
-      ignoreTransparency = cbTransparency.isSelected();
-      if (decoder != null && decoder.data() != null && decoder.data().type() != BamDecoder.BamType.BAMV2) {
-        WindowBlocker.blockWindow(true);
-        try {
-          decoder = new BamDecoder(entry, ignoreTransparency);
-          if (decoder != null && decoder.data() != null) {
-            decoder.data().cycleSet(curCycle);
-          }
-        } catch (Throwable t) {
-        }
-        WindowBlocker.blockWindow(false);
+      transparencyEnabled = cbTransparency.isSelected();
+      if (decoder != null && decoder instanceof BamV1Decoder) {
+        ((BamV1Decoder)decoder).setTransparencyEnabled(transparencyEnabled);
         showFrame();
       }
     }
@@ -287,36 +282,46 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       rpc = NearInfinity.getInstance();
     }
 
-    lDisplay = new JLabel("", JLabel.CENTER);
+    WindowBlocker.blockWindow(true);
+    try {
+      decoder = BamDecoder.loadBam(entry);
+      decoder.setMode(BamDecoder.Mode.Shared);
+      if (decoder instanceof BamV1Decoder) {
+        ((BamV1Decoder)decoder).setTransparencyEnabled(transparencyEnabled);
+      }
+    } catch (Throwable t) {
+      t.printStackTrace();
+      decoder = null;
+    }
+    WindowBlocker.blockWindow(false);
+
+    Dimension dim = (decoder != null) ? decoder.getSharedDimension() : new Dimension(1, 1);
+    rcDisplay = new RenderCanvas(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
+    rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
+    rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
 
     bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
     bFind.setMnemonic('f');
     bFind.addActionListener(this);
 
-    WindowBlocker.blockWindow(true);
-    try {
-      initDecoder(ignoreTransparency);
-    } catch (Throwable t) {
-    }
-    WindowBlocker.blockWindow(false);
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
-    if (decoder.data() != null) {
-      if (decoder.data().type() == BamDecoder.BamType.BAMC) {
+    if (decoder != null) {
+      if (decoder.getType() == BamDecoder.Type.BAMC) {
         miExportBAM = new JMenuItem("decompressed");
         miExportBAM.addActionListener(this);
-      } else if (decoder.data().type() == BamDecoder.BamType.BAMV1 &&
+      } else if (decoder.getType() == BamDecoder.Type.BAMV1 &&
                  ResourceFactory.getGameID() != ResourceFactory.ID_TORMENT) {
         miExportBAMC = new JMenuItem("compressed");
         miExportBAMC.addActionListener(this);
-      } else if (decoder.data().type() == BamDecoder.BamType.BAMV2) {
+      } else if (decoder.getType() == BamDecoder.Type.BAMV2) {
         miExportBAM = new JMenuItem("as BAM V1 (uncompressed)");
         miExportBAM.addActionListener(this);
-        miExportBAM.setEnabled(decoder.data().frameCount() < 65536 && decoder.data().cycleCount() < 256);
+        miExportBAM.setEnabled(decoder.frameCount() < 65536 && decoder.cycleCount() < 256);
         miExportBAMC = new JMenuItem("as BAM V1 (compressed)");
         miExportBAMC.addActionListener(this);
-        miExportBAMC.setEnabled(decoder.data().frameCount() < 65536 && decoder.data().cycleCount() < 256);
+        miExportBAMC.setEnabled(decoder.frameCount() < 65536 && decoder.cycleCount() < 256);
       }
       miExportFramesPNG = new JMenuItem("all frames as PNG");
       miExportFramesPNG.addActionListener(this);
@@ -362,8 +367,11 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     bNextFrame.setMargin(bPrevCycle.getMargin());
     bNextFrame.addActionListener(this);
 
-    cbTransparency = new JCheckBox("Ignore transparency", ignoreTransparency);
-    cbTransparency.setToolTipText("Only legacy BAM resources (BAM V1) are affected.");
+    cbTransparency = new JCheckBox("Enable transparency", transparencyEnabled);
+    if (decoder != null) {
+      cbTransparency.setEnabled(decoder.getType() != BamDecoder.Type.BAMV2);
+    }
+    cbTransparency.setToolTipText("Affects only legacy BAM resources (BAM v1).");
     cbTransparency.addItemListener(this);
     JPanel optionsPanel = new JPanel();
     BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
@@ -383,9 +391,9 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     buttonPanel.add(optionsPanel);
 
     panel = new JPanel(new BorderLayout());
-    panel.add(lDisplay, BorderLayout.CENTER);
+    panel.add(rcDisplay, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
-    lDisplay.setBorder(BorderFactory.createLoweredBevelBorder());
+    rcDisplay.setBorder(BorderFactory.createLoweredBevelBorder());
     showFrame();
     return panel;
   }
@@ -395,9 +403,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   public int getFrameCount()
   {
     int retVal = 0;
-    initDecoder();
-    if (decoder != null && decoder.data() != null) {
-      retVal = decoder.data().frameCount();
+    if (decoder != null ) {
+      retVal = decoder.frameCount();
     }
     return retVal;
   }
@@ -405,15 +412,14 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   public int getFrameCount(int cycleIdx)
   {
     int retVal = 0;
-    initDecoder();
-    if (decoder != null && decoder.data() != null) {
-      if (cycleIdx >= 0 && cycleIdx < decoder.data().cycleCount()) {
-        int cycle = decoder.data().cycleGet();
-        int frame = decoder.data().cycleGetFrameIndex();
-        decoder.data().cycleSet(cycleIdx);
-        retVal = decoder.data().cycleFrameCount();
-        decoder.data().cycleSet(cycle);
-        decoder.data().cycleSetFrameIndex(frame);
+    if (decoder != null) {
+      if (cycleIdx >= 0 && cycleIdx < decoder.cycleCount()) {
+        int cycle = decoder.cycleGet();
+        int frame = decoder.cycleGetFrameIndex();
+        decoder.cycleSet(cycleIdx);
+        retVal = decoder.cycleFrameCount();
+        decoder.cycleSet(cycle);
+        decoder.cycleSetFrameIndex(frame);
       }
     }
     return retVal;
@@ -422,19 +428,17 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   public int getCycleCount()
   {
     int retVal = 0;
-    initDecoder();
-    if (decoder != null && decoder.data() != null) {
-      retVal = decoder.data().cycleCount();
+    if (decoder != null) {
+      retVal = decoder.cycleCount();
     }
     return retVal;
   }
 
   public Image getFrame(int frameIdx)
   {
-    initDecoder();
     Image image = null;
-    if (decoder != null && decoder.data() != null) {
-      image = decoder.data().frameGet(frameIdx);
+    if (decoder != null) {
+      image = decoder.frameGet(frameIdx);
     }
     // must always return a valid image!
     if (image == null) {
@@ -445,13 +449,12 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
 
   public int getFrameIndex(int cycleIdx, int frameIdx)
   {
-    initDecoder();
-    if (decoder != null && decoder.data() != null) {
-      decoder.data().cycleSet(cycleIdx);
-      int ret = decoder.data().cycleGetFrameIndexAbs(frameIdx);
+    if (decoder != null) {
+      decoder.cycleSet(cycleIdx);
+      int ret = decoder.cycleGetFrameIndexAbsolute(frameIdx);
       // restoring previous cycle setting
-      decoder.data().cycleSet(curCycle);
-      decoder.data().cycleSetFrameIndex(curFrame);
+      decoder.cycleSet(curCycle);
+      decoder.cycleSetFrameIndex(curFrame);
       return ret;
     } else {
       return 0;
@@ -461,75 +464,49 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   public Point getFrameCenter(int frameIdx)
   {
     Point p = new Point();
-    initDecoder();
-    if (decoder != null && decoder.data() != null) {
-      p.x = decoder.data().frameCenterX(frameIdx);
-      p.y = decoder.data().frameCenterY(frameIdx);
+    if (decoder != null) {
+      p.x = decoder.frameCenterX(frameIdx);
+      p.y = decoder.frameCenterY(frameIdx);
     }
     return p;
   }
 
-  private void initDecoder()
-  {
-    initDecoder(false);
-  }
-
-  private void initDecoder(boolean ignoreTransparency)
-  {
-    if (decoder == null && entry != null) {
-      decoder = new BamDecoder(entry, ignoreTransparency);
-    }
-  }
-
   private void showFrame()
   {
-    if (decoder != null && decoder.data() != null) {
+    if (decoder != null) {
 
       if (curCycle >= 0) {
-        if (!decoder.data().cycleSetFrameIndex(curFrame)) {
-          decoder.data().cycleReset();
+        if (!decoder.cycleSetFrameIndex(curFrame)) {
+          decoder.cycleReset();
           curFrame = 0;
         }
       }
 
-      lDisplay.setText("");
-      ImageIcon lastImage = (ImageIcon)lDisplay.getIcon();
-      if (lastImage != null) {
-        lastImage.getImage().flush();
-      }
-      lDisplay.setIcon(null);
-
+      Image image = rcDisplay.getImage();
       if (curCycle >= 0) {
-        if (decoder.data().cycleGetFrame() == null) {
-          lDisplay.setText("No image");
-        } else {
-          lDisplay.setIcon(new ImageIcon(decoder.data().cycleGetFrame()));
-        }
+        decoder.cycleGetFrame(image);
       } else {
-        if (decoder.data().frameGet(curFrame) == null) {
-          lDisplay.setText("No image");
-        } else {
-          lDisplay.setIcon(new ImageIcon(decoder.data().frameGet(curFrame)));
-        }
+        decoder.frameGet(curFrame, image);
       }
+      rcDisplay.repaint();
 
       if (curCycle >= 0) {
-        lCycle.setText(String.format("Cycle: %1$d/%2$d", curCycle+1, decoder.data().cycleCount()));
-        lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.data().cycleFrameCount()));
+        lCycle.setText(String.format("Cycle: %1$d/%2$d", curCycle+1, decoder.cycleCount()));
+        lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.cycleFrameCount()));
       } else {
         lCycle.setText("All frames");
-        lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.data().frameCount()));
+        lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.frameCount()));
       }
 
       bPrevCycle.setEnabled(curCycle > -1);
-      bNextCycle.setEnabled(curCycle + 1 < decoder.data().cycleCount());
+      bNextCycle.setEnabled(curCycle + 1 < decoder.cycleCount());
       bPrevFrame.setEnabled(curFrame > 0);
       if (curCycle >= 0) {
-        bNextFrame.setEnabled(curFrame + 1 < decoder.data().cycleFrameCount());
-        bPlay.setEnabled(decoder.data().cycleFrameCount() > 1);
+        bNextFrame.setEnabled(curFrame + 1 < decoder.cycleFrameCount());
+        bPlay.setEnabled(decoder.cycleFrameCount() > 1);
       } else {
-        bNextFrame.setEnabled(curFrame + 1 < decoder.data().frameCount());
-        bPlay.setEnabled(decoder.data().frameCount() > 1);
+        bNextFrame.setEnabled(curFrame + 1 < decoder.frameCount());
+        bPlay.setEnabled(decoder.frameCount() > 1);
       }
 
     } else {
@@ -551,11 +528,13 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     try {
       blocker.setBlocked(true);
-      if (decoder != null && decoder.data() != null) {
-        max = decoder.data().frameCount();
-        for (int i = 0; i < decoder.data().frameCount(); i++) {
+      if (decoder != null) {
+        BamDecoder.Mode oldMode = decoder.getMode();
+        decoder.setMode(BamDecoder.Mode.Individual);
+        max = decoder.frameCount();
+        for (int i = 0; i < decoder.frameCount(); i++) {
           String fileIndex = String.format("%1$05d", i);
-          Image image = decoder.data().frameGet(i);
+          Image image = decoder.frameGet(i);
           if (image != null) {
             try {
               ImageIO.write(ColorConvert.toBufferedImage(image, true), "png",
@@ -568,7 +547,10 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
           } else {
             failCounter++;
           }
+          image.flush();
+          image = null;
         }
+        decoder.setMode(oldMode);
       }
     } catch (Throwable t) {
     }
@@ -592,18 +574,18 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     if (parent == null)
       parent = NearInfinity.getInstance();
 
-    if (decoder != null && decoder.data() != null && decoder.data().type() == BamDecoder.BamType.BAMV2) {
+    if (decoder != null && decoder.getType() == BamDecoder.Type.BAMV2) {
       // Compatibility: 0=OK, 1=issues, but conversion is possible, 2=conversion is not possible
       int compatibility = 0;
-      int numFrames = decoder.data().frameCount();
-      int numCycles = decoder.data().cycleCount();
+      int numFrames = decoder.frameCount();
+      int numCycles = decoder.cycleCount();
       boolean hasSemiTrans = false;
       int maxWidth = 0, maxHeight = 0;
       List<String> issues = new ArrayList<String>(10);
 
       // checking for issues
       for (int i = 0; i < numFrames; i++) {
-        BufferedImage img = ColorConvert.toBufferedImage(decoder.data().frameGet(i), true);
+        BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(i), true);
         if (img != null) {
           maxWidth = Math.max(maxWidth, img.getWidth());
           maxHeight = Math.max(maxHeight, img.getHeight());
@@ -675,10 +657,12 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   // Creates a new BAM V1 or BAMC V1 resource from scratch. DO NOT call directly!
   private byte[] convertToBamV1(boolean compressed) throws Exception
   {
-    if (decoder != null && decoder.data() != null) {
+    if (decoder != null) {
+      BamDecoder.Mode oldMode = decoder.getMode();
+      decoder.setMode(BamDecoder.Mode.Individual);
       // max. supported number of frames and cycles
-      int frameCount = Math.min(decoder.data().frameCount(), 65535);
-      int cycleCount = Math.min(decoder.data().cycleCount(), 255);
+      int frameCount = Math.min(decoder.frameCount(), 65535);
+      int cycleCount = Math.min(decoder.cycleCount(), 255);
 
       // 1. calculating global palette for all frames
       final int transThreshold = 0x20;
@@ -686,7 +670,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       boolean hasTransparency = false;
       int totalWidth = 0, totalHeight = 0;
       for (int i = 0; i < frameCount; i++) {
-        BufferedImage img = ColorConvert.toBufferedImage(decoder.data().frameGet(i), true);
+        BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(i), true);
         // getting max. dimensions
         if (img != null) {
           if (img.getHeight() > totalHeight)
@@ -708,7 +692,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       BufferedImage composedImage = ColorConvert.createCompatibleImage(totalWidth, totalHeight, true);
       Graphics2D g = (Graphics2D)composedImage.getGraphics();
       for (int i = 0, w = 0; i < frameCount; i++) {
-        BufferedImage img = ColorConvert.toBufferedImage(decoder.data().frameGet(i), true);
+        BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(i), true);
         if (img != null) {
           g.drawImage(img, w, 0, null);
           w += img.getWidth();
@@ -737,8 +721,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       List<byte[]> frameList = new ArrayList<byte[]>(frameCount);
       int colorShift = hasTransparency ? 1 : 0;   // considers transparent color index
       for (int i = 0; i < frameCount; i++) {
-        if (decoder.data().frameGet(i) != null) {
-          BufferedImage img = ColorConvert.toBufferedImage(decoder.data().frameGet(i), true);
+        if (decoder.frameGet(i) != null) {
+          BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(i), true);
           int[] srcData = ((DataBufferInt)img.getRaster().getDataBuffer()).getData();
           if (frameTransparency[i] == true) {
             // do RLE encoding (on transparent pixels only)
@@ -817,16 +801,16 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       // cycle entries
       byte[] cycleEntryHeader = new byte[cycleCount*cycleEntrySize];
       buf = DynamicArray.wrap(cycleEntryHeader, DynamicArray.ElementType.BYTE);
-      int oldCycle = decoder.data().cycleGet();
-      int oldCycleFrame = decoder.data().cycleGetFrameIndex();
+      int oldCycle = decoder.cycleGet();
+      int oldCycleFrame = decoder.cycleGetFrameIndex();
       for (int i = 0; i < cycleCount; i++) {
-        decoder.data().cycleSet(i);
-        buf.putShort(0x00, (short)decoder.data().cycleFrameCount());
-        buf.putShort(0x02, (short)decoder.data().cycleGetFrameIndexAbs(0));
+        decoder.cycleSet(i);
+        buf.putShort(0x00, (short)decoder.cycleFrameCount());
+        buf.putShort(0x02, (short)decoder.cycleGetFrameIndexAbsolute(0));
         buf.addToBaseOffset(cycleEntrySize);
       }
-      decoder.data().cycleSet(oldCycle);
-      decoder.data().cycleSetFrameIndex(oldCycleFrame);
+      decoder.cycleSet(oldCycle);
+      decoder.cycleSetFrameIndex(oldCycleFrame);
       // frame entries and frame lookup table
       byte[] frameEntryHeader = new byte[frameCount*frameEntrySize];
       buf = DynamicArray.wrap(frameEntryHeader, DynamicArray.ElementType.BYTE);
@@ -834,10 +818,10 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       DynamicArray buf2 = DynamicArray.wrap(lookupTableHeader, DynamicArray.ElementType.BYTE);
       int dataOfs = lookupTableOfs + frameCount*lookupTableEntrySize;
       for (int i = 0; i < frameCount; i++) {
-        buf.putShort(0x00, (short)decoder.data().frameWidth(i));
-        buf.putShort(0x02, (short)decoder.data().frameHeight(i));
-        buf.putShort(0x04, (short)decoder.data().frameCenterX(i));
-        buf.putShort(0x06, (short)decoder.data().frameCenterY(i));
+        buf.putShort(0x00, (short)decoder.frameWidth(i));
+        buf.putShort(0x02, (short)decoder.frameHeight(i));
+        buf.putShort(0x04, (short)decoder.frameCenterX(i));
+        buf.putShort(0x06, (short)decoder.frameCenterY(i));
         int ofs = dataOfs & 0x7fffffff;
         if (frameTransparency[i] == false)
           ofs |= 0x80000000;
@@ -883,6 +867,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
         }
       }
 
+      decoder.setMode(oldMode);
       return bamArray;
     }
     return null;

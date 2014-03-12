@@ -21,18 +21,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
 /**
  * Represents a game resource structure visually as a bitmap animation.
  * @author argent77
  */
-public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemListener, ActionListener
+public class AnimatedLayerItem extends AbstractLayerItem
+    implements LayerItemListener, ActionListener, PropertyChangeListener
 {
   // lookup table for alpha transparency on blended animations
   private static final int[] tableAlpha = new int[256];
@@ -45,7 +49,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
   private final FrameInfo[] frameInfos = new FrameInfo[]{new FrameInfo(), new FrameInfo()};
 
   private Frame[] frames;
-  private boolean isBlended, isMirrored, isLooping, isAuto, forcedInterpolation, isSelfIlluminated;
+  private boolean isActive, isBlended, isMirrored, isLooping, isAuto, forcedInterpolation, isSelfIlluminated;
   private Timer timer;
   private int curFrame;
   private Object interpolationType;
@@ -53,6 +57,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
   private int lighting;
   private Rectangle canvasBounds;   // Rectangle.[x,y] points to frame center [0,0]
   private RenderCanvas rcCanvas;
+  private SwingWorker<Void, Void> workerAnimate;
 
   /**
    * Initialize object with default settings.
@@ -192,6 +197,27 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
         updateCanvas();
         updateDisplay(false);
       }
+    }
+  }
+
+  /**
+   * Returns the active/visibility state of the animation.
+   */
+  public boolean isActive()
+  {
+    return isActive;
+  }
+
+  /**
+   * Specify whether to actually display the animation on screen.
+   * @param set If <code>true</code> the animation will be displayed, if <code>false</code> only
+   *            empty space will be displayed.
+   */
+  public void setActive(boolean set)
+  {
+    if (set != isActive) {
+      isActive = set;
+      updateDisplay(false);
     }
   }
 
@@ -562,13 +588,40 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
         if (!isLooping && curFrame == 0) {
           timer.stop();
         } else {
-          updateFrame();
+          // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
+          if (workerAnimate == null) {
+            workerAnimate = new SwingWorker<Void, Void>() {
+              @Override
+              protected Void doInBackground() throws Exception {
+                updateFrame();
+                return null;
+              }
+            };
+            workerAnimate.addPropertyChangeListener(this);
+            workerAnimate.execute();
+          }
         }
       }
     }
   }
 
 //--------------------- End Interface ActionListener ---------------------
+
+//--------------------- Begin Interface PropertyChangeListener ---------------------
+
+  @Override
+  public void propertyChange(PropertyChangeEvent event)
+  {
+    if (event.getSource() == workerAnimate) {
+      if ("state".equals(event.getPropertyName()) &&
+          SwingWorker.StateValue.DONE == event.getNewValue()) {
+        // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
+        workerAnimate = null;
+      }
+    }
+  }
+
+//--------------------- End Interface PropertyChangeListener ---------------------
 
   @Override
   protected boolean isMouseOver(Point pt)
@@ -659,6 +712,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
   private void init()
   {
     setLayout(new BorderLayout());
+    isActive = true;
     isBlended = false;
     isMirrored = false;
     isSelfIlluminated = false;
@@ -754,62 +808,66 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
       BufferedImage dstImage = ColorConvert.toBufferedImage(rcCanvas.getImage(), true);
       int[] dest = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
       Arrays.fill(dest, 0);
-      int dstWidth = dstImage.getWidth();
 
-      int baseAlpha = frames[curFrame].getBaseAlpha()*alphaScale;   // scaled up for faster calculation
+      if (isActive) {
+        int dstWidth = dstImage.getWidth();
+        int baseAlpha = frames[curFrame].getBaseAlpha()*alphaScale;   // scaled up for faster calculation
 
-      for (int imageIdx = 0; imageIdx < frames[curFrame].getCount(); imageIdx++) {
-        BufferedImage srcImage = frames[curFrame].getImage(imageIdx);
-        int[] source = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
-        int srcWidth = srcImage.getWidth();
-        int srcHeight = srcImage.getHeight();
+        for (int imageIdx = 0; imageIdx < frames[curFrame].getCount(); imageIdx++) {
+          BufferedImage srcImage = frames[curFrame].getImage(imageIdx);
+          int[] source = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+          int srcWidth = srcImage.getWidth();
+          int srcHeight = srcImage.getHeight();
 
-        Point center = getFrameImageCenter(curFrame, imageIdx, false);
-        Rectangle bounds = getCanvasBounds(false);
-        int left = -bounds.x - center.x;  // left-most pixel of the sprite on the canvas
-        int top = -bounds.y - center.y;   // top-most pixel of the sprite on the canvas
-        int srcOfs = 0;
-        int dstOfs = top*dstWidth + left;
-        int sa, da, r, g, b;
-        for (int y = 0; y < srcHeight; y++, srcOfs += srcWidth, dstOfs += dstWidth) {
-          for (int x = 0; x < srcWidth; x++) {
-            int srcPixel = isMirrored ? source[srcOfs + srcWidth - x - 1] : source[srcOfs+x];
-            sa = (srcPixel >>> 24) & 0xff;
-            r = (srcPixel >>> 16) & 0xff;
-            g = (srcPixel >>> 8) & 0xff;
-            b = srcPixel & 0xff;
-            if (isBlended) {
-              // calculating alpha value (combo of luma and lookup table)
-              if (sa > 0) {
-                da = tableAlpha[((r*lumaR) + (g*lumaG) + (b*lumaB)) >>> shiftFactor16];
-                da = (sa*da) >>> shiftFactor8;
+          Point center = getFrameImageCenter(curFrame, imageIdx, false);
+          Rectangle bounds = getCanvasBounds(false);
+          int left = -bounds.x - center.x;  // left-most pixel of the sprite on the canvas
+          int top = -bounds.y - center.y;   // top-most pixel of the sprite on the canvas
+          int srcOfs = 0;
+          int dstOfs = top*dstWidth + left;
+          int sa, da, r, g, b;
+          for (int y = 0; y < srcHeight; y++, srcOfs += srcWidth, dstOfs += dstWidth) {
+            for (int x = 0; x < srcWidth; x++) {
+              int srcPixel = isMirrored ? source[srcOfs + srcWidth - x - 1] : source[srcOfs+x];
+              sa = (srcPixel >>> 24) & 0xff;
+              r = (srcPixel >>> 16) & 0xff;
+              g = (srcPixel >>> 8) & 0xff;
+              b = srcPixel & 0xff;
+              if (isBlended) {
+                // calculating alpha value (combo of luma and lookup table)
+                if (sa > 0) {
+                  da = tableAlpha[((r*lumaR) + (g*lumaG) + (b*lumaB)) >>> shiftFactor16];
+                  da = (sa*da) >>> shiftFactor8;
+                } else {
+                  da = 0;
+                }
               } else {
-                da = 0;
+                da = sa;
               }
-            } else {
-              da = sa;
+              da = (da*baseAlpha) >>> shiftFactor24;
+
+              if (!isSelfIlluminated) {
+                // applying lighting conditions
+                r = (r * TilesetRenderer.LightingAdjustment[lighting][0]) >>> TilesetRenderer.LightingAdjustmentShift;
+                g = (g * TilesetRenderer.LightingAdjustment[lighting][1]) >>> TilesetRenderer.LightingAdjustmentShift;
+                b = (b * TilesetRenderer.LightingAdjustment[lighting][2]) >>> TilesetRenderer.LightingAdjustmentShift;
+              }
+
+              if (da > 255) da = 255;
+              if (r > 255) r = 255;
+              if (g > 255) g = 255;
+              if (b > 255) b = 255;
+
+              dest[dstOfs+x] = (da << 24) | (r << 16) | (g << 8) | b;
             }
-            da = (da*baseAlpha) >>> shiftFactor24;
-
-            if (!isSelfIlluminated) {
-              // applying lighting conditions
-              r = (r * TilesetRenderer.LightingAdjustment[lighting][0]) >>> TilesetRenderer.LightingAdjustmentShift;
-              g = (g * TilesetRenderer.LightingAdjustment[lighting][1]) >>> TilesetRenderer.LightingAdjustmentShift;
-              b = (b * TilesetRenderer.LightingAdjustment[lighting][2]) >>> TilesetRenderer.LightingAdjustmentShift;
-            }
-
-            if (da > 255) da = 255;
-            if (r > 255) r = 255;
-            if (g > 255) g = 255;
-            if (b > 255) b = 255;
-
-            dest[dstOfs+x] = (da << 24) | (r << 16) | (g << 8) | b;
           }
+          source = null;
         }
-        source = null;
+        dest = null;
+        dstImage.flush();
+      } else {
+
       }
-      dest = null;
-      dstImage.flush();
 
       FrameInfo fi = getFrameInfo(isHighlighted);
       if (fi.isEnabled()) {
@@ -864,6 +922,7 @@ public class AnimatedLayerItem extends AbstractLayerItem implements LayerItemLis
   private void updateDisplay(boolean force)
   {
     if (!isPlaying() || force) {
+      updateCanvas();
       repaint();
     }
   }

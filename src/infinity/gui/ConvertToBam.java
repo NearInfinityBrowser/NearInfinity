@@ -7,6 +7,7 @@ package infinity.gui;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.BamDecoder;
+import infinity.resource.graphics.BamV1Decoder;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
@@ -1690,8 +1691,8 @@ public class ConvertToBam extends ChildFrame
   {
     if (bamFile != null && bamFile.exists() && bamFile.isFile()) {
       ResourceEntry entry = new FileResourceEntry(bamFile);
-      BamDecoder.BamType type = BamDecoder.getType(entry);
-      if (type == BamDecoder.BamType.BAMV1 || type == BamDecoder.BamType.BAMC) {
+      BamDecoder.Type type = BamDecoder.getType(entry);
+      if (type == BamDecoder.Type.BAMV1 || type == BamDecoder.Type.BAMC) {
         // use BamDecoder
         List<BamFrame> frameList = new ArrayList<BamFrame>();
         if (loadBamV1Frames(entry, frameList, null)) {
@@ -1701,7 +1702,7 @@ public class ConvertToBam extends ChildFrame
           }
           return frames;
         }
-      } else if (type == BamDecoder.BamType.BAMV2) {
+      } else if (type == BamDecoder.Type.BAMV2) {
         // decode manually and use PvrzDecoder to fetch graphics data
         List<BamFrame> frameList = new ArrayList<BamFrame>();
         if (loadBamV2Frames(entry, frameList, null)) {
@@ -1883,13 +1884,13 @@ public class ConvertToBam extends ChildFrame
     String errorMsg = null;
     if (bamFile != null && bamFile.exists() && bamFile.isFile()) {
       ResourceEntry entry = new FileResourceEntry(bamFile);
-      BamDecoder.BamType type = BamDecoder.getType(entry);
+      BamDecoder.Type type = BamDecoder.getType(entry);
       List<BamFrame> frameList = new ArrayList<BamFrame>();
       List<BamCycle> cycleList = new ArrayList<BamCycle>();
       boolean result = false;
-      if (type == BamDecoder.BamType.BAMV1 || type == BamDecoder.BamType.BAMC) {
+      if (type == BamDecoder.Type.BAMV1 || type == BamDecoder.Type.BAMC) {
         result = loadBamV1Frames(entry, frameList, cycleList);
-      } else if (type == BamDecoder.BamType.BAMV2) {
+      } else if (type == BamDecoder.Type.BAMV2) {
         result = loadBamV2Frames(entry, frameList, cycleList);
       } else {
         errorMsg = String.format("Unrecognized BAM file: \"%1$s\".", bamFile.toString());
@@ -1918,26 +1919,27 @@ public class ConvertToBam extends ChildFrame
   {
     String errorMsg = null;
     if (entry != null) {
-      BamDecoder decoder = new BamDecoder(entry);
-      if (decoder.data() != null) {
+      BamV1Decoder decoder = (BamV1Decoder)BamDecoder.loadBam(entry);
+      if (decoder != null) {
+        decoder.setMode(BamDecoder.Mode.Individual);
         // filling frames list
         if (frameList != null) {
-          for (int i = 0; i < decoder.data().frameCount(); i++) {
-            BufferedImage img = ColorConvert.toBufferedImage(decoder.data().frameGet(i), true);
+          for (int i = 0; i < decoder.frameCount(); i++) {
+            BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(i), true);
             BamFrame bf = new BamFrame(entry.getActualFile().toString(), i, img,
-                                       decoder.data().frameCenterX(i), decoder.data().frameCenterY(i),
-                                       decoder.data().frameCompressed(i));
+                                       decoder.frameCenterX(i), decoder.frameCenterY(i),
+                                       decoder.getFrameInfo(i).isCompressed());
             frameList.add(bf);
           }
         }
 
         // filling cycles list
         if (cycleList != null) {
-          for (int i = 0; i < decoder.data().cycleCount(); i++) {
-            decoder.data().cycleSet(i);
+          for (int i = 0; i < decoder.cycleCount(); i++) {
+            decoder.cycleSet(i);
             BamCycle bc = new BamCycle();
-            for (int j = 0; j < decoder.data().cycleFrameCount(); j++) {
-              bc.frames.add(new Integer(decoder.data().cycleGetFrameIndexAbs(j)));
+            for (int j = 0; j < decoder.cycleFrameCount(); j++) {
+              bc.frames.add(new Integer(decoder.cycleGetFrameIndexAbsolute(j)));
             }
             cycleList.add(bc);
           }

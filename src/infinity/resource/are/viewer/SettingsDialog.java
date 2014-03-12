@@ -65,7 +65,7 @@ public class SettingsDialog extends JDialog
   private JList listLayers;
   private JButton bUp, bDown, bDefaultOrder;
   private JComboBox cbFrames, cbQualityMap, cbQualityAnim;
-  private JCheckBox cbStoreSettings;
+  private JCheckBox cbOverrideAnimVisibility, cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
   private JSlider sMiniMapAlpha;
@@ -126,6 +126,7 @@ public class SettingsDialog extends JDialog
     }
 
     Settings.ShowFrame = cbFrames.getSelectedIndex();
+    Settings.OverrideAnimVisibility = cbOverrideAnimVisibility.isSelected();
 
     Settings.InterpolationMap = cbQualityMap.getSelectedIndex();
     Settings.InterpolationAnim = cbQualityAnim.getSelectedIndex();
@@ -164,6 +165,7 @@ public class SettingsDialog extends JDialog
     resetLayerOrder();
 
     cbFrames.setSelectedIndex(Settings.getDefaultShowFrame());
+    cbOverrideAnimVisibility.setSelected(Settings.getDefaultOverrideAnimVisibility());
 
     cbQualityMap.setSelectedIndex(Settings.getDefaultInterpolationMap());
     cbQualityAnim.setSelectedIndex(Settings.getDefaultInterpolationAnim());
@@ -289,12 +291,17 @@ public class SettingsDialog extends JDialog
     JLabel lFrames = new JLabel("Show frame:");
     cbFrames = new JComboBox(AnimationFrames);
     cbFrames.setSelectedIndex(Settings.ShowFrame);
+    cbOverrideAnimVisibility = new JCheckBox("Show animations regardless of their active state", Settings.OverrideAnimVisibility);
+    cbOverrideAnimVisibility.setToolTipText("Requires a restart of the area viewer or a map update via toolbar button.");
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
     pShowFrame.add(lFrames, c);
     c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 4, 4), 0, 0);
+               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
     pShowFrame.add(cbFrames, c);
+    c = setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
+    pShowFrame.add(cbOverrideAnimVisibility, c);
 
     // Interpolation type
     JPanel pQuality = new JPanel(new GridBagLayout());
