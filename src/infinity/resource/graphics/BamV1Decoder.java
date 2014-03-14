@@ -15,6 +15,10 @@ import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
 
+/**
+ * Handles BAM v1 resources (both BAMC and uncompressed BAM V1).
+ * @author argent77
+ */
 public class BamV1Decoder extends BamDecoder
 {
   private final List<BamV1FrameEntry> listFrames = new ArrayList<BamV1FrameEntry>();

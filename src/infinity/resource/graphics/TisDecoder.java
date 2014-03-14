@@ -4,584 +4,135 @@
 
 package infinity.resource.graphics;
 
-import infinity.resource.ResourceFactory;
-import infinity.resource.key.ResourceEntry;
-import infinity.util.DynamicArray;
+import java.awt.Image;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Transparency;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
+import infinity.resource.key.ResourceEntry;
 
 /**
- * Decodes either a single tile or a block of tiles from a TIS resource.
+ * Common base class for handling TIS resources.
  * @author argent77
  */
-public class TisDecoder
+public abstract class TisDecoder
 {
-  private static final String NOT_INITIALIZED = "Not initialized";
+  /** Recognized TIS resource types */
+  public enum Type { INVALID, PALETTE, PVRZ }
 
-  private TisInfo info;
-  private ResourceEntry entry;      // TIS resource entry structure
-  private byte[] tisBuffer;         // points to the data of the TIS resource entry
-  private String tisName;           // TIS resource name without extension
-  private ConcurrentHashMap<Integer, PvrDecoder> pvrTable;  // cache for associated PVR resources
+  protected static int TileDimension = 64;    // default width and height of a tile
 
-  public TisDecoder()
+  private final ResourceEntry tisEntry;
+
+  private Type type;
+
+  /**
+   * Returns whether the specified resource entry points to a valid TIS resource.
+   */
+  public static boolean isValid(ResourceEntry tisEntry)
   {
-    close();
+    return (getType(tisEntry) != Type.INVALID);
   }
 
   /**
-   * Initialize this object using the specified filename.
-   * @param tisName Filename of the TIS file
-   * @throws Exception
+   * Returns the type of the specified resource entry.
+   * @return One of the TIS <code>Type</code>s.
    */
-  public TisDecoder(String tisName) throws Exception
+  public static Type getType(ResourceEntry tisEntry)
   {
-    open(tisName);
-  }
-
-  /**
-   * Initialize this object using the specified resource entry.
-   * @param entry Resource entry structure of the TIS resource.
-   * @throws Exception
-   */
-  public TisDecoder(ResourceEntry entry) throws Exception
-  {
-    open(entry);
-  }
-
-  /**
-   * Closes the current TIS resource
-   */
-  public void close()
-  {
-    info = null;
-    entry = null;
-    tisName = null;
-    tisBuffer = null;
-    if (pvrTable != null) {
-      for (final PvrDecoder pvr: pvrTable.values()) {
-        try {
-          pvr.close();
-        } catch (Exception e) {
-        }
-      }
-      pvrTable.clear();
-    }
-    pvrTable = null;
-  }
-
-  /**
-   * Call this method if you want to free the TIS input data buffer from memory.
-   */
-  public void flush()
-  {
-    if (tisBuffer != null) {
-      tisBuffer = null;
-    }
-  }
-
-  /**
-   * Initialize this object using the specified filename.
-   * @param tisName Filename of the TIS file
-   * @throws Exception
-   */
-  public void open(String tisName) throws Exception
-  {
-    open(ResourceFactory.getInstance().getResourceEntry(tisName));
-  }
-
-  /**
-   * Initialize this object using the specified resource entry.
-   * @param entry Resource entry structure of the TIS resource.
-   * @throws Exception
-   */
-  public void open(ResourceEntry entry) throws Exception
-  {
-    close();
-
-    this.entry = entry;
-    if (this.entry == null)
-      throw new NullPointerException();
-    init();
-  }
-
-  /**
-   * Returns whether this TisDecoder object has already been successfully initialized.
-   * @return Whether this TisDecoder object has already been initialized.
-   */
-  public boolean isOpen()
-  {
-    return !empty();
-  }
-
-  /**
-   * Returns a resource info interface for easy access of the resource-specific properties.
-   * @return A resource info interface if available, null otherwise.
-   */
-  public TisInfo info()
-  {
-    if (!empty())
-      return info;
-    else
-      return null;
-  }
-
-  /**
-   * Decodes the currently loaded TIS file and returns the result as a new BufferedImage object.
-   * @param tileColumns Number of tile columns.
-   * @param tileRows Number of tile rows (a value of 0 indicates <code>tileCount / tilesX</code>).
-   * @return A BufferedImage object of the resulting image data.
-   * @throws Exception
-   */
-  public BufferedImage decode(int tileColumns, int tileRows) throws Exception
-  {
-    if (!empty()) {
-      BufferedImage image = ColorConvert.createCompatibleImage(tileColumns*info().tileWidth(),
-                                                               tileRows*info.tileHeight(),
-                                                               Transparency.BITMASK);
-      if (decode(image, tileColumns, tileRows)) {
-        return image;
-      } else {
-        image = null;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Decodes the currently loaded TIS file and draws the result into the specified BufferedImage object.
-   * The image will be clipped if the BufferedImage is too small to hold the complete graphics data.
-   * @param image The BufferedImage object to draw the TIS map into.
-   * @param tileCols Number of tile columns.
-   * @param tileRows Number of tile rows (a value of 0 indicates <code>tileCount / tilesX</code>).
-   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
-   * @throws Exception
-   */
-  public boolean decode(BufferedImage image, int tileCols, int tileRows) throws Exception
-  {
-    if (!empty()) {
-      if (image == null)
-        throw new NullPointerException();
-      if (tileCols < 0 || tileRows < 0)
-        throw new Exception("Invalid dimensions specified");
-
-      if (tileCols == 0)
-        tileCols = 1;
-      if (tileRows == 0)
-        tileRows = info().tileCount() / tileCols;
-
-      if (image.getWidth() < tileCols*info().tileWidth() ||
-          image.getHeight() < tileRows*info().tileHeight())
-        throw new Exception("Image dimensions too small");
-      if (tileCols*tileRows > info().tileCount())
-        throw new Exception("Tiles dimension too big (" + tileCols + "x" + tileRows +
-                            "=" + tileCols*tileRows + " tiles specified, but only " +
-                            info().tileCount() + " tiles available)");
-
-      int imgTileCols = image.getWidth() / info().tileWidth();
-      if (image.getWidth() % info().tileWidth() != 0)
-        imgTileCols++;
-      int imgTileRows = image.getHeight() / info().tileHeight();
-      if (image.getHeight() % info().tileHeight() != 0)
-        imgTileRows++;
-
-      BufferedImage imgTile =
-          ColorConvert.createCompatibleImage(info().tileWidth(), info().tileHeight(), Transparency.BITMASK);
-      Graphics2D g = (Graphics2D)image.getGraphics();
-      for (int y = 0; y < imgTileRows; y++) {
-        for (int x = 0; x < imgTileCols; x++) {
-          int tileIdx = y*tileCols+x;
-          if (decodeTile(imgTile, tileIdx)) {
-            g.drawImage(imgTile, x*info().tileWidth(), y*info().tileHeight(), null);
-          } else {
-            g.dispose();
-            return false;
-          }
-        }
-      }
-      g.dispose();
-      imgTile.flush();
-      imgTile = null;
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Decodes the specified tile of the currently loaded TIS file and returns the result as a new
-   * BufferedImage object.
-   * @param tileIndex The tile to extract (index starting at 0).
-   * @return A BufferedImage object of the resulting image data.
-   * @throws Exception
-   */
-  public BufferedImage decodeTile(int tileIndex) throws Exception
-  {
-    if (!empty()) {
-      BufferedImage image = ColorConvert.createCompatibleImage(info().tileWidth(),
-                                                               info().tileHeight(),
-                                                               Transparency.BITMASK);
-      if (decodeTile(image, tileIndex)) {
-        return image;
-      } else {
-        image = null;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Decodes the specified tile of the currently loaded TIS file and draws the result into the
-   * specified BufferedImage object.
-   * @param image The BufferedImage object to draw the TIS tile into.
-   * @param tileIndex The tile to extract (index starting at 0).
-   * @return <code>true</code> if the tile has been drawn successfully, <code>false</code> otherwise.
-   * @throws Exception
-   */
-  public boolean decodeTile(BufferedImage image, int tileIndex) throws Exception
-  {
-    if (!empty()) {
-      if (image == null)
-        throw new NullPointerException();
-      if (image.getWidth() < info().tileWidth() || image.getHeight() < info().tileHeight())
-        throw new Exception("Image dimensions too small");
-      if (tileIndex < 0 || tileIndex > info().tileCount())
-        throw new Exception("Tile index out of bounds");
-
-      switch (info().type()) {
-        case PALETTE:
-          return decodeTileInPlace(image, tileIndex);
-        case PVRZ:
-          return decodeTilePVRZ(image, tileIndex);
-        default:
-          return false;
-      }
-    }
-    return false;
-  }
-
-  // Returns TIS input data as byte buffer
-  private byte[] getInputData()
-  {
-    if (!empty()) {
-      if (tisBuffer == null) {
-        try {
-          tisBuffer = entry.getResourceData();
-        } catch (Exception e) {
-          tisBuffer = null;
-        }
-      }
-      return tisBuffer;
-    }
-    return null;
-  }
-
-  private boolean empty()
-  {
-    if (entry != null && info != null)
-      return info.empty();
-    else
-      return true;
-  }
-
-  // initializes TIS resource (header and data)
-  private void init() throws Exception
-  {
-    if (entry == null)
-      throw new NullPointerException();
-
-    info = new TisInfo(entry);
-    if (info.empty())
-      throw new Exception("Error parsing TIS resource");
-
-    if (!initPVR())
-      close();
-  }
-
-  // checks for PVRZ compatibility
-  private boolean initPVR() throws Exception
-  {
-    if (!empty()) {
-      if (info().type() == TisInfo.TisType.PVRZ) {
-        if (entry.getResourceName() != null) {
-          tisName = entry.getResourceName();
-          int n = tisName.lastIndexOf('.');
-          if (n > 0)
-            tisName = tisName.substring(0, n);
-//          if (tisName != null && Pattern.matches("[a-zA-Z]{2}[0-9]{4}[nN]?", tisName)) {
-          if (tisName != null && Pattern.matches(".{6}[nN]?", tisName)) {
-            pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>(30, 0.75f);
-            return true;
-          }
-        }
-        return false;
-      } else {
-        return true;
-      }
-    } else {
-      throw new Exception(NOT_INITIALIZED);
-    }
-  }
-
-  // returns a PVR object of the specified page
-  private PvrDecoder getPVR(int page) throws Exception
-  {
-    if (!empty()) {
-      if (info().type() == TisInfo.TisType.PVRZ) {
-        synchronized (pvrTable) {
-          if (pvrTable.containsKey(page))
-            return pvrTable.get(page);
-
-          String pvrzName = getPVRZName(page);
-          ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(pvrzName);
-          if (entry != null) {
-            byte[] data = entry.getResourceData();
-            if (data != null) {
-              int size = DynamicArray.getInt(data, 0);
-              int marker = DynamicArray.getUnsignedShort(data, 4);
-              if ((size & 0xff) != 0x34 || marker != 0x9c78)
-                throw new Exception("Invalid PVRZ resource: " + entry.getResourceName());
-              data = Compressor.decompress(data, 0);
-              PvrDecoder d = new PvrDecoder(data);
-              pvrTable.put(page, d);
-              return d;
+    Type retVal = Type.INVALID;
+    if (tisEntry != null) {
+      try {
+        int[] info = tisEntry.getResourceInfo();
+        if (info != null && info.length > 1) {
+          if (info[0] > 0 && info[1] > 0) {
+            int sizeV1 = 1024 + TileDimension*TileDimension;
+            if (sizeV1 == info[1]) {
+              retVal = Type.PALETTE;
+            } else if (info[1] == 12) {
+              retVal = Type.PVRZ;
             }
           }
         }
-        throw new Exception("PVR page #" + page + " not found");
-      } else {
-        return null;
-      }
-    } else {
-      throw new Exception(NOT_INITIALIZED);
-    }
-  }
-
-  private String getPVRZName(int page) throws Exception
-  {
-    if (page < 0 || page > info().tileCount())
-      throw new Exception("PVR page #" + page + " not available");
-
-    String pvrzBase = tisName.substring(0, 1) + tisName.substring(2);
-    String pvrzPage = String.format("%1$02d", page);
-    return pvrzBase + pvrzPage + ".PVRZ";
-  }
-
-  private boolean decodeTileInPlace(BufferedImage image, int tileIndex)
-  {
-    if (!empty()) {
-      if (image == null)
-        return false;
-      if (image.getWidth() < info().tileWidth() || image.getHeight() < info().tileHeight())
-        return false;
-      if (tileIndex < 0 || tileIndex >= info().tileCount())
-        return false;
-
-      byte[] inBuffer = getInputData();
-      if (inBuffer != null) {
-        int inOfs = info().headerSize() + tileIndex*info().tileSize();
-        if (inOfs + info().tileSize() > inBuffer.length)
-          return false;
-
-        int[] palette = new int[256];
-        for (int i = 0; i < palette.length; i++, inOfs+=4) {
-          palette[i] = DynamicArray.getInt(inBuffer, inOfs) | 0xff000000;
-          if (i == 0 && (palette[i] & 0x00ffffff) == 0x0000ff00) {
-            palette[i] &= 0x00ffffff;
-          }
-        }
-        int[] dataBlock = new int[info().tileWidth()*info().tileHeight()];
-        for (int i = 0; i < dataBlock.length; i++, inOfs++) {
-          dataBlock[i] = palette[inBuffer[inOfs] & 0xff];
-        }
-        image.setRGB(0, 0, info().tileWidth(), info().tileHeight(), dataBlock, 0, info().tileWidth());
-        palette = null;
-        dataBlock = null;
-        inBuffer = null;
-
-        return true;
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
-    return false;
+    return retVal;
   }
-
-  private boolean decodeTilePVRZ(BufferedImage image, int tileIndex)
-  {
-    if (!empty()) {
-      if (image == null)
-        return false;
-      if (image.getWidth() < info().tileWidth() || image.getHeight() < info().tileHeight())
-        return false;
-      if (tileIndex < 0 || tileIndex >= info().tileCount())
-        return false;
-
-      byte[] inBuffer = getInputData();
-      if (inBuffer != null) {
-        int inOfs = info().headerSize() + tileIndex*info().tileSize();
-        if (inOfs + info().tileSize() > inBuffer.length)
-          return false;
-
-        int pvrPage = DynamicArray.getInt(inBuffer, inOfs);
-        if (pvrPage < 0) {
-          // special case: fill with black pixels
-          Graphics2D g = (Graphics2D)image.getGraphics();
-          g.setColor(Color.BLACK);
-          g.fillRect(0, 0, info().tileWidth(), info().tileHeight());
-          g.dispose();
-        } else {
-          try {
-            // extract data block from associated PVR file
-            int pvrX = DynamicArray.getInt(inBuffer, inOfs + 4);
-            int pvrY = DynamicArray.getInt(inBuffer, inOfs + 8);
-            PvrDecoder pvrDecoder = getPVR(pvrPage);
-            if (pvrDecoder == null)
-              return false;
-            pvrDecoder.decode(image, pvrX, pvrY, info().tileWidth(), info().tileHeight());
-          } catch (Exception e) {
-            return false;
-          }
-        }
-        inBuffer = null;
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-//-------------------------- INNER CLASSES --------------------------
 
   /**
-   * Manages header information for TIS files.
+   * Returns a new TisDecoder object based on the type of the specified resource entry.
+   * @param tisEntry The TIS resource entry.
+   * @return Either <code>TisV1Decoder</code> or <code>TisV2Decoder</code> depending on the
+   *         TIS resource type.
    */
-  public static class TisInfo
+  public static TisDecoder loadTis(ResourceEntry tisEntry)
   {
-    /**
-     * Describes the type of the TIS file.<br>
-     * PALETTE: TIS file consists of palette-based chunks, stored in-place.<br>
-     * PVRZ:    TIS file consists of references to the chunks, stored in associated PVRZ files.
-     */
-    public enum TisType { PALETTE, PVRZ }
-
-    private static int tileDim = 64;
-    private static int headerSize = 24;
-
-    private TisType type;
-    private int tileCount, tileSize, dataSize;
-    private boolean initialized = false;
-
-    public TisInfo(ResourceEntry entry) throws Exception
-    {
-      if (entry == null)
-        throw new NullPointerException();
-
-      init(entry);
-    }
-
-    /**
-     * Returns the TIS type (palette-based or PVRZ-based data blocks)
-     * @return TIS type
-     * @throws Exception
-     */
-    public TisType type()
-    {
-      if (!empty())
-        return type;
-      else
+    Type type = getType(tisEntry);
+    switch (type) {
+      case PALETTE:
+        return new TisV1Decoder(tisEntry);
+      case PVRZ:
+        return new TisV2Decoder(tisEntry);
+      default:
         return null;
     }
+  }
 
-    /**
-     * Number of tiles defined within the TIS file.
-     * @return Number of tiles available.
-     */
-    public int tileCount()
-    {
-      return tileCount;
-    }
+  /**
+   * Returns the ResourceEntry object of the TIS resource.
+   */
+  public ResourceEntry getResourceEntry()
+  {
+    return tisEntry;
+  }
 
-    /**
-     * Size of a tile section within the TIS file.
-     * @return Tile size in bytes.
-     */
-    public int tileSize()
-    {
-      return tileSize;
-    }
+  /**
+   * Returns the type of the TIS resource.
+   */
+  public Type getType()
+  {
+    return type;
+  }
 
-    /**
-     * Width of a TIS tile in pixels.
-     * @return Width of a TIS tile in pixels.
-     */
-    public int tileWidth()
-    {
-      return tileDim;
-    }
 
-    /**
-     * Height of a TIS tile in pixels.
-     * @return Height of a TIS tile in pixels.
-     */
-    public int tileHeight()
-    {
-      return tileDim;
-    }
+  /** Removes all data from the decoder. Use this to free up memory. */
+  public abstract void close();
 
-    /**
-     * Size of the TIS header in bytes.
-     * @return TIS header size
-     */
-    public int headerSize()
-    {
-      return headerSize;
-    }
+  /** Clears existing data and reloads the current BAM resource entry. */
+  public abstract void reload();
 
-    /**
-     * Size of the TIS data in bytes.
-     * @return TIS data size
-     */
-    public int dataSize()
-    {
-      return dataSize;
-    }
+  /** Returns the raw data of the BAM resource. */
+  public abstract byte[] getResourceData();
 
-    private void init(ResourceEntry entry) throws Exception
-    {
-      if (entry == null)
-        throw new NullPointerException();
+  /** Returns the width of a single tile (in pixels). */
+  public abstract int getTileWidth();
+  /** Returns the height of a single tile (in pixels). */
+  public abstract int getTileHeight();
 
-      int[] resInfo = entry.getResourceInfo();
-      if (resInfo == null || resInfo.length < 2)
-        throw new Exception("Error reading TIS header");
+  /** Returns the total number of tiles defined by the TIS resource. */
+  public abstract int getTileCount();
 
-      tileCount = resInfo[0];
-      if (tileCount <= 0)
-        throw new Exception("Invalid tile count: " + tileCount);
+  /** Returns the specified tile as image object. */
+  public abstract Image getTile(int tileIdx);
+  /** Renders the specified tile onto the canvas. Returns the success state. */
+  public abstract boolean getTile(int tileIdx, Image canvas);
 
-      tileSize = resInfo[1];
-      if (tileSize <= 0)
-        throw new Exception("Invalid tile size: " + tileSize);
+  /** Returns the tile data as int array. (Format: ARGB) */
+  public abstract int[] getTileData(int tileIdx);
+  /** Writes the specified tile into the buffer. Returns the success state. */
+  public abstract boolean getTileData(int tileIdx, int[] buffer);
 
-      if (tileSize == 1024 + tileDim * tileDim) {
-        type = TisType.PALETTE;
-      } else if (tileSize == 12) {
-        type = TisType.PVRZ;
-      } else {
-        throw new Exception("TIS file type could not be determined");
-      }
 
-      dataSize = tileCount * tileSize;
+  /** Does basic initializations */
+  protected TisDecoder(ResourceEntry tisEntry)
+  {
+    this.tisEntry = tisEntry;
+    this.type = Type.INVALID;
+  }
 
-      initialized = true;
-    }
 
-    private boolean empty()
-    {
-      return !initialized;
-    }
+  // Set the current TIS type
+  protected void setType(Type type)
+  {
+    this.type = type;
   }
 }

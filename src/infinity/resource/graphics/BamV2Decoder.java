@@ -18,6 +18,10 @@ import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
 
+/**
+ * Handles BAM v2 resources.
+ * @author argent77
+ */
 public class BamV2Decoder extends BamDecoder
 {
   private final ConcurrentHashMap<Integer, PvrDecoder> pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>();

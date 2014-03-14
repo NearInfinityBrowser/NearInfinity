@@ -1032,11 +1032,11 @@ public class TilesetRenderer extends RenderCanvas
         ResourceEntry tisEntry = getTisResource(wed, ovl);
         if (tisEntry != null) {
           try {
-            TisDecoder decoder = new TisDecoder(tisEntry);
-            isTilesetV1 = decoder.info().type() == TisDecoder.TisInfo.TisType.PALETTE;
+            TisDecoder decoder = TisDecoder.loadTis(tisEntry);
+            isTilesetV1 = decoder.getType() == TisDecoder.Type.PALETTE;
             BufferedImage tileImage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
-            for (int i = 0; i < decoder.info().tileCount(); i++) {
-              decoder.decodeTile(tileImage, i);
+            for (int i = 0; i < decoder.getTileCount(); i++) {
+              decoder.getTile(i, tileImage);
               int[] srcData = ((DataBufferInt)tileImage.getRaster().getDataBuffer()).getData();
               int[] dstData = new int[64*64];
               System.arraycopy(srcData, 0, dstData, 0, 64*64);

@@ -191,8 +191,8 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         if (cols != slCols.getValue()) {
           if (cols <= 0)
             cols = 1;
-          if (cols >= decoder.info().tileCount())
-            cols = decoder.info().tileCount();
+          if (cols >= decoder.getTileCount())
+            cols = decoder.getTileCount();
           slCols.setValue(cols);
           tfCols.setText(Integer.toString(slCols.getValue()));
           tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), cols));
@@ -344,7 +344,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
       rpc = NearInfinity.getInstance();
     }
 
-    int tileCount = decoder.info().tileCount();
+    int tileCount = decoder.getTileCount();
     int defaultColumns = Math.min(tileCount, DEFAULT_COLUMNS);
 
     // 1. creating top panel
@@ -390,7 +390,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
 
     // 2. creating main panel
     // 2.1. creating tiles table and scroll pane
-    tileGrid = new TileGrid(1, defaultColumns, decoder.info().tileWidth(), decoder.info().tileHeight());
+    tileGrid = new TileGrid(1, defaultColumns, decoder.getTileWidth(), decoder.getTileHeight());
     tileGrid.addImage(tileImages);
     if (tileGrid.getImageCount() > 6) {
       int colSize = calcTileWidth(entry, tileGrid.getImageCount());
@@ -414,7 +414,7 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
     // 3.1. creating export button
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
-    if (decoder.info().type() == TisDecoder.TisInfo.TisType.PVRZ) {
+    if (decoder.getType() == TisDecoder.Type.PVRZ) {
       miExportLegacyTis = new JMenuItem("as legacy TIS");
       miExportLegacyTis.addActionListener(this);
     }
@@ -456,20 +456,17 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
     try {
       WindowBlocker.blockWindow(true);
 
-      decoder = new TisDecoder(entry);
-      int tileCount = decoder.info().tileCount();
+      decoder = TisDecoder.loadTis(entry);
+      int tileCount = decoder.getTileCount();
       tileImages = new ArrayList<Image>(tileCount);
       for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
-        final BufferedImage image = decoder.decodeTile(tileIdx);
-        if (image != null) {
-          tileImages.add(image);
-        } else {
-          tileImages.add(ColorConvert.createCompatibleImage(decoder.info().tileWidth(),
-                                                            decoder.info().tileHeight(),
-                                                            Transparency.BITMASK));
-        }
+        BufferedImage image = ColorConvert.createCompatibleImage(64, 64, Transparency.BITMASK);
+        decoder.getTile(tileIdx, image);
+        tileImages.add(image);
       }
-      decoder.flush();
+      if (decoder instanceof TisV2Decoder) {
+        ((TisV2Decoder)decoder).flush();
+      }
       WindowBlocker.blockWindow(false);
     } catch (Exception e) {
       e.printStackTrace();
@@ -490,17 +487,17 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
     byte[] buf = null;
     if (tileImages != null && !tileImages.isEmpty()) {
         String note = "Converting tile %1$d / %2$d";
-        int progressIndex = 0, progressMax = decoder.info().tileCount();
+        int progressIndex = 0, progressMax = decoder.getTileCount();
         ProgressMonitor progress =
             new ProgressMonitor(panel.getTopLevelAncestor(), "Converting TIS...",
                                 String.format(note, progressIndex, progressMax), 0, progressMax);
         progress.setMillisToDecideToPopup(500);
         progress.setMillisToPopup(2000);
 
-        buf = new byte[24 + decoder.info().tileCount()*5120];
+        buf = new byte[24 + decoder.getTileCount()*5120];
         // writing header data
         System.arraycopy("TIS V1  ".getBytes(Charset.forName("US-ASCII")), 0, buf, 0, 8);
-        DynamicArray.putInt(buf, 8, decoder.info().tileCount());
+        DynamicArray.putInt(buf, 8, decoder.getTileCount());
         DynamicArray.putInt(buf, 12, 0x1400);
         DynamicArray.putInt(buf, 16, 0x18);
         DynamicArray.putInt(buf, 20, 0x40);
@@ -511,10 +508,11 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
         int[] hclPalette = new int[255];
         byte[] tilePalette = new byte[1024];
         byte[] tileData = new byte[64*64];
-        BufferedImage image = ColorConvert.createCompatibleImage(decoder.info().tileWidth(),
-                                                                 decoder.info().tileHeight(), Transparency.BITMASK);
+        BufferedImage image = ColorConvert.createCompatibleImage(decoder.getTileWidth(),
+                                                                 decoder.getTileHeight(),
+                                                                 Transparency.BITMASK);
         IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
-        for (int tileIdx = 0; tileIdx < decoder.info().tileCount(); tileIdx++) {
+        for (int tileIdx = 0; tileIdx < decoder.getTileCount(); tileIdx++) {
           colorCache.clear();
           if (progress.isCanceled()) {
             buf = new byte[0];
