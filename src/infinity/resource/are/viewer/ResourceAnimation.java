@@ -4,31 +4,31 @@
 
 package infinity.resource.are.viewer;
 
-import infinity.gui.layeritem.AnimatedLayerItem;
+import infinity.resource.graphics.BamDecoder;
 
 /**
- * A structure to hold a unique identifier and the associated animation data.
+ * A structure to hold a unique identifier and the associated BAM animation.
  * @author argent77
  */
 public class ResourceAnimation extends BasicResource
 {
-  private final AnimatedLayerItem.Frame[] frameData;
+  private final BamDecoder bam;
 
   /**
    * Creates a new animation object that consists of a resource name (any unique name will do) and
-   * the associated animation data.
+   * the associated BAM animation.
    * @param key A unique keyword that can be used to identify the animation.
-   * @param frameData The animation data.
+   * @param bam The BAM animation object.
    */
-  public ResourceAnimation(String key, AnimatedLayerItem.Frame[] frameData)
+  public ResourceAnimation(String key, BamDecoder bam)
   {
     super(key);
-    this.frameData = frameData;
+    this.bam = bam;
   }
 
   @Override
-  public AnimatedLayerItem.Frame[] getData()
+  public BamDecoder getData()
   {
-    return frameData;
+    return bam;
   }
 }

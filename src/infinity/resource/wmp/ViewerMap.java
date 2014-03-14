@@ -44,8 +44,10 @@ final class ViewerMap extends JPanel implements ListSelectionListener
       ResourceRef iconRef = (ResourceRef)wmpMap.getAttribute("Map icons");
       if (iconRef != null) {
         ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
-        if (iconEntry != null)
+        if (iconEntry != null) {
           icons = (BamResource2)ResourceFactory.getResource(iconEntry);
+          icons.setTransparencyEnabled(true);
+        }
       }
       if (ResourceFactory.getInstance().resourceExists(((ResourceRef)wmpMap.getAttribute("Map")).getResourceName())) {
         JLabel mapLabel = ViewerUtil.makeImagePanel((ResourceRef)wmpMap.getAttribute("Map"));

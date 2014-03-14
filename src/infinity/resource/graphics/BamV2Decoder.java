@@ -10,7 +10,6 @@ import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -224,8 +223,11 @@ public class BamV2Decoder extends BamDecoder
   @Override
   public boolean cycleSet(int cycleIdx)
   {
-    if (cycleIdx >= 0 && cycleIdx < listCycles.size()) {
+    if (cycleIdx >= 0 && cycleIdx < listCycles.size() && currentCycle != cycleIdx) {
       currentCycle = cycleIdx;
+      if (isSharedPerCycle()) {
+        updateSharedBamSize();
+      }
       return true;
     } else {
       return false;
@@ -326,7 +328,7 @@ public class BamV2Decoder extends BamDecoder
         currentFrame < listCycles.get(currentCycle).framesCount) {
       return listCycles.get(currentCycle).startIndex + currentFrame;
     } else {
-      return 0;
+      return -1;
     }
   }
 
@@ -337,7 +339,7 @@ public class BamV2Decoder extends BamDecoder
         frameIdx >= 0 && frameIdx < listCycles.get(currentCycle).framesCount) {
       return listCycles.get(currentCycle).startIndex + frameIdx;
     } else {
-      return 0;
+      return -1;
     }
   }
 
@@ -348,7 +350,7 @@ public class BamV2Decoder extends BamDecoder
         frameIdx >= 0 && frameIdx < listCycles.get(cycleIdx).framesCount) {
       return listCycles.get(cycleIdx).startIndex + frameIdx;
     } else {
-      return 0;
+      return -1;
     }
   }
 
@@ -484,8 +486,6 @@ public class BamV2Decoder extends BamDecoder
       int srcHeight = listFrames.get(frameIdx).height;
       int[] srcData = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
 
-      Arrays.fill(buffer, 0);
-
       if (getMode() == Mode.Shared) {
         // drawing on shared canvas
         int left = -getSharedRectangle().x - listFrames.get(frameIdx).centerX;
@@ -532,8 +532,8 @@ public class BamV2Decoder extends BamDecoder
       if (buffer != null && ofsFrame < buffer.length && ofsBlocks < buffer.length) {
         width = DynamicArray.getUnsignedShort(buffer, ofsFrame);
         height = DynamicArray.getUnsignedShort(buffer, ofsFrame+2);
-        centerX = DynamicArray.getUnsignedShort(buffer, ofsFrame+4);
-        centerY = DynamicArray.getUnsignedShort(buffer, ofsFrame+6);
+        centerX = DynamicArray.getShort(buffer, ofsFrame+4);
+        centerY = DynamicArray.getShort(buffer, ofsFrame+6);
         int blockStart = DynamicArray.getUnsignedShort(buffer, ofsFrame+8);
         int blockCount = DynamicArray.getUnsignedShort(buffer, ofsFrame+10);
         decodeImage(buffer, ofsBlocks, blockStart, blockCount);

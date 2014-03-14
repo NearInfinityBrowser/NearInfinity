@@ -605,7 +605,6 @@ public final class LayerManager
   // If forceReload is true, layer objects are always reloaded.
   private void init(AreResource are, WedResource wed, boolean forced)
   {
-    close();
     if (are != null && wed != null) {
       boolean areChanged = (are != this.are);
       boolean wedChanged = (wed != this.wed);

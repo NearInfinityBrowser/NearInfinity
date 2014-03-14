@@ -9,7 +9,6 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import infinity.resource.key.ResourceEntry;
@@ -309,8 +308,11 @@ public class BamV1Decoder extends BamDecoder
   @Override
   public boolean cycleSet(int cycleIdx)
   {
-    if (cycleIdx >= 0 && cycleIdx < listCycles.size()) {
+    if (cycleIdx >= 0 && cycleIdx < listCycles.size() && currentCycle != cycleIdx) {
       currentCycle = cycleIdx;
+      if (isSharedPerCycle()) {
+        updateSharedBamSize();
+      }
       return true;
     } else {
       return false;
@@ -411,7 +413,7 @@ public class BamV1Decoder extends BamDecoder
         currentFrame < listCycles.get(currentCycle).frames.length) {
       return listCycles.get(currentCycle).frames[currentFrame];
     } else {
-      return 0;
+      return -1;
     }
   }
 
@@ -422,7 +424,7 @@ public class BamV1Decoder extends BamDecoder
         frameIdx >= 0 && frameIdx < listCycles.get(currentCycle).frames.length) {
       return listCycles.get(currentCycle).frames[frameIdx];
     } else {
-      return 0;
+      return -1;
     }
   }
 
@@ -433,7 +435,7 @@ public class BamV1Decoder extends BamDecoder
         frameIdx >= 0 && frameIdx < listCycles.get(cycleIdx).frames.length) {
       return listCycles.get(cycleIdx).frames[frameIdx];
     } else {
-      return 0;
+      return -1;
     }
   }
 
@@ -539,19 +541,6 @@ public class BamV1Decoder extends BamDecoder
     }
   }
 
-  // Determines the transparent color index for the specified frame
-  private int getTransparencyIndex(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      for (int i = 0; i < currentPalette.length; i++) {
-        if ((currentPalette[i] & 0x00ffffff) == 0x0000ff00) {
-          return i;
-        }
-      }
-    }
-    return 0;
-  }
-
   // Draws the absolute frame onto the canvas.
   private void decodeFrame(int frameIdx, Image canvas)
   {
@@ -576,7 +565,6 @@ public class BamV1Decoder extends BamDecoder
   // Draws the absolute frame into the buffer. Takes BAM mode, transparency and external palette into account.
   private void decodeFrame(int frameIdx, int[] buffer, int width, int height)
   {
-    Arrays.fill(buffer, 0);
     if (frameIdx >= 0 && frameIdx < listFrames.size() &&
         buffer != null && buffer.length >= width*height) {
       boolean isTransparent = isTransparencyEnabled();
@@ -585,7 +573,6 @@ public class BamV1Decoder extends BamDecoder
       int srcHeight = listFrames.get(frameIdx).height;
       byte[] data = bamData;
       int ofsData = listFrames.get(frameIdx).ofsData;
-      int transIndex = getTransparencyIndex(frameIdx);
 
       int left, top, maxWidth, maxHeight, srcOfs, dstOfs;
       int count = 0, color = 0;
@@ -614,7 +601,8 @@ public class BamV1Decoder extends BamDecoder
           } else {
             int pixel = data[srcOfs++] & 0xff;
             color = currentPalette[pixel] | 0xff000000;
-            if (isTransparent && pixel == transIndex) {
+            // Current method to detect transparency: all palette entries of RGB(0, 255, 0) and palette index 0
+            if (isTransparent && (((color & 0x00ffffff) == 0x0000ff00) || (pixel == 0))) {
               color = 0;
             }
             if (isCompressed && pixel == rleIndex) {

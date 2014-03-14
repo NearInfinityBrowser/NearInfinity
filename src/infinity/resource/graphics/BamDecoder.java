@@ -13,6 +13,10 @@ import java.io.InputStream;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.Filereader;
 
+/**
+ * Common base class for handling BAM resources.
+ * @author argent77
+ */
 public abstract class BamDecoder
 {
   /** Recognized BAM resource types */
@@ -34,6 +38,7 @@ public abstract class BamDecoder
   // Dimension(width, height) defines the total image dimension.
   // Point(x, y) defines the position for center (0, 0).
   private Rectangle sharedBamSize;
+  private boolean sharedPerCycle;
 
   /**
    * Returns whether the specified resource entry points to a valid BAM resource.
@@ -162,6 +167,26 @@ public abstract class BamDecoder
   {
     if (mode != null && mode != this.mode) {
       this.mode = mode;
+      updateSharedBamSize();
+    }
+  }
+
+  /**
+   * Returns whether the calculated image dimension in shared mode is based on the current cycle.
+   */
+  public boolean isSharedPerCycle()
+  {
+    return sharedPerCycle;
+  }
+
+  /**
+   * Sets whether the calculated image dimension in shared mode is based on the current cycle.
+   */
+  public void setSharedPerCycle(boolean set)
+  {
+    if (set != sharedPerCycle) {
+      sharedPerCycle = set;
+      updateSharedBamSize();
     }
   }
 
@@ -189,6 +214,18 @@ public abstract class BamDecoder
     } else {
       return new Point();
     }
+  }
+
+  /**
+   * Calculates the rectangle of the current BAM animation. Takes {@link #isSharedPerCycle()} into account.
+   * @param isMirrored If <code>true</code>, returns a rectangle that is based on the
+   *                   animation mirrored along the x axis.
+   * @return A rectangle containing information about the base offset (x, y) and
+   *         overall dimension (width, height).
+   */
+  public Rectangle calculateSharedCanvas(boolean isMirrored)
+  {
+    return calculateSharedBamSize(null, isSharedPerCycle(), isMirrored);
   }
 
   /** Returns the type of the BAM resource. */
@@ -271,23 +308,21 @@ public abstract class BamDecoder
   /** Selects the specified frame in the active cycle. */
   public abstract boolean cycleSetFrameIndex(int frameIdx);
 
-  /** Translates the active cycle's frame index into an absolute frame index. */
+  /** Translates the active cycle's frame index into an absolute frame index. Returns -1 if cycle doesn't contain frames. */
   public abstract int cycleGetFrameIndexAbsolute();
-  /** Translates the specified active cycle's frame index into an absolute frame index. */
+  /** Translates the specified active cycle's frame index into an absolute frame index. Returns -1 if cycle doesn't contain frames. */
   public abstract int cycleGetFrameIndexAbsolute(int frameIdx);
-  /** Translates the cycle's frame index into an absolute frame index. */
+  /** Translates the cycle's frame index into an absolute frame index. Returns -1 if cycle doesn't contain frames. */
   public abstract int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx);
 
 
   protected BamDecoder(ResourceEntry bamEntry)
   {
-    if (bamEntry == null) {
-      throw new NullPointerException();
-    }
     this.bamEntry = bamEntry;
     this.type = Type.INVALID;
     this.mode = Mode.Individual;
     this.sharedBamSize = new Rectangle();
+    this.sharedPerCycle = true;
   }
 
 
@@ -298,27 +333,57 @@ public abstract class BamDecoder
   }
 
   // Updates the shared canvas size for the current BAM
-  // To get the top-left corner of the selected frame:
-  // left = -sharedBamSize.x - frameCenterX()
-  // top  = -sharedBamSize.y - frameCenterY()
   protected void updateSharedBamSize()
   {
-    if (sharedBamSize == null) {
-      sharedBamSize = new Rectangle();
+    sharedBamSize = calculateSharedBamSize(sharedBamSize, isSharedPerCycle(), false);
+  }
+
+  // Calculates a shared canvas size for the current BAM.
+  // cycleBased: true=for current cycle only, false=for all available frames
+  // isMirrored: true=mirror along the x axis, false=no mirroring
+  // To get the top-left corner of the selected frame:
+  // For unmirrored frames:
+  //   left = -sharedBamSize.x - frameCenterX()
+  //   top  = -sharedBamSize.y - frameCenterY()
+  // For mirrored frames:
+  //   left = -sharedBamSize.x - (frameWidth() - frameCenterX() - 1)
+  //   top  = -sharedBamSize.y - frameCenterY()
+  protected Rectangle calculateSharedBamSize(Rectangle rect, boolean cycleBased, boolean isMirrored)
+  {
+    if (rect == null) {
+      rect = new Rectangle();
     }
 
     int x1 = Integer.MAX_VALUE, x2 = Integer.MIN_VALUE;
     int y1 = Integer.MAX_VALUE, y2 = Integer.MIN_VALUE;
-    for (int i = 0; i < frameCount(); i++) {
-      x1 = Math.min(x1, -frameCenterX(i));
-      y1 = Math.min(y1, -frameCenterY(i));
-      x2 = Math.max(x2, frameWidth(i) - frameCenterX(i));
-      y2 = Math.max(y2, frameHeight(i) - frameCenterY(i));
+    if (cycleBased) {
+      for (int i = 0; i < cycleFrameCount(); i++) {
+        int frame = cycleGetFrameIndexAbsolute(i);
+        int cx = isMirrored ? (frameWidth(frame) - frameCenterX(frame) - 1) : frameCenterX(frame);
+        x1 = Math.min(x1, -cx);
+        y1 = Math.min(y1, -frameCenterY(frame));
+        x2 = Math.max(x2, frameWidth(frame) - cx);
+        y2 = Math.max(y2, frameHeight(frame) - frameCenterY(frame));
+      }
+    } else {
+      for (int i = 0; i < frameCount(); i++) {
+        int cx = isMirrored ? (frameWidth(i) - frameCenterX(i) - 1) : frameCenterX(i);
+        x1 = Math.min(x1, -cx);
+        y1 = Math.min(y1, -frameCenterY(i));
+        x2 = Math.max(x2, frameWidth(i) - cx);
+        y2 = Math.max(y2, frameHeight(i) - frameCenterY(i));
+      }
     }
-    sharedBamSize.x = x1;
-    sharedBamSize.y = y1;
-    sharedBamSize.width = x2 - x1 + 1;
-    sharedBamSize.height = y2 - y1 + 1;
+    if (x1 == Integer.MAX_VALUE) x1 = 0;
+    if (y1 == Integer.MAX_VALUE) y1 = 0;
+    if (x2 == Integer.MIN_VALUE) x2 = 0;
+    if (y2 == Integer.MIN_VALUE) y2 = 0;
+    rect.x = x1;
+    rect.y = y1;
+    rect.width = x2 - x1 + 1;
+    rect.height = y2 - y1 + 1;
+
+    return rect;
   }
 
   // Returns the shared rectangle object

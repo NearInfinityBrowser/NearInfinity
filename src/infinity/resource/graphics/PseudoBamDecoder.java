@@ -6,10 +6,10 @@ package infinity.resource.graphics;
 
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,26 +26,46 @@ public class PseudoBamDecoder extends BamDecoder
 
   public PseudoBamDecoder(Image image)
   {
-    this(new Image[]{image});
+    this(new Image[]{image}, new Point[0]);
+  }
+
+  public PseudoBamDecoder(Image image, Point center)
+  {
+    this(new Image[]{image}, new Point[]{center});
   }
 
   public PseudoBamDecoder(Image[] images)
   {
+    this(images, new Point[0]);
+  }
+
+  public PseudoBamDecoder(Image[] images, Point[] centers)
+  {
     super(null);
-    init(images);
+    init(images, centers);
+  }
+
+  /**
+   * Adds a new frame to the end of the frame list. Center position defaults to (0, 0).
+   * @param image The image to add.
+   */
+  public void add(Image image)
+  {
+    add(new Image[]{image}, new Point[0]);
   }
 
   /**
    * Adds a new frame to the end of the frame list.
    * @param image The image to add.
+   * @param center The center position of the image.
    */
-  public void add(Image image)
+  public void add(Image image, Point center)
   {
-    add(new Image[]{image});
+    add(new Image[]{image}, new Point[0]);
   }
 
   /**
-   * Adds the list of frames to the end of the frame list.
+   * Adds the list of frames to the end of the frame list. Center positions default to (0, 0).
    * @param images An array containing the images to add.
    */
   public void add(Image[] images)
@@ -54,7 +74,17 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   /**
-   * Inserts a frame at the specified position.
+   * Adds the list of frames to the end of the frame list.
+   * @param images An array containing the images to add.
+   * @param centers An array of center positions corresponding with the images.
+   */
+  public void add(Image[] images, Point[] centers)
+  {
+    insert(listFrames.size(), images, centers);
+  }
+
+  /**
+   * Inserts a frame at the specified position. Center position defaults to (0, 0).
    * @param frameIdx The position for the frame to insert.
    * @param image The image to insert.
    */
@@ -64,15 +94,42 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   /**
-   * Inserts an array of frames at the specified position.
+   * Inserts a frame at the specified position.
+   * @param frameIdx The position for the frame to insert.
+   * @param image The image to insert.
+   * @param center The center position of the image.
+   */
+  public void insert(int frameIdx, Image image, Point center)
+  {
+    insert(frameIdx, new Image[]{image});
+  }
+
+  /**
+   * Inserts an array of frames at the specified position. Center positions default to (0, 0).
    * @param frameIdx The position for the frames to insert.
    * @param images An array containing the images to insert.
    */
   public void insert(int frameIdx, Image[] images)
   {
+    insert(frameIdx, images, new Point[0]);
+  }
+
+  /**
+   * Inserts an array of frames at the specified position.
+   * @param frameIdx The position for the frames to insert.
+   * @param images An array containing the images to insert.
+   * @param centers An array of center positions corresponding with the images.
+   */
+  public void insert(int frameIdx, Image[] images, Point[] centers)
+  {
     if (frameIdx >= 0 && frameIdx <= listFrames.size() && images != null) {
       for (int i = 0; i < images.length; i++) {
-        listFrames.add(frameIdx+i, new PseudoBamFrameEntry(images[i]));
+        int x = 0, y = 0;
+        if (centers != null && centers.length > i && centers[i] != null) {
+          x = centers[i].x;
+          y = centers[i].y;
+        }
+        listFrames.add(frameIdx+i, new PseudoBamFrameEntry(images[i], x, y));
       }
     }
   }
@@ -379,7 +436,7 @@ public class PseudoBamDecoder extends BamDecoder
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
       return frameIdx;
     }
-    return 0;
+    return -1;
   }
 
   @Override
@@ -388,18 +445,23 @@ public class PseudoBamDecoder extends BamDecoder
     if (cycleIdx == 0 && frameIdx >= 0 && frameIdx < listFrames.size()) {
       return frameIdx;
     }
-    return 0;
+    return -1;
   }
 
 
-  private void init(Image[] images)
+  private void init(Image[] images, Point[] centers)
   {
     // resetting data
     close();
 
     if (images != null) {
       for (int i = 0; i < images.length; i++) {
-        listFrames.add(new PseudoBamFrameEntry(images[i]));
+        int x = 0, y = 0;
+        if (centers != null && centers.length > i && centers[i] != null) {
+          x = centers[i].x;
+          y = centers[i].y;
+        }
+        listFrames.add(new PseudoBamFrameEntry(images[i], x, y));
       }
 
       updateSharedBamSize();
@@ -438,8 +500,6 @@ public class PseudoBamDecoder extends BamDecoder
       int srcHeight = listFrames.get(frameIdx).height;
       int[] srcData = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
 
-      Arrays.fill(buffer, 0);
-
       if (getMode() == Mode.Shared) {
         // drawing on shared canvas
         int left = -getSharedRectangle().x;
@@ -474,10 +534,10 @@ public class PseudoBamDecoder extends BamDecoder
 
   public class PseudoBamFrameEntry implements FrameEntry
   {
-    private int width, height;
+    private int width, height, centerX, centerY;
     private BufferedImage frame;
 
-    private PseudoBamFrameEntry(Image image)
+    private PseudoBamFrameEntry(Image image, int centerX, int centerY)
     {
       if (image != null) {
         frame = ColorConvert.toBufferedImage(image, true);
@@ -494,8 +554,8 @@ public class PseudoBamDecoder extends BamDecoder
     @Override
     public int getHeight() { return height; }
     @Override
-    public int getCenterX() { return 0; }
+    public int getCenterX() { return centerX; }
     @Override
-    public int getCenterY() { return 0; }
+    public int getCenterY() { return centerY; }
   }
 }

@@ -1202,6 +1202,7 @@ public class AreaViewer extends ChildFrame
     cbLayerRealAnimation[0].setSelected(Settings.ShowRealAnimations == ViewerConstants.ANIM_SHOW_STILL);
     cbLayerRealAnimation[1].setSelected(false);
     updateRealAnimation();
+    updateRealAnimationsLighting(getDayTime());
 
     updateWindowTitle();
     applySettings();
@@ -1317,55 +1318,52 @@ public class AreaViewer extends ChildFrame
     if (!map.hasDayNight()) {
       index = ViewerConstants.LIGHTING_DAY;
     }
-    if (index >= ViewerConstants.LIGHTING_DAY &&
-        index <= ViewerConstants.LIGHTING_NIGHT) {
-      switch (index) {
-        case ViewerConstants.LIGHTING_DAY:
-          if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_DAY) != rcCanvas.getWed()) {
-            initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
-          }
-          if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
-            rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
+    switch (index) {
+      case ViewerConstants.LIGHTING_DAY:
+        if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_DAY) != rcCanvas.getWed()) {
+          initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
+        }
+        if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
+          rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
+          reloadWedLayers(true);
+        }
+        rcCanvas.setLighting(index);
+        break;
+      case ViewerConstants.LIGHTING_TWILIGHT:
+        if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_DAY) != rcCanvas.getWed()) {
+          initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
+        }
+        if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
+          rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
+          reloadWedLayers(true);
+        }
+        rcCanvas.setLighting(index);
+        break;
+      case ViewerConstants.LIGHTING_NIGHT:
+        if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_NIGHT) != rcCanvas.getWed()) {
+          initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
+        }
+        if (!rcCanvas.isMapLoaded() || map.hasExtendedNight()) {
+          if (rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_NIGHT)) {
+            rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_NIGHT));
             reloadWedLayers(true);
           }
+        }
+        if (!map.hasExtendedNight()) {
           rcCanvas.setLighting(index);
-          break;
-        case ViewerConstants.LIGHTING_TWILIGHT:
-          if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_DAY) != rcCanvas.getWed()) {
-            initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
-          }
-          if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
-            rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
-            reloadWedLayers(true);
-          }
-          rcCanvas.setLighting(index);
-          break;
-        case ViewerConstants.LIGHTING_NIGHT:
-          if (!isProgressMonitorActive() && map.getWed(ViewerConstants.AREA_NIGHT) != rcCanvas.getWed()) {
-            initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
-          }
-          if (!rcCanvas.isMapLoaded() || map.hasExtendedNight()) {
-            if (rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_NIGHT)) {
-              rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_NIGHT));
-              reloadWedLayers(true);
-            }
-          }
-          if (!map.hasExtendedNight()) {
-            rcCanvas.setLighting(index);
-          }
-          break;
-      }
-      // updating current visual state
-      if (hour != getHour()) {
-        Settings.TimeOfDay = hour;
-      }
-
-      updateMiniMap();
-      updateToolBarButtons();
-      updateRealAnimationsLighting(getDayTime());
-      updateScheduledItems();
-      updateWindowTitle();
+        }
+        break;
     }
+    // updating current visual state
+    if (hour != getHour()) {
+      Settings.TimeOfDay = hour;
+    }
+
+    updateMiniMap();
+    updateToolBarButtons();
+    updateRealAnimationsLighting(getDayTime());
+    updateScheduledItems();
+    updateWindowTitle();
   }
 
 
@@ -2357,6 +2355,8 @@ public class AreaViewer extends ChildFrame
     if (layerManager != null) {
       // applying animation frame settings
       ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationFrameState(Settings.ShowFrame);
+      // applying animation active override settings
+      ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationActiveIgnored(Settings.OverrideAnimVisibility);
       // applying interpolation settings to animations
       switch (Settings.InterpolationAnim) {
         case ViewerConstants.FILTERING_AUTO:

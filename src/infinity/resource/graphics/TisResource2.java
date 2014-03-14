@@ -21,7 +21,9 @@ import infinity.resource.wed.WedResource;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
@@ -41,7 +43,6 @@ import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -65,6 +66,7 @@ import javax.swing.event.ChangeListener;
 public class TisResource2 implements Resource, Closeable, ActionListener, ChangeListener,
                                      ItemListener, KeyListener, PropertyChangeListener
 {
+  private static final Color TransparentColor = new Color(0, true);
   private static final int DEFAULT_COLUMNS = 5;
 
   private static boolean showGrid = false;
@@ -523,14 +525,19 @@ public class TisResource2 implements Resource, Closeable, ActionListener, Change
             progress.setProgress(progressIndex);
             progress.setNote(String.format(note, progressIndex, progressMax));
           }
-          int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-          Arrays.fill(pixels, 0);   // clearing garbage data
 
           Graphics2D g = (Graphics2D)image.getGraphics();
-          g.drawImage(tileImages.get(tileIdx), 0, 0, null);
-          g.dispose();
-          g = null;
+          try {
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+            g.setColor(TransparentColor);
+            g.fillRect(0, 0, image.getWidth(), image.getHeight());
+            g.drawImage(tileImages.get(tileIdx), 0, 0, null);
+          } finally {
+            g.dispose();
+            g = null;
+          }
 
+          int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
           if (ColorConvert.medianCut(pixels, 255, palette, false)) {
             ColorConvert.toHclPalette(palette, hclPalette);
             // filling palette

@@ -17,7 +17,9 @@ import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -27,8 +29,6 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
@@ -57,8 +57,9 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
-public class BamResource2 implements Resource, ActionListener, ItemListener, PropertyChangeListener
+public class BamResource2 implements Resource, ActionListener, PropertyChangeListener
 {
+  private static final Color TransparentColor = new Color(0, true);
   private static final int ANIM_DELAY = 1000 / 10;    // 10 fps in milliseconds
 
   private static boolean transparencyEnabled = true;
@@ -84,6 +85,18 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   public BamResource2(ResourceEntry entry)
   {
     this.entry = entry;
+    WindowBlocker.blockWindow(true);
+    try {
+      decoder = BamDecoder.loadBam(entry);
+      decoder.setMode(BamDecoder.Mode.Shared);
+      if (decoder instanceof BamV1Decoder) {
+        ((BamV1Decoder)decoder).setTransparencyEnabled(transparencyEnabled);
+      }
+    } catch (Throwable t) {
+      t.printStackTrace();
+      decoder = null;
+    }
+    WindowBlocker.blockWindow(false);
   }
 
 
@@ -94,7 +107,9 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   {
     if (event.getSource() == bPrevCycle) {
       curCycle--;
+      decoder.setSharedPerCycle(curCycle >= 0);
       decoder.cycleSet(curCycle);
+      updateCanvasSize();
       if (timer != null && timer.isRunning() && decoder.cycleFrameCount() == 0) {
         timer.stop();
         bPlay.setSelected(false);
@@ -103,7 +118,9 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
       showFrame();
     } else if (event.getSource() == bNextCycle) {
       curCycle++;
+      decoder.setSharedPerCycle(curCycle >= 0);
       decoder.cycleSet(curCycle);
+      updateCanvasSize();
       if (timer != null && timer.isRunning() && decoder.cycleFrameCount() == 0) {
         timer.stop();
         bPlay.setSelected(false);
@@ -136,6 +153,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
         curFrame = (curFrame + 1) % decoder.frameCount();
       }
       showFrame();
+    } else if (event.getSource() == cbTransparency) {
+      setTransparencyEnabled(cbTransparency.isSelected());
     } else if (event.getSource() == miExport) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportBAM) {
@@ -201,22 +220,6 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
 
 //--------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ItemListener ---------------------
-
-  @Override
-  public void itemStateChanged(ItemEvent event)
-  {
-    if (event.getSource() == cbTransparency) {
-      transparencyEnabled = cbTransparency.isSelected();
-      if (decoder != null && decoder instanceof BamV1Decoder) {
-        ((BamV1Decoder)decoder).setTransparencyEnabled(transparencyEnabled);
-        showFrame();
-      }
-    }
-  }
-
-//--------------------- End Interface ItemListener ---------------------
-
 //--------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
@@ -281,19 +284,6 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     } else {
       rpc = NearInfinity.getInstance();
     }
-
-    WindowBlocker.blockWindow(true);
-    try {
-      decoder = BamDecoder.loadBam(entry);
-      decoder.setMode(BamDecoder.Mode.Shared);
-      if (decoder instanceof BamV1Decoder) {
-        ((BamV1Decoder)decoder).setTransparencyEnabled(transparencyEnabled);
-      }
-    } catch (Throwable t) {
-      t.printStackTrace();
-      decoder = null;
-    }
-    WindowBlocker.blockWindow(false);
 
     Dimension dim = (decoder != null) ? decoder.getSharedDimension() : new Dimension(1, 1);
     rcDisplay = new RenderCanvas(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
@@ -371,8 +361,8 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     if (decoder != null) {
       cbTransparency.setEnabled(decoder.getType() != BamDecoder.Type.BAMV2);
     }
-    cbTransparency.setToolTipText("Affects only legacy BAM resources (BAM v1).");
-    cbTransparency.addItemListener(this);
+    cbTransparency.setToolTipText("Affects only legacy BAM resources (BAM v1)");
+    cbTransparency.addActionListener(this);
     JPanel optionsPanel = new JPanel();
     BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
     optionsPanel.setLayout(bl);
@@ -399,6 +389,25 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   }
 
 //--------------------- End Interface Viewable ---------------------
+
+  private boolean viewerInitialized()
+  {
+    return (panel != null && rcDisplay != null);
+  }
+
+  public boolean isTransparencyEnabled()
+  {
+    return transparencyEnabled;
+  }
+
+  public void setTransparencyEnabled(boolean enable)
+  {
+    transparencyEnabled = enable;
+    if (decoder != null && decoder instanceof BamV1Decoder) {
+      ((BamV1Decoder)decoder).setTransparencyEnabled(transparencyEnabled);
+      showFrame();
+    }
+  }
 
   public int getFrameCount()
   {
@@ -438,7 +447,10 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   {
     Image image = null;
     if (decoder != null) {
+      BamDecoder.Mode oldMode = decoder.getMode();
+      decoder.setMode(BamDecoder.Mode.Individual);
       image = decoder.frameGet(frameIdx);
+      decoder.setMode(oldMode);
     }
     // must always return a valid image!
     if (image == null) {
@@ -450,12 +462,7 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
   public int getFrameIndex(int cycleIdx, int frameIdx)
   {
     if (decoder != null) {
-      decoder.cycleSet(cycleIdx);
-      int ret = decoder.cycleGetFrameIndexAbsolute(frameIdx);
-      // restoring previous cycle setting
-      decoder.cycleSet(curCycle);
-      decoder.cycleSetFrameIndex(curFrame);
-      return ret;
+      return decoder.cycleGetFrameIndexAbsolute(cycleIdx, frameIdx);
     } else {
       return 0;
     }
@@ -471,50 +478,79 @@ public class BamResource2 implements Resource, ActionListener, ItemListener, Pro
     return p;
   }
 
-  private void showFrame()
+  public void updateCanvasSize()
   {
-    if (decoder != null) {
+    if (decoder != null && viewerInitialized()) {
+      Dimension dim = decoder.getSharedDimension();
+      rcDisplay.setImage(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
+      updateCanvas();
+    }
+  }
 
-      if (curCycle >= 0) {
-        if (!decoder.cycleSetFrameIndex(curFrame)) {
-          decoder.cycleReset();
-          curFrame = 0;
-        }
+  public void updateCanvas()
+  {
+    if (viewerInitialized()) {
+      BufferedImage image = (BufferedImage)rcDisplay.getImage();
+      Graphics2D g = (Graphics2D)image.getGraphics();
+      try {
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        g.setColor(TransparentColor);
+        g.fillRect(0, 0, image.getWidth(), image.getHeight());
+      } finally {
+        g.dispose();
+        g = null;
       }
 
-      Image image = rcDisplay.getImage();
+      // rendering new frame
       if (curCycle >= 0) {
         decoder.cycleGetFrame(image);
       } else {
         decoder.frameGet(curFrame, image);
       }
       rcDisplay.repaint();
+    }
+  }
 
-      if (curCycle >= 0) {
-        lCycle.setText(String.format("Cycle: %1$d/%2$d", curCycle+1, decoder.cycleCount()));
-        lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.cycleFrameCount()));
+  private void showFrame()
+  {
+    if (viewerInitialized()) {
+      if (decoder != null) {
+
+        if (curCycle >= 0) {
+          if (!decoder.cycleSetFrameIndex(curFrame)) {
+            decoder.cycleReset();
+            curFrame = 0;
+          }
+        }
+
+        updateCanvas();
+
+        if (curCycle >= 0) {
+          lCycle.setText(String.format("Cycle: %1$d/%2$d", curCycle+1, decoder.cycleCount()));
+          lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.cycleFrameCount()));
+        } else {
+          lCycle.setText("All frames");
+          lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.frameCount()));
+        }
+
+        bPrevCycle.setEnabled(curCycle > -1);
+        bNextCycle.setEnabled(curCycle + 1 < decoder.cycleCount());
+        bPrevFrame.setEnabled(curFrame > 0);
+        if (curCycle >= 0) {
+          bNextFrame.setEnabled(curFrame + 1 < decoder.cycleFrameCount());
+          bPlay.setEnabled(decoder.cycleFrameCount() > 1);
+        } else {
+          bNextFrame.setEnabled(curFrame + 1 < decoder.frameCount());
+          bPlay.setEnabled(decoder.frameCount() > 1);
+        }
+
       } else {
-        lCycle.setText("All frames");
-        lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.frameCount()));
+        bPlay.setEnabled(false);
+        bPrevCycle.setEnabled(false);
+        bNextCycle.setEnabled(false);
+        bPrevFrame.setEnabled(false);
+        bNextFrame.setEnabled(false);
       }
-
-      bPrevCycle.setEnabled(curCycle > -1);
-      bNextCycle.setEnabled(curCycle + 1 < decoder.cycleCount());
-      bPrevFrame.setEnabled(curFrame > 0);
-      if (curCycle >= 0) {
-        bNextFrame.setEnabled(curFrame + 1 < decoder.cycleFrameCount());
-        bPlay.setEnabled(decoder.cycleFrameCount() > 1);
-      } else {
-        bNextFrame.setEnabled(curFrame + 1 < decoder.frameCount());
-        bPlay.setEnabled(decoder.frameCount() > 1);
-      }
-
-    } else {
-      bPlay.setEnabled(false);
-      bPrevCycle.setEnabled(false);
-      bNextCycle.setEnabled(false);
-      bPrevFrame.setEnabled(false);
-      bNextFrame.setEnabled(false);
     }
   }
 

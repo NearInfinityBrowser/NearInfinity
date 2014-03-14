@@ -17,6 +17,7 @@ import infinity.gui.layeritem.IconLayerItem;
 import infinity.resource.StructEntry;
 import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
+import infinity.resource.are.viewer.ViewerConstants.LayerType;
 
 /**
  * Manages background animation layer objects.
@@ -26,7 +27,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 {
   private static final String AvailableFmt = "%1$d background animation%2$s available";
 
-  private boolean realEnabled, realPlaying, forcedInterpolation;
+  private boolean realEnabled, realPlaying, forcedInterpolation, isAnimActiveIgnored;
   private int frameState;
   private Object interpolationType;
   private double frameRate;
@@ -293,6 +294,36 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
       }
     }
   }
+
+  /**
+   * Returns whether the current activation states of real animations are ignored
+   * (i.e. treated as always active).
+   */
+  public boolean isRealAnimationActiveIgnored()
+  {
+    return isAnimActiveIgnored;
+  }
+
+  /**
+   * Sets whether the activation state of real animations are ignored (i.e. treated as always active).
+   * @param set
+   */
+  public void setRealAnimationActiveIgnored(boolean set)
+  {
+    isAnimActiveIgnored = set;
+    List<LayerObjectAnimation> list = getLayerObjects();
+    if (list != null) {
+      for (int i = 0; i < list.size(); i++) {
+        AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        if (item != null) {
+          if (item.getAnimation() instanceof BackgroundAnimationProvider) {
+            ((BackgroundAnimationProvider)item.getAnimation()).setActiveIgnored(isAnimActiveIgnored);
+          }
+        }
+      }
+    }
+  }
+
 
   private void updateFrameState()
   {
