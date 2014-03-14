@@ -21,11 +21,11 @@ import infinity.resource.gam.GamResource;
 import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BamResource2;
 import infinity.resource.graphics.BmpResource;
-import infinity.resource.graphics.MosResource2;
+import infinity.resource.graphics.MosResource;
 import infinity.resource.graphics.PltResource;
 import infinity.resource.graphics.PvrzResource;
 import infinity.resource.graphics.TgaResource;
-import infinity.resource.graphics.TisResource2;
+import infinity.resource.graphics.TisResource;
 import infinity.resource.itm.ItmResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.FileResourceEntry;
@@ -58,7 +58,7 @@ import infinity.resource.to.TohResource;
 import infinity.resource.to.TotResource;
 import infinity.resource.var.VarResource;
 import infinity.resource.vef.VefResource;
-import infinity.resource.video.MveResource2;
+import infinity.resource.video.MveResource;
 import infinity.resource.video.WbmResource;
 import infinity.resource.wed.WedResource;
 import infinity.resource.wmp.WmpResource;
@@ -240,11 +240,11 @@ public final class ResourceFactory
         if (entry.getExtension().equalsIgnoreCase("BAM"))
           res = new BamResource2(entry);
         else if (entry.getExtension().equalsIgnoreCase("TIS"))
-          res = new TisResource2(entry);
+          res = new TisResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("BMP"))
           res = new BmpResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MOS"))
-          res = new MosResource2(entry);
+          res = new MosResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("WAV") ||
                  entry.getExtension().equalsIgnoreCase("ACM"))
           res = new SoundResource(entry);
@@ -263,7 +263,7 @@ public final class ResourceFactory
                                                                     getGameID() == ID_BG2EE)))
           res = new PlainTextResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("MVE"))
-          res = new MveResource2(entry);
+          res = new MveResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("WBM"))
           res = new WbmResource(entry);
         else if (entry.getExtension().equalsIgnoreCase("PLT"))

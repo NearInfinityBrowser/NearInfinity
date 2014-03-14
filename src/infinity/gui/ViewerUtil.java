@@ -14,7 +14,7 @@ import infinity.resource.StructEntry;
 import infinity.resource.Viewable;
 import infinity.resource.graphics.BamResource2;
 import infinity.resource.graphics.BmpResource;
-import infinity.resource.graphics.MosResource2;
+import infinity.resource.graphics.MosResource;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
@@ -159,8 +159,8 @@ public final class ViewerUtil
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         if (resource instanceof BmpResource) {
           label.setIcon(new ImageIcon(((BmpResource)resource).getImage()));
-        } else if (resource instanceof MosResource2) {
-          label.setIcon(new ImageIcon(((MosResource2)resource).getImage()));
+        } else if (resource instanceof MosResource) {
+          label.setIcon(new ImageIcon(((MosResource)resource).getImage()));
         }
         return label;
       }

@@ -17,7 +17,7 @@ import infinity.resource.graphics.Compressor;
 import infinity.resource.key.BIFFArchive;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.sound.AudioFactory;
-import infinity.resource.video.MveResource2;
+import infinity.resource.video.MveResource;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -298,7 +298,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         if (output.exists() && !cbOverwrite.isSelected())
           return;
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
-        BufferedInputStream stub = new BufferedInputStream(MveResource2.class.getResourceAsStream("mve.stub"));
+        BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
         Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));
         stub.close();
         InputStream is = entry.getResourceDataAsStream();
