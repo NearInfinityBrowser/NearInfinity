@@ -166,7 +166,8 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
       if (o instanceof SpawnResourceRef) {
         SpawnResourceRef ref = (SpawnResourceRef)o;
         String resourceName = ref.getResourceName();
-        if (resourceName.length() > 5 && resourceName.substring(0, 5).equalsIgnoreCase("None."))
+        if (resourceName.equalsIgnoreCase("None") ||
+            (resourceName.length() > 5 && resourceName.substring(0, 5).equalsIgnoreCase("None.")))
           ;
         else if (extraValues != null && extraValues.contains(ref.getResName()))
           ;
@@ -179,7 +180,8 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
       else if (o instanceof ResourceRef) {
         ResourceRef ref = (ResourceRef)o;
         String resourceName = ref.getResourceName();
-        if (resourceName.length() > 5 && resourceName.substring(0, 5).equalsIgnoreCase("None."))
+        if (resourceName.equalsIgnoreCase("None") ||
+            (resourceName.length() > 5 && resourceName.substring(0, 5).equalsIgnoreCase("None.")))
           ;
         else if (struct instanceof CreResource && resourceName.substring(0, 3).equalsIgnoreCase("rnd"))
           ;
