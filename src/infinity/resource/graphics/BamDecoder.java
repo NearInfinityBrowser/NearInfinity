@@ -88,24 +88,11 @@ public abstract class BamDecoder
    */
   public static BamDecoder loadBam(ResourceEntry bamEntry)
   {
-    return loadBam(bamEntry, null);
-  }
-
-  /**
-   * Returns a new BamDecoder object based on the specified Bam resource entry.
-   * @param bamEntry The BAM resource entry.
-   * @param palette An int array that contains palette entries (Supported by BAM v1 types only).
-   * @return Either <code>BamV1Decoder</code> or <code>BamV2Decoder</code>, depending on the
-   *         BAM resource type. Returns <code>null</code> if the resource doesn't contain valid
-   *         BAM data.
-   */
-  public static BamDecoder loadBam(ResourceEntry bamEntry, int[] palette)
-  {
     Type type = getType(bamEntry);
     switch (type) {
       case BAMC:
       case BAMV1:
-        return new BamV1Decoder(bamEntry, palette);
+        return new BamV1Decoder(bamEntry);
       case BAMV2:
         return new BamV2Decoder(bamEntry);
       default:

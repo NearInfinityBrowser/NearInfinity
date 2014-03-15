@@ -23,7 +23,6 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
 import infinity.resource.graphics.BamDecoder;
-import infinity.resource.graphics.BamV1Decoder;
 import infinity.resource.graphics.PseudoBamDecoder;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
@@ -293,22 +292,18 @@ public class LayerObjectAnimation extends LayerObject
           }
 
           // generating unique key from BAM filename and optional palette hashcode
-          keyAnim = String.format("%1$s@%2$08x", animFile, (paletteFile != null) ? paletteFile.hashCode() : 0);
+          keyAnim = String.format("%1$s", animFile);
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
             ResourceEntry bamEntry = ResourceFactory.getInstance().getResourceEntry(animFile);
             bam = BamDecoder.loadBam(bamEntry);
-            if (bam instanceof BamV1Decoder) {
-              if (palette != null) {
-                ((BamV1Decoder)bam).setPalette(palette);
-              }
-              ((BamV1Decoder)bam).setPaletteEnabled(hasExternalPalette);
-            }
           } else {
             SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
             bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
           }
           animation = new BackgroundAnimationProvider(bam);
+          animation.setPalette(palette);
+          animation.setPaletteEnabled(palette != null);
           animation.setActive(isActive);
           animation.setActiveIgnored(Settings.OverrideAnimVisibility);
           animation.setBaseAlpha(baseAlpha);

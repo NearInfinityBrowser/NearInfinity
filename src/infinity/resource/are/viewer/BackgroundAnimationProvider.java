@@ -16,6 +16,7 @@ import java.util.Arrays;
 
 import infinity.gui.layeritem.BasicAnimationProvider;
 import infinity.resource.graphics.BamDecoder;
+import infinity.resource.graphics.BamV1Decoder;
 import infinity.resource.graphics.ColorConvert;
 
 /**
@@ -38,9 +39,11 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   }
 
   private BamDecoder bam;
-  private boolean isActive, isActiveIgnored, isBlended, isMirrored, isLooping, isSelfIlluminated, isMultiPart;
+  private boolean isActive, isActiveIgnored, isBlended, isMirrored, isLooping, isSelfIlluminated,
+                  isMultiPart, isPaletteEnabled;
   private int lighting, baseAlpha;
   private int firstFrame, lastFrame;
+  private int[] palette;    // external palette
   private Rectangle imageRect;
   private BufferedImage image, working;
 
@@ -75,6 +78,32 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
 
     updateCanvas();
     updateGraphics();
+  }
+
+  /** Sets an external palette that can be used to recolor the BAM animation. */
+  public void setPalette(int[] palette)
+  {
+    if (palette != null && palette.length >= 256) {
+      this.palette = new int[256];
+      System.arraycopy(palette, 0, this.palette, 0, 256);
+      updateGraphics();
+    } else {
+      this.palette = null;
+      updateGraphics();
+    }
+  }
+
+  public boolean isPaletteEnabled()
+  {
+    return isPaletteEnabled;
+  }
+
+  public void setPaletteEnabled(boolean set)
+  {
+    if (set != isPaletteEnabled) {
+      isPaletteEnabled = set;
+      updateGraphics();
+    }
   }
 
   /** Returns the active/visibility state of the animation. */
@@ -353,6 +382,8 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
     isLooping = true;
     isSelfIlluminated = true;
     isMultiPart = false;
+    isPaletteEnabled = false;
+    palette = null;
     lighting = ViewerConstants.LIGHTING_TWILIGHT;
     baseAlpha = 255;
     firstFrame = 0;
@@ -401,7 +432,11 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
             // fetching frame data
             int[] buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
             Arrays.fill(buffer, 0);
-            bam.frameGet(frameIndices[i], working);
+            if (bam instanceof BamV1Decoder) {
+              ((BamV1Decoder)bam).frameGet(frameIndices[i], working, palette);
+            } else {
+              bam.frameGet(frameIndices[i], working);
+            }
 
             // post-processing frame
             buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
