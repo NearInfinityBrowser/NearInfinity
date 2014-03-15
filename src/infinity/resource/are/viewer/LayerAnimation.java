@@ -17,7 +17,6 @@ import infinity.gui.layeritem.IconLayerItem;
 import infinity.resource.StructEntry;
 import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
-import infinity.resource.are.viewer.ViewerConstants.LayerType;
 
 /**
  * Manages background animation layer objects.

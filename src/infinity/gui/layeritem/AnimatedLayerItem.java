@@ -188,7 +188,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
         if (forcedInterpolation) {
           rcCanvas.setInterpolationType(interpolationType);
         }
-        updateDisplay(false);
+        updateFrame();
       }
     }
   }
@@ -212,7 +212,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
   {
     if (forcedInterpolation != set) {
       forcedInterpolation = set;
-      updateDisplay(false);
+      updateFrame();
     }
   }
 

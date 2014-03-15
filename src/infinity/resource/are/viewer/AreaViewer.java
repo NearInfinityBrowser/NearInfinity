@@ -1821,6 +1821,7 @@ public class AreaViewer extends ChildFrame
     }
     updateAmbientRange();
     updateRealAnimation();
+    updateRealAnimationsLighting(getVisualState());
     if (order) {
       orderLayerItems();
     }
@@ -1876,26 +1877,6 @@ public class AreaViewer extends ChildFrame
   {
     return isLayerEnabled(Settings.stackingToLayer(layer));
   }
-
-  // Returns whether the specified layer is visible (by layer index)
-  private boolean isLayerEnabled(int layerIndex)
-  {
-    return isLayerEnabled(LayerManager.getLayerType(layerIndex));
-  }
-
-  // Returns whether the specified layer is visible (by layer control)
-  private boolean isLayerEnabled(JCheckBox cb)
-  {
-    if (cb != null) {
-      for (int i = 0; i < cbLayers.length; i++) {
-        if (cbLayers[i] == cb) {
-          return cbLayers[i].isSelected();
-        }
-      }
-    }
-    return false;
-  }
-
 
   // Opens a viewable instance associated with the specified layer item
   private void showTable(AbstractLayerItem item)
@@ -2465,16 +2446,6 @@ public class AreaViewer extends ChildFrame
     /**
      * Returns the specifie minimap.
      * @param mapType One of MAP_SEARCH, MAP_HEIGHT or MAP_LIGHT.
-     * @return The specified BmpResource instance. (Note: Always returns the day version of the light map.)
-     */
-    public BmpResource getMiniMap(int mapType)
-    {
-      return getMiniMap(mapType, false);
-    }
-
-    /**
-     * Returns the specifie minimap.
-     * @param mapType One of MAP_SEARCH, MAP_HEIGHT or MAP_LIGHT.
      * @param isNight Specify <code>true</code> to return the night-specific light map,
      *                or <code>false</code> to return the day-specific light map.
      * @return The specified BmpResource instance.
@@ -2783,6 +2754,7 @@ public class AreaViewer extends ChildFrame
      * Removes a ChangeListener from the slider.
      * @param l the ChangeListener to remove
      */
+    @SuppressWarnings("unused")
     public void removeChangeListener(ChangeListener l)
     {
       if (l != null) {
@@ -2797,6 +2769,7 @@ public class AreaViewer extends ChildFrame
      * Returns an array of all the ChangeListeners added to this JSlider with addChangeListener().
      * @return All of the ChangeListeners added or an empty array if no listeners have been added.
      */
+    @SuppressWarnings("unused")
     public ChangeListener[] getChangeListeners()
     {
       ChangeListener[] retVal = new ChangeListener[listeners.size()];

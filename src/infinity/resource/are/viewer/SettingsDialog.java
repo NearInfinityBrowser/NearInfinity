@@ -122,7 +122,7 @@ public class SettingsDialog extends JDialog
   {
     for (int i = 0; i < modelLayers.size(); i++) {
       LayerEntry lt = (LayerEntry)modelLayers.get(i);
-      Settings.ListLayerOrder.set(i, lt.getLayer());
+      Settings.ListLayerOrder.set(i, lt.layer);
     }
 
     Settings.ShowFrame = cbFrames.getSelectedIndex();
@@ -516,23 +516,13 @@ public class SettingsDialog extends JDialog
   // A simple wrapper for the list control to link layers with their respective description
   private static class LayerEntry
   {
-    private ViewerConstants.LayerStackingType layer;
-    private String desc;
+    public ViewerConstants.LayerStackingType layer;
+    public String desc;
 
     public LayerEntry(ViewerConstants.LayerStackingType layer, String description)
     {
       this.layer = layer;
       this.desc = description;
-    }
-
-    public ViewerConstants.LayerStackingType getLayer()
-    {
-      return layer;
-    }
-
-    public String getLayerDesc()
-    {
-      return desc;
     }
 
     @Override

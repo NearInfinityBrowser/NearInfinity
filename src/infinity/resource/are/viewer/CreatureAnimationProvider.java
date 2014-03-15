@@ -4,7 +4,6 @@
 
 package infinity.resource.are.viewer;
 
-import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Point;
 
