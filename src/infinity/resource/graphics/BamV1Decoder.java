@@ -564,7 +564,7 @@ public class BamV1Decoder extends BamDecoder
         for (; idx < externalPalette.length && idx < 256; idx++) {
           currentPalette[idx] = 0xff000000 | externalPalette[idx];
           if (transparencyEnabled && !transSet && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-            currentPalette[idx] &= 0x00ffffff;
+            currentPalette[idx] = 0;
             transSet = true;
           }
         }
@@ -574,14 +574,14 @@ public class BamV1Decoder extends BamDecoder
       for (; idx < palette.length; idx++) {
         currentPalette[idx] = 0xff000000 | palette[idx];
         if (transparencyEnabled && !transSet && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-          currentPalette[idx] &= 0x00ffffff;
+          currentPalette[idx] = 0;
           transSet = true;
         }
       }
 
       // falling back to transparence at color index 0
       if (transparencyEnabled && !transSet) {
-        currentPalette[0] &= 0x00ffffff;
+        currentPalette[0] = 0;
       }
     }
   }
