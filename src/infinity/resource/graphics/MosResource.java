@@ -9,7 +9,6 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -25,8 +24,6 @@ import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -51,12 +48,12 @@ import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 
-public class MosResource implements Resource, Closeable, ActionListener, ItemListener, PropertyChangeListener
+public class MosResource implements Resource, ActionListener, PropertyChangeListener
 {
-  private static boolean ignoreTransparency = false;
+  private static boolean enableTransparency = true;
 
   private final ResourceEntry entry;
-  private MosDecoder.MosInfo.MosType mosType;
+  private MosDecoder.Type mosType;
   private ButtonPopupMenu bpmExport;
   private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportPNG;
   private JButton bFind;
@@ -64,7 +61,6 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
   private RenderCanvas rcImage;
   private JPanel panel;
   private RootPaneContainer rpc;
-  private boolean compressed;
   private SwingWorker<List<byte[]>, Void> workerConvert;
   private boolean exportCompressed;
   private WindowBlocker blocker;
@@ -72,13 +68,6 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
   public MosResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    if (this.entry != null) {
-      MosDecoder decoder = new MosDecoder(entry);
-      compressed = decoder.info().isCompressed();
-      mosType = decoder.info().type();
-      decoder.close();
-      decoder = null;
-    }
   }
 
 //--------------------- Begin Interface ActionListener ---------------------
@@ -86,18 +75,29 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bFind) {
+    if (event.getSource() == cbTransparency) {
+      enableTransparency = cbTransparency.isSelected();
+      if (mosType == MosDecoder.Type.MOSV1 || mosType == MosDecoder.Type.MOSC) {
+        WindowBlocker.blockWindow(true);
+        try {
+          rcImage.setImage(loadImage());
+          WindowBlocker.blockWindow(false);
+        } catch (Exception e) {
+        }
+        WindowBlocker.blockWindow(false);
+      }
+    } else if (event.getSource() == bFind) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportMOSV1) {
-      if (mosType == MosDecoder.MosInfo.MosType.PVRZ) {
+      if (mosType == MosDecoder.Type.MOSV2) {
         // create new MOS V1 from scratch
         blocker = new WindowBlocker(rpc);
         blocker.setBlocked(true);
         startConversion(false);
       } else {
-        if (compressed) {
+        if (mosType == MosDecoder.Type.MOSC) {
           // decompress existing MOSC V1 and save as MOS V1
           try {
             byte[] data = entry.getResourceData();
@@ -113,25 +113,23 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
         }
       }
     } else if (event.getSource() == miExportMOSC) {
-      if (mosType == MosDecoder.MosInfo.MosType.PVRZ) {
+      if (mosType == MosDecoder.Type.MOSV2) {
         // create new MOSC V1 from scratch
         blocker = new WindowBlocker(rpc);
         blocker.setBlocked(true);
         startConversion(true);
-      } else {
-        if (!compressed) {
-          // compress existing MOS V1 and save as MOSC V1
-          try {
-            byte[] data = entry.getResourceData();
-            data = Compressor.compress(data, "MOSC", "V1  ");
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                         panel.getTopLevelAncestor());
-          } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                          "Error while exporting " + entry, "Error",
-                                          JOptionPane.ERROR_MESSAGE);
-          }
+      } else if (mosType == MosDecoder.Type.MOSV1) {
+        // compress existing MOS V1 and save as MOSC V1
+        try {
+          byte[] data = entry.getResourceData();
+          data = Compressor.compress(data, "MOSC", "V1  ");
+          ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
+                                                       panel.getTopLevelAncestor());
+        } catch (Exception e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+                                        "Error while exporting " + entry, "Error",
+                                        JOptionPane.ERROR_MESSAGE);
         }
       }
     } else if (event.getSource() == miExportPNG) {
@@ -164,27 +162,6 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
   }
 
 //--------------------- End Interface ActionListener ---------------------
-
-//--------------------- Begin Interface ItemListener ---------------------
-
-  @Override
-  public void itemStateChanged(ItemEvent event)
-  {
-    if (event.getSource() == cbTransparency) {
-      ignoreTransparency = cbTransparency.isSelected();
-      if (mosType == MosDecoder.MosInfo.MosType.PALETTE) {
-        WindowBlocker.blockWindow(true);
-        try {
-          rcImage.setImage(loadImage());
-          WindowBlocker.blockWindow(false);
-        } catch (Exception e) {
-        }
-        WindowBlocker.blockWindow(false);
-      }
-    }
-  }
-
-//--------------------- End Interface ItemListener ---------------------
 
 //--------------------- Begin Interface PropertyChangeListener ---------------------
 
@@ -240,18 +217,6 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
 
 //--------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Closeable ---------------------
-
-  @Override
-  public void close() throws Exception
-  {
-    panel.removeAll();
-    rcImage.setImage(null);
-    rcImage = null;
-  }
-
-//--------------------- End Interface Closeable ---------------------
-
 //--------------------- Begin Interface Viewable ---------------------
 
   @Override
@@ -263,6 +228,8 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
       rpc = NearInfinity.getInstance();
     }
 
+    mosType = MosDecoder.getType(entry);
+
     bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
     bFind.setMnemonic('f');
     bFind.addActionListener(this);
@@ -271,13 +238,13 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
     miExport.addActionListener(this);
     miExportPNG = new JMenuItem("as PNG");
     miExportPNG.addActionListener(this);
-    if (mosType == MosDecoder.MosInfo.MosType.PVRZ) {
+    if (mosType == MosDecoder.Type.MOSV2) {
       miExportMOSV1 = new JMenuItem("as MOS V1 (uncompressed)");
       miExportMOSV1.addActionListener(this);
       miExportMOSC = new JMenuItem("as MOS V1 (compressed)");
       miExportMOSC.addActionListener(this);
     } else {
-      if (compressed) {
+      if (mosType == MosDecoder.Type.MOSC) {
         miExportMOSV1 = new JMenuItem("decompressed");
         miExportMOSV1.addActionListener(this);
       } else {
@@ -321,9 +288,10 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    cbTransparency = new JCheckBox("Ignore transparency", ignoreTransparency);
-    cbTransparency.setToolTipText("Only legacy MOS resources (MOS V1) are affected.");
-    cbTransparency.addItemListener(this);
+    cbTransparency = new JCheckBox("Enable transparency", enableTransparency);
+    cbTransparency.setEnabled(mosType == MosDecoder.Type.MOSV1 || mosType == MosDecoder.Type.MOSC);
+    cbTransparency.setToolTipText("Affects only legacy MOS resources (MOS v1)");
+    cbTransparency.addActionListener(this);
     JPanel optionsPanel = new JPanel();
     BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
     optionsPanel.setLayout(bl);
@@ -347,7 +315,7 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
   public BufferedImage getImage()
   {
     if (rcImage != null) {
-      return ColorConvert.toBufferedImage(rcImage.getImage(), false);
+      return ColorConvert.toBufferedImage(rcImage.getImage(), true);
     } else if (entry != null) {
       return loadImage();
     }
@@ -357,24 +325,29 @@ public class MosResource implements Resource, Closeable, ActionListener, ItemLis
   private BufferedImage loadImage()
   {
     BufferedImage image = null;
-    MosDecoder decoder = null;
-    if (entry != null) {
-      try {
-        decoder = new MosDecoder(entry);
-        compressed = decoder.info().isCompressed();
-        mosType = decoder.info().type();
-        image = ColorConvert.createCompatibleImage(decoder.info().width(),
-                                                   decoder.info().height(), true);
-        if (!decoder.decode(image, ignoreTransparency)) {
+    mosType = MosDecoder.getType(entry);
+    if (mosType != MosDecoder.Type.INVALID) {
+      MosDecoder decoder = null;
+      if (entry != null) {
+        try {
+          decoder = MosDecoder.loadMos(entry);
+          if (decoder instanceof MosV1Decoder) {
+            ((MosV1Decoder)decoder).setTransparencyEnabled(enableTransparency);
+          }
+          mosType = decoder.getType();
+          image = ColorConvert.toBufferedImage(decoder.getImage(), true);
+          decoder.close();
+          decoder = null;
+        } catch (Exception e) {
+          e.printStackTrace();
+          if (decoder != null) {
+            decoder.close();
+          }
           image = null;
         }
-        decoder.close();
-      } catch (Exception e) {
-        if (decoder != null)
-          decoder.close();
-        image = null;
-        e.printStackTrace();
       }
+    } else {
+      image = ColorConvert.createCompatibleImage(1, 1, true);
     }
     return image;
   }

@@ -184,6 +184,7 @@ public class TisV1Decoder extends TisDecoder
   private void init()
   {
     close();
+
     if (getResourceEntry() != null) {
       try {
         int[] info = getResourceEntry().getResourceInfo();

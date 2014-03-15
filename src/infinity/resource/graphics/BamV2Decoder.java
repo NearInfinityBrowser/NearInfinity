@@ -448,6 +448,7 @@ public class BamV2Decoder extends BamDecoder
             if ((size & 0xff) == 0x34 && marker == 0x9c78) {
               data = Compressor.decompress(data, 0);
               PvrDecoder decoder = new PvrDecoder(data);
+              data = null;
               pvrTable.put(key, decoder);
               return decoder;
             }

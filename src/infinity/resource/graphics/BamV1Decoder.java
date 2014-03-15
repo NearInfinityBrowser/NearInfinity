@@ -460,7 +460,7 @@ public class BamV1Decoder extends BamDecoder
           bamData = Compressor.decompress(bamData);
           signature = DynamicArray.getString(bamData, 0x00, 4);
           version = DynamicArray.getString(bamData, 0x04, 4);
-        } else if ("BAM ".equals(signature)) {
+        } else if ("BAM ".equals(signature) && "V1  ".equals(version)) {
           setType(Type.BAMV1);
         } else {
           throw new Exception("Invalid BAM type");

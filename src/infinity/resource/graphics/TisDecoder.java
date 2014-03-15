@@ -97,10 +97,10 @@ public abstract class TisDecoder
   /** Removes all data from the decoder. Use this to free up memory. */
   public abstract void close();
 
-  /** Clears existing data and reloads the current BAM resource entry. */
+  /** Clears existing data and reloads the current TIS resource entry. */
   public abstract void reload();
 
-  /** Returns the raw data of the BAM resource. */
+  /** Returns the raw data of the TIS resource. */
   public abstract byte[] getResourceData();
 
   /** Returns the width of a single tile (in pixels). */
@@ -113,7 +113,7 @@ public abstract class TisDecoder
 
   /** Returns the specified tile as image object. */
   public abstract Image getTile(int tileIdx);
-  /** Renders the specified tile onto the canvas. Returns the success state. */
+  /** Paints the specified tile onto the canvas. Returns the success state. */
   public abstract boolean getTile(int tileIdx, Image canvas);
 
   /** Returns the tile data as int array. (Format: ARGB) */
@@ -128,7 +128,6 @@ public abstract class TisDecoder
     this.tisEntry = tisEntry;
     this.type = Type.INVALID;
   }
-
 
   // Set the current TIS type
   protected void setType(Type type)

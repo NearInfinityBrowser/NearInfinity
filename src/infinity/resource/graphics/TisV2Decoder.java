@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TisV2Decoder extends TisDecoder
 {
   private static final int HeaderSize = 24;   // Size of the TIS header
-  private static final Color TransparentColor = new Color(0, true);
 
   private final ConcurrentHashMap<Integer, PvrDecoder> pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>();
 
@@ -189,6 +188,7 @@ public class TisV2Decoder extends TisDecoder
   private void init()
   {
     close();
+
     if (getResourceEntry() != null) {
       try {
         int[] info = getResourceEntry().getResourceInfo();
@@ -242,6 +242,7 @@ public class TisV2Decoder extends TisDecoder
             if ((size & 0xff) == 0x34 && marker == 0x9c78) {
               data = Compressor.decompress(data, 0);
               PvrDecoder decoder = new PvrDecoder(data);
+              data = null;
               pvrTable.put(key, decoder);
               return decoder;
             }
@@ -272,8 +273,6 @@ public class TisV2Decoder extends TisDecoder
         Graphics2D g = (Graphics2D)canvas.getGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-          g.setColor(TransparentColor);
-          g.fillRect(0, 0, TileDimension, TileDimension);
           g.drawImage(workingCanvas, 0, 0, null);
         } finally {
           g.dispose();
@@ -312,24 +311,21 @@ public class TisV2Decoder extends TisDecoder
       if (decoder != null || page == -1) {
         // removing old content
         try {
-          Graphics2D g = (Graphics2D)workingCanvas.getGraphics();
-          try {
-            if (page == -1) {
+          if (page == -1) {
+            Graphics2D g = (Graphics2D)workingCanvas.getGraphics();
+            try {
               g.setColor(Color.BLACK);
-            } else {
-              g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-              g.setColor(TransparentColor);
+              g.fillRect(0, 0, TileDimension, TileDimension);
+            } finally {
+              g.dispose();
+              g = null;
             }
-            g.fillRect(0, 0, TileDimension, TileDimension);
-          } finally {
-            g.dispose();
-            g = null;
-          }
-
-          if (decoder != null) {
-            // drawing new content
-            decoder.decode(workingCanvas, x, y, TileDimension, TileDimension);
-            decoder = null;
+          } else {
+            if (decoder != null) {
+              // drawing new content
+              decoder.decode(workingCanvas, x, y, TileDimension, TileDimension);
+              decoder = null;
+            }
           }
           return true;
         } catch (Exception e) {
