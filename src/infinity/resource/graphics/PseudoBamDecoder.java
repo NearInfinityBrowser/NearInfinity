@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
@@ -21,8 +22,7 @@ public class PseudoBamDecoder extends BamDecoder
 {
   private final List<PseudoBamFrameEntry> listFrames = new ArrayList<PseudoBamFrameEntry>();
 
-  private int currentFrame;
-  private BufferedImage sharedCanvas;   // temporary buffer for drawing on a shared canvas
+  private PseudoBamControl defaultControl;
 
   public PseudoBamDecoder(Image image)
   {
@@ -142,9 +142,6 @@ public class PseudoBamDecoder extends BamDecoder
   {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
       listFrames.remove(frameIdx);
-      if (currentFrame >= listFrames.size()) {
-        currentFrame = listFrames.size() - 1;
-      }
     }
   }
 
@@ -154,7 +151,14 @@ public class PseudoBamDecoder extends BamDecoder
   public void clear()
   {
     listFrames.clear();
-    currentFrame = -1;
+//    currentFrame = -1;
+  }
+
+
+  @Override
+  public PseudoBamControl createControl()
+  {
+    return new PseudoBamControl(this);
   }
 
   @Override
@@ -170,13 +174,13 @@ public class PseudoBamDecoder extends BamDecoder
   @Override
   public void close()
   {
-    setType(Type.INVALID);
     listFrames.clear();
-    currentFrame = -1;
-    if (sharedCanvas != null) {
-      sharedCanvas.flush();
-      sharedCanvas = null;
-    }
+  }
+
+  @Override
+  public boolean isOpen()
+  {
+    return !listFrames.isEmpty();
   }
 
   @Override
@@ -198,44 +202,24 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   @Override
-  public int frameImageWidth(int frameIdx)
+  public Image frameGet(BamControl control, int frameIdx)
   {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if (frameWidth(frameIdx) > 0) {
-        if (getMode() == Mode.Shared) {
-          return getSharedRectangle().width;
-        } else {
-          return frameWidth(frameIdx);
-        }
+      if (control == null) {
+        control = defaultControl;
       }
-    }
-    return 0;
-  }
-
-  @Override
-  public int frameImageHeight(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if (frameHeight(frameIdx) > 0) {
-        if (getMode() == Mode.Shared) {
-          return getSharedRectangle().height;
-        } else {
-          return frameHeight(frameIdx);
-        }
+      int w, h;
+      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+        Dimension d = control.getSharedDimension();
+        w = d.width;
+        h = d.height;
+      } else {
+        w = getFrameInfo(frameIdx).getWidth();
+        h = getFrameInfo(frameIdx).getHeight();
       }
-    }
-    return 0;
-  }
-
-  @Override
-  public Image frameGet(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      int w = frameImageWidth(frameIdx);
-      int h = frameImageHeight(frameIdx);
       if (w > 0 && h > 0) {
         BufferedImage image = ColorConvert.createCompatibleImage(w, h, true);
-        renderFrame(frameIdx, image);
+        frameGet(control, frameIdx, image);
         return image;
       }
     }
@@ -243,209 +227,50 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   @Override
-  public void frameGet(int frameIdx, Image canvas)
+  public void frameGet(BamControl control, int frameIdx, Image canvas)
   {
     if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
-      int w = frameImageWidth(frameIdx);
-      int h = frameImageHeight(frameIdx);
+      if(control == null) {
+        control = defaultControl;
+      }
+      int w, h;
+      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+        Dimension d = control.getSharedDimension();
+        w = d.width;
+        h = d.height;
+      } else {
+        w = getFrameInfo(frameIdx).getWidth();
+        h = getFrameInfo(frameIdx).getHeight();
+      }
       if (w > 0 && h > 0 && canvas.getWidth(null) >= w && canvas.getHeight(null) >= h) {
-        renderFrame(frameIdx, canvas);
+        renderFrame(control, frameIdx, canvas);
       }
     }
   }
 
   @Override
-  public int[] frameGetData(int frameIdx)
+  public int[] frameGetData(BamControl control, int frameIdx)
   {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      int w = frameImageWidth(frameIdx);
-      int h = frameImageHeight(frameIdx);
+      if(control == null) {
+        control = defaultControl;
+      }
+      int w, h;
+      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+        Dimension d = control.getSharedDimension();
+        w = d.width;
+        h = d.height;
+      } else {
+        w = getFrameInfo(frameIdx).getWidth();
+        h = getFrameInfo(frameIdx).getHeight();
+      }
       if (w > 0 && h > 0) {
         int[] buffer = new int[w*h];
-        renderFrame(frameIdx, buffer, w, h);
+        renderFrame(control, frameIdx, buffer, w, h);
         return buffer;
       }
     }
     return new int[0];
-  }
-
-  @Override
-  public int frameWidth(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getWidth();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int frameHeight(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getHeight();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int frameCenterX(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getCenterX();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int frameCenterY(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getCenterY();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int cycleCount()
-  {
-    return 1;
-  }
-
-  @Override
-  public int cycleFrameCount()
-  {
-    return listFrames.size();
-  }
-
-  @Override
-  public int cycleFrameCount(int cycleIdx)
-  {
-    if (cycleIdx == 0) {
-      return listFrames.size();
-    }
-    return 0;
-  }
-
-  @Override
-  public int cycleGet()
-  {
-    return 1;
-  }
-
-  @Override
-  public boolean cycleSet(int cycleIdx)
-  {
-    return (cycleIdx == 0);
-  }
-
-  @Override
-  public boolean cycleHasNextFrame()
-  {
-    return (currentFrame < listFrames.size() - 1);
-  }
-
-  @Override
-  public boolean cycleNextFrame()
-  {
-    if (cycleHasNextFrame()) {
-      currentFrame++;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public void cycleReset()
-  {
-    currentFrame = 0;
-  }
-
-  @Override
-  public Image cycleGetFrame()
-  {
-    int frameIdx = cycleGetFrameIndexAbsolute();
-    return frameGet(frameIdx);
-  }
-
-  @Override
-  public void cycleGetFrame(Image canvas)
-  {
-    int frameIdx = cycleGetFrameIndexAbsolute();
-    frameGet(frameIdx, canvas);
-  }
-
-  @Override
-  public Image cycleGetFrame(int frameIdx)
-  {
-    frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-    return frameGet(frameIdx);
-  }
-
-  @Override
-  public void cycleGetFrame(int frameIdx, Image canvas)
-  {
-    frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-    frameGet(frameIdx, canvas);
-  }
-
-  @Override
-  public int[] cycleGetFrameData()
-  {
-    int frameIdx = cycleGetFrameIndexAbsolute();
-    return frameGetData(frameIdx);
-  }
-
-  @Override
-  public int[] cycleGetFrameData(int frameIdx)
-  {
-    frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-    return frameGetData(frameIdx);
-  }
-
-  @Override
-  public int cycleGetFrameIndex()
-  {
-    return currentFrame;
-  }
-
-  @Override
-  public boolean cycleSetFrameIndex(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      currentFrame = frameIdx;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public int cycleGetFrameIndexAbsolute()
-  {
-    return currentFrame;
-  }
-
-  @Override
-  public int cycleGetFrameIndexAbsolute(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return frameIdx;
-    }
-    return -1;
-  }
-
-  @Override
-  public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx)
-  {
-    if (cycleIdx == 0 && frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return frameIdx;
-    }
-    return -1;
   }
 
 
@@ -462,25 +287,21 @@ public class PseudoBamDecoder extends BamDecoder
           y = centers[i].y;
         }
         listFrames.add(new PseudoBamFrameEntry(images[i], x, y));
-      }
 
-      updateSharedBamSize();
-      sharedCanvas = new BufferedImage(getSharedRectangle().width, getSharedRectangle().height,
-                                       BufferedImage.TYPE_INT_ARGB);
+        // creating default bam control instance as a fallback option
+        defaultControl = new PseudoBamControl(this);
+        defaultControl.setMode(BamControl.Mode.Shared);
+        defaultControl.setSharedPerCycle(false);
+      }
     }
   }
 
   // Draws the absolute frame onto the canvas. Takes BAM mode into account.
-  private void renderFrame(int frameIdx, Image canvas)
+  private void renderFrame(BamControl control, int frameIdx, Image canvas)
   {
-    BufferedImage image = null;
-    if (canvas instanceof BufferedImage) {
-      image = (BufferedImage)canvas;
-    } else {
-      image = sharedCanvas;
-    }
+    BufferedImage image = ColorConvert.toBufferedImage(canvas, true);
     int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-    renderFrame(frameIdx, buffer, image.getWidth(), image.getHeight());
+    renderFrame(control, frameIdx, buffer, image.getWidth(), image.getHeight());
     buffer = null;
     if (image != canvas) {
       Graphics g = canvas.getGraphics();
@@ -492,18 +313,22 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   // Draws the absolute frame into the buffer. Takes BAM mode into account.
-  private void renderFrame(int frameIdx, int[] buffer, int width, int height)
+  private void renderFrame(BamControl control, int frameIdx, int[] buffer, int width, int height)
   {
+    if (control == null) {
+      control = defaultControl;
+    }
+
     if (frameIdx >= 0 && frameIdx < listFrames.size() &&
         buffer != null && buffer.length >= width*height) {
       int srcWidth = listFrames.get(frameIdx).width;
       int srcHeight = listFrames.get(frameIdx).height;
       int[] srcData = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
 
-      if (getMode() == Mode.Shared) {
+      if (control.getMode() == BamControl.Mode.Shared) {
         // drawing on shared canvas
-        int left = -getSharedRectangle().x;
-        int top = -getSharedRectangle().y;
+        int left = -control.getSharedRectangle().x;
+        int top = -control.getSharedRectangle().y;
         int maxWidth = (width < srcWidth + left) ? width : srcWidth;
         int maxHeight = (height < srcHeight + top) ? height : srcHeight;
         int srcOfs = 0, dstOfs = top*width + left;
@@ -557,5 +382,169 @@ public class PseudoBamDecoder extends BamDecoder
     public int getCenterX() { return centerX; }
     @Override
     public int getCenterY() { return centerY; }
+  }
+
+  /** Provides access to cycle-specific functionality. */
+  public static class PseudoBamControl extends BamControl
+  {
+    private int currentFrame;
+
+    protected PseudoBamControl(PseudoBamDecoder decoder)
+    {
+      super(decoder);
+      init();
+    }
+
+    @Override
+    public PseudoBamDecoder getDecoder()
+    {
+      return (PseudoBamDecoder)super.getDecoder();
+    }
+
+    @Override
+    public int cycleCount()
+    {
+      return 1;
+    }
+
+    @Override
+    public int cycleFrameCount()
+    {
+      return getDecoder().listFrames.size();
+    }
+
+    @Override
+    public int cycleFrameCount(int cycleIdx)
+    {
+      if (cycleIdx == 0) {
+        return getDecoder().listFrames.size();
+      }
+      return 0;
+    }
+
+    @Override
+    public int cycleGet()
+    {
+      return 1;
+    }
+
+    @Override
+    public boolean cycleSet(int cycleIdx)
+    {
+      return (cycleIdx == 0);
+    }
+
+    @Override
+    public boolean cycleHasNextFrame()
+    {
+      return (currentFrame < getDecoder().listFrames.size() - 1);
+    }
+
+    @Override
+    public boolean cycleNextFrame()
+    {
+      if (cycleHasNextFrame()) {
+        currentFrame++;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public void cycleReset()
+    {
+      currentFrame = 0;
+    }
+
+    @Override
+    public Image cycleGetFrame()
+    {
+      int frameIdx = cycleGetFrameIndexAbsolute();
+      return getDecoder().frameGet(this, frameIdx);
+    }
+
+    @Override
+    public void cycleGetFrame(Image canvas)
+    {
+      int frameIdx = cycleGetFrameIndexAbsolute();
+      getDecoder().frameGet(this, frameIdx, canvas);
+    }
+
+    @Override
+    public Image cycleGetFrame(int frameIdx)
+    {
+      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
+      return getDecoder().frameGet(this, frameIdx);
+    }
+
+    @Override
+    public void cycleGetFrame(int frameIdx, Image canvas)
+    {
+      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
+      getDecoder().frameGet(this, frameIdx, canvas);
+    }
+
+    @Override
+    public int[] cycleGetFrameData()
+    {
+      int frameIdx = cycleGetFrameIndexAbsolute();
+      return getDecoder().frameGetData(this, frameIdx);
+    }
+
+    @Override
+    public int[] cycleGetFrameData(int frameIdx)
+    {
+      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
+      return getDecoder().frameGetData(this, frameIdx);
+    }
+
+    @Override
+    public int cycleGetFrameIndex()
+    {
+      return currentFrame;
+    }
+
+    @Override
+    public boolean cycleSetFrameIndex(int frameIdx)
+    {
+      if (frameIdx >= 0 && frameIdx < getDecoder().listFrames.size()) {
+        currentFrame = frameIdx;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public int cycleGetFrameIndexAbsolute()
+    {
+      return currentFrame;
+    }
+
+    @Override
+    public int cycleGetFrameIndexAbsolute(int frameIdx)
+    {
+      if (frameIdx >= 0 && frameIdx < getDecoder().listFrames.size()) {
+        return frameIdx;
+      }
+      return -1;
+    }
+
+    @Override
+    public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx)
+    {
+      if (cycleIdx == 0 && frameIdx >= 0 && frameIdx < getDecoder().listFrames.size()) {
+        return frameIdx;
+      }
+      return -1;
+    }
+
+
+    private void init()
+    {
+      currentFrame = 0;
+      updateSharedBamSize();
+    }
   }
 }

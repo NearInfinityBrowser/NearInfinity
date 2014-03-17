@@ -4,6 +4,7 @@
 
 package infinity.resource.graphics;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -21,16 +22,23 @@ import infinity.util.DynamicArray;
  */
 public class BamV1Decoder extends BamDecoder
 {
+  /**
+   * Definitions on how to handle palette transparency:<br>
+   * <code>Normal</code> looks for the first entry containing RGB(0, 255, 0). It falls back to palette
+   * index 0 if no entry has been found.<br>
+   * <code>FirstIndexOnly</code> automatically uses palette index 0 without looking for entries
+   * containing RGB(0, 255, 0).
+   */
+  public enum TransparencyMode { Normal, FirstIndexOnly }
+
   private final List<BamV1FrameEntry> listFrames = new ArrayList<BamV1FrameEntry>();
   private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
+  private final BamV1FrameEntry defaultFrameInfo = new BamV1FrameEntry(null, 0);
 
-  private byte[] bamData;           // contains the raw (uncompressed) data of the BAM resource
-  private int[] palette;            // BAM palette
-  private int rleIndex;             // color index for RLE compressed pixels
-  private int[] currentPalette;     // the currently used palette (either original, external or mixed palette)
-  private boolean transparencyEnabled, paletteChanged;
-  private int currentCycle, currentFrame;
-  private BufferedImage sharedCanvas;   // temporary buffer for drawing on a shared canvas
+  private BamV1Control defaultControl;
+  private byte[] bamData;   // contains the raw (uncompressed) data of the BAM resource
+  private int[] bamPalette;    // BAM palette
+  private int rleIndex;     // color index for RLE compressed pixels
 
   /**
    * Loads and decodes a BAM v1 resource. This includes both compressed (BAMC) and uncompressed BAM
@@ -40,27 +48,14 @@ public class BamV1Decoder extends BamDecoder
   public BamV1Decoder(ResourceEntry bamEntry)
   {
     super(bamEntry);
-    transparencyEnabled = true;
     init();
   }
 
-  /**
-   * Returns whether the transparent palette entry is drawn or not.
-   */
-  public boolean isTransparencyEnabled()
-  {
-    return transparencyEnabled;
-  }
 
-  /**
-   * Specify whether to draw the transparent palette entry.
-   */
-  public void setTransparencyEnabled(boolean enable)
+  @Override
+  public BamV1Control createControl()
   {
-    if (enable != transparencyEnabled) {
-      transparencyEnabled = enable;
-      paletteChanged = true;    // forcing a rebuild of the current palette
-    }
+    return new BamV1Control(this);
   }
 
   @Override
@@ -69,24 +64,24 @@ public class BamV1Decoder extends BamDecoder
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
       return listFrames.get(frameIdx);
     } else {
-      return null;
+      return defaultFrameInfo;
     }
   }
 
   @Override
   public void close()
   {
-    setType(Type.INVALID);
     bamData = null;
-    palette = null;
+    bamPalette = null;
     listFrames.clear();
     listCycles.clear();
     rleIndex = 0;
-    currentCycle = currentFrame = 0;
-    if (sharedCanvas != null) {
-      sharedCanvas.flush();
-      sharedCanvas = null;
-    }
+  }
+
+  @Override
+  public boolean isOpen()
+  {
+    return (bamData != null);
   }
 
   @Override
@@ -108,51 +103,24 @@ public class BamV1Decoder extends BamDecoder
   }
 
   @Override
-  public int frameImageWidth(int frameIdx)
+  public Image frameGet(BamControl control, int frameIdx)
   {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if (frameWidth(frameIdx) > 0) {
-        if (getMode() == Mode.Shared) {
-          return getSharedRectangle().width;
-        } else {
-          return frameWidth(frameIdx);
-        }
+      if (control == null) {
+        control = defaultControl;
       }
-    }
-    return 0;
-  }
-
-  @Override
-  public int frameImageHeight(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if (frameHeight(frameIdx) > 0) {
-        if (getMode() == Mode.Shared) {
-          return getSharedRectangle().height;
-        } else {
-          return frameHeight(frameIdx);
-        }
+      int w, h;
+      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+        Dimension d = control.getSharedDimension();
+        w = d.width;
+        h = d.height;
+      } else {
+        w = getFrameInfo(frameIdx).getWidth();
+        h = getFrameInfo(frameIdx).getHeight();
       }
-    }
-    return 0;
-  }
-
-  @Override
-  public Image frameGet(int frameIdx)
-  {
-    return frameGet(frameIdx, (int[])null);
-  }
-
-  /** Returns the specified frame as Image, applying an optional external palette. (Takes current mode into account.) */
-  public Image frameGet(int frameIdx, int[] palette)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      int w = frameImageWidth(frameIdx);
-      int h = frameImageHeight(frameIdx);
       if (w > 0 && h > 0) {
         BufferedImage image = ColorConvert.createCompatibleImage(w, h, true);
-        preparePalette(palette);
-        decodeFrame(frameIdx, image);
+        frameGet(control, frameIdx, image);
         return image;
       }
     }
@@ -160,307 +128,50 @@ public class BamV1Decoder extends BamDecoder
   }
 
   @Override
-  public void frameGet(int frameIdx, Image canvas)
-  {
-    frameGet(frameIdx, canvas, null);
-  }
-
-  /** Draws the specified frame onto the canvas, applying an optional external palette. (Takes current mode into account.) */
-  public void frameGet(int frameIdx, Image canvas, int[] palette)
+  public void frameGet(BamControl control, int frameIdx, Image canvas)
   {
     if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
-      int w = frameImageWidth(frameIdx);
-      int h = frameImageHeight(frameIdx);
+      if(control == null) {
+        control = defaultControl;
+      }
+      int w, h;
+      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+        Dimension d = control.getSharedDimension();
+        w = d.width;
+        h = d.height;
+      } else {
+        w = getFrameInfo(frameIdx).getWidth();
+        h = getFrameInfo(frameIdx).getHeight();
+      }
       if (w > 0 && h > 0 && canvas.getWidth(null) >= w && canvas.getHeight(null) >= h) {
-        preparePalette(palette);
-        decodeFrame(frameIdx, canvas);
+        decodeFrame(control, frameIdx, canvas);
       }
     }
   }
 
   @Override
-  public int[] frameGetData(int frameIdx)
-  {
-    return frameGetData(frameIdx, null);
-  }
-
-  /** Returns the frame at the specified index as int array, applying an optional external palette. (Format: ARGB)  */
-  public int[] frameGetData(int frameIdx, int[] palette)
+  public int[] frameGetData(BamControl control, int frameIdx)
   {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      int w = frameImageWidth(frameIdx);
-      int h = frameImageHeight(frameIdx);
+      if(control == null) {
+        control = defaultControl;
+      }
+      int w, h;
+      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+        Dimension d = control.getSharedDimension();
+        w = d.width;
+        h = d.height;
+      } else {
+        w = getFrameInfo(frameIdx).getWidth();
+        h = getFrameInfo(frameIdx).getHeight();
+      }
       if (w > 0 && h > 0) {
         int[] buffer = new int[w*h];
-        preparePalette(palette);
-        decodeFrame(frameIdx, buffer, w, h);
+        decodeFrame(control, frameIdx, buffer, w, h);
         return buffer;
       }
     }
     return new int[0];
-  }
-
-  @Override
-  public int frameWidth(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getWidth();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int frameHeight(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getHeight();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int frameCenterX(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getCenterX();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int frameCenterY(int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      return listFrames.get(frameIdx).getCenterY();
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int cycleCount()
-  {
-    return listCycles.size();
-  }
-
-  @Override
-  public int cycleFrameCount()
-  {
-    if (currentCycle < listCycles.size()) {
-      return listCycles.get(currentCycle).frames.length;
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int cycleFrameCount(int cycleIdx)
-  {
-    if (cycleIdx >= 0 && cycleIdx < listCycles.size()) {
-      return listCycles.get(cycleIdx).frames.length;
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
-  public int cycleGet()
-  {
-    return currentCycle;
-  }
-
-  @Override
-  public boolean cycleSet(int cycleIdx)
-  {
-    if (cycleIdx >= 0 && cycleIdx < listCycles.size() && currentCycle != cycleIdx) {
-      currentCycle = cycleIdx;
-      if (isSharedPerCycle()) {
-        updateSharedBamSize();
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public boolean cycleHasNextFrame()
-  {
-    if (currentCycle < listCycles.size()) {
-      return (currentFrame < listCycles.get(currentCycle).frames.length - 1);
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public boolean cycleNextFrame()
-  {
-    if (cycleHasNextFrame()) {
-      currentFrame++;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public void cycleReset()
-  {
-    currentFrame = 0;
-  }
-
-  @Override
-  public Image cycleGetFrame()
-  {
-    return cycleGetFrame((int[])null);
-  }
-
-  /**
-   * Returns the currently selected frame of the active cycle as Image, applying an optional external palette.
-   * (Takes current mode into account.)
-   */
-  public Image cycleGetFrame(int[] palette)
-  {
-    int frameIdx = cycleGetFrameIndexAbsolute();
-    return frameGet(frameIdx, palette);
-  }
-
-  @Override
-  public void cycleGetFrame(Image canvas)
-  {
-    cycleGetFrame(canvas, null);
-  }
-
-  /**
-   * Draws the currently selected frame of the active cycle onto the specified canvas,
-   * applying an optional external palette.
-   * (Takes current mode into account.)
-   */
-  public void cycleGetFrame(Image canvas, int[] palette)
-  {
-    int frameIdx = cycleGetFrameIndexAbsolute();
-    frameGet(frameIdx, canvas, palette);
-  }
-
-  @Override
-  public Image cycleGetFrame(int frameIdx)
-  {
-    return cycleGetFrame(frameIdx, (int[])null);
-  }
-
-  /**
-   * Returns the specified frame of the active cycle as Image, applying an optional external palette.
-   * (Takes current mode into account.)
-   */
-  public Image cycleGetFrame(int frameIdx, int[] palette)
-  {
-    frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-    return frameGet(frameIdx, palette);
-  }
-
-  @Override
-  public void cycleGetFrame(int frameIdx, Image canvas)
-  {
-    cycleGetFrame(frameIdx, canvas, null);
-  }
-
-  /**
-   * Draws the specified frame of the active cycle onto the specified canvas, applying an optional
-   * external palette.
-   * (Takes current mode into account.)
-   */
-  public void cycleGetFrame(int frameIdx, Image canvas, int[] palette)
-  {
-    frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-    frameGet(frameIdx, canvas, palette);
-  }
-
-  @Override
-  public int[] cycleGetFrameData()
-  {
-    return cycleGetFrameData(null);
-  }
-
-  /**
-   * Returns the currently selected frame of the active cycle as int array, applying an optional
-   * external palette.
-   * (Format: ARGB, takes current mode into account.)
-   */
-  public int[] cycleGetFrameData(int[] palette)
-  {
-    int frameIdx = cycleGetFrameIndexAbsolute();
-    return frameGetData(frameIdx, palette);
-  }
-
-  @Override
-  public int[] cycleGetFrameData(int frameIdx)
-  {
-    return cycleGetFrameData(frameIdx, null);
-  }
-
-  /**
-   * Returns the specified frame of the active cycle as int array, applying an optional external palette.
-   * (Format: ARGB, takes current mode into account.)
-   */
-  public int[] cycleGetFrameData(int frameIdx, int[] palette)
-  {
-    frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-    return frameGetData(frameIdx, palette);
-  }
-
-  @Override
-  public int cycleGetFrameIndex()
-  {
-    return currentFrame;
-  }
-
-  @Override
-  public boolean cycleSetFrameIndex(int frameIdx)
-  {
-    if (currentCycle < listCycles.size() &&
-        frameIdx >= 0 && frameIdx < listCycles.get(currentCycle).frames.length) {
-      currentFrame = frameIdx;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public int cycleGetFrameIndexAbsolute()
-  {
-    if (currentCycle < listCycles.size() &&
-        currentFrame < listCycles.get(currentCycle).frames.length) {
-      return listCycles.get(currentCycle).frames[currentFrame];
-    } else {
-      return -1;
-    }
-  }
-
-  @Override
-  public int cycleGetFrameIndexAbsolute(int frameIdx)
-  {
-    if (currentCycle < listCycles.size() &&
-        frameIdx >= 0 && frameIdx < listCycles.get(currentCycle).frames.length) {
-      return listCycles.get(currentCycle).frames[frameIdx];
-    } else {
-      return -1;
-    }
-  }
-
-  @Override
-  public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx)
-  {
-    if (cycleIdx >= 0 && cycleIdx < listCycles.size() &&
-        frameIdx >= 0 && frameIdx < listCycles.get(cycleIdx).frames.length) {
-      return listCycles.get(cycleIdx).frames[frameIdx];
-    } else {
-      return -1;
-    }
   }
 
 
@@ -529,17 +240,15 @@ public class BamV1Decoder extends BamDecoder
         }
 
         // initializing palette
-        palette = new int[256];
+        bamPalette = new int[256];
         for (int i = 0; i < 256; i++) {
-          palette[i] = DynamicArray.getInt(bamData, ofsPalette + 4*i);
+          bamPalette[i] = 0xff000000 | DynamicArray.getInt(bamData, ofsPalette + 4*i);
         }
 
-        updateSharedBamSize();
-        sharedCanvas = new BufferedImage(getSharedRectangle().width, getSharedRectangle().height,
-                                         BufferedImage.TYPE_INT_ARGB);
-
-        paletteChanged = true;
-        preparePalette(null);
+        // creating default bam control instance as a fallback option
+        defaultControl = new BamV1Control(this);
+        defaultControl.setMode(BamControl.Mode.Shared);
+        defaultControl.setSharedPerCycle(false);
       } catch (Exception e) {
         e.printStackTrace();
         close();
@@ -547,56 +256,12 @@ public class BamV1Decoder extends BamDecoder
     }
   }
 
-  // Prepares the palette to be used for decoding BAM frames
-  private void preparePalette(int[] externalPalette)
-  {
-    if (currentPalette == null) {
-      currentPalette = new int[256];
-    }
-
-    // some optimizations: don't prepare if the palette hasn't change
-    if (externalPalette != null || paletteChanged) {
-      boolean transSet = false;
-      int idx = 0;
-      if (externalPalette != null) {
-        paletteChanged = true;
-        // filling palette entries from external palette, as much as possible
-        for (; idx < externalPalette.length && idx < 256; idx++) {
-          currentPalette[idx] = 0xff000000 | externalPalette[idx];
-          if (transparencyEnabled && !transSet && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-            currentPalette[idx] = 0;
-            transSet = true;
-          }
-        }
-      } else {
-        paletteChanged = false;
-      }
-      for (; idx < palette.length; idx++) {
-        currentPalette[idx] = 0xff000000 | palette[idx];
-        if (transparencyEnabled && !transSet && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-          currentPalette[idx] = 0;
-          transSet = true;
-        }
-      }
-
-      // falling back to transparence at color index 0
-      if (transparencyEnabled && !transSet) {
-        currentPalette[0] = 0;
-      }
-    }
-  }
-
   // Draws the absolute frame onto the canvas.
-  private void decodeFrame(int frameIdx, Image canvas)
+  private void decodeFrame(BamControl control, int frameIdx, Image canvas)
   {
-    BufferedImage image = null;
-    if (canvas instanceof BufferedImage) {
-      image = (BufferedImage)canvas;
-    } else {
-      image = sharedCanvas;
-    }
+    BufferedImage image = ColorConvert.toBufferedImage(canvas, true);
     int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-    decodeFrame(frameIdx, buffer, image.getWidth(), image.getHeight());
+    decodeFrame(control, frameIdx, buffer, image.getWidth(), image.getHeight());
     buffer = null;
     if (image != canvas) {
       Graphics g = canvas.getGraphics();
@@ -608,8 +273,18 @@ public class BamV1Decoder extends BamDecoder
   }
 
   // Draws the absolute frame into the buffer. Takes BAM mode, transparency and external palette into account.
-  private void decodeFrame(int frameIdx, int[] buffer, int width, int height)
+  private void decodeFrame(BamControl control, int frameIdx, int[] buffer, int width, int height)
   {
+    if (control == null) {
+      control = defaultControl;
+    }
+    int[] palette;
+    if (control instanceof BamV1Control) {
+      palette = ((BamV1Control)control).getCurrentPalette();
+    } else {
+      palette = bamPalette;
+    }
+
     if (frameIdx >= 0 && frameIdx < listFrames.size() &&
         buffer != null && buffer.length >= width*height) {
       boolean isCompressed = listFrames.get(frameIdx).compressed;
@@ -620,9 +295,9 @@ public class BamV1Decoder extends BamDecoder
 
       int left, top, maxWidth, maxHeight, srcOfs, dstOfs;
       int count = 0, color = 0;
-      if (getMode() == Mode.Shared) {
-        left = -getSharedRectangle().x - listFrames.get(frameIdx).centerX;
-        top = -getSharedRectangle().y - listFrames.get(frameIdx).centerY;
+      if (control.getMode() == BamControl.Mode.Shared) {
+        left = -control.getSharedRectangle().x - listFrames.get(frameIdx).centerX;
+        top = -control.getSharedRectangle().y - listFrames.get(frameIdx).centerY;
         maxWidth = (width < srcWidth + left) ? width : srcWidth;
         maxHeight = (height < srcHeight + top) ? height : srcHeight;
         srcOfs = ofsData;
@@ -644,7 +319,7 @@ public class BamV1Decoder extends BamDecoder
             }
           } else {
             int pixel = data[srcOfs++] & 0xff;
-            color = currentPalette[pixel];
+            color = palette[pixel];
             if (isCompressed && pixel == rleIndex) {
               count = data[srcOfs++] & 0xff;
             }
@@ -661,7 +336,7 @@ public class BamV1Decoder extends BamDecoder
 
 //-------------------------- INNER CLASSES --------------------------
 
-  // Stores information for a single frame entry
+  /** Provides information for a single frame entry */
   public class BamV1FrameEntry implements BamDecoder.FrameEntry
   {
     private int width, height, centerX, centerY, ofsData;
@@ -693,6 +368,324 @@ public class BamV1Decoder extends BamDecoder
 
     public boolean isCompressed() { return compressed; }
   }
+
+
+  /** Provides access to cycle-specific functionality. */
+  public static class BamV1Control extends BamControl
+  {
+    private int[] currentPalette, externalPalette;
+    private boolean transparencyEnabled;
+    private TransparencyMode transparencyMode;
+    private int currentCycle, currentFrame;
+
+    protected BamV1Control(BamV1Decoder decoder)
+    {
+      super(decoder);
+      init();
+    }
+
+    /**
+     * Returns whether the transparent palette entry is drawn or not.
+     */
+    public boolean isTransparencyEnabled()
+    {
+      return transparencyEnabled;
+    }
+
+    /**
+     * Specify whether to draw the transparent palette entry.
+     */
+    public void setTransparencyEnabled(boolean enable)
+    {
+      if (enable != transparencyEnabled) {
+        transparencyEnabled = enable;
+        preparePalette(externalPalette);
+      }
+    }
+
+    /**
+     * Returns the currently used transparency mode for palettes.
+     */
+    public TransparencyMode getTransparencyMode()
+    {
+      return transparencyMode;
+    }
+
+    /**
+     * Sets the mode on how to handle transparency in palettes.
+     * @param transparencyMode The transparency mode to set.
+     */
+    public void setTransparencyMode(TransparencyMode transparencyMode)
+    {
+      if (transparencyMode != null) {
+        if (this.transparencyMode != transparencyMode) {
+          this.transparencyMode = transparencyMode;
+          preparePalette(externalPalette);
+        }
+      }
+    }
+
+    /**
+     * Returns the currently assigned external palette.
+     * @return The currently assigned external palette, or <code>null</code> if not available.
+     */
+    public int[] getExternalPalette()
+    {
+      return externalPalette;
+    }
+
+    /**
+     * Applies the colors of the specified palette to the active BAM palette.
+     * <b>Note:</b> Must be called whenever any changes to the external palette have been done.
+     * @param palette An external palette. Specify <code>null</code> to use the default palette.
+     */
+    public void setExternalPalette(int[] palette)
+    {
+      if (palette != null) {
+        externalPalette = new int[palette.length];
+        for (int i = 0; i < palette.length; i++) {
+          externalPalette[i] = 0xff000000 | palette[i];
+        }
+      }
+      preparePalette(externalPalette);
+    }
+
+    /**
+     * Returns the currently used palette. This is either an external palette, the default palette,
+     * or a combination of both.
+     */
+    public int[] getCurrentPalette()
+    {
+      return currentPalette;
+    }
+
+    @Override
+    public BamV1Decoder getDecoder()
+    {
+      return (BamV1Decoder)super.getDecoder();
+    }
+
+    @Override
+    public int cycleCount()
+    {
+      return getDecoder().listCycles.size();
+    }
+
+    @Override
+    public int cycleFrameCount()
+    {
+      if (currentCycle < getDecoder().listCycles.size()) {
+        return getDecoder().listCycles.get(currentCycle).frames.length;
+      } else {
+        return 0;
+      }
+    }
+
+    @Override
+    public int cycleFrameCount(int cycleIdx)
+    {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        return getDecoder().listCycles.get(cycleIdx).frames.length;
+      } else {
+        return 0;
+      }
+    }
+
+    @Override
+    public int cycleGet()
+    {
+      return currentCycle;
+    }
+
+    @Override
+    public boolean cycleSet(int cycleIdx)
+    {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() && currentCycle != cycleIdx) {
+        currentCycle = cycleIdx;
+        if (isSharedPerCycle()) {
+          updateSharedBamSize();
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public boolean cycleHasNextFrame()
+    {
+      if (currentCycle < getDecoder().listCycles.size()) {
+        return (currentFrame < getDecoder().listCycles.get(currentCycle).frames.length - 1);
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public boolean cycleNextFrame()
+    {
+      if (cycleHasNextFrame()) {
+        currentFrame++;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public void cycleReset()
+    {
+      currentFrame = 0;
+    }
+
+    @Override
+    public Image cycleGetFrame()
+    {
+      int frameIdx = cycleGetFrameIndexAbsolute();
+      return getDecoder().frameGet(this, frameIdx);
+    }
+
+    @Override
+    public void cycleGetFrame(Image canvas)
+    {
+      int frameIdx = cycleGetFrameIndexAbsolute();
+      getDecoder().frameGet(this, frameIdx, canvas);
+    }
+
+    @Override
+    public Image cycleGetFrame(int frameIdx)
+    {
+      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
+      return getDecoder().frameGet(this, frameIdx);
+    }
+
+    @Override
+    public void cycleGetFrame(int frameIdx, Image canvas)
+    {
+      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
+      getDecoder().frameGet(this, frameIdx, canvas);
+    }
+
+    @Override
+    public int[] cycleGetFrameData()
+    {
+      int frameIdx = cycleGetFrameIndexAbsolute();
+      return getDecoder().frameGetData(this, frameIdx);
+    }
+
+    @Override
+    public int[] cycleGetFrameData(int frameIdx)
+    {
+      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
+      return getDecoder().frameGetData(this, frameIdx);
+    }
+
+    @Override
+    public int cycleGetFrameIndex()
+    {
+      return currentFrame;
+    }
+
+    @Override
+    public boolean cycleSetFrameIndex(int frameIdx)
+    {
+      if (currentCycle < getDecoder().listCycles.size() &&
+          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(currentCycle).frames.length) {
+        currentFrame = frameIdx;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public int cycleGetFrameIndexAbsolute()
+    {
+      if (currentCycle < getDecoder().listCycles.size() &&
+          currentFrame < getDecoder().listCycles.get(currentCycle).frames.length) {
+        return getDecoder().listCycles.get(currentCycle).frames[currentFrame];
+      } else {
+        return -1;
+      }
+    }
+
+    @Override
+    public int cycleGetFrameIndexAbsolute(int frameIdx)
+    {
+      if (currentCycle < getDecoder().listCycles.size() &&
+          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(currentCycle).frames.length) {
+        return getDecoder().listCycles.get(currentCycle).frames[frameIdx];
+      } else {
+        return -1;
+      }
+    }
+
+    @Override
+    public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx)
+    {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() &&
+          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(cycleIdx).frames.length) {
+        return getDecoder().listCycles.get(cycleIdx).frames[frameIdx];
+      } else {
+        return -1;
+      }
+    }
+
+
+    private void init()
+    {
+      this.transparencyEnabled = true;
+      this.transparencyMode = TransparencyMode.Normal;
+      currentPalette = null;
+      externalPalette = null;
+      currentCycle = currentFrame = 0;
+      // preparing the default palette
+      preparePalette(null);
+      updateSharedBamSize();
+    }
+
+
+    // Prepares the palette to be used for decoding BAM frames
+    private void preparePalette(int[] externalPalette)
+    {
+      if (currentPalette == null) {
+        currentPalette = new int[256];
+      }
+
+      // some optimizations: don't prepare if the palette hasn't change
+      boolean isNormalMode = getTransparencyMode() == TransparencyMode.Normal;
+      boolean transSet = false;
+      int idx = 0;
+      if (externalPalette != null) {
+        // filling palette entries from external palette, as much as possible
+        for (; idx < externalPalette.length && idx < 256; idx++) {
+          currentPalette[idx] = 0xff000000 | externalPalette[idx];
+          if (transparencyEnabled && isNormalMode && !transSet &&
+              (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
+            currentPalette[idx] = 0;
+            transSet = true;
+          }
+        }
+      }
+      // filling remaining entries with BAM palette
+      if (getDecoder().bamPalette != null) {
+        for (; idx < getDecoder().bamPalette.length; idx++) {
+          currentPalette[idx] = 0xff000000 | getDecoder().bamPalette[idx];
+          if (transparencyEnabled && isNormalMode && !transSet &&
+              (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
+            currentPalette[idx] = 0;
+            transSet = true;
+          }
+        }
+      }
+
+      // falling back to transparency at color index 0
+      if (transparencyEnabled && !transSet) {
+        currentPalette[0] = 0;
+      }
+    }
+  }
+
 
   // Stores information for a single cycle
   private class CycleEntry

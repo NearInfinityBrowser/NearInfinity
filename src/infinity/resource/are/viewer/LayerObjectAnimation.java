@@ -297,6 +297,7 @@ public class LayerObjectAnimation extends LayerObject
           if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
             ResourceEntry bamEntry = ResourceFactory.getInstance().getResourceEntry(animFile);
             bam = BamDecoder.loadBam(bamEntry);
+            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
             SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
             bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
@@ -308,7 +309,8 @@ public class LayerObjectAnimation extends LayerObject
           animation.setActiveIgnored(Settings.OverrideAnimVisibility);
           animation.setBaseAlpha(baseAlpha);
           animation.setBlended(isBlended);
-          if (cycle < 0) cycle = 0; else if (cycle >= bam.cycleCount()) cycle = bam.cycleCount() - 1;
+          BamDecoder.BamControl control = bam.createControl();
+          if (cycle < 0) cycle = 0; else if (cycle >= control.cycleCount()) cycle = control.cycleCount() - 1;
           animation.setCycle(cycle);
           animation.setLooping(!isPartial);
           animation.setMirrored(isMirrored);

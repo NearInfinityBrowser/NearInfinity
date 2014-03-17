@@ -39,6 +39,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   }
 
   private BamDecoder bam;
+  private BamDecoder.BamControl control;
   private boolean isActive, isActiveIgnored, isBlended, isMirrored, isLooping, isSelfIlluminated,
                   isMultiPart, isPaletteEnabled;
   private int lighting, baseAlpha;
@@ -72,8 +73,12 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
       // setting pseudo bam
       this.bam = BamDecoder.loadBam(ColorConvert.createCompatibleImage(1, 1, true));
     }
-    this.bam.setMode(BamDecoder.Mode.Individual);
-    this.bam.setSharedPerCycle(!isMultiPart());
+    this.control = this.bam.createControl();
+    this.control.setMode(BamDecoder.BamControl.Mode.Individual);
+    this.control.setSharedPerCycle(!isMultiPart());
+    if (this.control instanceof BamV1Decoder.BamV1Control) {
+      ((BamV1Decoder.BamV1Control)this.control).setTransparencyMode(BamV1Decoder.TransparencyMode.Normal);
+    }
     resetFrame();
 
     updateCanvas();
@@ -86,11 +91,13 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
     if (palette != null && palette.length >= 256) {
       this.palette = new int[256];
       System.arraycopy(palette, 0, this.palette, 0, 256);
-      updateGraphics();
     } else {
       this.palette = null;
-      updateGraphics();
     }
+    if (isPaletteEnabled() && control instanceof BamV1Decoder.BamV1Control) {
+      ((BamV1Decoder.BamV1Control)control).setExternalPalette(this.palette);
+    }
+    updateGraphics();
   }
 
   public boolean isPaletteEnabled()
@@ -102,6 +109,13 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   {
     if (set != isPaletteEnabled) {
       isPaletteEnabled = set;
+      if (control instanceof BamV1Decoder.BamV1Control) {
+        if (isPaletteEnabled) {
+          ((BamV1Decoder.BamV1Control)control).setExternalPalette(this.palette);
+        } else {
+          ((BamV1Decoder.BamV1Control)control).setExternalPalette(null);
+        }
+      }
       updateGraphics();
     }
   }
@@ -151,7 +165,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   {
     if (set != isMultiPart) {
       isMultiPart = set;
-      bam.setSharedPerCycle(!isMultiPart);
+      control.setSharedPerCycle(!isMultiPart);
       updateCanvas();
       updateGraphics();
     }
@@ -254,7 +268,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   public int getCycle()
   {
     if (!isMultiPart()) {
-      return bam.cycleGet();
+      return control.cycleGet();
     } else {
       return -1;
     }
@@ -266,7 +280,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
    */
   public void setCycle(int cycle)
   {
-    bam.cycleSet(cycle);
+    control.cycleSet(cycle);
     updateCanvas();
     updateGraphics();
   }
@@ -286,14 +300,14 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
    */
   public void setStartFrame(int frameIdx)
   {
-    if (frameIdx >= 0 && frameIdx < bam.cycleFrameCount()) {
+    if (frameIdx >= 0 && frameIdx < control.cycleFrameCount()) {
       if (lastFrame >= 0 && frameIdx > lastFrame) {
         firstFrame = lastFrame;
       } else {
         firstFrame = frameIdx;
       }
-      if (bam.cycleGetFrameIndex() < firstFrame) {
-        bam.cycleSetFrameIndex(firstFrame);
+      if (control.cycleGetFrameIndex() < firstFrame) {
+        control.cycleSetFrameIndex(firstFrame);
         updateGraphics();
       }
     }
@@ -304,7 +318,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
    */
   public int getFrameCap()
   {
-    return (lastFrame < 0) ? bam.cycleFrameCount() - 1 : lastFrame;
+    return (lastFrame < 0) ? control.cycleFrameCount() - 1 : lastFrame;
   }
 
   /**
@@ -316,13 +330,13 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   {
     if (frameIdx < 0) {
       lastFrame = -1;
-    } else if (frameIdx < bam.cycleFrameCount()) {
+    } else if (frameIdx < control.cycleFrameCount()) {
       lastFrame = frameIdx;
       if (firstFrame > lastFrame) {
         firstFrame = lastFrame;
       }
-      if (bam.cycleGetFrameIndex() > lastFrame) {
-        bam.cycleSetFrameIndex(lastFrame);
+      if (control.cycleGetFrameIndex() > lastFrame) {
+        control.cycleSetFrameIndex(lastFrame);
         updateGraphics();
       }
     }
@@ -341,11 +355,11 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   {
     boolean retVal = false;
     if (lastFrame >= 0) {
-      if (bam.cycleGetFrameIndex() < lastFrame) {
-        retVal = bam.cycleNextFrame();
+      if (control.cycleGetFrameIndex() < lastFrame) {
+        retVal = control.cycleNextFrame();
       }
     } else {
-      retVal = bam.cycleNextFrame();
+      retVal = control.cycleNextFrame();
     }
     updateGraphics();
     return retVal;
@@ -354,7 +368,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   @Override
   public void resetFrame()
   {
-    bam.cycleSetFrameIndex(firstFrame);
+    control.cycleSetFrameIndex(firstFrame);
     updateGraphics();
   }
 
@@ -396,7 +410,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   // Updates the global image object to match the shared size of the current BAM (cycle).
   private void updateCanvas()
   {
-    imageRect = bam.calculateSharedCanvas(isMirrored());
+    imageRect = control.calculateSharedCanvas(isMirrored());
     if (working == null || image == null ||
         image.getWidth() != imageRect.width || image.getHeight() != imageRect.height) {
       image = ColorConvert.createCompatibleImage(imageRect.width, imageRect.height, true);
@@ -412,12 +426,12 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
         // preparing frames
         int[] frameIndices = null;
         if (isMultiPart()) {
-          frameIndices = new int[bam.cycleCount()];
-          for (int i = 0; i < bam.cycleCount(); i++) {
-            frameIndices[i] = bam.cycleGetFrameIndexAbsolute(i, bam.cycleGetFrameIndex());
+          frameIndices = new int[control.cycleCount()];
+          for (int i = 0; i < control.cycleCount(); i++) {
+            frameIndices[i] = control.cycleGetFrameIndexAbsolute(i, control.cycleGetFrameIndex());
           }
         } else {
-          frameIndices = new int[]{bam.cycleGetFrameIndexAbsolute()};
+          frameIndices = new int[]{control.cycleGetFrameIndexAbsolute()};
         }
 
         // clearing old content
@@ -433,17 +447,17 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
             int[] buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
             Arrays.fill(buffer, 0);
             if (bam instanceof BamV1Decoder) {
-              ((BamV1Decoder)bam).frameGet(frameIndices[i], working, palette);
+              ((BamV1Decoder)bam).frameGet(control, frameIndices[i], working);
             } else {
-              bam.frameGet(frameIndices[i], working);
+              bam.frameGet(control, frameIndices[i], working);
             }
 
             // post-processing frame
             buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
             int canvasWidth = working.getWidth();
             int canvasHeight = working.getHeight();
-            int frameWidth = bam.frameWidth(frameIndices[i]);
-            int frameHeight = bam.frameHeight(frameIndices[i]);
+            int frameWidth = bam.getFrameInfo(frameIndices[i]).getWidth();
+            int frameHeight = bam.getFrameInfo(frameIndices[i]).getHeight();
 
             if (isMirrored()) {
               mirrorImage(buffer, canvasWidth, canvasHeight, frameWidth, frameHeight);
@@ -462,11 +476,11 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
             // rendering frame
             int left, top;
             if (isMirrored()) {
-              left = -imageRect.x - (bam.frameWidth(frameIndices[i]) - bam.frameCenterX(frameIndices[i]) - 1);
-              top = -imageRect.y - bam.frameCenterY(frameIndices[i]);
+              left = -imageRect.x - (bam.getFrameInfo(frameIndices[i]).getWidth() - bam.getFrameInfo(frameIndices[i]).getCenterX() - 1);
+              top = -imageRect.y - bam.getFrameInfo(frameIndices[i]).getCenterY();
             } else {
-              left = -imageRect.x - bam.frameCenterX(frameIndices[i]);
-              top = -imageRect.y - bam.frameCenterY(frameIndices[i]);
+              left = -imageRect.x - bam.getFrameInfo(frameIndices[i]).getCenterX();
+              top = -imageRect.y - bam.getFrameInfo(frameIndices[i]).getCenterY();
             }
 
             g.drawImage(working, left, top, left+frameWidth, top+frameHeight, 0, 0, frameWidth, frameHeight, null);

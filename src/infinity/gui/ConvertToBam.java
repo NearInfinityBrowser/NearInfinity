@@ -8,10 +8,10 @@ import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.BamDecoder;
 import infinity.resource.graphics.BamV1Decoder;
+import infinity.resource.graphics.BamV2Decoder;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
-import infinity.resource.graphics.PvrDecoder;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
@@ -53,7 +53,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -1691,21 +1690,9 @@ public class ConvertToBam extends ChildFrame
   {
     if (bamFile != null && bamFile.exists() && bamFile.isFile()) {
       ResourceEntry entry = new FileResourceEntry(bamFile);
-      BamDecoder.Type type = BamDecoder.getType(entry);
-      if (type == BamDecoder.Type.BAMV1 || type == BamDecoder.Type.BAMC) {
-        // use BamDecoder
+      if (BamDecoder.isValid(entry)) {
         List<BamFrame> frameList = new ArrayList<BamFrame>();
-        if (loadBamV1Frames(entry, frameList, null)) {
-          BamFrame[] frames = new BamFrame[frameList.size()];
-          for (int i = 0; i < frames.length; i++) {
-            frames[i] = frameList.get(i);
-          }
-          return frames;
-        }
-      } else if (type == BamDecoder.Type.BAMV2) {
-        // decode manually and use PvrzDecoder to fetch graphics data
-        List<BamFrame> frameList = new ArrayList<BamFrame>();
-        if (loadBamV2Frames(entry, frameList, null)) {
+        if (loadBamFrames(entry, frameList, null)) {
           BamFrame[] frames = new BamFrame[frameList.size()];
           for (int i = 0; i < frames.length; i++) {
             frames[i] = frameList.get(i);
@@ -1884,14 +1871,11 @@ public class ConvertToBam extends ChildFrame
     String errorMsg = null;
     if (bamFile != null && bamFile.exists() && bamFile.isFile()) {
       ResourceEntry entry = new FileResourceEntry(bamFile);
-      BamDecoder.Type type = BamDecoder.getType(entry);
       List<BamFrame> frameList = new ArrayList<BamFrame>();
       List<BamCycle> cycleList = new ArrayList<BamCycle>();
       boolean result = false;
-      if (type == BamDecoder.Type.BAMV1 || type == BamDecoder.Type.BAMC) {
-        result = loadBamV1Frames(entry, frameList, cycleList);
-      } else if (type == BamDecoder.Type.BAMV2) {
-        result = loadBamV2Frames(entry, frameList, cycleList);
+      if (BamDecoder.isValid(entry)) {
+        result = loadBamFrames(entry, frameList, cycleList);
       } else {
         errorMsg = String.format("Unrecognized BAM file: \"%1$s\".", bamFile.toString());
       }
@@ -1915,192 +1899,55 @@ public class ConvertToBam extends ChildFrame
     return false;
   }
 
-  private boolean loadBamV1Frames(ResourceEntry entry, List<BamFrame> frameList, List<BamCycle> cycleList)
+  private boolean loadBamFrames(ResourceEntry entry, List<BamFrame> frameList, List<BamCycle> cycleList)
   {
     String errorMsg = null;
     if (entry != null) {
-      BamV1Decoder decoder = (BamV1Decoder)BamDecoder.loadBam(entry);
-      if (decoder != null) {
-        decoder.setMode(BamDecoder.Mode.Individual);
+      BamDecoder decoder = BamDecoder.loadBam(entry);
+      boolean isV1 = (decoder.getType() == BamDecoder.Type.BAMC || decoder.getType() == BamDecoder.Type.BAMV1);
+      boolean isV2 = (decoder.getType() == BamDecoder.Type.BAMV2);
+      if ((isV1 || isV2) && decoder.isOpen() && !decoder.isEmpty()) {
+        BamDecoder.BamControl control = decoder.createControl();
+        control.setMode(BamDecoder.BamControl.Mode.Individual);
         // filling frames list
         if (frameList != null) {
           for (int i = 0; i < decoder.frameCount(); i++) {
-            BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(i), true);
-            BamFrame bf = new BamFrame(entry.getActualFile().toString(), i, img,
-                                       decoder.frameCenterX(i), decoder.frameCenterY(i),
-                                       decoder.getFrameInfo(i).isCompressed());
-            frameList.add(bf);
-          }
-        }
-
-        // filling cycles list
-        if (cycleList != null) {
-          for (int i = 0; i < decoder.cycleCount(); i++) {
-            decoder.cycleSet(i);
-            BamCycle bc = new BamCycle();
-            for (int j = 0; j < decoder.cycleFrameCount(); j++) {
-              bc.frames.add(new Integer(decoder.cycleGetFrameIndexAbsolute(j)));
+            BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(control, i), true);
+            BamFrame bf = null;
+            if (isV1) {
+              BamV1Decoder.BamV1FrameEntry fe = (BamV1Decoder.BamV1FrameEntry)decoder.getFrameInfo(i);
+              bf = new BamFrame(entry.getResourceName(), i, img, fe.getCenterX(), fe.getCenterY(),
+                                fe.isCompressed());
+            } else if (isV2) {
+              BamV2Decoder.BamV2FrameEntry fe = (BamV2Decoder.BamV2FrameEntry)decoder.getFrameInfo(i);
+              bf = new BamFrame(entry.getResourceName(), i, img, fe.getCenterX(), fe.getCenterY(), false);
             }
-            cycleList.add(bc);
-          }
-        }
-
-        return true;
-      } else {
-        errorMsg = String.format("Error while loading \"%1$s\".", entry.getActualFile().toString());
-      }
-    }
-    if (errorMsg != null) {
-      JOptionPane.showMessageDialog(this, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    return false;
-  }
-
-  private boolean loadBamV2Frames(ResourceEntry entry, List<BamFrame> frameList, List<BamCycle> cycleList)
-  {
-    if (entry != null) {
-      try {
-        byte[] bamData = entry.getResourceData();
-        // getting BAM header data
-        int frameCount = DynamicArray.getInt(bamData, 0x08);
-        int cycleCount = DynamicArray.getInt(bamData, 0x0c);
-        int ofsFrame = DynamicArray.getInt(bamData, 0x14);
-        int ofsCycle = DynamicArray.getInt(bamData, 0x18);
-        int ofsData = DynamicArray.getInt(bamData, 0x1c);
-        // lists required to eliminate duplicate frame data
-        List<List<FrameDataV2>> frameDataList = new ArrayList<List<FrameDataV2>>(frameCount);
-        List<Integer> frameRefList = new ArrayList<Integer>(frameCount);
-        // using PVR cache for faster loading
-        ConcurrentHashMap<Integer, PvrDecoder> pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>(20);
-
-        // filling frames list
-        if (frameList != null) {
-          for (int i = 0; i < frameCount; i++) {
-            // fetching frame definitions
-            int ofs = ofsFrame + i*12;
-            int w = DynamicArray.getShort(bamData, ofs);
-            int h = DynamicArray.getShort(bamData, ofs+2);
-            int cx = DynamicArray.getShort(bamData, ofs+4);
-            int cy = DynamicArray.getShort(bamData, ofs+6);
-            int dataIdx = DynamicArray.getShort(bamData, ofs+8);
-            int dataCount = DynamicArray.getShort(bamData, ofs+10);
-
-            List<FrameDataV2> details = new ArrayList<FrameDataV2>(dataCount);
-            for (int j = 0; j < dataCount; j++) {
-              // fetching frame data segments
-              ofs = ofsData + (dataIdx+j)*28;
-              int page = DynamicArray.getInt(bamData, ofs);
-              int sx = DynamicArray.getInt(bamData, ofs+4);
-              int sy = DynamicArray.getInt(bamData, ofs+8);
-              int bw = DynamicArray.getInt(bamData, ofs+12);
-              int bh = DynamicArray.getInt(bamData, ofs+16);
-              int dx = DynamicArray.getInt(bamData, ofs+20);
-              int dy = DynamicArray.getInt(bamData, ofs+24);
-              details.add(new FrameDataV2(page, sx, sy, bw, bh, dx, dy));
-            }
-            frameRefList.add(new Integer(i));
-            frameDataList.add(details);
-
-            // check for duplicate entries
-            boolean match = false;
-            int matchIdx = -1;
-            for (int j = 0; j < frameDataList.size() - 1; j++) {
-              List<FrameDataV2> fd = frameDataList.get(j);
-              match = (fd.size() == details.size());
-              matchIdx = j;
-              if (match) {
-                for (int k = 0; k < fd.size(); k++) {
-                  if (!fd.get(k).equals(details.get(k))) {
-                    match = false;
-                    break;
-                  }
-                }
-              }
-              if (match)
-                break;
-            }
-            if (match) {
-              // redirect to previous frame
-              frameRefList.set(i, new Integer(matchIdx));
-            } else {
-              // add new frame to the list
-              BufferedImage image = ColorConvert.createCompatibleImage(w, h, true);
-              Graphics2D g = (Graphics2D)image.getGraphics();
-              PvrDecoder decoder = null;
-              try {
-                for (int j = 0; j < details.size(); j++) {
-                  FrameDataV2 fd = details.get(j);
-                  // make use of PVR cache
-                  decoder = pvrTable.get(new Integer(fd.page));
-                  if (decoder == null) {
-                    File pvrzFile = new File(entry.getActualFile().getParent(),
-                                             String.format("MOS%1$04d.PVRZ", fd.page));
-                    if (pvrzFile.exists() && pvrzFile.isFile()) {
-                      ResourceEntry pvrEntry = new FileResourceEntry(pvrzFile);
-                      try {
-                        byte[] data = Compressor.decompress(pvrEntry.getResourceData(), 0);
-                        decoder = new PvrDecoder(data);
-                        pvrTable.put(new Integer(fd.page), decoder);
-                      } catch (Exception  e) {
-                        decoder = null;
-                      }
-                    } else {
-                      String errorMsg = String.format("File \"%1$s\" not found.", pvrzFile.toString());
-                      JOptionPane.showMessageDialog(this, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
-                      return false;
-                    }
-                    if (decoder == null) {
-                      String errorMsg = String.format("Error while processing \"%1$s\".", pvrzFile.toString());
-                      JOptionPane.showMessageDialog(this, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
-                      return false;
-                    }
-                  }
-
-                  // load block of pixel data
-                  Image srcImg = getPvrzBlock(decoder, fd.sx, fd.sy, fd.width, fd.height);
-                  if (srcImg != null) {
-                    g.drawImage(srcImg, fd.dx, fd.dy, null);
-                  } else {
-                    return false;
-                  }
-                  srcImg = null;
-                }
-              } finally {
-                g.dispose();
-              }
-
-              // store resulting frame
-              BamFrame bf = new BamFrame(entry.getActualFile().toString(), i, image, cx, cy, false);
+            if (bf != null) {
               frameList.add(bf);
             }
           }
         }
 
-        // clean up PVR cache
-        for (final PvrDecoder decoder: pvrTable.values()) {
-          decoder.close();
-        }
-        pvrTable.clear();
-
         // filling cycles list
         if (cycleList != null) {
-          for (int i = 0; i < cycleCount; i++) {
+          for (int i = 0; i < control.cycleCount(); i++) {
             BamCycle bc = new BamCycle();
-            int ofs = ofsCycle + i*4;
-            int cnt = DynamicArray.getShort(bamData, ofs);
-            int idx = DynamicArray.getShort(bamData, ofs+2);
-            for (int j = 0; j < cnt; j++) {
-              bc.frames.add(frameRefList.get(idx+j));
+            for (int j = 0; j < control.cycleFrameCount(i); j++) {
+              bc.frames.add(new Integer(control.cycleGetFrameIndexAbsolute(i, j)));
             }
-            // store resulting cycle
             cycleList.add(bc);
           }
         }
 
         return true;
-      } catch (Exception e) {
-        e.printStackTrace();
+      } else if (decoder.isEmpty()) {
+        errorMsg = String.format("BAM resource \"%1$s\" does not contain any frames.", entry.getResourceName());
+      } else {
+        errorMsg = String.format("Error loading BAM resource \"%1$s\"", entry.getResourceName());
       }
+    }
+    if (errorMsg != null) {
+      JOptionPane.showMessageDialog(this, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
     }
     return false;
   }
@@ -2127,23 +1974,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
     return isCompressable;
-  }
-
-  // returns a pixel block from a PVRZ
-  private Image getPvrzBlock(PvrDecoder decoder, int x, int y, int width, int height)
-  {
-    if (decoder != null && decoder.isOpen()) {
-      BufferedImage image = ColorConvert.createCompatibleImage(width, height, true);
-      try {
-        if (decoder.decode(image, x, y, width, height)) {
-          return image;
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      image = null;
-    }
-    return null;
   }
 
   private BamFrame loadImage(File file)
@@ -3220,7 +3050,7 @@ public class ConvertToBam extends ChildFrame
       byte[] bamArray = new byte[bamSize];
       // writing main header
       System.arraycopy("BAM V2  ".getBytes(Charset.forName("US-ASCII")), 0, bamArray, 0, 8);
-      DynamicArray.putInt(bamArray, 8, framesList.size());
+      DynamicArray.putInt(bamArray, 8, frameEntryList.size());
       DynamicArray.putInt(bamArray, 12, cyclesList.size());
       DynamicArray.putInt(bamArray, 16, frameDataBlockList.size());
       DynamicArray.putInt(bamArray, 20, ofsFrameEntries);
