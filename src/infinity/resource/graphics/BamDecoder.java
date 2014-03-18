@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
 import infinity.resource.key.ResourceEntry;
@@ -91,9 +92,9 @@ public abstract class BamDecoder
    * @param image The input image to create a pseudo BAM of one frame.
    * @return A PseudoBamDecoder object.
    */
-  public static BamDecoder loadBam(Image image)
+  public static BamDecoder loadBam(BufferedImage image)
   {
-    return loadBam(new Image[]{image});
+    return loadBam(new BufferedImage[]{image});
   }
 
   /**
@@ -101,7 +102,7 @@ public abstract class BamDecoder
    * @param images An array of input images to create the pseudo BAM structure.
    * @return A PseudoBamDecoder object.
    */
-  public static BamDecoder loadBam(Image[] images)
+  public static BamDecoder loadBam(BufferedImage[] images)
   {
     return new PseudoBamDecoder(images);
   }
@@ -152,8 +153,6 @@ public abstract class BamDecoder
   public abstract Image frameGet(BamControl control, int frameIdx);
   /** Draws the specified frame onto the canvas. */
   public abstract void frameGet(BamControl control, int frameIdx, Image canvas);
-  /** Returns the frame at the specified index as int array. (Format: ARGB) */
-  public abstract int[] frameGetData(BamControl control, int frameIdx);
 
 
   protected BamDecoder(ResourceEntry bamEntry)
@@ -328,10 +327,6 @@ public abstract class BamDecoder
     public abstract Image cycleGetFrame(int frameIdx);
     /** Draws the specified frame of the active cycle onto the specified canvas. (Takes current mode into account.) */
     public abstract void cycleGetFrame(int frameIdx, Image canvas);
-    /** Returns the currently selected frame of the active cycle as int array. (Format: ARGB, takes current mode into account.) */
-    public abstract int[] cycleGetFrameData();
-    /** Returns the specified frame of the active cycle as int array. (Format: ARGB, takes current mode into account.) */
-    public abstract int[] cycleGetFrameData(int frameIdx);
 
     /** Returns the index of the currently selected frame in the active cycle. */
     public abstract int cycleGetFrameIndex();

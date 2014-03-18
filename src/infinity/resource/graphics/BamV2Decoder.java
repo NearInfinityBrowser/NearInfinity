@@ -134,31 +134,6 @@ public class BamV2Decoder extends BamDecoder
     }
   }
 
-  @Override
-  public int[] frameGetData(BamControl control, int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if(control == null) {
-        control = defaultControl;
-      }
-      int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
-        Dimension d = control.getSharedDimension();
-        w = d.width;
-        h = d.height;
-      } else {
-        w = getFrameInfo(frameIdx).getWidth();
-        h = getFrameInfo(frameIdx).getHeight();
-      }
-      if (w > 0 && h > 0) {
-        int[] buffer = new int[w*h];
-        renderFrame(control, frameIdx, buffer, w, h);
-        return buffer;
-      }
-    }
-    return new int[0];
-  }
-
 
   private void init()
   {
@@ -266,58 +241,59 @@ public class BamV2Decoder extends BamDecoder
   // Draws the absolute frame onto the canvas. Takes BAM mode into account.
   private void renderFrame(BamControl control, int frameIdx, Image canvas)
   {
-    BufferedImage image = ColorConvert.toBufferedImage(canvas, true);
-    int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-    renderFrame(control, frameIdx, buffer, image.getWidth(), image.getHeight());
-    buffer = null;
-    if (image != canvas) {
-      Graphics g = canvas.getGraphics();
-      g.drawImage(image, 0, 0, null);
-      g.dispose();
-      image.flush();
-      image = null;
-    }
-  }
+    if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
+      if (control == null) {
+        control = defaultControl;
+      }
 
-  // Draws the absolute frame into the buffer. Takes BAM mode into account.
-  private void renderFrame(BamControl control, int frameIdx, int[] buffer, int width, int height)
-  {
-    if (control == null) {
-      control = defaultControl;
-    }
-
-    if (frameIdx >= 0 && frameIdx < listFrames.size() &&
-        buffer != null && buffer.length >= width*height) {
+      // decoding frame data
+      BufferedImage image = ColorConvert.toBufferedImage(canvas, true, true);
+      int dstWidth = image.getWidth();
+      int dstHeight = image.getHeight();
+      int[] dstBuffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
       int srcWidth = listFrames.get(frameIdx).width;
       int srcHeight = listFrames.get(frameIdx).height;
-      int[] srcData = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
-
+      int[] srcBuffer = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
       if (control.getMode() == BamControl.Mode.Shared) {
         // drawing on shared canvas
         int left = -control.getSharedRectangle().x - listFrames.get(frameIdx).centerX;
         int top = -control.getSharedRectangle().y - listFrames.get(frameIdx).centerY;
-        int maxWidth = (width < srcWidth + left) ? width : srcWidth;
-        int maxHeight = (height < srcHeight + top) ? height : srcHeight;
-        int srcOfs = 0, dstOfs = top*width + left;
+        int maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
+        int maxHeight = (dstHeight < srcHeight + top) ? dstHeight : srcHeight;
+        int srcOfs = 0, dstOfs = top*dstWidth + left;
         for (int y = 0; y < maxHeight; y++) {
           for (int x = 0; x < maxWidth; x++) {
-            buffer[dstOfs+x] = srcData[srcOfs+x];
+            dstBuffer[dstOfs+x] = srcBuffer[srcOfs+x];
           }
           srcOfs += srcWidth;
-          dstOfs += width;
+          dstOfs += dstWidth;
         }
       } else {
         // drawing on individual canvas
         int srcOfs = 0, dstOfs = 0;
-        int maxWidth = (width < srcWidth) ? width : srcWidth;
-        int maxHeight = (height < srcHeight) ? height : srcHeight;
+        int maxWidth = (dstWidth < srcWidth) ? dstWidth : srcWidth;
+        int maxHeight = (dstHeight < srcHeight) ? dstHeight : srcHeight;
         for (int y = 0; y < maxHeight; y++) {
           for (int x = 0; x < maxWidth; x++) {
-            buffer[dstOfs+x] = srcData[srcOfs+x];
+            dstBuffer[dstOfs+x] = srcBuffer[srcOfs+x];
           }
           srcOfs += srcWidth;
-          dstOfs += width;
+          dstOfs += dstWidth;
         }
+      }
+      dstBuffer = null;
+
+      // rendering resulting image onto the canvas if needed
+      if (image != canvas) {
+        Graphics g = canvas.getGraphics();
+        try {
+          g.drawImage(image, 0, 0, null);
+        } finally {
+          g.dispose();
+          g = null;
+        }
+        image.flush();
+        image = null;
       }
     }
   }
@@ -516,20 +492,6 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public int[] cycleGetFrameData()
-    {
-      int frameIdx = cycleGetFrameIndexAbsolute();
-      return getDecoder().frameGetData(this, frameIdx);
-    }
-
-    @Override
-    public int[] cycleGetFrameData(int frameIdx)
-    {
-      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-      return getDecoder().frameGetData(this, frameIdx);
-    }
-
-    @Override
     public int cycleGetFrameIndex()
     {
       return currentFrame;
@@ -550,23 +512,13 @@ public class BamV2Decoder extends BamDecoder
     @Override
     public int cycleGetFrameIndexAbsolute()
     {
-      if (currentCycle < getDecoder().listCycles.size() &&
-          currentFrame < getDecoder().listCycles.get(currentCycle).framesCount) {
-        return getDecoder().listCycles.get(currentCycle).startIndex + currentFrame;
-      } else {
-        return -1;
-      }
+      return cycleGetFrameIndexAbsolute(currentCycle, currentFrame);
     }
 
     @Override
     public int cycleGetFrameIndexAbsolute(int frameIdx)
     {
-      if (currentCycle < getDecoder().listCycles.size() &&
-          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(currentCycle).framesCount) {
-        return getDecoder().listCycles.get(currentCycle).startIndex + frameIdx;
-      } else {
-        return -1;
-      }
+      return cycleGetFrameIndexAbsolute(currentCycle, frameIdx);
     }
 
     @Override

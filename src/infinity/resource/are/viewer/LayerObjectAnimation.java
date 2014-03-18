@@ -23,6 +23,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
 import infinity.resource.graphics.BamDecoder;
+import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.PseudoBamDecoder;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
@@ -220,6 +221,10 @@ public class LayerObjectAnimation extends LayerObject
             iconIdx = 3;
           }
         }
+        if (!isActive) {
+          iconIdx += 4;   // adjusting to display inactive versions of the icons
+        }
+
         msg = ((TextString)anim.getAttribute("Name")).toString();
         scheduleFlags = ((Flag)anim.getAttribute("Active at"));
 
@@ -231,10 +236,10 @@ public class LayerObjectAnimation extends LayerObject
         if (isWBM) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format(String.format("%1$08x", Icon[1][0].hashCode()));
+          keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
-            bam = new PseudoBamDecoder(Icon[1][0], Center);
+            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
             SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
             SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
@@ -247,10 +252,10 @@ public class LayerObjectAnimation extends LayerObject
         } else if (isPVRZ) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format(String.format("%1$08x", Icon[2][0].hashCode()));
+          keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
-            bam = new PseudoBamDecoder(Icon[2][0], Center);
+            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
             SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
             SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
@@ -324,9 +329,6 @@ public class LayerObjectAnimation extends LayerObject
       }
 
       // Using cached icons
-      if (!isActive) {
-        iconIdx += 4;   // adjusting to display inactive versions of the icons
-      }
       Image[] icon;
       String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[iconIdx][0]),
                                                  SharedResourceCache.createKey(Icon[iconIdx][1]));

@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,31 +150,6 @@ public class BamV1Decoder extends BamDecoder
     }
   }
 
-  @Override
-  public int[] frameGetData(BamControl control, int frameIdx)
-  {
-    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if(control == null) {
-        control = defaultControl;
-      }
-      int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
-        Dimension d = control.getSharedDimension();
-        w = d.width;
-        h = d.height;
-      } else {
-        w = getFrameInfo(frameIdx).getWidth();
-        h = getFrameInfo(frameIdx).getHeight();
-      }
-      if (w > 0 && h > 0) {
-        int[] buffer = new int[w*h];
-        decodeFrame(control, frameIdx, buffer, w, h);
-        return buffer;
-      }
-    }
-    return new int[0];
-  }
-
 
   // Initializes the current BAM
   private void init()
@@ -259,76 +235,87 @@ public class BamV1Decoder extends BamDecoder
   // Draws the absolute frame onto the canvas.
   private void decodeFrame(BamControl control, int frameIdx, Image canvas)
   {
-    BufferedImage image = ColorConvert.toBufferedImage(canvas, true);
-    int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-    decodeFrame(control, frameIdx, buffer, image.getWidth(), image.getHeight());
-    buffer = null;
-    if (image != canvas) {
-      Graphics g = canvas.getGraphics();
-      g.drawImage(image, 0, 0, null);
-      g.dispose();
-      image.flush();
-      image = null;
-    }
-  }
+    if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
+      if (control == null) {
+        control = defaultControl;
+      }
+      int[] palette;
+      if (control instanceof BamV1Control) {
+        palette = ((BamV1Control)control).getCurrentPalette();
+      } else {
+        palette = bamPalette;
+      }
 
-  // Draws the absolute frame into the buffer. Takes BAM mode, transparency and external palette into account.
-  private void decodeFrame(BamControl control, int frameIdx, int[] buffer, int width, int height)
-  {
-    if (control == null) {
-      control = defaultControl;
-    }
-    int[] palette;
-    if (control instanceof BamV1Control) {
-      palette = ((BamV1Control)control).getCurrentPalette();
-    } else {
-      palette = bamPalette;
-    }
-
-    if (frameIdx >= 0 && frameIdx < listFrames.size() &&
-        buffer != null && buffer.length >= width*height) {
-      boolean isCompressed = listFrames.get(frameIdx).compressed;
+      // decoding frame data
+      BufferedImage image = ColorConvert.toBufferedImage(canvas, true, false);
+      byte[] bufferB = null;
+      int[] bufferI = null;
+      if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        bufferB = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+      } else {
+        bufferI = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+      }
+      int dstWidth = image.getWidth();
+      int dstHeight = image.getHeight();
       int srcWidth = listFrames.get(frameIdx).width;
       int srcHeight = listFrames.get(frameIdx).height;
-      byte[] data = bamData;
+      boolean isCompressed = listFrames.get(frameIdx).compressed;
       int ofsData = listFrames.get(frameIdx).ofsData;
 
       int left, top, maxWidth, maxHeight, srcOfs, dstOfs;
       int count = 0, color = 0;
+      byte pixel = 0;
       if (control.getMode() == BamControl.Mode.Shared) {
         left = -control.getSharedRectangle().x - listFrames.get(frameIdx).centerX;
         top = -control.getSharedRectangle().y - listFrames.get(frameIdx).centerY;
-        maxWidth = (width < srcWidth + left) ? width : srcWidth;
-        maxHeight = (height < srcHeight + top) ? height : srcHeight;
+        maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
+        maxHeight = (dstHeight < srcHeight + top) ? dstHeight : srcHeight;
         srcOfs = ofsData;
-        dstOfs = top*width + left;
+        dstOfs = top*dstWidth + left;
       } else {
         left = top = 0;
-        maxWidth = (width < srcWidth) ? width : srcWidth;
-        maxHeight = (height < srcHeight) ? height : srcHeight;
+        maxWidth = (dstWidth < srcWidth) ? dstWidth : srcWidth;
+        maxHeight = (dstHeight < srcHeight) ? dstHeight : srcHeight;
         srcOfs = ofsData;
         dstOfs = 0;
       }
       for (int y = 0; y < maxHeight; y++) {
-        for (int x = 0; x < srcWidth; x++) {
+        for (int x = 0; x < srcWidth; x++, dstOfs++) {
           if (count > 0) {
             // writing remaining RLE compressed pixels
             count--;
             if (x < maxWidth) {
-              buffer[dstOfs+x] = color;
+              if (bufferB != null) bufferB[dstOfs] = pixel;
+              if (bufferI != null) bufferI[dstOfs] = color;
             }
           } else {
-            int pixel = data[srcOfs++] & 0xff;
-            color = palette[pixel];
-            if (isCompressed && pixel == rleIndex) {
-              count = data[srcOfs++] & 0xff;
+            pixel = bamData[srcOfs++];
+            color = palette[pixel & 0xff];
+            if (isCompressed && (pixel & 0xff) == rleIndex) {
+              count = bamData[srcOfs++] & 0xff;
             }
             if (x < maxWidth) {
-              buffer[dstOfs+x] = color;
+              if (bufferB != null) bufferB[dstOfs] = pixel;
+              if (bufferI != null) bufferI[dstOfs] = color;
             }
           }
         }
-        dstOfs += width;
+        dstOfs += dstWidth - srcWidth;
+      }
+      bufferB = null;
+      bufferI = null;
+
+      // rendering resulting image onto the canvas if needed
+      if (image != canvas) {
+        Graphics g = canvas.getGraphics();
+        try {
+          g.drawImage(image, 0, 0, null);
+        } finally {
+          g.dispose();
+          g = null;
+        }
+        image.flush();
+        image = null;
       }
     }
   }
@@ -567,20 +554,6 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public int[] cycleGetFrameData()
-    {
-      int frameIdx = cycleGetFrameIndexAbsolute();
-      return getDecoder().frameGetData(this, frameIdx);
-    }
-
-    @Override
-    public int[] cycleGetFrameData(int frameIdx)
-    {
-      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
-      return getDecoder().frameGetData(this, frameIdx);
-    }
-
-    @Override
     public int cycleGetFrameIndex()
     {
       return currentFrame;
@@ -601,23 +574,13 @@ public class BamV1Decoder extends BamDecoder
     @Override
     public int cycleGetFrameIndexAbsolute()
     {
-      if (currentCycle < getDecoder().listCycles.size() &&
-          currentFrame < getDecoder().listCycles.get(currentCycle).frames.length) {
-        return getDecoder().listCycles.get(currentCycle).frames[currentFrame];
-      } else {
-        return -1;
-      }
+      return cycleGetFrameIndexAbsolute(currentCycle, currentFrame);
     }
 
     @Override
     public int cycleGetFrameIndexAbsolute(int frameIdx)
     {
-      if (currentCycle < getDecoder().listCycles.size() &&
-          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(currentCycle).frames.length) {
-        return getDecoder().listCycles.get(currentCycle).frames[frameIdx];
-      } else {
-        return -1;
-      }
+      return cycleGetFrameIndexAbsolute(currentCycle, frameIdx);
     }
 
     @Override

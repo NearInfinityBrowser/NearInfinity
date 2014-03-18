@@ -11,7 +11,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
+import java.awt.image.DataBuffer;
 import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -102,17 +102,29 @@ public class ColorConvert
    */
   public static BufferedImage toBufferedImage(Image img, boolean hasTransparency)
   {
+    return toBufferedImage(img, hasTransparency, true);
+  }
+
+  /**
+   * Converts a generic image object into a BufferedImage object if possible.
+   * @param img The image to convert into a BufferedImage object.
+   * @param hasTransparency Indicates whether the converted image should support transparency.
+   *        (Does nothing if the specified image object is already a BufferedImage object.)
+   * @param forceTrueColor Indicates whether the returned BufferedImage object will alway be in
+   *        true color color format (i.e. pixels in ARGB format, with or without transparency support).
+   * @return A BufferedImage object of the specified image.
+   */
+  public static BufferedImage toBufferedImage(Image img, boolean hasTransparency, boolean forceTrueColor)
+  {
     if (img != null) {
       if (img instanceof BufferedImage) {
-        try {
-          // the main purpose of this method is direct access to the underlying data buffer
-          BufferedImage image = (BufferedImage)img;
-          int[] tmp = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-          if (tmp == null)
-            throw new Exception();
-          tmp = null;
+        // the main purpose of this method is direct access to the underlying data buffer
+        BufferedImage image = (BufferedImage)img;
+        int type = image.getRaster().getDataBuffer().getDataType();
+        if (forceTrueColor && type == DataBuffer.TYPE_INT) {
           return image;
-        } catch (Exception e) {
+        } else if (!forceTrueColor && type != DataBuffer.TYPE_UNDEFINED) {
+          return image;
         }
       }
       final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
