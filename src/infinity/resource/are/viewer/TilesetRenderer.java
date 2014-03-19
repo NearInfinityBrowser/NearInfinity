@@ -8,8 +8,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -501,11 +499,20 @@ public class TilesetRenderer extends RenderCanvas
     // checking whether VolatileImage instance needs to be updated
     if (getImage() != null && getImage() instanceof VolatileImage) {
       VolatileImage image = (VolatileImage)getImage();
-      GraphicsConfiguration gc =
-          GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-      if (image.validate(gc) == VolatileImage.IMAGE_RESTORED) {
-        updateDisplay(true);
-      }
+      int valCode;
+      do {
+        valCode = image.validate(getGraphicsConfiguration());
+        if (valCode == VolatileImage.IMAGE_INCOMPATIBLE) {
+          // recreate the image object
+          int w = image.getWidth();
+          int h = image.getHeight();
+          image = createVolatileImage(w, h);
+          setImage(image);
+        }
+        if (valCode != VolatileImage.IMAGE_OK) {
+          updateDisplay(true);
+        }
+      } while (image.contentsLost());
     }
     super.paint(g);
   }
