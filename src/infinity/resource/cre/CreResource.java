@@ -1105,7 +1105,15 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 107, 1, "Spiked proficiency"));
       list.add(new DecNumber(buffer, offset + 108, 1, "Axe proficiency"));
       list.add(new DecNumber(buffer, offset + 109, 1, "Missile proficiency"));
-      list.add(new Unknown(buffer, offset + 110, 12));
+      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+        list.add(new Unknown(buffer, offset + 110, 9));
+        list.add(new DecNumber(buffer, offset + 119, 1, "Reputation gain/loss when killed"));
+        list.add(new DecNumber(buffer, offset + 120, 1, "Reputation gain/loss when joining party"));
+        list.add(new DecNumber(buffer, offset + 121, 1, "Reputation gain/loss when leaving party"));
+      } else {
+        list.add(new Unknown(buffer, offset + 110, 12));
+      }
     }
     else if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       list.add(new DecNumber(buffer, offset + 102, 1, "Fist proficiency"));
