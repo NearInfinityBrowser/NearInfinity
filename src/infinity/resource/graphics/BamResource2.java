@@ -31,6 +31,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -581,11 +582,11 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
         max = decoder.frameCount();
         for (int i = 0; i < decoder.frameCount(); i++) {
           String fileIndex = String.format("%1$05d", i);
-          Image image = decoder.frameGet(control, i);
+          BufferedImage image = prepareFrameImage(i);
           if (image != null) {
+            decoder.frameGet(control, i, image);
             try {
-              ImageIO.write(ColorConvert.toBufferedImage(image, true), "png",
-                            new File(filePath, fileBase + fileIndex + fileExt));
+              ImageIO.write(image, "png", new File(filePath, fileBase + fileIndex + fileExt));
               counter++;
             } catch (IOException e) {
               failCounter++;
@@ -612,6 +613,39 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
     }
     JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), msg, "Information",
                                   JOptionPane.INFORMATION_MESSAGE);
+  }
+
+  // Returns a BufferedImage object in the most appropriate format for the current BAM resource
+  private BufferedImage prepareFrameImage(int frameIdx)
+  {
+    BufferedImage image = null;
+
+    if (frameIdx >= 0 && frameIdx < decoder.frameCount()) {
+      if (decoder instanceof BamV1Decoder) {
+        // preparing palette
+        BamV1Decoder decoderV1 = (BamV1Decoder)decoder;
+        BamV1Decoder.BamV1Control control = decoderV1.createControl();
+        int[] palette = control.getPalette();
+        int transIndex = control.getTransparencyIndex();
+        byte[] r = new byte[256], g = new byte[256], b = new byte[256];
+        int maxSize = Math.min(palette.length, r.length);
+        for (int i = 0; i < maxSize; i++) {
+          r[i] = (byte)((palette[i] >>> 16) & 0xff);
+          g[i] = (byte)((palette[i] >>> 8) & 0xff);
+          b[i] = (byte)(palette[i] & 0xff);
+        }
+        IndexColorModel cm = new IndexColorModel(8, 256, r, g, b, transIndex);
+        image = new BufferedImage(decoder.getFrameInfo(frameIdx).getWidth(),
+                                  decoder.getFrameInfo(frameIdx).getHeight(),
+                                  BufferedImage.TYPE_BYTE_INDEXED, cm);
+      } else {
+        image = new BufferedImage(decoder.getFrameInfo(frameIdx).getWidth(),
+                                  decoder.getFrameInfo(frameIdx).getHeight(),
+                                  BufferedImage.TYPE_INT_ARGB);
+      }
+    }
+
+    return image;
   }
 
   // Checks current BAM (V2 only) for compatibility and shows an appropriate warning or error message

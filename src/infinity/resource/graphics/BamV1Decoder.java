@@ -150,6 +150,12 @@ public class BamV1Decoder extends BamDecoder
     }
   }
 
+  /** Returns the compressed color index for compressed BAM v1 resources. */
+  public int getRleIndex()
+  {
+    return rleIndex;
+  }
+
 
   // Initializes the current BAM
   private void init()
@@ -412,6 +418,17 @@ public class BamV1Decoder extends BamDecoder
       }
     }
 
+    /** Returns the transparency index of the current palette. */
+    public int getTransparencyIndex()
+    {
+      for (int i = 0; i < currentPalette.length; i++) {
+        if ((currentPalette[i] & 0xff000000) == 0) {
+          return i;
+        }
+      }
+      return 0;
+    }
+
     /**
      * Returns the currently assigned external palette.
      * @return The currently assigned external palette, or <code>null</code> if not available.
@@ -435,6 +452,12 @@ public class BamV1Decoder extends BamDecoder
         }
       }
       preparePalette(externalPalette);
+    }
+
+    /** Returns the original and unmodified palette as defined in the BAM resource. */
+    public int[] getPalette()
+    {
+      return getDecoder().bamPalette;
     }
 
     /**
@@ -616,7 +639,7 @@ public class BamV1Decoder extends BamDecoder
       }
 
       // some optimizations: don't prepare if the palette hasn't change
-      boolean isNormalMode = getTransparencyMode() == TransparencyMode.Normal;
+      boolean isNormalMode = (getTransparencyMode() == TransparencyMode.Normal);
       boolean transSet = false;
       int idx = 0;
       if (externalPalette != null) {
