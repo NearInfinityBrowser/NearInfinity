@@ -57,6 +57,7 @@ import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class BamResource2 implements Resource, ActionListener, PropertyChangeListener
 {
@@ -205,19 +206,32 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
       JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.toString().replace(".BAM", ".PNG")));
+      fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
+
+      // Output graphics format depends on BAM type
+      while (fc.getChoosableFileFilters().length > 0) {
+        // removing default filter entries
+        fc.removeChoosableFileFilter(fc.getChoosableFileFilters()[0]);
+      }
+      fc.addChoosableFileFilter(new FileNameExtensionFilter("PNG files (*.png)", "PNG"));
+      if (decoder.getType() == BamDecoder.Type.BAMC || decoder.getType() == BamDecoder.Type.BAMV1) {
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("BMP files (*.bmp)", "BMP"));
+      }
+      fc.setFileFilter(fc.getChoosableFileFilters()[0]);
+
       if (fc.showSaveDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
         String filePath = fc.getSelectedFile().getParent();
         String fileName = fc.getSelectedFile().getName();
         String fileExt = null;
+        String format = ((FileNameExtensionFilter)fc.getFileFilter()).getExtensions()[0].toLowerCase();
         int extIdx = fileName.lastIndexOf('.');
         if (extIdx > 0) {
           fileExt = fileName.substring(extIdx);
           fileName = fileName.substring(0, extIdx);
         } else {
-          fileExt = "";
+          fileExt = "." + ((FileNameExtensionFilter)fc.getFileFilter()).getExtensions()[0];
         }
-        exportFrames(filePath, fileName, fileExt);
+        exportFrames(filePath, fileName, fileExt, format);
       }
     }
   }
@@ -317,7 +331,7 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
         miExportBAMC.addActionListener(this);
         miExportBAMC.setEnabled(decoder.frameCount() < 65536 && bamControl.cycleCount() < 256);
       }
-      miExportFramesPNG = new JMenuItem("all frames as PNG");
+      miExportFramesPNG = new JMenuItem("all frames as graphics");
       miExportFramesPNG.addActionListener(this);
     }
 
@@ -562,11 +576,15 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
     }
   }
 
-  // Exports frames as PNGs
-  private void exportFrames(String filePath, String fileBase, String fileExt)
+  // Exports frames as graphics, specified by "format"
+  private void exportFrames(String filePath, String fileBase, String fileExt, String format)
   {
     if (filePath == null)
       filePath = ".";
+    if (format == null || format.isEmpty() ||
+        !("png".equalsIgnoreCase(format) || "bmp".equalsIgnoreCase(format))) {
+      format = "png";
+    }
 
     int max = 0, counter = 0, failCounter = 0;
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -586,7 +604,7 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
           if (image != null) {
             decoder.frameGet(control, i, image);
             try {
-              ImageIO.write(image, "png", new File(filePath, fileBase + fileIndex + fileExt));
+              ImageIO.write(image, format, new File(filePath, fileBase + fileIndex + fileExt));
               counter++;
             } catch (IOException e) {
               failCounter++;
