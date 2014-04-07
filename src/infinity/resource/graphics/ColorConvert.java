@@ -4,6 +4,8 @@
 
 package infinity.resource.graphics;
 
+import infinity.util.DynamicArray;
+
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -12,8 +14,14 @@ import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
+import java.awt.image.IndexColorModel;
 import java.awt.image.VolatileImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -107,34 +115,93 @@ public class ColorConvert
 
   /**
    * Converts a generic image object into a BufferedImage object if possible.
+   * Returns a BufferedImage object that is guaranteed to be either in true color or indexed color format.
    * @param img The image to convert into a BufferedImage object.
    * @param hasTransparency Indicates whether the converted image should support transparency.
    *        (Does nothing if the specified image object is already a BufferedImage object.)
    * @param forceTrueColor Indicates whether the returned BufferedImage object will alway be in
    *        true color color format (i.e. pixels in ARGB format, with or without transparency support).
-   * @return A BufferedImage object of the specified image.
+   * @return A BufferedImage object of the specified image in either BufferedImage.TYPE_BYTE_INDEXED format
+   *         or one of the true color formats, Returns <code>null</code> on error.
    */
   public static BufferedImage toBufferedImage(Image img, boolean hasTransparency, boolean forceTrueColor)
   {
     if (img != null) {
       if (img instanceof BufferedImage) {
-        // the main purpose of this method is direct access to the underlying data buffer
-        BufferedImage image = (BufferedImage)img;
-        int type = image.getRaster().getDataBuffer().getDataType();
-        if (forceTrueColor && type == DataBuffer.TYPE_INT) {
-          return image;
-        } else if (!forceTrueColor && type != DataBuffer.TYPE_UNDEFINED) {
-          return image;
+        BufferedImage srcImage = (BufferedImage)img;
+        int type = srcImage.getRaster().getDataBuffer().getDataType();
+        if (type == DataBuffer.TYPE_INT) {
+          return srcImage;
+        } else if (!forceTrueColor) {
+          // attempting to convert special formats into 8-bit paletted image format
+          BufferedImage dstImage = convertToIndexedImage(srcImage);
+          if (dstImage != null) {
+            return dstImage;
+          }
         }
       }
       final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
                                                         hasTransparency);
       Graphics2D g = (Graphics2D)image.getGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
+      try {
+        g.drawImage(img, 0, 0, null);
+      } finally {
+        g.dispose();
+        g = null;
+      }
       return image;
     }
     return null;
+  }
+
+  /**
+   * Attempts to create a deep copy of the specified BufferedImage object without losing any of its
+   * original properties. Creates a truecolored BufferedImage object if source image format is not
+   * fully supported.
+   * Note: Only indexed and truecolored BufferedImage objects are fully supported!
+   * @param image The image object to clone.
+   * @return A new BufferedImage object possessing the content and properties of the source image.
+   *         Returns <code>null</code> on error.
+   */
+  public static BufferedImage cloneImage(BufferedImage image)
+  {
+    BufferedImage dstImage = null;
+    if (image != null) {
+      if ((image.getType() == BufferedImage.TYPE_BYTE_INDEXED ||
+           image.getType() == BufferedImage.TYPE_BYTE_BINARY) &&
+          image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_BYTE) {
+        // Pixel size: Integer and palette available
+        IndexColorModel cm1 = (IndexColorModel)image.getColorModel();
+        int[] colors = new int[1 << cm1.getPixelSize()];
+        cm1.getRGBs(colors);
+        IndexColorModel cm2 = new IndexColorModel(cm1.getPixelSize(), colors.length, colors, 0,
+                                                  cm1.hasAlpha(), cm1.getTransparentPixel(),
+                                                  DataBuffer.TYPE_BYTE);
+        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType(), cm2);
+        byte[] srcBuf = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        byte[] dstBuf = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(srcBuf, 0, dstBuf, 0, dstBuf.length);
+        srcBuf = null; dstBuf = null;
+      } else if (image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
+        // Pixel size: Integer
+        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        int[] srcBuf = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        int[] dstBuf = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(srcBuf, 0, dstBuf, 0, dstBuf.length);
+        srcBuf = null; dstBuf = null;
+      } else {
+        // Fall back solution: create a truecolored version of the source image
+        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        Graphics2D g = (Graphics2D)dstImage.getGraphics();
+        try {
+          g.drawImage(image, 0, 0, null);
+        } finally {
+          g.dispose();
+          g = null;
+        }
+      }
+    }
+    return dstImage;
   }
 
   /**
@@ -375,6 +442,278 @@ public class ColorConvert
       return true;
     }
     return false;
+  }
+
+  /**
+   * Attempts to load a palette from the specified Windows BMP file.
+   * @param file The Windows BMP file to extract the palette from.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteBMP(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStream(file);
+        try {
+          byte[] signature = new byte[8];
+          fis.read(signature);
+          if ("BM".equals(new String(signature, 0, 2, Charset.forName("US-ASCII")))) {
+            // extracting palette from BMP file
+            byte[] header = new byte[54];
+            System.arraycopy(signature, 0, header, 0, signature.length);
+            fis.read(header, signature.length, header.length - signature.length);
+            if (DynamicArray.getInt(header, 0x0e) == 0x28 &&      // correct BMP header size
+                DynamicArray.getInt(header, 0x12) > 0 &&          // valid width
+                DynamicArray.getInt(header, 0x16) > 0 &&          // valid height
+                (DynamicArray.getShort(header, 0x1c) == 4 ||      // either 4bpp
+                 DynamicArray.getInt(header, 0x1c) == 8) &&       // or 8bpp
+                DynamicArray.getInt(header, 0x1e) == 0) {         // no special encoding
+              int bpp = DynamicArray.getUnsignedShort(header, 0x1c);
+              int colorCount = 1 << bpp;
+              byte[] palette = new byte[colorCount*4];
+              fis.read(palette);
+              int[] retVal = new int[colorCount];
+              for (int i =0; i < colorCount; i++) {
+                retVal[i] = DynamicArray.getInt(palette, i << 2) & 0x00ffffff;
+              }
+              return retVal;
+            } else {
+              throw new Exception("Error loading palette from BMP file " + file.getName());
+            }
+          } else {
+            throw new Exception("Invalid BMP file " + file.getName());
+          }
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read BMP file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+  /**
+   * Attempts to load a palette from the specified Windows PAL file.
+   * @param file The Windows PAL file to load.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPalettePAL(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStream(file);
+        try {
+          byte[] signature = new byte[8];
+          fis.read(signature);
+          if ("RIFF".equals(new String(signature, 0, 4, Charset.forName("US-ASCII")))) {
+            // extracting palette from Windows palette file
+            byte[] signature2 = new byte[8];
+            fis.read(signature2);
+            if ("PAL data".equals(new String(signature2, Charset.forName("US-ASCII")))) {
+              byte[] header = new byte[8];
+              fis.read(header);
+              int numColors = DynamicArray.getUnsignedShort(header, 6);
+              if (numColors >= 2 && numColors <= 256) {
+                byte[] palData = new byte[numColors << 2];
+                fis.read(palData);
+                int[] retVal = new int[numColors];
+                for (int i = 0; i < numColors; i++) {
+                  int col = DynamicArray.getInt(palData, i << 2);
+                  retVal[i] = ((col << 16) & 0xff0000) | (col & 0x00ff00) | ((col >> 16) & 0x0000ff);
+                }
+                return retVal;
+              } else {
+                throw new Exception("Invalid number of color entries in Windows palette file " + file.getName());
+              }
+            } else {
+              throw new Exception("Error loading palette from Windows palette file " + file.getName());
+            }
+          } else {
+            throw new Exception("Invalid Windows palette file " + file.getName());
+          }
+
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read Windows palette file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+  /**
+   * Attempts to load a palette from the specified Adobe Color Table file.
+   * @param file The Adobe Color Table file to load.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteACT(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStream(file);
+        try {
+          int size = (int)file.length();
+          if (size == 768) {
+            byte[] palData = new byte[size];
+            fis.read(palData);
+            int count = size / 3;
+            int[] retVal = new int[count];
+            for (int ofs = 0, i = 0; i < count; i++, ofs += 3) {
+              retVal[i] = ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
+            }
+            return retVal;
+          } else {
+            throw new Exception("Invalid Adobe Photoshop palette file " + file.getName());
+          }
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read Adobe Photoshop palette file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+  /**
+   * Attempts to load a palette from the specified BAM file.
+   * @param file The BAM file to extract the palette from.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteBAM(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStream(file);
+        try {
+          byte[] signature = new byte[8];
+          fis.read(signature);
+          String s = new String(signature, Charset.forName("US-ASCII"));
+          if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
+            byte[] bamData = new byte[(int)file.length()];
+            System.arraycopy(signature, 0, bamData, 0, signature.length);
+            fis.read(bamData, signature.length, bamData.length - signature.length);
+            if ("BAMCV1  ".equals(s)) {
+              bamData = Compressor.decompress(bamData);
+            }
+            // extracting palette from BAM v1 file
+            int ofs = DynamicArray.getInt(bamData, 0x10);
+            if (ofs >= 0x18 && ofs < bamData.length - 1024) {
+              int[] retVal = new int[256];
+              for (int i = 0; i < 256; i++) {
+                retVal[i] = DynamicArray.getInt(bamData, ofs+(i << 2)) & 0x00ffffff;
+              }
+              return retVal;
+            } else {
+              throw new Exception("Error loading palette from BAM file " + file.getName());
+            }
+          } else {
+            throw new Exception("Unsupport file type.");
+          }
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read BAM file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+
+  /**
+   * Attempts to convert a 1-, 2- or 4-bit paletted image or a grayscale image into an 8-bit paletted
+   * image.
+   * @param image The image to convert.
+   * @return The converted image if the source format is compatible with a 256 color table,
+   *         <code>null</code> otherwise.
+   */
+  private static BufferedImage convertToIndexedImage(BufferedImage image)
+  {
+    if (image != null) {
+      if (image.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+        // converting 1-, 2-, 4-bit image data into paletted image
+        int[] cmap = new int[256];
+        IndexColorModel srcPal = (IndexColorModel)image.getColorModel();
+        int bits = srcPal.getPixelSize();
+        int bitMask = (1 << bits) - 1;
+        int numColors = 1 << bits;
+        for (int i = 0; i < 256; i++) {
+          if (i < numColors) {
+            cmap[i] = srcPal.getRGB(i) | (srcPal.hasAlpha() ? (srcPal.getAlpha(i) << 24) : 0xff000000);
+          } else {
+            cmap[i] = 0xff000000;
+          }
+        }
+        IndexColorModel dstPal;
+        dstPal = new IndexColorModel(8, 256, cmap, 0, srcPal.hasAlpha(), -1, DataBuffer.TYPE_BYTE);
+        BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(),
+            BufferedImage.TYPE_BYTE_INDEXED, dstPal);
+        byte[] src = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        byte[] dst = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        int srcOfs = 0, srcBitPos = 8 - bits, dstOfs = 0;
+        while (dstOfs < dst.length) {
+          dst[dstOfs] = (byte)((src[srcOfs] >>> srcBitPos) & bitMask);
+          srcBitPos -= bits;
+          if (srcBitPos < 0) {
+            srcBitPos += 8;
+            srcOfs++;
+          }
+          dstOfs++;
+        }
+        cmap = null;
+        src = null; dst = null;
+        return dstImage;
+      } else if (image.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+        // converting grayscaled image with implicit palette into indexed image with explicit palette
+        int[] cmap = new int[256];
+        for (int i = 0; i < cmap.length; i++) {
+          cmap[i] = (i << 16) | (i << 8) | i;
+        }
+        IndexColorModel cm = new IndexColorModel(8, 256, cmap, 0, false, -1, DataBuffer.TYPE_BYTE);
+        BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(),
+                                                   BufferedImage.TYPE_BYTE_INDEXED, cm);
+        byte[] src = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        byte[] dst = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(src, 0, dst, 0, src.length);
+        cmap = null;
+        src = null; dst = null;
+        return dstImage;
+      } else if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        return image;
+      }
+    }
+    return null;
   }
 
 //-------------------------- INNER CLASSES --------------------------

@@ -290,7 +290,7 @@ public abstract class BasicLayer<O extends LayerObject>
       List<StructEntry> list = getParent().getList();
       int cnt = 0;
       for (int i = 0; i < list.size(); i++) {
-        if (list.get(i).getOffset() >= baseOfs && list.get(i).getClass().isAssignableFrom(type)) {
+        if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
           listStruct.add(list.get(i));
           cnt++;
           if (cnt >= count) {

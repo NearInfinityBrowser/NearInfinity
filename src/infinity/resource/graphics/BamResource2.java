@@ -30,6 +30,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
@@ -645,14 +646,7 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
         BamV1Decoder.BamV1Control control = decoderV1.createControl();
         int[] palette = control.getPalette();
         int transIndex = control.getTransparencyIndex();
-        byte[] r = new byte[256], g = new byte[256], b = new byte[256];
-        int maxSize = Math.min(palette.length, r.length);
-        for (int i = 0; i < maxSize; i++) {
-          r[i] = (byte)((palette[i] >>> 16) & 0xff);
-          g[i] = (byte)((palette[i] >>> 8) & 0xff);
-          b[i] = (byte)(palette[i] & 0xff);
-        }
-        IndexColorModel cm = new IndexColorModel(8, 256, r, g, b, transIndex);
+        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, false, transIndex, DataBuffer.TYPE_BYTE);
         image = new BufferedImage(decoder.getFrameInfo(frameIdx).getWidth(),
                                   decoder.getFrameInfo(frameIdx).getHeight(),
                                   BufferedImage.TYPE_BYTE_INDEXED, cm);

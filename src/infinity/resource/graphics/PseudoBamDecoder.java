@@ -4,16 +4,35 @@
 
 package infinity.resource.graphics;
 
+import infinity.gui.converter.ConvertToPvrz;
+import infinity.util.DynamicArray;
+import infinity.util.GridManager;
+import infinity.util.Pair;
+
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.ProgressMonitor;
 
 /**
  * A decoder that takes individual images as input and simulates a BAM structure.
@@ -22,32 +41,154 @@ import java.util.List;
  */
 public class PseudoBamDecoder extends BamDecoder
 {
-  private final List<PseudoBamFrameEntry> listFrames = new ArrayList<PseudoBamFrameEntry>();
-  private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
-  private final PseudoBamFrameEntry defaultFrameInfo = new PseudoBamFrameEntry(null, 0, 0);
+  // A list of helpful options that can be applied globally, to frames or to cycles.
+  /** A label of some kind for identification purposes. [String] */
+  public static final String OPTION_STRING_LABEL    = "Label";
+  /** A flag specifying a compression state. (BAM v1 specific) [Boolean] */
+  public static final String OPTION_BOOL_COMPRESSED = "Compressed";
+  /** A value specifying a compressed pixel value. (BAM v1 specific) [Integer] */
+  public static final String OPTION_INT_RLEINDEX    = "RLEIndex";
+  /** A value specifying the start index of data blocks (BAM v2 specific) [Integer] */
+  public static final String OPTION_INT_BLOCKINDEX  = "BlockIndex";
+  /** A value specifying the number of data blocks (BAM v2 specific) [Integer] */
+  public static final String OPTION_INT_BLOCKCOUNT  = "BlockCount";
 
+
+  private static final Color TransparentColor = new Color(0, true);
+
+  private final PseudoBamFrameEntry defaultFrameInfo = new PseudoBamFrameEntry(null, 0, 0);
+  private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+
+  private List<PseudoBamCycleEntry> listCycles = new ArrayList<PseudoBamCycleEntry>();
+  private List<PseudoBamFrameEntry> listFrames;
   private PseudoBamControl defaultControl;
+
+  public PseudoBamDecoder()
+  {
+    this(null, (BufferedImage[])null, (Point[])null);
+  }
+
+  public PseudoBamDecoder(List<PseudoBamFrameEntry> framesList)
+  {
+    this(framesList, (BufferedImage[])null, (Point[])null);
+  }
 
   public PseudoBamDecoder(BufferedImage image)
   {
-    this(new BufferedImage[]{image}, new Point[0]);
+    this(null, new BufferedImage[]{image}, new Point[0]);
+  }
+
+  public PseudoBamDecoder(List<PseudoBamFrameEntry> framesList, BufferedImage image)
+  {
+    this(framesList, new BufferedImage[]{image}, new Point[0]);
   }
 
   public PseudoBamDecoder(BufferedImage image, Point center)
   {
-    this(new BufferedImage[]{image}, new Point[]{center});
+    this(null, new BufferedImage[]{image}, new Point[]{center});
+  }
+
+  public PseudoBamDecoder(List<PseudoBamFrameEntry> framesList, BufferedImage image, Point center)
+  {
+    this(framesList, new BufferedImage[]{image}, new Point[]{center});
   }
 
   public PseudoBamDecoder(BufferedImage[] images)
   {
-    this(images, new Point[0]);
+    this(null, images, new Point[0]);
+  }
+
+  public PseudoBamDecoder(List<PseudoBamFrameEntry> framesList, BufferedImage[] images)
+  {
+    this(framesList, images, new Point[0]);
   }
 
   public PseudoBamDecoder(BufferedImage[] images, Point[] centers)
   {
+    this(null, images, centers);
+  }
+
+  public PseudoBamDecoder(List<PseudoBamFrameEntry> framesList, BufferedImage[] images, Point[] centers)
+  {
     super(null);
+    setFramesList(framesList);
     init(images, centers);
   }
+
+  /** Returns all available options by name. */
+  public String[] getOptionNames()
+  {
+    String[] retVal = new String[mapOptions.keySet().size()];
+    Iterator<String> iter = mapOptions.keySet().iterator();
+    int idx = 0;
+    while (iter.hasNext()) {
+      retVal[idx++] = iter.next();
+    }
+
+    return retVal;
+  }
+
+  /** Returns the value of the specified global BAM option. */
+  public Object getOption(String name)
+  {
+    if (name != null) {
+      return mapOptions.get(name);
+    }
+    return null;
+  }
+
+  /** Sets a custom option for the whole BAM. */
+  public void setOption(String name, Object value)
+  {
+    if (name != null) {
+      mapOptions.put(name, value);
+    }
+  }
+
+
+  /** Returns the currently used frames list. */
+  public List<PseudoBamFrameEntry> getFramesList()
+  {
+    return listFrames;
+  }
+
+  /**
+   * Attaches a custom list of frame entries to the object.
+   * Caution: Methods don't check explicitly for <code>null</code> entries in the list.
+   * @param framesList The new frames list to attach. Specifying <code>null</code> will create
+   *                   a new list automatically.
+   */
+  public void setFramesList(List<PseudoBamFrameEntry> framesList)
+  {
+    if (framesList != null) {
+      listFrames = framesList;
+    } else {
+      listFrames = new ArrayList<PseudoBamFrameEntry>();
+    }
+  }
+
+
+  /** Returns the currently used cycles list. */
+  public List<PseudoBamCycleEntry> getCyclesList()
+  {
+    return listCycles;
+  }
+
+  /**
+   * Attaches a custom list of cycle entries to the object.
+   * Caution: Methods don't check explicitely for <code>null</code> entries in the list.
+   * @param cyclesList The new cycles list to attach. Specifying <code>null</code> will create
+   *                   a new list automatically.
+   */
+  public void setCyclesList(List<PseudoBamCycleEntry> cyclesList)
+  {
+    if (cyclesList != null) {
+      listCycles = cyclesList;
+    } else {
+      listCycles = new ArrayList<PseudoBamCycleEntry>();
+    }
+  }
+
 
   /**
    * Adds a new frame to the end of the frame list. Center position defaults to (0, 0).
@@ -169,9 +310,29 @@ public class PseudoBamDecoder extends BamDecoder
    */
   public void frameClear()
   {
+    listCycles.clear();
     listFrames.clear();
   }
 
+  /**
+   * Moves the frame by the specified (positive or negative) offset.
+   * @return The new frame index, or -1 on error.
+   */
+  public int frameMove(int frameIdx, int offset)
+  {
+    if (frameIdx >= 0 && frameIdx < listFrames.size()) {
+      int ofsAbs = frameIdx + offset;
+      if (ofsAbs < 0) ofsAbs = 0;
+      if (ofsAbs >= listFrames.size()) ofsAbs = listFrames.size() - 1;
+      if (ofsAbs != frameIdx) {
+        PseudoBamFrameEntry entry = listFrames.get(frameIdx);
+        listFrames.remove(frameIdx);
+        listFrames.add(ofsAbs, entry);
+      }
+      return ofsAbs;
+    }
+    return -1;
+  }
 
   @Override
   public PseudoBamControl createControl()
@@ -192,6 +353,10 @@ public class PseudoBamDecoder extends BamDecoder
   @Override
   public void close()
   {
+    if (defaultControl != null) {
+      defaultControl.cycleSet(0);
+    }
+    listCycles.clear();
     listFrames.clear();
   }
 
@@ -287,13 +452,13 @@ public class PseudoBamDecoder extends BamDecoder
       for (int i = 0; i < indices.length; i++) {
         indices[i] = i;
       }
-      listCycles.add(new CycleEntry(indices));
-
-      // creating default bam control instance as a fallback option
-      defaultControl = new PseudoBamControl(this);
-      defaultControl.setMode(BamControl.Mode.Shared);
-      defaultControl.setSharedPerCycle(false);
+      listCycles.add(new PseudoBamCycleEntry(indices));
     }
+
+    // creating default bam control instance as a fallback option
+    defaultControl = new PseudoBamControl(this);
+    defaultControl.setMode(BamControl.Mode.Shared);
+    defaultControl.setSharedPerCycle(false);
   }
 
   // Draws the absolute frame onto the canvas. Takes BAM mode into account.
@@ -309,29 +474,49 @@ public class PseudoBamDecoder extends BamDecoder
       BufferedImage dstImage = ColorConvert.toBufferedImage(canvas, true, false);
       byte[] srcBufferB = null, dstBufferB = null;
       int[] srcBufferI = null, dstBufferI = null;
-      if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED &&
-          dstImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+      IndexColorModel cm = null;
+      if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         srcBufferB = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
-        dstBufferB = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        cm = (IndexColorModel)srcImage.getColorModel();
       } else {
         srcBufferI = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+      }
+      if (dstImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        dstBufferB = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+      } else {
         dstBufferI = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
       }
+      if (srcBufferI != null && dstBufferB != null) {
+        // incompatible combination
+        return;
+      }
+
       int dstWidth = dstImage.getWidth();
       int dstHeight = dstImage.getHeight();
       int srcWidth = listFrames.get(frameIdx).width;
       int srcHeight = listFrames.get(frameIdx).height;
       if (control.getMode() == BamControl.Mode.Shared) {
         // drawing on shared canvas
-        int left = -control.getSharedRectangle().x;
-        int top = -control.getSharedRectangle().y;
+        Rectangle shared = control.getSharedRectangle();
+        int srcCenterX = listFrames.get(frameIdx).centerX;
+        int srcCenterY = listFrames.get(frameIdx).centerY;
+        int left = -shared.x - srcCenterX;
+        int top = -shared.y - srcCenterY;
         int maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
         int maxHeight = (dstHeight < srcHeight + top) ? dstHeight : srcHeight;
         int srcOfs = 0, dstOfs = top*dstWidth + left;
         for (int y = 0; y < maxHeight; y++) {
           for (int x = 0; x < maxWidth; x++) {
-            if (dstBufferB != null) dstBufferB[dstOfs+x] = srcBufferB[srcOfs+x];
-            if (dstBufferI != null) dstBufferI[dstOfs+x] = srcBufferI[srcOfs+x];
+            if (srcBufferB != null) {
+              if (dstBufferB != null) {
+                dstBufferB[dstOfs+x] = srcBufferB[srcOfs+x];
+              } else {
+                dstBufferI[dstOfs+x] = cm.getRGB(srcBufferB[srcOfs+x] & 0xff);
+              }
+            } else {
+              // only one possible combination left
+              dstBufferI[dstOfs+x] = srcBufferI[srcOfs+x];
+            }
           }
           srcOfs += srcWidth;
           dstOfs += dstWidth;
@@ -343,8 +528,16 @@ public class PseudoBamDecoder extends BamDecoder
         int maxHeight = (dstHeight < srcHeight) ? dstHeight : srcHeight;
         for (int y = 0; y < maxHeight; y++) {
           for (int x = 0; x < maxWidth; x++) {
-            if (dstBufferB != null) dstBufferB[dstOfs+x] = srcBufferB[srcOfs+x];
-            if (dstBufferI != null) dstBufferI[dstOfs+x] = srcBufferI[srcOfs+x];
+            if (srcBufferB != null) {
+              if (dstBufferB != null) {
+                dstBufferB[dstOfs+x] = srcBufferB[srcOfs+x];
+              } else {
+                dstBufferI[dstOfs+x] = cm.getRGB(srcBufferB[srcOfs+x] & 0xff);
+              }
+            } else {
+              // only one possible combination left
+              dstBufferI[dstOfs+x] = srcBufferI[srcOfs+x];
+            }
           }
           srcOfs += srcWidth;
           dstOfs += dstWidth;
@@ -368,69 +561,938 @@ public class PseudoBamDecoder extends BamDecoder
     }
   }
 
-  // Draws the absolute frame into the buffer. Takes BAM mode into account.
-//  private void renderFrame(BamControl control, int frameIdx, int[] buffer, int width, int height)
-//  {
-//    if (control == null) {
-//      control = defaultControl;
-//    }
-//
-//    if (frameIdx >= 0 && frameIdx < listFrames.size() &&
-//        buffer != null && buffer.length >= width*height) {
-//      int srcWidth = listFrames.get(frameIdx).width;
-//      int srcHeight = listFrames.get(frameIdx).height;
-//      int[] srcData = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
-//
-//      if (control.getMode() == BamControl.Mode.Shared) {
-//        // drawing on shared canvas
-//        int left = -control.getSharedRectangle().x;
-//        int top = -control.getSharedRectangle().y;
-//        int maxWidth = (width < srcWidth + left) ? width : srcWidth;
-//        int maxHeight = (height < srcHeight + top) ? height : srcHeight;
-//        int srcOfs = 0, dstOfs = top*width + left;
-//        for (int y = 0; y < maxHeight; y++) {
-//          for (int x = 0; x < maxWidth; x++) {
-//            buffer[dstOfs+x] = srcData[srcOfs+x];
-//          }
-//          srcOfs += srcWidth;
-//          dstOfs += width;
-//        }
-//      } else {
-//        // drawing on individual canvas
-//        int srcOfs = 0, dstOfs = 0;
-//        int maxWidth = (width < srcWidth) ? width : srcWidth;
-//        int maxHeight = (height < srcHeight) ? height : srcHeight;
-//        for (int y = 0; y < maxHeight; y++) {
-//          for (int x = 0; x < maxWidth; x++) {
-//            buffer[dstOfs+x] = srcData[srcOfs+x];
-//          }
-//          srcOfs += srcWidth;
-//          dstOfs += width;
-//        }
-//      }
-//    }
-//  }
+  /**
+   * Determines whether "color" can be classified as RLE-compressed color.
+   * @param color The color to check.
+   * @param rleColor The RLE color index.
+   * @param threshold The amount of alpha allowed for opaque colors.
+   * @return <code>true</code> if the color is determined as the RLE-compressed color.
+   */
+  public static boolean isRleColor(int color, int rleColor, int threshold)
+  {
+    final int Green = 0x0000ff00;
+    rleColor &= 0x00ffffff;
+    if (threshold < 0) threshold = 0; else if (threshold > 255) threshold = 255;
+    boolean inThreshold = (((color >>> 24) & 0xff) < (255 - threshold));
+    color &= 0x00ffffff;
+    return (color == rleColor || (inThreshold && rleColor == Green));
+  }
+
+  /**
+   * Determines whether "color" is interpreted as "transparent".
+   * @param color The color to check.
+   * @param threshold The amount of alpha allowed for opaque colors.
+   * @return <code>true</code> if the color is determined as "transparent".
+   */
+  public static boolean isTransparentColor(int color, int threshold)
+  {
+    final int Green = 0x0000ff00;
+    if (threshold < 0) threshold = 0; else if (threshold > 255) threshold = 255;
+    boolean isAlpha = (((color >>> 24) & 0xff) < (255 - threshold));
+    boolean isGreen = ((color & 0x00ffffff) == Green);
+    return (isAlpha || isGreen);
+  }
+
+  /**
+   * Creates a BAM v1 resource from the current BAM structure.
+   * @param fileName The filename of the BAM file to export.
+   * @param isCompressed Whether to create a BAMC file instead of an uncompressed BAM V1 file.
+   * @param palette An optional palette that can be used. If <code>null</code>, a new palette will be
+   *                generated automatically.
+   * @param threshold The transparency threshold (higher values = higher transparency treated as opaque)
+   * @param progress An optional progress monitor to display the state of the export progress.
+   * @param curProgress The current progress state of the progress monitor.
+   * @return <code>true</code> if the export was successfull, <code>false</code> otherwise.
+   * @throws Exception If an unrecoverable error occured.
+   */
+  public boolean exportBamV1(String fileName, int[] palette, int threshold,
+                             ProgressMonitor progress, int curProgress) throws Exception
+  {
+    final int Green = 0x0000ff00;
+    final int FrameEntrySize = 12;
+    final int CycleEntrySize = 4;
+
+    if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
+      // sanity checks
+      threshold = Math.min(Math.max(threshold, 0), 255);
+      if (fileName == null || fileName.isEmpty()) {
+        throw new Exception("Invalid filename specified.");
+      }
+      if (listFrames.size() > 65535) {
+        throw new Exception("No more than 65535 frames supported.");
+      }
+      if (listCycles.size() > 255) {
+        throw new Exception("No more than 255 cycles supported.");
+      }
+      for (int i = 0; i < listCycles.size(); i++) {
+        if (listCycles.get(i).size() > 65535) {
+          throw new Exception(String.format("No more than 65535 frames per cycle supported. " +
+                                            "Cycle %1$d contains %2$d entries.",
+                                            i, listCycles.get(i).size()));
+        }
+      }
+      for (int i = 0; i < listFrames.size(); i++) {
+        PseudoBamFrameEntry entry = listFrames.get(i);
+        if (entry.width <= 0 || entry.width > 65535 || entry.height <= 0 || entry.height > 65535 ||
+            entry.centerX < Short.MIN_VALUE || entry.centerX > Short.MAX_VALUE ||
+            entry.centerY < Short.MIN_VALUE || entry.centerY > Short.MAX_VALUE) {
+          throw new Exception("Dimensions are out of range for frame index " + i);
+        }
+      }
+
+      // initializing progress monitor
+      if (progress != null) {
+        if (curProgress < 0) curProgress = 0;
+        progress.setMaximum(progress.getMaximum() + 3);
+        progress.setProgress(curProgress++);
+        progress.setNote("Preparing palette");
+      }
+
+      byte[] bamData = null;
+      // initializing palette
+      int[] currentPalette = new int[255];  // palette without "transparent" color!
+      int transColor = Green;               // stores the "transparent" color
+      int transIndex = -1;                  // stores the palette index of the "transparent" color
+      if (palette != null) {
+        // external palette takes preference
+        // retrieving transparency index
+        for (int i = 0; i < palette.length; i++) {
+          int c = palette[i] & 0x00ffffff;
+          if (transIndex < 0 && c == Green) {
+            transColor = c;
+            transIndex = i;
+            break;
+          }
+        }
+        if (transIndex < 0) {
+          transColor = palette[0];
+          transIndex = 0;
+        }
+        // creating working palette
+        int srcIdx = 0, dstIdx = 0;
+        while (srcIdx < palette.length && dstIdx < currentPalette.length) {
+          if (srcIdx != transIndex) {
+            currentPalette[dstIdx] = palette[srcIdx] & 0x00ffffff;
+            dstIdx++;
+          }
+          srcIdx++;
+        }
+      } else {
+        transColor = Green;
+        transIndex = 0;
+        int[] colors = createGlobalPalette(null);
+        int maxSize = Math.min(colors.length, currentPalette.length - 1);
+        System.arraycopy(colors, 0, currentPalette, 0, maxSize);
+        colors = null;
+      }
+
+      if (progress != null) {
+        progress.setProgress(curProgress++);
+        progress.setNote("Encoding frames");
+      }
+
+      // preparations
+      List<byte[]> listFrameData = new ArrayList<byte[]>(listFrames.size());
+      int[] hclPalette = new int[currentPalette.length];
+      ColorConvert.toHclPalette(currentPalette, hclPalette);
+      HashMap<Integer, Byte> colorCache = new HashMap<Integer, Byte>(4096);
+      for (int i = 0; i < currentPalette.length; i++) {
+        colorCache.put(Integer.valueOf(currentPalette[i]), Byte.valueOf((byte)i));
+      }
+      // calculating the max. space required for a single frame
+      PseudoBamControl control = createControl();
+      control.setMode(BamDecoder.BamControl.Mode.Shared);
+      control.setSharedPerCycle(false);
+      Dimension dimFrame = control.calculateSharedCanvas(false).getSize();
+      int maxImageSize = (dimFrame.width*dimFrame.height*3) / 2;    // about 1.5x of max. size
+
+      // encoding frames
+      Object o = getOption(OPTION_INT_RLEINDEX);
+      int rleIndex = ((o != null) ? ((Integer)o).intValue() : 0) & 0xff;
+      int rleColor;
+      if (rleIndex == transIndex) {
+        rleColor = transColor;
+      } else if (rleIndex > transIndex) {
+        rleColor = currentPalette[rleIndex - 1];
+      } else {
+        rleColor = currentPalette[rleIndex];
+      }
+      byte[] dstData = new byte[maxImageSize];
+      for (int idx = 0; idx < listFrames.size(); idx++) {
+        // Distinguishing between paletted and truecolor frames
+        o = listFrames.get(idx).getOption(OPTION_BOOL_COMPRESSED);
+        boolean frameCompressed = (o != null) ? ((Boolean)o).booleanValue() : false;
+        PseudoBamFrameEntry entry = listFrames.get(idx);
+        BufferedImage image = ColorConvert.toBufferedImage(entry.frame, true, true);
+        int[] srcBuffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+
+        if (frameCompressed) {
+          // creating RLE compressed frame
+          int srcIdx = 0, dstIdx = 0, srcMax = srcBuffer.length;
+          while (srcIdx < srcMax) {
+            if (isRleColor(srcBuffer[srcIdx], rleColor, threshold)) {
+              // color to compress
+              int cnt = 0;
+              srcIdx++;
+              while (srcIdx < srcMax && cnt < 255 &&
+                     isRleColor(srcBuffer[srcIdx], rleColor, threshold)) {
+                cnt++;
+                srcIdx++;
+              }
+              dstData[dstIdx++] = (byte)rleIndex;
+              dstData[dstIdx++] = (byte)cnt;
+            } else {
+              // uncompressed pixels
+              int c = srcBuffer[srcIdx];
+              if (isTransparentColor(c, threshold)) {
+                // handling transparent color
+                dstData[dstIdx++] = (byte)transIndex;
+              } else {
+                // handling opaque colors
+                c &= 0x00ffffff;
+                Byte colIdx = colorCache.get(Integer.valueOf(c));
+                if (colIdx != null) {
+                  int ci = colIdx.intValue() & 0xff;
+                  if (ci >= transIndex) ci++;
+                  dstData[dstIdx++] = (byte)ci;
+                } else {
+                  int color = ColorConvert.nearestColor(c, hclPalette);
+                  int ci = (color < transIndex) ? color : (color + 1);
+                  dstData[dstIdx++] = (byte)ci;
+                  colorCache.put(Integer.valueOf(c), Byte.valueOf((byte)color));
+                }
+              }
+              srcIdx++;
+            }
+          }
+          // storing the resulting frame data
+          byte[] outData = new byte[dstIdx];
+          System.arraycopy(dstData, 0, outData, 0, dstIdx);
+          listFrameData.add(outData);
+        } else {
+          // creating uncompressed frame
+          int curIdx = 0, max = srcBuffer.length;
+          while (curIdx < max) {
+            int c = srcBuffer[curIdx];
+            if (isTransparentColor(c, threshold)) {
+              dstData[curIdx] = (byte)transIndex;
+            } else {
+              c &= 0x00ffffff;
+              Byte colIdx = colorCache.get(Integer.valueOf(srcBuffer[curIdx] & 0x00ffffff));
+              if (colIdx != null) {
+                int ci = colIdx.intValue() & 0xff;
+                if (ci >= transIndex) ci++;
+                dstData[curIdx] = (byte)ci;
+              } else {
+                int color = ColorConvert.nearestColor(srcBuffer[curIdx], hclPalette);
+                int ci = (color < transIndex) ? color : (color + 1);
+                dstData[curIdx] = (byte)ci;
+                colorCache.put(Integer.valueOf(srcBuffer[curIdx] & 0x00ffffff), Byte.valueOf((byte)color));
+              }
+            }
+            curIdx++;
+          }
+          // storing the resulting frame data
+          byte[] outData = new byte[curIdx];
+          System.arraycopy(dstData, 0, outData, 0, curIdx);
+          listFrameData.add(outData);
+        }
+        srcBuffer = null;
+        image = null;
+      }
+
+      if (progress != null) {
+        progress.setProgress(curProgress++);
+        progress.setNote("Generating BAM");
+      }
+
+      // creating cycles table and frame lookup table
+      List<Integer> listFrameLookup = new ArrayList<Integer>();
+      int lookupSize = 0;
+      for (int i = 0; i < listCycles.size(); i++) {
+        listFrameLookup.add(Integer.valueOf(lookupSize));
+        lookupSize += listCycles.get(i).size();
+      }
+
+      // creating complete palette
+      int[] tmpPalette = new int[256];
+      if (transIndex > 0) {
+        System.arraycopy(currentPalette, 0, tmpPalette, 0, transIndex - 1);
+      }
+      tmpPalette[transIndex] = transColor;
+      System.arraycopy(currentPalette, transIndex, tmpPalette, transIndex + 1, currentPalette.length - transIndex);
+      currentPalette = tmpPalette;
+
+      // putting it all together
+      int ofsFrameEntries = 0x18;
+      int ofsPalette = ofsFrameEntries + listFrames.size()*FrameEntrySize + listCycles.size()*CycleEntrySize;
+      int ofsLookup = ofsPalette + 1024;
+      int ofsFrameData = ofsLookup + lookupSize*2;
+      int bamSize = ofsFrameData;
+      // updating frame offsets
+      int[] frameDataOffsets = new int[listFrameData.size()];
+      for (int i = 0; i < listFrameData.size(); i++) {
+        frameDataOffsets[i] = bamSize;
+        o = listFrames.get(i).getOption(OPTION_BOOL_COMPRESSED);
+        if (o == null || ((Boolean)o).booleanValue() == false) {
+          frameDataOffsets[i] |= 0x80000000;
+        }
+        bamSize += listFrameData.get(i).length;
+      }
+
+      bamData = new byte[bamSize];
+      System.arraycopy("BAM V1  ".getBytes(Charset.forName("US-ASCII")), 0, bamData, 0, 8);
+      DynamicArray.putShort(bamData, 0x08, (short)listFrames.size());
+      DynamicArray.putByte(bamData, 0x0a, (byte)listCycles.size());
+      DynamicArray.putByte(bamData, 0x0b, (byte)rleIndex);
+      DynamicArray.putInt(bamData, 0x0c, ofsFrameEntries);
+      DynamicArray.putInt(bamData, 0x10, ofsPalette);
+      DynamicArray.putInt(bamData, 0x14, ofsLookup);
+
+      // adding frame entries
+      int curOfs = ofsFrameEntries;
+      for (int i = 0; i < listFrames.size(); i++) {
+        DynamicArray.putShort(bamData, curOfs, (short)listFrames.get(i).width);
+        DynamicArray.putShort(bamData, curOfs + 2, (short)listFrames.get(i).height);
+        DynamicArray.putShort(bamData, curOfs + 4, (short)listFrames.get(i).centerX);
+        DynamicArray.putShort(bamData, curOfs + 6, (short)listFrames.get(i).centerY);
+        DynamicArray.putInt(bamData, curOfs + 8, frameDataOffsets[i]);
+        curOfs += FrameEntrySize;
+      }
+
+      // adding cycle entries
+      for (int i = 0; i < listCycles.size(); i++) {
+        DynamicArray.putShort(bamData, curOfs, (short)listCycles.get(i).size());
+        DynamicArray.putShort(bamData, curOfs + 2, listFrameLookup.get(i).shortValue());
+        curOfs += CycleEntrySize;
+      }
+
+      // adding palette
+      for (int i = 0; i < currentPalette.length; i++) {
+        DynamicArray.putByte(bamData, curOfs, (byte)(currentPalette[i] & 0xff));
+        DynamicArray.putByte(bamData, curOfs + 1, (byte)((currentPalette[i] >>> 8) & 0xff));
+        DynamicArray.putByte(bamData, curOfs + 2, (byte)((currentPalette[i] >>> 16) & 0xff));
+        DynamicArray.putByte(bamData, curOfs + 3, (byte)((currentPalette[i] >>> 24) & 0xff));
+        curOfs += 4;
+      }
+
+      // adding frame lookup table
+      for (int i = 0; i < listCycles.size(); i++) {
+        for (int j = 0; j < listCycles.get(i).frames.size(); j++) {
+          DynamicArray.putShort(bamData, curOfs, listCycles.get(i).frames.get(j).shortValue());
+          curOfs += 2;
+        }
+      }
+
+      // adding frame graphics data
+      for (int i = 0; i < listFrameData.size(); i++) {
+        System.arraycopy(listFrameData.get(i), 0, bamData, curOfs, listFrameData.get(i).length);
+        curOfs += listFrameData.get(i).length;
+      }
+
+      // compressing BAM (optional)
+      o = getOption(OPTION_BOOL_COMPRESSED);
+      boolean isCompressed = (o != null) ? ((Boolean)o).booleanValue() : false;
+      if (isCompressed) {
+        bamData = Compressor.compress(bamData, "BAMC", "V1  ");
+      }
+
+      // writing BAM to disk
+      try {
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(fileName)));
+        try {
+          bos.write(bamData);
+        } finally {
+          if (bos != null) {
+            bos.close();
+            bos = null;
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw e;
+      }
+      bamData = null;
+      return true;
+    }
+
+    return false;
+  }
+
+
+  /**
+   * Creates a BAM v2 resource from the current BAM structure.
+   * @param pvrzIndex The start index of PVRZ files.
+   * @param pvrzPath The path where to save the associated PVRZ files.
+   * @param progress An optional progress monitor to display the state of the export progress.
+   * @param curProgress The current progress state of the progress monitor.
+   * @return <code>true</code> if the export was successfull, <code>false</code> otherwise.
+   * @throws Exception If an unrecoverable error occured.
+   */
+  public boolean exportBamV2(String fileName, DxtEncoder.DxtType dxtType, int pvrzIndex,
+                              ProgressMonitor progress, int curProgress) throws Exception
+  {
+    final int FrameEntrySize = 12;
+    final int CycleEntrySize = 4;
+    final int BlockEntrySize = 28;
+
+    if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
+      // sanity checks
+      if (fileName == null || fileName.isEmpty()) {
+        throw new Exception("Invalid filename specified.");
+      }
+      if (dxtType != DxtEncoder.DxtType.DXT1 && dxtType != DxtEncoder.DxtType.DXT5) {
+        dxtType = DxtEncoder.DxtType.DXT5;
+      }
+      if (pvrzIndex < 0 || pvrzIndex > 99999) {
+        throw new Exception("PVRZ start index is out of range [0..99999].");
+      }
+
+      // preparing output path for PVRZ files
+      String pvrzFilePath;
+      if (fileName.lastIndexOf(File.separatorChar) >= 0) {
+        pvrzFilePath = fileName.substring(0, fileName.lastIndexOf(File.separatorChar));
+      } else {
+        pvrzFilePath = "";
+      }
+      List<List<FrameDataV2>> listFrameData = new ArrayList<List<FrameDataV2>>(listFrames.size());
+      List<GridManager> listGrid = new ArrayList<GridManager>();
+
+      // initializing progress monitor
+      if (progress != null) {
+        if (curProgress < 0) curProgress = 0;
+        progress.setMaximum(progress.getMaximum() + 5);
+        progress.setProgress(curProgress++);
+        progress.setNote("Calculating PVRZ layout");
+      }
+
+      // preparations
+      // generating block data list
+      if (!buildFrameDataList(listFrameData, listGrid, pvrzIndex)) {
+        return false;
+      }
+
+      // generating remaining info blocks
+      List<FrameDataV2> listFrameDataBlocks = new ArrayList<FrameDataV2>();
+      List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<PseudoBamFrameEntry>();
+      List<Pair<Short>> listCycleData = new ArrayList<Pair<Short>>(listCycles.size());
+      int frameStartIndex = 0;    // keeps track of current start index of frame entries
+      int blockStartIndex = 0;    // keeps track of current start index of frame data blocks
+      for (int i = 0; i < listCycles.size(); i++) {
+        List<Integer> cycleFrames = listCycles.get(i).frames;
+
+        // generating cycle entries
+        Pair<Short> cycle = new Pair<Short>(Short.valueOf((short)cycleFrames.size()),
+                                            Short.valueOf((short)frameStartIndex));
+        listCycleData.add(cycle);
+
+        for (int j = 0; j < cycleFrames.size(); j++) {
+          int idx = cycleFrames.get(j).intValue();
+          List<FrameDataV2> frame = listFrameData.get(idx);
+          PseudoBamFrameEntry bfe = listFrames.get(idx);
+
+          PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.centerX, bfe.centerY);
+          entry.setOption(OPTION_INT_BLOCKINDEX, Integer.valueOf(blockStartIndex));
+          entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(frame.size()));
+          listFrameEntries.add(entry);
+          blockStartIndex += frame.size();
+
+          for (int k = 0; k < frame.size(); k++) {
+            listFrameDataBlocks.add(frame.get(k));
+          }
+        }
+        frameStartIndex += cycleFrames.size();
+      }
+
+      // putting it all together
+      int ofsFrameEntries = 0x20;
+      int ofsCycleEntries = ofsFrameEntries + listFrameEntries.size()*FrameEntrySize;
+      int ofsFrameData = ofsCycleEntries + listCycleData.size()*CycleEntrySize;
+      int bamSize = ofsFrameData + listFrameDataBlocks.size()*BlockEntrySize;
+      byte[] bamData = new byte[bamSize];
+
+      // writing main header
+      System.arraycopy("BAM V2  ".getBytes(Charset.forName("US-ASCII")), 0, bamData, 0, 8);
+      DynamicArray.putInt(bamData, 0x08, listFrameEntries.size());
+      DynamicArray.putInt(bamData, 0x0c, listCycleData.size());
+      DynamicArray.putInt(bamData, 0x10, listFrameDataBlocks.size());
+      DynamicArray.putInt(bamData, 0x14, ofsFrameEntries);
+      DynamicArray.putInt(bamData, 0x18, ofsCycleEntries);
+      DynamicArray.putInt(bamData, 0x1c, ofsFrameData);
+
+      // writing frame entries
+      int ofs = ofsFrameEntries;
+      Object o;
+      short v;
+      for (int i = 0; i < listFrameEntries.size(); i++) {
+        PseudoBamFrameEntry fe = listFrameEntries.get(i);
+        DynamicArray.putShort(bamData, ofs, (short)fe.width);
+        DynamicArray.putShort(bamData, ofs + 2, (short)fe.height);
+        DynamicArray.putShort(bamData, ofs + 4, (short)fe.centerX);
+        DynamicArray.putShort(bamData, ofs + 6, (short)fe.centerY);
+        o = fe.getOption(OPTION_INT_BLOCKINDEX);
+        v = (o != null) ? ((Integer)o).shortValue() : 0;
+        DynamicArray.putShort(bamData, ofs + 8, v);
+        o = fe.getOption(OPTION_INT_BLOCKCOUNT);
+        v = (o != null) ? ((Integer)o).shortValue() : 0;
+        DynamicArray.putShort(bamData, ofs + 10, v);
+        ofs += FrameEntrySize;
+      }
+
+      // writing cycle entries
+      for (int i = 0; i < listCycleData.size(); i++) {
+        Pair<Short> entry = listCycleData.get(i);
+        DynamicArray.putShort(bamData, ofs, entry.getFirst().shortValue());
+        DynamicArray.putShort(bamData, ofs + 2, entry.getSecond().shortValue());
+        ofs += CycleEntrySize;
+      }
+
+      // writing frame data blocks
+      for (int i = 0; i < listFrameDataBlocks.size(); i++) {
+        FrameDataV2 entry = listFrameDataBlocks.get(i);
+        DynamicArray.putInt(bamData, ofs, entry.page);
+        DynamicArray.putInt(bamData, ofs + 4, entry.sx);
+        DynamicArray.putInt(bamData, ofs + 8, entry.sy);
+        DynamicArray.putInt(bamData, ofs + 12, entry.width);
+        DynamicArray.putInt(bamData, ofs + 16, entry.height);
+        DynamicArray.putInt(bamData, ofs + 20, entry.dx);
+        DynamicArray.putInt(bamData, ofs + 24, entry.dy);
+        ofs += BlockEntrySize;
+      }
+
+      // writing BAM to disk
+      try {
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(fileName)));
+        try {
+          bos.write(bamData);
+        } finally {
+          if (bos != null) {
+            bos.close();
+            bos = null;
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw e;
+      }
+      bamData = null;
+
+      // generating PVRZ files
+      if (!createPvrzPages(pvrzFilePath, dxtType, listGrid, listFrameData, progress, curProgress)) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+
+  /**
+   * Creates an array of max. 255 colors that can be used to create a global palette for all available frames.
+   * Makes use of the specified color map if available. Does not consider transparent color.
+   * @param colorMap An optional color map that will be used if available. Can be <code>null</code>.
+   * @return An int array containing up to 255 colors without the transparent color entry.
+   */
+  public int[] createGlobalPalette(HashMap<Integer, Integer> colorMap)
+  {
+    final int Green = 0x0000ff00;
+
+    int[] retVal;
+    if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
+      // adding pixels of all available frames to the hashset
+      HashMap<Integer, Integer> newMap;
+      if (colorMap == null) {
+        newMap = new HashMap<Integer, Integer>();
+        for (int i = 0; i < listFrames.size(); i++) {
+          registerColors(newMap, listFrames.get(i).frame);
+        }
+      } else {
+        newMap = new HashMap<Integer, Integer>(colorMap);
+      }
+
+      // transparent color does not count
+      if (newMap.containsKey(Integer.valueOf(Green))) {
+        newMap.remove(Integer.valueOf(Green));
+      }
+
+      // creating palette
+      int numColors = newMap.size();
+      int[] colorBuffer = new int[numColors];
+      Iterator<Integer> iter = newMap.keySet().iterator();
+      int idx = 0;
+      while (iter.hasNext()) {
+        colorBuffer[idx] = iter.next();
+        idx++;
+      }
+      if (colorBuffer.length > 255) {
+        retVal = ColorConvert.medianCut(colorBuffer, 255, true);
+      } else {
+        retVal = colorBuffer;
+      }
+
+      // removing duplicate entries from the palette
+      HashSet<Integer> colorSet = new HashSet<Integer>();
+      for (int i = 0; i < retVal.length; i++) {
+        colorSet.add(Integer.valueOf(retVal[i]));
+      }
+      if (colorSet.size() != retVal.length) {
+        retVal = new int[colorSet.size()];
+        idx = 0;
+        iter = colorSet.iterator();
+        while (iter.hasNext()) {
+          retVal[idx] = iter.next().intValue();
+          idx++;
+        }
+      }
+    } else {
+      retVal = new int[0];
+    }
+    return retVal;
+  }
+
+
+  /** Maps all color values of the specified image. */
+  public static void registerColors(HashMap<Integer, Integer> colorMap, BufferedImage image)
+  {
+    final int Green = 0x0000ff00;
+
+    if (image != null) {
+      if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED &&
+          image.getColorModel() instanceof IndexColorModel) {
+        IndexColorModel cm = (IndexColorModel)image.getColorModel();
+        boolean hasAlpha = cm.hasAlpha();
+        int numColors = 1 << cm.getPixelSize();
+        for (int i = 0; i < numColors; i++) {
+          int color = cm.getRGB(i);
+
+          // determining transparency
+          if (hasAlpha && ((color >>> 24) < 255)) {
+            color = Green;
+          }
+
+          // registering color in map
+          Integer key = Integer.valueOf(color);
+          Integer count = colorMap.get(key);
+          if (count == null) {
+            count = Integer.valueOf(1);
+          } else {
+            ++count;
+          }
+          colorMap.put(key, count);
+        }
+      } else if (image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
+        int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < buffer.length; i++) {
+          int color = buffer[i];
+
+          // determining transparency
+          if ((color & 0xff000000) == 0) {
+            color = Green;
+          } else {
+            color &= 0x00ffffff;
+          }
+
+          // registering color in map
+          Integer key = Integer.valueOf(color);
+          Integer count = colorMap.get(key);
+          if (count == null) {
+            count = Integer.valueOf(1);
+          } else {
+            ++count;
+          }
+          colorMap.put(key, count);
+        }
+      }
+    }
+  }
+
+  /** Unmaps all color values of the specified image. */
+  public static void unregisterColors(HashMap<Integer, Integer> colorMap, BufferedImage image)
+  {
+    final int Green = 0x0000ff00;
+
+    if (image != null) {
+      if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED &&
+          image.getColorModel() instanceof IndexColorModel) {
+        IndexColorModel cm = (IndexColorModel)image.getColorModel();
+        byte[] buffer = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        boolean hasAlpha = cm.hasAlpha();
+        for (int i = 0; i < buffer.length; i++) {
+          int pixel = buffer[i] & 0xff;
+          int color = (cm.getRed(pixel) << 16) | (cm.getGreen(pixel) << 8) | cm.getBlue(pixel);
+
+          // determining transparency
+          if (hasAlpha) {
+            int a = cm.getAlpha(pixel);
+            if (a > 0) {
+              color = Green;
+            }
+          }
+
+          // unregistering color in map
+          Integer key = Integer.valueOf(color);
+          Integer count = colorMap.get(key);
+          if (count != null) {
+            --count;
+            if (count == 0) {
+              colorMap.remove(key);
+            } else {
+              colorMap.put(key, count);
+            }
+          }
+        }
+      } else if (image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
+        int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < buffer.length; i++) {
+          int color = buffer[i];
+
+          // determining transparency
+          if ((color & 0xff000000) == 0) {
+            color = Green;
+          } else {
+            color &= 0x00ffffff;
+          }
+
+          // unregistering color in map
+          Integer key = Integer.valueOf(color);
+          Integer count = colorMap.get(key);
+          if (count != null) {
+            --count;
+            if (count == 0) {
+              colorMap.remove(key);
+            } else {
+              colorMap.put(key, count);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  // Calculates the locations of all frames on PVRZ textures and stores the results in framesList and gridList.
+  private boolean buildFrameDataList(List<List<FrameDataV2>> framesList, List<GridManager> gridList,
+                                     int pvrzPageIndex) throws Exception
+  {
+    if (framesList != null && gridList != null && pvrzPageIndex >= 0 && pvrzPageIndex < 99999) {
+      final int pageDim = 1024;
+
+      for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
+        List<FrameDataV2> frameDataList = new ArrayList<FrameDataV2>();
+        framesList.add(frameDataList);
+
+        int imgWidth = listFrames.get(frameIdx).frame.getWidth();
+        int imgHeight = listFrames.get(frameIdx).frame.getHeight();
+        int imgSize = imgWidth*imgHeight;
+        int x = 0, y = 0, pOfs = 0;
+
+        while (pOfs < imgSize) {
+          int w = Math.min(pageDim, imgWidth - x);
+          int h = Math.min(pageDim, imgHeight - y);
+          if (w == pageDim && h == pageDim) {
+            // image is bigger than max. PVRZ texture size (very unlikely)
+            GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
+            gm.add(new Rectangle(0, 0, w >>> 2, h >>> 2));
+            gridList.add(gm);
+            // registering page entry
+            int pageIdx = gridList.size() - 1;
+            FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx, 0, 0, w, h, x, y);
+            frameDataList.add(entry);
+          } else {
+            // image is smaller than max. PVRZ texture size
+            // finding first available page containing sufficient space for the current image
+            // (using a multiple of 4 alignment for better DXT compression)
+            Dimension space = new Dimension((w+3) >>> 2, (h+3) >>> 2);
+            int pageIdx = -1;
+            Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+            for (int i = 0; i < gridList.size(); i++) {
+              GridManager gm = gridList.get(i);
+              Rectangle rect = gm.findNext(space, GridManager.Alignment.TopLeftHorizontal);
+              if (rect != null) {
+                pageIdx = i;
+                rectMatch = (Rectangle)rect.clone();
+                break;
+              }
+              if (pageIdx >= 0) {
+                break;
+              }
+            }
+
+            // creating a new page if no match has been found
+            if (pageIdx < 0) {
+              GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
+              gridList.add(gm);
+              pageIdx = gridList.size() - 1;
+              rectMatch.x = rectMatch.y = 0;
+              rectMatch.width = gm.getWidth();
+              rectMatch.height = gm.getHeight();
+            }
+
+            // adding region to the page
+            GridManager gm = gridList.get(pageIdx);
+            gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
+            // registering page entry
+            FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx, rectMatch.x << 2,
+                                                rectMatch.y << 2, w, h, x, y);
+            frameDataList.add(entry);
+          }
+
+          // advancing scan
+          if (x + pageDim >= imgWidth) {
+            x = 0;
+            y += pageDim;
+          } else {
+            x += pageDim;
+          }
+          pOfs = y*imgWidth + x;
+        }
+      }
+
+      if (pvrzPageIndex + gridList.size() > 10000) {
+        throw new Exception(String.format("The number of required PVRZ files exceeds the max. index of 99999.\n" +
+                                          "Please choose a PVRZ start index smaller or equal to %1$d.",
+                                          10000 - gridList.size()));
+      }
+      return true;
+    }
+    return false;
+  }
+
+  // Creates all PVRZ files defined in the method arguments.
+  private boolean createPvrzPages(String path, DxtEncoder.DxtType dxtType, List<GridManager> gridList,
+                                  List<List<FrameDataV2>> framesList, ProgressMonitor progress,
+                                  int curProgress) throws Exception
+  {
+    if (path == null) {
+      path = "";
+    }
+    if(!path.isEmpty()) {
+      if (path.charAt(path.length() - 1) != File.separatorChar) {
+        path += File.separatorChar;
+      }
+    }
+    int dxtCode = (dxtType == DxtEncoder.DxtType.DXT5) ? 11 : 7;
+    byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
+    int pageMin = Integer.MAX_VALUE;
+    int pageMax = -1;
+    for (int i = 0; i < framesList.size(); i++) {
+      List<FrameDataV2> list = framesList.get(i);
+      for (int j = 0; j < list.size(); j++) {
+        pageMin = Math.min(pageMin, list.get(j).page);
+        pageMax = Math.max(pageMax, list.get(j).page);
+      }
+    }
+
+    String note = "Generating PVRZ file %1$s / %2$s";
+    if (progress != null) {
+      if (curProgress < 0) curProgress = 0;
+      progress.setMaximum(curProgress + pageMax - pageMin + 1);
+      progress.setProgress(curProgress++);
+    }
+
+    // processing each PVRZ page
+    for (int i = pageMin; i <= pageMax; i++) {
+      if (progress != null) {
+        if (progress.isCanceled()) {
+          throw new Exception("Conversion has been cancelled by the user.");
+        }
+        progress.setProgress(curProgress);
+        progress.setNote(String.format(note, curProgress, pageMax - pageMin + 1));
+        curProgress++;
+      }
+
+      String pvrzName = path + String.format("MOS%1$04d.PVRZ", i);
+      GridManager gm = gridList.get(i - pageMin);
+      gm.shrink();
+
+      // generating texture image
+      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth() << 2);
+      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight() << 2);
+      BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
+      Graphics2D g = (Graphics2D)texture.getGraphics();
+      try {
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        g.setColor(TransparentColor);
+        for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
+          BufferedImage image = listFrames.get(frameIdx).frame;
+          List<FrameDataV2> frame = framesList.get(frameIdx);
+          for (int entryIdx = 0; entryIdx < frame.size(); entryIdx++) {
+            FrameDataV2 entry = frame.get(entryIdx);
+            if (entry.page == i) {
+              int sx = entry.dx, sy = entry.dy;
+              int dx = entry.sx, dy = entry.sy;
+              int w = entry.width, h = entry.height;
+              g.fillRect(dx, dy, w, h);
+              g.drawImage(image, dx, dy, dx+w, dy+h, sx, sy, sx+w, sy+h, null);
+            }
+          }
+        }
+      } finally {
+        g.dispose();
+        g = null;
+      }
+
+      // compressing PVRZ
+      String errorMsg = null;
+      int[] textureData = ((DataBufferInt)texture.getRaster().getDataBuffer()).getData();
+      try {
+        int outSize = DxtEncoder.calcImageSize(texture.getWidth(), texture.getHeight(), dxtType);
+        DxtEncoder.encodeImage(textureData, texture.getWidth(), texture.getHeight(), output, dxtType);
+        byte[] header = ConvertToPvrz.createPVRHeader(texture.getWidth(), texture.getHeight(), dxtCode);
+        byte[] pvrz = new byte[header.length + outSize];
+        System.arraycopy(header, 0, pvrz, 0, header.length);
+        System.arraycopy(output, 0, pvrz, header.length, outSize);
+        header = null;
+        pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
+
+        // writing PVRZ to disk
+        BufferedOutputStream bos = null;
+        try {
+          bos = new BufferedOutputStream(new FileOutputStream(new File(pvrzName)));
+          bos.write(pvrz);
+          bos.close();
+          bos = null;
+        } catch (Exception e) {
+          e.printStackTrace();
+          errorMsg = String.format("Error writing PVRZ file \"%1$s\" to disk.", pvrzName);
+          if (bos != null) {
+            bos.close();
+            bos = null;
+          }
+        }
+        textureData = null;
+        pvrz = null;
+      } catch (Exception e) {
+        e.printStackTrace();
+        errorMsg = String.format("Error generating PVRZ files:\n%1$s.", e.getMessage());
+      }
+
+      if (errorMsg != null) {
+        throw new Exception(errorMsg);
+      }
+    }
+    output = null;
+    return true;
+  }
+
 
 //-------------------------- INNER CLASSES --------------------------
 
   /** Provides information for a single frame entry */
-  public class PseudoBamFrameEntry implements FrameEntry
+  public static class PseudoBamFrameEntry implements FrameEntry
   {
+    private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+
     private int width, height, centerX, centerY;
     private BufferedImage frame;
 
-    private PseudoBamFrameEntry(BufferedImage image, int centerX, int centerY)
+    public PseudoBamFrameEntry(BufferedImage image, int centerX, int centerY)
     {
-      if (image != null) {
-        frame = ColorConvert.toBufferedImage(image, true);
-        width = frame.getWidth(null);
-        height = frame.getHeight(null);
-        this.centerX = centerX;
-        this.centerY = centerY;
-      } else {
-        frame = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        width = height = 1;
-      }
+      setFrame(image);
+      setCenterX(centerX);
+      setCenterY(centerY);
     }
 
     @Override
@@ -441,6 +1503,86 @@ public class PseudoBamDecoder extends BamDecoder
     public int getCenterX() { return centerX; }
     @Override
     public int getCenterY() { return centerY; }
+
+    public void setCenterX(int value)
+    {
+      if (value < Short.MIN_VALUE) value = Short.MIN_VALUE;
+        else if (value > Short.MAX_VALUE) value = Short.MAX_VALUE;
+      centerX = value;
+    }
+
+    public void setCenterY(int value)
+    {
+      if (value < Short.MIN_VALUE) value = Short.MIN_VALUE;
+        else if (value > Short.MAX_VALUE) value = Short.MAX_VALUE;
+      centerY = value;
+    }
+
+    /** Returns the image object of this frame entry. */
+    public BufferedImage getFrame()
+    {
+      return frame;
+    }
+
+    /** Assigns a new image object to this frame entry. */
+    public void setFrame(BufferedImage image)
+    {
+      if (image != null) {
+        frame = image;
+        width = frame.getWidth();
+        height = frame.getHeight();
+      } else {
+        frame = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        width = height = 1;
+      }
+    }
+
+    @Override
+    public Object clone()
+    {
+      return new PseudoBamFrameEntry(frame, centerX, centerY);
+    }
+
+    @Override
+    public String toString()
+    {
+      String s = (String)getOption(PseudoBamDecoder.OPTION_STRING_LABEL);
+      if (s != null) {
+        return s;
+      } else {
+        return String.format("Frame@%1$dx%2$d", width, height);
+      }
+    }
+
+    /** Returns all available options by name. */
+    public String[] getOptionNames()
+    {
+      String[] retVal = new String[mapOptions.keySet().size()];
+      Iterator<String> iter = mapOptions.keySet().iterator();
+      int idx = 0;
+      while (iter.hasNext()) {
+        retVal[idx++] = iter.next();
+      }
+
+      return retVal;
+    }
+
+    /** Returns the value of the specified option for this frame. */
+    public Object getOption(String name)
+    {
+      if (name != null) {
+        return mapOptions.get(name);
+      }
+      return null;
+    }
+
+    /** Sets a custom option for this frame. */
+    public void setOption(String name, Object value)
+    {
+      if (name != null) {
+        mapOptions.put(name, value);
+      }
+    }
   }
 
   /** Provides access to cycle-specific functionality. */
@@ -452,6 +1594,53 @@ public class PseudoBamDecoder extends BamDecoder
     {
       super(decoder);
       init();
+    }
+
+    /** Returns all available options by name for the current cycle. */
+    public String[] cycleGetOptionNames()
+    {
+      return cycleGetOptionsNames(currentCycle);
+    }
+
+    /** Returns all available options by name for the specified cycle. */
+    public String[] cycleGetOptionsNames(int cycleIdx)
+    {
+      update();
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        return getDecoder().listCycles.get(cycleIdx).getOptionNames();
+      }
+      return null;
+    }
+
+    /** Returns the specified option associated with the current cycle. */
+    public Object cycleGetOption(String name)
+    {
+      return cycleGetOption(currentCycle, name);
+    }
+
+    /** Returns the option associated with the specified cycle. */
+    public Object cycleGetOption(int cycleIdx, String name)
+    {
+      update();
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        return getDecoder().listCycles.get(cycleIdx).getOption(name);
+      }
+      return null;
+    }
+
+    /** Assigns a custom option to the current cycle. */
+    public void cycleSetOption(String name, Object value)
+    {
+      cycleSetOption(currentCycle, name, value);
+    }
+
+    /** Assigns a custom option to the specified cycle. */
+    public void cycleSetOption(int cycleIdx, String name, Object value)
+    {
+      update();
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        getDecoder().listCycles.get(cycleIdx).setOption(name, value);
+      }
     }
 
 
@@ -477,10 +1666,16 @@ public class PseudoBamDecoder extends BamDecoder
     public void cycleInsert(int cycleIdx, int[] indices)
     {
       if (cycleIdx >= 0 && cycleIdx <= getDecoder().listCycles.size()) {
-        CycleEntry ce = new CycleEntry(indices);
+        PseudoBamCycleEntry ce = new PseudoBamCycleEntry(indices);
         getDecoder().listCycles.add(cycleIdx, ce);
         update();
       }
+    }
+
+    /** Removes the cycle at the specified position. */
+    public void cycleRemove(int cycleIdx)
+    {
+      cycleRemove(cycleIdx, 1);
     }
 
     /** Removes a number of cycles at the specified position. */
@@ -504,6 +1699,36 @@ public class PseudoBamDecoder extends BamDecoder
       update();
     }
 
+    /**
+     * Moves the current cycle by the specified (positive or negative) offset.
+     * @return The new cycle index, or -1 on error.
+     */
+    public int cycleMove(int offset)
+    {
+      return cycleMove(currentCycle, offset);
+    }
+
+    /**
+     * Moves the specified cycle by the specified (positive or negative) offset.
+     * @return The new cycle index, or -1 on error.
+     */
+    public int cycleMove(int cycleIdx, int offset)
+    {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        int ofsAbs = cycleIdx + offset;
+        if (ofsAbs < 0) ofsAbs = 0;
+        if (ofsAbs >= getDecoder().listCycles.size()) ofsAbs = getDecoder().listCycles.size() - 1;
+        if (ofsAbs != cycleIdx) {
+          PseudoBamCycleEntry ce = getDecoder().listCycles.get(cycleIdx);
+          getDecoder().listCycles.remove(cycleIdx);
+          getDecoder().listCycles.add(ofsAbs, ce);
+        }
+        return ofsAbs;
+      }
+      return -1;
+    }
+
+
     /** Adds frame indices to the specified cycle. */
     public void cycleAddFrames(int cycleIdx, int[] indices)
     {
@@ -524,9 +1749,7 @@ public class PseudoBamDecoder extends BamDecoder
     /** Removes one frame index from the cycle at the specified position. */
     public void cycleRemoveFrames(int cycleIdx, int pos)
     {
-      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
-        cycleRemoveFrames(cycleIdx, getDecoder().listCycles.get(cycleIdx).size(), 1);
-      }
+      cycleRemoveFrames(cycleIdx, pos, 1);
     }
 
     /** Removes frame indices from the cycle at the specified position. */
@@ -538,6 +1761,12 @@ public class PseudoBamDecoder extends BamDecoder
       }
     }
 
+    /** Removes all frame indices from the current cycle. */
+    public void cycleClearFrames()
+    {
+      cycleClearFrames(currentCycle);
+    }
+
     /** Removes all frame indices from the specified cycle. */
     public void cycleClearFrames(int cycleIdx)
     {
@@ -545,6 +1774,52 @@ public class PseudoBamDecoder extends BamDecoder
         getDecoder().listCycles.get(cycleIdx).clear();
         update();
       }
+    }
+
+    /**
+     * Moves the current frame of the current cycle by the specified (positive or negative) offset.
+     * Sets the current frame to the new position afterwards.
+     * @return The new frame index within the cycle, or -1 on error.
+     */
+    public int cycleMoveFrame(int offset)
+    {
+      int pos = cycleMoveFrame(currentCycle, currentFrame, offset);
+      if (pos >= 0) {
+        currentFrame = pos;
+      }
+      return pos;
+    }
+
+    /**
+     * Moves the frame of the current cycle by the specified (positive or negative) offset.
+     * @return The new frame index within the cycle, or -1 on error.
+     */
+    public int cycleMoveFrame(int frameIdx, int offset)
+    {
+      return cycleMoveFrame(currentCycle, frameIdx, offset);
+    }
+
+    /**
+     * Moves the frame of the cycle by the specified (positive or negative) offset.
+     * @return The new frame index within the cycle, or -1 on error.
+     */
+    public int cycleMoveFrame(int cycleIdx, int frameIdx, int offset)
+    {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        PseudoBamCycleEntry ce = getDecoder().listCycles.get(cycleIdx);
+        if (frameIdx >= 0 && frameIdx < ce.size()) {
+          int ofsAbs = frameIdx + offset;
+          if (ofsAbs < 0) ofsAbs = 0;
+          if (ofsAbs >= ce.size()) ofsAbs = ce.size() - 1;
+          if (ofsAbs != frameIdx) {
+            int index = ce.get(frameIdx);
+            ce.remove(frameIdx, 1);
+            ce.insert(ofsAbs, new int[]{index});
+          }
+          return ofsAbs;
+        }
+      }
+      return -1;
     }
 
 
@@ -608,6 +1883,24 @@ public class PseudoBamDecoder extends BamDecoder
       return null;
     }
 
+    /**
+     * Validates the current cycle configuration. This method should be called whenever changes
+     * have been made to the frames and/or cycle structure outside of this control instance.
+     */
+    public void validate()
+    {
+      update();
+    }
+
+    /** Returns a CycleEntry structure for the specified cycle. */
+    public PseudoBamCycleEntry getCycleInfo(int cycleIdx)
+    {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        return getDecoder().listCycles.get(cycleIdx);
+      } else {
+        return null;
+      }
+    }
 
     @Override
     public PseudoBamDecoder getDecoder()
@@ -753,7 +2046,7 @@ public class PseudoBamDecoder extends BamDecoder
 
     private void init()
     {
-      currentCycle = currentFrame = 0;
+      currentCycle = currentFrame = -1;
       update();
       updateSharedBamSize();
     }
@@ -780,28 +2073,60 @@ public class PseudoBamDecoder extends BamDecoder
           }
         }
       }
+      updateSharedBamSize();
     }
   }
 
 
-  // Stores information for a single cycle
-  private static class CycleEntry
+  /** Stores information for a single cycle */
+  public static class PseudoBamCycleEntry
   {
     private final List<Integer> frames;   // stores abs. frame indices that define this cycle
+    private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
 
-    public CycleEntry(int[] indices)
+    protected PseudoBamCycleEntry(int[] indices)
     {
       frames = new ArrayList<Integer>();
       add(indices);
     }
 
-    // Returns the number of stored frame indices
+    /** Returns all available options by name. */
+    public String[] getOptionNames()
+    {
+      String[] retVal = new String[mapOptions.keySet().size()];
+      Iterator<String> iter = mapOptions.keySet().iterator();
+      int idx = 0;
+      while (iter.hasNext()) {
+        retVal[idx++] = iter.next();
+      }
+
+      return retVal;
+    }
+
+    /** Returns the value of the specified option. */
+    public Object getOption(String name)
+    {
+      if (name != null) {
+        return mapOptions.get(name);
+      }
+      return null;
+    }
+
+    /** Adds a custom option to this cycle. */
+    public void setOption(String name, Object value)
+    {
+      if (name != null) {
+        mapOptions.put(name, value);
+      }
+    }
+
+    /** Returns the number of stored frame indices. */
     public int size()
     {
       return frames.size();
     }
 
-    // Returns the frame index at specified position. Returns -1 on error.
+    /** Returns the frame index at specified position. Returns -1 on error. */
     public int get(int pos)
     {
       if (pos >= 0 && pos < frames.size()) {
@@ -811,19 +2136,27 @@ public class PseudoBamDecoder extends BamDecoder
       }
     }
 
-    // Removes all frame indices.
+    /** Replaces the frame index value at the specified position. Note: Does not validate frameIdx! */
+    public void set(int pos, int frameIdx)
+    {
+      if (pos >= 0 && pos < frames.size()) {
+        frames.set(pos, frameIdx);
+      }
+    }
+
+    /** Removes all frame indices. */
     public void clear()
     {
       frames.clear();
     }
 
-    // Appends specified indices to list.
+    /** Appends specified indices to list. */
     public void add(int[] indices)
     {
       insert(frames.size(), indices);
     }
 
-    // Inserts indices at specified position.
+    /** Inserts indices at specified position. */
     public boolean insert(int pos, int[] indices)
     {
       if (indices != null && pos >= 0 && pos <= frames.size()) {
@@ -835,7 +2168,7 @@ public class PseudoBamDecoder extends BamDecoder
       return false;
     }
 
-    // Removes count indices at specified position.
+    /** Removes count indices at specified position. */
     public boolean remove(int pos, int count)
     {
       if (pos >= 0 && pos < frames.size()) {
@@ -846,6 +2179,49 @@ public class PseudoBamDecoder extends BamDecoder
           frames.remove(pos);
         }
         return count > 0;
+      }
+      return false;
+    }
+
+    @Override
+    public String toString()
+    {
+      StringBuilder sb = new StringBuilder("[");
+      for (int i = 0; i < frames.size(); i++) {
+        sb.append(Integer.toString(frames.get(i)));
+        if (i < frames.size() - 1) {
+          sb.append(", ");
+        }
+      }
+      sb.append("]");
+      return sb.toString();
+    }
+  }
+
+
+  // Storage for BAM v2 frame data blocks
+  private static class FrameDataV2
+  {
+    public int page, sx, sy, width, height, dx, dy;
+
+    public FrameDataV2(int page, int sx, int sy, int width, int height, int dx, int dy)
+    {
+      this.page = page;
+      this.sx = sx;
+      this.sy = sy;
+      this.width = width;
+      this.height = height;
+      this.dx = dx;
+      this.dy = dy;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+      if (o instanceof FrameDataV2) {
+        FrameDataV2 fd = (FrameDataV2)o;
+        return (fd.page == page && fd.sx == sx && fd.sy == sy && fd.width == width &&
+                fd.height == height && fd.dx == dx && fd.dy == dy);
       }
       return false;
     }

@@ -1,5 +1,7 @@
-package infinity.gui;
+package infinity.gui.converter;
 
+import infinity.gui.ChildFrame;
+import infinity.gui.WindowBlocker;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.ColorConvert;
 

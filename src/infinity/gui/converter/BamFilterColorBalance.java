@@ -1,0 +1,232 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
+package infinity.gui.converter;
+
+import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
+import java.awt.image.IndexColorModel;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+/**
+ * Color filter: adjust color balance for red, green, blue individually.
+ * @author argent77
+ */
+public class BamFilterColorBalance extends BamFilterBaseColor implements ChangeListener
+{
+  private static final String FilterName = "Color Balance";
+  private static final String FilterDesc = "This filter provides controls for adjusting the " +
+                                           "balance of each individual color channel.";
+
+  private JSlider sliderRed, sliderGreen, sliderBlue;
+  private JSpinner spinnerRed, spinnerGreen, spinnerBlue;
+
+  public static String getFilterName() { return FilterName; }
+  public static String getFilterDesc() { return FilterDesc; }
+
+  public BamFilterColorBalance(ConvertToBam parent)
+  {
+    super(parent, FilterName, FilterDesc);
+  }
+
+  @Override
+  public BufferedImage process(BufferedImage frame) throws Exception
+  {
+    return applyEffect(frame);
+  }
+
+  @Override
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
+  {
+    if (entry != null) {
+      entry.setFrame(applyEffect(entry.getFrame()));
+    }
+    return entry;
+  }
+
+  @Override
+  protected JPanel loadControls()
+  {
+    GridBagConstraints c = new GridBagConstraints();
+
+    JLabel lr = new JLabel("Red:");
+    JLabel lg = new JLabel("Green:");
+    JLabel lb = new JLabel("Blue:");
+    sliderRed = new JSlider(SwingConstants.HORIZONTAL, -255, 255, 0);
+    sliderRed.addChangeListener(this);
+    sliderGreen = new JSlider(SwingConstants.HORIZONTAL, -255, 255, 0);
+    sliderGreen.addChangeListener(this);
+    sliderBlue = new JSlider(SwingConstants.HORIZONTAL, -255, 255, 0);
+    sliderBlue.addChangeListener(this);
+    spinnerRed = new JSpinner(new SpinnerNumberModel(sliderRed.getValue(),
+                                                     sliderRed.getMinimum(),
+                                                     sliderRed.getMaximum(), 1));
+    spinnerRed.addChangeListener(this);
+    spinnerGreen = new JSpinner(new SpinnerNumberModel(sliderGreen.getValue(),
+                                                       sliderGreen.getMinimum(),
+                                                       sliderGreen.getMaximum(), 1));
+    spinnerGreen.addChangeListener(this);
+    spinnerBlue = new JSpinner(new SpinnerNumberModel(sliderBlue.getValue(),
+                                                      sliderBlue.getMinimum() ,
+                                                      sliderBlue.getMaximum(), 1));
+    spinnerBlue.addChangeListener(this);
+
+    JPanel p = new JPanel(new GridBagLayout());
+    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    p.add(lr, c);
+    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    p.add(sliderRed, c);
+    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    p.add(spinnerRed, c);
+
+    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    p.add(lg, c);
+    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    p.add(sliderGreen, c);
+    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    p.add(spinnerGreen, c);
+
+    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    p.add(lb, c);
+    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    p.add(sliderBlue, c);
+    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    p.add(spinnerBlue, c);
+
+    JPanel panel = new JPanel(new GridBagLayout());
+    ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+                        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(p, c);
+
+    return panel;
+  }
+
+//--------------------- Begin Interface ChangeListener ---------------------
+
+  @Override
+  public void stateChanged(ChangeEvent event)
+  {
+    if (event.getSource() == sliderRed) {
+      spinnerRed.setValue(Integer.valueOf(sliderRed.getValue()));
+      if (sliderRed.getModel().getValueIsAdjusting() == false) {
+        fireChangeListener();
+      }
+    } else if (event.getSource() == sliderGreen) {
+      spinnerGreen.setValue(Integer.valueOf(sliderGreen.getValue()));
+      if (sliderGreen.getModel().getValueIsAdjusting() == false) {
+        fireChangeListener();
+      }
+    } else if (event.getSource() == sliderBlue) {
+      spinnerBlue.setValue(Integer.valueOf(sliderBlue.getValue()));
+      if (sliderBlue.getModel().getValueIsAdjusting() == false) {
+        fireChangeListener();
+      }
+    } else if (event.getSource() == spinnerRed) {
+      sliderRed.setValue(((Integer)spinnerRed.getValue()).intValue());
+    } else if (event.getSource() == spinnerGreen) {
+      sliderGreen.setValue(((Integer)spinnerGreen.getValue()).intValue());
+    } else if (event.getSource() == spinnerBlue) {
+      sliderBlue.setValue(((Integer)spinnerBlue.getValue()).intValue());
+    }
+  }
+
+//--------------------- End Interface ChangeListener ---------------------
+
+  private BufferedImage applyEffect(BufferedImage srcImage)
+  {
+    if (srcImage != null) {
+      int[] buffer;
+      IndexColorModel cm = null;
+      if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        // paletted image
+        cm = (IndexColorModel)srcImage.getColorModel();
+        buffer = new int[1 << cm.getPixelSize()];
+        cm.getRGBs(buffer);
+        // applying proper alpha
+        if (!cm.hasAlpha()) {
+          final int Green = 0x0000ff00;
+          boolean greenFound = false;
+          for (int i = 0; i < buffer.length; i++) {
+            if (!greenFound && buffer[i] == Green) {
+              greenFound = true;
+              buffer[i] &= 0x00ffffff;
+            } else {
+              buffer[i] |= 0xff000000;
+            }
+          }
+        }
+      } else if (srcImage.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
+        // truecolor image
+        buffer = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+      } else {
+        buffer = new int[0];
+      }
+
+      // red/gree/blue in range [-255, 255]
+      float red = ((Integer)spinnerRed.getValue()).floatValue() / 255.0f;
+      float green = ((Integer)spinnerGreen.getValue()).floatValue() / 255.0f;
+      float blue = ((Integer)spinnerBlue.getValue()).floatValue() / 255.0f;
+
+      for (int i = 0; i < buffer.length; i++) {
+        if ((buffer[i] & 0xff000000) != 0) {
+          // extracting color channels
+          float fa = (float)((buffer[i] >>> 24) & 0xff) / 255.0f;
+          float fr = ((float)((buffer[i] >>> 16) & 0xff) / 255.0f) / fa;
+          float fg = ((float)((buffer[i] >>> 8) & 0xff) / 255.0f) / fa;
+          float fb = ((float)(buffer[i] & 0xff) / 255.0f) / fa;
+
+          // applying color balance
+          fr += (red / fa);
+          fg += (green / fa);
+          fb += (blue / fa);
+
+          int ir = (int)((fr * fa) * 255.0f); if (ir < 0) ir = 0; else if (ir > 255) ir = 255;
+          int ig = (int)((fg * fa) * 255.0f); if (ig < 0) ig = 0; else if (ig > 255) ig = 255;
+          int ib = (int)((fb * fa) * 255.0f); if (ib < 0) ib = 0; else if (ib > 255) ib = 255;
+          buffer[i] = (buffer[i] & 0xff000000) | (ir << 16) | (ig << 8) | ib;
+        }
+      }
+
+      if (cm != null) {
+        // recreating paletted image
+        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), buffer.length, buffer, 0,
+                                                  cm.hasAlpha(), cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
+        int width = srcImage.getWidth();
+        int height = srcImage.getHeight();
+        BufferedImage dstImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm2);
+        byte[] srcPixels = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
+        byte[] dstPixels = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(srcPixels, 0, dstPixels, 0, srcPixels.length);
+        srcImage = dstImage;
+        srcPixels = null; dstPixels = null;
+      }
+    }
+
+    return srcImage;
+  }
+}

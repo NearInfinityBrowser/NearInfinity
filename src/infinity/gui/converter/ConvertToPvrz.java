@@ -2,8 +2,10 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.gui;
+package infinity.gui.converter;
 
+import infinity.gui.ChildFrame;
+import infinity.gui.WindowBlocker;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;

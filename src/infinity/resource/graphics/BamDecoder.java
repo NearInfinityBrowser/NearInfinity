@@ -299,6 +299,12 @@ public abstract class BamDecoder
       return parent;
     }
 
+    /** Returns <code>true</code> if, and only if {@link #cycleCount()} is 0. */
+    public boolean isEmpty()
+    {
+      return (cycleCount() == 0);
+    }
+
     /** Returns the total number of available cycles. */
     public abstract int cycleCount();
 
