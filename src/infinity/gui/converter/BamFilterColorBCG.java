@@ -70,9 +70,9 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
     JLabel lb = new JLabel("Brightness:");
     JLabel lc = new JLabel("Contrast:");
     JLabel lg = new JLabel("Gamma:");
-    sliderBrightness = new JSlider(SwingConstants.HORIZONTAL, -127, 127, 0);
+    sliderBrightness = new JSlider(SwingConstants.HORIZONTAL, -100, 100, 0);
     sliderBrightness.addChangeListener(this);
-    sliderContrast = new JSlider(SwingConstants.HORIZONTAL, -127, 127, 0);
+    sliderContrast = new JSlider(SwingConstants.HORIZONTAL, -100, 100, 0);
     sliderContrast.addChangeListener(this);
     sliderGamma = new JSlider(SwingConstants.HORIZONTAL, 1, 500, 100);
     sliderGamma.addChangeListener(this);
@@ -90,33 +90,33 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
     spinnerGamma.addChangeListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p.add(lb, c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(sliderBrightness, c);
-    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(spinnerBrightness, c);
 
-    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(lc, c);
-    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderContrast, c);
-    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerContrast, c);
 
-    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(lg, c);
-    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderGamma, c);
-    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerGamma, c);
 

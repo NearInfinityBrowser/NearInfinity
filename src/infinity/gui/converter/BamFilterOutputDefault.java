@@ -73,15 +73,12 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput
 
       if (getConverter().isBamV1Selected()) {
         // convert to BAM v1
-        int threshold = getConverter().getTransparencyThreshold();
         decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
                           Integer.valueOf(getConverter().getPaletteDialog().getRleIndex()));
         decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED,
                           Boolean.valueOf(getConverter().isBamV1Compressed()));
-        int[] palette = retrievePalette(decoder);
         try {
-          return decoder.exportBamV1(outFileName, palette, threshold,
-                                     getConverter().getProgressMonitor(),
+          return decoder.exportBamV1(outFileName, getConverter().getProgressMonitor(),
                                      getConverter().getProgressMonitorStage());
         } catch (Exception e) {
           e.printStackTrace();

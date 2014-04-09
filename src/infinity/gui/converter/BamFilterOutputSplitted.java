@@ -110,14 +110,14 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p1.add(l1, c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p1.add(spinnerSplitX, c);
     ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     p1.add(l2, c);
-    ConvertToBam.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ConvertToBam.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p1.add(spinnerSplitY, c);
     ConvertToBam.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
@@ -125,31 +125,31 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p1.add(new JPanel(), c);
-    ConvertToBam.setGBC(c, 1, 1, 4, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 1, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p1.add(cbSplitAuto, c);
 
     JPanel p2 = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 6, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 0, 6, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p2.add(l4, c);
     ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p2.add(l5, c);
-    ConvertToBam.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 8, 0);
+    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 8, 0);
     p2.add(cbSuffixDigits, c);
     ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(4, 12, 0, 0), 0, 0);
     p2.add(l6, c);
-    ConvertToBam.setGBC(c, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    ConvertToBam.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p2.add(spinnerSuffixStart, c);
     ConvertToBam.setGBC(c, 4, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
         GridBagConstraints.NONE, new Insets(4, 12, 0, 0), 0, 0);
     p2.add(l7, c);
-    ConvertToBam.setGBC(c, 5, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    ConvertToBam.setGBC(c, 5, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p2.add(spinnerSuffixStep, c);
 
     JPanel pMain = new JPanel(new GridBagLayout());
@@ -368,15 +368,12 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     if (getConverter() != null && outFileName != null && !outFileName.isEmpty() && decoder != null) {
       if (getConverter().isBamV1Selected()) {
         // convert to BAM v1
-        int threshold = getConverter().getTransparencyThreshold();
         decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
                           Integer.valueOf(getConverter().getPaletteDialog().getRleIndex()));
         decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED,
                           Boolean.valueOf(getConverter().isBamV1Compressed()));
-        int[] palette = retrievePalette(decoder);
         try {
-          return decoder.exportBamV1(outFileName, palette, threshold,
-                                     getConverter().getProgressMonitor(),
+          return decoder.exportBamV1(outFileName, getConverter().getProgressMonitor(),
                                      getConverter().getProgressMonitorStage());
         } catch (Exception e) {
           e.printStackTrace();

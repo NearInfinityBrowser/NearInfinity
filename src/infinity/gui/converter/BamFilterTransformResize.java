@@ -46,7 +46,6 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   private static final int TYPE_BILINEAR          = 1;
   private static final int TYPE_BICUBIC           = 2;
   private static final int TYPE_SCALEX            = 3;
-//  private static final int TYPE_LANCZOS           = 4;
   private static final String[] ScalingTypeItems = new String[]{"Nearest neighbor", "Bilinear",
                                                                 "Bicubic", "Scale2x/3x/4x"};
 
@@ -73,6 +72,12 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
   {
     return applyEffect(entry);
+  }
+
+  @Override
+  public void updateControls()
+  {
+    updateStatus();
   }
 
   @Override
@@ -185,19 +190,23 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV1],
                                                   ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
         setFactor(factor, 0.01, 10.0, 0.1);
+        spinnerFactor.setEnabled(true);
         break;
       case TYPE_BILINEAR:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
         setFactor(factor, 0.01, 10.0, 0.1);
+        spinnerFactor.setEnabled(!getConverter().isBamV1Selected());
         break;
       case TYPE_BICUBIC:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
         setFactor(factor, 0.01, 10.0, 0.1);
+        spinnerFactor.setEnabled(!getConverter().isBamV1Selected());
         break;
       case TYPE_SCALEX:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV1],
                                                   ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
         setFactor((int)factor, 2, 4, 1);
+        spinnerFactor.setEnabled(true);
         break;
 //      case TYPE_LANCZOS:
 //        taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
@@ -315,6 +324,12 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       int newHeight = (int)((double)height * factor);
       if (newHeight < 1) newHeight = 1;
 
+      // defining fallback method for unsupported scaling methods
+      if (!paletteSupported && srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        scaleType = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
+        paletteSupported = true;
+      }
+
       // preparing target image
       if (paletteSupported && srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         IndexColorModel cm = (IndexColorModel)srcImage.getColorModel();
@@ -379,6 +394,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       int dstHeight = 2*srcHeight;
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;
+      byte transIndex = -1;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         srcB = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
         IndexColorModel cm = (IndexColorModel)srcImage.getColorModel();
@@ -389,6 +405,15 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
                                                   DataBuffer.TYPE_BYTE);
         dstImage = new BufferedImage(dstWidth, dstHeight, BufferedImage.TYPE_BYTE_INDEXED, cm2);
         dstB = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < colors.length; i++) {
+          if (transIndex < 0 && (colors[i] & 0x00ffffff) == 0x0000ff00) {
+            transIndex = (byte)i;
+            break;
+          }
+        }
+        if (transIndex < 0) {
+          transIndex = 0;
+        }
       } else {
         srcI = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
         dstImage = new BufferedImage(dstWidth, dstHeight, srcImage.getType());
@@ -401,10 +426,10 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
         for (int x = 0; x < srcWidth; x++) {
           if (srcB != null) {
             byte p = srcB[srcOfs];
-            byte a = (y > 0) ? srcB[srcOfs-srcWidth] : p;
-            byte b = (x+1 < srcWidth) ? srcB[srcOfs+1] : p;
-            byte c = (x > 0) ? srcB[srcOfs-1] : p;
-            byte d = (y+1 < srcHeight) ? srcB[srcOfs+srcWidth] : p;
+            byte a = (y > 0) ? srcB[srcOfs-srcWidth] : transIndex;
+            byte b = (x+1 < srcWidth) ? srcB[srcOfs+1] : transIndex;
+            byte c = (x > 0) ? srcB[srcOfs-1] : transIndex;
+            byte d = (y+1 < srcHeight) ? srcB[srcOfs+srcWidth] : transIndex;
             byte t1 = p, t2 = p, t3 = p, t4 = p;
             if (c == a && c != d && a != b) t1 = a;
             if (a == b && a != c && b != d) t2 = b;
@@ -417,10 +442,10 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
           }
           if (srcI != null) {
             int p = srcI[srcOfs];
-            int a = (y > 0) ? srcI[srcOfs-srcWidth] : p;
-            int b = (x+1 < srcWidth) ? srcI[srcOfs+1] : p;
-            int c = (x > 0) ? srcI[srcOfs-1] : p;
-            int d = (y+1 < srcHeight) ? srcI[srcOfs+srcWidth] : p;
+            int a = (y > 0) ? srcI[srcOfs-srcWidth] : 0;
+            int b = (x+1 < srcWidth) ? srcI[srcOfs+1] : 0;
+            int c = (x > 0) ? srcI[srcOfs-1] : 0;
+            int d = (y+1 < srcHeight) ? srcI[srcOfs+srcWidth] : 0;
             int t1 = p, t2 = p, t3 = p, t4 = p;
             if (c == a && c != d && a != b) t1 = a;
             if (a == b && a != c && b != d) t2 = b;
@@ -453,6 +478,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       int dstHeight = 3*srcHeight;
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;
+      byte transIndex = -1;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         srcB = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
         IndexColorModel cm = (IndexColorModel)srcImage.getColorModel();
@@ -463,6 +489,15 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
                                                   DataBuffer.TYPE_BYTE);
         dstImage = new BufferedImage(dstWidth, dstHeight, BufferedImage.TYPE_BYTE_INDEXED, cm2);
         dstB = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < colors.length; i++) {
+          if (transIndex < 0 && (colors[i] & 0x00ffffff) == 0x0000ff00) {
+            transIndex = (byte)i;
+            break;
+          }
+        }
+        if (transIndex < 0) {
+          transIndex = 0;
+        }
       } else {
         srcI = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
         dstImage = new BufferedImage(dstWidth, dstHeight, srcImage.getType());
@@ -475,14 +510,14 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
         for (int x = 0; x < srcWidth; x++) {
           if (srcB != null) {
             byte e = srcB[srcOfs];
-            byte a = (x > 0 && y > 0) ? srcB[srcOfs-srcWidth-1] : e;
-            byte b = (y > 0) ? srcB[srcOfs-srcWidth] : e;
-            byte c = (x+1 < srcWidth && y > 0) ? srcB[srcOfs-srcWidth+1] : e;
-            byte d = (x > 0) ? srcB[srcOfs-1] : e;
-            byte f = (x+1 < srcWidth) ? srcB[srcOfs+1] : e;
-            byte g = (x > 0 && y+1 < srcHeight) ? srcB[srcOfs+srcWidth-1] : e;
-            byte h = (y+1 < srcHeight) ? srcB[srcOfs+srcWidth] : e;
-            byte i = (x+1 < srcWidth && y+1 < srcHeight) ? srcB[srcOfs+srcWidth+1] : e;
+            byte a = (x > 0 && y > 0) ? srcB[srcOfs-srcWidth-1] : transIndex;
+            byte b = (y > 0) ? srcB[srcOfs-srcWidth] : transIndex;
+            byte c = (x+1 < srcWidth && y > 0) ? srcB[srcOfs-srcWidth+1] : transIndex;
+            byte d = (x > 0) ? srcB[srcOfs-1] : transIndex;
+            byte f = (x+1 < srcWidth) ? srcB[srcOfs+1] : transIndex;
+            byte g = (x > 0 && y+1 < srcHeight) ? srcB[srcOfs+srcWidth-1] : transIndex;
+            byte h = (y+1 < srcHeight) ? srcB[srcOfs+srcWidth] : transIndex;
+            byte i = (x+1 < srcWidth && y+1 < srcHeight) ? srcB[srcOfs+srcWidth+1] : transIndex;
             byte t1 = e, t2 = e, t3 = e, t4 = e, t5 = e, t6 = e, t7 = e, t8 = e, t9 = e;
             if (d == b && d != h && b != f) t1 = d;
             if ((d == b && d != h && b != f && e != c) || (b == f && b != d && f != h && e != a)) t2 = b;
@@ -504,14 +539,14 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
           }
           if (srcI != null) {
             int e = srcI[srcOfs];
-            int a = (x > 0 && y > 0) ? srcI[srcOfs-srcWidth-1] : e;
-            int b = (y > 0) ? srcI[srcOfs-srcWidth] : e;
-            int c = (x+1 < srcWidth && y > 0) ? srcI[srcOfs-srcWidth+1] : e;
-            int d = (x > 0) ? srcI[srcOfs-1] : e;
-            int f = (x+1 < srcWidth) ? srcI[srcOfs+1] : e;
-            int g = (x > 0 && y+1 < srcHeight) ? srcI[srcOfs+srcWidth-1] : e;
-            int h = (y+1 < srcHeight) ? srcI[srcOfs+srcWidth] : e;
-            int i = (x+1 < srcWidth && y+1 < srcHeight) ? srcI[srcOfs+srcWidth+1] : e;
+            int a = (x > 0 && y > 0) ? srcI[srcOfs-srcWidth-1] : 0;
+            int b = (y > 0) ? srcI[srcOfs-srcWidth] : 0;
+            int c = (x+1 < srcWidth && y > 0) ? srcI[srcOfs-srcWidth+1] : 0;
+            int d = (x > 0) ? srcI[srcOfs-1] : 0;
+            int f = (x+1 < srcWidth) ? srcI[srcOfs+1] : 0;
+            int g = (x > 0 && y+1 < srcHeight) ? srcI[srcOfs+srcWidth-1] : 0;
+            int h = (y+1 < srcHeight) ? srcI[srcOfs+srcWidth] : 0;
+            int i = (x+1 < srcWidth && y+1 < srcHeight) ? srcI[srcOfs+srcWidth+1] : 0;
             int t1 = e, t2 = e, t3 = e, t4 = e, t5 = e, t6 = e, t7 = e, t8 = e, t9 = e;
             if (d == b && d != h && b != f) t1 = d;
             if ((d == b && d != h && b != f && e != c) || (b == f && b != d && f != h && e != a)) t2 = b;
@@ -552,11 +587,4 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
 
     return dstImage;
   }
-
-
-//  private BufferedImage scaleLanczos(BufferedImage srcImage, double factor)
-//  {
-//    // TODO
-//    return srcImage;
-//  }
 }

@@ -83,7 +83,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
       cbEdges[i].addActionListener(this);
     }
 
-    spinnerMargin = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
+    spinnerMargin = new JSpinner(new SpinnerNumberModel(0, 0, 255, 1));
     spinnerMargin.addChangeListener(this);
 
     cbAdjustCenter = new JCheckBox("Adjust center position", true);
@@ -225,7 +225,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
                 break;
               }
             } else {
-              if ((srcI[ofs] & 0xff000000) == 0) {
+              if ((srcI[ofs] & 0xff000000) != 0) {
                 edgeTop = true;
                 break;
               }
@@ -244,7 +244,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
                 break;
               }
             } else {
-              if ((srcI[ofs] & 0xff000000) == 0) {
+              if ((srcI[ofs] & 0xff000000) != 0) {
                 edgeBottom = true;
                 break;
               }
@@ -263,7 +263,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
                 break;
               }
             } else {
-              if ((srcI[ofs] & 0xff000000) == 0) {
+              if ((srcI[ofs] & 0xff000000) != 0) {
                 edgeLeft = true;
                 break;
               }
@@ -282,7 +282,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
                 break;
               }
             } else {
-              if ((srcI[ofs] & 0xff000000) == 0) {
+              if ((srcI[ofs] & 0xff000000) != 0) {
                 edgeRight = true;
                 break;
               }

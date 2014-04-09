@@ -88,33 +88,33 @@ public class BamFilterColorHSL extends BamFilterBaseColor implements ChangeListe
     spinnerLightness.addChangeListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p.add(lh, c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(sliderHue, c);
-    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(spinnerHue, c);
 
-    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(ls, c);
-    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderSaturation, c);
-    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerSaturation, c);
 
-    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(ll, c);
-    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderLightness, c);
-    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerLightness, c);
 
@@ -241,7 +241,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor implements ChangeListe
           l += lightness;
           if (h < 0.0f) h += 1.0f; else if (h > 1.0f) h -= 1.0f;
           if (s < 0.0f) s = 0.0f; else if (s > 1.0f) s = 1.0f;
-          if (l < 0.0f) l += 1.0f; else if (l > 1.0f) l -= 1.0f;
+          if (l < 0.0f) l = 0.0f; else if (l > 1.0f) l = 1.0f;
 
           // converting HSL -> RGB
           if (s == 0.0f) {

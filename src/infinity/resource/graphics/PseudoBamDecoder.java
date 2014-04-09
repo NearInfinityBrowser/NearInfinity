@@ -593,10 +593,255 @@ public class PseudoBamDecoder extends BamDecoder
     return (isAlpha || isGreen);
   }
 
+
+  /**
+   * Creates a BAM v1 resource from the current BAM structure. Requires paletted source frames
+   * using a common palette for all frames.
+   * @param fileName The filename of the BAM file to export.
+   * @param progress An optional progress monitor to display the state of the export progress.
+   * @param curProgress The current progress state of the progress monitor.
+   * @return <code>true</code> if the export was successfull, <code>false</code> otherwise.
+   * @throws Exception If an unrecoverable error occured.
+   */
+  public boolean exportBamV1(String fileName, ProgressMonitor progress, int curProgress) throws Exception
+  {
+    final int FrameEntrySize = 12;
+    final int CycleEntrySize = 4;
+
+    if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
+      // sanity checks
+      if (fileName == null || fileName.isEmpty()) {
+        throw new Exception("Invalid filename specified.");
+      }
+      if (listFrames.size() > 65535) {
+        throw new Exception("No more than 65535 frames supported.");
+      }
+      if (listCycles.size() > 255) {
+        throw new Exception("No more than 255 cycles supported.");
+      }
+      for (int i = 0; i < listCycles.size(); i++) {
+        if (listCycles.get(i).size() > 65535) {
+          throw new Exception(String.format("No more than 65535 frames per cycle supported. " +
+                                            "Cycle %1$d contains %2$d entries.",
+                                            i, listCycles.get(i).size()));
+        }
+      }
+
+      int[] palette = null;
+      int transIndex = -1;
+      for (int i = 0; i < listFrames.size(); i++) {
+        PseudoBamFrameEntry entry = listFrames.get(i);
+
+        // checking source frame type
+        if (entry.getFrame().getType() != BufferedImage.TYPE_BYTE_INDEXED) {
+          throw new Exception("Unsupported source frame image type.");
+        }
+
+        // checking frame properties
+        if (entry.width <= 0 || entry.width > 65535 || entry.height <= 0 || entry.height > 65535 ||
+            entry.centerX < Short.MIN_VALUE || entry.centerX > Short.MAX_VALUE ||
+            entry.centerY < Short.MIN_VALUE || entry.centerY > Short.MAX_VALUE) {
+          throw new Exception("Dimensions are out of range for frame index " + i);
+        }
+
+        // rudimentary palette check
+        if (palette == null) {
+          final int Green = 0x0000ff00;;
+          IndexColorModel cm = (IndexColorModel)entry.getFrame().getColorModel();
+          palette = new int[1 << cm.getPixelSize()];
+          cm.getRGBs(palette);
+          for (int j = 0; j < palette.length; j++) {
+            int c = palette[i] & 0x00ffffff;
+            if (transIndex < 0 && c == Green) {
+              transIndex = j;
+              break;
+            }
+          }
+          if (transIndex < 0) {
+            transIndex = 0;
+          }
+        } else {
+          IndexColorModel cm = (IndexColorModel)entry.getFrame().getColorModel();
+          if (palette.length != (1 <<cm.getPixelSize())) {
+            throw new Exception("Incompatible palette found in source frame " + i);
+          }
+        }
+      }
+
+      // initializing progress monitor
+      if (progress != null) {
+        if (curProgress < 0) curProgress = 0;
+        progress.setMaximum(progress.getMaximum() + 2);
+        progress.setProgress(curProgress++);
+        progress.setNote("Encoding frames");
+      }
+
+      // calculating the max. space required for a single frame
+      PseudoBamControl control = createControl();
+      control.setMode(BamDecoder.BamControl.Mode.Shared);
+      control.setSharedPerCycle(false);
+      Dimension dimFrame = control.calculateSharedCanvas(false).getSize();
+      int maxImageSize = (dimFrame.width*dimFrame.height*3) / 2;    // about 1.5x of max. size
+      List<byte[]> listFrameData = new ArrayList<byte[]>(listFrames.size());
+
+      // encoding frames
+      Object o = getOption(OPTION_INT_RLEINDEX);
+      byte rleIndex = (byte)(((o != null) ? ((Integer)o).intValue() : 0) & 0xff);
+      byte[] dstData = new byte[maxImageSize];
+
+      for (int idx = 0; idx < listFrames.size(); idx++) {
+        o = listFrames.get(idx).getOption(OPTION_BOOL_COMPRESSED);
+        boolean frameCompressed = (o != null) ? ((Boolean)o).booleanValue() : false;
+        PseudoBamFrameEntry entry = listFrames.get(idx);
+        byte[] srcBuffer = ((DataBufferByte)entry.frame.getRaster().getDataBuffer()).getData();
+
+        if (frameCompressed) {
+          // creating RLE compressed frame
+          int srcIdx = 0, dstIdx = 0, srcMax = srcBuffer.length;
+          while (srcIdx < srcMax) {
+            if (rleIndex == srcBuffer[srcIdx]) {
+              // color to compress
+              int cnt = 0;
+              srcIdx++;
+              while (srcIdx < srcMax && cnt < 255 && rleIndex == srcBuffer[srcIdx]) {
+                cnt++;
+                srcIdx++;
+              }
+              dstData[dstIdx++] = (byte)rleIndex;
+              dstData[dstIdx++] = (byte)cnt;
+            } else {
+              // uncompressed pixels
+              dstData[dstIdx++] = srcBuffer[srcIdx++];
+            }
+          }
+          // storing the resulting frame data
+          byte[] outData = new byte[dstIdx];
+          System.arraycopy(dstData, 0, outData, 0, dstIdx);
+          listFrameData.add(outData);
+        } else {
+          // creating uncompressed frame
+          System.arraycopy(srcBuffer, 0, dstData, 0, srcBuffer.length);
+          // storing the resulting frame data
+          byte[] outData = new byte[srcBuffer.length];
+          System.arraycopy(dstData, 0, outData, 0, srcBuffer.length);
+          listFrameData.add(outData);
+        }
+        srcBuffer = null;
+      }
+
+      if (progress != null) {
+        progress.setProgress(curProgress++);
+        progress.setNote("Generating BAM");
+      }
+
+      // creating cycles table and frame lookup table
+      List<Integer> listFrameLookup = new ArrayList<Integer>();
+      int lookupSize = 0;
+      for (int i = 0; i < listCycles.size(); i++) {
+        listFrameLookup.add(Integer.valueOf(lookupSize));
+        lookupSize += listCycles.get(i).size();
+      }
+
+      // putting it all together
+      int ofsFrameEntries = 0x18;
+      int ofsPalette = ofsFrameEntries + listFrames.size()*FrameEntrySize + listCycles.size()*CycleEntrySize;
+      int ofsLookup = ofsPalette + 1024;
+      int ofsFrameData = ofsLookup + lookupSize*2;
+      int bamSize = ofsFrameData;
+      // updating frame offsets
+      int[] frameDataOffsets = new int[listFrameData.size()];
+      for (int i = 0; i < listFrameData.size(); i++) {
+        frameDataOffsets[i] = bamSize;
+        o = listFrames.get(i).getOption(OPTION_BOOL_COMPRESSED);
+        if (o == null || ((Boolean)o).booleanValue() == false) {
+          frameDataOffsets[i] |= 0x80000000;
+        }
+        bamSize += listFrameData.get(i).length;
+      }
+
+      byte[] bamData = new byte[bamSize];
+      System.arraycopy("BAM V1  ".getBytes(Charset.forName("US-ASCII")), 0, bamData, 0, 8);
+      DynamicArray.putShort(bamData, 0x08, (short)listFrames.size());
+      DynamicArray.putByte(bamData, 0x0a, (byte)listCycles.size());
+      DynamicArray.putByte(bamData, 0x0b, (byte)rleIndex);
+      DynamicArray.putInt(bamData, 0x0c, ofsFrameEntries);
+      DynamicArray.putInt(bamData, 0x10, ofsPalette);
+      DynamicArray.putInt(bamData, 0x14, ofsLookup);
+
+      // adding frame entries
+      int curOfs = ofsFrameEntries;
+      for (int i = 0; i < listFrames.size(); i++) {
+        DynamicArray.putShort(bamData, curOfs, (short)listFrames.get(i).width);
+        DynamicArray.putShort(bamData, curOfs + 2, (short)listFrames.get(i).height);
+        DynamicArray.putShort(bamData, curOfs + 4, (short)listFrames.get(i).centerX);
+        DynamicArray.putShort(bamData, curOfs + 6, (short)listFrames.get(i).centerY);
+        DynamicArray.putInt(bamData, curOfs + 8, frameDataOffsets[i]);
+        curOfs += FrameEntrySize;
+      }
+
+      // adding cycle entries
+      for (int i = 0; i < listCycles.size(); i++) {
+        DynamicArray.putShort(bamData, curOfs, (short)listCycles.get(i).size());
+        DynamicArray.putShort(bamData, curOfs + 2, listFrameLookup.get(i).shortValue());
+        curOfs += CycleEntrySize;
+      }
+
+      // adding palette
+      for (int i = 0; i < palette.length; i++) {
+        DynamicArray.putByte(bamData, curOfs, (byte)(palette[i] & 0xff));
+        DynamicArray.putByte(bamData, curOfs + 1, (byte)((palette[i] >>> 8) & 0xff));
+        DynamicArray.putByte(bamData, curOfs + 2, (byte)((palette[i] >>> 16) & 0xff));
+        DynamicArray.putByte(bamData, curOfs + 3, (byte)((palette[i] >>> 24) & 0xff));
+        curOfs += 4;
+      }
+
+      // adding frame lookup table
+      for (int i = 0; i < listCycles.size(); i++) {
+        for (int j = 0; j < listCycles.get(i).frames.size(); j++) {
+          DynamicArray.putShort(bamData, curOfs, listCycles.get(i).frames.get(j).shortValue());
+          curOfs += 2;
+        }
+      }
+
+      // adding frame graphics data
+      for (int i = 0; i < listFrameData.size(); i++) {
+        System.arraycopy(listFrameData.get(i), 0, bamData, curOfs, listFrameData.get(i).length);
+        curOfs += listFrameData.get(i).length;
+      }
+
+      // compressing BAM (optional)
+      o = getOption(OPTION_BOOL_COMPRESSED);
+      boolean isCompressed = (o != null) ? ((Boolean)o).booleanValue() : false;
+      if (isCompressed) {
+        bamData = Compressor.compress(bamData, "BAMC", "V1  ");
+      }
+
+      // writing BAM to disk
+      try {
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(fileName)));
+        try {
+          bos.write(bamData);
+        } finally {
+          if (bos != null) {
+            bos.close();
+            bos = null;
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw e;
+      }
+      bamData = null;
+      return true;
+    }
+
+    return false;
+  }
+
+
   /**
    * Creates a BAM v1 resource from the current BAM structure.
    * @param fileName The filename of the BAM file to export.
-   * @param isCompressed Whether to create a BAMC file instead of an uncompressed BAM V1 file.
    * @param palette An optional palette that can be used. If <code>null</code>, a new palette will be
    *                generated automatically.
    * @param threshold The transparency threshold (higher values = higher transparency treated as opaque)

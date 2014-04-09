@@ -3594,10 +3594,11 @@ public class ConvertToBam extends ChildFrame
         // processing frames
         IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, false, transIndex, DataBuffer.TYPE_BYTE);
         for (int i = 0; i < srcListFrames.size(); i++) {
-          BufferedImage srcImage = ColorConvert.toBufferedImage(srcListFrames.get(i).getFrame(), true, true);
+          PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
+          BufferedImage srcImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
           int[] srcBuf = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
-          BufferedImage dstImage = new BufferedImage(srcListFrames.get(i).getWidth(),
-                                                  srcListFrames.get(i).getHeight(),
+          BufferedImage dstImage = new BufferedImage(srcEntry.getWidth(),
+              srcEntry.getHeight(),
                                                   BufferedImage.TYPE_BYTE_INDEXED, cm);
           byte[] dstBuf = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
 
@@ -3625,29 +3626,28 @@ public class ConvertToBam extends ChildFrame
           srcImage = null;
           dstBuf = null;
 
-          PseudoBamFrameEntry entry = new PseudoBamFrameEntry(dstImage,
-                                                              srcListFrames.get(i).getCenterX(),
-                                                              srcListFrames.get(i).getCenterY());
+          PseudoBamFrameEntry dstEntry = new PseudoBamFrameEntry(dstImage, srcEntry.getCenterX(),
+                                                                 srcEntry.getCenterY());
           // adding frame-specific options
-          options = srcListFrames.get(i).getOptionNames();
+          options = srcEntry.getOptionNames();
           for (int j = 0; j < options.length; j++) {
-            entry.setOption(options[j], bamDecoder.getOption(options[j]));
+            dstEntry.setOption(options[j], srcEntry.getOption(options[j]));
           }
-          dstListFrames.add(entry);
+          dstListFrames.add(dstEntry);
         }
       } else {
         // BAM v2: create truecolored version of each frame
         for (int i = 0; i < srcListFrames.size(); i++) {
-          BufferedImage dstImage = ColorConvert.toBufferedImage(srcListFrames.get(i).getFrame(), true, true);
-          PseudoBamFrameEntry entry = new PseudoBamFrameEntry(dstImage,
-                                                              srcListFrames.get(i).getCenterX(),
-                                                              srcListFrames.get(i).getCenterY());
+          PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
+          BufferedImage dstImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
+          PseudoBamFrameEntry dstEntry = new PseudoBamFrameEntry(dstImage, srcEntry.getCenterX(),
+                                                                 srcEntry.getCenterY());
           // adding frame-specific options
-          options = srcListFrames.get(i).getOptionNames();
+          options = srcEntry.getOptionNames();
           for (int j = 0; j < options.length; j++) {
-            entry.setOption(options[j], bamDecoder.getOption(options[j]));
+            dstEntry.setOption(options[j], srcEntry.getOption(options[j]));
           }
-          dstListFrames.add(entry);
+          dstListFrames.add(dstEntry);
         }
       }
     } else {

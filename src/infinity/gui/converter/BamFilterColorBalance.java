@@ -88,33 +88,33 @@ public class BamFilterColorBalance extends BamFilterBaseColor implements ChangeL
     spinnerBlue.addChangeListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p.add(lr, c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(sliderRed, c);
-    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(spinnerRed, c);
 
-    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(lg, c);
-    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderGreen, c);
-    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerGreen, c);
 
-    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(lb, c);
-    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderBlue, c);
-    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                         GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerBlue, c);
 
