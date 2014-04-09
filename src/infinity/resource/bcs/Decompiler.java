@@ -170,6 +170,10 @@ public final class Decompiler
           comment = StringResource.getStringRef(nr);
           if (generateErrors)
             stringrefsUsed.add(new Integer(nr));
+        } else {
+          StringBuilder sb = new StringBuilder();
+          decompileInteger(sb, (long)nr, p);
+          comment = getResourceName("", p, sb.toString());
         }
       }
       else if (p.substring(0, 2).equals("P:"))
@@ -552,6 +556,9 @@ public final class Decompiler
       else if (p.substring(0, 2).equals("I:")) {
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);
+        StringBuilder sb = new StringBuilder();
+        decompileInteger(sb, (long)nr, p);
+        comment = getResourceName("", p, sb.toString());
       }
       first = false;
     }
@@ -651,7 +658,7 @@ public final class Decompiler
 
   private static String getResourceName(String function, String definition, String value)
   {
-    if (value.length() > 8)
+    if (definition.startsWith("S:") && value.length() > 8)
       return null;
     ResourceEntry entry = null;
     if (definition.equalsIgnoreCase("S:DialogFile*"))
@@ -692,6 +699,12 @@ public final class Decompiler
     }
     else if (definition.equalsIgnoreCase("S:NewObject*")) {
       entry = decompileStringCheck(value, getResRefType(function));
+    }
+    else if (definition.equalsIgnoreCase("I:Spell*Spell")) {
+      String refValue = infinity.resource.spl.Viewer.getResourceName(value, false);
+      if (refValue != null) {
+        entry = decompileStringCheck(refValue, new String[]{".SPL"});
+      }
     }
 //    else
 //      System.out.println("Decompiler.getResourceName: " + definition + " - " + value);

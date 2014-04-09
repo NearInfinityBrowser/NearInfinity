@@ -10,6 +10,7 @@ import infinity.resource.Effect;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMap;
+import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 
 import java.awt.BorderLayout;
@@ -23,10 +24,15 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-final class Viewer extends JPanel
+public final class Viewer extends JPanel
 {
+  private static final HashMap<Integer, String> SpellPrefix = new HashMap<Integer, String>();
   private static final HashMap<String, Integer> SpellType = new HashMap<String, Integer>();
   static {
+    SpellPrefix.put(Integer.valueOf(1), "SPPR");
+    SpellPrefix.put(Integer.valueOf(2), "SPWI");
+    SpellPrefix.put(Integer.valueOf(3), "SPIN");
+    SpellPrefix.put(Integer.valueOf(4), "SPCL");
     SpellType.put("SPPR", Integer.valueOf(1));
     SpellType.put("SPWI", Integer.valueOf(2));
     SpellType.put("SPIN", Integer.valueOf(3));
@@ -34,7 +40,7 @@ final class Viewer extends JPanel
   }
 
   // Returns an (optionally formatted) String containing the symbolic spell name as defined in SPELL.IDS
-  private static String getSymbolicName(ResourceEntry entry, boolean formatted)
+  public static String getSymbolicName(ResourceEntry entry, boolean formatted)
   {
     if (entry != null) {
       String resName = entry.getResourceName().toUpperCase();
@@ -61,7 +67,7 @@ final class Viewer extends JPanel
         // returning symbolic spell name
         if (type >= 0 && code >= 0) {
           int value = type*1000 + code;
-          IdsMap ids = new IdsMap(ResourceFactory.getInstance().getResourceEntry("SPELL.IDS"));
+          IdsMap ids = IdsMapCache.get("SPELL.IDS");
           IdsMapEntry idsEntry = ids.getValue(value);
           if (idsEntry != null) {
             if (formatted) {
@@ -73,7 +79,29 @@ final class Viewer extends JPanel
         }
       }
     }
-    return "n/a";
+    return null;
+  }
+
+  // Returns the resource filename associated with the specified symbolic name as defined in SPELL.IDS
+  public static String getResourceName(String symbol, boolean extension)
+  {
+    if (symbol != null) {
+      IdsMap ids = IdsMapCache.get("SPELL.IDS");
+      IdsMapEntry idsEntry = ids.lookup(symbol);
+      if (idsEntry != null) {
+        int value = (int)idsEntry.getID();
+        int type = value / 1000;
+        int code = value % 1000;
+        if (SpellPrefix.containsKey(Integer.valueOf(type))) {
+          String prefix = SpellPrefix.get(Integer.valueOf(type));
+          String nameBase = String.format("%1$s%2$03d", prefix, code);
+          if (ResourceFactory.getInstance().resourceExists(nameBase + ".SPL")) {
+            return extension ? nameBase + ".SPL" : nameBase;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   private static JPanel makeFieldPanel(SplResource spl)
@@ -84,8 +112,8 @@ final class Viewer extends JPanel
 
     gbc.insets = new Insets(3, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Spell name"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, "Symbolic name", getSymbolicName(spl.getResourceEntry(), true),
-                                 gbl, gbc, true);
+    String s = getSymbolicName(spl.getResourceEntry(), true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, "Symbolic name", (s != null) ? s : "n/a", gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Spell type"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Casting animation"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Primary type (school)"), gbl, gbc, true);
