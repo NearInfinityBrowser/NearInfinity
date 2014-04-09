@@ -82,6 +82,30 @@ public final class ViewerUtil
     panel.add(text);
   }
 
+  public static void addLabelFieldPair(JPanel panel, String name, String field, GridBagLayout gbl,
+                                       GridBagConstraints gbc, boolean endline)
+  {
+    if (name != null) {
+      JLabel label = new JLabel(name);
+      JComponent text = new JLabel((field != null) ? field : "");
+      text.setFont(text.getFont().deriveFont(Font.PLAIN));
+
+      gbc.weightx = 0.0;
+      gbc.fill = GridBagConstraints.NONE;
+      gbc.gridwidth = 1;
+      gbc.anchor = GridBagConstraints.WEST;
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+
+      gbc.weightx = 1.0;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      if (endline)
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+      gbl.setConstraints(text, gbc);
+      panel.add(text);
+    }
+  }
+
   public static JLabel makeBamPanel(ResourceRef iconRef, int frameNr)
   {
     ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());

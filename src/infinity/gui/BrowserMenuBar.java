@@ -800,16 +800,15 @@ public final class BrowserMenuBar extends JMenuBar
 
       // *** Begin Convert submenu ***
       JMenu convertMenu = new JMenu("Convert");
-//      convertMenu.setIcon(Icons.getIcon("Export16.gif"));
       convertMenu.setMnemonic('v');
       add(convertMenu);
 
       toolConvImageToBam =
-          makeMenuItem("Image sequence to BAM...", KeyEvent.VK_B, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon("Export16.gif"), -1, this);
       convertMenu.add(toolConvImageToBam);
 
       toolConvImageToBmp =
-          makeMenuItem("Image to BMP...", -1, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon("Export16.gif"), -1, this);
       convertMenu.add(toolConvImageToBmp);
 
       toolConvImageToMos =

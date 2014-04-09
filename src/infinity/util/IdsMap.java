@@ -22,7 +22,7 @@ public final class IdsMap
   private final ResourceEntry entry;
   private Map<String, IdsMapEntry> stringEntryMap;
 
-  IdsMap(ResourceEntry entry)
+  public IdsMap(ResourceEntry entry)
   {
     this.entry = entry;
     StringTokenizer st;
