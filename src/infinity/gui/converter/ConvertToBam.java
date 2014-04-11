@@ -119,8 +119,8 @@ public class ConvertToBam extends ChildFrame
                                                          "All cycles once", "All cycles looped"};
 
   // Available lists of frame images
-  static final int FRAMELIST_ORIGINAL = 0;    // the original unprocessed frames list
-  static final int FRAMELIST_FINAL    = 1;    // final frames list including palette and/or post-processor
+  static final int BAM_ORIGINAL = 0;    // the original unprocessed frames list
+  static final int BAM_FINAL    = 1;    // final frames list including palette and/or post-processor
 
   private static String currentPath;
 
@@ -388,10 +388,13 @@ public class ConvertToBam extends ChildFrame
     init();
   }
 
-  /** Returns the BAM decoder instance that is used internally to manage the BAM structure. */
-  public PseudoBamDecoder getBamDecoder()
+  /**
+   * Returns the BAM decoder instance that is used internally to manage the BAM structure.
+   * @param bamType Either one of {@link #BAM_ORIGINAL} or {@link #BAM_FINAL}.
+   */
+  public PseudoBamDecoder getBamDecoder(int bamType)
   {
-    return bamDecoder;
+    return (bamType == BAM_FINAL) ? bamDecoderFinal : bamDecoder;
   }
 
   /** Returns the BAM decoder instance that is used to display the BAM in the preview tab. */
@@ -1815,7 +1818,7 @@ public class ConvertToBam extends ChildFrame
       cbCompressFrame.setEnabled(true);
 
       // evaluating data
-      PseudoBamFrameEntry fe = getBamDecoder().getFrameInfo(indices[0]);
+      PseudoBamFrameEntry fe = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[0]);
       int initialWidth = fe.getWidth();
       int initialHeight = fe.getHeight();
       int initialX = fe.getCenterX();
@@ -1827,7 +1830,7 @@ public class ConvertToBam extends ChildFrame
       boolean changedCompression = false;
 
       for (int i = 1; i < indices.length; i++) {
-        fe = getBamDecoder().getFrameInfo(indices[i]);
+        fe = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]);
         changedWidth |= (!changedWidth && initialWidth != fe.getWidth());
         changedHeight |= (!changedHeight && initialHeight != fe.getHeight());
         changedCenterX |= (!changedCenterX && initialX != fe.getCenterX());
@@ -1890,10 +1893,10 @@ public class ConvertToBam extends ChildFrame
           float ratio = 1.0f;
 
           int frameIdx = indices[0];
-          PseudoBamFrameEntry fe = getBamDecoder().getFrameInfo(frameIdx);
-          PseudoBamControl control = getBamDecoder().createControl();
+          PseudoBamFrameEntry fe = getBamDecoder(BAM_ORIGINAL).getFrameInfo(frameIdx);
+          PseudoBamControl control = getBamDecoder(BAM_ORIGINAL).createControl();
           control.setMode(BamDecoder.BamControl.Mode.Individual);
-          Image image = getBamDecoder().frameGet(control, frameIdx);
+          Image image = getBamDecoder(BAM_ORIGINAL).frameGet(control, frameIdx);
           control = null;
           boolean zoom = ((fe.getWidth() > imgWidth || fe.getHeight() > imgHeight));
           if (zoom) {
@@ -2013,7 +2016,7 @@ public class ConvertToBam extends ChildFrame
     if (indices != null) {
       Boolean b = Boolean.valueOf(cbCompressFrame.isSelected());
       for (int i = 0; i < indices.length; i++) {
-        getBamDecoder().getFrameInfo(indices[i]).setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, b);
+        getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, b);
       }
       outputSetModified(true);
     }
@@ -2043,19 +2046,19 @@ public class ConvertToBam extends ChildFrame
           for(int i = 0; i < indices.length; i++) {
             if (isCenterX) {
               if (isRelative) {
-                result = getBamDecoder().getFrameInfo(indices[i]).getCenterX() + value;
+                result = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).getCenterX() + value;
                 result = Math.min(Math.max(result, Short.MIN_VALUE), Short.MAX_VALUE);
-                getBamDecoder().getFrameInfo(indices[i]).setCenterX(result);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterX(result);
               } else {
-                getBamDecoder().getFrameInfo(indices[i]).setCenterX(value);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterX(value);
               }
             } else {
               if (isRelative) {
-                result = getBamDecoder().getFrameInfo(indices[i]).getCenterY() + value;
+                result = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).getCenterY() + value;
                 result = Math.min(Math.max(result, Short.MIN_VALUE), Short.MAX_VALUE);
-                getBamDecoder().getFrameInfo(indices[i]).setCenterY(result);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterY(result);
               } else {
-                getBamDecoder().getFrameInfo(indices[i]).setCenterY(value);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterY(value);
               }
             }
           }
@@ -2192,7 +2195,7 @@ public class ConvertToBam extends ChildFrame
         decoder.frameGet(control, j, image);
         modelFrames.insert(listIndex, image, new Point(fe.getCenterX(), fe.getCenterY()));
         // setting required extra options
-        PseudoBamFrameEntry fe2 = getBamDecoder().getFrameInfo(listIndex);
+        PseudoBamFrameEntry fe2 = getBamDecoder(BAM_ORIGINAL).getFrameInfo(listIndex);
         fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, String.format("%1$s:%2$d", file.getName(), j));
         fe2.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, Boolean.valueOf(isCompressed));
         fe2.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX, Integer.valueOf(rleIndex));
@@ -3129,8 +3132,8 @@ public class ConvertToBam extends ChildFrame
     SpinnerNumberModel model = (SpinnerNumberModel)sFiltersPreviewFrame.getModel();
     int max = ((Integer)model.getMaximum()).intValue();
     int cur = ((Integer)model.getValue()).intValue();
-    if (max != listFrameEntries.get(FRAMELIST_ORIGINAL).size()) {
-      max = listFrameEntries.get(FRAMELIST_ORIGINAL).size();
+    if (max != listFrameEntries.get(BAM_ORIGINAL).size()) {
+      max = listFrameEntries.get(BAM_ORIGINAL).size();
       if (cur >= max) {
         cur = Math.max(max - 1, 0);
       }
@@ -3264,7 +3267,7 @@ public class ConvertToBam extends ChildFrame
   private void updateCompressBam()
   {
     Boolean b = Boolean.valueOf(cbCompressBam.isSelected());
-    getBamDecoder().setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, b);
+    getBamDecoder(BAM_ORIGINAL).setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, b);
   }
 
   // Specify a BAM output file
@@ -3455,10 +3458,10 @@ public class ConvertToBam extends ChildFrame
             // processing color filter
             try {
               BamFilterBaseColor filter = (BamFilterBaseColor)filters.get(idx);
-              for (int frameIdx = 0; frameIdx < listFrameEntries.get(FRAMELIST_FINAL).size(); frameIdx++) {
-                BufferedImage image = filter.process(listFrameEntries.get(FRAMELIST_FINAL).get(frameIdx).getFrame());
+              for (int frameIdx = 0; frameIdx < listFrameEntries.get(BAM_FINAL).size(); frameIdx++) {
+                BufferedImage image = filter.process(listFrameEntries.get(BAM_FINAL).get(frameIdx).getFrame());
                 if (image != null) {
-                  listFrameEntries.get(FRAMELIST_FINAL).get(frameIdx).setFrame(image);
+                  listFrameEntries.get(BAM_FINAL).get(frameIdx).setFrame(image);
                   image = null;
                 } else {
                   throw new Exception();
@@ -3472,11 +3475,11 @@ public class ConvertToBam extends ChildFrame
             // processing transform filter
             try {
               BamFilterBaseTransform filter = (BamFilterBaseTransform)filters.get(idx);
-              for (int frameIdx = 0; frameIdx < listFrameEntries.get(FRAMELIST_FINAL).size(); frameIdx++) {
-                PseudoBamFrameEntry entry = filter.process(listFrameEntries.get(FRAMELIST_FINAL).get(frameIdx));
+              for (int frameIdx = 0; frameIdx < listFrameEntries.get(BAM_FINAL).size(); frameIdx++) {
+                PseudoBamFrameEntry entry = filter.process(listFrameEntries.get(BAM_FINAL).get(frameIdx));
                 if (entry != null) {
-                  if (entry != listFrameEntries.get(FRAMELIST_FINAL).get(frameIdx)) {
-                    listFrameEntries.get(FRAMELIST_FINAL).set(frameIdx, entry);
+                  if (entry != listFrameEntries.get(BAM_FINAL).get(frameIdx)) {
+                    listFrameEntries.get(BAM_FINAL).set(frameIdx, entry);
                   }
                 } else {
                   throw new Exception();
@@ -3547,11 +3550,11 @@ public class ConvertToBam extends ChildFrame
   // specified target BAM version.
   private void updateFinalBamDecoder(int bamVersion) throws Exception
   {
-    listFrameEntries.get(FRAMELIST_FINAL).clear();
+    listFrameEntries.get(BAM_FINAL).clear();
 
     if (bamVersion == VERSION_BAMV1 || bamVersion == VERSION_BAMV2) {
-      List<PseudoBamFrameEntry> srcListFrames = listFrameEntries.get(FRAMELIST_ORIGINAL);
-      List<PseudoBamFrameEntry> dstListFrames = listFrameEntries.get(FRAMELIST_FINAL);
+      List<PseudoBamFrameEntry> srcListFrames = listFrameEntries.get(BAM_ORIGINAL);
+      List<PseudoBamFrameEntry> dstListFrames = listFrameEntries.get(BAM_FINAL);
 
       // copying global options
       String[] options = bamDecoder.getOptionNames();
@@ -3658,8 +3661,8 @@ public class ConvertToBam extends ChildFrame
   // Creates a new single frame that is compatible with the specified BAM version.
   private void updateFinalBamFrame(int bamVersion, int frameIdx)
   {
-    if (frameIdx >= 0 && frameIdx < listFrameEntries.get(FRAMELIST_ORIGINAL).size()) {
-      PseudoBamFrameEntry srcEntry = listFrameEntries.get(FRAMELIST_ORIGINAL).get(frameIdx);
+    if (frameIdx >= 0 && frameIdx < listFrameEntries.get(BAM_ORIGINAL).size()) {
+      PseudoBamFrameEntry srcEntry = listFrameEntries.get(BAM_ORIGINAL).get(frameIdx);
       BufferedImage srcImage = srcEntry.getFrame();
       BufferedImage dstImage = null;
 
@@ -3858,7 +3861,7 @@ public class ConvertToBam extends ChildFrame
         throw new NullPointerException();
       }
       this.converter = converter;
-      this.decoder = this.converter.getBamDecoder();
+      this.decoder = this.converter.getBamDecoder(BAM_ORIGINAL);
     }
 
     /** Returns the parent converter object. */
@@ -4030,7 +4033,7 @@ public class ConvertToBam extends ChildFrame
         throw new NullPointerException();
       }
       this.converter = converter;
-      this.decoder = getConverter().getBamDecoder();
+      this.decoder = getConverter().getBamDecoder(BAM_ORIGINAL);
       this.control = getDecoder().createControl();
     }
 
@@ -4209,7 +4212,7 @@ public class ConvertToBam extends ChildFrame
         throw new NullPointerException();
       }
       this.converter = converter;
-      this.decoder = getConverter().getBamDecoder();
+      this.decoder = getConverter().getBamDecoder(BAM_ORIGINAL);
       this.control = getDecoder().createControl();
     }
 
