@@ -173,7 +173,7 @@ public final class Decompiler
         } else {
           StringBuilder sb = new StringBuilder();
           decompileInteger(sb, (long)nr, p);
-          comment = getResourceName("", p, sb.toString());
+          comment = getResourceFileName(p, sb.toString());
         }
       }
       else if (p.substring(0, 2).equals("P:"))
@@ -558,7 +558,7 @@ public final class Decompiler
         decompileInteger(code, (long)nr, p);
         StringBuilder sb = new StringBuilder();
         decompileInteger(sb, (long)nr, p);
-        comment = getResourceName("", p, sb.toString());
+        comment = getResourceFileName(p, sb.toString());
       }
       first = false;
     }
@@ -714,6 +714,26 @@ public final class Decompiler
       return entry.getSearchString();
     }
     return null;
+  }
+
+  private static String getResourceFileName(String definition, String value)
+  {
+    if (!definition.startsWith("I:")) {
+      return null;
+    }
+    ResourceEntry entry = null;
+    if (definition.equalsIgnoreCase("I:Spell*Spell")) {
+      String refName = infinity.resource.spl.Viewer.getResourceName(value, false);
+      if (refName != null) {
+        entry = decompileStringCheck(refName, new String[]{".SPL"});
+      }
+    }
+
+    String retVal = null;
+    if (entry != null) {
+      retVal = String.format("%1$s (%2$s)", entry.getResourceName(), entry.getSearchString());
+    }
+    return retVal;
   }
 
   public static Set<ResourceEntry> getResourcesUsed()
