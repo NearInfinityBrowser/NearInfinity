@@ -221,7 +221,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(numPocket);
       if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
         list.add(new DecNumber(buffer, offset + 128, 4, "Zoom level"));
-        list.add(new Unknown(buffer, offset + 132, 48));
+        list.add(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
+        list.add(new Unknown(buffer, offset + 140, 40));
       } else {
         list.add(new Unknown(buffer, offset + 128, 52));
       }
