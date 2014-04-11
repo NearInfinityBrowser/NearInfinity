@@ -731,6 +731,9 @@ public final class Decompiler
 
     String retVal = null;
     if (entry != null) {
+      if (generateErrors) {
+        resourcesUsed.add(entry);
+      }
       retVal = String.format("%1$s (%2$s)", entry.getResourceName(), entry.getSearchString());
     }
     return retVal;
