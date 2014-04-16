@@ -14,8 +14,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Handles new PVRZ-based TIS resources.
@@ -24,8 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TisV2Decoder extends TisDecoder
 {
   private static final int HeaderSize = 24;   // Size of the TIS header
-
-  private final ConcurrentHashMap<Integer, PvrDecoder> pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>();
 
   private byte[] tisData;
   private int tileCount, tileSize;
@@ -78,44 +74,10 @@ public class TisV2Decoder extends TisDecoder
     }
   }
 
-  /**
-   * Forces the internal cache to be filled with all PVRZ resources required by this TIS resource.
-   * This will ensure that tiles are decoded at constant speed.
-   */
-  public void preloadPvrz()
-  {
-    for (int i = 0; i < getTileCount(); i++) {
-      int page = getPvrzPage(i);
-      if (page >= 0) {
-        getPVR(page);
-      }
-    }
-  }
-
-  /**
-   * This is the counterpart of {@link #preloadPvrz()}. It removes all cached instances of
-   * PVRZ resources.
-   */
-  public void flush()
-  {
-    // properly removing PvrDecoder objects
-    Iterator<Integer> iter = pvrTable.keySet().iterator();
-    while (iter.hasNext()) {
-      PvrDecoder d = pvrTable.get(iter.next());
-      if (d != null) {
-        d.close();
-        d = null;
-      }
-    }
-    pvrTable.clear();
-  }
-
-
   @Override
   public void close()
   {
-    flush();
-
+    PvrDecoder.flushCache();
     tisData = null;
     tileCount = 0;
     tileSize = 0;
@@ -225,32 +187,14 @@ public class TisV2Decoder extends TisDecoder
   // Returns and caches the PVRZ resource of the specified page
   private PvrDecoder getPVR(int page)
   {
-    synchronized (pvrTable) {
-      Integer key = Integer.valueOf(page);
-      if (pvrTable.containsKey(key)) {
-        return pvrTable.get(key);
+    try {
+      String name = String.format("%1$s%2$02d.PVRZ", pvrzNameBase, page);
+      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
+      if (entry != null) {
+        return PvrDecoder.loadPvr(entry);
       }
-
-      try {
-        String name = String.format("%1$s%2$02d.PVRZ", pvrzNameBase, page);
-        ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
-        if (entry != null) {
-          byte[] data = entry.getResourceData();
-          if (data != null) {
-            int size = DynamicArray.getInt(data, 0);
-            int marker = DynamicArray.getUnsignedShort(data, 4);
-            if ((size & 0xff) == 0x34 && marker == 0x9c78) {
-              data = Compressor.decompress(data, 0);
-              PvrDecoder decoder = new PvrDecoder(data);
-              data = null;
-              pvrTable.put(key, decoder);
-              return decoder;
-            }
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
   }
@@ -307,7 +251,7 @@ public class TisV2Decoder extends TisDecoder
       int page = DynamicArray.getInt(tisData, ofs);
       int x = DynamicArray.getInt(tisData, ofs+4);
       int y = DynamicArray.getInt(tisData, ofs+8);
-            PvrDecoder decoder = getPVR(page);
+      PvrDecoder decoder = getPVR(page);
       if (decoder != null || page == -1) {
         // removing old content
         try {

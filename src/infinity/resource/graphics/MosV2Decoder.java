@@ -13,15 +13,11 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class MosV2Decoder extends MosDecoder
 {
   private static final int HeaderSize = 16;   // size of the MOS header
   private static final int BlockSize = 28;    // size of a single data block
-
-  private final ConcurrentHashMap<Integer, PvrDecoder> pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>();
 
   private byte[] mosData;
   private int width, height, blockCount, ofsData;
@@ -49,29 +45,10 @@ public class MosV2Decoder extends MosDecoder
     }
   }
 
-  /**
-   * This is the counterpart of {@link #preloadPvrz()}. It removes all cached instances of
-   * PVRZ resources.
-   */
-  public void flush()
-  {
-    // properly removing PvrDecoder objects
-    Iterator<Integer> iter = pvrTable.keySet().iterator();
-    while (iter.hasNext()) {
-      PvrDecoder d = pvrTable.get(iter.next());
-      if (d != null) {
-        d.close();
-        d = null;
-      }
-    }
-    pvrTable.clear();
-  }
-
   @Override
   public void close()
   {
-    flush();
-
+    PvrDecoder.flushCache();
     mosData = null;
     width = height = blockCount = 0;
     ofsData = 0;
@@ -105,7 +82,7 @@ public class MosV2Decoder extends MosDecoder
   public Image getImage()
   {
     if (isInitialized()) {
-      BufferedImage image = ColorConvert.createCompatibleImage(getWidth(), getHeight(), true);
+      BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
       if (getImage(image)) {
         return image;
       } else {
@@ -286,32 +263,14 @@ public class MosV2Decoder extends MosDecoder
   // Returns and caches the PVRZ resource of the specified page
   private PvrDecoder getPVR(int page)
   {
-    synchronized (pvrTable) {
-      Integer key = Integer.valueOf(page);
-      if (pvrTable.containsKey(key)) {
-        return pvrTable.get(key);
+    try {
+      String name = String.format("MOS%1$04d.PVRZ", page);
+      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
+      if (entry != null) {
+        return PvrDecoder.loadPvr(entry);
       }
-
-      try {
-        String name = String.format("MOS%1$04d.PVRZ", page);
-        ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
-        if (entry != null) {
-          byte[] data = entry.getResourceData();
-          if (data != null) {
-            int size = DynamicArray.getInt(data, 0);
-            int marker = DynamicArray.getUnsignedShort(data, 4);
-            if ((size & 0xff) == 0x34 && marker == 0x9c78) {
-              data = Compressor.decompress(data, 0);
-              PvrDecoder decoder = new PvrDecoder(data);
-              data = null;
-              pvrTable.put(key, decoder);
-              return decoder;
-            }
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
   }

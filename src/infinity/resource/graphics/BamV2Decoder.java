@@ -12,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
@@ -25,7 +24,6 @@ import infinity.util.DynamicArray;
  */
 public class BamV2Decoder extends BamDecoder
 {
-  private final ConcurrentHashMap<Integer, PvrDecoder> pvrTable = new ConcurrentHashMap<Integer, PvrDecoder>();
   private final List<BamV2FrameEntry> listFrames = new ArrayList<BamV2FrameEntry>();
   private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
   private final BamV2FrameEntry defaultFrameInfo = new BamV2FrameEntry(null, 0, 0);
@@ -58,6 +56,7 @@ public class BamV2Decoder extends BamDecoder
   @Override
   public void close()
   {
+    PvrDecoder.flushCache();
     bamData = null;
     listFrames.clear();
     listCycles.clear();
@@ -192,8 +191,6 @@ public class BamV2Decoder extends BamDecoder
           ofs += 4;
         }
 
-        pvrTable.clear();
-
         // creating default bam control instance as a fallback option
         defaultControl = new BamV2Control(this);
         defaultControl.setMode(BamControl.Mode.Shared);
@@ -208,32 +205,14 @@ public class BamV2Decoder extends BamDecoder
   // Returns and caches the PVRZ resource of the specified page
   private PvrDecoder getPVR(int page)
   {
-    synchronized (pvrTable) {
-      Integer key = Integer.valueOf(page);
-      if (pvrTable.containsKey(key)) {
-        return pvrTable.get(key);
+    try {
+      String name = String.format("MOS%1$04d.PVRZ", page);
+      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
+      if (entry != null) {
+        return PvrDecoder.loadPvr(entry);
       }
-
-      try {
-        String name = String.format("MOS%1$04d.PVRZ", key);
-        ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
-        if (entry != null) {
-          byte[] data = entry.getResourceData();
-          if (data != null) {
-            int size = DynamicArray.getInt(data, 0);
-            int marker = DynamicArray.getUnsignedShort(data, 4);
-            if ((size & 0xff) == 0x34 && marker == 0x9c78) {
-              data = Compressor.decompress(data, 0);
-              PvrDecoder decoder = new PvrDecoder(data);
-              data = null;
-              pvrTable.put(key, decoder);
-              return decoder;
-            }
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
   }

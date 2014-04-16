@@ -464,9 +464,6 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         decoder.getTile(tileIdx, image);
         tileImages.add(image);
       }
-      if (decoder instanceof TisV2Decoder) {
-        ((TisV2Decoder)decoder).flush();
-      }
       WindowBlocker.blockWindow(false);
     } catch (Exception e) {
       e.printStackTrace();

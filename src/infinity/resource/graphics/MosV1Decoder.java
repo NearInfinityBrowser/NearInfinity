@@ -190,7 +190,7 @@ public class MosV1Decoder extends MosDecoder
   public Image getImage()
   {
     if (isInitialized()) {
-      BufferedImage image = ColorConvert.createCompatibleImage(getWidth(), getHeight(), true);
+      BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
       if (renderMos(image)) {
         return image;
       } else {
