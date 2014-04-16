@@ -10,6 +10,7 @@ package infinity.resource.graphics;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
+import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -784,6 +785,7 @@ public class PvrDecoder
       if (alignedImage != null) {
         Graphics2D g = (Graphics2D)image.getGraphics();
         try {
+          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,
                       region.x, region.y, region.x+region.width, region.y+region.height, null);
         } finally {
@@ -903,6 +905,7 @@ public class PvrDecoder
       if (alignedImage != null) {
         Graphics2D g = (Graphics2D)image.getGraphics();
         try {
+          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,
                       region.x, region.y, region.x+region.width, region.y+region.height, null);
         } finally {
@@ -1039,6 +1042,7 @@ public class PvrDecoder
       if (alignedImage != null) {
         Graphics2D g = (Graphics2D)image.getGraphics();
         try {
+          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,
                       region.x, region.y, region.x+region.width, region.y+region.height, null);
         } finally {
@@ -1247,6 +1251,7 @@ public class PvrDecoder
       if (alignedImage != null) {
         Graphics2D g = (Graphics2D)image.getGraphics();
         try {
+          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,
                       region.x, region.y, region.x+region.width, region.y+region.height, null);
         } finally {
