@@ -289,9 +289,6 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
         case TYPE_SCALEX:
           dstImage = scaleScaleX(entry.getFrame(), (int)factor);
           break;
-//        case TYPE_LANCZOS:
-//          dstImage = scaleLanczos(entry.getFrame(), factor);
-//          break;
         default:
           dstImage = entry.getFrame();
       }
@@ -316,19 +313,14 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   private BufferedImage scaleNative(BufferedImage srcImage, double factor, int scaleType, boolean paletteSupported)
   {
     BufferedImage dstImage = srcImage;
-    if (srcImage != null && factor > 0.0 && factor != 1.0) {
+    boolean isValid = paletteSupported || srcImage.getType() != BufferedImage.TYPE_BYTE_INDEXED;
+    if (isValid && srcImage != null && factor > 0.0 && factor != 1.0) {
       int width = srcImage.getWidth();
       int height = srcImage.getHeight();
       int newWidth = (int)((double)width * factor);
       if (newWidth < 1) newWidth = 1;
       int newHeight = (int)((double)height * factor);
       if (newHeight < 1) newHeight = 1;
-
-      // defining fallback method for unsupported scaling methods
-      if (!paletteSupported && srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-        scaleType = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
-        paletteSupported = true;
-      }
 
       // preparing target image
       if (paletteSupported && srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {

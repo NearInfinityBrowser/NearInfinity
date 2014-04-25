@@ -143,9 +143,9 @@ public class ConvertToBam extends ChildFrame
   private DefaultListModel modelFilters;
   private JList listFrames, listCycles, listFramesAvail, listCurCycle, listFilters;
   private JButton bOptions, bConvert, bCancel;
-  private JMenuItem miFramesAdd, miFramesImport;
+  private JMenuItem miFramesAddFiles, miFramesAddFolder;//, miFramesImport;
   private ButtonPopupMenu bpmFramesAdd;
-  private JButton bFramesAddFolder, bFramesRemove, bFramesRemoveAll, bBamOutput, bPalette;
+  private JButton bFramesImportBam, bFramesRemove, bFramesRemoveAll, bBamOutput, bPalette;
   private JButton bFramesUp, bFramesDown, bCyclesUp, bCyclesDown, bCurCycleUp, bCurCycleDown;
   private JButton bCyclesAdd, bCyclesRemove, bCyclesRemoveAll, bCurCycleAdd, bCurCycleRemove;
   private JButton bVersionHelp, bCompressionHelp;
@@ -509,11 +509,11 @@ public class ConvertToBam extends ChildFrame
       framesMoveUp();
     } else if (event.getSource() == bFramesDown) {
       framesMoveDown();
-    } else if (event.getSource() == miFramesAdd) {
+    } else if (event.getSource() == miFramesAddFiles) {
       framesAdd();
-    } else if (event.getSource() == miFramesImport) {
+    } else if (event.getSource() == bFramesImportBam) {
       framesImportBam();
-    } else if (event.getSource() == bFramesAddFolder) {
+    } else if (event.getSource() == miFramesAddFolder) {
       framesAddFolder();
     } else if (event.getSource() == bFramesRemove) {
       framesRemove();
@@ -713,6 +713,7 @@ public class ConvertToBam extends ChildFrame
       framesValidateCenterValue((JTextField)event.getSource());
     } else if (event.getSource() == tfBamOutput) {
       validateBamOutput();
+      updateStatus();
     }
   }
 
@@ -895,24 +896,23 @@ public class ConvertToBam extends ChildFrame
     pFramesListArrows.add(bFramesDown, c);
 
     JPanel pFramesAdd = new JPanel(new GridBagLayout());
-    miFramesAdd = new JMenuItem("Add image(s)...");
-    miFramesAdd.setToolTipText("Add one or more images to the frames list");
-    miFramesAdd.addActionListener(this);
-    miFramesImport = new JMenuItem("Import BAM...");
-    miFramesImport.setToolTipText("Import both frame and cycle definitions from the selected BAM. " +
-                                  "Current content (if any) will be discarded.");
-    miFramesImport.addActionListener(this);
-    bpmFramesAdd = new ButtonPopupMenu("Add/Import...", new JMenuItem[]{miFramesAdd, miFramesImport});
+    miFramesAddFiles = new JMenuItem("Add file(s)...");
+    miFramesAddFiles.addActionListener(this);
+    miFramesAddFolder = new JMenuItem("Add folder...");
+    miFramesAddFolder.addActionListener(this);
+    bpmFramesAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miFramesAddFiles, miFramesAddFolder});
     bpmFramesAdd.setIcon(Icons.getIcon("ArrowUp15.png"));
     bpmFramesAdd.setIconTextGap(8);
-    bFramesAddFolder = new JButton("Add folder...");
-    bFramesAddFolder.addActionListener(this);
+    bFramesImportBam = new JButton("Import BAM...");
+    bFramesImportBam.setToolTipText("Import both frame and cycle definitions from the selected BAM. " +
+                                    "Existing frames and cycles (if any) will be discarded.");
+    bFramesImportBam.addActionListener(this);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFramesAdd.add(bpmFramesAdd, c);
     c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pFramesAdd.add(bFramesAddFolder, c);
+    pFramesAdd.add(bFramesImportBam, c);
 
     JPanel pFramesRemove = new JPanel(new GridBagLayout());
     bFramesRemove = new JButton("Remove");
@@ -2052,6 +2052,7 @@ public class ConvertToBam extends ChildFrame
               } else {
                 getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterX(value);
               }
+              outputSetModified(true);
             } else {
               if (isRelative) {
                 result = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).getCenterY() + value;
@@ -2060,6 +2061,7 @@ public class ConvertToBam extends ChildFrame
               } else {
                 getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterY(value);
               }
+              outputSetModified(true);
             }
           }
           if (isRelative) {

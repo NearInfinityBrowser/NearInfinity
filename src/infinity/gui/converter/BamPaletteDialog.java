@@ -8,6 +8,8 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ColorGrid;
 import infinity.icon.Icons;
 import infinity.resource.graphics.ColorConvert;
+import infinity.resource.graphics.PseudoBamDecoder;
+import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -20,6 +22,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,6 +32,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -65,6 +70,7 @@ class BamPaletteDialog extends JDialog
   private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<Integer, Integer>();
   private final int[][] palettes = new int[2][];
 
+  private ConvertToBam converter;
   private ColorGrid cgPalette;
   private JLabel lInfoType, lInfoIndex, lInfoRGB, lInfoHexRGB, lColorIndex;
   private JTextField tfColorRed, tfColorGreen, tfColorBlue, tfCompressedColor;
@@ -78,6 +84,7 @@ class BamPaletteDialog extends JDialog
   public BamPaletteDialog(ConvertToBam parent)
   {
     super(parent, "Palette", Dialog.ModalityType.DOCUMENT_MODAL);
+    this.converter = parent;
     init();
   }
 
@@ -121,6 +128,12 @@ class BamPaletteDialog extends JDialog
     applyPalette(currentPaletteType);
     updateInfoBox(-1);
     updateColorBox(-1, null);
+  }
+
+  /** Returns the associated ConverToBam instance. */
+  public ConvertToBam getConverter()
+  {
+    return converter;
   }
 
   /** Returns the index of the RLE-compressed color. */
@@ -315,15 +328,49 @@ class BamPaletteDialog extends JDialog
   {
     if (isPaletteModified() && !lockedPalette) {
       if (colorMap.size() <= 256) {
-        // using palette as is
-        Iterator<Integer> iter = colorMap.keySet().iterator();
-        int idx = 0;
-        while (idx < 256 && iter.hasNext()) {
-          palettes[TYPE_GENERATED][idx] = iter.next();
-          idx++;
+        // checking whether all frames share the same palette
+        boolean sharedPalette = true;
+        List<PseudoBamFrameEntry> listFrames =
+            getConverter().getBamDecoder(ConvertToBam.BAM_ORIGINAL).getFramesList();
+        int[] palette = null;
+        int[] tmpPalette = new int[256];
+        for (int i = 0; i < listFrames.size(); i++) {
+          BufferedImage image = listFrames.get(i).getFrame();
+          if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+            IndexColorModel cm = (IndexColorModel)image.getColorModel();
+            if (palette == null) {
+              palette = new int[256];
+              cm.getRGBs(palette);
+            } else {
+              cm.getRGBs(tmpPalette);
+              if (!Arrays.equals(palette, tmpPalette)) {
+                sharedPalette = false;
+                break;
+              }
+            }
+          } else {
+            sharedPalette = false;
+            break;
+          }
         }
-        for (; idx < 256; idx++) {
-          palettes[TYPE_GENERATED][idx] = 0;
+        tmpPalette = null;
+
+        if (sharedPalette) {
+          // using shared palette as is
+          for (int i = 0; i < palette.length; i++) {
+            palettes[TYPE_GENERATED][i] = palette[i];
+          }
+        } else {
+          // creating palette directly from color map without reduction
+          Iterator<Integer> iter = colorMap.keySet().iterator();
+          int idx = 0;
+          while (idx < 256 && iter.hasNext()) {
+            palettes[TYPE_GENERATED][idx] = iter.next();
+            idx++;
+          }
+          for (; idx < 256; idx++) {
+            palettes[TYPE_GENERATED][idx] = 0;
+          }
         }
       } else {
         // reducing color count to max. 256
@@ -467,6 +514,7 @@ class BamPaletteDialog extends JDialog
     pPalette.setBorder(BorderFactory.createTitledBorder("Palette "));
     cgPalette = new ColorGrid(256);
     cgPalette.setSelectionFrame(ColorGrid.Frame.DoubleLine);
+    cgPalette.setDragDropEnabled(true);
     cgPalette.addActionListener(this);
     cgPalette.addMouseOverListener(this);
     cgPalette.addChangeListener(this);

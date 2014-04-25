@@ -4,11 +4,15 @@
 
 package infinity.gui.converter;
 
+import infinity.gui.ButtonPopupWindow;
+import infinity.icon.Icons;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
@@ -17,19 +21,24 @@ import java.awt.image.IndexColorModel;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * Color filter: create negatives of each color.
  * @author argent77
  */
 public class BamFilterColorInvert extends BamFilterBaseColor
+    implements ChangeListener, ActionListener
 {
   private static final String FilterName = "Invert colors";
   private static final String FilterDesc = "This filter inverts the colors of all frames.";
 
   public static String getFilterName() { return FilterName; }
   public static String getFilterDesc() { return FilterDesc; }
+
+  private ButtonPopupWindow bpwExclude;
+  private BamFilterBaseColor.ExcludeColorsPanel pExcludeColors;
 
   public BamFilterColorInvert(ConvertToBam parent)
   {
@@ -52,19 +61,69 @@ public class BamFilterColorInvert extends BamFilterBaseColor
   }
 
   @Override
+  public void updateControls()
+  {
+    bpwExclude.setEnabled(getConverter().isBamV1Selected());
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();
 
-    JLabel l = new JLabel("No settings available.", SwingConstants.CENTER);
+//    JLabel l = new JLabel("No settings available.", SwingConstants.CENTER);
+
+    JLabel l1 = new JLabel("Exclude colors:");
+    pExcludeColors = new BamFilterBaseColor.ExcludeColorsPanel(
+        getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
+    pExcludeColors.addChangeListener(this);
+    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon("ArrowDown15.png"), pExcludeColors);
+    bpwExclude.setIconTextGap(8);
+    bpwExclude.addActionListener(this);
+    bpwExclude.setEnabled(getConverter().isBamV1Selected());
+    JPanel pExclude = new JPanel(new GridBagLayout());
+    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    pExclude.add(l1, c);
+    ConvertToBam.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pExclude.add(bpwExclude, c);
+    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    pExclude.add(new JPanel(), c);
 
     JPanel panel = new JPanel(new GridBagLayout());
     ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
         GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
-    panel.add(l, c);
+    panel.add(pExclude, c);
 
     return panel;
   }
+
+//--------------------- Begin Interface ChangeListener ---------------------
+
+  @Override
+  public void stateChanged(ChangeEvent event)
+  {
+    if (event.getSource() == pExcludeColors) {
+      fireChangeListener();
+    }
+  }
+
+//--------------------- End Interface ChangeListener ---------------------
+
+//--------------------- Begin Interface ActionListener ---------------------
+
+  @Override
+  public void actionPerformed(ActionEvent event)
+  {
+    if (event.getSource() == bpwExclude) {
+      pExcludeColors.updatePalette(getConverter().getPaletteDialog().getPalette(
+          getConverter().getPaletteDialog().getPaletteType()));
+    }
+  }
+
+//--------------------- End Interface ActionListener ---------------------
 
   private BufferedImage applyEffect(BufferedImage srcImage)
   {
@@ -97,7 +156,8 @@ public class BamFilterColorInvert extends BamFilterBaseColor
       }
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) &&
+            (buffer[i] & 0xff000000) != 0) {
           buffer[i] = (buffer[i] & 0xff000000) | (~buffer[i] & 0x00ffffff);
         }
       }

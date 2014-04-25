@@ -34,34 +34,44 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   /** Supported frame types for selected color entries. */
   public enum Frame { SingleLine, DoubleLine }
 
-  private static int DRAG_DISABLED    = 0;  // no drag&drop
-  private static int DRAG_INITIALIZED = 1;  // a potential drag&drop has been initiated
-  private static int DRAG_ENABLED     = 2;  // drag&drop has been enabled
+  /** Only one color entry can be selected at a time. */
+  public static final int SELECTION_SINGLE = 0;
+  /** One or more color entries can be selected at a time. */
+  public static final int SELECTION_MULTIPLE = 1;
 
-  private static int MaxColorCount = 65536;
-  private static int DefaultColorCount = 16;
-  private static int DefaultColorsPerRow = 16;
-  private static int DefaultGap = 3;
-  private static Dimension DefaultColorSize = new Dimension(16, 16);
-  private static Color DefaultColor = Color.BLACK;
-  private static Frame DefaultFrame = Frame.SingleLine;
-  private static Color DefaultFrameColor = Color.BLUE;
+  private static final int DRAG_DISABLED    = 0;  // no drag&drop
+  private static final int DRAG_INITIALIZED = 1;  // a potential drag&drop has been initiated
+  private static final int DRAG_ENABLED     = 2;  // drag&drop has been enabled
+
+  private static final int MaxColorCount = 65536;
+  private static final int DefaultColorCount = 16;
+  private static final int DefaultColorsPerRow = 16;
+  private static final int DefaultGap = 3;
+  private static final int DefaultSelectionMode = SELECTION_SINGLE;
+  private static final Dimension DefaultColorSize = new Dimension(16, 16);
+  private static final Color DefaultColor = Color.BLACK;
+  private static final Frame DefaultFrame = Frame.SingleLine;
+  private static final Color DefaultFrameColor = Color.BLUE;
+  private static final boolean DefaultDragDropEnabled = false;
   // Defines the square of the minimum dragging distance before activating drag&drop mode
-  private static int DragDropTriggerDistance2 = 16;
+  private static final int DragDropTriggerDistance2 = 16;
 
   private final List<Color> listColors = new ArrayList<Color>();
   private final List<ActionListener> listActionListeners = new ArrayList<ActionListener>();
   private final List<MouseOverListener> listMouseOverListeners = new ArrayList<MouseOverListener>();
   private final List<ChangeListener> listChangeListeners = new ArrayList<ChangeListener>();
+  // stores selected color entry indices
+  private final List<Integer> listSelection = new ArrayList<Integer>();
 
   private Frame frame;                // frame type
   private Color frameColor;           // frame color
   private int colorsPerRow;           // number of colors per row
-  private int currentIndex;           // the currently selected color entry
   private boolean readOnly;           // indicates whether the user can interact with the color grid
   private Dimension colorSize;        // dimension of a single color entry
   private int gapX, gapY;             // horizontal and vertical gaps between color entries
   private int currentMouseOverIndex;  // current color index under the mouse cursor
+  private int selectionMode;          // current selection mode
+  private boolean isDragDropEnabled;
   private int DragDropMode;                 // current drag&drop mode
   private Point pDragDropStart;             // starting mouse position relative to color grid component
   private int dragDropStart, dragDropCur;   // initial and current color indices
@@ -187,6 +197,26 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     }
   }
 
+  /** Returns the currently active selection mode (one of SELECTION_SINGLE or SELECTION_MULTIPLE) */
+  public int getSelectionMode()
+  {
+    return selectionMode;
+  }
+
+  /**
+   * Sets the current color selection mode.
+   * @param mode Either one of {@link #SELECTION_SINGLE} or {@link #SELECTION_MULTIPLE}.
+   */
+  public void setSelectionMode(int mode)
+  {
+    if (mode == SELECTION_SINGLE || mode == SELECTION_MULTIPLE && selectionMode != mode) {
+      selectionMode = mode;
+      if (selectionMode == SELECTION_SINGLE && !listSelection.isEmpty()) {
+        setSelectedIndex(listSelection.get(listSelection.size() - 1).intValue());
+      }
+    }
+  }
+
   /** Returns whether the user can interact with the color grid (e.g. selecting color entries). */
   public boolean isReadOnly()
   {
@@ -201,6 +231,20 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
       if (getSelectedIndex() >= 0) {
         setSelectedIndex(-1);
       }
+    }
+  }
+
+  /** Returns whether drag&drop capability has been enabled. */
+  public boolean isDragDropEnabled()
+  {
+    return isDragDropEnabled;
+  }
+
+  /** Enables or disables the drag&drop capability of this color grid. */
+  public void setDragDropEnabled(boolean enable)
+  {
+    if (enable != isDragDropEnabled) {
+      isDragDropEnabled = enable;
     }
   }
 
@@ -396,34 +440,168 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   }
 
   /**
-   * Returns the color value at the selected color entry.
+   * Returns the color value at the selected color entry. In multiple selection mode only the last
+   * selected color value will be returned.
    * Returns <code>null</code> if no color has been selected.
    */
   public Color getSelectedColor()
   {
-    if (currentIndex >= 0) {
-      return listColors.get(currentIndex);
+    if (!listSelection.isEmpty()) {
+      return listColors.get(listSelection.get(listSelection.size() - 1).intValue());
     } else {
       return null;
     }
   }
 
-  /** Returns the currently selected color. Returns -1 if no color has been selected. */
-  public int getSelectedIndex()
+  /**
+   * Returns a list of all selected color entries. Returns an empty array if no color has been
+   * selected.
+   */
+  public Color[] getSelectedColors()
   {
-    return currentIndex;
+    Color[] retVal = new Color[listSelection.size()];
+    for (int i = 0; i < listSelection.size(); i++) {
+      retVal[i] = listColors.get(listSelection.get(i).intValue());
+    }
+    return retVal;
   }
 
-  /** Selects the specified color entry. */
+  /** Returns whether the specified color entry index is currently selected. */
+  public boolean isSelectedIndex(int index)
+  {
+    if (index >= 0 && index < getColorCount()) {
+      int idx = listSelection.indexOf(Integer.valueOf(index));
+      return (idx >= 0);
+    }
+    return false;
+  }
+
+  /** Returns <code>true</code> if nothing is selected, <code>false</code> otherwise. */
+  public boolean isSelectionEmpty()
+  {
+    return listSelection.isEmpty();
+  }
+
+  /**
+   * Returns the currently selected color in single selection mode or the last selected value
+   * in multiple selections mode..
+   * Returns -1 if no color has been selected.
+   */
+  public int getSelectedIndex()
+  {
+    if (!listSelection.isEmpty()) {
+      return listSelection.get(listSelection.size() - 1).intValue();
+    } else {
+      return -1;
+    }
+  }
+
+  /**
+   * Returns the selected color entry indices as an array of integers.
+   * @return An array of all selected color entry indices.
+   */
+  public int[] getSelectedIndices()
+  {
+    int[] retVal = new int[listSelection.size()];
+    for (int i = 0; i < listSelection.size(); i++) {
+      retVal[i] = listSelection.get(i).intValue();
+    }
+    return retVal;
+  }
+
+  /**
+   * Selects the color entry at the specified index. Previously selected entries will be
+   * unselected automatically.
+   */
   public void setSelectedIndex(int newIndex)
   {
-    if (newIndex < -1) newIndex = -1;
-    if (newIndex >= -1 && newIndex < getColorCount() && newIndex != currentIndex) {
-      currentIndex = newIndex;
+    setSelectedIndices(new int[]{newIndex});
+  }
+
+  /** Selects the specified indices. Previously selected entries will be unselected automatically. */
+  public void setSelectedIndices(int[] indices)
+  {
+    listSelection.clear();
+    if (indices != null) {
+      for (int i = 0; i < indices.length; i++) {
+        if (indices[i] >= 0 && indices[i] < getColorCount()) {
+          int idx = listSelection.indexOf(Integer.valueOf(indices[i]));
+          if (idx < 0) {
+            listSelection.add(Integer.valueOf(indices[i]));
+          }
+        }
+      }
+    }
+    repaint();
+  }
+
+  /**
+   * Adds the specified index to the current selection in multiple selection mode.
+   * Behaves like {@link #setSelectedIndex(int)} in single selection.
+   */
+  public void addSelectedIndex(int index)
+  {
+    addSelectedIndices(new int[]{index});
+  }
+
+  /**
+   * Adds the specified indices to the current selection in multiple selection mode.
+   * Behaves like {@link #setSelectedIndex(int)} in single selection, but selects only the last
+   * entry in the specified index array.
+   * @param indices Array of indices to select.
+   */
+  public void addSelectedIndices(int[] indices)
+  {
+    if (getSelectionMode() == SELECTION_SINGLE) {
+      setSelectedIndex((indices != null && indices.length > 0) ? indices[indices.length - 1] : -1);
+    } else {
+      if (indices != null) {
+        for (int i = 0; i < indices.length; i++) {
+          if (indices[i] >= 0 && indices[i] < getColorCount()) {
+            int idx = listSelection.indexOf(Integer.valueOf(indices[i]));
+            if (idx < 0) {
+              listSelection.add(Integer.valueOf(indices[i]));
+            }
+          }
+        }
+        repaint();
+      }
+    }
+  }
+
+  /** Removes the specified index from the selection. */
+  public void removeSelectedIndex(int index)
+  {
+    removeSelectedIndices(new int[]{index});
+  }
+
+  /**
+   * Removes the specified list of indices from the selection.
+   * @param indices Array of indices to unselect.
+   */
+  public void removeSelectedIndices(int[] indices)
+  {
+    if (indices != null) {
+      for (int i = 0; i < indices.length; i++) {
+        if (indices[i] >= 0 && indices[i] < getColorCount()) {
+          int idx = listSelection.indexOf(Integer.valueOf(indices[i]));
+          if (idx >= 0) {
+            listSelection.remove(idx);
+          }
+        }
+      }
       repaint();
     }
   }
 
+  /** Clears all selected color entries. */
+  public void clearSelection()
+  {
+    if (!listSelection.isEmpty()) {
+      listSelection.clear();
+      repaint();
+    }
+  }
 
   // Fires ActionListener events for all registered listeners
   protected void fireActionListener()
@@ -468,10 +646,11 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     frame = DefaultFrame;
     frameColor = DefaultFrameColor;
     colorsPerRow = DefaultColorsPerRow;
-    currentIndex = -1;
+    selectionMode = DefaultSelectionMode;
     colorSize = (Dimension)DefaultColorSize.clone();
     gapX = gapY = DefaultGap;
     currentMouseOverIndex = -1;
+    isDragDropEnabled = DefaultDragDropEnabled;
 
     // initializing color list
     if (count < 1) count = 1; else if (count > MaxColorCount) count = MaxColorCount;
@@ -527,9 +706,10 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
       }
 
       // painting frame around selected color entry
-      if (currentIndex >= 0) {
-        int col = currentIndex % colorsPerRow;
-        int row = currentIndex / colorsPerRow;
+      for (int i = 0; i < listSelection.size(); i++) {
+        int curIdx = listSelection.get(i).intValue();
+        int col = curIdx % colorsPerRow;
+        int row = curIdx / colorsPerRow;
         int x = gapX + col*(gapX + colorSize.width);
         int y = gapY + row*(gapY + colorSize.height);
         g.setColor(frameColor);
@@ -580,7 +760,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   private void setColorDragEnabled(boolean enable, Point coords)
   {
     if (coords != null) {
-      if (DragDropMode == DRAG_DISABLED && enable) {
+      if (isDragDropEnabled && DragDropMode == DRAG_DISABLED && enable) {
         int idx = getColorIndexAt(coords);
         if (idx >= 0) {
           // enabling drag mode
@@ -632,8 +812,25 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
         Color c = listColors.get(dragDropCur);
         listColors.remove(dragDropCur);
         listColors.add(newIndex, c);
+        boolean isSelected = isSelectedIndex(dragDropCur);
+
+        // updating selection list
+        for (int i = 0; i < listSelection.size(); i++) {
+          int idx = listSelection.get(i).intValue();
+          if (idx < dragDropCur && idx >= newIndex) {
+            listSelection.set(i, Integer.valueOf(idx+1));
+          } else if (idx > dragDropCur && idx <= newIndex) {
+            listSelection.set(i, Integer.valueOf(idx-1));
+          }
+        }
+        repaint();
+
+        if (isSelected) {
+          removeSelectedIndex(dragDropCur);
+          addSelectedIndex(newIndex);
+        }
+
         dragDropCur = newIndex;
-        setSelectedIndex(dragDropCur);
       }
     }
   }
@@ -652,9 +849,19 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     if (event.getSource() == this && event.getButton() == MouseEvent.BUTTON1) {
       if (!isReadOnly()) {
         int index = getColorIndexAt(event.getPoint());
-        if (index != currentIndex) {
-          currentIndex = index;
-          repaint();
+        if (getSelectionMode() == SELECTION_SINGLE) {
+          // single selection mode
+          if (!isSelectedIndex(index)) {
+            setSelectedIndex(index);
+            fireActionListener();
+          }
+        } else {
+          // multiple selection mode
+          if (isSelectedIndex(index)) {
+            removeSelectedIndex(index);
+          } else {
+            addSelectedIndex(index);
+          }
           fireActionListener();
         }
         setColorDragEnabled(true, event.getPoint());

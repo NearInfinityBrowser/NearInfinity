@@ -44,6 +44,7 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+// TODO: change filter to display the palette in the state after applying previous filters (if any)
 /**
  * Color filter: adjust palette entries (for BAM v1 only).
  * @author argent77
@@ -239,9 +240,15 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         } else if ("RIFF".equals(new String(signature, 0, 4, Charset.forName("US-ASCII")))) {
           palette = ColorConvert.loadPalettePAL(paletteFile);
         } else {
-          String s = new String(signature, Charset.forName("US-ASCII"));
-          if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
-            palette = ColorConvert.loadPaletteBAM(paletteFile);
+          String sig = new String(signature, 0, 4, Charset.forName("US-ASCII"));
+          String ver = new String(signature, 4, 4, Charset.forName("US-ASCII"));
+          if ("BAM ".equals(sig) || "BAMC".equals(sig)) {
+            if ("V1  ".equals(ver)) {
+              palette = ColorConvert.loadPaletteBAM(paletteFile);
+            } else {
+              throw new Exception(String.format("BAM file \"%1$s\" does not contain palette data.",
+                                                paletteFile.getName()));
+            }
           } else {
             // Photoshop ACT files don't have a header
             palette = ColorConvert.loadPaletteACT(paletteFile);
@@ -390,22 +397,22 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 255, 255, 255));
       lInfoHexRGB.setMinimumSize(lInfoHexRGB.getPreferredSize());
       c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
       pInfo.add(lInfoIndexTitle, c);
       c = ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-          GridBagConstraints.NONE, new Insets(0, 8, 0, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(0, 8, 0, 4), 0, 0);
       pInfo.add(lInfoIndex, c);
       c = ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
       pInfo.add(lInfoRGBTitle, c);
       c = ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
       pInfo.add(lInfoRGB, c);
       c = ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-          GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
       pInfo.add(lInfoHexRGBTitle, c);
       c = ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-          GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
       pInfo.add(lInfoHexRGB, c);
 
       // creating color edit panel
@@ -423,28 +430,28 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       tfColorBlue = new JTextField(4);
       tfColorBlue.addFocusListener(this);
       c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+                              GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
       pColor.add(lColorIndexTitle, c);
       c = ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 10, 0, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(0, 10, 0, 4), 0, 0);
       pColor.add(lColorIndex, c);
       c = ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
       pColor.add(lColorRedTitle, c);
       c = ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
       pColor.add(tfColorRed, c);
       c = ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
       pColor.add(lColorGreenTitle, c);
       c = ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
       pColor.add(tfColorGreen, c);
       c = ConvertToBam.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
       pColor.add(lColorBlueTitle, c);
       c = ConvertToBam.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
       pColor.add(tfColorBlue, c);
       pColor.setMinimumSize(pColor.getPreferredSize());
 
@@ -456,22 +463,22 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       JPanel pOptions = new JPanel(new GridBagLayout());
       pOptions.setBorder(BorderFactory.createTitledBorder("Options "));
       c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 4), 0, 0);
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 4), 0, 0);
       pOptions.add(bLoadPalette, c);
       c = ConvertToBam.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 4), 0, 0);
+                              GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 4), 0, 0);
       pOptions.add(bResetPalette, c);
 
       // putting right sidebar together
       JPanel pSideBar = new JPanel(new GridBagLayout());
       c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pSideBar.add(pInfo, c);
       c = ConvertToBam.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+                              GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
       pSideBar.add(pColor, c);
       c = ConvertToBam.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+                              GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
       pSideBar.add(pOptions, c);
 
       // creating bottom bar
@@ -480,19 +487,19 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       bClose.addActionListener(this);
       bClose.setMargin(new Insets(4, bClose.getInsets().left, 4, bClose.getInsets().right));
       c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+                              GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(bClose, c);
 
       // putting all together
       JPanel pMain = new JPanel(new GridBagLayout());
       c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+                              GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
       pMain.add(pPalette, c);
       c = ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 4, 4), 0, 0);
+                              GridBagConstraints.HORIZONTAL, new Insets(4, 8, 4, 4), 0, 0);
       pMain.add(pSideBar, c);
       c = ConvertToBam.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 0, 8, 0), 0, 0);
+                              GridBagConstraints.HORIZONTAL, new Insets(4, 0, 8, 0), 0, 0);
       pMain.add(pBottom, c);
 
       setLayout(new BorderLayout());
