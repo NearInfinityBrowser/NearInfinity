@@ -8,7 +8,6 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ColorGrid;
 import infinity.icon.Icons;
 import infinity.resource.graphics.ColorConvert;
-import infinity.resource.graphics.PseudoBamDecoder;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 import java.awt.BorderLayout;
