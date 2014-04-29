@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
@@ -60,10 +61,14 @@ public final class ViewerUtil
       return;
     JLabel label = new JLabel(entry.getName());
     JComponent text;
-    if (entry instanceof ResourceRef)
+    if (entry instanceof ResourceRef) {
       text = new LinkButton((ResourceRef)entry);
-    else {
-      text = new JLabel(entry.toString());
+    } else {
+      if (entry instanceof StringRef) {
+        text = new JLabel(((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs()));
+      } else {
+        text = new JLabel(entry.toString());
+      }
       text.setFont(text.getFont().deriveFont(Font.PLAIN));
     }
 
@@ -214,7 +219,13 @@ public final class ViewerUtil
 
   public static JPanel makeTextAreaPanel(StructEntry entry)
   {
-    JTextArea ta = new JTextArea(entry.toString());
+    String text;
+    if (entry instanceof StringRef) {
+      text = ((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs());
+    } else {
+      text = entry.toString();
+    }
+    JTextArea ta = new JTextArea(text);
     ta.setCaretPosition(0);
     ta.setEditable(false);
     ta.setLineWrap(true);

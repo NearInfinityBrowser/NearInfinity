@@ -132,6 +132,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionCheckScriptNames.isSelected();
   }
 
+  public boolean showStrrefs()
+  {
+    return optionsMenu.optionShowStrrefs.isSelected();
+  }
+
   public boolean cacheOverride()
   {
     return optionsMenu.optionCacheOverride.isSelected();
@@ -1024,6 +1029,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_AUTOCHECK_BCS = "AutocheckBCS";
     private static final String OPTION_CACHEOVERRIDE = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES = "CheckScriptNames";
+    private static final String OPTION_SHOWSTRREFS = "ShowStrrefs";
     private static final String OPTION_SHOWOVERRIDES = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF = "ShowResRef";
     private static final String OPTION_LOOKANDFEEL = "LookAndFeel";
@@ -1040,6 +1046,7 @@ public final class BrowserMenuBar extends JMenuBar
     private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
     private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
     private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
+    private JCheckBoxMenuItem optionShowStrrefs;
     private final JMenu mCharsetMenu;
     private ButtonGroup bgCharsetButtons;
 
@@ -1070,6 +1077,9 @@ public final class BrowserMenuBar extends JMenuBar
       optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
                                             "but many features involving script names will be disabled.");
       add(optionCheckScriptNames);
+      optionShowStrrefs =
+      new JCheckBoxMenuItem("Show Strrefs in View tabs", prefs.getBoolean(OPTION_SHOWSTRREFS, false));
+      add(optionShowStrrefs);
 
       addSeparator();
 
@@ -1366,6 +1376,7 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
       prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
+      prefs.putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
       prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
       prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());

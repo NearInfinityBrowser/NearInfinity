@@ -25,15 +25,18 @@ public final class StringResource
   private static Charset charset = cp1252Charset;
   private static Charset usedCharset = charset;
 
+  /** Returns the charset used to decode strings of the string resource. */
   public static Charset getCharset() {
     return charset;
   }
 
+  /** Specify the charset used to decode strings of the string resource. */
   public static void setCharset(String cs) {
     charset = Charset.forName(cs);
     usedCharset = charset;
   }
 
+  /** Explicitly closes the dialog.tlk file handle. */
   public static void close()
   {
     if (file == null) return;
@@ -45,16 +48,19 @@ public final class StringResource
     file = null;
   }
 
+  /** Returns the File instance of the dialog.tlk */
   public static File getFile()
   {
     return ffile;
   }
 
+  /** Returns the available number of strref entries in the dialog.tlk */
   public static int getMaxIndex()
   {
     return maxnr;
   }
 
+  /** Returns the resource name of the sound file associated with the specified strref entry. */
   public static String getResource(int index)
   {
     try {
@@ -93,13 +99,27 @@ public final class StringResource
     return null;
   }
 
+  /** Returns the string of the specified sttref entry. */
   public static String getStringRef(int index)
   {
+    return getStringRef(index, false);
+  }
+
+  /**
+   * Returns the string of the specified sttrref entry. Optionally add the specified
+   * sttref entry to the returned string.
+   * @param index The strref entry
+   * @param extended If <code>true</code> adds the specified strref entry to the resulting string.
+   * @return The string optionally including the strref entry.
+   */
+  public static String getStringRef(int index, boolean extended)
+  {
+    String fmtResult = extended ? "%1$s (Strref: %2$d)" : "%1$s";
+    int strref = index;
     try {
       if (file == null)
         open();
-      if (index >= maxnr || index < 0) return "No such index";
-//      if (index == 0xffffffff) return "none";
+      if (index >= maxnr || index < 0) return String.format(fmtResult, "No such index", strref);
       if (version.equalsIgnoreCase("V1  ")) {
         index *= 0x1A;
         file.seek((long)(0x12 + index + 0x12));
@@ -111,7 +131,7 @@ public final class StringResource
       int offset = startindex + Filereader.readInt(file);
       int length = Filereader.readInt(file);
       file.seek((long)offset);
-      return Filereader.readString(file, length, usedCharset);
+      return String.format(fmtResult, Filereader.readString(file, length, usedCharset), strref);
     } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
@@ -120,6 +140,7 @@ public final class StringResource
     return "Error";
   }
 
+  /** Specify a new dialog.tlk. */
   public static void init(File ffile)
   {
     close();

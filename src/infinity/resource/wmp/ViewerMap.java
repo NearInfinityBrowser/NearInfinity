@@ -7,11 +7,14 @@ package infinity.resource.wmp;
 import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.gui.BrowserMenuBar;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.graphics.BamResource2;
 import infinity.resource.key.ResourceEntry;
 
@@ -109,7 +112,12 @@ final class ViewerMap extends JPanel implements ListSelectionListener
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       AbstractStruct struct = (AbstractStruct)value;
-      label.setText(struct.getAttribute("Name").toString());
+      StructEntry entry = struct.getAttribute("Name");
+      if (entry instanceof StringRef) {
+        label.setText(((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs()));
+      } else {
+        label.setText(entry.toString());
+      }
       DecNumber animNr = (DecNumber)struct.getAttribute("Icon number");
       setIcon(null);
       if (icons != null)
