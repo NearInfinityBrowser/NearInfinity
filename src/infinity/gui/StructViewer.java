@@ -39,7 +39,6 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -84,13 +83,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener
 {
-  public static final String CMD_VIEW           = "View";
-  public static final String CMD_EXPORT         = "Export";
-  public static final String CMD_PRINT          = "Print";
-  public static final String CMD_REMOVE         = "Remove";
-  public static final String CMD_SAVE           = "Save";
-  public static final String CMD_ADD            = "Add";
-  public static final String CMD_FIND           = "Find";
   public static final String CMD_COPYVALUE      = "VCopy";
   public static final String CMD_PASTEVALUE     = "VPaste";
   public static final String CMD_CUT            = "Cut";
@@ -108,17 +100,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private static String lastName;
   private static int lastIndex;
   private final AbstractStruct struct;
-  private final ButtonPopupMenu bfind;
   private final CardLayout cards = new CardLayout();
-  private final JButton bview = createButton(CMD_VIEW, "View/Edit", Icons.getIcon("Zoom16.gif"), this);
-  private final JButton bexport = createButton(CMD_EXPORT, "Export...", Icons.getIcon("Export16.gif"), this);
-  private final JButton bprint = createButton(CMD_PRINT, null, Icons.getIcon("Print16.gif"), this);
-  private final JButton bremove = createButton(CMD_REMOVE, "Remove", Icons.getIcon("Remove16.gif"), this);
-  private final JButton bsave = createButton(CMD_SAVE, "Save", Icons.getIcon("Save16.gif"), this);
-  private final JMenuItem ifindattribute = new JMenuItem("selected attribute");
-  private final JMenuItem ifindreferences = new JMenuItem("references to this file");
-  private final JMenuItem ifindstatereferences = new JMenuItem("references to this state");
-  private final JMenuItem ifindreftoitem = new JMenuItem("references to selected item in this file");
   private final JMenuItem miCopyValue = createMenuItem(CMD_COPYVALUE, "Copy value", Icons.getIcon("Copy16.gif"), this);
   private final JMenuItem miPasteValue = createMenuItem(CMD_PASTEVALUE, "Replace value", Icons.getIcon("Paste16.gif"), this);
   private final JMenuItem miCut = createMenuItem(CMD_CUT, "Cut", Icons.getIcon("Cut16.gif"), this);
@@ -132,23 +114,14 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
   private final JPanel lowerpanel = new JPanel(cards);
   private final JPanel editpanel = new JPanel();
-  private final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+  private final ButtonPanel buttonPanel = new ButtonPanel();
   private final JPopupMenu popupmenu = new JPopupMenu();
   private final JTextArea tatext = new JTextArea();
   private final StructTable table = new StructTable();
   private AddRemovable emptyTypes[];
-  private ButtonPopupMenu badd;
+  private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
   private JTabbedPane tabbedPane;
-
-  private static JButton createButton(String cmd, String text, Icon icon, ActionListener l)
-  {
-    JButton b = new JButton(text, icon);
-    b.setActionCommand(cmd);
-    if (l != null)
-      b.addActionListener(l);
-    return b;
-  }
 
   private static JMenuItem createMenuItem(String cmd, String text, Icon icon, ActionListener l)
   {
@@ -230,12 +203,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     tatext.setEditable(false);
     tatext.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     tatext.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    bview.setMnemonic('v');
-    bview.setEnabled(false);
-    bremove.setMnemonic('r');
-    bremove.setEnabled(false);
-    bprint.setMargin(new Insets(bprint.getMargin().top, 3, bprint.getMargin().bottom, 3));
-    bprint.setToolTipText("Print");
     table.setModel(struct);
     table.getColumnModel().getColumn(0).setPreferredWidth(10);
     table.getColumnModel().getColumn(1).setPreferredWidth(400);
@@ -256,39 +223,47 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (emptyTypes == null)
         emptyTypes = new AddRemovable[0];
       JMenuItem menuItems[] = new JMenuItem[emptyTypes.length];
-      for (int i = 0; i < menuItems.length; i++)
+      for (int i = 0; i < menuItems.length; i++) {
         menuItems[i] = new JMenuItem(emptyTypes[i].getName());
-      badd = new ButtonPopupMenu("Add...", menuItems);
-      badd.setIcon(Icons.getIcon("Add16.gif"));
-      badd.addItemListener(this);
-      badd.setActionCommand(CMD_ADD);
+      }
       if (emptyTypes.length > 0) {
-        buttonPanel.add(badd);
-        buttonPanel.add(bremove);
-      } else
-        badd.setEnabled(false);
+        ButtonPopupMenu bpmAdd = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.Add);
+        bpmAdd.setMenuItems(menuItems);
+        bpmAdd.addItemListener(this);
+        JButton bRemove = (JButton)buttonPanel.addControl(ButtonPanel.Control.Remove);
+        bRemove.setEnabled(false);
+        bRemove.addActionListener(this);
+      }
     }
-    ifindattribute.setEnabled(false);
-    ifindreferences.setEnabled(struct instanceof Resource && struct.getSuperStruct() == null);
-    ifindstatereferences.setEnabled(false);
-    ifindreftoitem.setEnabled(false);
-    if (struct instanceof DlgResource)
-      bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindattribute, ifindreferences,
-                                                             ifindstatereferences, ifindreftoitem});
-    else
-      bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindattribute, ifindreferences});
-    bfind.setIcon(Icons.getIcon("Find16.gif"));
-    bfind.addItemListener(this);
-    bfind.setActionCommand(CMD_FIND);
-    buttonPanel.add(bfind);
-    buttonPanel.add(bview);
-    buttonPanel.add(bprint);
+
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
+    bpmFind.addItemListener(this);
+    if (struct instanceof DlgResource) {
+      miFindAttribute = new JMenuItem("selected attribute");
+      miFindAttribute.setEnabled(false);
+      miFindReferences = new JMenuItem("references to this file");
+      miFindReferences.setEnabled(struct instanceof Resource && struct.getSuperStruct() == null);
+      miFindStateReferences = new JMenuItem("references to this state");
+      miFindStateReferences.setEnabled(false);
+      miFindRefToItem = new JMenuItem("references to selected item in this file");
+      miFindRefToItem.setEnabled(false);
+
+      bpmFind.setMenuItems(new JMenuItem[]{miFindAttribute, miFindReferences,
+                                           miFindStateReferences, miFindRefToItem});
+    } else {
+      miFindAttribute = new JMenuItem("selected attribute");
+      miFindAttribute.setEnabled(false);
+      miFindReferences = new JMenuItem("references to this file");
+      miFindReferences.setEnabled(struct instanceof Resource && struct.getSuperStruct() == null);
+      bpmFind.setMenuItems(new JMenuItem[]{miFindAttribute, miFindReferences});
+    }
+    JButton bView = (JButton)buttonPanel.addControl(ButtonPanel.Control.ViewEdit);
+    bView.setEnabled(false);
+    bView.addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.Print)).addActionListener(this);
     if (struct instanceof Resource && struct.getRowCount() > 0 && struct.getSuperStruct() == null) {
-      bexport.setToolTipText("NB! Will export last *saved* version");
-      bexport.setMnemonic('e');
-      bsave.setMnemonic('a');
-      buttonPanel.add(bexport);
-      buttonPanel.add(bsave);
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.Save)).addActionListener(this);
     }
     if (extraComponents != null) {
       for (final Component c: extraComponents) {
@@ -346,11 +321,33 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getActionCommand().equals(CMD_VIEW)) {
-      Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
-      new ViewFrame(getTopLevelAncestor(), selected);
-    }
-    else if (event.getActionCommand().equals(UPDATE_VALUE)) {
+    if (event.getSource() instanceof JComponent &&
+        buttonPanel.getControlPosition((JComponent)event.getSource()) >= 0) {
+      if (buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit) == event.getSource()) {
+        Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
+        new ViewFrame(getTopLevelAncestor(), selected);
+      } else if (buttonPanel.getControlByType(ButtonPanel.Control.Remove) == event.getSource()) {
+        int row = table.getSelectedRow();
+        AddRemovable selected = (AddRemovable)table.getModel().getValueAt(row, 1);
+        struct.removeDatatype(selected, true);
+      } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
+        if (ResourceFactory.getInstance().saveResource((Resource)struct, getTopLevelAncestor())) {
+          struct.setStructChanged(false);
+        }
+      } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+        ResourceFactory.getInstance().exportResource(struct.getResourceEntry(), getTopLevelAncestor());
+      } else if (buttonPanel.getControlByType(ButtonPanel.Control.Print) == event.getSource()) {
+        PrinterJob pj = PrinterJob.getPrinterJob();
+        pj.setPrintable(table);
+        if (pj.printDialog()) {
+          try {
+            pj.print();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    } else if (event.getActionCommand().equals(UPDATE_VALUE)) {
       if (editable.updateValue(struct)) {
         struct.setStructChanged(true);
         struct.fireTableRowsUpdated(struct.getIndexOf(editable), struct.getIndexOf(editable));
@@ -359,33 +356,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
       else
         JOptionPane.showMessageDialog(this, "Error updating value", "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    else if (event.getActionCommand().equals(CMD_REMOVE)) {
-      int row = table.getSelectedRow();
-      AddRemovable selected = (AddRemovable)table.getModel().getValueAt(row, 1);
-      struct.removeDatatype(selected, true);
-    }
-    else if (event.getActionCommand().equals(CMD_SAVE)) {
-      if (ResourceFactory.getInstance().saveResource((Resource)struct, getTopLevelAncestor()))
-        struct.setStructChanged(false);
-    }
-    else if (event.getActionCommand().equals(CMD_EXPORT))
-      ResourceFactory.getInstance().exportResource(struct.getResourceEntry(), getTopLevelAncestor());
-    else if (event.getActionCommand().equals(CMD_PRINT)) {
-      PrinterJob pj = PrinterJob.getPrinterJob();
-      pj.setPrintable(table);
-      if (pj.printDialog()) {
-        try {
-          pj.print();
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    else if (event.getActionCommand().equals(CMD_COPYVALUE))
+    } else if (event.getActionCommand().equals(CMD_COPYVALUE)) {
       StructClipboard.getInstance().copyValue(struct, table.getSelectionModel().getMinSelectionIndex(),
                                               table.getSelectionModel().getMaxSelectionIndex());
-    else if (event.getActionCommand().equals(CMD_PASTEVALUE)) {
+    } else if (event.getActionCommand().equals(CMD_PASTEVALUE)) {
       int changed = StructClipboard.getInstance().pasteValue(struct,
                                                              table.getSelectionModel().getMinSelectionIndex());
       if (changed == 0)
@@ -395,45 +369,39 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                                     table.getSelectionModel().getMinSelectionIndex() + changed);
         struct.setStructChanged(true);
       }
-    }
-    else if (event.getActionCommand().equals(CMD_CUT)) {
+    } else if (event.getActionCommand().equals(CMD_CUT)) {
       ListSelectionModel lsm = table.getSelectionModel();
       int min = lsm.getMinSelectionIndex();
       int max = lsm.getMaxSelectionIndex();
       lsm.removeIndexInterval(min, max);
       table.clearSelection();
       StructClipboard.getInstance().cut(struct, min, max);
-    }
-    else if (event.getActionCommand().equals(CMD_COPY))
+    } else if (event.getActionCommand().equals(CMD_COPY)) {
       StructClipboard.getInstance().copy(struct, table.getSelectionModel().getMinSelectionIndex(),
                                          table.getSelectionModel().getMaxSelectionIndex());
-    else if (event.getActionCommand().equals(CMD_PASTE)) {
+    } else if (event.getActionCommand().equals(CMD_PASTE)) {
       table.clearSelection();
       table.scrollRectToVisible(table.getCellRect(StructClipboard.getInstance().paste(struct), 1, true));
-    }
-    else if (event.getActionCommand().equals(CMD_TOHEX))
+    } else if (event.getActionCommand().equals(CMD_TOHEX)) {
       convertAttribute(table.getSelectedRow(), miToHex);
-    else if (event.getActionCommand().equals(CMD_TOBIN))
+    } else if (event.getActionCommand().equals(CMD_TOBIN)) {
       convertAttribute(table.getSelectedRow(), miToBin);
-    else if (event.getActionCommand().equals(CMD_TODEC))
+    } else if (event.getActionCommand().equals(CMD_TODEC)) {
       convertAttribute(table.getSelectedRow(), miToDec);
-    else if (event.getActionCommand().equals(CMD_TOSTRING))
+    } else if (event.getActionCommand().equals(CMD_TOSTRING)) {
       convertAttribute(table.getSelectedRow(), miToString);
-    else if (event.getActionCommand().equals(CMD_SHOWVIEWER)) {
+    } else if (event.getActionCommand().equals(CMD_SHOWVIEWER)) {
       // this should only be available for DlgResources
       DlgResource dlgRes = (DlgResource) struct;
       dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
       JComponent detailViewer = dlgRes.getDetailViewer();
       JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
-
-    }
-    else if (event.getActionCommand().equals(CMD_SHOWNEWVIEWER)) {
+    } else if (event.getActionCommand().equals(CMD_SHOWNEWVIEWER)) {
       // get a copy of the resource first
       DlgResource dlgRes = (DlgResource) ResourceFactory.getResource(struct.getResourceEntry());
       new ViewFrame(getTopLevelAncestor(), dlgRes);
       dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
-
     }
   }
 
@@ -456,40 +424,42 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getSource() == badd) {
-      //      JMenuItem item = (JMenuItem)event.getItem();  // Should have worked!
-      JMenuItem item = badd.getSelectedItem();
-      AddRemovable toadd = null;
-      for (final AddRemovable emtryType : emptyTypes)
-        if (emtryType != null && emtryType.getName().equals(item.getText())) {
-          toadd = emtryType;
-          break;
+    if (event.getSource() instanceof ButtonPopupMenu &&
+        buttonPanel.getControlPosition((JComponent)event.getSource()) >= 0) {
+      if (buttonPanel.getControlByType(ButtonPanel.Control.Add) == event.getSource()) {
+        ButtonPopupMenu bpmAdd = (ButtonPopupMenu)event.getSource();
+        JMenuItem item = bpmAdd.getSelectedItem();
+        AddRemovable toadd = null;
+        for (final AddRemovable emptyType : emptyTypes) {
+          if (emptyType != null && emptyType.getName().equals(item.getText())) {
+            toadd = emptyType;
+            break;
+          }
         }
-      try {
-        toadd = (AddRemovable)toadd.clone();
-      } catch (CloneNotSupportedException e) {
-        e.printStackTrace();
-        return;
-      }
-      int index = struct.addDatatype(toadd);
-      table.getSelectionModel().setSelectionInterval(index, index);
-      table.scrollRectToVisible(table.getCellRect(index, 1, true));
-    }
-    else if (event.getSource() == bfind) {
-      //      JMenuItem item = (JMenuItem)event.getItem();  // Should have worked!
-      JMenuItem item = bfind.getSelectedItem();
-      if (item == ifindattribute)
-        new AttributeSearcher(struct, (StructEntry)table.getValueAt(table.getSelectedRow(), 1),
-                              getTopLevelAncestor());
-      else if (item == ifindreferences)
-        new ReferenceSearcher(struct.getResourceEntry(), getTopLevelAncestor());
-      else if (item == ifindstatereferences) {
-        State state = (State)table.getValueAt(table.getSelectedRow(), 1);
-        new DialogStateReferenceSearcher(struct.getResourceEntry(), state.getNumber(), getTopLevelAncestor());
-      }
-      else if (item == ifindreftoitem) {
-        new DialogItemRefSearcher((DlgResource) struct, table.getValueAt(table.getSelectedRow(), 1),
-                                  getTopLevelAncestor());
+        try {
+          toadd = (AddRemovable)toadd.clone();
+        } catch (CloneNotSupportedException e) {
+          e.printStackTrace();
+          return;
+        }
+        int index = struct.addDatatype(toadd);
+        table.getSelectionModel().setSelectionInterval(index, index);
+        table.scrollRectToVisible(table.getCellRect(index, 1, true));
+      } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
+        ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
+        JMenuItem item = bpmFind.getSelectedItem();
+        if (item == miFindAttribute) {
+          new AttributeSearcher(struct, (StructEntry)table.getValueAt(table.getSelectedRow(), 1),
+                                getTopLevelAncestor());
+        } else if (item == miFindReferences) {
+          new ReferenceSearcher(struct.getResourceEntry(), getTopLevelAncestor());
+        } else if (item == miFindStateReferences) {
+          State state = (State)table.getValueAt(table.getSelectedRow(), 1);
+          new DialogStateReferenceSearcher(struct.getResourceEntry(), state.getNumber(), getTopLevelAncestor());
+        } else if (item == miFindRefToItem) {
+          new DialogItemRefSearcher((DlgResource) struct, table.getValueAt(table.getSelectedRow(), 1),
+                                    getTopLevelAncestor());
+        }
       }
     }
   }
@@ -508,28 +478,52 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     ListSelectionModel lsm = (ListSelectionModel)event.getSource();
     if (lsm.isSelectionEmpty() || lsm.getMaxSelectionIndex() != lsm.getMinSelectionIndex()) {
       tatext.setText("");
-      bremove.setEnabled(false);
-      bview.setEnabled(false);
+      JButton bRemove = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.Remove);
+      if (bRemove != null) {
+        bRemove.setEnabled(false);
+      }
+      JButton bView = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit);
+      if (bView != null) {
+        bView.setEnabled(false);
+      }
       cards.show(lowerpanel, "Empty");
       miToHex.setEnabled(false);
       miToBin.setEnabled(false);
       miToDec.setEnabled(false);
       miToString.setEnabled(false);
       miShowViewer.setEnabled(false);
-      miShowNewViewer.setEnabled(false);
-      ifindattribute.setEnabled(false);
-      ifindstatereferences.setEnabled(false);
-      ifindreftoitem.setEnabled(false);
+      if (miShowNewViewer != null) {
+        miShowNewViewer.setEnabled(false);
+      }
+      if (miFindAttribute != null) {
+        miFindAttribute.setEnabled(false);
+      }
+      if (miFindStateReferences != null) {
+        miFindStateReferences.setEnabled(false);
+      }
+      if (miFindRefToItem != null) {
+        miFindRefToItem.setEnabled(false);
+      }
     }
     else {
       table.scrollRectToVisible(table.getCellRect(lsm.getMinSelectionIndex(), 0, true));
       Object selected = table.getModel().getValueAt(lsm.getMinSelectionIndex(), 1);
       miPaste.setEnabled(
               StructClipboard.getInstance().getContentType(struct) == StructClipboard.CLIPBOARD_ENTRIES);
-      bremove.setEnabled(selected instanceof AddRemovable && ((AddRemovable)selected).canRemove());
-      bview.setEnabled(selected instanceof Viewable);
-      ifindattribute.setEnabled(!(selected instanceof AbstractStruct));
-      ifindstatereferences.setEnabled(selected instanceof State);
+      JButton bRemove = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.Remove);
+      if (bRemove != null) {
+        bRemove.setEnabled(selected instanceof AddRemovable && ((AddRemovable)selected).canRemove());
+      }
+      JButton bView = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit);
+      if (bView != null) {
+        bView.setEnabled(selected instanceof Viewable);
+      }
+      if (miFindAttribute != null) {
+        miFindAttribute.setEnabled(!(selected instanceof AbstractStruct));
+      }
+      if (miFindStateReferences != null) {
+        miFindStateReferences.setEnabled(selected instanceof State);
+      }
       miToHex.setEnabled(selected instanceof Datatype && !(selected instanceof HexNumber ||
                                                            selected instanceof Unknown ||
                                                            selected instanceof SectionCount));
@@ -545,7 +539,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                                  || selected instanceof Transition
                                  || selected instanceof AbstractCode);
 
-      ifindreftoitem.setEnabled(isSpecialDlgStruct);
+      if (miFindRefToItem != null) {
+        miFindRefToItem.setEnabled(isSpecialDlgStruct);
+      }
       miShowViewer.setEnabled(isSpecialDlgStruct);
       miShowNewViewer.setEnabled(isSpecialDlgStruct);
 
@@ -625,7 +621,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- End Interface TableModelListener ---------------------
 
-  public JPanel getButtonPanel()
+  public ButtonPanel getButtonPanel()
   {
     return buttonPanel;
   }

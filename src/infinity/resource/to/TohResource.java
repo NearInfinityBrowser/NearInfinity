@@ -4,18 +4,17 @@
 
 package infinity.resource.to;
 
-import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.AbstractButton;
-import javax.swing.JPanel;
+import javax.swing.JButton;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
@@ -103,18 +102,10 @@ public final class TohResource extends AbstractStruct implements Resource
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
-    // removing 'Save' button
-    JPanel panel = viewer.getButtonPanel();
-    Component[] components = panel.getComponents();
-    if (components != null) {
-      viewer.getButtonPanel().removeAll();
-      for (final Component c: components) {
-        if (c instanceof AbstractButton &&
-            ((AbstractButton)c).getActionCommand().equals(StructViewer.CMD_SAVE)) {
-          continue;
-        }
-        panel.add(c);
-      }
+    // disabling 'Save' button
+    JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.Save);
+    if (bSave != null) {
+      bSave.setEnabled(false);
     }
   }
 }

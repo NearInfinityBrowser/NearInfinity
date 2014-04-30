@@ -4,14 +4,13 @@
 
 package infinity.resource.video;
 
-import infinity.icon.Icons;
+import infinity.gui.ButtonPanel;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -22,7 +21,8 @@ import javax.swing.JPanel;
 public final class WbmResource implements Resource, ActionListener
 {
   private final ResourceEntry entry;
-  private JButton bexport;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private JPanel panel;
 
   public WbmResource(ResourceEntry entry)
@@ -35,8 +35,9 @@ public final class WbmResource implements Resource, ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bexport)
+    if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry,panel.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -56,17 +57,11 @@ public final class WbmResource implements Resource, ActionListener
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bexport.setMnemonic('e');
-    bexport.addActionListener(this);
-
-    JPanel bpanel = new JPanel();
-    bpanel.setLayout(new FlowLayout());
-    bpanel.add(bexport);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
-    panel.add(bpanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
 
     return panel;
   }

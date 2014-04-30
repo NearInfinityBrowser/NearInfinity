@@ -4,8 +4,8 @@
 
 package infinity.resource.graphics;
 
+import infinity.gui.ButtonPanel;
 import infinity.gui.RenderCanvas;
-import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -14,7 +14,6 @@ import infinity.resource.other.UnknownResource;
 import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -30,10 +29,12 @@ import javax.swing.JScrollPane;
 
 public final class PltResource implements Resource, ActionListener
 {
+  private static final ButtonPanel.Control CtrlColorList = ButtonPanel.Control.Custom1;
+
   private final ResourceEntry entry;
   private final byte[] buffer;
-  private JButton bexport;
-  private JComboBox cbColorBMP;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private RenderCanvas rcCanvas;
   private JPanel panel;
   private Resource externalResource;
@@ -59,10 +60,11 @@ public final class PltResource implements Resource, ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == cbColorBMP)
+    if (buttonPanel.getControlByType(CtrlColorList) == event.getSource()) {
       rcCanvas.setImage(getImage());
-    else if (event.getSource() == bexport)
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -85,7 +87,7 @@ public final class PltResource implements Resource, ActionListener
   public JComponent makeViewer(ViewableContainer container)
   {
     if (externalResource == null) {
-      cbColorBMP = new JComboBox();
+      JComboBox cbColorBMP = new JComboBox();
       cbColorBMP.addItem("None");
       List<ResourceEntry> bmps = ResourceFactory.getInstance().getResources("BMP");
       for (int i = 0; i < bmps.size(); i++) {
@@ -97,21 +99,17 @@ public final class PltResource implements Resource, ActionListener
       cbColorBMP.setSelectedIndex(0);
       cbColorBMP.addActionListener(this);
 
-      bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-      bexport.setMnemonic('e');
-      bexport.addActionListener(this);
+      buttonPanel.addControl(new JLabel("Colors: "));
+      buttonPanel.addControl(cbColorBMP, CtrlColorList);
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+
       rcCanvas = new RenderCanvas(getImage());
       JScrollPane scroll = new JScrollPane(rcCanvas);
-
-      JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-      bpanel.add(new JLabel("Colors: "));
-      bpanel.add(cbColorBMP);
-      bpanel.add(bexport);
 
       panel = new JPanel();
       panel.setLayout(new BorderLayout());
       panel.add(scroll, BorderLayout.CENTER);
-      panel.add(bpanel, BorderLayout.SOUTH);
+      panel.add(buttonPanel, BorderLayout.SOUTH);
       scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
       return panel;
@@ -125,7 +123,7 @@ public final class PltResource implements Resource, ActionListener
   private BufferedImage getImage()
   {
     Palette palette = null;
-    Object item = cbColorBMP.getSelectedItem();
+    Object item = ((JComboBox)buttonPanel.getControlByType(CtrlColorList)).getSelectedItem();
     if (!item.toString().equalsIgnoreCase("None")) {
       try {
         palette = new BmpResource((ResourceEntry)item).getPalette();

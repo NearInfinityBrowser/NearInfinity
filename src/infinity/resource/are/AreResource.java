@@ -21,7 +21,6 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.pro.ProResource;
 import infinity.resource.vertex.Vertex;
 import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;

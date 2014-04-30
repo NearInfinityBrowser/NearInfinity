@@ -7,10 +7,10 @@ package infinity.resource.graphics;
 import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.TileGrid;
 import infinity.gui.WindowBlocker;
-import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
@@ -72,13 +72,14 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   private static boolean showGrid = false;
 
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private TisDecoder decoder;
   private List<Image> tileImages;         // stores one tile per image
   private TileGrid tileGrid;              // the main component for displaying the tileset
   private JSlider slCols;                 // changes the tiles per row
   private JTextField tfCols;              // input/output tiles per row
   private JCheckBox cbGrid;               // show/hide frame around each tile
-  private ButtonPopupMenu bpmExport;      // "Export..." button menu
   private JMenuItem miExport, miExportLegacyTis, miExportPNG;
   private JPanel panel;                   // top-level panel of the viewer
   private RootPaneContainer rpc;
@@ -432,19 +433,14 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    bpmExport = new ButtonPopupMenu("Export...", mi);
-    bpmExport.setIcon(Icons.getIcon("Export16.gif"));
-    bpmExport.setMnemonic('e');
-
-    // 3.2. putting bottom panel together
-    JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bottomPanel.add(bpmExport);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    bpmExport.setMenuItems(mi);
 
     // 4. packing all together
     panel = new JPanel(new BorderLayout());
     panel.add(topPanel, BorderLayout.NORTH);
     panel.add(centerPanel, BorderLayout.CENTER);
-    panel.add(bottomPanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
     return panel;
   }

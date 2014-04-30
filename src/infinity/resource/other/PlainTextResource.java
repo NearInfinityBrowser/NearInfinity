@@ -5,8 +5,8 @@
 package infinity.resource.other;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
-import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
@@ -20,8 +20,6 @@ import infinity.util.Filewriter;
 import infinity.util.NIFile;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -49,8 +47,8 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 {
   private final ResourceEntry entry;
   private final String text;
-  private ButtonPopupMenu bfind;
-  private JButton bsave, bexport, bremoveSpaces;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
   private JTextArea editor;
@@ -71,17 +69,17 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bsave) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
       if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor()))
         resourceChanged = false;
-    }
-    else if (event.getSource() == bexport)
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
-    else if (event.getSource() == bremoveSpaces) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.TrimSpaces) == event.getSource()) {
       StringBuffer newText = new StringBuffer(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
-      while (st.hasMoreTokens())
+      while (st.hasMoreTokens()) {
         newText.append(st.nextToken().trim()).append('\n');
+      }
       editor.setText(newText.toString());
       editor.setCaretPosition(0);
     }
@@ -145,13 +143,13 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getSource() == bfind) {
-      if (bfind.getSelectedItem() == ifindall) {
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.FindMenu);
+    if (event.getSource() == bpmFind) {
+      if (bpmFind.getSelectedItem() == ifindall) {
         String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
         List<ResourceEntry> files = ResourceFactory.getInstance().getResources(type);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
-      }
-      else if (bfind.getSelectedItem() == ifindthis) {
+      } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
         files.add(entry);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
@@ -217,38 +215,21 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
       editor.setLineWrap(true);
       editor.setWrapStyleWord(true);
     }
-    bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bexport.setMnemonic('e');
-    bexport.setToolTipText("NB! Will export last *saved* version");
-    bexport.addActionListener(this);
-    bsave = new JButton("Save", Icons.getIcon("Save16.gif"));
-    bsave.setMnemonic('a');
-    bsave.addActionListener(this);
-    bremoveSpaces = new JButton("Trim spaces", Icons.getIcon("Refresh16.gif"));
-    bremoveSpaces.addActionListener(this);
 
     ifindall =
-    new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
+        new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
     ifindthis = new JMenuItem("in this file only");
-    bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindall, ifindthis});
-    bfind.addItemListener(this);
-    bfind.setIcon(Icons.getIcon("Find16.gif"));
-
-    JPanel bpanel = new JPanel();
-    bpanel.setLayout(new GridLayout(1, 4, 6, 0));
-    bpanel.add(bfind);
-    bpanel.add(bremoveSpaces);
-    bpanel.add(bexport);
-    bpanel.add(bsave);
-
-    JPanel lowerpanel = new JPanel();
-    lowerpanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    lowerpanel.add(bpanel);
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
+    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
+    bpmFind.addItemListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.TrimSpaces)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.Save)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(new JScrollPane(editor), BorderLayout.CENTER);
-    panel.add(lowerpanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
 
     return panel;
   }

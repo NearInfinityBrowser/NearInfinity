@@ -22,9 +22,9 @@ import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.StructViewer;
-import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
@@ -41,7 +41,6 @@ import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
 
-import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedOutputStream;
@@ -55,12 +54,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractButton;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 public final class CreResource extends AbstractStruct implements Resource, HasAddRemovable, AddRemovable,
                                                                  HasDetailViewer, ItemListener
@@ -1515,31 +1513,19 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   protected void viewerInitialized(StructViewer viewer)
   {
     if (isChr) {
-      JPanel panel = viewer.getButtonPanel();
-      Component[] components = panel.getComponents();
-      if (components != null) {
-        for (int i = 0; i < components.length; i++) {
-          if (components[i] instanceof AbstractButton &&
-              ((AbstractButton)components[i]).getActionCommand().equals(StructViewer.CMD_EXPORT)) {
-            AbstractButton button = (AbstractButton)components[i];
-            // updating component list
-            miExport = new JMenuItem("original");
-            miExport.setToolTipText(button.getToolTipText());
-            miConvert = new JMenuItem("as CRE");
-            bExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miConvert});
-            bExport.setIcon(Icons.getIcon("Export16.gif"));
-            bExport.addItemListener(this);
-            button.removeActionListener(viewer);
-            components[i] = bExport;
-
-            // adding updated list of components to the panel
-            viewer.getButtonPanel().removeAll();
-            for (final Component c: components) {
-              panel.add(c);
-            }
-            break;
-          }
-        }
+      ButtonPanel panel = viewer.getButtonPanel();
+      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.ExportButton);
+      int idx = panel.getControlPosition(b);
+      if (b != null && idx >= 0) {
+        // replacing button with menu
+        b.removeActionListener(viewer);
+        panel.removeControl(idx);
+        miExport = new JMenuItem("original");
+        miExport.setToolTipText(b.getToolTipText());
+        miConvert = new JMenuItem("as CRE");
+        bExport = (ButtonPopupMenu)panel.addControl(idx, ButtonPanel.Control.ExportMenu);
+        bExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
+        bExport.addItemListener(this);
       }
     }
   }

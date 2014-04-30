@@ -4,6 +4,7 @@
 
 package infinity.resource.sav;
 
+import infinity.gui.ButtonPanel;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
@@ -15,7 +16,6 @@ import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -45,10 +45,17 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
                                                  "<li>View/edit the individual files." +
                                                  "<li>If any changes have been made, " +
                                                  "Compress to rebuild SAV file.</ol></html>");
+
+  private static final ButtonPanel.Control CtrlCompress   = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlDecompress = ButtonPanel.Control.Custom2;
+  private static final ButtonPanel.Control CtrlEdit       = ButtonPanel.Control.Custom3;
+  private static final ButtonPanel.Control CtrlDelete     = ButtonPanel.Control.Custom4;
+
   private final IOHandler handler;
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private DefaultListModel listModel;
-  private JButton bcompress, bdecompress, bedit, bdelete, bexport;
   private JList filelist;
   private JPanel panel;
   private List<? extends ResourceEntry> entries;
@@ -64,54 +71,52 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bcompress) {
+    if (buttonPanel.getControlByType(CtrlCompress) == event.getSource()) {
       try {
         handler.compress(entries);
         ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-        bdecompress.setEnabled(true);
+        buttonPanel.getControlByType(CtrlDecompress).setEnabled(true);
         filelist.setEnabled(false);
-        bedit.setEnabled(false);
-        bdelete.setEnabled(false);
-        bcompress.setEnabled(false);
+        buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
+        buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
+        buttonPanel.getControlByType(CtrlCompress).setEnabled(false);
       } catch (Exception e) {
         JOptionPane.showMessageDialog(panel, "Error compressing file", "Error", JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
       }
-    }
-    else if (event.getSource() == bdecompress) {
+    } else if (buttonPanel.getControlByType(CtrlDecompress) == event.getSource()) {
       try {
         entries = handler.decompress();
-        bcompress.setEnabled(true);
+        buttonPanel.getControlByType(CtrlCompress).setEnabled(true);
         filelist.setEnabled(true);
-        bedit.setEnabled(true);
-        bdelete.setEnabled(true);
-        bdecompress.setEnabled(false);
+        buttonPanel.getControlByType(CtrlEdit).setEnabled(true);
+        buttonPanel.getControlByType(CtrlDelete).setEnabled(true);
+        buttonPanel.getControlByType(CtrlDecompress).setEnabled(false);
         filelist.setSelectedIndex(0);
       } catch (Exception e) {
         JOptionPane.showMessageDialog(panel, "Error decompressing file", "Error", JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
       }
-    }
-    else if (event.getSource() == bedit) {
+    } else if (buttonPanel.getControlByType(CtrlEdit) == event.getSource()) {
       ResourceEntry fileentry = (ResourceEntry)entries.get(filelist.getSelectedIndex());
       Resource res = ResourceFactory.getResource(fileentry);
       new ViewFrame(panel.getTopLevelAncestor(), res);
-    }
-    else if (event.getSource() == bexport)
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
-    else if (event.getSource() == bdelete) {
+    } else if (buttonPanel.getControlByType(CtrlDelete) == event.getSource()) {
       int index = filelist.getSelectedIndex();
       ResourceEntry resourceentry = (ResourceEntry)entries.get(index);
       entries.remove(resourceentry);
       listModel.remove(index);
-      if (index == listModel.size())
+      if (index == listModel.size()) {
         index--;
+      }
       filelist.setSelectedIndex(index);
       filelist.revalidate();
       filelist.repaint();
       if (listModel.size() == 0) {
-        bdelete.setEnabled(false);
-        bedit.setEnabled(false);
+        buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
+        buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
       }
     }
   }
@@ -163,20 +168,25 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
         }
       }
     });
-    bcompress = new JButton("Compress", Icons.getIcon("Import16.gif"));
-    bdecompress = new JButton("Decompress", Icons.getIcon("Export16.gif"));
-    bedit = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
-    bdelete = new JButton("Delete file", Icons.getIcon("Delete16.gif"));
-    bcompress.setMnemonic('c');
-    bdecompress.setMnemonic('d');
-    bedit.setMnemonic('v');
-    bcompress.addActionListener(this);
-    bdecompress.addActionListener(this);
-    bedit.addActionListener(this);
-    bdelete.addActionListener(this);
-    bcompress.setEnabled(false);
-    bedit.setEnabled(false);
-    bdelete.setEnabled(false);
+
+    JButton bDecompress = new JButton("Decompress", Icons.getIcon("Export16.gif"));
+    bDecompress.setMnemonic('d');
+    bDecompress.addActionListener(this);
+
+    JButton bEdit = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
+    bEdit.setMnemonic('v');
+    bEdit.addActionListener(this);
+    bEdit.setEnabled(false);
+
+    JButton bDelete = new JButton("Delete file", Icons.getIcon("Delete16.gif"));
+    bDelete.addActionListener(this);
+    bDelete.setEnabled(false);
+
+    JButton bCompress = new JButton("Compress", Icons.getIcon("Import16.gif"));
+    bCompress.setMnemonic('c');
+    bCompress.addActionListener(this);
+    bCompress.setEnabled(false);
+
     filelist.setEnabled(false);
 
     JPanel centerpanel = new JPanel();
@@ -208,19 +218,15 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
     gbl.setConstraints(lhelp, gbc);
     centerpanel.add(lhelp);
 
-    bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bexport.setMnemonic('e');
-    bexport.addActionListener(this);
-    JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(bdecompress);
-    bpanel.add(bedit);
-    bpanel.add(bdelete);
-    bpanel.add(bcompress);
-    bpanel.add(bexport);
+    buttonPanel.addControl(bDecompress, CtrlDecompress);
+    buttonPanel.addControl(bEdit, CtrlEdit);
+    buttonPanel.addControl(bDelete, CtrlDelete);
+    buttonPanel.addControl(bCompress, CtrlCompress);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
     panel = new JPanel(new BorderLayout());
     panel.add(centerpanel, BorderLayout.CENTER);
-    panel.add(bpanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     centerpanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
     return panel;

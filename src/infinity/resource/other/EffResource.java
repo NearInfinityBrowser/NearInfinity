@@ -11,7 +11,6 @@ import infinity.resource.Effect2;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.sto.StoResource;
 import infinity.search.SearchOptions;
 
 public final class EffResource extends AbstractStruct implements Resource

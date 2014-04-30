@@ -5,6 +5,7 @@
 package infinity.resource.video;
 
 import infinity.NearInfinity;
+import infinity.gui.ButtonPanel;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
@@ -14,7 +15,6 @@ import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -34,16 +34,20 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
 {
   private static final int VIDEO_BUFFERS = 3;
 
+  private static final ButtonPanel.Control CtrlPlay   = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlPause  = ButtonPanel.Control.Custom2;
+  private static final ButtonPanel.Control CtrlStop   = ButtonPanel.Control.Custom3;
+
   private static boolean isZoom = true;
   private static boolean isFilter = true;
 
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private MveDecoder decoder;
   private ImageRenderer renderer;
   private MvePlayer player;
   private JPanel panel;
-  private JButton bPlay, bPause, bStop, bExport;
   private JCheckBox cbZoom, cbFilter;
 
   public MveResource(ResourceEntry entry) throws Exception
@@ -70,31 +74,31 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bExport) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
-    } else if (event.getSource() == bPlay) {
+    } else if (buttonPanel.getControlByType(CtrlPlay) == event.getSource()) {
       if (player.isStopped()) {
         new Thread(this).start();
       } else {
         if (player.isPaused()) {
           player.continuePlay();
-          bPlay.setEnabled(player.isPaused());
-          bPause.setEnabled(!player.isPaused());
+          buttonPanel.getControlByType(CtrlPlay).setEnabled(player.isPaused());
+          buttonPanel.getControlByType(CtrlPause).setEnabled(!player.isPaused());
         }
       }
-    } else if (event.getSource() == bPause) {
+    } else if (buttonPanel.getControlByType(CtrlPause) == event.getSource()) {
       if (!player.isStopped()) {
         if (!player.isPaused()) {
           player.pausePlay();
-          bPlay.setEnabled(player.isPaused());
-          bPause.setEnabled(!player.isPaused());
+          buttonPanel.getControlByType(CtrlPlay).setEnabled(player.isPaused());
+          buttonPanel.getControlByType(CtrlPause).setEnabled(!player.isPaused());
         }
       }
-    } else if (event.getSource() == bStop) {
+    } else if (buttonPanel.getControlByType(CtrlStop) == event.getSource()) {
       player.stopPlay();
-      bStop.setEnabled(false);
-      bPause.setEnabled(false);
-      bPlay.setEnabled(true);
+      buttonPanel.getControlByType(CtrlStop).setEnabled(false);
+      buttonPanel.getControlByType(CtrlPause).setEnabled(false);
+      buttonPanel.getControlByType(CtrlPlay).setEnabled(true);
     }
   }
 
@@ -163,9 +167,9 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       }
     }
 
-    bPlay.setEnabled(false);
-    bPause.setEnabled(true);
-    bStop.setEnabled(true);
+    buttonPanel.getControlByType(CtrlPlay).setEnabled(false);
+    buttonPanel.getControlByType(CtrlPause).setEnabled(true);
+    buttonPanel.getControlByType(CtrlStop).setEnabled(true);
     try {
       renderer.clearBuffers();
       player.play(renderer, decoder);
@@ -175,9 +179,9 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
     }
     decoder.close();
-    bPlay.setEnabled(true);
-    bPause.setEnabled(false);
-    bStop.setEnabled(false);
+    buttonPanel.getControlByType(CtrlPlay).setEnabled(true);
+    buttonPanel.getControlByType(CtrlPause).setEnabled(false);
+    buttonPanel.getControlByType(CtrlStop).setEnabled(false);
   }
 
 //--------------------- End Interface Runable ---------------------
@@ -219,26 +223,21 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     optionsPanel.add(cbZoom);
     optionsPanel.add(cbFilter);
 
-    bPlay = new JButton("Play", Icons.getIcon("Play16.gif"));
+    JButton bPlay = new JButton("Play", Icons.getIcon("Play16.gif"));
     bPlay.addActionListener(this);
     bPlay.setEnabled(decoder != null);
-    bPause = new JButton("Pause", Icons.getIcon("Pause16.gif"));
+    JButton bPause = new JButton("Pause", Icons.getIcon("Pause16.gif"));
     bPause.addActionListener(this);
     bPause.setEnabled(false);
-    bStop = new JButton("Stop", Icons.getIcon("Stop16.gif"));
+    JButton bStop = new JButton("Stop", Icons.getIcon("Stop16.gif"));
     bStop.addActionListener(this);
     bStop.setEnabled(false);
 
-    bExport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bExport.setMnemonic('e');
-    bExport.addActionListener(this);
-
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    buttonPanel.add(bPlay);
-    buttonPanel.add(bPause);
-    buttonPanel.add(bStop);
-    buttonPanel.add(bExport);
-    buttonPanel.add(optionsPanel);
+    buttonPanel.addControl(bPlay, CtrlPlay);
+    buttonPanel.addControl(bPause, CtrlPause);
+    buttonPanel.addControl(bStop, CtrlStop);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    buttonPanel.addControl(optionsPanel);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());

@@ -5,10 +5,10 @@
 package infinity.resource.graphics;
 
 import infinity.NearInfinity;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
-import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -18,7 +18,6 @@ import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Transparency;
@@ -53,10 +52,10 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
   private static boolean enableTransparency = true;
 
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private MosDecoder.Type mosType;
-  private ButtonPopupMenu bpmExport;
   private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportPNG;
-  private JButton bFind;
   private JCheckBox cbTransparency;
   private RenderCanvas rcImage;
   private JPanel panel;
@@ -86,7 +85,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         }
         WindowBlocker.blockWindow(false);
       }
-    } else if (event.getSource() == bFind) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
@@ -230,9 +229,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
 
     mosType = MosDecoder.getType(entry);
 
-    bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
-    bFind.setMnemonic('f');
-    bFind.addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
@@ -270,9 +267,8 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    bpmExport = new ButtonPopupMenu("Export...", mi);
-    bpmExport.setIcon(Icons.getIcon("Export16.gif"));
-    bpmExport.setMnemonic('e');
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    bpmExport.setMenuItems(mi);
 
     rcImage = new RenderCanvas();
     rcImage.setHorizontalAlignment(SwingConstants.CENTER);
@@ -296,11 +292,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
     BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
     optionsPanel.setLayout(bl);
     optionsPanel.add(cbTransparency);
-
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    buttonPanel.add(bFind);
-    buttonPanel.add(bpmExport);
-    buttonPanel.add(optionsPanel);
+    buttonPanel.addControl(optionsPanel);
 
     panel = new JPanel(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);

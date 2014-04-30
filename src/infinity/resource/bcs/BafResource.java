@@ -5,6 +5,7 @@
 package infinity.resource.bcs;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
@@ -21,7 +22,6 @@ import infinity.util.Filewriter;
 import infinity.util.NIFile;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -52,11 +52,24 @@ import javax.swing.event.DocumentListener;
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener,
                                     DocumentListener
 {
+  // for source panel
+  private static final ButtonPanel.Control CtrlCompile    = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlErrors     = ButtonPanel.Control.Custom2;
+  private static final ButtonPanel.Control CtrlWarnings   = ButtonPanel.Control.Custom3;
+  // for code panel
+  private static final ButtonPanel.Control CtrlDecompile  = ButtonPanel.Control.Custom1;
+  // for button panel
+  private static final ButtonPanel.Control CtrlUses       = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlSaveScript = ButtonPanel.Control.Custom2;
+
+
   private static JFileChooser chooser;
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final ButtonPanel bpSource = new ButtonPanel();
+  private final ButtonPanel bpCode = new ButtonPanel();
+
   private JTabbedPane tabbedPane;
-  private ButtonPopupMenu bfind, buses, berrors, bwarnings;
-  private JButton bcompile, bdecompile, bsave, bsaveScript, bExport;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
   private JTextArea codeText, sourceText;
@@ -80,55 +93,64 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bcompile) {
+    if (bpSource.getControlByType(CtrlCompile) == event.getSource()) {
+      JButton bCompile = (JButton)event.getSource();
+      JButton bDecompile = (JButton)bpCode.getControlByType(CtrlDecompile);
+      JButton bSaveScript = (JButton)buttonPanel.getControlByType(CtrlSaveScript);
+      ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpSource.getControlByType(CtrlErrors);
+      ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)bpSource.getControlByType(CtrlWarnings);
+      ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
       codeText.setText(Compiler.getInstance().compile(sourceText.getText()));
       codeText.setCaretPosition(0);
-      bcompile.setEnabled(false);
-      bdecompile.setEnabled(false);
-      bsaveScript.setEnabled(Compiler.getInstance().getErrors().size() == 0);
+      bCompile.setEnabled(false);
+      bDecompile.setEnabled(false);
+      bSaveScript.setEnabled(Compiler.getInstance().getErrors().size() == 0);
       SortedMap<Integer, String> errorMap = Compiler.getInstance().getErrors();
       SortedMap<Integer, String> warningMap = Compiler.getInstance().getWarnings();
-      berrors.setText("Errors (" + errorMap.size() + ")...");
-      bwarnings.setText("Warnings (" + warningMap.size() + ")...");
-      if (errorMap.size() == 0)
-        berrors.setEnabled(false);
-      else {
+      bpmErrors.setText("Errors (" + errorMap.size() + ")...");
+      bpmWarnings.setText("Warnings (" + warningMap.size() + ")...");
+      if (errorMap.size() == 0) {
+        bpmErrors.setEnabled(false);
+      } else {
         JMenuItem errorItems[] = new JMenuItem[errorMap.size()];
         int counter = 0;
         for (final Integer lineNr : errorMap.keySet()) {
           String error = errorMap.get(lineNr);
           errorItems[counter++] = new JMenuItem(lineNr.toString() + ": " + error);
         }
-        berrors.setMenuItems(errorItems);
-        berrors.setEnabled(true);
+        bpmErrors.setMenuItems(errorItems);
+        bpmErrors.setEnabled(true);
       }
-      if (warningMap.size() == 0)
-        bwarnings.setEnabled(false);
-      else {
+      if (warningMap.size() == 0) {
+        bpmWarnings.setEnabled(false);
+      } else {
         JMenuItem warningItems[] = new JMenuItem[warningMap.size()];
         int counter = 0;
         for (final Integer lineNr : warningMap.keySet()) {
           String warning = warningMap.get(lineNr);
           warningItems[counter++] = new JMenuItem(lineNr.toString() + ": " + warning);
         }
-        bwarnings.setMenuItems(warningItems);
-        bwarnings.setEnabled(true);
+        bpmWarnings.setMenuItems(warningItems);
+        bpmWarnings.setEnabled(true);
       }
       Decompiler.decompile(codeText.getText(), true);
       Set<ResourceEntry> uses = Decompiler.getResourcesUsed();
       JMenuItem usesItems[] = new JMenuItem[uses.size()];
       int usesIndex = 0;
       for (final ResourceEntry usesEntry : uses) {
-        if (usesEntry.getSearchString() != null)
+        if (usesEntry.getSearchString() != null) {
           usesItems[usesIndex++] =
           new JMenuItem(usesEntry.toString() + " (" + usesEntry.getSearchString() + ')');
-        else
+        } else {
           usesItems[usesIndex++] = new JMenuItem(usesEntry.toString());
+        }
       }
-      buses.setMenuItems(usesItems);
-      buses.setEnabled(usesItems.length > 0);
-    }
-    else if (event.getSource() == bdecompile) {
+      bpmUses.setMenuItems(usesItems);
+      bpmUses.setEnabled(usesItems.length > 0);
+    } else if (bpCode.getControlByType(CtrlDecompile) == event.getSource()) {
+      JButton bDecompile = (JButton)event.getSource();
+      JButton bCompile = (JButton)bpSource.getControlByType(CtrlCompile);
+      ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
       sourceText.setText(Decompiler.decompile(codeText.getText(), true));
       sourceText.setCaretPosition(0);
       Set<ResourceEntry> uses = Decompiler.getResourcesUsed();
@@ -141,14 +163,15 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         else
           usesItems[usesIndex++] = new JMenuItem(usesEntry.toString());
       }
-      buses.setMenuItems(usesItems);
-      buses.setEnabled(usesItems.length > 0);
-      bcompile.setEnabled(false);
-      bdecompile.setEnabled(false);
+      bpmUses.setMenuItems(usesItems);
+      bpmUses.setEnabled(usesItems.length > 0);
+      bCompile.setEnabled(false);
+      bDecompile.setEnabled(false);
       tabbedPane.setSelectedIndex(0);
-    }
-    else if (event.getSource() == bsave) {
-      if (berrors.isEnabled()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
+      JButton bSave = (JButton)event.getSource();
+      ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpSource.getControlByType(CtrlErrors);
+      if (bpmErrors.isEnabled()) {
         String options[] = {"Save", "Cancel"};
         int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
                                                   JOptionPane.YES_NO_OPTION,
@@ -157,11 +180,10 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
           return;
       }
       if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor())) {
-        bsave.setEnabled(false);
+        bSave.setEnabled(false);
         sourceChanged = false;
       }
-    }
-    else if (event.getSource() == bsaveScript) {
+    } else if (buttonPanel.getControlByType(CtrlSaveScript) == event.getSource()) {
       if (chooser == null) {
         chooser = new JFileChooser(ResourceFactory.getRootDir());
         chooser.setDialogTitle("Save source code");
@@ -196,9 +218,9 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
           e.printStackTrace();
         }
       }
-    }
-    else if (event.getSource() == bExport)
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -237,11 +259,11 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void insertUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
-      bdecompile.setEnabled(true);
+      bpCode.getControlByType(CtrlDecompile).setEnabled(true);
     }
     else if (event.getDocument() == sourceText.getDocument()) {
-      bsave.setEnabled(true);
-      bcompile.setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(true);
+      bpSource.getControlByType(CtrlCompile).setEnabled(true);
       sourceChanged = true;
     }
   }
@@ -250,11 +272,11 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void removeUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
-      bdecompile.setEnabled(true);
+      bpCode.getControlByType(CtrlDecompile).setEnabled(true);
     }
     else if (event.getDocument() == sourceText.getDocument()) {
-      bsave.setEnabled(true);
-      bcompile.setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(true);
+      bpSource.getControlByType(CtrlCompile).setEnabled(true);
       sourceChanged = true;
     }
   }
@@ -263,11 +285,11 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void changedUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
-      bdecompile.setEnabled(true);
+      bpCode.getControlByType(CtrlDecompile).setEnabled(true);
     }
     else if (event.getDocument() == sourceText.getDocument()) {
-      bsave.setEnabled(true);
-      bcompile.setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(true);
+      bpSource.getControlByType(CtrlCompile).setEnabled(true);
       sourceChanged = true;
     }
   }
@@ -280,33 +302,34 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getSource() == bfind) {
-      if (bfind.getSelectedItem() == ifindall) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
+      ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
+      if (bpmFind.getSelectedItem() == ifindall) {
         java.util.List<ResourceEntry> files = ResourceFactory.getInstance().getResources("BAF");
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
-      }
-      else if (bfind.getSelectedItem() == ifindthis) {
+      } else if (bpmFind.getSelectedItem() == ifindthis) {
         java.util.List<ResourceEntry> files = new ArrayList<ResourceEntry>(1);
         files.add(entry);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       }
-    }
-    else if (event.getSource() == buses) {
-      JMenuItem item = buses.getSelectedItem();
+    } else if (buttonPanel.getControlByType(CtrlUses) == event.getSource()) {
+      ButtonPopupMenu bpmUses = (ButtonPopupMenu)event.getSource();
+      JMenuItem item = bpmUses.getSelectedItem();
       String name = item.getText();
       int index = name.indexOf(" (");
-      if (index != -1)
+      if (index != -1) {
         name = name.substring(0, index);
+      }
       ResourceEntry resEntry = ResourceFactory.getInstance().getResourceEntry(name);
       new ViewFrame(panel.getTopLevelAncestor(), ResourceFactory.getResource(resEntry));
-    }
-    else if (event.getSource() == berrors) {
-      String selected = berrors.getSelectedItem().getText();
+    } else if (bpSource.getControlByType(CtrlErrors) == event.getSource()) {
+      ButtonPopupMenu bpmErrors = (ButtonPopupMenu)event.getSource();
+      String selected = bpmErrors.getSelectedItem().getText();
       int linenr = Integer.parseInt(selected.substring(0, selected.indexOf(": ")));
       highlightText(linenr, null);
-    }
-    else if (event.getSource() == bwarnings) {
-      String selected = bwarnings.getSelectedItem().getText();
+    } else if (bpSource.getControlByType(CtrlWarnings) == event.getSource()) {
+      ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)event.getSource();
+      String selected = bpmWarnings.getSelectedItem().getText();
       int linenr = Integer.parseInt(selected.substring(0, selected.indexOf(": ")));
       highlightText(linenr, null);
     }
@@ -370,23 +393,22 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     JScrollPane scrollSource = new JScrollPane(sourceText);
     scrollSource.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    bcompile = new JButton("Compile", Icons.getIcon("Redo16.gif"));
-    bcompile.setMnemonic('c');
-    bcompile.addActionListener(this);
-    berrors = new ButtonPopupMenu("Errors (0)...", new JMenuItem[0]);
-    berrors.setIcon(Icons.getIcon("Up16.gif"));
-    berrors.addItemListener(this);
-    bwarnings = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[0]);
-    bwarnings.setIcon(Icons.getIcon("Up16.gif"));
-    bwarnings.addItemListener(this);
-    JPanel sourcePanelButtons = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    sourcePanelButtons.add(bcompile);
-    sourcePanelButtons.add(berrors);
-    sourcePanelButtons.add(bwarnings);
+    JButton bCompile = new JButton("Compile", Icons.getIcon("Redo16.gif"));
+    bCompile.setMnemonic('c');
+    bCompile.addActionListener(this);
+    ButtonPopupMenu bpmErrors = new ButtonPopupMenu("Errors (0)...", new JMenuItem[]{});
+    bpmErrors.setIcon(Icons.getIcon("Up16.gif"));
+    bpmErrors.addItemListener(this);
+    ButtonPopupMenu bpmWarnings = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[]{});
+    bpmWarnings.setIcon(Icons.getIcon("Up16.gif"));
+    bpmWarnings.addItemListener(this);
+    bpSource.addControl(bCompile, CtrlCompile);
+    bpSource.addControl(bpmErrors, CtrlErrors);
+    bpSource.addControl(bpmWarnings, CtrlWarnings);
 
     JPanel sourcePanel = new JPanel(new BorderLayout());
     sourcePanel.add(scrollSource, BorderLayout.CENTER);
-    sourcePanel.add(sourcePanelButtons, BorderLayout.SOUTH);
+    sourcePanel.add(bpSource, BorderLayout.SOUTH);
 
     codeText = new JTextArea();
     codeText.setFont(BrowserMenuBar.getInstance().getScriptFont());
@@ -397,56 +419,47 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     JScrollPane scrollCode = new JScrollPane(codeText);
     scrollCode.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    bdecompile = new JButton("Decompile", Icons.getIcon("Undo16.gif"));
-    bdecompile.setMnemonic('d');
-    bdecompile.addActionListener(this);
-    JPanel codePanelButtons = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    codePanelButtons.add(bdecompile);
+    JButton bDecompile = new JButton("Decompile", Icons.getIcon("Undo16.gif"));
+    bDecompile.setMnemonic('d');
+    bDecompile.addActionListener(this);
+    bpCode.addControl(bDecompile, CtrlDecompile);
 
     JPanel codePanel = new JPanel(new BorderLayout());
     codePanel.add(scrollCode, BorderLayout.CENTER);
-    codePanel.add(codePanelButtons, BorderLayout.SOUTH);
+    codePanel.add(bpCode, BorderLayout.SOUTH);
 
     ifindall = new JMenuItem("in all scripts");
     ifindthis = new JMenuItem("in this script only");
-    bsave = new JButton("Save", Icons.getIcon("Save16.gif"));
-    bsave.setMnemonic('a');
-    bsaveScript = new JButton("Save code", Icons.getIcon("Save16.gif"));
-    bExport = new JButton("Export", Icons.getIcon("Export16.gif"));
-    bExport.setToolTipText("NB! Will export last *saved* version");
-    bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindall, ifindthis});
-    bfind.setIcon(Icons.getIcon("Find16.gif"));
-    buses = new ButtonPopupMenu("Uses...", new JMenuItem[0]);
-    buses.setIcon(Icons.getIcon("Find16.gif"));
-    bfind.addItemListener(this);
-    buses.addItemListener(this);
-    bsave.addActionListener(this);
-    bsaveScript.addActionListener(this);
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
+    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
+    bpmFind.addItemListener(this);
+    ButtonPopupMenu bpmUses = new ButtonPopupMenu("Uses...", new JMenuItem[]{});
+    bpmUses.setIcon(Icons.getIcon("Find16.gif"));
+    bpmUses.addItemListener(this);
+    buttonPanel.addControl(bpmUses, CtrlUses);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    JButton bSave = (JButton)buttonPanel.addControl(ButtonPanel.Control.Save);
+    bSave.addActionListener(this);
+    JButton bSaveScript = new JButton("Save code", Icons.getIcon("Save16.gif"));
+    bSaveScript.addActionListener(this);
+    buttonPanel.addControl(bSaveScript, CtrlSaveScript);
 
     tabbedPane = new JTabbedPane();
     tabbedPane.addTab("Script source", sourcePanel);
     tabbedPane.addTab("Script code (compiled)", codePanel);
 
-    JPanel lowerpanel = new JPanel();
-    lowerpanel.setLayout(new FlowLayout(FlowLayout.CENTER, 6, 6));
-    lowerpanel.add(bfind);
-    lowerpanel.add(buses);
-    lowerpanel.add(bExport);
-    lowerpanel.add(bsave);
-    lowerpanel.add(bsaveScript);
-
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(tabbedPane, BorderLayout.CENTER);
-    panel.add(lowerpanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
 
-    bcompile.setEnabled(true);
-    berrors.setEnabled(false);
-    bwarnings.setEnabled(false);
-    bdecompile.setEnabled(false);
-    bsave.setEnabled(false);
-    buses.setEnabled(false);
-    bsaveScript.setEnabled(false);
+    bCompile.setEnabled(true);
+    bpmErrors.setEnabled(false);
+    bpmWarnings.setEnabled(false);
+    bDecompile.setEnabled(false);
+    bSave.setEnabled(false);
+    bpmUses.setEnabled(false);
+    bSaveScript.setEnabled(false);
 
     return panel;
   }

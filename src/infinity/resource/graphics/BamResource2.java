@@ -5,6 +5,7 @@
 package infinity.resource.graphics;
 
 import infinity.NearInfinity;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
@@ -22,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
@@ -67,16 +67,21 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
 
   private static boolean transparencyEnabled = true;
 
+  private static final ButtonPanel.Control CtrlNextCycle  = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlPrevCycle  = ButtonPanel.Control.Custom2;
+  private static final ButtonPanel.Control CtrlNextFrame  = ButtonPanel.Control.Custom3;
+  private static final ButtonPanel.Control CtrlPrevFrame  = ButtonPanel.Control.Custom4;
+  private static final ButtonPanel.Control CtrlPlay       = ButtonPanel.Control.Custom5;
+  private static final ButtonPanel.Control CtrlCycleLabel = ButtonPanel.Control.Custom6;
+  private static final ButtonPanel.Control CtrlFrameLabel = ButtonPanel.Control.Custom7;
+
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private BamDecoder decoder;
   private BamDecoder.BamControl bamControl;
-  private ButtonPopupMenu bpmExport;
   private JMenuItem miExport, miExportBAM, miExportBAMC, miExportFramesPNG;
-  private JButton bFind, bPrevCycle, bNextCycle, bPrevFrame, bNextFrame;
   private RenderCanvas rcDisplay;
-  private JLabel lCycle, lFrame;
-  private JToggleButton bPlay;
   private JCheckBox cbTransparency;
   private JPanel panel;
   private int curCycle, curFrame;
@@ -111,36 +116,36 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bPrevCycle) {
+    if (buttonPanel.getControlByType(CtrlPrevCycle) == event.getSource()) {
       curCycle--;
       bamControl.setSharedPerCycle(curCycle >= 0);
       bamControl.cycleSet(curCycle);
       updateCanvasSize();
       if (timer != null && timer.isRunning() && bamControl.cycleFrameCount() == 0) {
         timer.stop();
-        bPlay.setSelected(false);
+        ((JToggleButton)buttonPanel.getControlByType(CtrlPlay)).setSelected(false);
       }
       curFrame = 0;
       showFrame();
-    } else if (event.getSource() == bNextCycle) {
+    } else if (buttonPanel.getControlByType(CtrlNextCycle) == event.getSource()) {
       curCycle++;
       bamControl.setSharedPerCycle(curCycle >= 0);
       bamControl.cycleSet(curCycle);
       updateCanvasSize();
       if (timer != null && timer.isRunning() && bamControl.cycleFrameCount() == 0) {
         timer.stop();
-        bPlay.setSelected(false);
+        ((JToggleButton)buttonPanel.getControlByType(CtrlPlay)).setSelected(false);
       }
       curFrame = 0;
       showFrame();
-    } else if (event.getSource() == bPrevFrame) {
+    } else if (buttonPanel.getControlByType(CtrlPrevFrame) == event.getSource()) {
       curFrame--;
       showFrame();
-    } else if (event.getSource() == bNextFrame) {
+    } else if (buttonPanel.getControlByType(CtrlNextFrame) == event.getSource()) {
       curFrame++;
       showFrame();
-    } else if (event.getSource() == bPlay) {
-      if (bPlay.isSelected()) {
+    } else if (buttonPanel.getControlByType(CtrlPlay) == event.getSource()) {
+      if (((JToggleButton)buttonPanel.getControlByType(CtrlPlay)).isSelected()) {
         if (timer == null) {
           timer = new Timer(ANIM_DELAY, this);
         }
@@ -150,7 +155,7 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
           timer.stop();
         }
       }
-    } else if (event.getSource() == bFind) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == timer) {
       if (curCycle >= 0) {
@@ -309,10 +314,8 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
 
-    bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
-    bFind.setMnemonic('f');
+    JButton bFind = (JButton)ButtonPanel.createControl(ButtonPanel.Control.FindReferences);
     bFind.addActionListener(this);
-
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
@@ -353,26 +356,25 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    bpmExport = new ButtonPopupMenu("Export...", mi);
-    bpmExport.setIcon(Icons.getIcon("Export16.gif"));
-    bpmExport.setMnemonic('e');
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.ExportMenu);
+    bpmExport.setMenuItems(mi);
 
-    bPlay = new JToggleButton("Play", Icons.getIcon("Play16.gif"));
+    JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon("Play16.gif"));
     bPlay.addActionListener(this);
 
-    lCycle = new JLabel("", JLabel.CENTER);
-    bPrevCycle = new JButton(Icons.getIcon("Back16.gif"));
+    JLabel lCycle = new JLabel("", JLabel.CENTER);
+    JButton bPrevCycle = new JButton(Icons.getIcon("Back16.gif"));
     bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
     bPrevCycle.addActionListener(this);
-    bNextCycle = new JButton(Icons.getIcon("Forward16.gif"));
+    JButton bNextCycle = new JButton(Icons.getIcon("Forward16.gif"));
     bNextCycle.setMargin(bPrevCycle.getMargin());
     bNextCycle.addActionListener(this);
 
-    lFrame = new JLabel("", JLabel.CENTER);
-    bPrevFrame = new JButton(Icons.getIcon("Back16.gif"));
+    JLabel lFrame = new JLabel("", JLabel.CENTER);
+    JButton bPrevFrame = new JButton(Icons.getIcon("Back16.gif"));
     bPrevFrame.setMargin(bPrevCycle.getMargin());
     bPrevFrame.addActionListener(this);
-    bNextFrame = new JButton(Icons.getIcon("Forward16.gif"));
+    JButton bNextFrame = new JButton(Icons.getIcon("Forward16.gif"));
     bNextFrame.setMargin(bPrevCycle.getMargin());
     bNextFrame.addActionListener(this);
 
@@ -387,16 +389,15 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
     optionsPanel.setLayout(bl);
     optionsPanel.add(cbTransparency);
 
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    buttonPanel.add(lCycle);
-    buttonPanel.add(bPrevCycle);
-    buttonPanel.add(bNextCycle);
-    buttonPanel.add(lFrame);
-    buttonPanel.add(bPrevFrame);
-    buttonPanel.add(bNextFrame);
-    buttonPanel.add(bPlay);
-    buttonPanel.add(bFind);
-    buttonPanel.add(bpmExport);
+    buttonPanel.addControl(lCycle, CtrlCycleLabel);
+    buttonPanel.addControl(bPrevCycle, CtrlPrevCycle);
+    buttonPanel.addControl(bNextCycle, CtrlNextCycle);
+    buttonPanel.addControl(lFrame, CtrlFrameLabel);
+    buttonPanel.addControl(bPrevFrame, CtrlPrevFrame);
+    buttonPanel.addControl(bNextFrame, CtrlNextFrame);
+    buttonPanel.addControl(bPlay, CtrlPlay);
+    buttonPanel.addControl(bFind, ButtonPanel.Control.FindReferences);
+    buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
     buttonPanel.add(optionsPanel);
 
     panel = new JPanel(new BorderLayout());
@@ -549,30 +550,32 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
         updateCanvas();
 
         if (curCycle >= 0) {
-          lCycle.setText(String.format("Cycle: %1$d/%2$d", curCycle+1, bamControl.cycleCount()));
-          lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, bamControl.cycleFrameCount()));
+          ((JLabel)buttonPanel.getControlByType(CtrlCycleLabel))
+            .setText(String.format("Cycle: %1$d/%2$d", curCycle+1, bamControl.cycleCount()));
+          ((JLabel)buttonPanel.getControlByType(CtrlFrameLabel))
+            .setText(String.format("Frame: %1$d/%2$d", curFrame+1, bamControl.cycleFrameCount()));
         } else {
-          lCycle.setText("All frames");
-          lFrame.setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.frameCount()));
+          ((JLabel)buttonPanel.getControlByType(CtrlCycleLabel)).setText("All frames");
+          ((JLabel)buttonPanel.getControlByType(CtrlFrameLabel)).setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.frameCount()));
         }
 
-        bPrevCycle.setEnabled(curCycle > -1);
-        bNextCycle.setEnabled(curCycle + 1 < bamControl.cycleCount());
-        bPrevFrame.setEnabled(curFrame > 0);
+        buttonPanel.getControlByType(CtrlPrevCycle).setEnabled(curCycle > -1);
+        buttonPanel.getControlByType(CtrlNextCycle).setEnabled(curCycle + 1 < bamControl.cycleCount());
+        buttonPanel.getControlByType(CtrlPrevFrame).setEnabled(curFrame > 0);
         if (curCycle >= 0) {
-          bNextFrame.setEnabled(curFrame + 1 < bamControl.cycleFrameCount());
-          bPlay.setEnabled(bamControl.cycleFrameCount() > 1);
+          buttonPanel.getControlByType(CtrlNextFrame).setEnabled(curFrame + 1 < bamControl.cycleFrameCount());
+          buttonPanel.getControlByType(CtrlPlay).setEnabled(bamControl.cycleFrameCount() > 1);
         } else {
-          bNextFrame.setEnabled(curFrame + 1 < decoder.frameCount());
-          bPlay.setEnabled(decoder.frameCount() > 1);
+          buttonPanel.getControlByType(CtrlNextFrame).setEnabled(curFrame + 1 < decoder.frameCount());
+          buttonPanel.getControlByType(CtrlPlay).setEnabled(decoder.frameCount() > 1);
         }
 
       } else {
-        bPlay.setEnabled(false);
-        bPrevCycle.setEnabled(false);
-        bNextCycle.setEnabled(false);
-        bPrevFrame.setEnabled(false);
-        bNextFrame.setEnabled(false);
+        buttonPanel.getControlByType(CtrlPlay).setEnabled(false);
+        buttonPanel.getControlByType(CtrlPrevCycle).setEnabled(false);
+        buttonPanel.getControlByType(CtrlNextCycle).setEnabled(false);
+        buttonPanel.getControlByType(CtrlPrevFrame).setEnabled(false);
+        buttonPanel.getControlByType(CtrlNextFrame).setEnabled(false);
       }
     }
   }
