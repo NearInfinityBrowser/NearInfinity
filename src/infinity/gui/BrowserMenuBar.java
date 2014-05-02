@@ -71,6 +71,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 
 public final class BrowserMenuBar extends JMenuBar
 {
@@ -84,6 +85,9 @@ public final class BrowserMenuBar extends JMenuBar
   private final FileMenu fileMenu;
   private final GameMenu gameMenu;
   private final OptionsMenu optionsMenu;
+  private final SearchMenu searchMenu;
+  private final ToolsMenu toolsMenu;
+  private final HelpMenu helpMenu;
 
   public static BrowserMenuBar getInstance()
   {
@@ -111,14 +115,17 @@ public final class BrowserMenuBar extends JMenuBar
     gameMenu = new GameMenu(prefs, browser);
     fileMenu = new FileMenu();
     editMenu = new EditMenu();
+    searchMenu = new SearchMenu();
+    toolsMenu = new ToolsMenu();
     optionsMenu = new OptionsMenu(prefs, browser);
+    helpMenu = new HelpMenu();
     add(gameMenu);
     add(fileMenu);
     add(editMenu);
-    add(new SearchMenu());
-    add(new ToolsMenu());
+    add(searchMenu);
+    add(toolsMenu);
     add(optionsMenu);
-    add(new HelpMenu());
+    add(helpMenu);
     menuBar = this;
   }
 
@@ -1474,117 +1481,126 @@ public final class BrowserMenuBar extends JMenuBar
       makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.getIcon("Edit16.gif"), -1, this);
       add(helpLicense);
 
+      JMenu miscLicenses = new JMenu("Third-party licenses");
+      miscLicenses.setMnemonic(KeyEvent.VK_T);
+      add(miscLicenses);
+
       helpBsdLicense =
       makeMenuItem("Plastic XP License", KeyEvent.VK_P, Icons.getIcon("Edit16.gif"), -1, this);
-      add(helpBsdLicense);
+      miscLicenses.add(helpBsdLicense);
 
       helpJOrbisLicense =
         makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon("Edit16.gif"), -1, this);
-      add(helpJOrbisLicense);
+      miscLicenses.add(helpJOrbisLicense);
     }
 
     @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == helpAbout) {
-        final String hauglidPage = "http://www.idi.ntnu.no/~joh/ni/";
-        final String githubPage = "https://github.com/NearInfinityBrowser/NearInfinity/";
-        final String versionText = "Near Infinity " + VERSION;
-        final String githubHTML = "<html><a href=" + githubPage + "/>" +
-          githubPage + "</a></html>";
-        final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
-        final String hauglidCopyrightText = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
-        final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" +
-          hauglidPage + "</a></html>";
-
-        //TODO: add list of contributors
-
-        JLabel version = new JLabel(versionText);
-        JLabel githubLink = new JLabel(githubHTML, JLabel.CENTER);
-        githubLink.addMouseListener(new UrlBrowser(githubPage));
-        githubLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.CENTER);
-        JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.CENTER);
-        JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.CENTER);
-        hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
-        hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Font defaultfont = version.getFont();
-        Font boldFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
-        Font font = defaultfont.deriveFont(13.0f);
-
-        version.setFont(boldFont);
-        githubLink.setFont(font);
-        hauglidVersion.setFont(font);
-        hauglidCopyright.setFont(font);
-        hauglidLink.setFont(font);
-
-        JPanel panel = new JPanel();
-        GridBagLayout gbl = new GridBagLayout();
-        GridBagConstraints gbc = new GridBagConstraints();
-        panel.setLayout(gbl);
-
-        gbc.insets = new Insets(6, 6, 3, 6);
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(version, gbc);
-        panel.add(version);
-        gbc.insets = new Insets(3, 6, 3, 6);
-        gbl.setConstraints(githubLink, gbc);
-        panel.add(githubLink);
-        gbc.insets = new Insets(6, 6, 0, 6);
-        gbl.setConstraints(hauglidVersion, gbc);
-        panel.add(hauglidVersion);
-        gbc.insets = new Insets(0, 6, 0, 6);
-        gbl.setConstraints(hauglidCopyright, gbc);
-        panel.add(hauglidCopyright);
-        gbc.insets = new Insets(3, 6, 3, 6);
-        gbl.setConstraints(hauglidLink, gbc);
-        panel.add(hauglidLink);
-
-        JLabel label4 = new JLabel("This program is free and may be distributed according", JLabel.CENTER);
-        JLabel label5 = new JLabel("to the terms of the GNU Lesser General Public License.", JLabel.CENTER);
-        JLabel label6 = new JLabel("Most icons (\u00A9) eclipse.org - Common Public License.", JLabel.CENTER);
-        JLabel label7 = new JLabel(
-                "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.", JLabel.CENTER);
-        JLabel label8 = new JLabel("JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.", JLabel.CENTER);
-        Font smallFont = defaultfont.deriveFont(11.0f);
-        label4.setFont(smallFont);
-        label5.setFont(smallFont);
-        label6.setFont(smallFont);
-        label7.setFont(smallFont);
-        label8.setFont(smallFont);
-        gbc.insets = new Insets(3, 6, 0, 6);
-        gbl.setConstraints(label4, gbc);
-        panel.add(label4);
-        gbc.insets.top = 0;
-        gbl.setConstraints(label5, gbc);
-        panel.add(label5);
-        gbc.insets.top = 6;
-        gbl.setConstraints(label6, gbc);
-        panel.add(label6);
-        gbc.insets.top = 0;
-        gbl.setConstraints(label7, gbc);
-        panel.add(label7);
-        gbl.setConstraints(label8, gbc);
-        panel.add(label8);
-
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                      panel, "About Near Infinity",
-                                      JOptionPane.PLAIN_MESSAGE);
-      }
-      else if (event.getSource() == helpLicense) {
+        displayAbout();
+      } else if (event.getSource() == helpLicense) {
         displayLicense(NearInfinity.class, "License.txt", "LGPL License");
-      }
-      else if (event.getSource() == helpBsdLicense) {
+      } else if (event.getSource() == helpBsdLicense) {
         displayLicense(NearInfinity.class, "bsd-license.txt", "BSD License");
-      }
-      else if (event.getSource() == helpJOrbisLicense) {
+      } else if (event.getSource() == helpJOrbisLicense) {
         displayLicense(NearInfinity.class, "License.txt", "LGPL License");
       }
     }
 
-    private void displayLicense(Class<? extends Object> c, String resource, String title)
+    private void displayAbout()
+    {
+      final String hauglidPage = "http://www.idi.ntnu.no/~joh/ni/";
+      final String githubPage = "https://github.com/NearInfinityBrowser/NearInfinity/";
+      final String versionText = "Near Infinity " + VERSION;
+      final String githubHTML = "<html><a href=" + githubPage + "/>" + githubPage + "</a></html>";
+      final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
+      final String hauglidCopyrightText = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
+      final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" + hauglidPage + "</a></html>";
+      // NearInfinity copyright message
+      final String[] copyNearInfinityText = new String[]{
+          "This program is free and may be distributed according",
+          "to the terms of the GNU Lesser General Public License."
+      };
+      // Third-party copyright messages
+      final String[] copyThirdPartyText = new String[]{
+          "Most icons (\u00A9) eclipse.org - Common Public License.",
+          "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
+          "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
+      };
+
+      //TODO: add list of contributors
+
+      JLabel version = new JLabel(versionText);
+      JLabel githubLink = new JLabel(githubHTML, JLabel.CENTER);
+      githubLink.addMouseListener(new UrlBrowser(githubPage));
+      githubLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.CENTER);
+      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.CENTER);
+      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.CENTER);
+      hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
+      hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+      Font defaultfont = version.getFont();
+      Font boldFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
+      Font font = defaultfont.deriveFont(13.0f);
+
+      version.setFont(boldFont);
+      githubLink.setFont(font);
+      hauglidVersion.setFont(font);
+      hauglidCopyright.setFont(font);
+      hauglidLink.setFont(font);
+
+      JPanel panel = new JPanel();
+      GridBagLayout gbl = new GridBagLayout();
+      GridBagConstraints gbc = new GridBagConstraints();
+      panel.setLayout(gbl);
+
+      gbc.insets = new Insets(6, 6, 3, 6);
+      gbc.weightx = 1.0;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      gbc.gridwidth = GridBagConstraints.REMAINDER;
+      gbl.setConstraints(version, gbc);
+      panel.add(version);
+      gbc.insets = new Insets(3, 6, 3, 6);
+      gbl.setConstraints(githubLink, gbc);
+      panel.add(githubLink);
+      gbc.insets = new Insets(6, 6, 0, 6);
+      gbl.setConstraints(hauglidVersion, gbc);
+      panel.add(hauglidVersion);
+      gbc.insets = new Insets(0, 6, 0, 6);
+      gbl.setConstraints(hauglidCopyright, gbc);
+      panel.add(hauglidCopyright);
+      gbc.insets = new Insets(3, 6, 3, 6);
+      gbl.setConstraints(hauglidLink, gbc);
+      panel.add(hauglidLink);
+
+      // NearInfinity copyright message
+      Font smallFont = defaultfont.deriveFont(11.0f);
+      gbc.insets = new Insets(3, 6, 0, 6);
+      for (int i = 0; i < copyNearInfinityText.length; i++) {
+        JLabel label = new JLabel(copyNearInfinityText[i], SwingConstants.CENTER);
+        label.setFont(smallFont);
+        gbl.setConstraints(label, gbc);
+        panel.add(label);
+        gbc.insets.top = 0;
+      }
+
+      // Third-party copyright mesages
+      gbc.insets.top = 6;
+      for (int i = 0; i < copyThirdPartyText.length; i++) {
+        JLabel label = new JLabel(copyThirdPartyText[i], SwingConstants.CENTER);
+        label.setFont(smallFont);
+        gbl.setConstraints(label, gbc);
+        panel.add(label);
+        gbc.insets.top = 0;
+      }
+
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                    panel, "About Near Infinity",
+                                    JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private void displayLicense(Class<?> c, String resource, String title)
     {
       JPanel panel = new JPanel(new BorderLayout());
       JTextPane tphelp = new JTextPane();
