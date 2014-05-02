@@ -49,6 +49,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -1500,11 +1502,11 @@ public final class BrowserMenuBar extends JMenuBar
       if (event.getSource() == helpAbout) {
         displayAbout();
       } else if (event.getSource() == helpLicense) {
-        displayLicense(NearInfinity.class, "License.txt", "LGPL License");
+        displayLicense("infinity/License.txt", "LGPL License");
       } else if (event.getSource() == helpBsdLicense) {
-        displayLicense(NearInfinity.class, "bsd-license.txt", "BSD License");
+        displayLicense("infinity/bsd-license.txt", "BSD License");
       } else if (event.getSource() == helpJOrbisLicense) {
-        displayLicense(NearInfinity.class, "License.txt", "LGPL License");
+          displayLicense("com/jcraft/COPYING.LIB", "LGPL License");
       }
     }
 
@@ -1600,17 +1602,18 @@ public final class BrowserMenuBar extends JMenuBar
                                     JOptionPane.PLAIN_MESSAGE);
     }
 
-    private void displayLicense(Class<?> c, String resource, String title)
+    private void displayLicense(String classPath, String title)
     {
       JPanel panel = new JPanel(new BorderLayout());
       JTextPane tphelp = new JTextPane();
+      tphelp.setFont(new Font("Monospaced", Font.PLAIN, 12));
       tphelp.setEditable(false);
       tphelp.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       panel.add(new JScrollPane(tphelp), BorderLayout.CENTER);
-      panel.setPreferredSize(new Dimension(500, 400));
+      panel.setPreferredSize(new Dimension(640, 480));
 
       try {
-        tphelp.setPage(c.getResource(resource));
+        tphelp.setPage(ClassLoader.getSystemResource(classPath));
       } catch (IOException e) {
         e.printStackTrace();
       }
