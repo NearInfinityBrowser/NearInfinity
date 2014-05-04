@@ -572,10 +572,10 @@ public class SearchOptions
         int v;
         boolean isExact;
 
-        if (value instanceof Pair && ((Pair<Object>)value).getFirst() instanceof Integer &&
-            ((Pair<Object>)value).getSecond() instanceof Boolean) {
-          v = (Integer)((Pair<Object>)value).getFirst();
-          isExact = (Boolean)((Pair<Object>)value).getSecond();
+        if (value instanceof Pair<?> && ((Pair<?>)value).getFirst() instanceof Integer &&
+            ((Pair<?>)value).getSecond() instanceof Boolean) {
+          v = (Integer)((Pair<?>)value).getFirst();
+          isExact = (Boolean)((Pair<?>)value).getSecond();
         } else if (value instanceof Integer) {
           v = (Integer)value;
           isExact = false;
@@ -609,11 +609,11 @@ public class SearchOptions
         int n1, n2, n3;
         if (value instanceof Integer) {
           n1 = n2 = (Integer)value;
-        } else if (value instanceof Pair &&
-                   ((Pair<Integer>)value).getFirst() instanceof Integer &&
-                   ((Pair<Integer>)value).getSecond() instanceof Integer) {
-          n1 = ((Pair<Integer>)value).getFirst();
-          n2 = ((Pair<Integer>)value).getSecond();
+        } else if (value instanceof Pair<?> &&
+                   ((Pair<?>)value).getFirst() instanceof Integer &&
+                   ((Pair<?>)value).getSecond() instanceof Integer) {
+          n1 = (Integer)((Pair<?>)value).getFirst();
+          n2 = (Integer)((Pair<?>)value).getSecond();
           if (n1 > n2) { int tmp = n1; n1 = n2; n2 = tmp; }
         } else {
           return false;
@@ -652,10 +652,10 @@ public class SearchOptions
 
     public static boolean matchCustomFilter(AbstractStruct struct, Object match)
     {
-      if (struct != null && match != null && match instanceof Pair &&
-          ((Pair<Object>)match).getFirst() instanceof String) {
-        String fieldName = (String)((Pair<Object>)match).getFirst();
-        Object value = ((Pair<Object>)match).getSecond();
+      if (struct != null && match != null && match instanceof Pair<?> &&
+          ((Pair<?>)match).getFirst() instanceof String) {
+        String fieldName = (String)((Pair<?>)match).getFirst();
+        Object value = ((Pair<?>)match).getSecond();
         if (!fieldName.isEmpty() && value != null) {
           boolean bRet = false;
           List<StructEntry> structList = struct.getFlatList();
@@ -668,11 +668,11 @@ public class SearchOptions
                   // field name matches
                   if (value instanceof String) {
                     bRet |= matchResourceRef(entry, value, false) || matchString(entry, value, false, false);
-                  } else if (value instanceof Pair) {
-                    if (((Pair<Object>)value).getFirst() instanceof Integer) {
-                      if (((Pair<Object>)value).getSecond() instanceof Integer) {
+                  } else if (value instanceof Pair<?>) {
+                    if (((Pair<?>)value).getFirst() instanceof Integer) {
+                      if (((Pair<?>)value).getSecond() instanceof Integer) {
                         bRet |= matchNumber(entry, value);
-                      } else if (((Pair<Object>)value).getSecond() instanceof Boolean) {
+                      } else if (((Pair<?>)value).getSecond() instanceof Boolean) {
                         bRet |= matchFlags(entry, value);
                       }
                     }
