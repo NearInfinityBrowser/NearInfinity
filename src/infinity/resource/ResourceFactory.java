@@ -113,13 +113,14 @@ public final class ResourceFactory
     games = new GameConfig[17];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
     games[ID_BG1] = new GameConfig("Baldur's Gate", "baldur.ini", bgdirs);
-    games[ID_BG1TOTSC] = new GameConfig("Baldur's Gate - Tales of the Sword Coast", "baldur.ini", bgdirs);
-    games[ID_TORMENT] =
-    new GameConfig("Planescape: Torment", "torment.ini", new String[]{"Music", "Save", "Temp"});
+    games[ID_BG1TOTSC] = new GameConfig("Baldur's Gate - Tales of the Sword Coast",
+                                        "baldur.ini", bgdirs);
+    games[ID_TORMENT] = new GameConfig("Planescape: Torment", "torment.ini",
+                                       new String[]{"Music", "Save", "Temp"});
     games[ID_ICEWIND] = new GameConfig("Icewind Dale", "icewind.ini", bgdirs);
     games[ID_ICEWINDHOW] = new GameConfig("Icewind Dale - Heart of Winter", "icewind.ini", bgdirs);
-    games[ID_ICEWINDHOWTOT] =
-    new GameConfig("Icewind Dale - Trials of the Luremaster", "icewind.ini", bgdirs);
+    games[ID_ICEWINDHOWTOT] = new GameConfig("Icewind Dale - Trials of the Luremaster",
+                                             "icewind.ini", bgdirs);
     games[ID_BG2] = new GameConfig("Baldur's Gate 2 - Shadows of Amn", "baldur.ini", bgdirs);
     games[ID_BG2TOB] = new GameConfig("Baldur's Gate 2 - Throne of Bhaal", "baldur.ini", bgdirs);
     games[ID_ICEWIND2] = new GameConfig("Icewind Dale 2", "icewind2.ini", bgdirs);
@@ -129,9 +130,8 @@ public final class ResourceFactory
     games[ID_KOTOR] = new GameConfig("Star Wars: Knights of the Old Republic", "swkotor.ini",
                                      new String[]{"Lips", "Modules", "Rims", "Saves", "StreamMusic",
                                      "StreamSounds", "TexturePacks"});
-    games[ID_TUTU] = new GameConfig("BG1Tutu", "baldur.ini", bgdirs);
-    games[ID_DEMO] = new GameConfig("Baldur's Gate - Non-Interactive Demo", "chitin.ini",
-                                    new String[] { "Music" });
+    games[ID_TUTU] = games[ID_UNKNOWNGAME];
+    games[ID_DEMO] = games[ID_UNKNOWNGAME];
     games[ID_KOTOR2] = new GameConfig("Star Wars: Knights of the Old Republic 2", "swkotor2.ini",
                                      new String[]{"Lips", "Modules", "Rims", "Saves", "StreamMusic",
                                      "StreamSounds", "TexturePacks"});

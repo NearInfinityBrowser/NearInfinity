@@ -17,12 +17,15 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
@@ -33,6 +36,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -85,12 +89,14 @@ import infinity.resource.graphics.DxtEncoder;
 import infinity.resource.graphics.PseudoBamDecoder;
 import infinity.resource.graphics.BamDecoder.BamControl;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
+import infinity.resource.graphics.PseudoBamDecoder.PseudoBamCycleEntry;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import infinity.resource.key.FileResourceEntry;
 import infinity.util.Pair;
 
 public class ConvertToBam extends ChildFrame
-  implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener, ListSelectionListener
+  implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
+             ListSelectionListener, MouseListener
 {
   // Available TabPane indices
   static final int TAB_FRAMES   = 0;
@@ -135,17 +141,17 @@ public class ConvertToBam extends ChildFrame
   // The palette dialog instance for BAM v1 export
   private final BamPaletteDialog paletteDialog = new BamPaletteDialog(this);
 
-
   private JTabbedPane tpMain, tpCyclesSection;
   private BamFramesListModel modelFrames;   // Frames == FramesAvail
   private BamCycleFramesListModel modelCurCycle;
   private BamCyclesListModel modelCycles;
   private DefaultListModel modelFilters;
   private JList listFrames, listCycles, listFramesAvail, listCurCycle, listFilters;
+  private JMenuItem miFramesAddFiles, miFramesAddFolder, miFramesImportBam,
+                    miFramesRemove, miFramesRemoveAll, miFramesDropUnused;
+  private ButtonPopupMenu bpmFramesAdd, bpmFramesRemove;
   private JButton bOptions, bConvert, bCancel;
-  private JMenuItem miFramesAddFiles, miFramesAddFolder;//, miFramesImport;
-  private ButtonPopupMenu bpmFramesAdd;
-  private JButton bFramesImportBam, bFramesRemove, bFramesRemoveAll, bBamOutput, bPalette;
+  private JButton bBamOutput, bPalette;
   private JButton bFramesUp, bFramesDown, bCyclesUp, bCyclesDown, bCurCycleUp, bCurCycleDown;
   private JButton bCyclesAdd, bCyclesRemove, bCyclesRemoveAll, bCurCycleAdd, bCurCycleRemove;
   private JButton bVersionHelp, bCompressionHelp;
@@ -170,7 +176,6 @@ public class ConvertToBam extends ChildFrame
   private SwingWorker<Void, Void> workerProcess;
   private WindowBlocker blocker;
   private ProgressMonitor progress;
-
   private PseudoBamControl bamControlPreview;
   private boolean isPreviewModified, isPreviewPlaying;
   private double currentFps;
@@ -511,19 +516,34 @@ public class ConvertToBam extends ChildFrame
       framesMoveDown();
     } else if (event.getSource() == miFramesAddFiles) {
       framesAdd();
-    } else if (event.getSource() == bFramesImportBam) {
+    } else if (event.getSource() == miFramesImportBam) {
       framesImportBam();
     } else if (event.getSource() == miFramesAddFolder) {
       framesAddFolder();
-    } else if (event.getSource() == bFramesRemove) {
+    } else if (event.getSource() == miFramesRemove) {
       framesRemove();
-    } else if (event.getSource() == bFramesRemoveAll) {
+    } else if (event.getSource() == miFramesRemoveAll) {
       if (!modelFrames.isEmpty()) {
         final String msg = "Do you really want to remove all frames?";
         if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                     JOptionPane.YES_NO_OPTION,
                                                                     JOptionPane.QUESTION_MESSAGE)) {
           framesRemoveAll();
+        }
+      }
+    } else if (event.getSource() == miFramesDropUnused) {
+      int count = framesGetUnusedFramesCount();
+      if (count > 0) {
+        String msg;
+        if (count == 1) {
+          msg = "1 unused frame can be dropped. Do you want to continue?";
+        } else {
+          msg = String.format("%1$d unused frames can be dropped. Do you want to continue?", count);
+        }
+        int retVal = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+                                                   JOptionPane.QUESTION_MESSAGE);
+        if (retVal == JOptionPane.YES_OPTION) {
+          framesDropUnusedFrames();
         }
       }
     } else if (event.getSource() == cbCompressFrame) {
@@ -792,6 +812,54 @@ public class ConvertToBam extends ChildFrame
 
 //--------------------- End Interface ListSelectionListener ---------------------
 
+//--------------------- Begin Interface MouseListener ---------------------
+
+  @Override
+  public void mouseClicked(MouseEvent event)
+  {
+    if (event.getSource() == listFramesAvail && (event.getClickCount() & 1) == 0) {
+      // double click on list element
+      int idx = listFramesAvail.getSelectedIndex();
+      if (idx >= 0) {
+        Rectangle rect = listFramesAvail.getCellBounds(idx, idx);
+        if (rect != null && rect.contains(event.getX(), event.getY())) {
+          currentCycleAdd();
+        }
+      }
+    } else if (event.getSource() == listCurCycle && (event.getClickCount() & 1) == 0) {
+      // double click on list element
+      int idx = listCurCycle.getSelectedIndex();
+      if (idx >= 0) {
+        Rectangle rect = listCurCycle.getCellBounds(idx, idx);
+        if (rect != null && rect.contains(event.getX(), event.getY())) {
+          currentCycleRemove();
+        }
+      }
+    }
+  }
+
+  @Override
+  public void mousePressed(MouseEvent event)
+  {
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent event)
+  {
+  }
+
+  @Override
+  public void mouseEntered(MouseEvent event)
+  {
+  }
+
+  @Override
+  public void mouseExited(MouseEvent event)
+  {
+  }
+
+//--------------------- End Interface MouseListener ---------------------
+
 
   private void init()
   {
@@ -900,31 +968,32 @@ public class ConvertToBam extends ChildFrame
     miFramesAddFiles.addActionListener(this);
     miFramesAddFolder = new JMenuItem("Add folder...");
     miFramesAddFolder.addActionListener(this);
-    bpmFramesAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miFramesAddFiles, miFramesAddFolder});
+    miFramesImportBam = new JMenuItem("Import BAM...");
+    miFramesImportBam.setToolTipText("Import both frame and cycle definitions from the selected BAM.");
+    miFramesImportBam.addActionListener(this);
+    bpmFramesAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miFramesAddFiles, miFramesAddFolder,
+                                                                 miFramesImportBam});
     bpmFramesAdd.setIcon(Icons.getIcon("ArrowUp15.png"));
     bpmFramesAdd.setIconTextGap(8);
-    bFramesImportBam = new JButton("Import BAM...");
-    bFramesImportBam.setToolTipText("Import both frame and cycle definitions from the selected BAM. " +
-                                    "Existing frames and cycles (if any) will be discarded.");
-    bFramesImportBam.addActionListener(this);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFramesAdd.add(bpmFramesAdd, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pFramesAdd.add(bFramesImportBam, c);
 
     JPanel pFramesRemove = new JPanel(new GridBagLayout());
-    bFramesRemove = new JButton("Remove");
-    bFramesRemove.addActionListener(this);
-    bFramesRemoveAll = new JButton("Remove all");
-    bFramesRemoveAll.addActionListener(this);
+    miFramesRemove = new JMenuItem("Remove");
+    miFramesRemove.addActionListener(this);
+    miFramesRemoveAll = new JMenuItem("Remove all");
+    miFramesRemoveAll.addActionListener(this);
+    miFramesDropUnused = new JMenuItem("Drop unused frames");
+    miFramesDropUnused.addActionListener(this);
+    miFramesDropUnused.setToolTipText("Remove frames that are not used in any cycle definitions.");
+    bpmFramesRemove = new ButtonPopupMenu("Remove...", new JMenuItem[]{miFramesRemove, miFramesRemoveAll,
+                                                                       miFramesDropUnused});
+    bpmFramesRemove.setIcon(Icons.getIcon("ArrowUp15.png"));
+    bpmFramesRemove.setIconTextGap(8);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pFramesRemove.add(bFramesRemove, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pFramesRemove.add(bFramesRemoveAll, c);
+    pFramesRemove.add(bpmFramesRemove, c);
 
     JPanel pFramesListButtons = new JPanel(new GridBagLayout());
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -1145,7 +1214,7 @@ public class ConvertToBam extends ChildFrame
     JPanel pCyclesButtons = new JPanel(new GridBagLayout());
     bCyclesAdd = new JButton("Add cycle");
     bCyclesAdd.addActionListener(this);
-    bCyclesRemove = new JButton("Remove cycle");
+    bCyclesRemove = new JButton("Remove cycle(s)");
     bCyclesRemove.addActionListener(this);
     bCyclesRemoveAll = new JButton("Remove all");
     bCyclesRemoveAll.addActionListener(this);
@@ -1178,7 +1247,7 @@ public class ConvertToBam extends ChildFrame
     modelCycles = new BamCyclesListModel(this);
     listCycles = new JList(modelCycles);
     listCycles.setCellRenderer(new IndexedCellRenderer());
-    listCycles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    listCycles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCycles.addListSelectionListener(this);
     JScrollPane scroll = new JScrollPane(listCycles);
     c = setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1196,7 +1265,7 @@ public class ConvertToBam extends ChildFrame
 
     // creating Macros/Preview section
     JPanel pMacros = new JPanel(new GridBagLayout());
-    JLabel lMacroCurCycle = new JLabel("Selected cycle:");
+    JLabel lMacroCurCycle = new JLabel("Selected cycle(s):");
     bMacroAssignFrames = new JButton("Assign all frames");
     bMacroAssignFrames.addActionListener(this);
     bMacroRemoveFrames = new JButton("Remove all frames");
@@ -1205,7 +1274,7 @@ public class ConvertToBam extends ChildFrame
     bMacroSortFramesAsc.addActionListener(this);
     bMacroDuplicateFrames = new JButton("Duplicate each frame");
     bMacroDuplicateFrames.addActionListener(this);
-    bMacroDuplicateCycle = new JButton("Duplicate cycle");
+    bMacroDuplicateCycle = new JButton("Duplicate cycle(s)");
     bMacroDuplicateCycle.addActionListener(this);
     bMacroReverseFrames = new JButton("Reverse frames order");
     bMacroReverseFrames.addActionListener(this);
@@ -1310,6 +1379,7 @@ public class ConvertToBam extends ChildFrame
     listFramesAvail.setCellRenderer(new IndexedCellRenderer());
     listFramesAvail.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFramesAvail.addListSelectionListener(this);
+    listFramesAvail.addMouseListener(this);
     scroll = new JScrollPane(listFramesAvail);
     JLabel lCurCycle = new JLabel("Current cycle:");
     modelCurCycle = new BamCycleFramesListModel(this);
@@ -1317,6 +1387,7 @@ public class ConvertToBam extends ChildFrame
     listCurCycle.setCellRenderer(new IndexedCellRenderer());
     listCurCycle.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCurCycle.addListSelectionListener(this);
+    listCurCycle.addMouseListener(this);
     JScrollPane scroll2 = new JScrollPane(listCurCycle);
 
     pCurrentCycle = new JPanel(new GridBagLayout());
@@ -1703,24 +1774,11 @@ public class ConvertToBam extends ChildFrame
     bFramesUp.setEnabled(!modelFrames.isEmpty() && bounds.getFirst() > 0);
     bFramesDown.setEnabled(!modelFrames.isEmpty() && bounds.getFirst() >= 0 &&
                            bounds.getSecond() < modelFrames.getSize() - 1);
-    bFramesRemove.setEnabled(!modelFrames.isEmpty() && !listFrames.isSelectionEmpty());
-    bFramesRemoveAll.setEnabled(!modelFrames.isEmpty());
-
-    // removing invalid frame indices from cycles
-    for (int i = 0; i < modelCycles.getSize(); i++) {
-      int j = 0;
-      while (j < modelCycles.getControl().cycleFrameCount(i)) {
-        int frameIdx = modelCycles.getControl().cycleGetFrameIndexAbsolute(i, j);
-        if (frameIdx < 0 || frameIdx >= modelCycles.getDecoder().frameCount()) {
-          modelCycles.getControl().cycleRemoveFrames(i, j);
-        } else {
-          j++;
-        }
-      }
-      if (modelCycles.getControl().cycleFrameCount() == 0) {
-        modelCycles.getControl().cycleRemove(i);
-      }
-    }
+    miFramesRemove.setEnabled(!modelFrames.isEmpty() && !listFrames.isSelectionEmpty());
+    miFramesRemoveAll.setEnabled(!modelFrames.isEmpty());
+    miFramesDropUnused.setEnabled(!modelFrames.isEmpty());
+    bpmFramesRemove.setEnabled(miFramesRemove.isEnabled() || miFramesRemoveAll.isEnabled() ||
+                               miFramesDropUnused.isEnabled());
 
     // updating palette
     paletteDialog.setPaletteModified();
@@ -1733,26 +1791,30 @@ public class ConvertToBam extends ChildFrame
   private void updateCyclesList()
   {
     listCycles.repaint();
-    int idx = listCycles.getSelectedIndex();
-    listCycles.ensureIndexIsVisible(idx);
+    Pair<Integer> bounds = getIndexBounds(listCycles.getSelectedIndices());
+    int idx = (bounds.getFirst().compareTo(bounds.getSecond()) == 0) ? bounds.getFirst() : -1;
+    if (idx >= 0) {
+      listCycles.ensureIndexIsVisible(idx);
+    }
 
     // updating button states
-    bCyclesUp.setEnabled(!modelCycles.isEmpty() && idx > 0);
-    bCyclesDown.setEnabled(!modelCycles.isEmpty() && idx >= 0 && idx < modelCycles.getSize() - 1);
-    bCyclesRemove.setEnabled(!modelCycles.isEmpty() && !listCycles.isSelectionEmpty());
+    bCyclesUp.setEnabled(!modelCycles.isEmpty() && bounds.getFirst() > 0);
+    bCyclesDown.setEnabled(!modelCycles.isEmpty() && bounds.getFirst() >= 0 &&
+                           bounds.getSecond() < modelCycles.getSize() - 1);
+    bCyclesRemove.setEnabled(!listCycles.isSelectionEmpty());
     bCyclesRemoveAll.setEnabled(!modelCycles.isEmpty());
 
     // updating macro buttons
-    bMacroAssignFrames.setEnabled(idx != -1);
-    bMacroRemoveFrames.setEnabled(idx != -1);
-    bMacroDuplicateCycle.setEnabled(idx != -1);
-    bMacroDuplicateFrames.setEnabled(idx != -1);
-    bMacroSortFramesAsc.setEnabled(idx != -1);
-    bMacroReverseFrames.setEnabled(idx != -1);
+    bMacroAssignFrames.setEnabled(!listCycles.isSelectionEmpty());
+    bMacroRemoveFrames.setEnabled(!listCycles.isSelectionEmpty());
+    bMacroDuplicateCycle.setEnabled(!listCycles.isSelectionEmpty());
+    bMacroDuplicateFrames.setEnabled(!listCycles.isSelectionEmpty());
+    bMacroSortFramesAsc.setEnabled(!listCycles.isSelectionEmpty());
+    bMacroReverseFrames.setEnabled(!listCycles.isSelectionEmpty());
     bMacroRemoveAll.setEnabled(!modelCycles.isEmpty());
     bMacroReverseCycles.setEnabled(!modelCycles.isEmpty());
 
-    initCurrentCycle(idx);
+    initCurrentCycle(bounds);
     updateStatus();
   }
 
@@ -1771,38 +1833,52 @@ public class ConvertToBam extends ChildFrame
     pCurrentCycle.validate();
   }
 
-  // Initializes the "Current cycle" section of the Cycles tab
   private void initCurrentCycle(int cycleIdx)
   {
-    if (cycleIdx >= 0 && cycleIdx < modelCycles.getSize()) {
-      // enabling components
-      listFramesAvail.setEnabled(true);
-      bCurCycleAdd.setEnabled(true);
-      bCurCycleRemove.setEnabled(true);
-      listCurCycle.setEnabled(true);
+    initCurrentCycle(new Pair<Integer>(cycleIdx, cycleIdx));
+  }
 
-      // updating group box title
-      pCurrentCycle.setBorder(BorderFactory.createTitledBorder(String.format("Cycle %1$d ", cycleIdx)));
+  // Initializes the "Current cycle" section of the Cycles tab
+  private void initCurrentCycle(Pair<Integer> cycleIndices)
+  {
+    if (cycleIndices != null) {
+      if (cycleIndices.getFirst().compareTo(cycleIndices.getSecond()) == 0 &&
+          cycleIndices.getFirst() >= 0 && cycleIndices.getFirst() < modelCycles.getSize()) {
+        int cycleIdx = cycleIndices.getFirst();
 
-      listFramesAvail.setSelectedIndices(new int[]{});
+        // enabling components
+        listFramesAvail.setEnabled(true);
+        bCurCycleAdd.setEnabled(true);
+        bCurCycleRemove.setEnabled(true);
+        listCurCycle.setEnabled(true);
 
-      // updating current cycle list view
-      modelCurCycle.setCycle(cycleIdx);
+        // updating group box title
+        pCurrentCycle.setBorder(BorderFactory.createTitledBorder(String.format("Cycle %1$d ", cycleIdx)));
 
-      listCurCycle.setSelectedIndices(new int[]{});
+        listFramesAvail.setSelectedIndices(new int[]{});
 
-      updateCurrentCycle();
-    } else {
-      // no cycle selected
-      listFramesAvail.setSelectedIndices(new int[]{});
-      listFramesAvail.setEnabled(false);
-      bCurCycleAdd.setEnabled(false);
-      bCurCycleRemove.setEnabled(false);
-      listCurCycle.setSelectedIndices(new int[]{});
-      listCurCycle.setEnabled(false);
+        // updating current cycle list view
+        modelCurCycle.setCycle(cycleIdx);
 
-      pCurrentCycle.setBorder(BorderFactory.createTitledBorder("No cycle selected "));
-      modelCurCycle.setCycle(-1);
+        listCurCycle.setSelectedIndices(new int[]{});
+
+        updateCurrentCycle();
+      } else {
+        // no cycle selected
+        listFramesAvail.setSelectedIndices(new int[]{});
+        listFramesAvail.setEnabled(false);
+        bCurCycleAdd.setEnabled(false);
+        bCurCycleRemove.setEnabled(false);
+        listCurCycle.setSelectedIndices(new int[]{});
+        listCurCycle.setEnabled(false);
+
+        if (cycleIndices.getFirst() < 0 || cycleIndices.getSecond() < 0) {
+          pCurrentCycle.setBorder(BorderFactory.createTitledBorder("No cycle selected "));
+        } else {
+          pCurrentCycle.setBorder(BorderFactory.createTitledBorder("Too many cycles selected "));
+        }
+        modelCurCycle.setCycle(-1);
+      }
     }
   }
 
@@ -2008,6 +2084,76 @@ public class ConvertToBam extends ChildFrame
     pFiltersSettings.repaint();
   }
 
+  // Adjusts cycle indices after adding frames to the global frames list
+  private void updateCyclesAddedFrames(int[] indices)
+  {
+    if (indices != null && indices.length > 0) {
+      for (int i = 0; i < modelCycles.getSize(); i++) {
+        PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+        for (int j = 0; j < cycle.size(); j++) {
+          int idx = cycle.get(j);
+          int ofs = 0;
+          for (int k = 0; k < indices.length; k++) {
+            if (indices[k] < idx) {
+              ofs++;
+            }
+          }
+          cycle.set(j, idx + ofs);
+        }
+      }
+      updateCurrentCycle();
+    }
+  }
+
+  // Adjusts cycle indices after removing frames from the global frames list
+  private void updateCyclesRemovedFrames(int[] indices)
+  {
+    if (indices != null && indices.length > 0) {
+      for (int i = 0; i < modelCycles.getSize(); i++) {
+        PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+        int j = 0;
+        while (j < cycle.size()) {
+          int idx = cycle.get(j);
+          int ofs = 0;
+          for (int k = 0; k < indices.length; k++) {
+            if (indices[k] < idx) {
+              ofs++;
+            } else if (indices[k] == idx) {
+              ofs = -1;
+              break;
+            }
+          }
+          if (ofs >= 0) {
+            cycle.set(j, idx - ofs);
+            j++;
+          } else {
+            cycle.remove(j, 1);
+          }
+        }
+      }
+      updateCurrentCycle();
+    }
+  }
+
+  // Adjusts cycle indices after moving frames within the global frames list
+  private void updateCyclesMovedFrames(int index, int shift)
+  {
+    if (index >= 0 && shift != 0) {
+      for (int i = 0; i < modelCycles.getSize(); i++) {
+        PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+        for (int j = 0; j < cycle.size(); j++) {
+          if (cycle.get(j) == index) {
+            cycle.set(j, cycle.get(j) + shift);
+          } else if (shift > 0 && cycle.get(j) > index && cycle.get(j) <= index+shift) {
+            cycle.set(j, cycle.get(j) - 1);
+          } else if (shift < 0 && cycle.get(j) < index && cycle.get(j) >= index+shift) {
+            cycle.set(j, cycle.get(j) + 1);
+          }
+        }
+      }
+      updateCurrentCycle();
+    }
+  }
 
   // Action for "Compress frame"
   private void framesUpdateCompressFrame()
@@ -2079,7 +2225,7 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  // Action for "Add/Import..."->"Add image(s)...": adds images to the frames list
+  // Action for "Add..."->"Add image(s)...": adds images to the frames list
   private void framesAdd()
   {
     File[] files = getOpenFileName(this, "Choose file(s) to add", null, true, getGraphicsFilters(), 0);
@@ -2099,7 +2245,8 @@ public class ConvertToBam extends ChildFrame
     if (files != null) {
       outputSetModified(true);
       List<String> skippedFiles = new ArrayList<String>();
-      int idx = listFrames.getSelectedIndex();
+      int insertIndex = listFrames.getSelectedIndex();
+      int idx = insertIndex;
       if (idx < 0) idx = modelFrames.getSize() - 1;
       try {
         for (int i = 0; i < files.length; i++) {
@@ -2139,6 +2286,14 @@ public class ConvertToBam extends ChildFrame
       }
       listFrames.setSelectedIndex(idx);
       listFrames.ensureIndexIsVisible(idx);
+
+      // adjusting cycle indices
+      int[] indices = new int[files.length - skippedFiles.size()];
+      for (int i = 0; i < files.length - skippedFiles.size(); i++) {
+        indices[i] = insertIndex + 1 + i;
+      }
+      updateCyclesAddedFrames(indices);
+
       updateFramesList();
       listFrames.requestFocusInWindow();
 
@@ -2262,7 +2417,7 @@ public class ConvertToBam extends ChildFrame
     return null;
   }
 
-  // Action for "Add/Import..."->"Import BAM...": loads a complete frames/cycles structure
+  // Action for "Import BAM...": loads a complete frames/cycles structure
   private void framesImportBam()
   {
     File[] files = getOpenFileName(this, "Import BAM file", null, false,
@@ -2283,24 +2438,31 @@ public class ConvertToBam extends ChildFrame
     if (file != null) {
       outputSetModified(true);
       boolean cancelled = false;
+      boolean replace = true;
       if (!modelFrames.isEmpty()) {
-        String msg = "Existing frame and cycle entries will be removed.\nDo you want to continue?";
-        int ret = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+        String msg = "Do you want to append the specified BAM file?\n" +
+                     "(Note: Selecting \"No\" replaces the current content instead.)";
+        int ret = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.QUESTION_MESSAGE);
-        cancelled = (ret != JOptionPane.YES_OPTION);
+        cancelled = (ret == JOptionPane.CANCEL_OPTION || ret == JOptionPane.CLOSED_OPTION);
+        replace = (ret == JOptionPane.NO_OPTION);
       }
       if (!cancelled) {
-        clear();
-        BamDecoder decoder = framesAddBam(0, file);
+        if (replace) {
+          clear();
+        }
+        int frameBase = modelFrames.getSize();
+        BamDecoder decoder = framesAddBam(frameBase, file);
         if (decoder != null) {
           // initializing cycles section
           BamDecoder.BamControl control = decoder.createControl();
+          int cycleBase = modelCycles.getSize();
           for (int i = 0; i < control.cycleCount(); i++) {
             int[] indices = new int[control.cycleFrameCount(i)];
             for (int j = 0; j < control.cycleFrameCount(i); j++) {
-              indices[j] = control.cycleGetFrameIndexAbsolute(i, j);
+              indices[j] = control.cycleGetFrameIndexAbsolute(i, j)+frameBase;
             }
-            cyclesAdd(i, indices);
+            cyclesAdd(i+cycleBase, indices);
           }
           // updating GUI controls
           updateFramesList();
@@ -2319,7 +2481,7 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  // Action for "Add folder...": adds all supported files from the specified folder
+  // Action for "Add..."->"Add folder...": adds all supported files from the specified folder
   private void framesAddFolder()
   {
     File path = getOpenPathName(this, "Select folder", null);
@@ -2371,20 +2533,12 @@ public class ConvertToBam extends ChildFrame
       outputSetModified(true);
       Arrays.sort(indices);
       int curIdx = indices[indices.length - 1] - indices.length + 1;
-      int idx = 0, start = 0, cnt = 0;
-      while (idx < indices.length) {
-        start = indices[idx];
-        cnt = 1;
-        while (idx+1 < indices.length) {
-          if (indices[idx+1] != indices[idx]+1) {
-            break;
-          }
-          cnt++;
-          idx++;
+      for (int i = indices.length - 1; i >= 0; i--) {
+        if (indices[i] >= 0 && indices[i] < modelFrames.getSize()) {
+          modelFrames.remove(indices[i]);
         }
-        modelFrames.remove(start, cnt);
-        idx++;
       }
+      updateCyclesRemovedFrames(indices);
       updateFramesList();
       curIdx = Math.min(modelFrames.getSize() - 1, curIdx);
       listFrames.setSelectedIndex(curIdx);
@@ -2410,6 +2564,7 @@ public class ConvertToBam extends ChildFrame
     for (int i = 0; i < indices.length; i++) {
       if (indices[i] > 0 && indices[i] < modelFrames.getSize()) {
         modelFrames.move(indices[i], -1);
+        updateCyclesMovedFrames(indices[i], -1);
         indices[i]--;
       }
     }
@@ -2426,12 +2581,66 @@ public class ConvertToBam extends ChildFrame
     for (int i = indices.length - 1; i >= 0; i--) {
       if (indices[i] >= 0 && indices[i] < modelFrames.getSize() - 1) {
         modelFrames.move(indices[i], 1);
+        updateCyclesMovedFrames(indices[i], 1);
         indices[i]++;
       }
     }
     listFrames.setSelectedIndices(indices);
     updateFramesList();
     listFrames.requestFocusInWindow();
+  }
+
+  // Action for "Drop unused frames": return number of unused frames
+  private int framesGetUnusedFramesCount()
+  {
+    return framesGetUnusedFramesCount(framesGetUnusedFrames());
+  }
+
+  // Action for "Drop unused frames": return number of unused frames
+  private int framesGetUnusedFramesCount(BitSet framesUsed)
+  {
+    int retVal = 0;
+    if (framesUsed != null) {
+      for (int i = 0; i < modelFrames.getSize(); i++) {
+        if (!framesUsed.get(i)) {
+          retVal++;
+        }
+      }
+    }
+    return retVal;
+  }
+
+  // Action  for "Drop unused frames": returns a bitset that maps the used state of all frames
+  private BitSet framesGetUnusedFrames()
+  {
+    BitSet framesUsed = new BitSet(modelFrames.getSize());
+    for (int i = 0; i < modelCycles.getSize(); i++) {
+      PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+      for (int j = 0; j < cycle.size(); j++) {
+        int idx = cycle.get(j);
+        if (idx >= 0) {
+          framesUsed.set(idx);
+        }
+      }
+    }
+    return framesUsed;
+  }
+
+  // Action for "Drop unused frames": removes unused frames and adjusts cycle indices respectively
+  private void framesDropUnusedFrames()
+  {
+    BitSet framesUsed = framesGetUnusedFrames();
+    int count = framesGetUnusedFramesCount(framesUsed);
+    if (count > 0) {
+      int[] indices = new int[count];
+      for (int i = 0, idx = 0; i < modelFrames.getSize(); i++) {
+        if (!framesUsed.get(i)) {
+          indices[idx] = i;
+          idx++;
+        }
+      }
+      framesRemove(indices);
+    }
   }
 
 
@@ -2454,12 +2663,16 @@ public class ConvertToBam extends ChildFrame
     updateCyclesList();
   }
 
-  // Action for "Remove cycle": removes the selected cycle from the cycles list
+  // Action for "Remove cycle": removes the selected cycles from the cycles list
   private void cyclesRemove()
   {
-    int idx = listCycles.getSelectedIndex();
-    if (idx >= 0 && idx < modelCycles.getSize()) {
-      cyclesRemove(idx);
+    int[] indices = listCycles.getSelectedIndices();
+    if (indices.length > 0) {
+      for (int i = indices.length - 1; i >= 0; i--) {
+        if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
+          cyclesRemove(indices[i]);
+        }
+      }
     }
   }
 
@@ -2488,10 +2701,15 @@ public class ConvertToBam extends ChildFrame
   // Action for "Up" button next to cycles list
   private void cyclesMoveUp()
   {
-    int idx = listCycles.getSelectedIndex();
-    if (idx > 0) {
-      modelCycles.move(idx, -1);
-      listCycles.setSelectedIndex(idx - 1);
+    int[] indices = listCycles.getSelectedIndices();
+    if (indices.length > 0) {
+      for (int i = 0; i < indices.length; i++) {
+        if (indices[i] > 0 && indices[i] < modelCycles.getSize()) {
+          modelCycles.move(indices[i], -1);
+          indices[i]--;
+        }
+      }
+      listCycles.setSelectedIndices(indices);
       updateCyclesList();
       listCycles.requestFocusInWindow();
     }
@@ -2500,10 +2718,15 @@ public class ConvertToBam extends ChildFrame
   // Action for "Down" button next to cycles list
   private void cyclesMoveDown()
   {
-    int idx = listCycles.getSelectedIndex();
-    if (idx >= 0 && idx < modelCycles.getSize() - 1) {
-      modelCycles.move(idx, 1);
-      listCycles.setSelectedIndex(idx + 1);
+    int[] indices = listCycles.getSelectedIndices();
+    if (indices.length > 0) {
+      for (int i = indices.length - 1; i >= 0; i--) {
+        if (indices[i] >= 0 && indices[i] < modelCycles.getSize() - 1) {
+          modelCycles.move(indices[i], 1);
+          indices[i]++;
+        }
+      }
+      listCycles.setSelectedIndices(indices);
       updateCyclesList();
       listCycles.requestFocusInWindow();
     }
@@ -2513,84 +2736,160 @@ public class ConvertToBam extends ChildFrame
   // Action for macro "Selected cycle"->"Assign all frames": puts all available frames into the selected cycle (sorted)
   private void macroAssignFrames()
   {
-    int idx = listCycles.getSelectedIndex();
-    if (idx >= 0) {
-      modelCurCycle.clear();
-      int[] indices = new int[modelFrames.getSize()];
-      for(int i = 0; i < indices.length; i++) {
-        indices[i] = i;
+    int[] indices = listCycles.getSelectedIndices();
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
+        modelCurCycle.setCycle(indices[i]);
+        modelCurCycle.clear();
+        int[] frames = new int[modelFrames.getSize()];
+        for (int j = 0; j < frames.length; j++) {
+          frames[j] = j;
+        }
+        modelCurCycle.add(frames);
       }
-      modelCurCycle.add(indices);
-      updateCyclesList();
     }
+    updateCyclesList();
+//    int idx = listCycles.getSelectedIndex();
+//    if (idx >= 0) {
+//      modelCurCycle.clear();
+//      int[] indices = new int[modelFrames.getSize()];
+//      for(int i = 0; i < indices.length; i++) {
+//        indices[i] = i;
+//      }
+//      modelCurCycle.add(indices);
+//      updateCyclesList();
+//    }
   }
 
   // Action for macro "Selected cycle"->"Remove all frames": Removes all frame indices
   private void macroRemoveAllFrames()
   {
-    modelCurCycle.clear();
+    int[] indices = listCycles.getSelectedIndices();
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
+        modelCurCycle.setCycle(indices[i]);
+        modelCurCycle.clear();
+      }
+    }
     updateCyclesList();
+//    modelCurCycle.clear();
+//    updateCyclesList();
   }
 
   // Action for macro "Selected cycle"->"Duplicate cycle": Adds a duplicate below the selected cycle
   private void macroDuplicateCycle()
   {
-    int idx = listCycles.getSelectedIndex();
-    if (idx >= 0) {
-      int[] indices = new int[modelCycles.getElementAt(idx).size()];
-      for (int i = 0; i < indices.length; i++) {
-        indices[i] = modelCycles.getElementAt(idx).get(i);
+    int[] indices = listCycles.getSelectedIndices();
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
+        int[] frames = new int[modelCycles.getElementAt(indices[i]).size()];
+        for (int j = 0; j < frames.length; j++) {
+          frames[j] = modelCycles.getElementAt(indices[i]).get(j);
+        }
+        modelCycles.insert(indices[i]+1, frames);
+        for (int j = i; j < indices.length; j++) {
+          indices[j]++;
+        }
       }
-      modelCycles.insert(idx+1, indices);
-      listCycles.setSelectedIndex(idx+1);
-      updateCyclesList();
     }
+    listCycles.setSelectedIndices(indices);
+    updateCyclesList();
+//    int idx = listCycles.getSelectedIndex();
+//    if (idx >= 0) {
+//      int[] indices = new int[modelCycles.getElementAt(idx).size()];
+//      for (int i = 0; i < indices.length; i++) {
+//        indices[i] = modelCycles.getElementAt(idx).get(i);
+//      }
+//      modelCycles.insert(idx+1, indices);
+//      listCycles.setSelectedIndex(idx+1);
+//      updateCyclesList();
+//    }
   }
 
   // Action for macro "Selected cycle"->"Duplicate each frame": Duplicates each frame in the selected cycle
   private void macroDuplicateFrames()
   {
-    if (modelCurCycle.getCycle() >= 0) {
-      int frameIdx = modelCurCycle.getSize() - 1;
-      while (frameIdx >= 0) {
-        modelCurCycle.insert(frameIdx+1, modelCurCycle.getControl().cycleGetFrameIndexAbsolute(frameIdx));
-        frameIdx--;
+    int[] indices = listCycles.getSelectedIndices();
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
+        modelCurCycle.setCycle(indices[i]);
+        int frameIdx = modelCurCycle.getSize() - 1;
+        while (frameIdx >= 0) {
+          modelCurCycle.insert(frameIdx+1, modelCurCycle.getControl().cycleGetFrameIndexAbsolute(frameIdx));
+          frameIdx--;
+        }
       }
-      updateCyclesList();
     }
+    updateCyclesList();
+//    if (modelCurCycle.getCycle() >= 0) {
+//      int frameIdx = modelCurCycle.getSize() - 1;
+//      while (frameIdx >= 0) {
+//        modelCurCycle.insert(frameIdx+1, modelCurCycle.getControl().cycleGetFrameIndexAbsolute(frameIdx));
+//        frameIdx--;
+//      }
+//      updateCyclesList();
+//    }
   }
 
   // Action for macro "Selected cycle"->"Sort frames": Sorts frame indices by value
   private void macroSortFrames()
   {
-    int idx = listCycles.getSelectedIndex();
-    if (idx >= 0) {
-      int[] indices = new int[modelCycles.getElementAt(idx).size()];
-      for (int i = 0; i < indices.length; i++) {
-        indices[i] = modelCycles.getElementAt(idx).get(i);
+    int[] indices = listCycles.getSelectedIndices();
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
+        int[] frames = new int[modelCycles.getElementAt(indices[i]).size()];
+        for (int j = 0; j < frames.length; j++) {
+          frames[j] = modelCycles.getElementAt(indices[i]).get(j);
+        }
+        Arrays.sort(frames);
+        for (int j = 0; j < frames.length; j++) {
+          modelCycles.getElementAt(indices[i]).set(j, frames[j]);
+        }
       }
-      Arrays.sort(indices);
-      for (int i = 0; i < indices.length; i++) {
-        modelCycles.getElementAt(idx).set(i, indices[i]);
-      }
-      updateCyclesList();
     }
+    updateCyclesList();
+//    int idx = listCycles.getSelectedIndex();
+//    if (idx >= 0) {
+//      int[] indices = new int[modelCycles.getElementAt(idx).size()];
+//      for (int i = 0; i < indices.length; i++) {
+//        indices[i] = modelCycles.getElementAt(idx).get(i);
+//      }
+//      Arrays.sort(indices);
+//      for (int i = 0; i < indices.length; i++) {
+//        modelCycles.getElementAt(idx).set(i, indices[i]);
+//      }
+//      updateCyclesList();
+//    }
   }
 
   // Action for macro "Selected cycle"->"Reverse frames order": Reverses the current order of the frame indices
   private void macroReverseFramesOrder()
   {
-    int idx = listCycles.getSelectedIndex();
-    if (idx >= 0) {
-      int[] indices = new int[modelCycles.getElementAt(idx).size()];
-      for (int i = 0; i < indices.length; i++) {
-        indices[i] = modelCycles.getElementAt(idx).get(indices.length - i - 1);
+    int[] indices = listCycles.getSelectedIndices();
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
+        int[] frames = new int[modelCycles.getElementAt(indices[i]).size()];
+        int len = modelCycles.getElementAt(indices[i]).size();
+        for (int j = 0; j < len; j++) {
+          frames[j] = modelCycles.getElementAt(indices[i]).get(len - j - 1);
+        }
+        for (int j = 0; j < len; j++) {
+          modelCycles.getElementAt(indices[i]).set(j, frames[j]);
+        }
       }
-      for (int i = 0; i < indices.length; i++) {
-        modelCycles.getElementAt(idx).set(i, indices[i]);
-      }
-      updateCyclesList();
     }
+    updateCyclesList();
+//    int idx = listCycles.getSelectedIndex();
+//    if (idx >= 0) {
+//      int[] indices = new int[modelCycles.getElementAt(idx).size()];
+//      for (int i = 0; i < indices.length; i++) {
+//        indices[i] = modelCycles.getElementAt(idx).get(indices.length - i - 1);
+//      }
+//      for (int i = 0; i < indices.length; i++) {
+//        modelCycles.getElementAt(idx).set(i, indices[i]);
+//      }
+//      updateCyclesList();
+//    }
   }
 
   // Action for macro "All cycles"->"Remove all frames": Removes all frame indices
@@ -3262,7 +3561,7 @@ public class ConvertToBam extends ChildFrame
         "\"DXT5\" provides an average compression ratio. It features interpolated\n" +
         "alpha transitions and is the preferred type for BAM resources.\n\n" +
         "\"Auto\" selects the most appropriate compression type based on the input data.";
-    JOptionPane.showMessageDialog(this, helpMsg, "About Compression Types", JOptionPane.INFORMATION_MESSAGE);
+    JOptionPane.showMessageDialog(this, helpMsg, "About compression types", JOptionPane.INFORMATION_MESSAGE);
   }
 
   // Action for "Compress BAM" in BAM v1 export

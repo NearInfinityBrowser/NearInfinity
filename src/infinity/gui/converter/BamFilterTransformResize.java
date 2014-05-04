@@ -98,7 +98,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
     JLabel l2 = new JLabel("Factor:");
     cbType = new JComboBox(ScalingTypeItems);
     cbType.addActionListener(this);
-    spinnerFactor = new JSpinner(new SpinnerNumberModel(1.0, 0.01, 10.0, 0.1));
+    spinnerFactor = new JSpinner(new SpinnerNumberModel(1.0, 0.01, 10.0, 0.05));
     spinnerFactor.addChangeListener(this);
     JLabel l = new JLabel();
     taInfo = new JTextArea(2, 0);
@@ -189,17 +189,17 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       case TYPE_NEAREST_NEIGHBOR:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV1],
                                                   ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-        setFactor(factor, 0.01, 10.0, 0.1);
+        setFactor(factor, 0.01, 10.0, 0.05);
         spinnerFactor.setEnabled(true);
         break;
       case TYPE_BILINEAR:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-        setFactor(factor, 0.01, 10.0, 0.1);
+        setFactor(factor, 0.01, 10.0, 0.05);
         spinnerFactor.setEnabled(!getConverter().isBamV1Selected());
         break;
       case TYPE_BICUBIC:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-        setFactor(factor, 0.01, 10.0, 0.1);
+        setFactor(factor, 0.01, 10.0, 0.05);
         spinnerFactor.setEnabled(!getConverter().isBamV1Selected());
         break;
       case TYPE_SCALEX:
@@ -208,13 +208,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
         setFactor((int)factor, 2, 4, 1);
         spinnerFactor.setEnabled(true);
         break;
-//      case TYPE_LANCZOS:
-//        taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-//        setFactor(factor, 0.01, 10.0, 0.1);
-//        break;
       default:
         taInfo.setText("");
-        setFactor(factor, 0.01, 10.0, 0.1);
+        setFactor(factor, 0.01, 10.0, 0.05);
     }
   }
 
