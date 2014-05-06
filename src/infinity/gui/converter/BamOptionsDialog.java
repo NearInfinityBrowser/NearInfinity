@@ -309,12 +309,13 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     bDefaults = new JButton("Set defaults");
     bDefaults.addActionListener(this);
     bDefaults.setMargin(new Insets(4, bDefaults.getInsets().left, 4, bDefaults.getInsets().right));
-    bOK = new JButton("OK");
-    bOK.addActionListener(this);
-    bOK.setMargin(new Insets(4, bOK.getInsets().left, 4, bOK.getInsets().right));
     bCancel = new JButton("Cancel");
     bCancel.addActionListener(this);
     bCancel.setMargin(new Insets(4, bCancel.getInsets().left, 4, bCancel.getInsets().right));
+    bOK = new JButton("OK");
+    bOK.addActionListener(this);
+    bOK.setMargin(new Insets(4, bOK.getInsets().left, 4, bOK.getInsets().right));
+    bOK.setPreferredSize(bCancel.getPreferredSize());
     JPanel pButtons = new JPanel(new GridBagLayout());
     c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);

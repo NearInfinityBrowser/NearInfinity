@@ -150,17 +150,16 @@ public class ConvertToBam extends ChildFrame
   private JMenuItem miFramesAddFiles, miFramesAddFolder, miFramesImportBam,
                     miFramesRemove, miFramesRemoveAll, miFramesDropUnused;
   private ButtonPopupMenu bpmFramesAdd, bpmFramesRemove;
-  private JButton bOptions, bConvert, bCancel;
-  private JButton bBamOutput, bPalette;
-  private JButton bFramesUp, bFramesDown, bCyclesUp, bCyclesDown, bCurCycleUp, bCurCycleDown;
-  private JButton bCyclesAdd, bCyclesRemove, bCyclesRemoveAll, bCurCycleAdd, bCurCycleRemove;
-  private JButton bVersionHelp, bCompressionHelp;
+  private JButton bOptions, bConvert, bCancel, bPalette, bVersionHelp, bCompressionHelp;
+  private JButton bFramesUp, bFramesDown;
+  private JButton bCyclesUp, bCyclesDown, bCyclesAdd, bCyclesRemove, bCyclesRemoveAll, bCurCycleUp,
+                  bCurCycleDown, bCurCycleAdd, bCurCycleRemove;
   private JButton bMacroAssignFrames, bMacroRemoveFrames, bMacroSortFramesAsc, bMacroDuplicateCycle,
                   bMacroDuplicateFrames, bMacroReverseFrames, bMacroRemoveAll, bMacroReverseCycles;
   private JButton bPreviewCyclePrev, bPreviewCycleNext, bPreviewFramePrev, bPreviewFrameNext,
                   bPreviewPlay, bPreviewStop;
   private JButton bFiltersAdd, bFiltersRemove, bFiltersRemoveAll, bFiltersUp, bFiltersDown;
-  private JTextField tfFrameWidth, tfFrameHeight, tfFrameCenterX, tfFrameCenterY, tfBamOutput;
+  private JTextField tfFrameWidth, tfFrameHeight, tfFrameCenterX, tfFrameCenterY;
   private JCheckBox cbCloseOnExit, cbCompressFrame, cbCompressBam, cbPreviewShowMarker, cbPreviewZoom,
                     cbFiltersShowMarker;
   private JPanel pFramesCurFrame, pCurrentCycle, pFramesOptionsVersion, pFiltersSettings;
@@ -180,6 +179,7 @@ public class ConvertToBam extends ChildFrame
   private boolean isPreviewModified, isPreviewPlaying;
   private double currentFps;
   private int pmCur, pmMax;
+  private String bamOutputFileName;
 
 
   /** Validates numberString and modifies it to fit into the specified limits. */
@@ -212,7 +212,7 @@ public class ConvertToBam extends ChildFrame
     return retVal;
   }
 
-  // Returns a list of supported graphics file formats
+  /** Returns a list of supported input graphics file formats. */
   public static FileNameExtensionFilter[] getGraphicsFilters()
   {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
@@ -226,7 +226,7 @@ public class ConvertToBam extends ChildFrame
     return filters;
   }
 
-  // Returns a list of supported file formats containing palettes
+  /** Returns a list of supported input file formats containing palettes. */
   public static FileNameExtensionFilter[] getPaletteFilters()
   {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
@@ -239,12 +239,13 @@ public class ConvertToBam extends ChildFrame
     return filters;
   }
 
+  /** Returns a extension filter for BAM files. */
   public static FileNameExtensionFilter getBamFilter()
   {
     return new FileNameExtensionFilter("BAM files (*.bam)", "bam");
   }
 
-  // returns a selection of files
+  /** Returns a list of files that can be specified in an "Open file" dialog. */
   public static File[] getOpenFileName(Component parent, String title, String rootPath,
                                        boolean selectMultiple,
                                        FileNameExtensionFilter[] filters, int filterIndex)
@@ -287,7 +288,7 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  // returns a path name
+  /** Returns a path name from a "Select path" dialog. */
   public static File getOpenPathName(Component parent, String title, String rootPath)
   {
     if (rootPath == null || rootPath.isEmpty()) {
@@ -308,7 +309,7 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  // returns a filename
+  /** Returns a filename that can be specified in a "Save file" dialog */
   public static File getSaveFileName(Component parent, String title, String rootPath,
                                      FileNameExtensionFilter[] filters, int filterIndex)
   {
@@ -342,7 +343,7 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  // sets a new file extension to the specified filename string
+  /** Sets a new file extension to the specified filename string. */
   public static String setFileExtension(String fileName, String extension)
   {
     if (fileName != null && !fileName.isEmpty()) {
@@ -363,7 +364,7 @@ public class ConvertToBam extends ChildFrame
     return fileName;
   }
 
-  // initializes and returns a GridBagConstraints instance
+  /** Initializes and returns a GridBagConstraints instance. */
   static GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
                                    int gridWidth, int gridHeight, double weightX, double weightY,
                                    int anchor, int fill, Insets insets, int iPadX, int iPadY)
@@ -429,7 +430,7 @@ public class ConvertToBam extends ChildFrame
   /** Returns the BAM output filename. */
   public String getBamOutput()
   {
-    return tfBamOutput.getText();
+    return bamOutputFileName;
   }
 
   /** Returns whether BAM v1 output is compressed. */
@@ -491,22 +492,29 @@ public class ConvertToBam extends ChildFrame
     } else if (event.getSource() == bConvert) {
       if (workerConvert == null) {
         final String msg = "BAM output file already exists. Overwrite?";
-        if (!(new File(tfBamOutput.getText())).exists() ||
-            JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
-                                                                    JOptionPane.YES_NO_OPTION,
-                                                                    JOptionPane.QUESTION_MESSAGE)) {
-          workerConvert = new SwingWorker<List<String>, Void>() {
-            @Override
-            protected List<String> doInBackground() throws Exception {
-              return convert();
+        File file = null;
+        do {
+          file = setBamOutput();
+          if (file != null) {
+            if (!file.exists() ||
+                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
+                                                                        JOptionPane.YES_NO_OPTION,
+                                                                        JOptionPane.QUESTION_MESSAGE)) {
+              file = null;
+              workerConvert = new SwingWorker<List<String>, Void>() {
+                @Override
+                protected List<String> doInBackground() throws Exception {
+                  return convert();
+                }
+              };
+              initProgressMonitor(this, "Converting BAM...", " ", 3, 0, 0);
+              workerConvert.addPropertyChangeListener(this);
+              blocker = new WindowBlocker(this);
+              blocker.setBlocked(true);
+              workerConvert.execute();
             }
-          };
-          initProgressMonitor(this, "Converting BAM...", " ", 3, 0, 0);
-          workerConvert.addPropertyChangeListener(this);
-          blocker = new WindowBlocker(this);
-          blocker.setBlocked(true);
-          workerConvert.execute();
-        }
+          }
+        } while (file != null);
       }
     } else if (event.getSource() == bCancel) {
       hideWindow(false);
@@ -555,8 +563,6 @@ public class ConvertToBam extends ChildFrame
       outputSetModified(true);
     } else if (event.getSource() == bCompressionHelp) {
       showCompressionHelp();
-    } else if (event.getSource() == bBamOutput) {
-      setBamOutput();
     } else if (event.getSource() == cbVersion) {
       setBamVersion(cbVersion.getSelectedIndex());
     } else if (event.getSource() == bVersionHelp) {
@@ -731,9 +737,6 @@ public class ConvertToBam extends ChildFrame
   {
     if (event.getSource() == tfFrameCenterX || event.getSource() == tfFrameCenterY) {
       framesValidateCenterValue((JTextField)event.getSource());
-    } else if (event.getSource() == tfBamOutput) {
-      validateBamOutput();
-      updateStatus();
     }
   }
 
@@ -899,7 +902,8 @@ public class ConvertToBam extends ChildFrame
     Insets i = bOptions.getInsets();
     bOptions.setMargin(new Insets(i.top + 1, i.left, i.bottom + 1, i.right));
     cbCloseOnExit = new JCheckBox("Close dialog after conversion", BamOptionsDialog.getCloseOnExit());
-    bConvert = new JButton("Start Conversion");
+    bamOutputFileName = "";
+    bConvert = new JButton("Save output file...");
     bConvert.addActionListener(this);
     i = bConvert.getInsets();
     bConvert.setMargin(new Insets(i.top + 1, i.left, i.bottom + 1, i.right));
@@ -1148,13 +1152,9 @@ public class ConvertToBam extends ChildFrame
     pFramesOptionsVersion.add(pFramesOptionsVersionV1, "V1");
     pFramesOptionsVersion.add(pFramesOptionsVersionV2, "V2");
 
-    // creating "Export" section
-    JPanel pFramesExportOptions = new JPanel(new GridBagLayout());
-    JLabel lOutputFile = new JLabel("Output file:");
-    tfBamOutput = new JTextField();
-    tfBamOutput.addFocusListener(this);
-    bBamOutput = new JButton("...");
-    bBamOutput.addActionListener(this);
+    // creating "Output options" section
+    JPanel pFramesExport = new JPanel(new GridBagLayout());
+    pFramesExport.setBorder(BorderFactory.createTitledBorder("Output options "));
     JLabel lFramesVersion = new JLabel("BAM version:");
     cbVersion = new JComboBox(BamVersionItems);
     cbVersion.addActionListener(this);
@@ -1164,35 +1164,17 @@ public class ConvertToBam extends ChildFrame
     bVersionHelp.setToolTipText("About BAM versions");
     bVersionHelp.addActionListener(this);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
-    pFramesExportOptions.add(cbVersion, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
-    pFramesExportOptions.add(cbVersion, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
-    pFramesExportOptions.add(bVersionHelp, c);
-    c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
-    pFramesExportOptions.add(pFramesOptionsVersion, c);
-
-    JPanel pFramesExport = new JPanel(new GridBagLayout());
-    pFramesExport.setBorder(BorderFactory.createTitledBorder("Export "));
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
-    pFramesExport.add(lOutputFile, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
-    pFramesExport.add(tfBamOutput, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
-    pFramesExport.add(bBamOutput, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.NONE, new Insets(8, 4, 8, 0), 0, 0);
     pFramesExport.add(lFramesVersion, c);
-    c = setGBC(c, 1, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 0), 0, 0);
-    pFramesExport.add(pFramesExportOptions, c);
+    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
+    pFramesExport.add(cbVersion, c);
+    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    pFramesExport.add(bVersionHelp, c);
+    c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    pFramesExport.add(pFramesOptionsVersion, c);
 
     // putting all together
     JPanel pFrames = new JPanel(new GridBagLayout());
@@ -1757,7 +1739,7 @@ public class ConvertToBam extends ChildFrame
     boolean isReady = (!modelFrames.isEmpty() && !modelCycles.isEmpty());
     boolean showTabs = !modelFrames.isEmpty();
 
-    bConvert.setEnabled(isReady && !tfBamOutput.getText().isEmpty());
+    bConvert.setEnabled(isReady);
     if (!showTabs) {
       tpMain.setSelectedIndex(TAB_FRAMES);
     }
@@ -2749,16 +2731,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
     updateCyclesList();
-//    int idx = listCycles.getSelectedIndex();
-//    if (idx >= 0) {
-//      modelCurCycle.clear();
-//      int[] indices = new int[modelFrames.getSize()];
-//      for(int i = 0; i < indices.length; i++) {
-//        indices[i] = i;
-//      }
-//      modelCurCycle.add(indices);
-//      updateCyclesList();
-//    }
   }
 
   // Action for macro "Selected cycle"->"Remove all frames": Removes all frame indices
@@ -2772,8 +2744,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
     updateCyclesList();
-//    modelCurCycle.clear();
-//    updateCyclesList();
   }
 
   // Action for macro "Selected cycle"->"Duplicate cycle": Adds a duplicate below the selected cycle
@@ -2794,16 +2764,6 @@ public class ConvertToBam extends ChildFrame
     }
     listCycles.setSelectedIndices(indices);
     updateCyclesList();
-//    int idx = listCycles.getSelectedIndex();
-//    if (idx >= 0) {
-//      int[] indices = new int[modelCycles.getElementAt(idx).size()];
-//      for (int i = 0; i < indices.length; i++) {
-//        indices[i] = modelCycles.getElementAt(idx).get(i);
-//      }
-//      modelCycles.insert(idx+1, indices);
-//      listCycles.setSelectedIndex(idx+1);
-//      updateCyclesList();
-//    }
   }
 
   // Action for macro "Selected cycle"->"Duplicate each frame": Duplicates each frame in the selected cycle
@@ -2821,14 +2781,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
     updateCyclesList();
-//    if (modelCurCycle.getCycle() >= 0) {
-//      int frameIdx = modelCurCycle.getSize() - 1;
-//      while (frameIdx >= 0) {
-//        modelCurCycle.insert(frameIdx+1, modelCurCycle.getControl().cycleGetFrameIndexAbsolute(frameIdx));
-//        frameIdx--;
-//      }
-//      updateCyclesList();
-//    }
   }
 
   // Action for macro "Selected cycle"->"Sort frames": Sorts frame indices by value
@@ -2848,18 +2800,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
     updateCyclesList();
-//    int idx = listCycles.getSelectedIndex();
-//    if (idx >= 0) {
-//      int[] indices = new int[modelCycles.getElementAt(idx).size()];
-//      for (int i = 0; i < indices.length; i++) {
-//        indices[i] = modelCycles.getElementAt(idx).get(i);
-//      }
-//      Arrays.sort(indices);
-//      for (int i = 0; i < indices.length; i++) {
-//        modelCycles.getElementAt(idx).set(i, indices[i]);
-//      }
-//      updateCyclesList();
-//    }
   }
 
   // Action for macro "Selected cycle"->"Reverse frames order": Reverses the current order of the frame indices
@@ -2879,17 +2819,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
     updateCyclesList();
-//    int idx = listCycles.getSelectedIndex();
-//    if (idx >= 0) {
-//      int[] indices = new int[modelCycles.getElementAt(idx).size()];
-//      for (int i = 0; i < indices.length; i++) {
-//        indices[i] = modelCycles.getElementAt(idx).get(indices.length - i - 1);
-//      }
-//      for (int i = 0; i < indices.length; i++) {
-//        modelCycles.getElementAt(idx).set(i, indices[i]);
-//      }
-//      updateCyclesList();
-//    }
   }
 
   // Action for macro "All cycles"->"Remove all frames": Removes all frame indices
@@ -3572,29 +3501,20 @@ public class ConvertToBam extends ChildFrame
   }
 
   // Specify a BAM output file
-  private void setBamOutput()
+  private File setBamOutput()
   {
     String rootPath = null;
-    if (!tfBamOutput.getText().isEmpty()) {
-      rootPath = tfBamOutput.getText();
+    if (!bamOutputFileName.isEmpty()) {
+      rootPath = bamOutputFileName;
     }
     File outFile = getSaveFileName(this, "Specify output file", rootPath,
                                    new FileNameExtensionFilter[]{getBamFilter()}, 0);
     if (outFile != null) {
-      String fileName = setFileExtension(outFile.toString(), "BAM");
-      tfBamOutput.setText(fileName);
-      updateStatus();
+      outFile = new File(setFileExtension(outFile.toString(), "BAM"));
+      bamOutputFileName = outFile.toString();
     }
-  }
 
-  // Validates the BAM file input field
-  private void validateBamOutput()
-  {
-    String fileName = tfBamOutput.getText();
-    if (!fileName.isEmpty()) {
-      fileName = setFileExtension(fileName, "BAM");
-      tfBamOutput.setText(fileName);
-    }
+    return outFile;
   }
 
 
