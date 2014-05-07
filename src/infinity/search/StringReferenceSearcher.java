@@ -16,8 +16,8 @@ import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
 import infinity.resource.sav.SavResource;
+import infinity.resource.text.PlainTextResource;
 
 import java.awt.Component;
 import java.util.List;

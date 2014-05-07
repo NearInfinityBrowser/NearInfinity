@@ -49,7 +49,7 @@ public final class PltResource implements Resource, ActionListener
     if (s.equals("PLT ")) {
       externalResource = null;
     } else if (s.equals("BAMC") || s.equals("BAM ")) {
-      externalResource = new BamResource2(entry);
+      externalResource = new BamResource(entry);
     } else {
       externalResource = new UnknownResource(entry);
     }

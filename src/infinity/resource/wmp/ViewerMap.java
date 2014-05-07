@@ -15,7 +15,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
-import infinity.resource.graphics.BamResource2;
+import infinity.resource.graphics.BamResource;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
@@ -43,12 +43,12 @@ final class ViewerMap extends JPanel implements ListSelectionListener
   {
     WindowBlocker.blockWindow(true);
     try {
-      BamResource2 icons = null;
+      BamResource icons = null;
       ResourceRef iconRef = (ResourceRef)wmpMap.getAttribute("Map icons");
       if (iconRef != null) {
         ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
         if (iconEntry != null) {
-          icons = (BamResource2)ResourceFactory.getResource(iconEntry);
+          icons = (BamResource)ResourceFactory.getResource(iconEntry);
           icons.setTransparencyEnabled(true);
         }
       }
@@ -99,9 +99,9 @@ final class ViewerMap extends JPanel implements ListSelectionListener
 
   private static final class WmpAreaListRenderer extends DefaultListCellRenderer
   {
-    private final BamResource2 icons;
+    private final BamResource icons;
 
-    private WmpAreaListRenderer(BamResource2 icons)
+    private WmpAreaListRenderer(BamResource icons)
     {
       this.icons = icons;
     }

@@ -18,7 +18,7 @@ import infinity.resource.chu.ChuResource;
 import infinity.resource.cre.CreResource;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.gam.GamResource;
-import infinity.resource.graphics.BamResource2;
+import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.graphics.PltResource;
@@ -34,7 +34,6 @@ import infinity.resource.key.ResourceTreeModel;
 import infinity.resource.mus.MusResource;
 import infinity.resource.other.EffResource;
 import infinity.resource.other.FntResource;
-import infinity.resource.other.PlainTextResource;
 import infinity.resource.other.UnknownResource;
 import infinity.resource.other.VvcResource;
 import infinity.resource.other.WfxResource;
@@ -44,6 +43,7 @@ import infinity.resource.sound.SoundResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.src.SrcResource;
 import infinity.resource.sto.StoResource;
+import infinity.resource.text.PlainTextResource;
 import infinity.resource.to.TohResource;
 import infinity.resource.to.TotResource;
 import infinity.resource.var.VarResource;
@@ -148,7 +148,7 @@ public final class ResourceFactory
     Resource res = null;
     try {
       if (entry.getExtension().equalsIgnoreCase("BAM"))
-        res = new BamResource2(entry);
+        res = new BamResource(entry);
       else if (entry.getExtension().equalsIgnoreCase("TIS"))
         res = new TisResource(entry);
       else if (entry.getExtension().equalsIgnoreCase("BMP"))

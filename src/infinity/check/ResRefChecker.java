@@ -16,7 +16,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
 import infinity.search.ReferenceHitFrame;
 
 import java.awt.BorderLayout;

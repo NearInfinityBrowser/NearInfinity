@@ -13,7 +13,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.Viewable;
-import infinity.resource.graphics.BamResource2;
+import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.key.ResourceEntry;
@@ -116,7 +116,7 @@ public final class ViewerUtil
     ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamResource2 iconBam = new BamResource2(iconEntry);
+        BamResource iconBam = new BamResource(iconEntry);
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
         label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -134,7 +134,7 @@ public final class ViewerUtil
     ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamResource2 iconBam = new BamResource2(iconEntry);
+        BamResource iconBam = new BamResource(iconEntry);
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
         frameNr = iconBam.getFrameIndex(animNr, frameNr);
         label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));

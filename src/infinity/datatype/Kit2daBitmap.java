@@ -9,7 +9,7 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 import infinity.util.LongIntegerHashMap;

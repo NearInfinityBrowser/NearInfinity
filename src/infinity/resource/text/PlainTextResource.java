@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.other;
+package infinity.resource.text;
 
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;

@@ -60,7 +60,7 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class BamResource2 implements Resource, ActionListener, PropertyChangeListener
+public class BamResource implements Resource, ActionListener, PropertyChangeListener
 {
   private static final Color TransparentColor = new Color(0, true);
   private static final int ANIM_DELAY = 1000 / 10;    // 10 fps in milliseconds
@@ -91,7 +91,7 @@ public class BamResource2 implements Resource, ActionListener, PropertyChangeLis
   private boolean exportCompressed;
   private WindowBlocker blocker;
 
-  public BamResource2(ResourceEntry entry)
+  public BamResource(ResourceEntry entry)
   {
     this.entry = entry;
     WindowBlocker.blockWindow(true);

@@ -6,7 +6,7 @@ package infinity.datatype;
 
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
 
 import java.util.List;
 

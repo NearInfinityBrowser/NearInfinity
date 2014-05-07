@@ -5,7 +5,7 @@
 package infinity.util;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
