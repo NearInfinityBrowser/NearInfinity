@@ -6,25 +6,31 @@ package infinity.resource.video;
 
 import infinity.NearInfinity;
 import infinity.gui.ButtonPanel;
+import infinity.gui.ButtonPopupMenu;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.MassExporter;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -47,6 +53,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   private MveDecoder decoder;
   private ImageRenderer renderer;
   private MvePlayer player;
+  private JMenuItem miExport, miExportExecutable;
   private JPanel panel;
   private JCheckBox cbZoom, cbFilter;
 
@@ -74,8 +81,24 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+    if (miExport == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    } else if (miExportExecutable == event.getSource()) {
+      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      fc.setDialogTitle("Export MVE as Windows Executable");
+      String name = entry.getResourceName();
+      if (name.lastIndexOf('.') > 0) {
+        name = name.substring(0, name.lastIndexOf('.')) + ".exe";
+      } else {
+        name = name + ".exe";
+      }
+      fc.setSelectedFile(new File(name));
+      fc.setDialogType(JFileChooser.SAVE_DIALOG);
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      if (fc.showSaveDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
+        exportAsExecutable(entry, fc.getSelectedFile(), panel.getTopLevelAncestor());
+      }
+      fc = null;
     } else if (buttonPanel.getControlByType(CtrlPlay) == event.getSource()) {
       if (player.isStopped()) {
         new Thread(this).start();
@@ -233,10 +256,18 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     bStop.addActionListener(this);
     bStop.setEnabled(false);
 
+    miExport = new JMenuItem("as MVE");
+    miExport.addActionListener(this);
+    miExportExecutable = new JMenuItem("as Windows executable");
+    miExportExecutable.setToolTipText("Only executable on Windows or compatible environments");
+    miExportExecutable.addActionListener(this);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.ExportMenu);
+    bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportExecutable});
+
     buttonPanel.addControl(bPlay, CtrlPlay);
     buttonPanel.addControl(bPause, CtrlPause);
     buttonPanel.addControl(bStop, CtrlStop);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
     buttonPanel.addControl(optionsPanel);
 
     panel = new JPanel();
@@ -248,4 +279,30 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   }
 
 //--------------------- End Interface Viewable ---------------------
+
+
+  // Export resource entry as Windows executable
+  private static void exportAsExecutable(ResourceEntry inEntry, File outFile, Component parent)
+  {
+    if (inEntry != null && outFile != null) {
+      if (outFile.exists()) {
+        String[] options = new String[]{"Overwrite", "Cancel"};
+        if (JOptionPane.showOptionDialog(parent, outFile + " exists. Overwrite?",
+                                         "Export resource", JOptionPane.YES_NO_OPTION,
+                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+          return;
+        }
+      }
+      try {
+        MassExporter.exportMovieExecutable(inEntry, outFile);
+        JOptionPane.showMessageDialog(parent, "File exported to " + outFile,
+                                      "Export complete", JOptionPane.INFORMATION_MESSAGE);
+      } catch (Exception e) {
+        JOptionPane.showMessageDialog(parent,
+                                      "Error while exporting " + inEntry + " as Windows executable.",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+      }
+    }
+  }
 }

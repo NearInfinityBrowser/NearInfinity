@@ -212,6 +212,28 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
 // --------------------- End Interface Runnable ---------------------
 
+  /** Adds an executable stub to the specified resource entry and writes it into the specified output file. */
+  public static void exportMovieExecutable(ResourceEntry inEntry, File outFile) throws Exception
+  {
+    final byte[] buffer = new byte[65536];
+    if (inEntry != null && outFile != null) {
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outFile));
+      BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
+      Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));
+      stub.close();
+      InputStream is = inEntry.getResourceDataAsStream();
+      int size = inEntry.getResourceInfo()[0];
+      int bytesRead = is.read(buffer);
+      while (size > 0) {
+        bos.write(buffer, 0, bytesRead);
+        size -= bytesRead;
+        bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
+      }
+      bos.close();
+      is.close();
+    }
+  }
+
   private void export(ResourceEntry entry)
   {
     try {
@@ -297,20 +319,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
                                      ".exe");
         if (output.exists() && !cbOverwrite.isSelected())
           return;
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
-        BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
-        Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));
-        stub.close();
-        InputStream is = entry.getResourceDataAsStream();
-        int size = entry.getResourceInfo()[0];
-        int bytesRead = is.read(buffer);
-        while (size > 0) {
-          bos.write(buffer, 0, bytesRead);
-          size -= bytesRead;
-          bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
-        }
-        bos.close();
-        is.close();
+        exportMovieExecutable(entry, output);
       }
       else {
         InputStream is = entry.getResourceDataAsStream();
