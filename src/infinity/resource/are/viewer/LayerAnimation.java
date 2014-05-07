@@ -349,6 +349,4 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
       }
     }
   }
-
-  // TODO: add interpolation support
 }

@@ -316,8 +316,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         ChildFrame.updateWindowGUIs();
         tree.reloadRenderer();
         tree.repaint();
-        JOptionPane.showMessageDialog(this,
-                                      "It might be necessary to restart Near Infinity\nto completely change look and feel.");
+        JOptionPane.showMessageDialog(this, "It might be necessary to restart Near Infinity\n" +
+                                            "to completely change look and feel.");
       } catch (Exception e) {
         e.printStackTrace();
       }

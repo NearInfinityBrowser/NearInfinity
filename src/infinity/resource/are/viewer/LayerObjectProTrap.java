@@ -15,6 +15,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.ProTrap;
+import infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Projectile Trap
@@ -22,8 +23,8 @@ import infinity.resource.are.ProTrap;
  */
 public class LayerObjectProTrap extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("itm_ProTrap1.png"),
-                                                  Icons.getImage("itm_ProTrap2.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_ProTrap1.png"),
+                                                  Icons.getImage(ViewerIcons.class, "itm_ProTrap2.png")};
   private static Point Center = new Point(14, 14);
 
   private final ProTrap trap;

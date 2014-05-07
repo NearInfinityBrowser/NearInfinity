@@ -20,7 +20,6 @@ import infinity.resource.HasAddRemovable;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.EffResource;
 import infinity.search.SearchOptions;
 import infinity.util.LongIntegerHashMap;
 

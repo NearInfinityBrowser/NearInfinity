@@ -8,10 +8,8 @@ import infinity.NearInfinity;
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Editable;
-import infinity.datatype.Flag;
 import infinity.datatype.InlineEditable;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
@@ -72,8 +70,6 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 {
   private static final String s_msgtype[] = {"No message data", "", "Ambient message", "Standard message", "", "",
                                              "", "Message with tags"};
-  private static final String s_msgtypeNWN[] = {"No message data", "Text present", "Sound present",
-                                                "Sound length present" };
   private static String signature, version;
   private static int entry_size = 26; // V1
   private final ButtonPopupMenu bfind;
@@ -680,18 +676,14 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
             list.add(new ResourceRef(data, 2, "Associated sound", "WAV"));
             list.add(new DecNumber(data, 10, 4, "Volume variance"));
             list.add(new DecNumber(data, 14, 4, "Pitch variance"));
-          }
-          else if (version.equals("V3.0")) { // Remember to updateValue writeField() as this changes
-            list.add(new Flag(data, 0, 4, "Entry type", s_msgtypeNWN));
-            list.add(new TextString(data, 4, 16, "Associated sound"));
-            list.add(new DecNumber(data, 20, 4, "Volume variance"));
-            list.add(new DecNumber(data, 24, 4, "Pitch variance"));
-            list.add(new Unknown(data, 36, 4, "Sound length"));
+          } else {
+            throw new Exception("Unsupported or invalid dialog.tlk version");
           }
           data = null;
         }
       } catch (Exception e) {
         data = null;
+        e.printStackTrace();
       }
     }
 

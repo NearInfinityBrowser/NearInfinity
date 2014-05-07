@@ -17,6 +17,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.are.Actor;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.Entrance;
+import infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Entrance
@@ -24,8 +25,8 @@ import infinity.resource.are.Entrance;
  */
 public class LayerObjectEntrance extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("itm_Entrance1.png"),
-                                                  Icons.getImage("itm_Entrance2.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_Entrance1.png"),
+                                                  Icons.getImage(ViewerIcons.class, "itm_Entrance2.png")};
   private static Point Center = new Point(11, 18);
 
   private final Entrance entrance;

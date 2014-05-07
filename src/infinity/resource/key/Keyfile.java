@@ -81,261 +81,90 @@ public final class Keyfile
     this.keyfile = keyfile;
     resourceicons.clear();
     resourceicons.put("???", ICON_UNKNOWN);
-    if (currentGame == ResourceFactory.ID_NWN) {
-      extmap.put(0x001, "BMP");
-      resourceicons.put("BMP", ICON_IMAGE);
-      extmap.put(0x003, "TGA");
-      resourceicons.put("TGA", ICON_IMAGE);
-      extmap.put(0x004, "WAV");
-      resourceicons.put("WAV", ICON_SOUND);
-      extmap.put(0x006, "PLT");
-      resourceicons.put("PLT", ICON_IMAGE);
-      extmap.put(0x007, "INI");
-      resourceicons.put("INI", ICON_TEXT);
-      extmap.put(0x00A, "TXT");
-      resourceicons.put("TXT", ICON_TEXT);
-      extmap.put(0x7D2, "MDL"); // Aurora model - not supported
-      extmap.put(0x7D9, "NSS");
-      resourceicons.put("NSS", ICON_TEXT);
-      extmap.put(0x7DA, "NCS");
-      resourceicons.put("NCS", ICON_SCRIPT);
-      extmap.put(0x7DC, "ARE");
-      resourceicons.put("ARE", ICON_STRUCT);
-      extmap.put(0x7DD, "SET");
-      resourceicons.put("SET", ICON_TEXT);
-      extmap.put(0x7DE, "IFO");
-      resourceicons.put("IFO", ICON_STRUCT);
-      extmap.put(0x7DF, "BIC");
-      resourceicons.put("BIC", ICON_STRUCT);
-      extmap.put(0x7E0, "WOK");
-      resourceicons.put("WOK", ICON_TEXT);
-      extmap.put(0x7E1, "2DA");
-      resourceicons.put("2DA", ICON_TEXT);
-      extmap.put(0x7E6, "TXI");
-      resourceicons.put("TXI", ICON_TEXT);
-      extmap.put(0x7E7, "GIT");
-      resourceicons.put("GIT", ICON_STRUCT);
-      extmap.put(0x7E9, "UTI");
-      resourceicons.put("UTI", ICON_STRUCT);
-      extmap.put(0x7EB, "UTC");
-      resourceicons.put("UTC", ICON_STRUCT);
-      extmap.put(0x7ED, "DLG");
-      resourceicons.put("DLG", ICON_STRUCT);
-      extmap.put(0x7EE, "ITP");
-      resourceicons.put("ITP", ICON_STRUCT);
-      extmap.put(0x7F0, "UTT");
-      resourceicons.put("UTT", ICON_STRUCT);
-      extmap.put(0x7F1, "DDS"); // Compressed texture file - not supported
-      extmap.put(0x7F3, "UTS");
-      resourceicons.put("UTS", ICON_STRUCT);
-      extmap.put(0x7F4, "LTR"); // Letter-combo probability info for name generation - not supported
-      extmap.put(0x7F5, "GFF");
-      resourceicons.put("GFF", ICON_STRUCT);
-      extmap.put(0x7F6, "FAC");
-      resourceicons.put("FAC", ICON_STRUCT);
-      extmap.put(0x7F8, "UTE");
-      resourceicons.put("UTE", ICON_STRUCT);
-      extmap.put(0x7FA, "UTD");
-      resourceicons.put("UTD", ICON_STRUCT);
-      extmap.put(0x7FC, "UTP");
-      resourceicons.put("UTP", ICON_STRUCT);
-      extmap.put(0x7FD, "DFT");
-      resourceicons.put("DFT", ICON_TEXT);
-      extmap.put(0x7FE, "GIC");
-      resourceicons.put("GIC", ICON_STRUCT);
-      extmap.put(0x7FF, "GUI");
-      resourceicons.put("GUI", ICON_STRUCT);
-      extmap.put(0x803, "UTM");
-      resourceicons.put("UTM", ICON_STRUCT);
-      extmap.put(0x804, "DWK");
-      resourceicons.put("DWK", ICON_TEXT);
-      extmap.put(0x805, "PWK");
-      resourceicons.put("PWK", ICON_TEXT);
-      extmap.put(0x808, "JRL");
-      resourceicons.put("JRL", ICON_STRUCT);
-      extmap.put(0x80A, "UTW");
-      resourceicons.put("UTW", ICON_STRUCT);
-      extmap.put(0x80C, "SSF");
-      resourceicons.put("SSF", ICON_STRUCT);
-      extmap.put(0x810, "NDB");
-      resourceicons.put("NDB", ICON_TEXT);
-      extmap.put(0x811, "PTM");
-      resourceicons.put("PTM", ICON_STRUCT);
-      extmap.put(0x812, "PTT");
-      resourceicons.put("PTT", ICON_STRUCT);
-//      extmap.put(0x270C, "INI"); Not in BioWare documentation
+    extmap.put(0x001, "BMP");
+    resourceicons.put("BMP", ICON_IMAGE);
+    extmap.put(0x002, "MVE");
+    resourceicons.put("MVE", ICON_MOVIE);
+    extmap.put(0x004, "WAV");
+    resourceicons.put("WAV", ICON_SOUND);
+    extmap.put(0x005, "WFX");
+    resourceicons.put("WFX", ICON_STRUCT);
+    extmap.put(0x006, "PLT");
+    resourceicons.put("PLT", ICON_IMAGE);
+    extmap.put(0x3e8, "BAM");
+    resourceicons.put("BAM", ICON_MOVIE);
+    extmap.put(0x3e9, "WED");
+    resourceicons.put("WED", ICON_STRUCT);
+    extmap.put(0x3ea, "CHU");
+    resourceicons.put("CHU", ICON_STRUCT);
+    extmap.put(0x3eb, "TIS");
+    resourceicons.put("TIS", ICON_IMAGE);
+    extmap.put(0x3ec, "MOS");
+    resourceicons.put("MOS", ICON_IMAGE);
+    extmap.put(0x3ed, "ITM");
+    resourceicons.put("ITM", ICON_STRUCT);
+    extmap.put(0x3ee, "SPL");
+    resourceicons.put("SPL", ICON_STRUCT);
+    extmap.put(0x3ef, "BCS");
+    resourceicons.put("BCS", ICON_SCRIPT);
+    extmap.put(0x3f0, "IDS");
+    resourceicons.put("IDS", ICON_TEXT);
+    extmap.put(0x3f1, "CRE");
+    resourceicons.put("CRE", ICON_STRUCT);
+    extmap.put(0x3f2, "ARE");
+    resourceicons.put("ARE", ICON_STRUCT);
+    extmap.put(0x3f3, "DLG");
+    resourceicons.put("DLG", ICON_STRUCT);
+    extmap.put(0x3f4, "2DA");
+    resourceicons.put("2DA", ICON_TEXT);
+    extmap.put(0x3f5, "GAM");
+    resourceicons.put("GAM", ICON_STRUCT);
+    extmap.put(0x3f6, "STO");
+    resourceicons.put("STO", ICON_STRUCT);
+    extmap.put(0x3f7, "WMP");
+    resourceicons.put("WMP", ICON_STRUCT);
+    extmap.put(0x3f8, "EFF");
+    resourceicons.put("EFF", ICON_STRUCT);
+    extmap.put(0x3f9, "BS");
+    resourceicons.put("BS", ICON_SCRIPT);
+    extmap.put(0x3fa, "CHR");
+    resourceicons.put("CHR", ICON_STRUCT);
+    extmap.put(0x3fb, "VVC");
+    resourceicons.put("VVC", ICON_STRUCT);
+    extmap.put(0x3fc, "VEF");
+    resourceicons.put("VEF", ICON_STRUCT);
+    extmap.put(0x3fd, "PRO");
+    resourceicons.put("PRO", ICON_STRUCT);
+    extmap.put(0x3fe, "BIO");
+    resourceicons.put("BIO", ICON_TEXT);
+    extmap.put(0x3ff, "WBM");
+    resourceicons.put("WBM", ICON_MOVIE);
+    extmap.put(0x44c, "BAH"); // ???????
+    extmap.put(0x802, "INI");
+    resourceicons.put("INI", ICON_TEXT);
+    extmap.put(0x803, "SRC");
+    resourceicons.put("SRC", ICON_STRUCT);
+    extmap.put(0x400, "FNT");
+    resourceicons.put("FNT", ICON_IMAGE);
+    extmap.put(0x401, "WBM");
+    resourceicons.put("WBM", ICON_MOVIE);
+    extmap.put(0x402, "GUI");
+    resourceicons.put("GUI", ICON_TEXT);
+    extmap.put(0x403, "SQL");
+    resourceicons.put("SQL", ICON_TEXT);
+    extmap.put(0x404, "PVRZ");
+    resourceicons.put("PVRZ", ICON_IMAGE);
+    extmap.put(0x405, "GLSL");
+    resourceicons.put("GLSL", ICON_TEXT);
 
-      resourceicons.put("BMU", ICON_SOUND);
-      resourceicons.put("ERF", ICON_BUNDLE);
-      resourceicons.put("HAK", ICON_BUNDLE);
-      resourceicons.put("MOD", ICON_BUNDLE);
-      resourceicons.put("NWM", ICON_BUNDLE);
-      resourceicons.put("SAV", ICON_BUNDLE);
-    }
-    else if (currentGame == ResourceFactory.ID_KOTOR || currentGame == ResourceFactory.ID_KOTOR2) {
-      extmap.put(0x000, "INV");
-      resourceicons.put("INV", ICON_STRUCT);
-      extmap.put(0x003, "TGA");
-      resourceicons.put("TGA", ICON_IMAGE);
-      extmap.put(0x004, "WAV");
-      resourceicons.put("WAV", ICON_SOUND);
-      extmap.put(0x7D2, "MDL"); // Aurora model - not supported
-      extmap.put(0x7D9, "NSS");
-      resourceicons.put("NSS", ICON_TEXT);
-      extmap.put(0x7DA, "NCS");
-      resourceicons.put("NCS", ICON_SCRIPT);
-      extmap.put(0x7DC, "ARE");
-      resourceicons.put("ARE", ICON_STRUCT);
-      extmap.put(0x7DE, "IFO");
-      resourceicons.put("IFO", ICON_STRUCT);
-      extmap.put(0x7DF, "BIC");
-      resourceicons.put("BIC", ICON_STRUCT);
-      extmap.put(0x7E0, "BWM"); // ?????
-      extmap.put(0x7E1, "2DA");
-      resourceicons.put("2DA", ICON_TEXT);
-      extmap.put(0x7E6, "TXI");
-      resourceicons.put("TXI", ICON_TEXT);
-      extmap.put(0x7E7, "GIT");
-      resourceicons.put("GIT", ICON_STRUCT);
-      extmap.put(0x7E8, "BTI");
-      resourceicons.put("BTI", ICON_STRUCT);
-      extmap.put(0x7E9, "UTI");
-      resourceicons.put("UTI", ICON_STRUCT);
-      extmap.put(0x7EA, "BTC");
-      resourceicons.put("BTC", ICON_STRUCT);
-      extmap.put(0x7EB, "UTC");
-      resourceicons.put("UTC", ICON_STRUCT);
-      extmap.put(0x7ED, "DLG");
-      resourceicons.put("DLG", ICON_STRUCT);
-      extmap.put(0x7EE, "ITP");
-      resourceicons.put("ITP", ICON_STRUCT);
-      extmap.put(0x7F0, "UTT");
-      resourceicons.put("UTT", ICON_STRUCT);
-      extmap.put(0x7F3, "UTS");
-      resourceicons.put("UTS", ICON_STRUCT);
-      extmap.put(0x7F4, "LTR"); // Letter-combo probability info for name generation - not supported
-      extmap.put(0x7F6, "FAC");
-      resourceicons.put("FAC", ICON_STRUCT);
-      extmap.put(0x7F8, "UTE");
-      resourceicons.put("UTE", ICON_STRUCT);
-      extmap.put(0x7FA, "UTD");
-      resourceicons.put("UTD", ICON_STRUCT);
-      extmap.put(0x7FC, "UTP");
-      resourceicons.put("UTP", ICON_STRUCT);
-      extmap.put(0x7FF, "GUI");
-      resourceicons.put("GUI", ICON_STRUCT);
-      extmap.put(0x803, "UTM");
-      resourceicons.put("UTM", ICON_STRUCT);
-      extmap.put(0x804, "BWM"); // ??????
-      extmap.put(0x805, "BWM"); // ??????
-      extmap.put(0x808, "JRL");
-      resourceicons.put("JRL", ICON_STRUCT);
-      extmap.put(0x809, "MOD"); // MOD 1.0 - name might be incorrect
-      extmap.put(0x80A, "UTW");
-      resourceicons.put("UTW", ICON_STRUCT);
-      extmap.put(0x80C, "SSF");
-      resourceicons.put("SSF", ICON_STRUCT);
-      extmap.put(0xBBB, "PTH");
-      resourceicons.put("PTH", ICON_STRUCT);
-      extmap.put(0xBBC, "LIP"); // ??? binary format
-
-//      extmap.put(0xBB8, "???"); // ??? text format
-//      extmap.put(0xBB9, "???"); // ??? text format
-//      extmap.put(0xBBF, "???"); // ??? binary format
-//      extmap.put(0xBC0, "???"); // ??? binary format
-
-      resourceicons.put("RES", ICON_STRUCT);
-      resourceicons.put("MOD", ICON_BUNDLE);
-      resourceicons.put("SAV", ICON_BUNDLE);
-      resourceicons.put("ERF", ICON_BUNDLE);
-      resourceicons.put("RIM", ICON_BUNDLE);
-    }
-    else {
-      extmap.put(0x001, "BMP");
-      resourceicons.put("BMP", ICON_IMAGE);
-      extmap.put(0x002, "MVE");
-      resourceicons.put("MVE", ICON_MOVIE);
-      extmap.put(0x004, "WAV");
-      resourceicons.put("WAV", ICON_SOUND);
-      extmap.put(0x005, "WFX");
-      resourceicons.put("WFX", ICON_STRUCT);
-      extmap.put(0x006, "PLT");
-      resourceicons.put("PLT", ICON_IMAGE);
-      extmap.put(0x3e8, "BAM");
-      resourceicons.put("BAM", ICON_MOVIE);
-      extmap.put(0x3e9, "WED");
-      resourceicons.put("WED", ICON_STRUCT);
-      extmap.put(0x3ea, "CHU");
-      resourceicons.put("CHU", ICON_STRUCT);
-      extmap.put(0x3eb, "TIS");
-      resourceicons.put("TIS", ICON_IMAGE);
-      extmap.put(0x3ec, "MOS");
-      resourceicons.put("MOS", ICON_IMAGE);
-      extmap.put(0x3ed, "ITM");
-      resourceicons.put("ITM", ICON_STRUCT);
-      extmap.put(0x3ee, "SPL");
-      resourceicons.put("SPL", ICON_STRUCT);
-      extmap.put(0x3ef, "BCS");
-      resourceicons.put("BCS", ICON_SCRIPT);
-      extmap.put(0x3f0, "IDS");
-      resourceicons.put("IDS", ICON_TEXT);
-      extmap.put(0x3f1, "CRE");
-      resourceicons.put("CRE", ICON_STRUCT);
-      extmap.put(0x3f2, "ARE");
-      resourceicons.put("ARE", ICON_STRUCT);
-      extmap.put(0x3f3, "DLG");
-      resourceicons.put("DLG", ICON_STRUCT);
-      extmap.put(0x3f4, "2DA");
-      resourceicons.put("2DA", ICON_TEXT);
-      extmap.put(0x3f5, "GAM");
-      resourceicons.put("GAM", ICON_STRUCT);
-      extmap.put(0x3f6, "STO");
-      resourceicons.put("STO", ICON_STRUCT);
-      extmap.put(0x3f7, "WMP");
-      resourceicons.put("WMP", ICON_STRUCT);
-      extmap.put(0x3f8, "EFF");
-      resourceicons.put("EFF", ICON_STRUCT);
-      extmap.put(0x3f9, "BS");
-      resourceicons.put("BS", ICON_SCRIPT);
-      extmap.put(0x3fa, "CHR");
-      resourceicons.put("CHR", ICON_STRUCT);
-      extmap.put(0x3fb, "VVC");
-      resourceicons.put("VVC", ICON_STRUCT);
-      extmap.put(0x3fc, "VEF");
-      resourceicons.put("VEF", ICON_STRUCT);
-      extmap.put(0x3fd, "PRO");
-      resourceicons.put("PRO", ICON_STRUCT);
-      extmap.put(0x3fe, "BIO");
-      resourceicons.put("BIO", ICON_TEXT);
-      extmap.put(0x3ff, "WBM");
-      resourceicons.put("WBM", ICON_MOVIE);
-      extmap.put(0x44c, "BAH"); // ???????
-      extmap.put(0x802, "INI");
-      resourceicons.put("INI", ICON_TEXT);
-      extmap.put(0x803, "SRC");
-      resourceicons.put("SRC", ICON_STRUCT);
-      extmap.put(0x400, "FNT");
-      resourceicons.put("FNT", ICON_IMAGE);
-      extmap.put(0x401, "WBM");
-      resourceicons.put("WBM", ICON_MOVIE);
-      extmap.put(0x402, "GUI");
-      resourceicons.put("GUI", ICON_TEXT);
-      extmap.put(0x403, "SQL");
-      resourceicons.put("SQL", ICON_TEXT);
-      extmap.put(0x404, "PVRZ");
-      resourceicons.put("PVRZ", ICON_IMAGE);
-      extmap.put(0x405, "GLSL");
-      resourceicons.put("GLSL", ICON_TEXT);
-
-      resourceicons.put("ACM", ICON_SOUND);
-      resourceicons.put("MUS", ICON_SOUND);
-      resourceicons.put("SAV", ICON_BUNDLE);
-      resourceicons.put("TXT", ICON_TEXT);
-      resourceicons.put("RES", ICON_TEXT);
-      resourceicons.put("BAF", ICON_SCRIPT);
-      resourceicons.put("TOH", ICON_STRUCT);
-      resourceicons.put("TOT", ICON_STRUCT);
-    }
+    resourceicons.put("ACM", ICON_SOUND);
+    resourceicons.put("MUS", ICON_SOUND);
+    resourceicons.put("SAV", ICON_BUNDLE);
+    resourceicons.put("TXT", ICON_TEXT);
+    resourceicons.put("RES", ICON_TEXT);
+    resourceicons.put("BAF", ICON_SCRIPT);
+    resourceicons.put("TOH", ICON_STRUCT);
+    resourceicons.put("TOT", ICON_STRUCT);
   }
 
   @Override
@@ -381,19 +210,9 @@ public final class Keyfile
     for (int i = 0; i < numbif; i++)
       biffEntries.add(new BIFFEntry(i, buffer, bifoff + 12 * i));
 
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_KOTOR ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_KOTOR2) {
-      for (int i = 0; i < numres; i++) {
-        BIFFResourceEntry entry = new BIFFResourceEntry(buffer, resoff + 22 * i, 16);
-        treemodel.addResourceEntry(entry, entry.getExtension());
-      }
-    }
-    else {
-      for (int i = 0; i < numres; i++) {
-        BIFFResourceEntry entry = new BIFFResourceEntry(buffer, resoff + 14 * i, 8);
-        treemodel.addResourceEntry(entry, entry.getExtension());
-      }
+    for (int i = 0; i < numres; i++) {
+      BIFFResourceEntry entry = new BIFFResourceEntry(buffer, resoff + 14 * i, 8);
+      treemodel.addResourceEntry(entry, entry.getExtension());
     }
   }
 

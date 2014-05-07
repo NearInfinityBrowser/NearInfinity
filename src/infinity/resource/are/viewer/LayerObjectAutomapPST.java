@@ -15,6 +15,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.AutomapNotePST;
+import infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Automap Note (PST-specific)
@@ -22,8 +23,8 @@ import infinity.resource.are.AutomapNotePST;
  */
 public class LayerObjectAutomapPST extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("itm_Automap1.png"),
-                                                  Icons.getImage("itm_Automap2.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_Automap1.png"),
+                                                  Icons.getImage(ViewerIcons.class, "itm_Automap2.png")};
   private static Point Center = new Point(26, 26);
   private static final double MapScale = 32.0 / 3.0;    // scaling factor for MOS to TIS coordinates
 

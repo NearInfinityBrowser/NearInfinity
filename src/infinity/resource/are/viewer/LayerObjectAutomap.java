@@ -20,6 +20,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.AutomapNote;
+import infinity.resource.are.viewer.icon.ViewerIcons;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.to.StrRefEntry;
 import infinity.resource.to.StrRefEntry2;
@@ -34,8 +35,8 @@ import infinity.resource.to.TotResource;
  */
 public class LayerObjectAutomap extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("itm_Automap1.png"),
-                                                  Icons.getImage("itm_Automap2.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_Automap1.png"),
+                                                  Icons.getImage(ViewerIcons.class, "itm_Automap2.png")};
   private static Point Center = new Point(26, 26);
 
   private final AutomapNote note;

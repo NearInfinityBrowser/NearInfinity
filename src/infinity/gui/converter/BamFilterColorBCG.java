@@ -84,7 +84,7 @@ public class BamFilterColorBCG extends BamFilterBaseColor
     pExcludeColors = new BamFilterBaseColor.ExcludeColorsPanel(
         getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
     pExcludeColors.addChangeListener(this);
-    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon("ArrowDown15.png"), pExcludeColors);
+    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon("ArrowDown15.gif"), pExcludeColors);
     bpwExclude.setIconTextGap(8);
     bpwExclude.addActionListener(this);
     bpwExclude.setEnabled(getConverter().isBamV1Selected());

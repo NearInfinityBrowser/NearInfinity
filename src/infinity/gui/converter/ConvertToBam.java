@@ -977,7 +977,7 @@ public class ConvertToBam extends ChildFrame
     miFramesImportBam.addActionListener(this);
     bpmFramesAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miFramesAddFiles, miFramesAddFolder,
                                                                  miFramesImportBam});
-    bpmFramesAdd.setIcon(Icons.getIcon("ArrowUp15.png"));
+    bpmFramesAdd.setIcon(Icons.getIcon("ArrowUp15.gif"));
     bpmFramesAdd.setIconTextGap(8);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -993,7 +993,7 @@ public class ConvertToBam extends ChildFrame
     miFramesDropUnused.setToolTipText("Remove frames that are not used in any cycle definitions.");
     bpmFramesRemove = new ButtonPopupMenu("Remove...", new JMenuItem[]{miFramesRemove, miFramesRemoveAll,
                                                                        miFramesDropUnused});
-    bpmFramesRemove.setIcon(Icons.getIcon("ArrowUp15.png"));
+    bpmFramesRemove.setIcon(Icons.getIcon("ArrowUp15.gif"));
     bpmFramesRemove.setIconTextGap(8);
     c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -1739,6 +1739,7 @@ public class ConvertToBam extends ChildFrame
     boolean isReady = (!modelFrames.isEmpty() && !modelCycles.isEmpty());
     boolean showTabs = !modelFrames.isEmpty();
 
+    bPalette.setEnabled(showTabs);
     bConvert.setEnabled(isReady);
     if (!showTabs) {
       tpMain.setSelectedIndex(TAB_FRAMES);

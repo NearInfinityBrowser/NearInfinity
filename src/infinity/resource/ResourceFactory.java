@@ -18,13 +18,11 @@ import infinity.resource.chu.ChuResource;
 import infinity.resource.cre.CreResource;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.gam.GamResource;
-import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BamResource2;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.graphics.PltResource;
 import infinity.resource.graphics.PvrzResource;
-import infinity.resource.graphics.TgaResource;
 import infinity.resource.graphics.TisResource;
 import infinity.resource.itm.ItmResource;
 import infinity.resource.key.BIFFResourceEntry;
@@ -33,14 +31,7 @@ import infinity.resource.key.Keyfile;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeFolder;
 import infinity.resource.key.ResourceTreeModel;
-import infinity.resource.kotor.GlobalVarsResource;
-import infinity.resource.kotor.RimResource;
 import infinity.resource.mus.MusResource;
-import infinity.resource.nwn.ErfResource;
-import infinity.resource.nwn.NcsResource;
-import infinity.resource.nwn.SsfResource;
-import infinity.resource.nwn.TableTextResource;
-import infinity.resource.nwn.gff.GffResource;
 import infinity.resource.other.EffResource;
 import infinity.resource.other.FntResource;
 import infinity.resource.other.PlainTextResource;
@@ -50,7 +41,6 @@ import infinity.resource.other.WfxResource;
 import infinity.resource.pro.ProResource;
 import infinity.resource.sav.SavResource;
 import infinity.resource.sound.SoundResource;
-import infinity.resource.sound.WavResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.src.SrcResource;
 import infinity.resource.sto.StoResource;
@@ -124,17 +114,11 @@ public final class ResourceFactory
     games[ID_BG2] = new GameConfig("Baldur's Gate 2 - Shadows of Amn", "baldur.ini", bgdirs);
     games[ID_BG2TOB] = new GameConfig("Baldur's Gate 2 - Throne of Bhaal", "baldur.ini", bgdirs);
     games[ID_ICEWIND2] = new GameConfig("Icewind Dale 2", "icewind2.ini", bgdirs);
-    games[ID_NWN] = new GameConfig("Neverwinter Nights", "nwn.ini",
-                                   new String[]{"Ambient", "DMVault", "Hak", "LocalVault", "Modules", "Music",
-                                                "NWM", "Saves", "ServerVault", "Source", "TexturePacks"});
-    games[ID_KOTOR] = new GameConfig("Star Wars: Knights of the Old Republic", "swkotor.ini",
-                                     new String[]{"Lips", "Modules", "Rims", "Saves", "StreamMusic",
-                                     "StreamSounds", "TexturePacks"});
+    games[ID_NWN] = games[ID_UNKNOWNGAME];
+    games[ID_KOTOR] = games[ID_UNKNOWNGAME];
     games[ID_TUTU] = games[ID_UNKNOWNGAME];
     games[ID_DEMO] = games[ID_UNKNOWNGAME];
-    games[ID_KOTOR2] = new GameConfig("Star Wars: Knights of the Old Republic 2", "swkotor2.ini",
-                                     new String[]{"Lips", "Modules", "Rims", "Saves", "StreamMusic",
-                                     "StreamSounds", "TexturePacks"});
+    games[ID_KOTOR2] = games[ID_UNKNOWNGAME];
     games[ID_BGEE] = new GameConfig("Baldur's Gate - Enhanced Edition", "baldur.ini", bgeeDirs);
     games[ID_BG2EE] = new GameConfig("Baldur's Gate II - Enhanced Edition", "baldur.ini", bgeeDirs);
   }
@@ -163,166 +147,91 @@ public final class ResourceFactory
   {
     Resource res = null;
     try {
-      if (getGameID() == ID_NWN || getGameID() == ID_KOTOR || getGameID() == ID_KOTOR2) {
-        if (entry.toString().equalsIgnoreCase("GLOBALVARS.RES"))
-          res = new GlobalVarsResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("BAM"))
-          res = new BamResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("TGA"))
-          res = new TgaResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("WAV") ||
-                 entry.getExtension().equalsIgnoreCase("BMU"))
-          res = new WavResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("PLT"))
-          res = new PltResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("2DA") &&
-                 (getGameID() == ID_KOTOR || getGameID() == ID_KOTOR2))
-          res = new TableTextResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("INI") ||
-                 entry.getExtension().equalsIgnoreCase("2DA") ||
-                 entry.getExtension().equalsIgnoreCase("BAF") ||
-                 entry.getExtension().equalsIgnoreCase("SET") ||
-                 entry.getExtension().equalsIgnoreCase("WOK") ||
-                 entry.getExtension().equalsIgnoreCase("TXI") ||
-                 entry.getExtension().equalsIgnoreCase("DWK") ||
-                 entry.getExtension().equalsIgnoreCase("PWK") ||
-                 entry.getExtension().equalsIgnoreCase("NSS") ||
-                 entry.getExtension().equalsIgnoreCase("NDB") ||
-                 entry.getExtension().equalsIgnoreCase("DFT") ||
-                 entry.getExtension().equalsIgnoreCase("TXT"))
-          res = new PlainTextResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("PLT"))
-          res = new PltResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("ARE") ||
-                 entry.getExtension().equalsIgnoreCase("IFO") ||
-                 entry.getExtension().equalsIgnoreCase("BIC") ||
-                 entry.getExtension().equalsIgnoreCase("GIT") ||
-                 entry.getExtension().equalsIgnoreCase("UTI") ||
-                 entry.getExtension().equalsIgnoreCase("UTC") ||
-                 entry.getExtension().equalsIgnoreCase("DLG") ||
-                 entry.getExtension().equalsIgnoreCase("ITP") ||
-                 entry.getExtension().equalsIgnoreCase("UTT") ||
-                 entry.getExtension().equalsIgnoreCase("UTS") ||
-                 entry.getExtension().equalsIgnoreCase("GFF") ||
-                 entry.getExtension().equalsIgnoreCase("FAC") ||
-                 entry.getExtension().equalsIgnoreCase("UTE") ||
-                 entry.getExtension().equalsIgnoreCase("UTD") ||
-                 entry.getExtension().equalsIgnoreCase("UTP") ||
-                 entry.getExtension().equalsIgnoreCase("GIC") ||
-                 entry.getExtension().equalsIgnoreCase("GUI") ||
-                 entry.getExtension().equalsIgnoreCase("UTM") ||
-                 entry.getExtension().equalsIgnoreCase("JRL") ||
-                 entry.getExtension().equalsIgnoreCase("UTW") ||
-                 entry.getExtension().equalsIgnoreCase("PTM") ||
-                 entry.getExtension().equalsIgnoreCase("BTC") || // KotOR
-                 entry.getExtension().equalsIgnoreCase("BTI") || // KotOR
-                 entry.getExtension().equalsIgnoreCase("RES") || // KotOR
-                 entry.getExtension().equalsIgnoreCase("PTH") || // KotOR
-                 entry.getExtension().equalsIgnoreCase("INV") || // KotOR
-                 entry.getExtension().equalsIgnoreCase("PTT"))
-          res = new GffResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("SSF"))
-          res = new SsfResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("ERF") ||
-                 entry.getExtension().equalsIgnoreCase("HAK") ||
-                 entry.getExtension().equalsIgnoreCase("MOD") ||
-                 entry.getExtension().equalsIgnoreCase("SAV") ||
-                 entry.getExtension().equalsIgnoreCase("NWM"))
-          res = new ErfResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("RIM"))
-          res = new RimResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("NCS"))
-          res = new NcsResource(entry);
-        else
-          res = new UnknownResource(entry);
-      }
-      else {
-        if (entry.getExtension().equalsIgnoreCase("BAM"))
-          res = new BamResource2(entry);
-        else if (entry.getExtension().equalsIgnoreCase("TIS"))
-          res = new TisResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("BMP"))
-          res = new BmpResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("MOS"))
-          res = new MosResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("WAV") ||
-                 entry.getExtension().equalsIgnoreCase("ACM"))
-          res = new SoundResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("MUS"))
-          res = new MusResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("IDS") ||
-                 entry.getExtension().equalsIgnoreCase("2DA") ||
-                 entry.getExtension().equalsIgnoreCase("BIO") ||
-                 entry.getExtension().equalsIgnoreCase("RES") ||
-                 entry.getExtension().equalsIgnoreCase("INI") ||
-                 entry.getExtension().equalsIgnoreCase("TXT") ||
-                 (entry.getExtension().equalsIgnoreCase("SRC") && getGameID() == ID_ICEWIND2) ||
-                 entry.getExtension().equalsIgnoreCase("SQL") ||
-                 entry.getExtension().equalsIgnoreCase("GUI") ||
-                 (entry.getExtension().equalsIgnoreCase("GLSL") && (getGameID() == ID_BGEE ||
-                                                                    getGameID() == ID_BG2EE)))
-          res = new PlainTextResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("MVE"))
-          res = new MveResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("WBM"))
-          res = new WbmResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("PLT"))
-          res = new PltResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("BCS") ||
-                 entry.getExtension().equalsIgnoreCase("BS"))
-          res = new BcsResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("ITM"))
-          res = new ItmResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("EFF"))
-          res = new EffResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("VEF"))
-            res = new VefResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("VVC"))
-          res = new VvcResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("SRC"))
-          res = new SrcResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("DLG"))
-          res = new DlgResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("SPL"))
-          res = new SplResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("STO"))
-          res = new StoResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("WMP"))
-          res = new WmpResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("CHU"))
-          res = new ChuResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("CRE") ||
-                 entry.getExtension().equalsIgnoreCase("CHR"))
-          res = new CreResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("ARE"))
-          res = new AreResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("WFX"))
-          res = new WfxResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("PRO"))
-          res = new ProResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("WED"))
-          res = new WedResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("GAM"))
-          res = new GamResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("SAV"))
-          res = new SavResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("VAR"))
-          res = new VarResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("BAF"))
-          res = new BafResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("TOH"))
-          res = new TohResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("TOT"))
-          res = new TotResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("PVRZ") && (getGameID() == ID_BGEE ||
-                                                                   getGameID() == ID_BG2EE))
-          res = new PvrzResource(entry);
-        else if (entry.getExtension().equalsIgnoreCase("FNT") && (getGameID() == ID_BGEE ||
-                                                                  getGameID() == ID_BG2EE))
-          res = new FntResource(entry);
-        else
-          res = new UnknownResource(entry);
-      }
+      if (entry.getExtension().equalsIgnoreCase("BAM"))
+        res = new BamResource2(entry);
+      else if (entry.getExtension().equalsIgnoreCase("TIS"))
+        res = new TisResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("BMP"))
+        res = new BmpResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("MOS"))
+        res = new MosResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("WAV") ||
+               entry.getExtension().equalsIgnoreCase("ACM"))
+        res = new SoundResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("MUS"))
+        res = new MusResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("IDS") ||
+               entry.getExtension().equalsIgnoreCase("2DA") ||
+               entry.getExtension().equalsIgnoreCase("BIO") ||
+               entry.getExtension().equalsIgnoreCase("RES") ||
+               entry.getExtension().equalsIgnoreCase("INI") ||
+               entry.getExtension().equalsIgnoreCase("TXT") ||
+               (entry.getExtension().equalsIgnoreCase("SRC") && getGameID() == ID_ICEWIND2) ||
+               entry.getExtension().equalsIgnoreCase("SQL") ||
+               entry.getExtension().equalsIgnoreCase("GUI") ||
+               (entry.getExtension().equalsIgnoreCase("GLSL") && (getGameID() == ID_BGEE ||
+                                                                  getGameID() == ID_BG2EE)))
+        res = new PlainTextResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("MVE"))
+        res = new MveResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("WBM"))
+        res = new WbmResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("PLT"))
+        res = new PltResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("BCS") ||
+               entry.getExtension().equalsIgnoreCase("BS"))
+        res = new BcsResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("ITM"))
+        res = new ItmResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("EFF"))
+        res = new EffResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("VEF"))
+          res = new VefResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("VVC"))
+        res = new VvcResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("SRC"))
+        res = new SrcResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("DLG"))
+        res = new DlgResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("SPL"))
+        res = new SplResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("STO"))
+        res = new StoResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("WMP"))
+        res = new WmpResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("CHU"))
+        res = new ChuResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("CRE") ||
+               entry.getExtension().equalsIgnoreCase("CHR"))
+        res = new CreResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("ARE"))
+        res = new AreResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("WFX"))
+        res = new WfxResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("PRO"))
+        res = new ProResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("WED"))
+        res = new WedResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("GAM"))
+        res = new GamResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("SAV"))
+        res = new SavResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("VAR"))
+        res = new VarResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("BAF"))
+        res = new BafResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("TOH"))
+        res = new TohResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("TOT"))
+        res = new TotResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("PVRZ") && (getGameID() == ID_BGEE ||
+                                                                 getGameID() == ID_BG2EE))
+        res = new PvrzResource(entry);
+      else if (entry.getExtension().equalsIgnoreCase("FNT") && (getGameID() == ID_BGEE ||
+                                                                getGameID() == ID_BG2EE))
+        res = new FntResource(entry);
+      else
+        res = new UnknownResource(entry);
     } catch (Exception e) {
       if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().ignoreReadErrors())
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + entry + '\n' +
@@ -413,14 +322,6 @@ public final class ResourceFactory
       currentGame = ID_ICEWIND;
     else if (new File(rootDir, "iwd2.exe").exists())
       currentGame = ID_ICEWIND2;
-    else if (new File(rootDir, "nwn.exe").exists() ||
-             // Mac NWN detection hack
-             new File(rootDir, "Neverwinter Nights.app/Contents/MacOS/Neverwinter Nights").exists())
-      currentGame = ID_NWN;
-    else if (new File(rootDir, "swkotor.exe").exists())
-      currentGame = ID_KOTOR;
-    else if (new File(rootDir, "swkotor2.exe").exists())
-      currentGame = ID_KOTOR2;
     else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "BGConfig.exe").exists())
       currentGame = ID_BG2;
     else if (new File(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
@@ -738,7 +639,7 @@ public final class ResourceFactory
       if (filename != null) {
         if (filename.indexOf(".") == -1)
           filename += '.' + entry.getExtension();
-        if (filename.lastIndexOf('.') > 8 && currentGame != ID_NWN) {
+        if (filename.lastIndexOf('.') > 8) {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                         "Filenames can only be up to 8 characters long (not including the file extension).",
                                         "Error", JOptionPane.ERROR_MESSAGE);

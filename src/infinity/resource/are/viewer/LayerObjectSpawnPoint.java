@@ -16,6 +16,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.SpawnPoint;
+import infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Spawn Point
@@ -23,8 +24,8 @@ import infinity.resource.are.SpawnPoint;
  */
 public class LayerObjectSpawnPoint extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage("itm_SpawnPoint1.png"),
-                                                  Icons.getImage("itm_SpawnPoint2.png")};
+  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_SpawnPoint1.png"),
+                                                  Icons.getImage(ViewerIcons.class, "itm_SpawnPoint2.png")};
   private static Point Center = new Point(22, 22);
 
   private final SpawnPoint sp;

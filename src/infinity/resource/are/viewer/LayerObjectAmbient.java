@@ -21,6 +21,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.are.Ambient;
 import infinity.resource.are.AreResource;
+import infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Ambient Sound and Ambient Sound Range
@@ -29,10 +30,10 @@ import infinity.resource.are.AreResource;
  */
 public class LayerObjectAmbient extends LayerObject
 {
-  private static final Image[] IconGlobal = new Image[]{Icons.getImage("itm_AmbientG1.png"),
-                                                        Icons.getImage("itm_AmbientG2.png")};
-  private static final Image[] IconLocal = new Image[]{Icons.getImage("itm_AmbientL1.png"),
-                                                       Icons.getImage("itm_AmbientL2.png")};
+  private static final Image[] IconGlobal = new Image[]{Icons.getImage(ViewerIcons.class, "itm_AmbientG1.png"),
+                                                        Icons.getImage(ViewerIcons.class, "itm_AmbientG2.png")};
+  private static final Image[] IconLocal = new Image[]{Icons.getImage(ViewerIcons.class, "itm_AmbientL1.png"),
+                                                       Icons.getImage(ViewerIcons.class, "itm_AmbientL2.png")};
   private static final Point Center = new Point(16, 16);
   final Color[] ColorRange = new Color[]{new Color(0xA0000080, true), new Color(0xA0000080, true),
                                          new Color(0x00204080, true), new Color(0x004060C0, true)};
