@@ -2407,7 +2407,7 @@ public class ConvertToBam extends ChildFrame
     if (files != null && files.length > 0) {
       try {
         WindowBlocker.blockWindow(this, true);
-        framesImportBam(files[0]);
+        framesImportBam(new File(setFileExtension(files[0].toString(), "BAM")));
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
