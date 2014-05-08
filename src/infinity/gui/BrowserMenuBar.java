@@ -1504,7 +1504,7 @@ public final class BrowserMenuBar extends JMenuBar
       } else if (event.getSource() == helpBsdLicense) {
         displayLicense("infinity/bsd-license.txt", "BSD License");
       } else if (event.getSource() == helpJOrbisLicense) {
-          displayLicense("com/jcraft/COPYING.LIB", "LGPL License");
+          displayLicense("infinity/JOrbis.License.txt", "LGPL License");
       }
     }
 

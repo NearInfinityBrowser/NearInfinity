@@ -29,10 +29,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -84,46 +82,46 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   private String text;
   private boolean sourceChanged = false, codeChanged = false;
 
-  public static void main(String args[]) throws IOException
-  {
-    new ResourceFactory(new File("CHITIN.KEY"));
-    List<ResourceEntry> bcsfiles = ResourceFactory.getInstance().getResources("BCS");
-    bcsfiles.addAll(ResourceFactory.getInstance().getResources("BS"));
-    PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter("diff.txt")));
-    long start = System.currentTimeMillis();
-    for (int i = bcsfiles.size() - 1; i >= 0; i--) {
-      try {
-        BcsResource bcs = new BcsResource(bcsfiles.get(i));
-        String recompiled = Compiler.getInstance().compile(Decompiler.decompile(bcs.text, true));
-        if (Compiler.getInstance().getErrors().size() > 0) {
-          System.out.println("Errors in " + bcs.entry.toString());
-          pw.println(bcs.entry.toString());
-          for (final String error : Compiler.getInstance().getErrors().values())
-            pw.println(error);
-        }
-        else if (!recompiled.equals(bcs.text)) {
-          int index = bcs.text.indexOf("\r\n");
-          while (index != -1) {
-            bcs.text = bcs.text.substring(0, index) + '\n' + bcs.text.substring(index + 2);
-            index = bcs.text.indexOf("\r\n");
-          }
-          if (!recompiled.equals(bcs.text)) {
-            System.out.println("Difference in " + bcs.entry.toString());
-            pw.println(bcs.entry.toString());
-          }
-        }
-      } catch (Exception e) {
-        System.out.println("Exception in " + bcsfiles.get(i).toString());
-        pw.println(bcsfiles.get(i).toString());
-        e.printStackTrace(pw);
-      }
-      if (i == 10 * (i / 10))
-        System.out.println(i + " scripts left");
-    }
-    pw.close();
-    System.out.println("Test took " + (System.currentTimeMillis() - start) + " ms");
-    System.exit(0);
-  }
+//  public static void main(String args[]) throws IOException
+//  {
+//    new ResourceFactory(new File("CHITIN.KEY"));
+//    List<ResourceEntry> bcsfiles = ResourceFactory.getInstance().getResources("BCS");
+//    bcsfiles.addAll(ResourceFactory.getInstance().getResources("BS"));
+//    PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter("diff.txt")));
+//    long start = System.currentTimeMillis();
+//    for (int i = bcsfiles.size() - 1; i >= 0; i--) {
+//      try {
+//        BcsResource bcs = new BcsResource(bcsfiles.get(i));
+//        String recompiled = Compiler.getInstance().compile(Decompiler.decompile(bcs.text, true));
+//        if (Compiler.getInstance().getErrors().size() > 0) {
+//          System.out.println("Errors in " + bcs.entry.toString());
+//          pw.println(bcs.entry.toString());
+//          for (final String error : Compiler.getInstance().getErrors().values())
+//            pw.println(error);
+//        }
+//        else if (!recompiled.equals(bcs.text)) {
+//          int index = bcs.text.indexOf("\r\n");
+//          while (index != -1) {
+//            bcs.text = bcs.text.substring(0, index) + '\n' + bcs.text.substring(index + 2);
+//            index = bcs.text.indexOf("\r\n");
+//          }
+//          if (!recompiled.equals(bcs.text)) {
+//            System.out.println("Difference in " + bcs.entry.toString());
+//            pw.println(bcs.entry.toString());
+//          }
+//        }
+//      } catch (Exception e) {
+//        System.out.println("Exception in " + bcsfiles.get(i).toString());
+//        pw.println(bcsfiles.get(i).toString());
+//        e.printStackTrace(pw);
+//      }
+//      if (i == 10 * (i / 10))
+//        System.out.println(i + " scripts left");
+//    }
+//    pw.close();
+//    System.out.println("Test took " + (System.currentTimeMillis() - start) + " ms");
+//    System.exit(0);
+//  }
 
   public BcsResource(ResourceEntry entry) throws Exception
   {

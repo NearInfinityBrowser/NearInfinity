@@ -46,35 +46,35 @@ public final class Keyfile
   private List<BIFFEntry> biffEntries;
   private String signature, version;
 
-  public static void main(String args[]) throws Exception
-  {
-    // Compare two keyfiles
-    Keyfile key1 = new Keyfile(new File(args[0]), ResourceFactory.ID_BG2TOB);
-    Keyfile key2 = new Keyfile(new File(args[1]), ResourceFactory.ID_BG2TOB);
-    ResourceTreeModel model1 = new ResourceTreeModel();
-    ResourceTreeModel model2 = new ResourceTreeModel();
-    key1.addBIFFResourceEntries(model1);
-    key2.addBIFFResourceEntries(model2);
-    model1.sort();
-    model2.sort();
-    List<BIFFResourceEntry> entries1 = model1.getBIFFResourceEntries();
-    List<BIFFResourceEntry> entries2 = model2.getBIFFResourceEntries();
-    if (!key1.equals(key2))
-      System.out.println(key1 + " differs from " + key2);
-    for (int i = 0; i < key1.biffEntries.size(); i++) {
-      BIFFEntry entry1 = key1.biffEntries.get(i);
-      BIFFEntry entry2 = key2.biffEntries.get(i);
-      if (!entry1.equals(entry2))
-        System.out.println(entry1 + " differs from " + entry2);
-    }
-    for (int i = 0; i < entries1.size(); i++) {
-      ResourceEntry entry1 = entries1.get(i);
-      ResourceEntry entry2 = entries2.get(i);
-      if (!entry1.equals(entry2))
-        System.out.println(entry1 + " differs from " + entry2);
-    }
-    System.exit(0);
-  }
+//  public static void main(String args[]) throws Exception
+//  {
+//    // Compare two keyfiles
+//    Keyfile key1 = new Keyfile(new File(args[0]), ResourceFactory.ID_BG2TOB);
+//    Keyfile key2 = new Keyfile(new File(args[1]), ResourceFactory.ID_BG2TOB);
+//    ResourceTreeModel model1 = new ResourceTreeModel();
+//    ResourceTreeModel model2 = new ResourceTreeModel();
+//    key1.addBIFFResourceEntries(model1);
+//    key2.addBIFFResourceEntries(model2);
+//    model1.sort();
+//    model2.sort();
+//    List<BIFFResourceEntry> entries1 = model1.getBIFFResourceEntries();
+//    List<BIFFResourceEntry> entries2 = model2.getBIFFResourceEntries();
+//    if (!key1.equals(key2))
+//      System.out.println(key1 + " differs from " + key2);
+//    for (int i = 0; i < key1.biffEntries.size(); i++) {
+//      BIFFEntry entry1 = key1.biffEntries.get(i);
+//      BIFFEntry entry2 = key2.biffEntries.get(i);
+//      if (!entry1.equals(entry2))
+//        System.out.println(entry1 + " differs from " + entry2);
+//    }
+//    for (int i = 0; i < entries1.size(); i++) {
+//      ResourceEntry entry1 = entries1.get(i);
+//      ResourceEntry entry2 = entries2.get(i);
+//      if (!entry1.equals(entry2))
+//        System.out.println(entry1 + " differs from " + entry2);
+//    }
+//    System.exit(0);
+//  }
 
   public Keyfile(File keyfile, int currentGame)
   {
