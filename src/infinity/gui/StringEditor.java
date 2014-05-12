@@ -14,6 +14,7 @@ import infinity.datatype.Unknown;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
 import infinity.search.StringReferenceSearcher;
@@ -52,10 +53,8 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
@@ -64,6 +63,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
                                                               ChangeListener, ItemListener
@@ -87,7 +88,8 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   private final JPanel editcontent = new JPanel();
   private final JSlider slider = new JSlider(0, 100, 0);
   private final JTable table = new JTable();
-  private final JTextArea tatext = new JTextArea();
+  private final ScrolledTextArea scroll = new ScrolledTextArea();
+  private final RSyntaxTextArea tatext = (RSyntaxTextArea)scroll.getTextArea();
   private final JTextField tstrref = new JTextField(5);
   private final StringEditor editor;
   private final java.util.List<StringEntry> added_entries = new ArrayList<StringEntry>();
@@ -164,7 +166,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
     JPanel textPanel = new JPanel(new BorderLayout());
     textPanel.add(new JLabel("String:"), BorderLayout.NORTH);
-    textPanel.add(new JScrollPane(tatext));
+    textPanel.add(scroll);
 
     JPanel centerPanel = new JPanel(new GridLayout(1, 3, 6, 0));
     centerPanel.add(attributePanel);

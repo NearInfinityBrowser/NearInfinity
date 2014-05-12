@@ -37,10 +37,10 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
                                                 DocumentListener, Closeable
@@ -51,7 +51,8 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private JTextArea editor;
+  private ScrolledTextArea scroll;
+  private RSyntaxTextArea editor;
   private boolean resourceChanged;
 
   public PlainTextResource(ResourceEntry entry) throws Exception
@@ -203,9 +204,10 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    editor = new JTextArea();
+    scroll = new ScrolledTextArea(text);
+    editor = (RSyntaxTextArea)scroll.getTextArea();
+    setSyntaxHighlightingEnabled();
     editor.addCaretListener(container.getStatusBar());
-    editor.setText(text);
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
     editor.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     editor.setCaretPosition(0);
@@ -228,7 +230,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
-    panel.add(new JScrollPane(editor), BorderLayout.CENTER);
+    panel.add(scroll, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
     return panel;
@@ -245,13 +247,23 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     if (editor == null)
       Filewriter.writeString(os, text, text.length());
     else {
-      String s = editor.getText();
-      int index = s.indexOf((int)'\n');
-      while (index != -1) {
-        s = s.substring(0, index) + '\r' + s.substring(index);
-        index = s.indexOf((int)'\n', index + 2);
+      // using system-specific line separators
+      String nl = System.getProperty("line.separator");
+      StringBuilder sb = new StringBuilder(editor.getText());
+      int index = 0;
+      while (index < sb.length()) {
+        if (sb.charAt(index) == '\r') {
+          sb.deleteCharAt(index);
+          continue;
+        }
+        if (sb.charAt(index) == '\n') {
+          sb.deleteCharAt(index);
+          sb.insert(index, nl);
+          index += (nl.length() - 1);
+        }
+        index++;
       }
-      Filewriter.writeString(os, s, s.length());
+      Filewriter.writeString(os, sb.toString(), sb.length());
     }
   }
 
@@ -268,6 +280,34 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     while (st.hasMoreTokens())
       strings.add(st.nextToken().toUpperCase());
     return strings;
+  }
+
+  private void setSyntaxHighlightingEnabled()
+  {
+    ScrolledTextArea.Language language = null;
+    if (entry != null) {
+      if ("SQL".equalsIgnoreCase(entry.getExtension())) {
+        if (BrowserMenuBar.getInstance() == null ||
+            BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
+          language = ScrolledTextArea.Language.SQL;
+        }
+      } else if ("GLSL".equalsIgnoreCase(entry.getExtension())) {
+        if (BrowserMenuBar.getInstance() == null ||
+            BrowserMenuBar.getInstance().getGlslSyntaxHighlightingEnabled()) {
+          language = ScrolledTextArea.Language.GLSL;
+        }
+      } else if ("BCS".equalsIgnoreCase(entry.getExtension()) ||
+                 "BS".equalsIgnoreCase(entry.getExtension()) ||
+                 "BAF".equalsIgnoreCase(entry.getExtension())) {
+        if (BrowserMenuBar.getInstance() == null ||
+            BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+          language = ScrolledTextArea.Language.BCS;
+        }
+      }
+    }
+    if (language != null) {
+      ScrolledTextArea.setSyntaxHighlighter(editor, language, null);
+    }
   }
 }
 

@@ -17,6 +17,7 @@ import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.ScrolledTextArea;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -44,13 +45,14 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class ViewerUtil
 {
@@ -225,15 +227,17 @@ public final class ViewerUtil
     } else {
       text = entry.toString();
     }
-    JTextArea ta = new JTextArea(text);
+    ScrolledTextArea scroll = new ScrolledTextArea(text);
+    RSyntaxTextArea ta = (RSyntaxTextArea)scroll.getTextArea();
     ta.setCaretPosition(0);
+    ta.setHighlightCurrentLine(false);
     ta.setEditable(false);
     ta.setLineWrap(true);
     ta.setWrapStyleWord(true);
     ta.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
-    panel.add(new JScrollPane(ta), BorderLayout.CENTER);
+    panel.add(scroll, BorderLayout.CENTER);
     panel.setPreferredSize(new Dimension(5, 5));
     return panel;
   }

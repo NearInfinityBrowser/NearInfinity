@@ -16,6 +16,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.TextResourceSearcher;
 import infinity.util.Decryptor;
 import infinity.util.Filewriter;
@@ -42,12 +43,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener,
                                     DocumentListener
@@ -72,7 +73,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   private JTabbedPane tabbedPane;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private JTextArea codeText, sourceText;
+  private RSyntaxTextArea codeText, sourceText;
   private String text;
   private boolean sourceChanged = false;
 
@@ -383,14 +384,14 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    sourceText = new JTextArea(text);
+    ScrolledTextArea scrollSource = new ScrolledTextArea(text);
+    scrollSource.setSyntaxHighlighter(ScrolledTextArea.Language.BCS, null);
+    sourceText = (RSyntaxTextArea)scrollSource.getTextArea();
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
     sourceText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     sourceText.setLineWrap(false);
-    sourceText.setTabSize(4);
     sourceText.getDocument().addDocumentListener(this);
-    JScrollPane scrollSource = new JScrollPane(sourceText);
     scrollSource.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
     JButton bCompile = new JButton("Compile", Icons.getIcon("Redo16.gif"));
@@ -410,13 +411,13 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourcePanel.add(scrollSource, BorderLayout.CENTER);
     sourcePanel.add(bpSource, BorderLayout.SOUTH);
 
-    codeText = new JTextArea();
+    ScrolledTextArea scrollCode = new ScrolledTextArea();
+    codeText = (RSyntaxTextArea)scrollCode.getTextArea();
     codeText.setFont(BrowserMenuBar.getInstance().getScriptFont());
     codeText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);
     codeText.getDocument().addDocumentListener(this);
-    JScrollPane scrollCode = new JScrollPane(codeText);
     scrollCode.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
     JButton bDecompile = new JButton("Decompile", Icons.getIcon("Undo16.gif"));

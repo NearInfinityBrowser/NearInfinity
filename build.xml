@@ -6,6 +6,7 @@
   <property name="lib.path.rel" value="lib"/>
   <property name="lib.path.abs" location="${lib.path.rel}"/>
   <property name="jorbis.file" value="${lib.path.rel}/jorbis/jorbis.jar"/>
+  <property name="rsyntaxtextarea.file" value="${lib.path.rel}/rsyntaxtextarea/rsyntaxtextarea.jar"/>
 
   <target name="binary">
     <mkdir dir="${build.path}"/>
@@ -15,7 +16,7 @@
            includeantruntime="false"
            debug="false"
            debuglevel="lines,vars,source"
-           classpath="${classpath}:${jorbis.file}">
+           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}">
       <!--<compilerarg value="-Xlint:unchecked"/>-->
     </javac>
 

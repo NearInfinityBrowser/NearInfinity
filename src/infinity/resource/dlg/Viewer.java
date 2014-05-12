@@ -19,6 +19,7 @@ import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.DialogSearcher;
 import infinity.util.StringResource;
 
@@ -42,12 +43,13 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
 {
@@ -123,10 +125,10 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     tfState.addActionListener(this);
     tfResponse.addActionListener(this);
     stateTextPanel = new DlgPanel("Text", true);
-    stateTriggerPanel = new DlgPanel("Trigger", false);
+    stateTriggerPanel = new DlgPanel("Trigger", false, true);
     transTextPanel = new DlgPanel("Text", true);
-    transTriggerPanel = new DlgPanel("Trigger", false);
-    transActionPanel = new DlgPanel("Action", false);
+    transTriggerPanel = new DlgPanel("Trigger", false, true);
+    transActionPanel = new DlgPanel("Action", false, true);
 
     JPanel statepanel = new JPanel();
     statepanel.setLayout(new GridLayout(2, 1, 6, 6));
@@ -520,6 +522,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     private DlgPanel(String title, boolean viewable)
     {
+      this(title, viewable, false);
+    }
+
+    private DlgPanel(String title, boolean viewable, boolean useHighlighting)
+    {
       this.title = title;
       bView.setMargin(new Insets(0, 0, 0, 0));
       bView.addActionListener(this);
@@ -530,14 +537,23 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bView.setToolTipText("View/Edit");
       bGoto.setToolTipText("Select attribute");
       bPlay.setToolTipText("Open associated sound");
+      if (!useHighlighting) {
+        ScrolledTextArea.setSyntaxHighlighter(textArea, null, null);
+      }
       textArea.setEditable(false);
+      textArea.setHighlightCurrentLine(false);
       if (viewable) {
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
       }
       textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       textArea.setFont(BrowserMenuBar.getInstance().getScriptFont());
-      JScrollPane scroll = new JScrollPane(textArea);
+      RTextScrollPane scroll = new RTextScrollPane(textArea);
+      if (BrowserMenuBar.getInstance() != null) {
+        scroll.setLineNumbersEnabled(BrowserMenuBar.getInstance().getTextLineNumbers() && useHighlighting);
+      } else {
+        scroll.setLineNumbersEnabled(useHighlighting);
+      }
 
       GridBagLayout gbl = new GridBagLayout();
       GridBagConstraints gbc = new GridBagConstraints();

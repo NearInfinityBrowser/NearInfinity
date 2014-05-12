@@ -7,6 +7,7 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.util.Filewriter;
 
 import java.awt.GridBagConstraints;
@@ -23,11 +24,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.RTextArea;
 
 public final class TextEdit extends Datatype implements Editable
 {
@@ -41,7 +43,8 @@ public final class TextEdit extends Datatype implements Editable
     EOL.put(EOLType.WINDOWS, "\r\n");
   }
 
-  JTextArea textArea;
+  private ScrolledTextArea scroll;
+  private RSyntaxTextArea textArea;
   private byte[] bytes;
   private String text;
   private EOLType eolType;
@@ -65,7 +68,10 @@ public final class TextEdit extends Datatype implements Editable
   {
     JButton bUpdate;
     if (textArea == null) {
-      textArea = new JTextArea(1, 200);
+      scroll = new ScrolledTextArea(1, 200);
+      scroll.setLineNumbersEnabled(false);
+      textArea = (RSyntaxTextArea)scroll.getTextArea();
+      textArea.setHighlightCurrentLine(editable);
       textArea.setWrapStyleWord(true);
       textArea.setLineWrap(true);
       textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
@@ -78,7 +84,6 @@ public final class TextEdit extends Datatype implements Editable
     bUpdate.setEnabled(editable);
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
-    JScrollPane scroll = new JScrollPane(textArea);
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -233,14 +238,14 @@ public final class TextEdit extends Datatype implements Editable
 //-------------------------- INNER CLASSES --------------------------
 
   // Ensures a size limit on byte level
-  private class FixedDocument extends PlainDocument
+  private class FixedDocument extends RSyntaxDocument
   {
     private int maxLength;
-    private JTextArea textArea;
+    private RTextArea textArea;
 
-    FixedDocument(JTextArea text, int length)
+    FixedDocument(RTextArea text, int length)
     {
-      super();
+      super(null);
       textArea = text;
       maxLength = length >= 0 ? length : 0;
     }

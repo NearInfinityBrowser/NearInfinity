@@ -29,6 +29,7 @@ import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.dlg.State;
 import infinity.resource.dlg.Transition;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.AttributeSearcher;
 import infinity.search.DialogItemRefSearcher;
 import infinity.search.DialogStateReferenceSearcher;
@@ -70,7 +71,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -79,6 +79,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener
@@ -116,7 +118,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JPanel editpanel = new JPanel();
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final JPopupMenu popupmenu = new JPopupMenu();
-  private final JTextArea tatext = new JTextArea();
+  private final ScrolledTextArea scroll = new ScrolledTextArea();
+  private final RSyntaxTextArea tatext = (RSyntaxTextArea)scroll.getTextArea();
   private final StructTable table = new StructTable();
   private AddRemovable emptyTypes[];
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
@@ -200,6 +203,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miShowViewer.setEnabled(false);
     miShowNewViewer.setEnabled(false);
 
+    scroll.setLineNumbersEnabled(false);
+    tatext.setHighlightCurrentLine(false);
+    tatext.setEOLMarkersVisible(false);
     tatext.setEditable(false);
     tatext.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     tatext.setFont(BrowserMenuBar.getInstance().getScriptFont());
@@ -209,7 +215,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     if (table.getColumnCount() == 3)
       table.getColumnModel().getColumn(2).setPreferredWidth(6);
 
-    lowerpanel.add(new JScrollPane(tatext), "Text");
+    lowerpanel.add(scroll, "Text");
     lowerpanel.add(editpanel, "Edit");
     lowerpanel.add(new JPanel(), "Empty");
     cards.show(lowerpanel, "Empty");

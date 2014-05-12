@@ -37,9 +37,10 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 public abstract class AbstractCode extends Datatype implements Editable, AddRemovable, ActionListener,
                                                                DocumentListener, ItemListener
@@ -177,7 +178,8 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     bpmWarnings.setEnabled(false);
     buttonPanel.addControl(bpmWarnings, CtrlWarnings);
 
-    JScrollPane scroll = new JScrollPane(textArea);
+    RTextScrollPane scroll = new RTextScrollPane(textArea);
+    scroll.setLineNumbersEnabled(true);   // TODO: use preferences
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();

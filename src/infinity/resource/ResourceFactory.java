@@ -513,7 +513,7 @@ public final class ResourceFactory
         String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", "Export resource",
                                          JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
           return;
       }
       try {
@@ -662,7 +662,7 @@ public final class ResourceFactory
       String options[] = {"Overwrite", "Cancel"};
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), output + " exists. Overwrite?", "Save resource",
                                        JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return;
     }
     try {
@@ -706,7 +706,7 @@ public final class ResourceFactory
       String options[] = {"Overwrite", "Cancel"};
       if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", "Save resource",
                                        JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return false;
     }
     try {

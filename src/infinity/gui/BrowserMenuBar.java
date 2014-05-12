@@ -26,6 +26,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.StructureFactory;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.DialogSearcher;
 import infinity.search.SearchFrame;
 import infinity.search.SearchResource;
@@ -157,6 +158,91 @@ public final class BrowserMenuBar extends JMenuBar
     optionsMenu.gameLoaded();
   }
 
+  /** Returns state of "Text: Show Highlight Current Line" */
+  public boolean getTextHighlightCurrentLine()
+  {
+    return optionsMenu.optionTextHightlightCurrent.isSelected();
+  }
+
+  /** Returns state of "Text: Show Line Numbers" */
+  public boolean getTextLineNumbers()
+  {
+    return optionsMenu.optionTextLineNumbers.isSelected();
+  }
+
+  /** Returns state of "Text: Show Whitespace and Tab" */
+  public boolean getTextWhitespaceVisible()
+  {
+    return optionsMenu.optionTextShowWhiteSpace.isSelected();
+  }
+
+  /** Returns state of "Text: Show End of Line" */
+  public boolean getTextEOLVisible()
+  {
+    return optionsMenu.optionTextShowEOL.isSelected();
+  }
+
+  /** Returns the selected BCS color scheme. */
+  public String getBcsColorScheme()
+  {
+    return optionsMenu.getBcsColorScheme();
+  }
+
+  /** Returns state of "BCS: Enable Syntax Highlighting" */
+  public boolean getBcsSyntaxHighlightingEnabled()
+  {
+    return optionsMenu.optionBCSEnableSyntax.isSelected();
+  }
+
+  /** Returns state of "BCS: Enable Code Folding" */
+  public boolean getBcsCodeFoldingEnabled()
+  {
+    return optionsMenu.optionBCSEnableCodeFolding.isSelected();
+  }
+
+  /** Returns state of "BCS: Enable Auto-Completion" */
+  public boolean getBcsAutoCompleteEnabled()
+  {
+    return optionsMenu.optionBCSEnableAutoComplete.isSelected();
+  }
+
+  /** Returns the selected GLSL color scheme. */
+  public String getGlslColorScheme()
+  {
+    return optionsMenu.getGlslColorScheme();
+  }
+
+  /** Returns the selected SQL color scheme. */
+  public String getSqlColorScheme()
+  {
+    return optionsMenu.getSqlColorScheme();
+  }
+
+  /** Returns state of "Enable Syntax Highlighting for GLSL" */
+  public boolean getGlslSyntaxHighlightingEnabled()
+  {
+    return optionsMenu.optionGLSLEnableSyntax.isSelected();
+  }
+
+  /** Returns state of "Enable Syntax Highlighting for SQL" */
+  public boolean getSqlSyntaxHighlightingEnabled()
+  {
+    return optionsMenu.optionSQLEnableSyntax.isSelected();
+  }
+
+  /** Returns whether to emulate tabs by inserting spaces instead. */
+  public boolean isTextTabEmulated()
+  {
+    return optionsMenu.optionTextTabEmulate.isSelected();
+  }
+
+  /** Returns the number of spaces used for (real or emulated) tabs. */
+  public int getTextTabSize()
+  {
+    return 1 << (optionsMenu.getTextIndentIndex()+1);
+  }
+
+  /** Returns the selected BCS indent. */
   public String getBcsIndent()
   {
     return optionsMenu.getBcsIndent();
@@ -1011,12 +1097,32 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class OptionsMenu extends JMenu implements ActionListener
   {
-    private static final Font FONTS[] = {
+    private static final Font[] FONTS = {
       new Font("Monospaced", Font.PLAIN, 12), new Font("Serif", Font.PLAIN, 12),
       new Font("SansSerif", Font.PLAIN, 12),  new Font("Lucida", Font.PLAIN, 12)};
-    private static final String BCSINDENT[] = {"  ", "    ", "\t"};
     private static final String DefaultCharset = "Auto";
     private static final List<String[]> CharsetsUsed = new ArrayList<String[]>();
+    // BCS indentations to use when decompiling (indent, title)
+    private static final String[][] BCSINDENT = {
+      new String[]{"  ", "2 Spaces"}, new String[]{"    ", "4 Spaces"}, new String[]{"\t", "Tab"},
+    };
+    // Available color schemes for highlighted BCS format (scheme, title, description)
+    private static final String[][] BCSCOLORSCHEME = {
+      new String[]{ScrolledTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
+      new String[]{ScrolledTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
+      new String[]{ScrolledTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
+      new String[]{ScrolledTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      new String[]{ScrolledTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
+      new String[]{ScrolledTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
+    };
+    // Available color schemes for remaining highlighted formats (scheme, title, description)
+    private static final String[][] COLORSCHEME = {
+      new String[]{ScrolledTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
+      new String[]{ScrolledTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
+      new String[]{ScrolledTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
+      new String[]{ScrolledTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      new String[]{ScrolledTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
+    };
 
     static {
       // Order: Display name, Canonical charset name, Tooltip
@@ -1030,27 +1136,50 @@ public final class BrowserMenuBar extends JMenuBar
       CharsetsUsed.add(new String[]{"IBM-949", "x-IBM949", "Character set used in korean localizations."});
     }
 
-    private static final String OPTION_SHOWOFFSETS = "ShowOffsets";
-    private static final String OPTION_IGNOREOVERRIDE = "IgnoreOverride";
-    private static final String OPTION_IGNOREREADERRORS = "IgnoreReadErrors";
-    private static final String OPTION_AUTOCHECK_BCS = "AutocheckBCS";
-    private static final String OPTION_CACHEOVERRIDE = "CacheOverride";
-    private static final String OPTION_CHECKSCRIPTNAMES = "CheckScriptNames";
-    private static final String OPTION_SHOWSTRREFS = "ShowStrrefs";
-    private static final String OPTION_SHOWOVERRIDES = "ShowOverridesIn";
-    private static final String OPTION_SHOWRESREF = "ShowResRef";
-    private static final String OPTION_LOOKANDFEEL = "LookAndFeel";
-    private static final String OPTION_VIEWOREDITSHOWN = "ViewOrEditShown";
-    private static final String OPTION_FONT = "Font";
-    private static final String OPTION_BCSINDENT = "BcsIndent";
-    private static final String OPTION_TLKCHARSET = "TLKCharsetType";
+    private static final String OPTION_SHOWOFFSETS              = "ShowOffsets";
+    private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
+    private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
+    private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
+    private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
+    private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
+    private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
+    private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
+    private static final String OPTION_SHOWRESREF               = "ShowResRef";
+    private static final String OPTION_LOOKANDFEEL              = "LookAndFeel";
+    private static final String OPTION_VIEWOREDITSHOWN          = "ViewOrEditShown";
+    private static final String OPTION_FONT                     = "Font";
+    private static final String OPTION_TLKCHARSET               = "TLKCharsetType";
+    private static final String OPTION_TEXT_SHOWCURRENTLINE     = "TextShowCurrentLine";
+    private static final String OPTION_TEXT_SHOWLINENUMBERS     = "TextShowLineNumbers";
+    private static final String OPTION_TEXT_SYMBOLWHITESPACE    = "TextShowWhiteSpace";
+    private static final String OPTION_TEXT_SYMBOLEOL           = "TextShowEOL";
+    private static final String OPTION_TEXT_TABSEMULATED        = "TextTabsEmulated";
+    private static final String OPTION_TEXT_TABSIZE             = "TextTabSize";
+    private static final String OPTION_BCS_SYNTAXHIGHLIGHTING   = "BcsSyntaxHighlighting";
+    private static final String OPTION_BCS_COLORSCHEME          = "BcsColorScheme";
+    private static final String OPTION_BCS_CODEFOLDING          = "BcsCodeFolding";
+    private static final String OPTION_BCS_AUTOCOMPLETE         = "BcsAutoComplete";
+    private static final String OPTION_BCS_INDENT               = "BcsIndent";
+    private static final String OPTION_GLSL_SYNTAXHIGHLIGHTING  = "GlslSyntaxHighlighting";
+    private static final String OPTION_GLSL_COLORSCHEME         = "GlslColorScheme";
+    private static final String OPTION_SQL_SYNTAXHIGHLIGHTING   = "SqlSyntaxHighlighting";
+    private static final String OPTION_SQL_COLORSCHEME          = "SqlColorScheme";
 
     private final JRadioButtonMenuItem showOverrides[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem lookAndFeel[] = new JRadioButtonMenuItem[4];
     private final JRadioButtonMenuItem showResRef[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
+    private final JRadioButtonMenuItem selectTextTabSize[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
+    private final JRadioButtonMenuItem selectBcsColorScheme[] = new JRadioButtonMenuItem[BCSCOLORSCHEME.length];
+    private final JRadioButtonMenuItem selectGlslColorScheme[] = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private final JRadioButtonMenuItem selectSqlColorScheme[] = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
+                              optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
+                              optionBCSEnableSyntax, optionBCSEnableCodeFolding,
+                              optionBCSEnableAutoComplete,
+                              optionGLSLEnableSyntax, optionSQLEnableSyntax;
     private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
     private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
     private JCheckBoxMenuItem optionShowStrrefs;
@@ -1062,6 +1191,7 @@ public final class BrowserMenuBar extends JMenuBar
       super("Options");
       setMnemonic(KeyEvent.VK_O);
 
+      // Options
       optionIgnoreOverride =
           new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
@@ -1090,18 +1220,126 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
-      JMenu bcsindentmenu = new JMenu("BCS Indent");
-      add(bcsindentmenu);
+      // Options->Text Viewer/Editor
+      JMenu textMenu = new JMenu("Text Editor");
+      add(textMenu);
+      // Options->Text Viewer/Editor->Show Symbols
+      JMenu textSymbols = new JMenu("Show Symbols");
+      textMenu.add(textSymbols);
+      optionTextShowWhiteSpace = new JCheckBoxMenuItem("Show Whitespace and Tab",
+                                                       prefs.getBoolean(OPTION_TEXT_SYMBOLWHITESPACE, false));
+      textSymbols.add(optionTextShowWhiteSpace);
+      optionTextShowEOL = new JCheckBoxMenuItem("Show End of Line",
+                                                prefs.getBoolean(OPTION_TEXT_SYMBOLEOL, false));
+      textSymbols.add(optionTextShowEOL);
+
+      // Options->Text Viewer/Editor->Tab Settings
+      JMenu textTabs = new JMenu("Tab Settings");
+      textMenu.add(textTabs);
+      optionTextTabEmulate = new JCheckBoxMenuItem("Emulate Tabs with Spaces",
+                                                   prefs.getBoolean(OPTION_TEXT_TABSEMULATED, false));
+      textTabs.add(optionTextTabEmulate);
+      textTabs.addSeparator();
       ButtonGroup bg = new ButtonGroup();
-      int selectedbcsindent = prefs.getInt(OPTION_BCSINDENT, 2);
-      selectBcsIndent[0] = new JRadioButtonMenuItem("2 Spaces", selectedbcsindent == 0);
-      selectBcsIndent[1] = new JRadioButtonMenuItem("4 Spaces", selectedbcsindent == 1);
-      selectBcsIndent[2] = new JRadioButtonMenuItem("Tab", selectedbcsindent == 2);
-      for (int i = 0; i < BCSINDENT.length; i++) {
-        bcsindentmenu.add(selectBcsIndent[i]);
-        bg.add(selectBcsIndent[i]);
+      int selectedTextTabSize = prefs.getInt(OPTION_TEXT_TABSIZE, 1);
+      selectTextTabSize[0] = new JRadioButtonMenuItem("Expand by 2 Spaces", selectedTextTabSize == 0);
+      selectTextTabSize[1] = new JRadioButtonMenuItem("Expand by 4 Spaces", selectedTextTabSize == 1);
+      selectTextTabSize[2] = new JRadioButtonMenuItem("Expand by 8 Spaces", selectedTextTabSize == 2);
+      for (int i = 0; i < selectTextTabSize.length; i++) {
+        int cnt = 1 << (i + 1);
+        selectTextTabSize[i].setToolTipText(String.format("Each (real or emulated) tab will occupy %1$d spaces.", cnt));
+        textTabs.add(selectTextTabSize[i]);
+        bg.add(selectTextTabSize[i]);
       }
 
+      // Options->Text Viewer/Editor->BCS and BAF
+      JMenu textBCS = new JMenu("BCS and BAF");
+      textMenu.add(textBCS);
+      JMenu textBCSIndent = new JMenu("BCS Indent");
+      textBCS.add(textBCSIndent);
+      bg = new ButtonGroup();
+      int selectedBCSIndent = prefs.getInt(OPTION_BCS_INDENT, 2);
+      if (selectedBCSIndent < 0 || selectedBCSIndent >= BCSINDENT.length) {
+        selectedBCSIndent = 2;
+      }
+      for (int i = 0; i < BCSINDENT.length; i++) {
+        selectBcsIndent[i] = new JRadioButtonMenuItem(BCSINDENT[i][1], selectedBCSIndent == i);
+        textBCSIndent.add(selectBcsIndent[i]);
+        bg.add(selectBcsIndent[i]);
+      }
+      JMenu textBCSColors = new JMenu("Color Scheme");
+      textBCS.add(textBCSColors);
+      bg = new ButtonGroup();
+      int selectedBCSScheme = prefs.getInt(OPTION_BCS_COLORSCHEME, 5);
+      if (selectedBCSScheme < 0 || selectedBCSScheme >= BCSCOLORSCHEME.length) {
+        selectedBCSScheme = 5;
+      }
+      for (int i = 0; i < BCSCOLORSCHEME.length; i++) {
+        selectBcsColorScheme[i] = new JRadioButtonMenuItem(BCSCOLORSCHEME[i][1], selectedBCSScheme == i);
+        selectBcsColorScheme[i].setToolTipText(BCSCOLORSCHEME[i][2]);
+        textBCSColors.add(selectBcsColorScheme[i]);
+        bg.add(selectBcsColorScheme[i]);
+      }
+      optionBCSEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting",
+                                                    prefs.getBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, true));
+      textBCS.add(optionBCSEnableSyntax);
+      optionBCSEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding",
+                                                         prefs.getBoolean(OPTION_BCS_CODEFOLDING, false));
+      // TODO: properly implement code folding support first
+      optionBCSEnableCodeFolding.setVisible(false);
+      optionBCSEnableCodeFolding.setEnabled(false);
+      optionBCSEnableCodeFolding.setSelected(false);
+      textBCS.add(optionBCSEnableCodeFolding);
+      optionBCSEnableAutoComplete = new JCheckBoxMenuItem("Enable Auto-Completion",
+                                                          prefs.getBoolean(OPTION_BCS_AUTOCOMPLETE, false));
+      optionBCSEnableAutoComplete.setVisible(false);    // TODO: add auto-complete support
+      textBCS.add(optionBCSEnableAutoComplete);
+
+      // Options->Text Viewer/Editor->Misc. Resource Types
+      JMenu textMisc = new JMenu("Misc. Resource Types");
+      textMenu.add(textMisc);
+      JMenu textGLSLColors = new JMenu("Color Scheme for GLSL");
+      textMisc.add(textGLSLColors);
+      bg = new ButtonGroup();
+      int selectedGLSLScheme = prefs.getInt(OPTION_GLSL_COLORSCHEME, 0);
+      if (selectedGLSLScheme < 0 || selectedGLSLScheme >= COLORSCHEME.length) {
+        selectedGLSLScheme = 0;
+      }
+      for (int i = 0; i < COLORSCHEME.length; i++) {
+        selectGlslColorScheme[i] = new JRadioButtonMenuItem(COLORSCHEME[i][1], selectedGLSLScheme == i);
+        selectGlslColorScheme[i].setToolTipText(COLORSCHEME[i][2]);
+        textGLSLColors.add(selectGlslColorScheme[i]);
+        bg.add(selectGlslColorScheme[i]);
+      }
+      JMenu textSQLColors = new JMenu("Color Scheme for SQL");
+      textMisc.add(textSQLColors);
+      bg = new ButtonGroup();
+      int selectedSQLScheme = prefs.getInt(OPTION_SQL_COLORSCHEME, 0);
+      if (selectedSQLScheme < 0 || selectedSQLScheme >= COLORSCHEME.length) {
+        selectedSQLScheme = 0;
+      }
+      for (int i = 0; i < COLORSCHEME.length; i++) {
+        selectSqlColorScheme[i] = new JRadioButtonMenuItem(COLORSCHEME[i][1], selectedSQLScheme == i);
+        selectSqlColorScheme[i].setToolTipText(COLORSCHEME[i][2]);
+        textSQLColors.add(selectSqlColorScheme[i]);
+        bg.add(selectSqlColorScheme[i]);
+      }
+      optionGLSLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for GLSL",
+                                                     prefs.getBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, true));
+      textMisc.add(optionGLSLEnableSyntax);
+      optionSQLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for SQL",
+                                                     prefs.getBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, true));
+      textMisc.add(optionSQLEnableSyntax);
+
+      // Options->Text Viewer/Editor (continued)
+      optionTextHightlightCurrent = new JCheckBoxMenuItem("Show Highlighted Current Line",
+                                                          prefs.getBoolean(OPTION_TEXT_SHOWCURRENTLINE, true));
+      textMenu.add(optionTextHightlightCurrent);
+      optionTextLineNumbers = new JCheckBoxMenuItem("Show Line Numbers",
+                                                    prefs.getBoolean(OPTION_TEXT_SHOWLINENUMBERS, true));
+      textMenu.add(optionTextLineNumbers);
+
+      // Options->Show ResourceRefs As
       JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
       add(showresrefmenu);
       int selectedresref = prefs.getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
@@ -1119,6 +1357,7 @@ public final class BrowserMenuBar extends JMenuBar
         bg.add(showResRef[i]);
       }
 
+      // Options->Show Override Files
       JMenu overridesubmenu = new JMenu("Show Override Files");
       add(overridesubmenu);
       int selectedmode = prefs.getInt(OPTION_SHOWOVERRIDES, OVERRIDE_SPLIT);
@@ -1138,6 +1377,7 @@ public final class BrowserMenuBar extends JMenuBar
         showOverrides[i].addActionListener(browser);
       }
 
+      // Options->Default Structure Display
       JMenu vieworeditmenu = new JMenu("Default Structure Display");
       add(vieworeditmenu);
       int selectedview = prefs.getInt(OPTION_VIEWOREDITSHOWN, DEFAULT_VIEW);
@@ -1151,6 +1391,7 @@ public final class BrowserMenuBar extends JMenuBar
       vieworeditmenu.add(viewOrEditShown[DEFAULT_VIEW]);
       vieworeditmenu.add(viewOrEditShown[DEFAULT_EDIT]);
 
+      // Options->Look and Feel
       JMenu lookandfeelmenu = new JMenu("Look and Feel");
       add(lookandfeelmenu);
       int selectedfeel = prefs.getInt(OPTION_LOOKANDFEEL, LOOKFEEL_JAVA);
@@ -1175,6 +1416,7 @@ public final class BrowserMenuBar extends JMenuBar
         }
       }
 
+      // Options->Text Font
       JMenu scriptmenu = new JMenu("Text Font");
       add(scriptmenu);
       bg = new ButtonGroup();
@@ -1187,6 +1429,7 @@ public final class BrowserMenuBar extends JMenuBar
         bg.add(selectFont[i]);
       }
 
+      // Options->TLK Charset
       String charset = prefs.get(OPTION_TLKCHARSET, DefaultCharset);
       if (!charsetAvailable(charset)) {
         System.err.println(String.format("Charset \"%1$s\" not available.", charset));
@@ -1388,26 +1631,102 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
       prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
       prefs.putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
-      int selectedFont = 0;
-      for (int i = 0; i < selectFont.length; i++)
-        if (selectFont[i].isSelected())
-          selectedFont = i;
+      int selectedFont = getSelectedButtonIndex(selectFont, 0);
+//      for (int i = 0; i < selectFont.length; i++)
+//        if (selectFont[i].isSelected())
+//          selectedFont = i;
       prefs.putInt(OPTION_FONT, selectedFont);
-      int selectedIndent = 0;
-      for (int i = 0; i < selectBcsIndent.length; i++)
-        if (selectBcsIndent[i].isSelected())
-          selectedIndent = i;
-      prefs.putInt(OPTION_BCSINDENT, selectedIndent);
+      int selectedIndent = getSelectedButtonIndex(selectBcsIndent, 0);
+//      for (int i = 0; i < selectBcsIndent.length; i++)
+//        if (selectBcsIndent[i].isSelected())
+//          selectedIndent = i;
+      prefs.putInt(OPTION_BCS_INDENT, selectedIndent);
+      prefs.putBoolean(OPTION_TEXT_SHOWCURRENTLINE, optionTextHightlightCurrent.isSelected());
+      prefs.putBoolean(OPTION_TEXT_SHOWLINENUMBERS, optionTextLineNumbers.isSelected());
+      prefs.putBoolean(OPTION_TEXT_SYMBOLWHITESPACE, optionTextShowWhiteSpace.isSelected());
+      prefs.putBoolean(OPTION_TEXT_SYMBOLEOL, optionTextShowEOL.isSelected());
+      prefs.putBoolean(OPTION_TEXT_TABSEMULATED, optionTextTabEmulate.isSelected());
+      int selectTabSize = getSelectedButtonIndex(selectTextTabSize, 1);
+//      for (int i = 0; i < selectTextTabSize.length; i++) {
+//        if (selectTextTabSize[i].isSelected()) {
+//          selectTabSize = i;
+//          break;
+//        }
+//      }
+      prefs.putInt(OPTION_TEXT_TABSIZE, selectTabSize);
+      int selectColorScheme = getSelectedButtonIndex(selectBcsColorScheme, 5);
+//      for (int i = 0; i < selectBcsColorScheme.length; i++) {
+//        if (selectBcsColorScheme[i].isSelected()) {
+//          selectColorScheme = i;
+//          break;
+//        }
+//      }
+      prefs.putInt(OPTION_BCS_COLORSCHEME, selectColorScheme);
+      prefs.putBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, optionBCSEnableSyntax.isSelected());
+      prefs.putBoolean(OPTION_BCS_CODEFOLDING, optionBCSEnableCodeFolding.isSelected());
+      prefs.putBoolean(OPTION_BCS_AUTOCOMPLETE, optionBCSEnableAutoComplete.isSelected());
+      selectColorScheme = getSelectedButtonIndex(selectGlslColorScheme, 0);
+      prefs.putInt(OPTION_GLSL_COLORSCHEME, selectColorScheme);
+      selectColorScheme = getSelectedButtonIndex(selectSqlColorScheme, 0);
+      prefs.putInt(OPTION_SQL_COLORSCHEME, selectColorScheme);
+      prefs.putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
+      prefs.putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
+
       String charset = getSelectedButtonData();
       prefs.put(OPTION_TLKCHARSET, charset);
     }
 
+    // Returns the (first) index of the selected AbstractButton array
+    private int getSelectedButtonIndex(AbstractButton[] items, int defaultIndex)
+    {
+      int retVal = defaultIndex;
+      if (items != null && items.length > 0) {
+        for (int i = 0; i < items.length; i++) {
+          if (items[i] != null && items[i].isSelected()) {
+            retVal = i;
+            break;
+          }
+        }
+      }
+      return retVal;
+    }
+
+    public int getTextIndentIndex()
+    {
+      for (int i = 0; i < selectTextTabSize.length; i++) {
+        if (selectTextTabSize[i].isSelected()) {
+          return i;
+        }
+      }
+      return 1;   // default
+    }
+
     public String getBcsIndent()
     {
-      for (int i = 0; i < BCSINDENT.length; i++)
-        if (selectBcsIndent[i].isSelected())
-          return BCSINDENT[i];
-      return BCSINDENT[2];
+//      for (int i = 0; i < BCSINDENT.length; i++)
+//        if (selectBcsIndent[i].isSelected())
+//          return BCSINDENT[i][0];
+//      return BCSINDENT[2][0];
+      int idx = getSelectedButtonIndex(selectBcsIndent, 2);
+      return BCSINDENT[idx][0];
+    }
+
+    public String getBcsColorScheme()
+    {
+      int idx = getSelectedButtonIndex(selectBcsColorScheme, 5);
+      return BCSCOLORSCHEME[idx][0];
+    }
+
+    public String getGlslColorScheme()
+    {
+      int idx = getSelectedButtonIndex(selectGlslColorScheme, 0);
+      return COLORSCHEME[idx][0];
+    }
+
+    public String getSqlColorScheme()
+    {
+      int idx = getSelectedButtonIndex(selectSqlColorScheme, 0);
+      return COLORSCHEME[idx][0];
     }
 
     public int getResRefMode()
@@ -1467,7 +1786,7 @@ public final class BrowserMenuBar extends JMenuBar
   private static final class HelpMenu extends JMenu implements ActionListener
   {
     private final JMenuItem helpAbout, helpLicense, helpBsdLicense,
-      helpJOrbisLicense;
+                            helpJOrbisLicense, helpFifeLicense;
 
     private HelpMenu()
     {
@@ -1478,7 +1797,7 @@ public final class BrowserMenuBar extends JMenuBar
       add(helpAbout);
 
       helpLicense =
-      makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.getIcon("Edit16.gif"), -1, this);
       add(helpLicense);
 
       JMenu miscLicenses = new JMenu("Third-party licenses");
@@ -1486,12 +1805,16 @@ public final class BrowserMenuBar extends JMenuBar
       add(miscLicenses);
 
       helpBsdLicense =
-      makeMenuItem("Plastic XP License", KeyEvent.VK_P, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("Plastic XP License", KeyEvent.VK_P, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpBsdLicense);
 
       helpJOrbisLicense =
-        makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpJOrbisLicense);
+
+      helpFifeLicense =
+          makeMenuItem("Fifesoft License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+      miscLicenses.add(helpFifeLicense);
     }
 
     @Override
@@ -1505,6 +1828,8 @@ public final class BrowserMenuBar extends JMenuBar
         displayLicense("infinity/bsd-license.txt", "BSD License");
       } else if (event.getSource() == helpJOrbisLicense) {
           displayLicense("infinity/JOrbis.License.txt", "LGPL License");
+      } else if (event.getSource() == helpFifeLicense) {
+        displayLicense("infinity/RSyntaxTextArea.License.txt", "BSD License");
       }
     }
 
@@ -1526,6 +1851,7 @@ public final class BrowserMenuBar extends JMenuBar
       final String[] copyThirdPartyText = new String[]{
           "Most icons (\u00A9) eclipse.org - Common Public License.",
           "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
+          "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
       };
 

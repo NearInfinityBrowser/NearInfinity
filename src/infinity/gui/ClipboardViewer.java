@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.icon.Icons;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.util.StructClipboard;
 
 import java.awt.BorderLayout;
@@ -15,15 +16,16 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener
 {
   private final JButton bclearclipboard = new JButton("Clear", Icons.getIcon("New16.gif"));
-  private final JTextArea taClipBoard = new JTextArea();
+  private final ScrolledTextArea scroll;
+  private final RSyntaxTextArea taClipBoard;
 
   ClipboardViewer()
   {
@@ -31,6 +33,11 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
     setIconImage(Icons.getIcon("Paste16.gif").getImage());
     bclearclipboard.setMnemonic('c');
     bclearclipboard.addActionListener(this);
+    scroll = new ScrolledTextArea();
+    scroll.setLineNumbersEnabled(false);
+    taClipBoard = (RSyntaxTextArea)scroll.getTextArea();
+    taClipBoard.setEOLMarkersVisible(false);
+    taClipBoard.setHighlightCurrentLine(false);
     taClipBoard.setEditable(false);
     StructClipboard.getInstance().addChangeListener(this);
 
@@ -39,7 +46,7 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
 
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(new JScrollPane(taClipBoard), BorderLayout.CENTER);
+    pane.add(scroll, BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
     setSize(300, 400);
 

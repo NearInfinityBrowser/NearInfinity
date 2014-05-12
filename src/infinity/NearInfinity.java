@@ -19,6 +19,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.SearchFrame;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
@@ -46,6 +47,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
   static {
@@ -56,8 +59,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
 
-  private static final JTextArea consoletext = new JTextArea();
-  private static NearInfinity browser;
+  private static final ScrolledTextArea consoletext = new ScrolledTextArea();
   private static final String KEYFILENAME = "chitin.key";
   private static final String WINDOW_SIZEX = "WindowSizeX";
   private static final String WINDOW_SIZEY = "WindowSizeY";
@@ -65,6 +67,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String WINDOW_POSY = "WindowPosY";
   private static final String WINDOW_STATE = "WindowState";
   private static final String LAST_GAMEDIR = "LastGameDir";
+  private static NearInfinity browser;
+
+  static {
+    consoletext.setLineNumbersEnabled(false);
+    consoletext.getTextArea().setHighlightCurrentLine(false);
+    ((RSyntaxTextArea)consoletext.getTextArea()).setEOLMarkersVisible(false);
+  }
+
   private final JPanel containerpanel;
   private final ResourceTree tree;
   private final StatusBar statusBar;
@@ -98,7 +108,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return null;
   }
 
-  public static JTextArea getConsoleText()
+  public static ScrolledTextArea getConsoleText()
   {
     return consoletext;
   }
@@ -150,8 +160,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     } catch (Exception e) { // Try starting anyway if the test goes sour
       e.printStackTrace();
     }
-    System.setOut(new ConsoleStream(System.out, consoletext));
-    System.setErr(new ConsoleStream(System.err, consoletext));
+    System.setOut(new ConsoleStream(System.out, consoletext.getTextArea()));
+    System.setErr(new ConsoleStream(System.err, consoletext.getTextArea()));
     browser = new NearInfinity();
   }
 

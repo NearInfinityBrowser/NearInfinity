@@ -16,6 +16,7 @@ import infinity.resource.StructEntry;
 import infinity.resource.Writeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.util.StructClipboard;
 
 import java.awt.BorderLayout;
@@ -40,8 +41,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.ProgressMonitor;
 
 final class DebugConsole extends ChildFrame implements ActionListener, ItemListener
@@ -122,9 +121,9 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     bsaveconsole.setMnemonic('s');
     bsaveconsole.addActionListener(this);
 
-    JTextArea taconsole = NearInfinity.getConsoleText();
-    taconsole.setEditable(false);
-    taconsole.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    ScrolledTextArea taconsole = NearInfinity.getConsoleText();
+    taconsole.getTextArea().setEditable(false);
+    taconsole.getTextArea().setFont(BrowserMenuBar.getInstance().getScriptFont());
 
     JPanel lowerpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
     lowerpanel.add(testPopup);
@@ -133,7 +132,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
 
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(new JScrollPane(taconsole), BorderLayout.CENTER);
+    pane.add(taconsole, BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
 
     setSize(450, 450);
@@ -146,7 +145,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bclearconsole)
-      NearInfinity.getConsoleText().setText("");
+      NearInfinity.getConsoleText().getTextArea().setText("");
     else if (event.getSource() == bsaveconsole) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save console");
@@ -165,7 +164,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           pw.println(BrowserMenuBar.VERSION);
           pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));
           pw.println();
-          pw.println(NearInfinity.getConsoleText().getText());
+          pw.println(NearInfinity.getConsoleText().getTextArea().getText());
           pw.println();
           Properties props = System.getProperties();
           for (Object key : props.keySet())

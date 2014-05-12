@@ -15,6 +15,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.TextResourceSearcher;
 import infinity.util.Filewriter;
 import infinity.util.NIFile;
@@ -37,12 +38,12 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class MusResource implements Closeable, TextResource, ActionListener, Writeable, ItemListener,
                                           DocumentListener
@@ -55,7 +56,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   private JTabbedPane tabbedPane;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private JTextArea editor;
+  private RSyntaxTextArea editor;
   private Viewer viewer;
   private boolean resourceChanged;
 
@@ -257,9 +258,10 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
-    editor = new JTextArea();
+    ScrolledTextArea scroll = new ScrolledTextArea(text);
+    editor = (RSyntaxTextArea)scroll.getTextArea();
+    editor.discardAllEdits();
     editor.addCaretListener(caretListener);
-    editor.setText(text);
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
     editor.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     editor.setCaretPosition(0);
@@ -276,7 +278,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
 
     JPanel panel2 = new JPanel();
     panel2.setLayout(new BorderLayout());
-    panel2.add(new JScrollPane(editor), BorderLayout.CENTER);
+    panel2.add(scroll, BorderLayout.CENTER);
     panel2.add(lowerpanel, BorderLayout.SOUTH);
 
     return panel2;

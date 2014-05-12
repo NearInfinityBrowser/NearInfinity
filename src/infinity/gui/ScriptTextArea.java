@@ -6,6 +6,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 
@@ -25,15 +26,24 @@ import java.util.Set;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-public class ScriptTextArea extends JTextArea {
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+public class ScriptTextArea extends RSyntaxTextArea {
   ScriptPopupMenu menu = new ScriptPopupMenu();
 
   public ScriptTextArea() {
     super();
+
+    ScrolledTextArea.setupEditor(this, false);
+    if (BrowserMenuBar.getInstance() != null) {
+      if (BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+        ScrolledTextArea.setSyntaxHighlighter(this, ScrolledTextArea.Language.BCS, null);
+      }
+    }
+
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent ev) {
@@ -45,6 +55,14 @@ public class ScriptTextArea extends JTextArea {
         handlePopup(ev);
       }
     });
+  }
+
+  @Override
+  public void setText(String text)
+  {
+    // prevent undo to remove the text
+    super.setText(text);
+    discardAllEdits();
   }
 
   // try to paint an indicator below "crosslinks"

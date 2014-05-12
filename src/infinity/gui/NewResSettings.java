@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.util.StringResource;
 
 import java.awt.BorderLayout;
@@ -25,8 +26,8 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class NewResSettings extends NewAbstractSettings implements KeyListener
 {
@@ -73,7 +74,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   private int gameId;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
   private int lastStrref;
 
-  private JTextArea taText;
+  private RSyntaxTextArea taText;
   private ResConfig config;
 
   public NewResSettings(Window parent)
@@ -121,15 +122,14 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     updateButton.setMnemonic(KeyEvent.VK_U);
     updateButton.addActionListener(this);
 
-    taText = new JTextArea(1, 60);
+    ScrolledTextArea scroll = new ScrolledTextArea(20, 80);
+    taText = (RSyntaxTextArea)scroll.getTextArea();
     taText.setWrapStyleWord(true);
     taText.setLineWrap(true);
     if (cbStrref.getSelectedItem() instanceof StrrefItem) {
       taText.setText(((StrrefItem)cbStrref.getSelectedItem()).getString());
       taText.setCaretPosition(0);
     }
-    JScrollPane scroll = new JScrollPane(taText);
-    scroll.setPreferredSize(new JTextArea(20, 60).getPreferredSize());
 
     JPanel panel = new JPanel(new GridBagLayout());
     Container pane = getContentPane();

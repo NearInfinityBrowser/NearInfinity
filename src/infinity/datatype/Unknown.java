@@ -7,6 +7,7 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.util.Filewriter;
 
 import java.awt.GridBagConstraints;
@@ -20,13 +21,14 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public class Unknown extends Datatype implements Editable
 {
   private static final String UNKNOWN = "Unknown";
-  JTextArea textArea;
+  ScrolledTextArea scroll;
+  RSyntaxTextArea textArea;
   byte[] data;
 
   public Unknown(byte[] buffer, int offset, int length)
@@ -54,18 +56,22 @@ public class Unknown extends Datatype implements Editable
     if (data != null && data.length > 0) {
       JButton bUpdate;
       if (textArea == null) {
-        textArea = new JTextArea(15, 5);
+        scroll = new ScrolledTextArea(15, 5);
+        scroll.setLineNumbersEnabled(false);
+        textArea = (RSyntaxTextArea)scroll.getTextArea();
         textArea.setWrapStyleWord(true);
         textArea.setLineWrap(true);
+        textArea.setEOLMarkersVisible(false);
         textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       }
       String s = toString();
       textArea.setText(s.substring(0, s.length() - 2));
+      textArea.discardAllEdits();
+      textArea.setCaretPosition(0);
 
       bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
       bUpdate.addActionListener(container);
       bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
-      JScrollPane scroll = new JScrollPane(textArea);
 
       GridBagLayout gbl = new GridBagLayout();
       GridBagConstraints gbc = new GridBagConstraints();

@@ -12,6 +12,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.ScrolledTextArea;
 import infinity.search.StringReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.StringResource;
@@ -32,14 +33,15 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class StringRef extends Datatype implements Editable, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
-  private JTextArea taRefText;
+  private ScrolledTextArea scroll;
+  private RSyntaxTextArea taRefText;
   private JTextField tfRefNr;
   private int value;
 
@@ -101,7 +103,10 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     if (tfRefNr == null) {
       tfRefNr = new JTextField(8);
       tfRefNr.addActionListener(this);
-      taRefText = new JTextArea(1, 200);
+      scroll = new ScrolledTextArea(1, 200);
+      scroll.setLineNumbersEnabled(false);
+      taRefText = (RSyntaxTextArea)scroll.getTextArea();
+      taRefText.setHighlightCurrentLine(false);
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
       taRefText.setWrapStyleWord(true);
@@ -126,7 +131,6 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     JLabel label = new JLabel("StringRef: ");
     label.setLabelFor(tfRefNr);
     label.setDisplayedMnemonic('s');
-    JScrollPane scroll = new JScrollPane(taRefText);
     bPlay.setMargin(new Insets(1, 3, 1, 3));
     bEdit.setMargin(bPlay.getMargin());
     bSearch.setMargin(bPlay.getMargin());
