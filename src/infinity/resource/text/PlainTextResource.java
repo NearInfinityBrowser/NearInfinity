@@ -7,6 +7,7 @@ package infinity.resource.text;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.ScrolledTextArea;
 import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;

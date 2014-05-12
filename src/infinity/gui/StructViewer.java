@@ -29,7 +29,6 @@ import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.dlg.State;
 import infinity.resource.dlg.Transition;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.search.AttributeSearcher;
 import infinity.search.DialogItemRefSearcher;
 import infinity.search.DialogStateReferenceSearcher;

@@ -5,6 +5,7 @@
 package infinity.datatype;
 
 import infinity.gui.ChildFrame;
+import infinity.gui.ScrolledTextArea;
 import infinity.gui.StringEditor;
 import infinity.gui.StructViewer;
 import infinity.gui.ViewFrame;
@@ -12,7 +13,6 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.search.StringReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.StringResource;

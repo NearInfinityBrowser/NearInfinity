@@ -4,10 +4,10 @@
 
 package infinity.datatype;
 
+import infinity.gui.ScrolledTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.util.Filewriter;
 
 import java.awt.GridBagConstraints;

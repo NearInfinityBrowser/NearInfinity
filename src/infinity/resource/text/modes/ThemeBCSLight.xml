@@ -55,7 +55,7 @@
       <style token="LITERAL_BACKQUOTE" fg="2900ff"/>
       <style token="MARKUP_TAG_DELIMITER" fg="008080"/>
       <style token="MARKUP_TAG_NAME" fg="800080"/>                              <!-- TOKEN_SYMBOL -->
-      <style token="MARKUP_TAG_ATTRIBUTE" fg="0000ff"/>                         <!-- TOKEN_SYMBOL_SPELL -->
+      <style token="MARKUP_TAG_ATTRIBUTE" fg="2020ff"/>                         <!-- TOKEN_SYMBOL_SPELL -->
       <style token="MARKUP_TAG_ATTRIBUTE_VALUE" fg="2a00ff" italic="true"/>
       <style token="MARKUP_COMMENT" fg="3f5fbf"/>
       <style token="MARKUP_DTD" fg="008080"/>

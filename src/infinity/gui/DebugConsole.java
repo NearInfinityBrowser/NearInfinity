@@ -16,7 +16,6 @@ import infinity.resource.StructEntry;
 import infinity.resource.Writeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.util.StructClipboard;
 
 import java.awt.BorderLayout;

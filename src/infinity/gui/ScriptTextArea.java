@@ -6,7 +6,6 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 
@@ -29,9 +28,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
-public class ScriptTextArea extends RSyntaxTextArea {
+public class ScriptTextArea extends InfinityTextArea {
   ScriptPopupMenu menu = new ScriptPopupMenu();
 
   public ScriptTextArea() {

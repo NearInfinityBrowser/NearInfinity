@@ -14,7 +14,6 @@ import infinity.datatype.Unknown;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
 import infinity.search.StringReferenceSearcher;

@@ -26,7 +26,6 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.StructureFactory;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.search.DialogSearcher;
 import infinity.search.SearchFrame;
 import infinity.search.SearchResource;

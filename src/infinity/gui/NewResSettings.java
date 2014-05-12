@@ -6,7 +6,6 @@ package infinity.gui;
 
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.util.StringResource;
 
 import java.awt.BorderLayout;

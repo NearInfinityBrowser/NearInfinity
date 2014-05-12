@@ -17,7 +17,6 @@ import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.text.ScrolledTextArea;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

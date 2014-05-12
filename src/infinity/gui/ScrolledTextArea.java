@@ -2,9 +2,8 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.resource.text;
+package infinity.gui;
 
-import infinity.gui.BrowserMenuBar;
 import infinity.resource.text.modes.BCSTokenMaker;
 
 import java.awt.Color;
@@ -100,7 +99,7 @@ public class ScrolledTextArea extends RTextScrollPane
   public ScrolledTextArea()
   {
     super();
-    edit = new RSyntaxTextArea();
+    edit = new InfinityTextArea();
     init(true);
   }
 
@@ -111,7 +110,7 @@ public class ScrolledTextArea extends RTextScrollPane
   public ScrolledTextArea(RSyntaxDocument doc)
   {
     super();
-    edit = new RSyntaxTextArea(doc);
+    edit = new InfinityTextArea(doc);
     init(true);
   }
 
@@ -122,7 +121,7 @@ public class ScrolledTextArea extends RTextScrollPane
   public ScrolledTextArea(String text)
   {
     super();
-    edit = new RSyntaxTextArea(text);
+    edit = new InfinityTextArea(text);
     init(true);
   }
 
@@ -133,7 +132,7 @@ public class ScrolledTextArea extends RTextScrollPane
   public ScrolledTextArea(int textMode)
   {
     super();
-    edit = new RSyntaxTextArea(textMode);
+    edit = new InfinityTextArea(textMode);
     init(true);
   }
 
@@ -145,7 +144,7 @@ public class ScrolledTextArea extends RTextScrollPane
   public ScrolledTextArea(int rows, int cols)
   {
     super();
-    edit = new RSyntaxTextArea(rows, cols);
+    edit = new InfinityTextArea(rows, cols);
     init(true);
   }
 
@@ -158,7 +157,7 @@ public class ScrolledTextArea extends RTextScrollPane
   public ScrolledTextArea(String text, int rows, int cols)
   {
     super();
-    edit = new RSyntaxTextArea(text, rows, cols);
+    edit = new InfinityTextArea(text, rows, cols);
     init(true);
   }
 
@@ -172,7 +171,7 @@ public class ScrolledTextArea extends RTextScrollPane
   public ScrolledTextArea(RSyntaxDocument doc, String text, int rows, int cols)
   {
     super();
-    edit = new RSyntaxTextArea(doc, text, rows, cols);
+    edit = new InfinityTextArea(doc, text, rows, cols);
     init(true);
   }
 

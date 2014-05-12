@@ -7,6 +7,7 @@ package infinity.resource.bcs;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.ScrolledTextArea;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
@@ -16,7 +17,6 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.search.TextResourceSearcher;
 import infinity.util.Decryptor;
 import infinity.util.Filewriter;
@@ -385,7 +385,10 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public JComponent makeViewer(ViewableContainer container)
   {
     ScrolledTextArea scrollSource = new ScrolledTextArea(text);
-    scrollSource.setSyntaxHighlighter(ScrolledTextArea.Language.BCS, null);
+    if (BrowserMenuBar.getInstance() != null &&
+        BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+      scrollSource.setSyntaxHighlighter(ScrolledTextArea.Language.BCS, null);
+    }
     sourceText = (RSyntaxTextArea)scrollSource.getTextArea();
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());

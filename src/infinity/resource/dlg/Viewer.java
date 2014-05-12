@@ -11,6 +11,7 @@ import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ScriptTextArea;
+import infinity.gui.ScrolledTextArea;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
@@ -19,7 +20,6 @@ import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.text.ScrolledTextArea;
 import infinity.search.DialogSearcher;
 import infinity.util.StringResource;
 
