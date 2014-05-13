@@ -7,7 +7,8 @@ package infinity.resource.text;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
-import infinity.gui.ScrolledTextArea;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
@@ -28,6 +29,7 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -41,8 +43,6 @@ import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
                                                 DocumentListener, Closeable
 {
@@ -52,8 +52,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private ScrolledTextArea scroll;
-  private RSyntaxTextArea editor;
+  private InfinityTextArea editor;
   private boolean resourceChanged;
 
   public PlainTextResource(ResourceEntry entry) throws Exception
@@ -205,8 +204,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    scroll = new ScrolledTextArea(text);
-    editor = (RSyntaxTextArea)scroll.getTextArea();
+    editor = new InfinityTextArea(text, true);
     setSyntaxHighlightingEnabled();
     editor.addCaretListener(container.getStatusBar());
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
@@ -231,7 +229,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
-    panel.add(scroll, BorderLayout.CENTER);
+    panel.add(new InfinityScrollPane(editor, true), BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
     return panel;
@@ -245,26 +243,10 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (editor == null)
+    if (editor == null) {
       Filewriter.writeString(os, text, text.length());
-    else {
-      // using system-specific line separators
-      String nl = System.getProperty("line.separator");
-      StringBuilder sb = new StringBuilder(editor.getText());
-      int index = 0;
-      while (index < sb.length()) {
-        if (sb.charAt(index) == '\r') {
-          sb.deleteCharAt(index);
-          continue;
-        }
-        if (sb.charAt(index) == '\n') {
-          sb.deleteCharAt(index);
-          sb.insert(index, nl);
-          index += (nl.length() - 1);
-        }
-        index++;
-      }
-      Filewriter.writeString(os, sb.toString(), sb.length());
+    } else {
+      editor.write(new OutputStreamWriter(os));
     }
   }
 
@@ -285,30 +267,28 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
   private void setSyntaxHighlightingEnabled()
   {
-    ScrolledTextArea.Language language = null;
+    InfinityTextArea.Language language = InfinityTextArea.Language.NONE;
     if (entry != null) {
       if ("SQL".equalsIgnoreCase(entry.getExtension())) {
         if (BrowserMenuBar.getInstance() == null ||
             BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
-          language = ScrolledTextArea.Language.SQL;
+          language = InfinityTextArea.Language.SQL;
         }
       } else if ("GLSL".equalsIgnoreCase(entry.getExtension())) {
         if (BrowserMenuBar.getInstance() == null ||
             BrowserMenuBar.getInstance().getGlslSyntaxHighlightingEnabled()) {
-          language = ScrolledTextArea.Language.GLSL;
+          language = InfinityTextArea.Language.GLSL;
         }
       } else if ("BCS".equalsIgnoreCase(entry.getExtension()) ||
                  "BS".equalsIgnoreCase(entry.getExtension()) ||
                  "BAF".equalsIgnoreCase(entry.getExtension())) {
         if (BrowserMenuBar.getInstance() == null ||
             BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
-          language = ScrolledTextArea.Language.BCS;
+          language = InfinityTextArea.Language.BCS;
         }
       }
     }
-    if (language != null) {
-      ScrolledTextArea.setSyntaxHighlighter(editor, language, null);
-    }
+    editor.applyExtendedSettings(language, null);
   }
 }
 

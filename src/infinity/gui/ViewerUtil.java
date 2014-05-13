@@ -51,8 +51,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public final class ViewerUtil
 {
   public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl,
@@ -226,13 +224,14 @@ public final class ViewerUtil
     } else {
       text = entry.toString();
     }
-    ScrolledTextArea scroll = new ScrolledTextArea(text);
-    RSyntaxTextArea ta = (RSyntaxTextArea)scroll.getTextArea();
+    InfinityTextArea ta = new InfinityTextArea(text, true);
     ta.setCaretPosition(0);
     ta.setHighlightCurrentLine(false);
     ta.setEditable(false);
     ta.setLineWrap(true);
     ta.setWrapStyleWord(true);
+    InfinityScrollPane scroll = new InfinityScrollPane(ta, true);
+    scroll.setLineNumbersEnabled(false);
     ta.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);

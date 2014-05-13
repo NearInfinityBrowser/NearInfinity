@@ -79,8 +79,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener
 {
@@ -117,8 +115,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JPanel editpanel = new JPanel();
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final JPopupMenu popupmenu = new JPopupMenu();
-  private final ScrolledTextArea scroll = new ScrolledTextArea();
-  private final RSyntaxTextArea tatext = (RSyntaxTextArea)scroll.getTextArea();
+  private final InfinityTextArea tatext = new InfinityTextArea(true);
   private final StructTable table = new StructTable();
   private AddRemovable emptyTypes[];
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
@@ -202,12 +199,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miShowViewer.setEnabled(false);
     miShowNewViewer.setEnabled(false);
 
-    scroll.setLineNumbersEnabled(false);
     tatext.setHighlightCurrentLine(false);
     tatext.setEOLMarkersVisible(false);
     tatext.setEditable(false);
     tatext.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     tatext.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    InfinityScrollPane scroll = new InfinityScrollPane(tatext, true);
+    scroll.setLineNumbersEnabled(false);
     table.setModel(struct);
     table.getColumnModel().getColumn(0).setPreferredWidth(10);
     table.getColumnModel().getColumn(1).setPreferredWidth(400);

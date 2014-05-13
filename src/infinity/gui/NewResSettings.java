@@ -26,8 +26,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public final class NewResSettings extends NewAbstractSettings implements KeyListener
 {
   private static final Vector<Vector<StrrefItem>> STRREF_ITEM = new Vector<Vector<StrrefItem>>();
@@ -73,7 +71,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   private int gameId;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
   private int lastStrref;
 
-  private RSyntaxTextArea taText;
+  private InfinityTextArea taText;
   private ResConfig config;
 
   public NewResSettings(Window parent)
@@ -121,8 +119,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     updateButton.setMnemonic(KeyEvent.VK_U);
     updateButton.addActionListener(this);
 
-    ScrolledTextArea scroll = new ScrolledTextArea(20, 80);
-    taText = (RSyntaxTextArea)scroll.getTextArea();
+    taText = new InfinityTextArea(20, 80, true);
     taText.setWrapStyleWord(true);
     taText.setLineWrap(true);
     if (cbStrref.getSelectedItem() instanceof StrrefItem) {
@@ -141,7 +138,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     strrefPanel.add(updateButton);
 
     JPanel textPanel = new JPanel(new BorderLayout());
-    textPanel.add(scroll, BorderLayout.CENTER);
+    textPanel.add(new InfinityScrollPane(taText, true), BorderLayout.CENTER);
 
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
     buttonPanel.add(acceptButton());

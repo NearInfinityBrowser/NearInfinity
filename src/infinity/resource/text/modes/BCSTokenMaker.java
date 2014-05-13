@@ -51,7 +51,6 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
   private int currentTokenStart;
   private int currentTokenType;
-  private boolean tokenIsHexNumber, tokenCheckComment;
 
   public BCSTokenMaker()
   {
@@ -263,6 +262,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
     currentTokenStart = ofs;
     currentTokenType = initialTokenType;
 
+    boolean tokenCheckComment = false;  // indicates whether character is part of the comment prefix/suffix
+
     for (int i = ofs; i < end; i++) {
       char c = array[i];
 
@@ -273,7 +274,11 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
           if (c == '#') {
             // keyword: action block probability
-            currentTokenType = TOKEN_KEYWORD;
+            if (i+1 < end && RSyntaxUtilities.isDigit(array[i+1])) {
+              currentTokenType = TOKEN_KEYWORD;
+            } else {
+              currentTokenType = TOKEN_IDENTIFIER;
+            }
           } else if (c == '/') {
             // comment
             currentTokenType = TOKEN_IDENTIFIER;
@@ -302,18 +307,14 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_NUMBER;
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
-                  tokenIsHexNumber = true;
-                } else {
-                  tokenIsHexNumber = false;
+                  currentTokenType = TOKEN_HEXNUMBER;
                 }
               }
             } else if (RSyntaxUtilities.isDigit(c)) {
               currentTokenType = TOKEN_NUMBER;
               if (c == '0' && i+1 < end && CharHexPrefix.indexOf(array[i+1]) > -1) {
                 // hex number
-                tokenIsHexNumber = true;
-              } else {
-                tokenIsHexNumber = false;
+                currentTokenType = TOKEN_HEXNUMBER;
               }
             } else {
               // a potential identifier
@@ -329,7 +330,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
             // still keyword
           } else if (c == '/') {
             // comment
-            addToken(text, currentTokenStart, i-1, TOKEN_KEYWORD, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_IDENTIFIER;
             if (i+1 < end) {
@@ -343,21 +344,21 @@ public class BCSTokenMaker extends AbstractTokenMaker
             }
           } else if (c == '"') {
             // string
-            addToken(text, currentTokenStart, i-1, TOKEN_KEYWORD, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
             // whitespace
-            addToken(text, currentTokenStart, i-1, TOKEN_KEYWORD, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_WHITESPACE;
           } else if (CharOperator.indexOf(c) > -1) {
             // operator
-            addToken(text, currentTokenStart, i-1, TOKEN_KEYWORD, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_OPERATOR;
           } else {
-            addToken(text, currentTokenStart, i-1, TOKEN_KEYWORD, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             if (c == '-') {
               if (i+1 < end && RSyntaxUtilities.isDigit(array[i+1])) {
@@ -365,9 +366,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_NUMBER;
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
-                  tokenIsHexNumber = true;
-                } else {
-                  tokenIsHexNumber = false;
+                  currentTokenType = TOKEN_HEXNUMBER;
                 }
               }
             } else {
@@ -382,12 +381,16 @@ public class BCSTokenMaker extends AbstractTokenMaker
         {
           if (c == '#') {
             // keyword: start of action block probability
-            addToken(text, currentTokenStart, i-1, TOKEN_OPERATOR, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
-            currentTokenType = TOKEN_KEYWORD;
+            if (i+1 < end && RSyntaxUtilities.isDigit(array[i+1])) {
+              currentTokenType = TOKEN_KEYWORD;
+            } else {
+              currentTokenType = TOKEN_IDENTIFIER;
+            }
           } else if (c == '/') {
             // comment
-            addToken(text, currentTokenStart, i-1, TOKEN_OPERATOR, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_IDENTIFIER;
             if (i+1 < end) {
@@ -401,18 +404,18 @@ public class BCSTokenMaker extends AbstractTokenMaker
             }
           } else if (c == '"') {
             // string
-            addToken(text, currentTokenStart, i-1, TOKEN_OPERATOR, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
             // whitespace
-            addToken(text, currentTokenStart, i-1, TOKEN_OPERATOR, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_WHITESPACE;
           } else if (CharOperator.indexOf(c) > -1) {
             // still operator
           } else {
-            addToken(text, currentTokenStart, i-1, TOKEN_OPERATOR, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             if (c == '-') {
               if (i+1 < end && RSyntaxUtilities.isDigit(array[i+1])) {
@@ -420,18 +423,14 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_NUMBER;
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
-                  tokenIsHexNumber = true;
-                } else {
-                  tokenIsHexNumber = false;
+                  currentTokenType = TOKEN_HEXNUMBER;
                 }
               }
             } else if (RSyntaxUtilities.isDigit(c)) {
               currentTokenType = TOKEN_NUMBER;
               if (c == '0' && i+1 < end && CharHexPrefix.indexOf(array[i+1]) > -1) {
                 // hex number
-                tokenIsHexNumber = true;
-              } else {
-                tokenIsHexNumber = false;
+                currentTokenType = TOKEN_HEXNUMBER;
               }
             } else {
               // a potential identifier
@@ -445,12 +444,16 @@ public class BCSTokenMaker extends AbstractTokenMaker
         {
           if (c == '#') {
             // keyword: start of action block probability
-            addToken(text, currentTokenStart, i-1, TOKEN_WHITESPACE, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
-            currentTokenType = TOKEN_KEYWORD;
+            if (i+1 < end && RSyntaxUtilities.isDigit(array[i+1])) {
+              currentTokenType = TOKEN_KEYWORD;
+            } else {
+              currentTokenType = TOKEN_IDENTIFIER;
+            }
           } else if (c == '/') {
             // comment
-            addToken(text, currentTokenStart, i-1, TOKEN_WHITESPACE, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_IDENTIFIER;
             if (i+1 < end) {
@@ -464,18 +467,18 @@ public class BCSTokenMaker extends AbstractTokenMaker
             }
           } else if (c == '"') {
             // string
-            addToken(text, currentTokenStart, i-1, TOKEN_WHITESPACE, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
             // still whitespace
           } else if (CharOperator.indexOf(c) > -1) {
             // operator
-            addToken(text, currentTokenStart, i-1, TOKEN_WHITESPACE, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_OPERATOR;
           } else {
-            addToken(text, currentTokenStart, i-1, TOKEN_WHITESPACE, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             if (c == '-') {
               if (i+1 < end && RSyntaxUtilities.isDigit(array[i+1])) {
@@ -483,18 +486,14 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_NUMBER;
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
-                  tokenIsHexNumber = true;
-                } else {
-                  tokenIsHexNumber = false;
+                  currentTokenType = TOKEN_HEXNUMBER;
                 }
               }
             } else if (RSyntaxUtilities.isDigit(c)) {
               currentTokenType = TOKEN_NUMBER;
               if (c == '0' && i+1 < end && CharHexPrefix.indexOf(array[i+1]) > -1) {
                 // hex number
-                tokenIsHexNumber = true;
-              } else {
-                tokenIsHexNumber = false;
+                currentTokenType = TOKEN_HEXNUMBER;
               }
             } else {
               // a potential identifier
@@ -512,7 +511,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
         {
           if (tokenCheckComment) {
             if (c == '/') {
-              addToken(text, currentTokenStart, i, TOKEN_COMMENT_BLOCK, newStartOfs+currentTokenStart);
+              addToken(text, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
               currentTokenType = Token.NULL;
             }
             tokenCheckComment = false;
@@ -527,7 +526,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
         case TOKEN_STRING:
         {
           if (c == '"') {
-            addToken(text, currentTokenStart, i, TOKEN_STRING, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenType = Token.NULL;
           }
         }   // end of case TOKEN_STRING:
@@ -536,15 +535,18 @@ public class BCSTokenMaker extends AbstractTokenMaker
         case TOKEN_HEXNUMBER:
         case TOKEN_NUMBER:
         {
-          int tokenType = tokenIsHexNumber ? TOKEN_HEXNUMBER : TOKEN_NUMBER;
           if (c == '#') {
             // keyword: start of action block probability
-            addToken(text, currentTokenStart, i-1, tokenType, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
-            currentTokenType = TOKEN_KEYWORD;
+            if (i+1 < end && RSyntaxUtilities.isDigit(array[i+1])) {
+              currentTokenType = TOKEN_KEYWORD;
+            } else {
+              currentTokenType = TOKEN_IDENTIFIER;
+            }
           } else if (c == '/') {
             // comment
-            addToken(text, currentTokenStart, i-1, tokenType, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_IDENTIFIER;
             if (i+1 < end) {
@@ -558,28 +560,28 @@ public class BCSTokenMaker extends AbstractTokenMaker
             }
           } else if (c == '"') {
             // string
-            addToken(text, currentTokenStart, i-1, tokenType, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
             // whitespace
-            addToken(text, currentTokenStart, i-1, tokenType, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_WHITESPACE;
           } else if (CharOperator.indexOf(c) > -1) {
             // operator
-            addToken(text, currentTokenStart, i-1, tokenType, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_OPERATOR;
-          } else if (tokenIsHexNumber && (RSyntaxUtilities.isHexCharacter(c) || CharHexPrefix.indexOf(c) > -1)) {
+          } else if (currentTokenType == TOKEN_HEXNUMBER && (RSyntaxUtilities.isHexCharacter(c) || CharHexPrefix.indexOf(c) > -1)) {
             // still a hex number?
             if (CharHexPrefix.indexOf(c) > -1 && (i == currentTokenStart || array[i-1] != '0')) {
               currentTokenType = TOKEN_IDENTIFIER;
             }
-          } else if (!tokenIsHexNumber && RSyntaxUtilities.isDigit(c)) {
+          } else if (currentTokenType == TOKEN_NUMBER && RSyntaxUtilities.isDigit(c)) {
             // still a number
           } else {
-            addToken(text, currentTokenStart, i-1, tokenType, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             // a potential identifier
             currentTokenType = TOKEN_IDENTIFIER;
@@ -589,14 +591,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
         case TOKEN_IDENTIFIER:
         {
-          if (c == '#') {
-            // keyword: start of action block probability
-            addToken(text, currentTokenStart, i-1, TOKEN_IDENTIFIER, newStartOfs+currentTokenStart);
-            currentTokenStart = i;
-            currentTokenType = TOKEN_KEYWORD;
-          } else if (c == '/') {
+          if (c == '/') {
             // comment
-            addToken(text, currentTokenStart, i-1, TOKEN_IDENTIFIER, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_IDENTIFIER;
             if (i+1 < end) {
@@ -610,19 +607,21 @@ public class BCSTokenMaker extends AbstractTokenMaker
             }
           } else if (c == '"') {
             // string
-            addToken(text, currentTokenStart, i-1, TOKEN_IDENTIFIER, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
             // whitespace
-            addToken(text, currentTokenStart, i-1, TOKEN_IDENTIFIER, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = Token.WHITESPACE;
           } else if (CharOperator.indexOf(c) > -1) {
             // operator
-            addToken(text, currentTokenStart, i-1, TOKEN_IDENTIFIER, newStartOfs+currentTokenStart);
+            addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_OPERATOR;
+          } else {
+            // still identifier
           }
         }   // end of case TOKEN_IDENTIFIER:
         break;
@@ -631,7 +630,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
         {
           try {
             throw new Exception(String.format("Invalid token %1$d found at position %2$d",
-                                              currentTokenType, newStartOfs+currentTokenStart));
+                                              currentTokenType, newStartOfs+i));
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -650,13 +649,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
         break;
 
       default:    // everything else doesn't continue to the next line
-      {
-        if (currentTokenType == TOKEN_NUMBER && tokenIsHexNumber) {
-          currentTokenType = TOKEN_HEXNUMBER;
-        }
         addToken(text, currentTokenStart, end-1, currentTokenType, newStartOfs+currentTokenStart);
         addNullToken();
-      }
     }
 
     return firstToken;

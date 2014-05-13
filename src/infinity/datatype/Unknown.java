@@ -4,7 +4,8 @@
 
 package infinity.datatype;
 
-import infinity.gui.ScrolledTextArea;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
@@ -22,13 +23,10 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public class Unknown extends Datatype implements Editable
 {
   private static final String UNKNOWN = "Unknown";
-  ScrolledTextArea scroll;
-  RSyntaxTextArea textArea;
+  InfinityTextArea textArea;
   byte[] data;
 
   public Unknown(byte[] buffer, int offset, int length)
@@ -56,9 +54,7 @@ public class Unknown extends Datatype implements Editable
     if (data != null && data.length > 0) {
       JButton bUpdate;
       if (textArea == null) {
-        scroll = new ScrolledTextArea(15, 5);
-        scroll.setLineNumbersEnabled(false);
-        textArea = (RSyntaxTextArea)scroll.getTextArea();
+        textArea = new InfinityTextArea(15, 5, true);
         textArea.setWrapStyleWord(true);
         textArea.setLineWrap(true);
         textArea.setEOLMarkersVisible(false);
@@ -68,6 +64,8 @@ public class Unknown extends Datatype implements Editable
       textArea.setText(s.substring(0, s.length() - 2));
       textArea.discardAllEdits();
       textArea.setCaretPosition(0);
+      InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
+      scroll.setLineNumbersEnabled(false);
 
       bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
       bUpdate.addActionListener(container);

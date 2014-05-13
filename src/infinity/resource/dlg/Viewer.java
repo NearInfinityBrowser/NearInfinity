@@ -10,8 +10,8 @@ import infinity.datatype.StringRef;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.InfinityScrollPane;
 import infinity.gui.ScriptTextArea;
-import infinity.gui.ScrolledTextArea;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
@@ -48,8 +48,6 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-
-import org.fife.ui.rtextarea.RTextScrollPane;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
 {
@@ -538,7 +536,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bGoto.setToolTipText("Select attribute");
       bPlay.setToolTipText("Open associated sound");
       if (!useHighlighting) {
-        ScrolledTextArea.setSyntaxHighlighter(textArea, null, null);
+        textArea.applyExtendedSettings(null, null);
       }
       textArea.setEditable(false);
       textArea.setHighlightCurrentLine(false);
@@ -548,11 +546,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       }
       textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       textArea.setFont(BrowserMenuBar.getInstance().getScriptFont());
-      RTextScrollPane scroll = new RTextScrollPane(textArea);
-      if (BrowserMenuBar.getInstance() != null) {
-        scroll.setLineNumbersEnabled(BrowserMenuBar.getInstance().getTextLineNumbers() && useHighlighting);
-      } else {
-        scroll.setLineNumbersEnabled(useHighlighting);
+      InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
+      if (!useHighlighting) {
+        scroll.setLineNumbersEnabled(false);
       }
 
       GridBagLayout gbl = new GridBagLayout();

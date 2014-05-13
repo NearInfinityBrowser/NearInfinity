@@ -1107,20 +1107,20 @@ public final class BrowserMenuBar extends JMenuBar
     };
     // Available color schemes for highlighted BCS format (scheme, title, description)
     private static final String[][] BCSCOLORSCHEME = {
-      new String[]{ScrolledTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
-      new String[]{ScrolledTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
-      new String[]{ScrolledTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
-      new String[]{ScrolledTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
-      new String[]{ScrolledTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
-      new String[]{ScrolledTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
+      new String[]{InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
+      new String[]{InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
+      new String[]{InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
+      new String[]{InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      new String[]{InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
+      new String[]{InfinityTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
     };
     // Available color schemes for remaining highlighted formats (scheme, title, description)
     private static final String[][] COLORSCHEME = {
-      new String[]{ScrolledTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
-      new String[]{ScrolledTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
-      new String[]{ScrolledTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
-      new String[]{ScrolledTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
-      new String[]{ScrolledTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
+      new String[]{InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
+      new String[]{InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
+      new String[]{InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
+      new String[]{InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      new String[]{InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
     };
 
     static {

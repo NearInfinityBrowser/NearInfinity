@@ -7,7 +7,8 @@ package infinity.resource.bcs;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
-import infinity.gui.ScrolledTextArea;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Set;
@@ -47,8 +49,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener,
                                     DocumentListener
@@ -73,7 +73,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   private JTabbedPane tabbedPane;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private RSyntaxTextArea codeText, sourceText;
+  private InfinityTextArea codeText, sourceText;
   private String text;
   private boolean sourceChanged = false;
 
@@ -384,17 +384,15 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    ScrolledTextArea scrollSource = new ScrolledTextArea(text);
-    if (BrowserMenuBar.getInstance() != null &&
-        BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
-      scrollSource.setSyntaxHighlighter(ScrolledTextArea.Language.BCS, null);
-    }
-    sourceText = (RSyntaxTextArea)scrollSource.getTextArea();
+    sourceText = new InfinityTextArea(text, true);
+    sourceText.setCaretPosition(0);
+    sourceText.applyExtendedSettings(InfinityTextArea.Language.BCS, null);
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
     sourceText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     sourceText.setLineWrap(false);
     sourceText.getDocument().addDocumentListener(this);
+    InfinityScrollPane scrollSource = new InfinityScrollPane(sourceText, true);
     scrollSource.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
     JButton bCompile = new JButton("Compile", Icons.getIcon("Redo16.gif"));
@@ -414,13 +412,13 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourcePanel.add(scrollSource, BorderLayout.CENTER);
     sourcePanel.add(bpSource, BorderLayout.SOUTH);
 
-    ScrolledTextArea scrollCode = new ScrolledTextArea();
-    codeText = (RSyntaxTextArea)scrollCode.getTextArea();
+    codeText = new InfinityTextArea(true);
     codeText.setFont(BrowserMenuBar.getInstance().getScriptFont());
     codeText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);
     codeText.getDocument().addDocumentListener(this);
+    InfinityScrollPane scrollCode = new InfinityScrollPane(codeText, true);
     scrollCode.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
     JButton bDecompile = new JButton("Decompile", Icons.getIcon("Undo16.gif"));
@@ -476,10 +474,11 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (sourceText == null)
+    if (sourceText == null) {
       Filewriter.writeString(os, text, text.length());
-    else
-      Filewriter.writeString(os, sourceText.getText(), sourceText.getText().length());
+    } else {
+      sourceText.write(new OutputStreamWriter(os));
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------

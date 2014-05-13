@@ -32,14 +32,16 @@ public class ScriptTextArea extends InfinityTextArea {
   ScriptPopupMenu menu = new ScriptPopupMenu();
 
   public ScriptTextArea() {
-    super();
+    super(true);
 
-    ScrolledTextArea.setupEditor(this, false);
-    if (BrowserMenuBar.getInstance() != null) {
-      if (BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
-        ScrolledTextArea.setSyntaxHighlighter(this, ScrolledTextArea.Language.BCS, null);
-      }
+    Language lang;
+    if (BrowserMenuBar.getInstance() != null &&
+        BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+        lang = Language.BCS;
+    } else {
+      lang = Language.NONE;
     }
+    applyExtendedSettings(lang, null);
 
     addMouseListener(new MouseAdapter() {
       @Override

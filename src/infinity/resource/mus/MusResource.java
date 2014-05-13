@@ -7,7 +7,8 @@ package infinity.resource.mus;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
-import infinity.gui.ScrolledTextArea;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.WindowBlocker;
 import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
@@ -43,8 +44,6 @@ import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public final class MusResource implements Closeable, TextResource, ActionListener, Writeable, ItemListener,
                                           DocumentListener
 {
@@ -56,7 +55,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   private JTabbedPane tabbedPane;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private RSyntaxTextArea editor;
+  private InfinityTextArea editor;
   private Viewer viewer;
   private boolean resourceChanged;
 
@@ -258,8 +257,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
-    ScrolledTextArea scroll = new ScrolledTextArea(text);
-    editor = (RSyntaxTextArea)scroll.getTextArea();
+    editor = new InfinityTextArea(text, true);
     editor.discardAllEdits();
     editor.addCaretListener(caretListener);
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
@@ -278,7 +276,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
 
     JPanel panel2 = new JPanel();
     panel2.setLayout(new BorderLayout());
-    panel2.add(scroll, BorderLayout.CENTER);
+    panel2.add(new InfinityScrollPane(editor, true), BorderLayout.CENTER);
     panel2.add(lowerpanel, BorderLayout.SOUTH);
 
     return panel2;

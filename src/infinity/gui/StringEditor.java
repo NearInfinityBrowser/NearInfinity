@@ -87,8 +87,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   private final JPanel editcontent = new JPanel();
   private final JSlider slider = new JSlider(0, 100, 0);
   private final JTable table = new JTable();
-  private final ScrolledTextArea scroll = new ScrolledTextArea();
-  private final RSyntaxTextArea tatext = (RSyntaxTextArea)scroll.getTextArea();
+  private final RSyntaxTextArea tatext = new InfinityTextArea(true);
   private final JTextField tstrref = new JTextField(5);
   private final StringEditor editor;
   private final java.util.List<StringEntry> added_entries = new ArrayList<StringEntry>();
@@ -165,7 +164,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
     JPanel textPanel = new JPanel(new BorderLayout());
     textPanel.add(new JLabel("String:"), BorderLayout.NORTH);
-    textPanel.add(scroll);
+    textPanel.add(new InfinityScrollPane(tatext, true), BorderLayout.CENTER);
 
     JPanel centerPanel = new JPanel(new GridLayout(1, 3, 6, 0));
     centerPanel.add(attributePanel);

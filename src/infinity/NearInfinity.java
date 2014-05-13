@@ -6,8 +6,8 @@ package infinity;
 
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ChildFrame;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.ResourceTree;
-import infinity.gui.ScrolledTextArea;
 import infinity.gui.StatusBar;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
@@ -47,8 +47,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
   static {
@@ -59,7 +57,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
 
-  private static final ScrolledTextArea consoletext = new ScrolledTextArea();
+  private static final InfinityTextArea consoletext = new InfinityTextArea(true);
   private static final String KEYFILENAME = "chitin.key";
   private static final String WINDOW_SIZEX = "WindowSizeX";
   private static final String WINDOW_SIZEY = "WindowSizeY";
@@ -68,12 +66,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String WINDOW_STATE = "WindowState";
   private static final String LAST_GAMEDIR = "LastGameDir";
   private static NearInfinity browser;
-
-  static {
-    consoletext.setLineNumbersEnabled(false);
-    consoletext.getTextArea().setHighlightCurrentLine(false);
-    ((RSyntaxTextArea)consoletext.getTextArea()).setEOLMarkersVisible(false);
-  }
 
   private final JPanel containerpanel;
   private final ResourceTree tree;
@@ -108,7 +100,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return null;
   }
 
-  public static ScrolledTextArea getConsoleText()
+  public static InfinityTextArea getConsoleText()
   {
     return consoletext;
   }
@@ -160,8 +152,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     } catch (Exception e) { // Try starting anyway if the test goes sour
       e.printStackTrace();
     }
-    System.setOut(new ConsoleStream(System.out, consoletext.getTextArea()));
-    System.setErr(new ConsoleStream(System.err, consoletext.getTextArea()));
+    System.setOut(new ConsoleStream(System.out, consoletext));
+    System.setErr(new ConsoleStream(System.err, consoletext));
     browser = new NearInfinity();
   }
 

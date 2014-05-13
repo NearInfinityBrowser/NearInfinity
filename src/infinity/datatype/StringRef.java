@@ -5,7 +5,8 @@
 package infinity.datatype;
 
 import infinity.gui.ChildFrame;
-import infinity.gui.ScrolledTextArea;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.StringEditor;
 import infinity.gui.StructViewer;
 import infinity.gui.ViewFrame;
@@ -35,13 +36,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
 public final class StringRef extends Datatype implements Editable, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
-  private ScrolledTextArea scroll;
-  private RSyntaxTextArea taRefText;
+  private InfinityTextArea taRefText;
   private JTextField tfRefNr;
   private int value;
 
@@ -103,9 +101,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     if (tfRefNr == null) {
       tfRefNr = new JTextField(8);
       tfRefNr.addActionListener(this);
-      scroll = new ScrolledTextArea(1, 200);
-      scroll.setLineNumbersEnabled(false);
-      taRefText = (RSyntaxTextArea)scroll.getTextArea();
+      taRefText = new InfinityTextArea(1, 200, true);
       taRefText.setHighlightCurrentLine(false);
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
@@ -126,6 +122,8 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
     taRefText.setText(StringResource.getStringRef(value));
     taRefText.setCaretPosition(0);
+    InfinityScrollPane scroll = new InfinityScrollPane(taRefText, true);
+    scroll.setLineNumbersEnabled(false);
     tfRefNr.setText(String.valueOf(value));
     tfRefNr.setMinimumSize(tfRefNr.getPreferredSize());
     JLabel label = new JLabel("StringRef: ");

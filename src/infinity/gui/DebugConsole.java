@@ -120,9 +120,10 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     bsaveconsole.setMnemonic('s');
     bsaveconsole.addActionListener(this);
 
-    ScrolledTextArea taconsole = NearInfinity.getConsoleText();
-    taconsole.getTextArea().setEditable(false);
-    taconsole.getTextArea().setFont(BrowserMenuBar.getInstance().getScriptFont());
+    InfinityTextArea taconsole = NearInfinity.getConsoleText();
+    taconsole.setHighlightCurrentLine(false);
+    taconsole.setEditable(false);
+    taconsole.setFont(BrowserMenuBar.getInstance().getScriptFont());
 
     JPanel lowerpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
     lowerpanel.add(testPopup);
@@ -131,7 +132,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
 
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(taconsole, BorderLayout.CENTER);
+    pane.add(new InfinityScrollPane(taconsole, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
 
     setSize(450, 450);
@@ -144,7 +145,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bclearconsole)
-      NearInfinity.getConsoleText().getTextArea().setText("");
+      NearInfinity.getConsoleText().setText("");
     else if (event.getSource() == bsaveconsole) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save console");
@@ -163,7 +164,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           pw.println(BrowserMenuBar.VERSION);
           pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));
           pw.println();
-          pw.println(NearInfinity.getConsoleText().getTextArea().getText());
+          pw.println(NearInfinity.getConsoleText().getText());
           pw.println();
           Properties props = System.getProperties();
           for (Object key : props.keySet())

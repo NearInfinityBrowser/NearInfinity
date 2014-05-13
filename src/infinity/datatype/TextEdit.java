@@ -4,7 +4,8 @@
 
 package infinity.datatype;
 
-import infinity.gui.ScrolledTextArea;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
@@ -28,7 +29,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.RTextArea;
 
 public final class TextEdit extends Datatype implements Editable
@@ -43,8 +43,7 @@ public final class TextEdit extends Datatype implements Editable
     EOL.put(EOLType.WINDOWS, "\r\n");
   }
 
-  private ScrolledTextArea scroll;
-  private RSyntaxTextArea textArea;
+  private InfinityTextArea textArea;
   private byte[] bytes;
   private String text;
   private EOLType eolType;
@@ -68,9 +67,7 @@ public final class TextEdit extends Datatype implements Editable
   {
     JButton bUpdate;
     if (textArea == null) {
-      scroll = new ScrolledTextArea(1, 200);
-      scroll.setLineNumbersEnabled(false);
-      textArea = (RSyntaxTextArea)scroll.getTextArea();
+      textArea = new InfinityTextArea(1, 200, true);
       textArea.setHighlightCurrentLine(editable);
       textArea.setWrapStyleWord(true);
       textArea.setLineWrap(true);
@@ -79,6 +76,8 @@ public final class TextEdit extends Datatype implements Editable
       textArea.setEditable(editable);
     }
     textArea.setText(toString());
+    InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
+    scroll.setLineNumbersEnabled(false);
 
     bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
     bUpdate.setEnabled(editable);
