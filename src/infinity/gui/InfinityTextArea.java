@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.resource.text.modes.BCSFoldParser;
 import infinity.resource.text.modes.BCSTokenMaker;
+import infinity.resource.text.modes.GLSLTokenMaker;
 
 import java.awt.Color;
 import java.io.FileInputStream;
@@ -85,6 +86,8 @@ public class InfinityTextArea extends RSyntaxTextArea
     // adding custom syntax highlighting definitions
     ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
       .putMapping(BCSTokenMaker.SYNTAX_STYLE_BCS, "infinity.resource.text.modes.BCSTokenMaker");
+    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
+      .putMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL, "infinity.resource.text.modes.GLSLTokenMaker");
 
     // initializing color schemes
     SchemeMap.put(Scheme.NONE, SchemeNone);
@@ -254,7 +257,7 @@ public class InfinityTextArea extends RSyntaxTextArea
           style = BCSTokenMaker.SYNTAX_STYLE_BCS;
           break;
         case GLSL:
-          style = SyntaxConstants.SYNTAX_STYLE_C;
+          style = GLSLTokenMaker.SYNTAX_STYLE_GLSL;
           break;
         case SQL:
           style = SyntaxConstants.SYNTAX_STYLE_SQL;
