@@ -205,7 +205,8 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public JComponent makeViewer(ViewableContainer container)
   {
     editor = new InfinityTextArea(text, true);
-    setSyntaxHighlightingEnabled();
+    InfinityScrollPane pane = new InfinityScrollPane(editor, true);
+    setSyntaxHighlightingEnabled(editor, pane);
     editor.addCaretListener(container.getStatusBar());
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
     editor.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
@@ -229,7 +230,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
-    panel.add(new InfinityScrollPane(editor, true), BorderLayout.CENTER);
+    panel.add(pane, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
     return panel;
@@ -265,7 +266,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     return strings;
   }
 
-  private void setSyntaxHighlightingEnabled()
+  private void setSyntaxHighlightingEnabled(InfinityTextArea edit, InfinityScrollPane pane)
   {
     InfinityTextArea.Language language = InfinityTextArea.Language.NONE;
     if (entry != null) {
@@ -288,7 +289,12 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
         }
       }
     }
-    editor.applyExtendedSettings(language, null);
+    if (edit != null) {
+      edit.applyExtendedSettings(language, null);
+    }
+    if (pane != null) {
+      pane.applyExtendedSettings(language);
+    }
   }
 }
 

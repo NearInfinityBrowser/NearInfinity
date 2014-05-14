@@ -98,11 +98,35 @@ public class InfinityScrollPane extends RTextScrollPane
     if (pane != null) {
       pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
       pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-//      scroll.setFoldIndicatorEnabled(true);
       if (BrowserMenuBar.getInstance() != null) {
         pane.setLineNumbersEnabled(BrowserMenuBar.getInstance().getTextLineNumbers());
       } else {
         pane.setLineNumbersEnabled(false);
+      }
+    }
+  }
+
+  /** Applies language-specific settings to the specified {@link RTextScrollPane} component. */
+  public static void applyExtendedSettings(RTextScrollPane pane, InfinityTextArea.Language language)
+  {
+    if (language != null) {
+      switch (language) {
+        case BCS:
+          if (BrowserMenuBar.getInstance() != null) {
+            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getBcsCodeFoldingEnabled());
+          } else {
+            pane.setFoldIndicatorEnabled(false);
+          }
+          break;
+        case GLSL:
+          if (BrowserMenuBar.getInstance() != null) {
+            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getGlslCodeFoldingEnabled());
+          } else {
+            pane.setFoldIndicatorEnabled(false);
+          }
+          break;
+        default:
+          pane.setFoldIndicatorEnabled(false);
       }
     }
   }
@@ -113,4 +137,9 @@ public class InfinityScrollPane extends RTextScrollPane
     applySettings(this);
   }
 
+  /** Applies language-specific settings to this component. */
+  public void applyExtendedSettings(InfinityTextArea.Language language)
+  {
+    applyExtendedSettings(this, language);
+  }
 }

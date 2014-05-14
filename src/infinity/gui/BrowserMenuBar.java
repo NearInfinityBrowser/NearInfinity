@@ -199,11 +199,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionBCSEnableCodeFolding.isSelected();
   }
 
-  /** Returns state of "BCS: Enable Auto-Completion" */
-  public boolean getBcsAutoCompleteEnabled()
-  {
-    return optionsMenu.optionBCSEnableAutoComplete.isSelected();
-  }
+//  /** Returns state of "BCS: Enable Auto-Completion" */
+//  public boolean getBcsAutoCompleteEnabled()
+//  {
+//    return optionsMenu.optionBCSEnableAutoComplete.isSelected();
+//  }
 
   /** Returns the selected GLSL color scheme. */
   public String getGlslColorScheme()
@@ -227,6 +227,12 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean getSqlSyntaxHighlightingEnabled()
   {
     return optionsMenu.optionSQLEnableSyntax.isSelected();
+  }
+
+  /** Returns state of "Enable Code Folding for GLSL" */
+  public boolean getGlslCodeFoldingEnabled()
+  {
+    return optionsMenu.optionGLSLEnableCodeFolding.isSelected();
   }
 
   /** Returns whether to emulate tabs by inserting spaces instead. */
@@ -1113,6 +1119,7 @@ public final class BrowserMenuBar extends JMenuBar
       new String[]{InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
       new String[]{InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
       new String[]{InfinityTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
+//      new String[]{null, "External color scheme...", "Use an external color scheme definition file"},
     };
     // Available color schemes for remaining highlighted formats (scheme, title, description)
     private static final String[][] COLORSCHEME = {
@@ -1121,6 +1128,7 @@ public final class BrowserMenuBar extends JMenuBar
       new String[]{InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
       new String[]{InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
       new String[]{InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
+//      new String[]{null, "External color scheme...", "Use an external color scheme definition file"},
     };
 
     static {
@@ -1157,10 +1165,11 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_BCS_SYNTAXHIGHLIGHTING   = "BcsSyntaxHighlighting";
     private static final String OPTION_BCS_COLORSCHEME          = "BcsColorScheme";
     private static final String OPTION_BCS_CODEFOLDING          = "BcsCodeFolding";
-    private static final String OPTION_BCS_AUTOCOMPLETE         = "BcsAutoComplete";
+//    private static final String OPTION_BCS_AUTOCOMPLETE         = "BcsAutoComplete";
     private static final String OPTION_BCS_INDENT               = "BcsIndent";
     private static final String OPTION_GLSL_SYNTAXHIGHLIGHTING  = "GlslSyntaxHighlighting";
     private static final String OPTION_GLSL_COLORSCHEME         = "GlslColorScheme";
+    private static final String OPTION_GLSL_CODEFOLDING         = "GlslCodeFolding";
     private static final String OPTION_SQL_SYNTAXHIGHLIGHTING   = "SqlSyntaxHighlighting";
     private static final String OPTION_SQL_COLORSCHEME          = "SqlColorScheme";
 
@@ -1177,8 +1186,9 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
                               optionBCSEnableSyntax, optionBCSEnableCodeFolding,
-                              optionBCSEnableAutoComplete,
-                              optionGLSLEnableSyntax, optionSQLEnableSyntax;
+//                              optionBCSEnableAutoComplete,
+                              optionGLSLEnableSyntax, optionSQLEnableSyntax,
+                              optionGLSLEnableCodeFolding;
     private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
     private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
     private JCheckBoxMenuItem optionShowStrrefs;
@@ -1225,7 +1235,7 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->Text Viewer/Editor->Show Symbols
       JMenu textSymbols = new JMenu("Show Symbols");
       textMenu.add(textSymbols);
-      optionTextShowWhiteSpace = new JCheckBoxMenuItem("Show Whitespace and Tab",
+      optionTextShowWhiteSpace = new JCheckBoxMenuItem("Show Spaces and Tabs",
                                                        prefs.getBoolean(OPTION_TEXT_SYMBOLWHITESPACE, false));
       textSymbols.add(optionTextShowWhiteSpace);
       optionTextShowEOL = new JCheckBoxMenuItem("Show End of Line",
@@ -1284,15 +1294,12 @@ public final class BrowserMenuBar extends JMenuBar
       textBCS.add(optionBCSEnableSyntax);
       optionBCSEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding",
                                                          prefs.getBoolean(OPTION_BCS_CODEFOLDING, false));
-      // TODO: properly implement code folding support first
-      optionBCSEnableCodeFolding.setVisible(false);
-      optionBCSEnableCodeFolding.setEnabled(false);
-      optionBCSEnableCodeFolding.setSelected(false);
       textBCS.add(optionBCSEnableCodeFolding);
-      optionBCSEnableAutoComplete = new JCheckBoxMenuItem("Enable Auto-Completion",
-                                                          prefs.getBoolean(OPTION_BCS_AUTOCOMPLETE, false));
-      optionBCSEnableAutoComplete.setVisible(false);    // TODO: add auto-complete support
-      textBCS.add(optionBCSEnableAutoComplete);
+      // TODO: add auto-complete support
+//      optionBCSEnableAutoComplete = new JCheckBoxMenuItem("Enable Auto-Completion",
+//                                                          prefs.getBoolean(OPTION_BCS_AUTOCOMPLETE, false));
+//      optionBCSEnableAutoComplete.setVisible(false);
+//      textBCS.add(optionBCSEnableAutoComplete);
 
       // Options->Text Viewer/Editor->Misc. Resource Types
       JMenu textMisc = new JMenu("Misc. Resource Types");
@@ -1329,6 +1336,9 @@ public final class BrowserMenuBar extends JMenuBar
       optionSQLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for SQL",
                                                      prefs.getBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionSQLEnableSyntax);
+      optionGLSLEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding for GLSL",
+                                                          prefs.getBoolean(OPTION_GLSL_CODEFOLDING, false));
+      textMisc.add(optionGLSLEnableCodeFolding);
 
       // Options->Text Viewer/Editor (continued)
       optionTextHightlightCurrent = new JCheckBoxMenuItem("Show Highlighted Current Line",
@@ -1631,14 +1641,8 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
       prefs.putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
-//      for (int i = 0; i < selectFont.length; i++)
-//        if (selectFont[i].isSelected())
-//          selectedFont = i;
       prefs.putInt(OPTION_FONT, selectedFont);
       int selectedIndent = getSelectedButtonIndex(selectBcsIndent, 0);
-//      for (int i = 0; i < selectBcsIndent.length; i++)
-//        if (selectBcsIndent[i].isSelected())
-//          selectedIndent = i;
       prefs.putInt(OPTION_BCS_INDENT, selectedIndent);
       prefs.putBoolean(OPTION_TEXT_SHOWCURRENTLINE, optionTextHightlightCurrent.isSelected());
       prefs.putBoolean(OPTION_TEXT_SHOWLINENUMBERS, optionTextLineNumbers.isSelected());
@@ -1646,30 +1650,19 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putBoolean(OPTION_TEXT_SYMBOLEOL, optionTextShowEOL.isSelected());
       prefs.putBoolean(OPTION_TEXT_TABSEMULATED, optionTextTabEmulate.isSelected());
       int selectTabSize = getSelectedButtonIndex(selectTextTabSize, 1);
-//      for (int i = 0; i < selectTextTabSize.length; i++) {
-//        if (selectTextTabSize[i].isSelected()) {
-//          selectTabSize = i;
-//          break;
-//        }
-//      }
       prefs.putInt(OPTION_TEXT_TABSIZE, selectTabSize);
       int selectColorScheme = getSelectedButtonIndex(selectBcsColorScheme, 5);
-//      for (int i = 0; i < selectBcsColorScheme.length; i++) {
-//        if (selectBcsColorScheme[i].isSelected()) {
-//          selectColorScheme = i;
-//          break;
-//        }
-//      }
       prefs.putInt(OPTION_BCS_COLORSCHEME, selectColorScheme);
       prefs.putBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, optionBCSEnableSyntax.isSelected());
       prefs.putBoolean(OPTION_BCS_CODEFOLDING, optionBCSEnableCodeFolding.isSelected());
-      prefs.putBoolean(OPTION_BCS_AUTOCOMPLETE, optionBCSEnableAutoComplete.isSelected());
+//      prefs.putBoolean(OPTION_BCS_AUTOCOMPLETE, optionBCSEnableAutoComplete.isSelected());
       selectColorScheme = getSelectedButtonIndex(selectGlslColorScheme, 0);
       prefs.putInt(OPTION_GLSL_COLORSCHEME, selectColorScheme);
       selectColorScheme = getSelectedButtonIndex(selectSqlColorScheme, 0);
       prefs.putInt(OPTION_SQL_COLORSCHEME, selectColorScheme);
       prefs.putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
       prefs.putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
+      prefs.putBoolean(OPTION_GLSL_CODEFOLDING, optionGLSLEnableCodeFolding.isSelected());
 
       String charset = getSelectedButtonData();
       prefs.put(OPTION_TLKCHARSET, charset);
@@ -1690,6 +1683,33 @@ public final class BrowserMenuBar extends JMenuBar
       return retVal;
     }
 
+//    // Returns the path to a color scheme definition file
+//    private String getColorSchemeFile(String rootPath)
+//    {
+//      if (rootPath == null) {
+//        if (ResourceFactory.getInstance() != null) {
+//          rootPath = ResourceFactory.getRootDir().toString();
+//        } else {
+//          rootPath = ".";
+//        }
+//      }
+//      JFileChooser fc = new JFileChooser(rootPath);
+//      File file = new File(rootPath);
+//      if (!file.isDirectory()) {
+//        fc.setSelectedFile(file);
+//      }
+//      fc.setDialogTitle("Select color scheme definition file");
+//      fc.setDialogType(JFileChooser.OPEN_DIALOG);
+//      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+//      fc.setMultiSelectionEnabled(false);
+//      fc.addChoosableFileFilter(new FileNameExtensionFilter("Color Scheme Definitions (*.xml)", "xml"));
+//      fc.setFileFilter(fc.getChoosableFileFilters()[0]);
+//      if (fc.showOpenDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
+//        return fc.getSelectedFile().toString();
+//      }
+//      return null;
+//    }
+
     public int getTextIndentIndex()
     {
       for (int i = 0; i < selectTextTabSize.length; i++) {
@@ -1702,10 +1722,6 @@ public final class BrowserMenuBar extends JMenuBar
 
     public String getBcsIndent()
     {
-//      for (int i = 0; i < BCSINDENT.length; i++)
-//        if (selectBcsIndent[i].isSelected())
-//          return BCSINDENT[i][0];
-//      return BCSINDENT[2][0];
       int idx = getSelectedButtonIndex(selectBcsIndent, 2);
       return BCSINDENT[idx][0];
     }
@@ -1850,7 +1866,7 @@ public final class BrowserMenuBar extends JMenuBar
       final String[] copyThirdPartyText = new String[]{
           "Most icons (\u00A9) eclipse.org - Common Public License.",
           "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
-          "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
+          "RSyntaxTextArea and AutoComplete (\u00A9) Fifesoft - Berkeley Software Distribution License.",
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
       };
 

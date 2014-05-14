@@ -15,6 +15,11 @@ import org.fife.ui.rsyntaxtextarea.folding.Fold;
 import org.fife.ui.rsyntaxtextarea.folding.FoldParser;
 import org.fife.ui.rsyntaxtextarea.folding.FoldType;
 
+/**
+ * A fold parser for BCS scripts. It supports folding of multiline comments
+ * and IF/END blocks.
+ * @author argent77
+ */
 public class BCSFoldParser implements FoldParser
 {
   private static final char[] BLOCK_START = {'I', 'F'};
@@ -70,7 +75,6 @@ public class BCSFoldParser implements FoldParser
             // a script block starts
             if (curFold == null) {
               curFold = new Fold(FoldType.CODE, textArea, t.getOffset());
-              folds.add(curFold);
             }
           } else if (t.is(Token.RESERVED_WORD, BLOCK_END)) {
             // a script block ends - we don't need to consider nested blocks

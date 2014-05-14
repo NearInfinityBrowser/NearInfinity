@@ -20,6 +20,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.folding.CurlyFoldParser;
 import org.fife.ui.rsyntaxtextarea.folding.FoldParserManager;
 
 /**
@@ -28,7 +29,6 @@ import org.fife.ui.rsyntaxtextarea.folding.FoldParserManager;
  */
 public class InfinityTextArea extends RSyntaxTextArea
 {
-  // TODO: create GLSL highlighting definitions
   /** Available languages for syntax highlighting. */
   public enum Language {
     /** Disables syntax highlighting */
@@ -82,6 +82,7 @@ public class InfinityTextArea extends RSyntaxTextArea
   static {
     // adding custom code folding definitions
     FoldParserManager.get().addFoldParserMapping(BCSTokenMaker.SYNTAX_STYLE_BCS, new BCSFoldParser());
+    FoldParserManager.get().addFoldParserMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL, new CurlyFoldParser());
 
     // adding custom syntax highlighting definitions
     ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
@@ -214,7 +215,6 @@ public class InfinityTextArea extends RSyntaxTextArea
   {
     if (edit != null) {
       edit.setCurrentLineHighlightColor(DefaultLineHighlightColor);
-      edit.setBracketMatchingEnabled(true);
       if (BrowserMenuBar.getInstance() != null) {
         edit.setTabsEmulated(BrowserMenuBar.getInstance().isTextTabEmulated());
         edit.setTabSize(BrowserMenuBar.getInstance().getTextTabSize());
@@ -322,12 +322,25 @@ public class InfinityTextArea extends RSyntaxTextArea
       }
 
 
-      // TODO: handling code folding
-//      if (language == Language.BCS && BrowserMenuBar.getInstance() != null) {
-//        edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getBcsCodeFoldingEnabled());
-//      } else {
-//        edit.setCodeFoldingEnabled(false);
-//      }
+      // apply code folding
+      switch (language) {
+        case BCS:
+          if (BrowserMenuBar.getInstance() != null) {
+            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getBcsCodeFoldingEnabled());
+          } else {
+            edit.setCodeFoldingEnabled(false);
+          }
+          break;
+        case GLSL:
+          if (BrowserMenuBar.getInstance() != null) {
+            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getGlslCodeFoldingEnabled());
+          } else {
+            edit.setCodeFoldingEnabled(false);
+          }
+          break;
+        default:
+          edit.setCodeFoldingEnabled(false);
+      }
     }
   }
 

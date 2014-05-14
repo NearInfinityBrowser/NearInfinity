@@ -10,11 +10,11 @@
 
    <!-- Omitting baseFont will use a system-appropriate monospaced. -->
    <!--<baseFont family="..." size="13"/>-->
-   
+
    <!--  General editor colors. -->
    <background color="ffffff"/>
    <caret color="000000"/>
-   <selection bg="A0A0A0" fg="default"/>
+   <selection bg="C0C0C0" useFG="false" fg="000000"/>
    <currentLineHighlight color="e8e8ff" fade="false"/>
    <marginLine fg="b0b4b9"/>
    <markAllHighlight color="6b8189"/> <!-- TODO: Fix me -->
@@ -32,7 +32,7 @@
    <lineNumbers fg="787878"/>
    <foldIndicator fg="808080" iconBg="ffffff"/>
    <iconRowHeader activeLineRange="3399ff"/>
-   
+
    <!-- Syntax tokens. -->
    <tokenStyles>
       <style token="IDENTIFIER" fg="000000"/>                                   <!-- TOKEN_IDENTIFIER -->
@@ -69,7 +69,7 @@
       <style token="SEPARATOR" fg="000000"/>
       <style token="VARIABLE" fg="008080" bold="true"/>                         <!-- TOKEN_OBJECT -->
       <style token="WHITESPACE" fg="808080"/>                                   <!-- TOKEN_WHITESPACE -->
-      
+
       <style token="ERROR_IDENTIFIER" fg="000000" bg="ffcccc"/>
       <style token="ERROR_NUMBER_FORMAT" fg="000000" bg="ffcccc"/>
       <style token="ERROR_STRING_DOUBLE" fg="000000" bg="ffcccc"/>

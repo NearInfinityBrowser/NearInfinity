@@ -55,7 +55,7 @@ public class LayerObjectActor extends LayerObject
   @Override
   public void close()
   {
-    // TODO
+    // TODO: implement method
     super.close();
   }
 

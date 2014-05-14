@@ -6,6 +6,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.modes.BCSTokenMaker;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 
@@ -28,8 +29,11 @@ import javax.swing.JPopupMenu;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-public class ScriptTextArea extends InfinityTextArea {
-  ScriptPopupMenu menu = new ScriptPopupMenu();
+import org.fife.ui.rsyntaxtextarea.Token;
+
+public class ScriptTextArea extends InfinityTextArea
+{
+  private ScriptPopupMenu menu = new ScriptPopupMenu();
 
   public ScriptTextArea() {
     super(true);
@@ -107,8 +111,8 @@ public class ScriptTextArea extends InfinityTextArea {
           // convert into view coordinates
           rectStart = modelToView(pair[0]);
           rectEnd = modelToView(pair[1]);
-          g2d.drawLine(rectStart.x, rectStart.y + rectStart.height,
-                     rectEnd.x, rectEnd.y + rectEnd.height);
+          g2d.drawLine(rectStart.x, rectStart.y + rectStart.height - 1,
+                     rectEnd.x, rectEnd.y + rectEnd.height - 1);
         }
         g2d.setStroke(oldStroke);
       } catch (BadLocationException e) { }
@@ -118,24 +122,33 @@ public class ScriptTextArea extends InfinityTextArea {
   // looks for "crosslinks" in script lines
   private int[][] findLinksInSection(int start, int end) throws BadLocationException {
     ArrayList<int[]> links = new ArrayList<int[]>();
-    String linetext = getText(start, end - start);
 
-    int posStartToken = -1;
-    for (int i = 0; i < linetext.length(); i++) {
-      if (linetext.charAt(i) == '"') {
-        if (posStartToken != -1) {
-          // found a "word", so check for possible crosslink
-          String token = linetext.substring(posStartToken + 1, i);
-
-          if (findResEntry(linetext, posStartToken + 1, token) != null) {
-            // add it to our list of crosslinks
-            links.add(new int[] { start + posStartToken + 1, start + i });
+    int startLine = getLineOfOffset(start);
+    int endLine = getLineOfOffset(end);
+    for (int i = startLine; i <= endLine; i++) {
+      String lineText = getText().substring(getLineStartOffset(i), getLineEndOffset(i));
+      Token token = getTokenListForLine(i);
+      while (token != null && token.getType() != Token.NULL) {
+        if (token.getOffset() >= start && token.getOffset() + token.length() <= end) {
+          if (token.getType() == BCSTokenMaker.TOKEN_STRING && token.length() > 2) {
+            int ofsTokenFromLineStart = token.getOffset() - getLineStartOffset(i);
+            String text = token.getLexeme().substring(1, token.length() - 1);
+            if (findResEntry(lineText, ofsTokenFromLineStart + 1, text) != null) {
+              // add it to our list of crosslinks
+              links.add(new int[]{start + ofsTokenFromLineStart + 1,
+                                  start + ofsTokenFromLineStart + token.length() - 1});
+            }
+          } else if (token.getType() == BCSTokenMaker.TOKEN_SYMBOL_SPELL) {
+            int ofsTokenFromLineStart = token.getOffset() - getLineStartOffset(i);
+            String text = token.getLexeme();
+            if (findResEntry(lineText, ofsTokenFromLineStart + 1, text) != null) {
+              // add it to our list of crosslinks
+              links.add(new int[]{start + ofsTokenFromLineStart,
+                                  start + ofsTokenFromLineStart + token.length()});
+            }
           }
-          posStartToken = -1;
         }
-        else {
-          posStartToken = i;
-        }
+        token = token.getNextToken();
       }
     }
     return links.toArray(new int[0][0]);
@@ -257,40 +270,14 @@ public class ScriptTextArea extends InfinityTextArea {
 
         // spell.ids
         if (definition.equalsIgnoreCase("I:Spell*Spell")) {
-          IdsMapEntry idsSpell = IdsMapCache.get("spell.ids").lookup(token);
-          if (idsSpell != null) {
-            String spellID = String.valueOf(idsSpell.getID());
-            int type = Character.digit(spellID.charAt(0), 10);
-            String splfile;
-            switch (type) {
-              case 1:
-                splfile = "SPPR";
-                break;
-
-              case 2:
-                splfile = "SPWI";
-                break;
-
-              case 3:
-                splfile = "SPIN";
-                break;
-
-              case 4:
-                splfile = "SPCL";
-                break;
-
-              default:
-                return null;
-            }
-            splfile += spellID.substring(1) + ".SPL";
-            if (ResourceFactory.getInstance().resourceExists(splfile)) {
-              return ResourceFactory.getInstance().getResourceEntry(splfile);
-            }
-
+          // retrieving spell resource specified by symbolic spell name
+          String resName = infinity.resource.spl.Viewer.getResourceName(token, true);
+          if (resName != null && !resName.isEmpty() &&
+              ResourceFactory.getInstance().resourceExists(resName)) {
+            return ResourceFactory.getInstance().getResourceEntry(resName);
+          } else {
+            return null;
           }
-
-          // found nothing, if this line is reached
-          return null;
         }
 
         // guessing
@@ -376,6 +363,9 @@ public class ScriptTextArea extends InfinityTextArea {
 
     return new String[] {};
   }
+
+
+//-------------------------- INNER CLASSES --------------------------
 
   private class ScriptPopupMenu extends JPopupMenu implements ActionListener {
     private ResourceEntry resourceEntry = null;

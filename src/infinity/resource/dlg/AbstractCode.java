@@ -11,6 +11,7 @@ import infinity.datatype.TextString;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.InfinityScrollPane;
 import infinity.gui.ScriptTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
@@ -39,8 +40,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import org.fife.ui.rtextarea.RTextScrollPane;
 
 public abstract class AbstractCode extends Datatype implements Editable, AddRemovable, ActionListener,
                                                                DocumentListener, ItemListener
@@ -178,8 +177,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     bpmWarnings.setEnabled(false);
     buttonPanel.addControl(bpmWarnings, CtrlWarnings);
 
-    RTextScrollPane scroll = new RTextScrollPane(textArea);
-    scroll.setLineNumbersEnabled(true);   // TODO: use preferences
+    InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
