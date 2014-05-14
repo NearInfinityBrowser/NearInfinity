@@ -4,6 +4,7 @@
 
 package infinity.gui.converter;
 
+import infinity.gui.ViewerUtil;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 import java.awt.GridBagConstraints;
@@ -63,19 +64,19 @@ public class BamFilterTransformMirror extends BamFilterBaseTransform implements 
     cbAdjustCenter.addActionListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p.add(cbHorizontal, c);
-    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(cbVertical, c);
-    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     p.add(cbAdjustCenter, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(p, c);
 
     return panel;

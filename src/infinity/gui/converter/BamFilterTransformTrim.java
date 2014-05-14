@@ -4,6 +4,7 @@
 
 package infinity.gui.converter;
 
+import infinity.gui.ViewerUtil;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 import java.awt.GridBagConstraints;
@@ -90,51 +91,51 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
     cbAdjustCenter.addActionListener(this);
 
     JPanel p1 = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p1.add(cbEdges[EDGE_TOP], c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     p1.add(cbEdges[EDGE_LEFT], c);
-    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     p1.add(cbEdges[EDGE_BOTTOM], c);
-    ConvertToBam.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     p1.add(cbEdges[EDGE_RIGHT], c);
 
     JPanel p2 = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     p2.add(spinnerMargin, c);
-    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     p2.add(l3, c);
 
     JPanel pMain = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pMain.add(l1, c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pMain.add(p1, c);
-    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     pMain.add(l2, c);
-    ConvertToBam.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     pMain.add(p2, c);
-    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(12, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(12, 0, 0, 0), 0, 0);
     pMain.add(new JPanel(), c);
-    ConvertToBam.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(12, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(12, 4, 0, 0), 0, 0);
     pMain.add(cbAdjustCenter, c);
 
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(pMain, c);
 
     return panel;

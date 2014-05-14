@@ -79,6 +79,7 @@ import infinity.gui.ChildFrame;
 import infinity.gui.RenderCanvas;
 import infinity.gui.StructViewer;
 import infinity.gui.ViewFrame;
+import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
@@ -700,28 +701,6 @@ public class AreaViewer extends ChildFrame
 //--------------------- End Class ChildFrame ---------------------
 
 
-  private static GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
-                                           int gridWidth, int gridHeight, double weightX, double weightY,
-                                           int anchor, int fill, Insets insets, int iPadX, int iPadY)
-  {
-    if (gbc == null) gbc = new GridBagConstraints();
-
-    gbc.gridx = gridX;
-    gbc.gridy = gridY;
-    gbc.gridwidth = gridWidth;
-    gbc.gridheight = gridHeight;
-    gbc.weightx = weightX;
-    gbc.weighty = weightY;
-    gbc.anchor = anchor;
-    gbc.fill = fill;
-    gbc.insets = (insets == null) ? new Insets(0, 0, 0, 0) : insets;
-    gbc.ipadx = iPadX;
-    gbc.ipady = iPadY;
-
-    return gbc;
-  }
-
-
   // initialize GUI and structures
   private void init()
   {
@@ -748,8 +727,8 @@ public class AreaViewer extends ChildFrame
     rcCanvas.setVerticalAlignment(RenderCanvas.CENTER);
     rcCanvas.setLocation(0, 0);
     rcCanvas.setLayout(null);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pCanvas.add(rcCanvas, c);
     spCanvas = new JScrollPane(pCanvas);
     spCanvas.addComponentListener(this);
@@ -799,11 +778,11 @@ public class AreaViewer extends ChildFrame
     cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
     cbZoomLevel.addActionListener(this);
     JPanel pZoom = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pZoom.add(lZoomLevel, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pZoom.add(cbZoomLevel, c);
 
     JLabel l = new JLabel("Visual State");
@@ -880,8 +859,8 @@ public class AreaViewer extends ChildFrame
       treeControls.expandRow(i);
     }
     treeControls.setMinimumSize(treeControls.getPreferredSize());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.BOTH, new Insets(0, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 4, 4, 4), 0, 0);
     pTree.add(treeControls, c);
 
     // Creating Info Box area
@@ -899,40 +878,40 @@ public class AreaViewer extends ChildFrame
     taInfo.setLineWrap(true);
 
     p = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p.add(lPosXLabel, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     p.add(lPosX, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(lPosYLabel, c);
-    c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
     p.add(lPosY, c);
-    c = setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
     p.add(taInfo, c);
 
     JPanel pInfoBox = new JPanel(new GridBagLayout());
     pInfoBox.setBorder(BorderFactory.createTitledBorder("Information: "));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
     pInfoBox.add(p, c);
 
     // Assembling right side bar
     JPanel pSideBar = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
     pSideBar.add(pTree, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
     pSideBar.add(pInfoBox, c);
     p = new JPanel();
     p.setPreferredSize(new Dimension(pTree.getPreferredSize().width, p.getMinimumSize().height));
-    c = setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     pSideBar.add(p, c);
 
     // Creating toolbar
@@ -1061,11 +1040,11 @@ public class AreaViewer extends ChildFrame
 
     // Putting all together
     JPanel pMain = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pMain.add(pView, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0);
     pMain.add(pSideBar, c);
 
     // setting frame rate for overlay animations to 5 fps (in-game frame rate: 7.5 fps)
@@ -2873,28 +2852,28 @@ public class AreaViewer extends ChildFrame
       GridBagConstraints c = new GridBagConstraints();
       JPanel pHours = new JPanel(new GridBagLayout());
       pHours.setBorder(BorderFactory.createTitledBorder("By hour: "));
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
       pHours.add(sHours, c);
 
       JPanel pTime = new JPanel(new GridBagLayout());
       pTime.setBorder(BorderFactory.createTitledBorder("By lighting condition: "));
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 8, 4, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 8, 4, 0), 0, 0);
       pTime.add(rbDayTime[ViewerConstants.LIGHTING_DAY], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 8, 4, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 8, 4, 0), 0, 0);
       pTime.add(rbDayTime[ViewerConstants.LIGHTING_TWILIGHT], c);
-      c = setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 8, 4, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 8, 4, 8), 0, 0);
       pTime.add(rbDayTime[ViewerConstants.LIGHTING_NIGHT], c);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
       pMain.add(pHours, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
       pMain.add(pTime, c);
 
       add(pMain, BorderLayout.CENTER);

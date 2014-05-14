@@ -1,6 +1,7 @@
 package infinity.gui.converter;
 
 import infinity.gui.ChildFrame;
+import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.ColorConvert;
@@ -298,11 +299,11 @@ public class ConvertToBmp extends ChildFrame
     bAddFolder = new JButton("Add folder...");
     bAddFolder.addActionListener(this);
     JPanel pAdd = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pAdd.add(bAdd, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pAdd.add(bAddFolder, c);
 
     bRemove = new JButton("Remove");
@@ -310,39 +311,39 @@ public class ConvertToBmp extends ChildFrame
     bRemoveAll = new JButton("Remove all");
     bRemoveAll.addActionListener(this);
     JPanel pRemove = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pRemove.add(bRemove, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pRemove.add(bRemoveAll, c);
 
     JPanel pInputButtons = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(pAdd, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(new JPanel(), c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(pRemove, c);
 
     modelInputFiles = new DefaultListModel();
     listInputFiles = new JList(modelInputFiles);
     JScrollPane scroll = new JScrollPane(listInputFiles);
     JPanel pInputFrame = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pInputFrame.add(scroll, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pInputFrame.add(pInputButtons, c);
 
     JPanel pInput = new JPanel(new GridBagLayout());
     pInput.setBorder(BorderFactory.createTitledBorder("Input "));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
     pInput.add(pInputFrame, c);
 
     JLabel lOutput = new JLabel("Directory:");
@@ -362,45 +363,45 @@ public class ConvertToBmp extends ChildFrame
                                            "differs from the source image");
 
     JPanel pOutputDir = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pOutputDir.add(lOutput, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pOutputDir.add(tfOutput, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOutputDir.add(bOutput, c);
 
     JPanel pOutputOptions = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pOutputOptions.add(lOverwrite, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 4, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 4, 0);
     pOutputOptions.add(cbOverwrite, c);
-    c = setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pOutputOptions.add(cbEnableAlpha, c);
-    c = setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pOutputOptions.add(new JPanel(), c);
-    c = setGBC(c, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
     pOutputOptions.add(cbFixPremultipliedAlpha, c);
 
     JPanel pOutputFrame = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pOutputFrame.add(pOutputDir, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pOutputFrame.add(pOutputOptions, c);
 
     JPanel pOutput = new JPanel(new GridBagLayout());
     pOutput.setBorder(BorderFactory.createTitledBorder("Output "));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
     pOutput.add(pOutputFrame, c);
 
     cbCloseOnExit = new JCheckBox("Close dialog after conversion", true);
@@ -413,25 +414,25 @@ public class ConvertToBmp extends ChildFrame
     i = bCancel.getInsets();
     bCancel.setMargin(new Insets(i.top + 2, i.left, i.bottom + 2, i.right));
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(cbCloseOnExit, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bConvert, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     setLayout(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
     add(pInput, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 8), 0, 0);
     add(pOutput, c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
     add(pButtons, c);
 
     setPreferredSize(new Dimension(getPreferredSize().width+50, getPreferredSize().height + 50));
@@ -440,28 +441,6 @@ public class ConvertToBmp extends ChildFrame
     setLocationRelativeTo(getParent());
     updateStatus();
     setVisible(true);
-  }
-
-  private GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
-                                    int gridWidth, int gridHeight, double weightX, double weightY,
-                                    int anchor, int fill, Insets insets, int iPadX, int iPadY)
-  {
-    if (gbc == null)
-      gbc = new GridBagConstraints();
-
-    gbc.gridx = gridX;
-    gbc.gridy = gridY;
-    gbc.gridwidth = gridWidth;
-    gbc.gridheight = gridHeight;
-    gbc.weightx = weightX;
-    gbc.weighty = weightY;
-    gbc.anchor = anchor;
-    gbc.fill = fill;
-    gbc.insets = (insets == null) ? new Insets(0, 0, 0, 0) : insets;
-    gbc.ipadx = iPadX;
-    gbc.ipady = iPadY;
-
-    return gbc;
   }
 
   private void clear()

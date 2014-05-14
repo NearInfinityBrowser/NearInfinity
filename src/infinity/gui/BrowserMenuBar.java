@@ -1866,7 +1866,7 @@ public final class BrowserMenuBar extends JMenuBar
       final String[] copyThirdPartyText = new String[]{
           "Most icons (\u00A9) eclipse.org - Common Public License.",
           "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
-          "RSyntaxTextArea and AutoComplete (\u00A9) Fifesoft - Berkeley Software Distribution License.",
+          "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
       };
 

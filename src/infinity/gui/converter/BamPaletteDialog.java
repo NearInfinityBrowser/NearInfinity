@@ -6,6 +6,7 @@ package infinity.gui.converter;
 
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ColorGrid;
+import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
@@ -517,8 +518,8 @@ class BamPaletteDialog extends JDialog
     cgPalette.addActionListener(this);
     cgPalette.addMouseOverListener(this);
     cgPalette.addChangeListener(this);
-    c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 2, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 2, 4), 0, 0);
     pPalette.add(cgPalette, c);
 
     // creating information panel
@@ -533,26 +534,26 @@ class BamPaletteDialog extends JDialog
     lInfoRGB = new JLabel(String.format(FmtInfoRGB, 255, 255, 255));
     lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 255, 255, 255));
     lInfoHexRGB.setMinimumSize(lInfoHexRGB.getPreferredSize());
-    c = ConvertToBam.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
     pInfo.add(lInfoType, c);
-    c = ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
     pInfo.add(lInfoIndexTitle, c);
-    c = ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
     pInfo.add(lInfoIndex, c);
-    c = ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
     pInfo.add(lInfoRGBTitle, c);
-    c = ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
     pInfo.add(lInfoRGB, c);
-    c = ConvertToBam.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
     pInfo.add(lInfoHexRGBTitle, c);
-    c = ConvertToBam.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
     pInfo.add(lInfoHexRGB, c);
 
     // creating color edit panel
@@ -569,29 +570,29 @@ class BamPaletteDialog extends JDialog
     tfColorGreen.addFocusListener(this);
     tfColorBlue = new JTextField(4);
     tfColorBlue.addFocusListener(this);
-    c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pColor.add(lColorIndexTitle, c);
-    c = ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 10, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 10, 0, 4), 0, 0);
     pColor.add(lColorIndex, c);
-    c = ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
     pColor.add(lColorRedTitle, c);
-    c = ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
     pColor.add(tfColorRed, c);
-    c = ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
     pColor.add(lColorGreenTitle, c);
-    c = ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
     pColor.add(tfColorGreen, c);
-    c = ConvertToBam.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
     pColor.add(lColorBlueTitle, c);
-    c = ConvertToBam.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
     pColor.add(tfColorBlue, c);
     pColor.setMinimumSize(pColor.getPreferredSize());
 
@@ -614,49 +615,49 @@ class BamPaletteDialog extends JDialog
     tfCompressedColor.setText("0");
     tfCompressedColor.setToolTipText("The compressed color index for RLE encoded frames");
     tfCompressedColor.addFocusListener(this);
-    c = ConvertToBam.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 4), 0, 0);
     pOptions.add(bpmPalette, c);
-    c = ConvertToBam.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(8, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 0, 0, 4), 0, 0);
     pOptions.add(cbLockPalette, c);
-    c = ConvertToBam.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
     pOptions.add(lCompressedColor, c);
-    c = ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
     pOptions.add(tfCompressedColor, c);
 
     // putting right sidebar together
     JPanel pSideBar = new JPanel(new GridBagLayout());
-    c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pSideBar.add(pInfo, c);
-    c = ConvertToBam.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pSideBar.add(pColor, c);
-    c = ConvertToBam.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pSideBar.add(pOptions, c);
 
     JPanel pBottom = new JPanel(new GridBagLayout());
     bClose = new JButton("Close");
     bClose.addActionListener(this);
     bClose.setMargin(new Insets(4, bClose.getInsets().left, 4, bClose.getInsets().right));
-    c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pBottom.add(bClose, c);
 
     // putting all together
     JPanel pMain = new JPanel(new GridBagLayout());
-    c = ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
     pMain.add(pPalette, c);
-    c = ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 4, 4), 0, 0);
     pMain.add(pSideBar, c);
-    c = ConvertToBam.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 8, 0), 0, 0);
     pMain.add(pBottom, c);
 
     setLayout(new BorderLayout());

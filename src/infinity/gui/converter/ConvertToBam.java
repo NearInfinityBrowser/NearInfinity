@@ -79,6 +79,7 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ChildFrame;
 import infinity.gui.FixedFocusTraversalPolicy;
 import infinity.gui.RenderCanvas;
+import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
@@ -362,29 +363,6 @@ public class ConvertToBam extends ChildFrame
       }
     }
     return fileName;
-  }
-
-  /** Initializes and returns a GridBagConstraints instance. */
-  static GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
-                                   int gridWidth, int gridHeight, double weightX, double weightY,
-                                   int anchor, int fill, Insets insets, int iPadX, int iPadY)
-  {
-    if (gbc == null)
-      gbc = new GridBagConstraints();
-
-    gbc.gridx = gridX;
-    gbc.gridy = gridY;
-    gbc.gridwidth = gridWidth;
-    gbc.gridheight = gridHeight;
-    gbc.weightx = weightX;
-    gbc.weighty = weightY;
-    gbc.anchor = anchor;
-    gbc.fill = fill;
-    gbc.insets = (insets == null) ? new Insets(0, 0, 0, 0) : insets;
-    gbc.ipadx = iPadX;
-    gbc.ipady = iPadY;
-
-    return gbc;
   }
 
 
@@ -912,26 +890,26 @@ public class ConvertToBam extends ChildFrame
     i = bCancel.getInsets();
     bCancel.setMargin(new Insets(i.top + 1, i.left, i.bottom + 1, i.right));
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bOptions, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(cbCloseOnExit, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bConvert, c);
-    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     // putting all sections together
     setLayout(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
     add(tpMain, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
     add(pButtons, c);
 
     // finalizing dialog initialization
@@ -960,11 +938,11 @@ public class ConvertToBam extends ChildFrame
     bFramesDown = new JButton(Icons.getIcon("Down16.gif"));
     bFramesDown.setMargin(new Insets(bFramesDown.getInsets().top, 2, bFramesDown.getInsets().bottom, 2));
     bFramesDown.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
     pFramesListArrows.add(bFramesUp, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
     pFramesListArrows.add(bFramesDown, c);
 
     JPanel pFramesAdd = new JPanel(new GridBagLayout());
@@ -979,8 +957,8 @@ public class ConvertToBam extends ChildFrame
                                                                  miFramesImportBam});
     bpmFramesAdd.setIcon(Icons.getIcon("ArrowUp15.gif"));
     bpmFramesAdd.setIconTextGap(8);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFramesAdd.add(bpmFramesAdd, c);
 
     JPanel pFramesRemove = new JPanel(new GridBagLayout());
@@ -995,19 +973,19 @@ public class ConvertToBam extends ChildFrame
                                                                        miFramesDropUnused});
     bpmFramesRemove.setIcon(Icons.getIcon("ArrowUp15.gif"));
     bpmFramesRemove.setIconTextGap(8);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFramesRemove.add(bpmFramesRemove, c);
 
     JPanel pFramesListButtons = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFramesListButtons.add(pFramesAdd, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pFramesListButtons.add(new JPanel(), c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFramesListButtons.add(pFramesRemove, c);
 
     JPanel pFramesList = new JPanel(new GridBagLayout());
@@ -1018,17 +996,17 @@ public class ConvertToBam extends ChildFrame
     listFrames.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFrames.addListSelectionListener(this);
     JScrollPane scroll = new JScrollPane(listFrames);
-    c = setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
     pFramesList.add(lFramesTitle, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pFramesList.add(scroll, c);
-    c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.VERTICAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.VERTICAL, new Insets(0, 8, 0, 0), 0, 0);
     pFramesList.add(pFramesListArrows, c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pFramesList.add(pFramesListButtons, c);
 
     // creating "Current Frame" section
@@ -1053,32 +1031,32 @@ public class ConvertToBam extends ChildFrame
     cbCompressFrame = new JCheckBox("Compress frame");
     cbCompressFrame.setToolTipText("Selecting this option activates RLE compression for the current frame(s).");
     cbCompressFrame.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesWidth, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(tfFrameWidth, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesCenterX, c);
-    c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
     pFramesCurFrame.add(tfFrameCenterX, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesHeight, c);
-    c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(tfFrameHeight, c);
-    c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesCenterY, c);
-    c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
     pFramesCurFrame.add(tfFrameCenterY, c);
-    c = setGBC(c, 0, 2, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
     pFramesCurFrame.add(cbCompressFrame, c);
     Component[] orderList = new Component[]{tfFrameWidth, tfFrameHeight, tfFrameCenterX, tfFrameCenterY};
     pFramesCurFrame.setFocusTraversalPolicy(new FixedFocusTraversalPolicy(orderList));
@@ -1088,22 +1066,22 @@ public class ConvertToBam extends ChildFrame
     JPanel pFramesQuickView = new JPanel(new GridBagLayout());
     pFramesQuickView.setBorder(BorderFactory.createTitledBorder("Quick Preview "));
     rcFramesPreview = new RenderCanvas(new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
     pFramesQuickView.add(rcFramesPreview, c);
     pFramesQuickView.setMinimumSize(pFramesQuickView.getPreferredSize());
 
     // creating "Import" section
     JPanel pFramesImport = new JPanel(new GridBagLayout());
     pFramesImport.setBorder(BorderFactory.createTitledBorder("Import "));
-    c = setGBC(c, 0, 0, 1, 2, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 16), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 2, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 16), 0, 0);
     pFramesImport.add(pFramesList, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 4), 0, 0);
     pFramesImport.add(pFramesCurFrame, c);
-    c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 4), 0, 0);
     pFramesImport.add(pFramesQuickView, c);
 
     // creating "Export options" sections
@@ -1113,11 +1091,11 @@ public class ConvertToBam extends ChildFrame
     cbCompressBam.addActionListener(this);
     bPalette = new JButton("Palette...");
     bPalette.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV1.add(bPalette, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV1.add(cbCompressBam, c);
 
     JPanel pFramesOptionsVersionV2 = new JPanel(new GridBagLayout());
@@ -1132,20 +1110,20 @@ public class ConvertToBam extends ChildFrame
     bCompressionHelp.setMargin(new Insets(2, 4, 2, 4));
     bCompressionHelp.setToolTipText("About compression types");
     bCompressionHelp.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV2.add(lPvrzIndex, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFramesOptionsVersionV2.add(sPvrzIndex, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pFramesOptionsVersionV2.add(lFramesCompression, c);
-    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
     pFramesOptionsVersionV2.add(cbCompression, c);
-    c = setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
     pFramesOptionsVersionV2.add(bCompressionHelp, c);
 
     pFramesOptionsVersion = new JPanel(new CardLayout());
@@ -1163,26 +1141,26 @@ public class ConvertToBam extends ChildFrame
     bVersionHelp.setMargin(new Insets(2, 4, 2, 4));
     bVersionHelp.setToolTipText("About BAM versions");
     bVersionHelp.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(8, 4, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 4, 8, 0), 0, 0);
     pFramesExport.add(lFramesVersion, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
     pFramesExport.add(cbVersion, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFramesExport.add(bVersionHelp, c);
-    c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pFramesExport.add(pFramesOptionsVersion, c);
 
     // putting all together
     JPanel pFrames = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
     pFrames.add(pFramesImport, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 8, 8), 0, 0);
     pFrames.add(pFramesExport, c);
 
     return pFrames;
@@ -1200,14 +1178,14 @@ public class ConvertToBam extends ChildFrame
     bCyclesRemove.addActionListener(this);
     bCyclesRemoveAll = new JButton("Remove all");
     bCyclesRemoveAll.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pCyclesButtons.add(bCyclesAdd, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     pCyclesButtons.add(bCyclesRemove, c);
-    c = setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     pCyclesButtons.add(bCyclesRemoveAll, c);
 
     JPanel pCyclesArrows = new JPanel(new GridBagLayout());
@@ -1217,11 +1195,11 @@ public class ConvertToBam extends ChildFrame
     bCyclesDown = new JButton(Icons.getIcon("Down16.gif"));
     bCyclesDown.setMargin(new Insets(bCyclesDown.getInsets().top, 2, bCyclesDown.getInsets().bottom, 2));
     bCyclesDown.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
     pCyclesArrows.add(bCyclesUp, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
     pCyclesArrows.add(bCyclesDown, c);
 
     JPanel pCyclesList = new JPanel(new GridBagLayout());
@@ -1232,17 +1210,17 @@ public class ConvertToBam extends ChildFrame
     listCycles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCycles.addListSelectionListener(this);
     JScrollPane scroll = new JScrollPane(listCycles);
-    c = setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
     pCyclesList.add(lCycles, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pCyclesList.add(scroll, c);
-    c = setGBC(c, 1, 1, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
     pCyclesList.add(pCyclesArrows, c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pCyclesList.add(pCyclesButtons, c);
 
     // creating Macros/Preview section
@@ -1266,49 +1244,49 @@ public class ConvertToBam extends ChildFrame
     bMacroReverseCycles = new JButton("Reverse cycles order");
     bMacroReverseCycles.addActionListener(this);
     JPanel pMacroPanel = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pMacroPanel.add(lMacroCurCycle, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroAssignFrames, c);
-    c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroRemoveFrames, c);
-    c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroDuplicateFrames, c);
-    c = setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroDuplicateCycle, c);
-    c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroSortFramesAsc, c);
-    c = setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroReverseFrames, c);
-    c = setGBC(c, 0, 4, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 4, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
     pMacroPanel.add(lMacroAllCycles, c);
-    c = setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroRemoveAll, c);
-    c = setGBC(c, 1, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroReverseCycles, c);
-    c = setGBC(c, 0, 6, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 6, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pMacroPanel.add(new JPanel(), c);
 
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 8, 8, 8), 0, 0);
     pMacros.add(pMacroPanel, c);
     pMacros.setMinimumSize(pMacros.getPreferredSize());
 
     JPanel pPreview = new JPanel(new GridBagLayout());
     rcCyclesPreview = new RenderCanvas(new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
     pPreview.add(rcCyclesPreview, c);
     pPreview.setMinimumSize(pPreview.getPreferredSize());
 
@@ -1318,11 +1296,11 @@ public class ConvertToBam extends ChildFrame
     tpCyclesSection.setSelectedIndex(0);
 
     JPanel pTopHalf = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 8, 0, 0), 0, 0);
     pTopHalf.add(pCyclesList, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
     pTopHalf.add(tpCyclesSection, c);
 
     // creating "Current Cycles" section
@@ -1335,11 +1313,11 @@ public class ConvertToBam extends ChildFrame
     bCurCycleRemove.setMargin(new Insets(2, bCurCycleRemove.getInsets().left,
                                          2, bCurCycleRemove.getInsets().right));
     bCurCycleRemove.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 8, 0);
     pCycleTransfer.add(bCurCycleAdd, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 8, 0);
     pCycleTransfer.add(bCurCycleRemove, c);
 
     JPanel pCurCycleArrows = new JPanel(new GridBagLayout());
@@ -1349,11 +1327,11 @@ public class ConvertToBam extends ChildFrame
     bCurCycleDown = new JButton(Icons.getIcon("Down16.gif"));
     bCurCycleDown.setMargin(new Insets(bCurCycleDown.getInsets().top, 2, bCurCycleDown.getInsets().bottom, 2));
     bCurCycleDown.addActionListener(this);
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
     pCurCycleArrows.add(bCurCycleUp, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
     pCurCycleArrows.add(bCurCycleDown, c);
 
     JLabel lCurCycleFrames = new JLabel("Available frames:");
@@ -1374,32 +1352,32 @@ public class ConvertToBam extends ChildFrame
 
     pCurrentCycle = new JPanel(new GridBagLayout());
     pCurrentCycle.setBorder(BorderFactory.createTitledBorder("No cycle selected "));
-    c = setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pCurrentCycle.add(lCurCycleFrames, c);
-    c = setGBC(c, 2, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pCurrentCycle.add(lCurCycle, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 0), 0, 0);
     pCurrentCycle.add(scroll, c);
-    c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
     pCurrentCycle.add(pCycleTransfer, c);
-    c = setGBC(c, 2, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 0, 4, 0), 0, 0);
     pCurrentCycle.add(scroll2, c);
-    c = setGBC(c, 3, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.VERTICAL, new Insets(4, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.VERTICAL, new Insets(4, 4, 0, 4), 0, 0);
     pCurrentCycle.add(pCurCycleArrows, c);
 
     // putting all together
     JPanel pCycles = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
     pCycles.add(pTopHalf, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 2.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 2.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
     pCycles.add(pCurrentCycle, c);
 
     return pCycles;
@@ -1439,29 +1417,29 @@ public class ConvertToBam extends ChildFrame
     bPreviewStop = new JButton("Stop", Icons.getIcon("Stop16.gif"));
     bPreviewStop.addActionListener(this);
     JPanel pControls = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(lPreviewCycle, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pControls.add(bPreviewCyclePrev, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 2, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 2, 0, 0), 0, 0);
     pControls.add(bPreviewCycleNext, c);
-    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(lPreviewFrame, c);
-    c = setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pControls.add(bPreviewFramePrev, c);
-    c = setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 2, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 2, 0, 0), 0, 0);
     pControls.add(bPreviewFrameNext, c);
-    c = setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(bPreviewPlay, c);
-    c = setGBC(c, 7, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pControls.add(bPreviewStop, c);
 
     JLabel lFps = new JLabel("Frames/second:");
@@ -1478,23 +1456,23 @@ public class ConvertToBam extends ChildFrame
     cbPreviewZoom = new JCheckBox("Zoom");
     cbPreviewZoom.addActionListener(this);
     JPanel pOptions = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(lPreviewMode, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOptions.add(cbPreviewMode, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pOptions.add(lFps, c);
-    c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pOptions.add(sPreviewFps, c);
-    c = setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pOptions.add(cbPreviewZoom, c);
-    c = setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pOptions.add(cbPreviewShowMarker, c);
 
     JPanel pCanvas = new JPanel(new GridBagLayout());
@@ -1507,20 +1485,20 @@ public class ConvertToBam extends ChildFrame
     scrollPreview.setBorder(BorderFactory.createEmptyBorder());
     previewCanvas = null;
 
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pCanvas.add(scrollPreview, c);
 
     // putting all together
     JPanel pPreview = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 8), 0, 0);
     pPreview.add(pOptions, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
     pPreview.add(pCanvas, c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
     pPreview.add(pControls, c);
 
     timer = new Timer(0, this);
@@ -1545,11 +1523,11 @@ public class ConvertToBam extends ChildFrame
     bFiltersAdd = new JButton("Add");
     bFiltersAdd.addActionListener(this);
     JPanel pFiltersAdd = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersAdd.add(cbFiltersAdd, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFiltersAdd.add(bFiltersAdd, c);
 
     bFiltersRemove = new JButton("Remove");
@@ -1557,14 +1535,14 @@ public class ConvertToBam extends ChildFrame
     bFiltersRemoveAll = new JButton("Remove all");
     bFiltersRemoveAll.addActionListener(this);
     JPanel pFiltersRemove = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersRemove.add(bFiltersRemove, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersRemove.add(new JPanel(), c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFiltersRemove.add(bFiltersRemoveAll, c);
 
     bFiltersUp = new JButton(Icons.getIcon("Up16.gif"));
@@ -1574,11 +1552,11 @@ public class ConvertToBam extends ChildFrame
     bFiltersDown.setMargin(new Insets(16, 2, 16, 2));
     bFiltersDown.addActionListener(this);
     JPanel pFiltersMove = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersMove.add(bFiltersUp, c);
-    c = setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     pFiltersMove.add(bFiltersDown, c);
 
     JPanel pFiltersDesc = new JPanel(new GridBagLayout());
@@ -1592,8 +1570,8 @@ public class ConvertToBam extends ChildFrame
     taFiltersDesc.setSelectedTextColor(l.getForeground());
     taFiltersDesc.setWrapStyleWord(true);
     taFiltersDesc.setLineWrap(true);
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersDesc.add(taFiltersDesc, c);
 
     modelFilters = new DefaultListModel();
@@ -1605,26 +1583,26 @@ public class ConvertToBam extends ChildFrame
 
     JPanel pFiltersList = new JPanel(new GridBagLayout());
     pFiltersList.setBorder(BorderFactory.createTitledBorder("Filters "));
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     pFiltersList.add(pFiltersAdd, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 4), 0, 0);
     pFiltersList.add(new JPanel(), c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(4, 4, 0, 0), 0, 0);
     pFiltersList.add(scroll, c);
-    c = setGBC(c, 1, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.VERTICAL, new Insets(4, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.VERTICAL, new Insets(4, 4, 0, 4), 0, 0);
     pFiltersList.add(pFiltersMove, c);
-    c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     pFiltersList.add(pFiltersRemove, c);
-    c = setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.NONE, new Insets(0, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 4), 0, 0);
     pFiltersList.add(new JPanel(), c);
-    c = setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 0), 0, 0);
     pFiltersList.add(pFiltersDesc, c);
 
 
@@ -1632,8 +1610,8 @@ public class ConvertToBam extends ChildFrame
     JPanel pFiltersSettingsMain = new JPanel(new GridBagLayout());
     pFiltersSettingsMain.setBorder(BorderFactory.createTitledBorder("Filter settings "));
     pFiltersSettings = new JPanel(new BorderLayout());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 4, 4, 4), 0, 0);
     pFiltersSettingsMain.add(pFiltersSettings, c);
 
     // creating "Quick Preview" section
@@ -1645,17 +1623,17 @@ public class ConvertToBam extends ChildFrame
     sFiltersPreviewFrame.addChangeListener(this);
     JPanel pDummy = new JPanel();
     pDummy.setPreferredSize(cbFiltersShowMarker.getPreferredSize());
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 4, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 0, 4, 8), 0, 0);
     pFiltersPreviewControls.add(cbFiltersShowMarker, c);
-    c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 0, 4, 0), 0, 0);
     pFiltersPreviewControls.add(l, c);
-    c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
     pFiltersPreviewControls.add(sFiltersPreviewFrame, c);
-    c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-               GridBagConstraints.NONE, new Insets(4, 0, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 0, 4, 4), 0, 0);
     pFiltersPreviewControls.add(pDummy, c);
 
     JPanel pFiltersPreview = new JPanel(new GridBagLayout());
@@ -1670,24 +1648,24 @@ public class ConvertToBam extends ChildFrame
     scrollFiltersPreview.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
     scrollFiltersPreview.setBorder(BorderFactory.createEmptyBorder());
 
-    c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
     pFiltersPreview.add(scrollFiltersPreview, c);
-    c = setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
     pFiltersPreview.add(pFiltersPreviewControls, c);
 
 
     // putting all together
     JPanel pFilters = new JPanel(new GridBagLayout());
-    c = setGBC(c, 0, 0, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
     pFilters.add(pFiltersList, c);
-    c = setGBC(c, 1, 0, 1, 1, 1.0, 0.5, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.5, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
     pFilters.add(pFiltersSettingsMain, c);
-    c = setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-               GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
     pFilters.add(pFiltersPreview, c);
 
     updateFilterList();

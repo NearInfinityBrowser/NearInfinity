@@ -5,6 +5,7 @@
 package infinity.gui.converter;
 
 import infinity.gui.ButtonPopupWindow;
+import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
@@ -89,14 +90,14 @@ public class BamFilterColorBCG extends BamFilterBaseColor
     bpwExclude.addActionListener(this);
     bpwExclude.setEnabled(getConverter().isBamV1Selected());
     JPanel pExclude = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pExclude.add(l1, c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     pExclude.add(bpwExclude, c);
-    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pExclude.add(new JPanel(), c);
 
     JLabel lb = new JLabel("Brightness:");
@@ -122,42 +123,42 @@ public class BamFilterColorBCG extends BamFilterBaseColor
     spinnerGamma.addChangeListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     p.add(lb, c);
-    ConvertToBam.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(sliderBrightness, c);
-    ConvertToBam.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     p.add(spinnerBrightness, c);
 
-    ConvertToBam.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(lc, c);
-    ConvertToBam.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderContrast, c);
-    ConvertToBam.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerContrast, c);
 
-    ConvertToBam.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     p.add(lg, c);
-    ConvertToBam.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderGamma, c);
-    ConvertToBam.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerGamma, c);
-    ConvertToBam.setGBC(c, 0, 3, 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 3, 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     p.add(pExclude, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+                      GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(p, c);
 
     return panel;

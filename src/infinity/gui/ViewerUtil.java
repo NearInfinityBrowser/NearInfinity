@@ -25,6 +25,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -238,6 +239,28 @@ public final class ViewerUtil
     panel.add(scroll, BorderLayout.CENTER);
     panel.setPreferredSize(new Dimension(5, 5));
     return panel;
+  }
+
+  /** Initializes a {@link GridBagConstraints} instance. */
+  public static GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
+                                          int gridWidth, int gridHeight, double weightX, double weightY,
+                                          int anchor, int fill, Insets insets, int iPadX, int iPadY)
+  {
+    if (gbc == null) gbc = new GridBagConstraints();
+
+    gbc.gridx = gridX;
+    gbc.gridy = gridY;
+    gbc.gridwidth = gridWidth;
+    gbc.gridheight = gridHeight;
+    gbc.weightx = weightX;
+    gbc.weighty = weightY;
+    gbc.anchor = anchor;
+    gbc.fill = fill;
+    gbc.insets = (insets == null) ? new Insets(0, 0, 0, 0) : insets;
+    gbc.ipadx = iPadX;
+    gbc.ipady = iPadY;
+
+    return gbc;
   }
 
   private ViewerUtil(){}

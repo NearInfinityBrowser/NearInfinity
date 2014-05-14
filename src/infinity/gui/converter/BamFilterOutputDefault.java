@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import infinity.gui.ViewerUtil;
 import infinity.resource.graphics.DxtEncoder;
 import infinity.resource.graphics.PseudoBamDecoder;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
@@ -58,8 +59,8 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput
     JLabel l = new JLabel("No settings available.", SwingConstants.CENTER);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ConvertToBam.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(l, c);
 
     return panel;

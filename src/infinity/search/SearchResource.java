@@ -55,6 +55,7 @@ import infinity.datatype.Kit2daBitmap.KitlistEntry;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewFrame;
+import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractAbility;
@@ -359,28 +360,28 @@ public class SearchResource extends ChildFrame
       clOptions.show(pFindOptions, optionPanels[0]);
       pFindOptions.addPropertyChangeListener(propertyOptions, this);
       JPanel pFindPanel = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pFindPanel.add(lResType, c);
-      c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pFindPanel.add(cbResourceType, c);
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 16, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 16, 0);
       pFindPanel.add(bSearch, c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pFindPanel.add(new JPanel(), c);
-      c = setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       pFindPanel.add(bShowHideOptions, c);
-      c = setGBC(c, 0, 1, 5, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 5, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
       pFindPanel.add(pFindOptions, c);
 
       JPanel pFindMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(4, 4, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 4, 0, 4), 0, 0);
       pFindMain.add(pFindPanel, c);
 
       // creating Results section
@@ -405,19 +406,19 @@ public class SearchResource extends ChildFrame
       });
       JScrollPane scroll = new JScrollPane(listResults);
       JPanel pResult = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pResult.add(lResult, c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       pResult.add(lResults, c);
-      c = setGBC(c, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
       pResult.add(scroll, c);
 
       JPanel pResultMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
       pResultMain.add(pResult, c);
 
       // creating bottom bar for buttons and progress
@@ -434,26 +435,26 @@ public class SearchResource extends ChildFrame
       bOpenNew.setEnabled(false);
       bOpenNew.addActionListener(this);
       JPanel pBottomButtons = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pBottomButtons.add(new JPanel(), c);
-      c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pBottomButtons.add(bInsertRef, c);
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pBottomButtons.add(bOpen, c);
-      c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pBottomButtons.add(bOpenNew, c);
-      c = setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 4), 0, 0);
       pBottomButtons.add(new JPanel(), c);
 
       JPanel pBottomProgress = new JPanel(new GridBagLayout());
       pbProgress = new JProgressBar();
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       pBottomProgress.add(pbProgress, c);
 
       clBottomBar = new CardLayout(0, 0);
@@ -463,20 +464,20 @@ public class SearchResource extends ChildFrame
       clBottomBar.show(pBottomBar, "buttons");
 
       JPanel pBottomMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
       pBottomMain.add(pBottomBar, c);
 
       // putting all together
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(4, 4, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 4, 0, 4), 0, 0);
       pMain.add(pFindMain, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(4, 4, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 4, 0, 4), 0, 0);
       pMain.add(pResultMain, c);
-      c = setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
       pMain.add(pBottomMain, c);
 
       getContentPane().setLayout(new BorderLayout());
@@ -491,27 +492,6 @@ public class SearchResource extends ChildFrame
     } finally {
       pm.close();
     }
-  }
-
-  private static GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
-                                           int gridWidth, int gridHeight, double weightX, double weightY,
-                                           int anchor, int fill, Insets insets, int iPadX, int iPadY)
-  {
-    if (gbc == null) gbc = new GridBagConstraints();
-
-    gbc.gridx = gridX;
-    gbc.gridy = gridY;
-    gbc.gridwidth = gridWidth;
-    gbc.gridheight = gridHeight;
-    gbc.weightx = weightX;
-    gbc.weighty = weightY;
-    gbc.anchor = anchor;
-    gbc.fill = fill;
-    gbc.insets = (insets == null) ? new Insets(0, 0, 0, 0) : insets;
-    gbc.ipadx = iPadX;
-    gbc.ipady = iPadY;
-
-    return gbc;
   }
 
 
@@ -807,57 +787,57 @@ public class SearchResource extends ChildFrame
       bpwLocation.addActionListener(this);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_AreaScript], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(cbScript, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Actor], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbActor, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Animation], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbAnimation, c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Item], c);
-      c = setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbItem, c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_AreaType], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(bpwType, c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Location], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwLocation, c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -1278,87 +1258,87 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Name], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(tfName, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_ScriptName], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(tfScriptName, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Flags], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwFlags, c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Level], c);
-      c = setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwLevel, c);
-      c = setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Type], c);
-      c = setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwTypes, c);
-      c = setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Animation], c);
-      c = setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbAnimation, c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Scripts], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(bpwScripts, c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_GameSpecific], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwGameSpecific, c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Spells], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwSpells, c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Items], c);
-      c = setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwItems, c);
-      c = setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Effects], c);
-      c = setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwEffects, c);
-      c = setGBC(c, 2, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -1598,69 +1578,69 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Effect], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sOpcode[0], sOpcode[1]), c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Param1], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sParam1[0], sParam1[1]), c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Param2], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sParam2[0], sParam2[1]), c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_TimingMode], c);
-      c = setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwTiming, c);
-      c = setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_SaveType], c);
-      c = setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwSaveType, c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Resource1], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(tfResource1, c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Resource2], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(tfResource2, c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Resource3], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(tfResource3, c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -2047,81 +2027,81 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Name], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(tfName, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Flags], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwFlags, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Category], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbCategory, c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Usability], c);
-      c = setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwUsability, c);
-      c = setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Appearance], c);
-      c = setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbAppearance, c);
-      c = setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Stats], c);
-      c = setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwStats, c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Price], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sPrice[0], sPrice[1]), c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Enchantment], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sEnchantment[0], sEnchantment[1]), c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Ability], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwAbility, c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Effects], c);
-      c = setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwEffects, c);
-      c = setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -2382,75 +2362,75 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Animation], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(cbAnimation, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Type], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbType, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Speed], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sSpeed[0], sSpeed[1]), c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Behavior], c);
-      c = setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwBehavior, c);
-      c = setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Flags], c);
-      c = setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwFlags, c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_AreaFlags], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(bpwAreaFlags, c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_TrapSize], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sTrapSize[0], sTrapSize[1]), c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_ExplosionSize], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sExplosionSize[0], sExplosionSize[1]), c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_ExplosionEffect], c);
-      c = setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbExplosionEffect, c);
-      c = setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -2772,81 +2752,81 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Name], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(tfName, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Flags], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwFlags, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_SpellType], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbSpellType, c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Exclusion], c);
-      c = setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwExclusion, c);
-      c = setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_CastingAnimation], c);
-      c = setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbCastingAnim, c);
-      c = setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Level], c);
-      c = setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sLevel[0], sLevel[1]), c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_PrimaryType], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(cbPrimary, c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_SecondaryType], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbSecondary, c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Ability], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwAbility, c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Effects], c);
-      c = setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwEffects, c);
-      c = setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -3170,87 +3150,87 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Name], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(tfName, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Type], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(cbType, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Flags], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwFlags, c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_RoomsAvailable], c);
-      c = setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwRoomsAvailable, c);
-      c = setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_SellMarkup], c);
-      c = setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sSellMarkup[0], sSellMarkup[1]), c);
-      c = setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_BuyMarkup], c);
-      c = setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sBuyMarkup[0], sBuyMarkup[1]), c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Depreciation], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sDepreciation[0], sDepreciation[1]), c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Stealing], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sStealing[0], sStealing[1]), c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Capacity], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(Utils.createNumberRangePanel(sCapacity[0], sCapacity[1]), c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Purchased], c);
-      c = setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwPurchased, c);
-      c = setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Items], c);
-      c = setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwItemsForSale, c);
-      c = setGBC(c, 2, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -3411,51 +3391,51 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       JPanel pOptions = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Animation], c);
-      c = setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(cbAnimation, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Flags], c);
-      c = setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwFlags, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Color], c);
-      c = setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwColor, c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Sequencing], c);
-      c = setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
       pOptions.add(bpwSequencing, c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Orientation], c);
-      c = setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwOrientation, c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       pOptions.add(cbOptions[ID_Custom], c);
-      c = setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
       pOptions.add(bpwCustomFilter, c);
 
       triggerActions(cbOptions);
 
-      c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 8), 0, 0);
       add(pOptions, c);
-      c = setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       add(new JPanel(), c);
     }
   }
@@ -3578,8 +3558,8 @@ public class SearchResource extends ChildFrame
           col++;
         }
 
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                   GridBagConstraints.NONE,
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.NONE,
                    new Insets((row == 0) ? 0 : 4, (col == 0) ? 0 : 16, 0, 0), 0, 0);
         pBits.add(cbFlags[i], c);
       }
@@ -3597,30 +3577,30 @@ public class SearchResource extends ChildFrame
       cbExact = new JCheckBox("Exact match");
       cbExact.setToolTipText("Unchecked: Matching set bits only. Checked: Matching the exact state of the flags.");
       JPanel pBottom = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(bAll, c);
-      c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
       pBottom.add(bNone, c);
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
       pBottom.add(bInvert, c);
-      c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
-                 GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
+                            GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
       pBottom.add(cbExact, c);
-      c = setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_END,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_END,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(new JPanel(), c);
 
 
       // putting all together
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
       pMain.add(pBits, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(pBottom, c);
 
       add(pMain, BorderLayout.CENTER);
@@ -3719,19 +3699,19 @@ public class SearchResource extends ChildFrame
           row = i;
           col = 0;
         }
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(Utils.createNumberRangePanel(sEffects[i][0], sEffects[i][1]), c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -3901,8 +3881,8 @@ public class SearchResource extends ChildFrame
         case FILTER_STRING:
         {
           tfFieldValueString[entry] = Utils.defaultWidth(new JTextField());
-          c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                     GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
           panel.add(tfFieldValueString[entry], c);
           break;
         }
@@ -3912,8 +3892,8 @@ public class SearchResource extends ChildFrame
               Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, Short.MIN_VALUE, Short.MAX_VALUE, 0, 1);
           sFieldValueNumber[entry][1] =
               Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, Short.MIN_VALUE, Short.MAX_VALUE, Short.MAX_VALUE, 1);
-          c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                     GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
           panel.add(Utils.createNumberRangePanel(sFieldValueNumber[entry][0], sFieldValueNumber[entry][1]), c);
           break;
         }
@@ -3924,11 +3904,11 @@ public class SearchResource extends ChildFrame
           cbFieldValueResource[entry] = new JComboBox();
           cbFieldValueResource[entry].setPrototypeDisplayValue(Utils.ProtoTypeString);
           updateResourceList(entry, (String)cbFieldValueResourceType[entry].getSelectedItem());
-          c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                     GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
           panel.add(cbFieldValueResource[entry], c);
-          c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                     GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+          c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
           panel.add(cbFieldValueResourceType[entry], c);
           break;
         }
@@ -3941,8 +3921,8 @@ public class SearchResource extends ChildFrame
               "Bit 24", "Bit 25", "Bit 26", "Bit 27", "Bit 28", "Bit 29", "Bit 30", "Bit 31"};
           pFieldValueFlags[entry] = new FlagsPanel(4, flagsDesc);
           bpwFieldValueFlags[entry] = new ButtonPopupWindow(setOptionsText, pFieldValueFlags[entry]);
-          c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                     GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
           panel.add(bpwFieldValueFlags[entry], c);
           break;
         }
@@ -3992,32 +3972,32 @@ public class SearchResource extends ChildFrame
         }
 
         JPanel panel = new JPanel(new GridBagLayout());
-        c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
         panel.add(cbFilterType[i], c);
-        c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         panel.add(new JPanel(), c);
-        c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
         panel.add(new JLabel("Field name:"), c);
-        c = setGBC(c, 1, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 1, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
         panel.add(tfFieldName[i], c);
-        c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
         panel.add(new JLabel("Field value:"), c);
-        c = setGBC(c, 1, 2, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 1, 2, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
         panel.add(pFilterValue[i], c);
 
         pEntry[i] = new JPanel(new GridBagLayout());
         pEntry[i].setBorder(BorderFactory.createEtchedBorder());
-        c = setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
         pEntry[i].add(panel, c);
 
       }
@@ -4033,16 +4013,17 @@ public class SearchResource extends ChildFrame
           row = i;
           col = 0;
         }
-        c = setGBC(c, col, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((row > 0) ? 8 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((row > 0) ? 8 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(pEntry[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4140,24 +4121,24 @@ public class SearchResource extends ChildFrame
       // placing components
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       panel.add(cbTiming[TIMING_MODE], c);
-      c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       panel.add(cbMode, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
       panel.add(cbTiming[TIMING_DURATION], c);
-      c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sDuration[0], sDuration[1]), c);
 
       triggerActions(cbTiming);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4241,25 +4222,25 @@ public class SearchResource extends ChildFrame
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
       for (int i = 0; i < label.length; i++) {
-        c = setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
         panel.add(cbLevel[i], c);
-        c = setGBC(c, 1, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 1, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(sLevel[i][0], c);
-        c = setGBC(c, 2, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 4, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 2, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 4, 0, 0), 0, 0);
         panel.add(new JLabel("to"), c);
-        c = setGBC(c, 3, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 4, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 3, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 4, 0, 0), 0, 0);
         panel.add(sLevel[i][1], c);
       }
 
       triggerActions(cbLevel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4365,19 +4346,19 @@ public class SearchResource extends ChildFrame
         int row = i % (EntryCount / 2);
         int col = (i < EntryCount / 2) ? 0 : 2;
 
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLevel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(Utils.createNumberRangePanel(sLevel[i][0], sLevel[i][1]), c);
       }
 
       triggerActions(cbLevel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4537,19 +4518,20 @@ public class SearchResource extends ChildFrame
         int row = i % ((EntryCount+1) / 2);
         int col = (i < (EntryCount+1) / 2) ? 0 : 2;
 
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE,
+                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(cbType[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4662,19 +4644,19 @@ public class SearchResource extends ChildFrame
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
       for (int i = 0; i < EntryCount; i++) {
-        c = setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, 1, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 1, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(bpwFlags[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4770,19 +4752,20 @@ public class SearchResource extends ChildFrame
           row = i;
           col = 0;
         }
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE,
+                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(cbItems[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4877,19 +4860,21 @@ public class SearchResource extends ChildFrame
           row = i;
           col = 0;
         }
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE,
+                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(cbSpells[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -4984,19 +4969,21 @@ public class SearchResource extends ChildFrame
           row = i;
           col = 0;
         }
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE,
+                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(cbScripts[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -5115,19 +5102,19 @@ public class SearchResource extends ChildFrame
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
       for (int i = 0; i < EntryCount; i++) {
-        c = setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, 1, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 1, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(bpwFlags[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -5233,25 +5220,29 @@ public class SearchResource extends ChildFrame
           col = 4;
           row = 0;
         }
-        c = setGBC(c, col+0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets((row == 0) ? 0 : 4, (col == 0) ? 0 : 16, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((row == 0) ? 0 : 4, (col == 0) ? 0 : 16, 0, 0), 0, 0);
         panel.add(cbStats[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets((row == 0) ? 0 : 4, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((row == 0) ? 0 : 4, 8, 0, 0), 0, 0);
         panel.add(sStats[i][0], c);
-        c = setGBC(c, col+2, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets((row == 0) ? 0 : 4, 4, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+2, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((row == 0) ? 0 : 4, 4, 0, 0), 0, 0);
         panel.add(new JLabel("to"), c);
-        c = setGBC(c, col+3, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets((row == 0) ? 0 : 4, 4, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+3, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((row == 0) ? 0 : 4, 4, 0, 0), 0, 0);
         panel.add(sStats[i][1], c);
       }
 
       triggerActions(cbStats);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -5552,93 +5543,93 @@ public class SearchResource extends ChildFrame
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
       // first column
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_TYPE], c);
-      c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       panel.add(cbType, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_TARGET], c);
-      c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(cbTarget, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_LAUNCHER], c);
-      c = setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(cbLauncher, c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_RANGE], c);
-      c = setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sRange[0], sRange[1]), c);
-      c = setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_DICECOUNT], c);
-      c = setGBC(c, 1, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sDiceCount[0], sDiceCount[1]), c);
-      c = setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_DICESIZE], c);
-      c = setGBC(c, 1, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sDiceSize[0], sDiceSize[1]), c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_SPEED], c);
-      c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sSpeed[0], sSpeed[1]), c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_CHARGES], c);
-      c = setGBC(c, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sCharges[0], sCharges[1]), c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_FLAGS], c);
-      c = setGBC(c, 3, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(bpwFlags, c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_DAMAGETYPE], c);
-      c = setGBC(c, 3, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(cbDamageType, c);
-      c = setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_PROJECTILE], c);
-      c = setGBC(c, 3, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(cbProjectile, c);
-      c = setGBC(c, 2, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbItems[ITEM_EFFECTS], c);
-      c = setGBC(c, 3, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(bpwEffects, c);
 
       triggerActions(cbItems);
 
       JPanel pBottom = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(cbOneAbilityExclusive, c);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
       pMain.add(panel, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(pBottom, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -5855,69 +5846,69 @@ public class SearchResource extends ChildFrame
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
       // first column
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_TYPE], c);
-      c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       panel.add(cbType, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_LOCATION], c);
-      c = setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(cbLocation, c);
-      c = setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_TARGET], c);
-      c = setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(cbTarget, c);
-      c = setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_RANGE], c);
-      c = setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sRange[0], sRange[1]), c);
 
-      c = setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_LEVEL], c);
-      c = setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sLevel[0], sLevel[1]), c);
-      c = setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_SPEED], c);
-      c = setGBC(c, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(Utils.createNumberRangePanel(sSpeed[0], sSpeed[1]), c);
-      c = setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_PROJECTILE], c);
-      c = setGBC(c, 3, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(cbProjectile, c);
-      c = setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
       panel.add(cbSpells[SPELL_EFFECTS], c);
-      c = setGBC(c, 3, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       panel.add(bpwEffects, c);
 
       triggerActions(cbSpells);
 
       JPanel pBottom = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(cbOneAbilityExclusive, c);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
       pMain.add(panel, c);
-      c = setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(pBottom, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -6018,19 +6009,21 @@ public class SearchResource extends ChildFrame
           row = i;
           col = 0;
         }
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.NONE, new Insets((i == 0) ? 0 : 4, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE,
+                              new Insets((i == 0) ? 0 : 4, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets((i == 0) ? 0 : 4, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((i == 0) ? 0 : 4, 8, 0, 0), 0, 0);
         panel.add(cbCategory[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                 GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -6123,19 +6116,21 @@ public class SearchResource extends ChildFrame
           row = i;
           col = 0;
         }
-        c = setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE,
+                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
-        c = setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL,
+                              new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
         panel.add(cbItems[i], c);
       }
 
       triggerActions(cbLabel);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
@@ -6418,14 +6413,14 @@ public class SearchResource extends ChildFrame
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
       if (min != null && max != null) {
-        c = setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         panel.add(min, c);
-        c = setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
         panel.add(new JLabel("to"), c);
-        c = setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                   GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
         panel.add(max, c);
       }
 
