@@ -217,7 +217,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
         int result = JOptionPane.showOptionDialog(NearInfinity.getInstance(), output + " exists. Overwrite?",
                                                   "Save resource", JOptionPane.YES_NO_OPTION,
                                                   JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if (result == 1) return;
+        if (result != 0) return;
       }
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);

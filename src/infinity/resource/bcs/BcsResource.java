@@ -226,7 +226,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
         int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
                                                   JOptionPane.YES_NO_OPTION,
                                                   JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if (result == 1) {
+        if (result != 0) {
           return;
         }
       }
@@ -257,7 +257,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
           throw new Exception("Save aborted");
         }
         ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-      } else if (result == 2)
+      } else if (result == 2 || result == JOptionPane.CLOSED_OPTION)
         throw new Exception("Save aborted");
     } else if (codeChanged) {
       File output;
@@ -274,7 +274,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0) {
         ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-      } else if (result == 2) {
+      } else if (result != 1) {
         throw new Exception("Save aborted");
       }
     }

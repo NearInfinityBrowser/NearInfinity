@@ -158,7 +158,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
         try {

@@ -155,7 +155,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
         if (output.exists()) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
         try {

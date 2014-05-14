@@ -177,7 +177,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
                                                   JOptionPane.YES_NO_OPTION,
                                                   JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if (result == 1)
+        if (result != 0)
           return;
       }
       if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor())) {
@@ -246,7 +246,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0)
         ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-      else if (result == 2)
+      else if (result != 1)
         throw new Exception("Save aborted");
     }
   }

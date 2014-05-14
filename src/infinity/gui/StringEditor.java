@@ -504,7 +504,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           int result = JOptionPane.showOptionDialog(editor, output + " exists. Overwrite?",
                                                     "Save resource", JOptionPane.YES_NO_OPTION,
                                                     JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-          if (result == 1) {
+          if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
             bexport.setEnabled(true);
             bsave.setEnabled(true);
             breread.setEnabled(true);
@@ -569,7 +569,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
                                                     "Save resource", JOptionPane.YES_NO_OPTION,
                                                     JOptionPane.WARNING_MESSAGE, null,
                                                     options, options[0]);
-          if (result == 1) {
+          if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
             bexport.setEnabled(true);
             bsave.setEnabled(true);
             breread.setEnabled(true);

@@ -169,7 +169,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0)
         ResourceFactory.getInstance().saveResource((Resource)this, viewer.getTopLevelAncestor());
-      else if (result == 2)
+      else if (result != 1)
         throw new Exception("Save aborted");
     }
     if (viewer != null)

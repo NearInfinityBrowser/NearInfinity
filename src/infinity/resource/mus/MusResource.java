@@ -105,7 +105,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0) {
         ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-      } else if (result == 2) {
+      } else if (result != 1) {
         throw new Exception("Save aborted");
       }
     }

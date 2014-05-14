@@ -495,6 +495,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final ResInfo RESOURCE[] = {
       new ResInfo(StructureFactory.ResType.RES_2DA, "2DA"),
       new ResInfo(StructureFactory.ResType.RES_ARE, "ARE"),
+      new ResInfo(StructureFactory.ResType.RES_BAF, "BAF"),
       new ResInfo(StructureFactory.ResType.RES_BCS, "BCS"),
       new ResInfo(StructureFactory.ResType.RES_BIO, "BIO",
                   new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
@@ -625,7 +626,7 @@ public final class BrowserMenuBar extends JMenuBar
                                                                      entry +
                                                                      '?',
                                          "Delete file", JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
           return;
         NearInfinity.getInstance().removeViewable();
         ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
@@ -965,7 +966,7 @@ public final class BrowserMenuBar extends JMenuBar
       String options[] = {"Continue", "Cancel"};
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), infolabel,
                                        "Keyfile cleanup", JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return;
       boolean updated = ResourceFactory.getKeyfile().cleanUp();
       if (!updated)

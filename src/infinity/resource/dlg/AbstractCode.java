@@ -223,7 +223,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
       String options[] = {"Update", "Cancel"};
       if (JOptionPane.showOptionDialog(textArea.getTopLevelAncestor(), "Errors exist. Update anyway?", "Update value",
                                        JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return true;
     }
     text = textArea.getText();

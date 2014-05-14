@@ -25,9 +25,9 @@ public final class StructureFactory
 {
   // Supported resource types
   public static enum ResType {
-    RES_2DA, RES_ARE, RES_BCS, RES_BIO, RES_CHR, RES_CRE, RES_EFF, RES_IDS,
-    RES_INI, RES_ITM, RES_PRO, RES_RES, RES_SPL, RES_SRC, RES_STO, RES_VEF,
-    RES_VVC, RES_WED, RES_WFX, RES_WMAP
+    RES_2DA, RES_ARE, RES_BAF, RES_BCS, RES_BIO, RES_CHR, RES_CRE, RES_EFF,
+    RES_IDS, RES_INI, RES_ITM, RES_PRO, RES_RES, RES_SPL, RES_SRC, RES_STO,
+    RES_VEF, RES_VVC, RES_WED, RES_WFX, RES_WMAP
   }
 
   private static final EnumMap<ResType, String> resExt = new EnumMap<ResType, String>(ResType.class);
@@ -36,6 +36,7 @@ public final class StructureFactory
   static {
     resExt.put(ResType.RES_2DA, "2DA");
     resExt.put(ResType.RES_ARE, "ARE");
+    resExt.put(ResType.RES_BAF, "BAF");
     resExt.put(ResType.RES_BCS, "BCS");
     resExt.put(ResType.RES_BIO, "BIO");
     resExt.put(ResType.RES_CHR, "CHR");
@@ -95,7 +96,7 @@ public final class StructureFactory
       if (fileExists) {
         final String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, output + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
           return;
       }
       try {
@@ -164,6 +165,7 @@ public final class StructureFactory
     switch (type) {
       case RES_2DA:  return create2DA(game);
       case RES_ARE:  return createARE(game, fileName);
+      case RES_BAF:  return createBAF(game);
       case RES_BCS:  return createBCS(game);
       case RES_BIO:  return createRES(game, parent);
       case RES_CHR:  return createCHR(game, parent);
@@ -248,6 +250,15 @@ public final class StructureFactory
     s_are.add(ResourceStructure.ID_ARRAY, 228);             // block of zeros
 
     return s_are;
+  }
+
+  private ResourceStructure createBAF(int id) throws StructureException
+  {
+    ResourceStructure s_baf = new ResourceStructure();
+    final String s = "// Empty BCS script" + System.getProperty("line.separator");
+    s_baf.add(ResourceStructure.ID_STRING, s);
+
+    return s_baf;
   }
 
   private ResourceStructure createBCS(int id) throws StructureException
