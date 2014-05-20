@@ -309,10 +309,14 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       }
       workerConvert = null;
     }
-    tileImages.clear();
-    tileImages = null;
-    tileGrid.clearImages();
-    tileGrid = null;
+    if (tileImages != null) {
+      tileImages.clear();
+      tileImages = null;
+    }
+    if (tileGrid != null) {
+      tileGrid.clearImages();
+      tileGrid = null;
+    }
     if (decoder != null) {
       decoder.close();
       decoder = null;
@@ -343,6 +347,10 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       rpc = (RootPaneContainer)container;
     } else {
       rpc = NearInfinity.getInstance();
+    }
+
+    if (decoder == null) {
+      return new JPanel(new BorderLayout());
     }
 
     int tileCount = decoder.getTileCount();
@@ -453,12 +461,16 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       WindowBlocker.blockWindow(true);
 
       decoder = TisDecoder.loadTis(entry);
-      int tileCount = decoder.getTileCount();
-      tileImages = new ArrayList<Image>(tileCount);
-      for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
-        BufferedImage image = ColorConvert.createCompatibleImage(64, 64, Transparency.BITMASK);
-        decoder.getTile(tileIdx, image);
-        tileImages.add(image);
+      if (decoder != null) {
+        int tileCount = decoder.getTileCount();
+        tileImages = new ArrayList<Image>(tileCount);
+        for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
+          BufferedImage image = ColorConvert.createCompatibleImage(64, 64, Transparency.BITMASK);
+          decoder.getTile(tileIdx, image);
+          tileImages.add(image);
+        }
+      } else {
+        throw new Exception("No TIS resource loaded");
       }
       WindowBlocker.blockWindow(false);
     } catch (Exception e) {
