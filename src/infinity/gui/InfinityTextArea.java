@@ -4,11 +4,13 @@
 
 package infinity.gui;
 
+import infinity.NearInfinity;
 import infinity.resource.text.modes.BCSFoldParser;
 import infinity.resource.text.modes.BCSTokenMaker;
 import infinity.resource.text.modes.GLSLTokenMaker;
 
 import java.awt.Color;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -269,7 +271,6 @@ public class InfinityTextArea extends RSyntaxTextArea
 
 
       // applying color scheme
-      boolean isExternal = false;   // TODO: to be implemented - use external color scheme definition
       String schemePath;
       if (scheme != null) {
         // applying explicit color scheme
@@ -300,6 +301,7 @@ public class InfinityTextArea extends RSyntaxTextArea
         }
       }
 
+      boolean isExternal = (NearInfinity.isDebug() && (new File(schemePath)).isFile());
       InputStream is;
       if (isExternal) {
         try {
