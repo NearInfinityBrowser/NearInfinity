@@ -30,6 +30,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import org.fife.ui.rsyntaxtextarea.Token;
+import org.fife.ui.rsyntaxtextarea.folding.Fold;
 
 public class ScriptTextArea extends InfinityTextArea
 {
@@ -126,6 +127,20 @@ public class ScriptTextArea extends InfinityTextArea
     int startLine = getLineOfOffset(start);
     int endLine = getLineOfOffset(end);
     for (int i = startLine; i <= endLine; i++) {
+      // skipping folded lines
+      boolean folded = false;
+      for (int j = 0; j < getFoldManager().getFoldCount(); j++) {
+        Fold fold = getFoldManager().getFold(j);
+        if (fold.isCollapsed() && i >= fold.getStartLine() && i <= fold.getEndLine()) {
+          folded = true;
+          break;
+        }
+      }
+      if (folded) {
+        continue;
+      }
+
+      // looking for crosslinks
       String lineText = getText().substring(getLineStartOffset(i), getLineEndOffset(i));
       Token token = getTokenListForLine(i);
       while (token != null && token.getType() != Token.NULL) {
