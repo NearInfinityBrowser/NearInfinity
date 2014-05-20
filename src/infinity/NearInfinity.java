@@ -57,6 +57,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
 
+  private static final boolean DEBUG = false;    // indicates whether to enable debugging features
+
   private static final InfinityTextArea consoletext = new InfinityTextArea(true);
   private static final String KEYFILENAME = "chitin.key";
   private static final String WINDOW_SIZEX = "WindowSizeX";
@@ -72,6 +74,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
   private Viewable viewable;
+
+
+  public static boolean isDebug()
+  {
+    return DEBUG;
+  }
 
   private static File findKeyfile()
   {
