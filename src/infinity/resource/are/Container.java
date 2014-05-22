@@ -16,6 +16,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasDetailViewer;
+import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
@@ -24,12 +25,13 @@ import javax.swing.JComponent;
 public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasDetailViewer,
                                                                HasAddRemovable
 {
-  private static final String s_type[] = {
-    "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
-    "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
+  private static final String s_type[] = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
+                                           "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
   private static final String s_yesno[] = {"No", "Yes"};
   private static final String s_flag[] = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
                                            "", "Disabled" };
+  private static final String s_flag_ee[] = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
+                                              "", "Disabled", "Don't clear" };
 
   public Container() throws Exception
   {
@@ -160,7 +162,12 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     list.add(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
     list.add(new Bitmap(buffer, offset + 36, 2, "Type", s_type));
     list.add(new DecNumber(buffer, offset + 38, 2, "Lock difficulty"));
-    list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag_ee));
+    } else {
+      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
+    }
     list.add(new DecNumber(buffer, offset + 44, 2, "Trap detection difficulty"));
     list.add(new DecNumber(buffer, offset + 46, 2, "Trap removal difficulty"));
     list.add(new Bitmap(buffer, offset + 48, 2, "Is trapped?", s_yesno));
