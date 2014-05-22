@@ -202,7 +202,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       for (int i = startrow; i < tree.getRowCount(); i++) {
         TreePath path = tree.getPathForRow(i);
         if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-            path.getLastPathComponent().toString().startsWith(currentkey)) {
+            path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
           showresource = false;
           tree.scrollPathToVisible(path);
           tree.addSelectionPath(path);
@@ -213,7 +213,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         for (int i = 0; i < startrow; i++) {
           TreePath path = tree.getPathForRow(i);
           if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-              path.getLastPathComponent().toString().startsWith(currentkey)) {
+              path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
             showresource = false;
             tree.scrollPathToVisible(path);
             tree.addSelectionPath(path);
