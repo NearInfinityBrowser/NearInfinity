@@ -16,7 +16,9 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 public final class WbmResource implements Resource, ActionListener
 {
@@ -59,8 +61,11 @@ public final class WbmResource implements Resource, ActionListener
   {
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
+    JLabel l = new JLabel("Playback not supported.", SwingConstants.CENTER);
+
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
+    panel.add(l, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
     return panel;
