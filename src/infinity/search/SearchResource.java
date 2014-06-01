@@ -4498,7 +4498,7 @@ public class SearchResource extends ChildFrame
           kitList[i] = new ObjectString(ids[i].getString(), new Integer((int)ids[i].getID()));
         }
       } else if (hasKit) {
-        Kit2daBitmap kit = new Kit2daBitmap(new byte[]{0,0,0,0}, 0);
+        Kit2daBitmap kit = new Kit2daBitmap(new byte[]{0,0,0,0}, 0, false);
         kitList = new StorageString[kit.getKitsCount()];
         for (int i = 0; i < kitList.length; i++) {
           KitlistEntry e = kit.getKit(i);

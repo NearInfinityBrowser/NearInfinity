@@ -1192,7 +1192,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 570, 2, "Morale recovery"));
 //    list.add(new Unknown(buffer, offset + 571, 1));
     if (ResourceFactory.getInstance().resourceExists("KITLIST.2DA"))
-      list.add(new Kit2daBitmap(buffer, offset + 572));
+      list.add(new Kit2daBitmap(buffer, offset + 572, false));
     else {
       if (ResourceFactory.getInstance().resourceExists("DEITY.IDS"))
         list.add(new IdsBitmap(buffer, offset + 572, 2, "Deity", "DEITY.IDS"));

@@ -35,7 +35,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
   private static final LongIntegerHashMap<KitlistEntry> kitsNumber = new LongIntegerHashMap<KitlistEntry>();
   private static final LongIntegerHashMap<KitlistEntry> kitsUnusable = new LongIntegerHashMap<KitlistEntry>();
   private TextListPanel list;
-  private boolean useUnusable = true;
+  private boolean useUnusable;
   private long value;
 
   private static void parseKitlist()
@@ -89,11 +89,17 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
   public Kit2daBitmap(byte buffer[], int offset)
   {
+    this(buffer, offset, true);
+  }
+
+  public Kit2daBitmap(byte buffer[], int offset, boolean useUnusable)
+  {
     super(offset, 4, "Kit");
+    this.useUnusable = useUnusable;
     if (kitsNumber.size() == 0)
       parseKitlist();
     if (buffer[offset + 3] == 0x40) {
-      useUnusable = false;
+      this.useUnusable = false;
       value = (long)buffer[offset + 2];
     }
     else {
