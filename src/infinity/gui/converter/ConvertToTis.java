@@ -684,17 +684,35 @@ public class ConvertToTis extends ChildFrame
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bConvert) {
-      workerConvert = new SwingWorker<List<String>, Void>() {
-        @Override
-        public List<String> doInBackground()
-        {
-          return convert();
-        }
-      };
-      workerConvert.addPropertyChangeListener(this);
-      blocker = new WindowBlocker(this);
-      blocker.setBlocked(true);
-      workerConvert.execute();
+      if (workerConvert == null) {
+        final String msg = "TIS output file already exists. Overwrite?";
+        File file = null;
+        do {
+          if (!tfOutput.getText().isEmpty()) {
+            file = new File(tfOutput.getText());
+          }
+          if (file != null) {
+            if (!file.exists() ||
+                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
+                                                                        JOptionPane.YES_NO_OPTION,
+                                                                        JOptionPane.QUESTION_MESSAGE)) {
+              file = null;
+              workerConvert = new SwingWorker<List<String>, Void>() {
+                @Override
+                public List<String> doInBackground()
+                {
+                  return convert();
+                }
+              };
+              workerConvert.addPropertyChangeListener(this);
+              blocker = new WindowBlocker(this);
+              blocker.setBlocked(true);
+              workerConvert.execute();
+            }
+            file = null;
+          }
+        } while (file != null);
+      }
     } else if (event.getSource() == bCancel) {
       hideWindow();
     } else if (event.getSource() == bInput) {

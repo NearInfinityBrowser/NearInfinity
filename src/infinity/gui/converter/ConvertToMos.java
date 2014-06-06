@@ -64,6 +64,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ConvertToMos extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener
 {
+  private static String currentDir = ResourceFactory.getRootDir().toString();
+
   private JTabbedPane tabPane;
   private JTextField tfInputV1, tfOutputV1, tfInputV2, tfOutputV2;
   private JButton bInputV1, bOutputV1, bInputV2, bOutputV2, bCompressionHelp;
@@ -611,23 +613,43 @@ public class ConvertToMos extends ChildFrame
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bConvert) {
-      workerConvert = new SwingWorker<List<String>, Void>() {
-        @Override
-        public List<String> doInBackground()
-        {
-          return convert();
-        }
-      };
-      workerConvert.addPropertyChangeListener(this);
-      blocker = new WindowBlocker(this);
-      blocker.setBlocked(true);
-      workerConvert.execute();
+      if (workerConvert == null) {
+        final String msg = "MOS output file already exists. Overwrite?";
+        File file = null;
+        do {
+          if (tabPane.getSelectedIndex() == 0 && !tfOutputV1.getText().isEmpty()) {
+            file = new File(tfOutputV1.getText());
+          } else if (tabPane.getSelectedIndex() == 1 & !tfOutputV2.getText().isEmpty()) {
+            file = new File(tfOutputV2.getText());
+          }
+          if (file != null) {
+            if (!file.exists() ||
+                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
+                                                                        JOptionPane.YES_NO_OPTION,
+                                                                        JOptionPane.QUESTION_MESSAGE)) {
+              file = null;
+              workerConvert = new SwingWorker<List<String>, Void>() {
+                @Override
+                public List<String> doInBackground()
+                {
+                  return convert();
+                }
+              };
+              workerConvert.addPropertyChangeListener(this);
+              blocker = new WindowBlocker(this);
+              blocker.setBlocked(true);
+              workerConvert.execute();
+            }
+            file = null;
+          }
+        } while (file != null);
+      }
     } else if (event.getSource() == bCancel) {
       hideWindow();
     } else if (event.getSource() == bInputV1 || event.getSource() == bInputV2) {
-      String fileName =
-          tfInputV1.getText().isEmpty() ? ResourceFactory.getRootDir().toString() : tfInputV1.getText();
+      String fileName = tfInputV1.getText().isEmpty() ? currentDir : tfInputV1.getText();
       if ((fileName = getImageFileName(new File(fileName))) != null) {
+        currentDir = (new File(fileName)).getParent();
         tfInputV1.setText(fileName);
         tfInputV2.setText(fileName);
         if (tfOutputV1.getText().isEmpty()) {
@@ -638,9 +660,9 @@ public class ConvertToMos extends ChildFrame
         bConvert.setEnabled(isReady());
       }
     } else if (event.getSource() == bOutputV1 || event.getSource() == bOutputV2) {
-      String fileName =
-          tfOutputV1.getText().isEmpty() ? ResourceFactory.getRootDir().toString() : tfOutputV1.getText();
+      String fileName = tfOutputV1.getText().isEmpty() ? currentDir : tfOutputV1.getText();
       if ((fileName = getMosFileName(new File(fileName))) != null) {
+        currentDir = (new File(fileName)).getParent();
         tfOutputV1.setText(fileName);
         tfOutputV2.setText(fileName);
       }

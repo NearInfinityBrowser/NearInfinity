@@ -491,6 +491,7 @@ public class ConvertToBam extends ChildFrame
               blocker.setBlocked(true);
               workerConvert.execute();
             }
+            file = null;
           }
         } while (file != null);
       }
