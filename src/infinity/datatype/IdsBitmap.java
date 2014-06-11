@@ -28,11 +28,11 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public final class IdsBitmap extends Datatype implements Editable
+public class IdsBitmap extends Datatype implements Editable
 {
-  private final LongIntegerHashMap<IdsMapEntry> idsmap;
-  private TextListPanel list;
-  private long value;
+  protected final LongIntegerHashMap<IdsMapEntry> idsmap;
+  protected TextListPanel list;
+  protected long value;
 
   public IdsBitmap(byte buffer[], int offset, int length, String name, String resource)
   {
@@ -185,6 +185,15 @@ public final class IdsBitmap extends Datatype implements Editable
       return idsmap.get(Long.valueOf(id));
     } else {
       return null;
+    }
+  }
+
+  public void addIdsMapEntry(IdsMapEntry entry)
+  {
+    if (entry != null) {
+      if (!idsmap.containsKey(Long.valueOf(entry.getID()))) {
+        idsmap.put(Long.valueOf(entry.getID()), entry);
+      }
     }
   }
 }

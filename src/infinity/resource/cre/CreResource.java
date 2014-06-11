@@ -14,7 +14,7 @@ import infinity.datatype.HashBitmap;
 import infinity.datatype.HexNumber;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
-import infinity.datatype.Kit2daBitmap;
+import infinity.datatype.KitIdsBitmap;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
@@ -1191,8 +1191,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsBitmap(buffer, offset + 569, 1, "Racial enemy", "RACE.IDS"));
     list.add(new DecNumber(buffer, offset + 570, 2, "Morale recovery"));
 //    list.add(new Unknown(buffer, offset + 571, 1));
-    if (ResourceFactory.getInstance().resourceExists("KITLIST.2DA"))
-      list.add(new Kit2daBitmap(buffer, offset + 572, false));
+    if (ResourceFactory.getInstance().resourceExists("KIT.IDS"))
+      list.add(new KitIdsBitmap(buffer, offset + 572, "Kit"));
     else {
       if (ResourceFactory.getInstance().resourceExists("DEITY.IDS"))
         list.add(new IdsBitmap(buffer, offset + 572, 2, "Deity", "DEITY.IDS"));

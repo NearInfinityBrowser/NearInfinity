@@ -50,6 +50,7 @@ import javax.swing.text.PlainDocument;
 import infinity.NearInfinity;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.Kit2daBitmap;
+import infinity.datatype.KitIdsBitmap;
 import infinity.datatype.ProRef;
 import infinity.datatype.Kit2daBitmap.KitlistEntry;
 import infinity.gui.ButtonPopupWindow;
@@ -4498,11 +4499,11 @@ public class SearchResource extends ChildFrame
           kitList[i] = new ObjectString(ids[i].getString(), new Integer((int)ids[i].getID()));
         }
       } else if (hasKit) {
-        Kit2daBitmap kit = new Kit2daBitmap(new byte[]{0,0,0,0}, 0, false);
-        kitList = new StorageString[kit.getKitsCount()];
+        KitIdsBitmap kit = new KitIdsBitmap(new byte[]{0,0,0,0}, 0, "");
+        kitList = new StorageString[kit.getIdsMapEntryCount()];
         for (int i = 0; i < kitList.length; i++) {
-          KitlistEntry e = kit.getKit(i);
-          kitList[i] = new ObjectString(e.getName(), new Integer((int)e.getValue()));
+          IdsMapEntry e = kit.getIdsMapEntryByIndex(i);
+          kitList[i] = new ObjectString(e.getString(), new Integer((int)e.getID()));
         }
       } else {
         kitList = new StorageString[]{};
