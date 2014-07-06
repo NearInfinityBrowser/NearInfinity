@@ -638,8 +638,15 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     return null;
   }
 
-  // attempts to calculate the TIS width from an associated WED file
-  private static int calcTileWidth(ResourceEntry entry, int tileCount)
+  /**
+   * Attempts to calculate the TIS width from an associated WED file.
+   * @param entry The TIS resource entry.
+   * @param tileCount An optional tile count that will be used to "guess" the correct number of tiles
+   *                  per row if no associated WED resource has been found.
+   *                  Specify 0 or 1 to return 0 or 1 if no WED has been found.
+   * @return The number of tiles per row for the specified TIS resource.
+   */
+  public static int calcTileWidth(ResourceEntry entry, int tileCount)
   {
     // Try to fetch the correct width from an associated WED if available
     if (entry != null) {
