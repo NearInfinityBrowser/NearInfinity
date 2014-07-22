@@ -2303,15 +2303,25 @@ public class ConvertToBam extends ChildFrame
         BamDecoder.FrameEntry fe = decoder.getFrameInfo(j);
         BufferedImage image = null;
         if (cm != null) {
-          image = new BufferedImage(fe.getWidth(), fe.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
+          if (fe.getWidth() > 0 && fe.getHeight() > 0) {
+            image = new BufferedImage(fe.getWidth(), fe.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
+          } else {
+            image = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_INDEXED, cm);
+          }
           isCompressed = ((BamV1Decoder.BamV1FrameEntry)fe).isCompressed();
           rleIndex = ((BamV1Decoder)decoder).getRleIndex();
         } else {
-          image = new BufferedImage(fe.getWidth(), fe.getHeight(), BufferedImage.TYPE_INT_ARGB);
+          if (fe.getWidth() > 0 && fe.getHeight() > 0) {
+            image = new BufferedImage(fe.getWidth(), fe.getHeight(), BufferedImage.TYPE_INT_ARGB);
+          } else {
+            image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+          }
           isCompressed = false;
           rleIndex = 0;
         }
-        decoder.frameGet(control, j, image);
+        if (fe.getWidth() > 0 && fe.getHeight() > 0) {
+          decoder.frameGet(control, j, image);
+        }
         modelFrames.insert(listIndex, image, new Point(fe.getCenterX(), fe.getCenterY()));
         // setting required extra options
         PseudoBamFrameEntry fe2 = getBamDecoder(BAM_ORIGINAL).getFrameInfo(listIndex);

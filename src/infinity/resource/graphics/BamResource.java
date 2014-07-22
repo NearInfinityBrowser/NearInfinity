@@ -604,7 +604,11 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         max = decoder.frameCount();
         for (int i = 0; i < decoder.frameCount(); i++) {
           String fileIndex = String.format("%1$05d", i);
-          BufferedImage image = prepareFrameImage(i);
+          BufferedImage image = null;
+          try {
+            image = prepareFrameImage(i);
+          } catch (Exception e) {
+          }
           if (image != null) {
             decoder.frameGet(control, i, image);
             try {
@@ -614,11 +618,12 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
               failCounter++;
               System.err.println("Error writing frame #" + i);
             }
+            image.flush();
+            image = null;
           } else {
             failCounter++;
+            System.err.println("Skipping frame #" + i);
           }
-          image.flush();
-          image = null;
         }
       }
     } catch (Throwable t) {
@@ -630,7 +635,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     if (failCounter == 0 && counter == max) {
       msg = String.format("All %1$d frames exported successfully.", max);
     } else {
-      msg = String.format("%2$d/%1$d frames exported.\n%3$d/%1$d frames not exported.",
+      msg = String.format("%2$d/%1$d frame(s) exported.\n%3$d/%1$d frame(s) skipped.",
                           max, counter, failCounter);
     }
     JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), msg, "Information",
