@@ -435,36 +435,49 @@ public final class ResourceFactory
     final String langDefault = "en_US";   // using default language, if no language entry found
 
     if (currentGame == ID_BGEE || currentGame == ID_BG2EE) {
-      String iniFileName = games[currentGame].inifile;
-      if (iniFileName == null || iniFileName.isEmpty())
-        iniFileName = "baldur.ini";
-      File iniFile = new File(iniRoot, iniFileName);
-      if (iniFile.exists()) {
-        try {
-          BufferedReader br = new BufferedReader(new FileReader(iniFile));
-          String line = br.readLine();
-          while (line != null) {
-            if (line.contains("'Language'")) {
-              String[] entries = line.split(",");
-              if (entries.length == 3) {
-                String lang = entries[2].replace('\'', ' ').trim();
-                if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
-                  if (new File(rootDir, "lang" + File.separator + lang).exists()) {
-                    br.close();
-                    return lang;
+      String lang = BrowserMenuBar.getInstance().getSelectedGameLanguage();
+
+      if (lang == null || lang.isEmpty()) {
+        // Attempting to autodetect game language
+        String iniFileName = games[currentGame].inifile;
+        if (iniFileName == null || iniFileName.isEmpty())
+          iniFileName = "baldur.ini";
+        File iniFile = new File(iniRoot, iniFileName);
+        if (iniFile.exists()) {
+          try {
+            BufferedReader br = new BufferedReader(new FileReader(iniFile));
+            String line = br.readLine();
+            while (line != null) {
+              if (line.contains("'Language'")) {
+                String[] entries = line.split(",");
+                if (entries.length == 3) {
+                  lang = entries[2].replace('\'', ' ').trim();
+                  if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
+                    if (new File(rootDir, "lang" + File.separator + lang).exists()) {
+                      br.close();
+                      return lang;
+                    }
                   }
                 }
               }
+              line = br.readLine();
             }
-            line = br.readLine();
+            br.close();
+          } catch (IOException e) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error parsing " + iniFileName +
+                                          ". Using language defaults.", "Error", JOptionPane.ERROR_MESSAGE);
           }
-          br.close();
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error parsing " + iniFileName +
-                                        ". Using language defaults.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      } else {
+        // Using user-defined language
+        if (lang.matches("[a-z]{2}_[A-Z]{2}") &&
+            new File(rootDir, "lang" + File.separator + lang).exists()) {
+          return lang;
         }
       }
     }
+
+    // falling back to default language
     return langDefault;
   }
 

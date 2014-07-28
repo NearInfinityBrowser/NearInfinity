@@ -44,6 +44,8 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -52,8 +54,10 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
@@ -318,6 +322,13 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean showOffsets()
   {
     return optionsMenu.optionShowOffset.isSelected();
+  }
+
+  /** Returns the language code of the selected game language (BG(2)EE only). */
+  public String getSelectedGameLanguage()
+  {
+    Preferences prefs = Preferences.userNodeForPackage(getClass());
+    return prefs.get(OptionsMenu.OPTION_LANGUAGE_GAME, "");
   }
 
   public void storePreferences()
@@ -1115,7 +1126,7 @@ public final class BrowserMenuBar extends JMenuBar
   // Options Menu
   ///////////////////////////////
 
-  private static final class OptionsMenu extends JMenu implements ActionListener
+  private static final class OptionsMenu extends JMenu implements ActionListener, ItemListener
   {
     private static final Font[] FONTS = {
       new Font("Monospaced", Font.PLAIN, 12), new Font("Serif", Font.PLAIN, 12),
@@ -1171,6 +1182,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_VIEWOREDITSHOWN          = "ViewOrEditShown";
     private static final String OPTION_FONT                     = "Font";
     private static final String OPTION_TLKCHARSET               = "TLKCharsetType";
+    private static final String OPTION_LANGUAGE_GAME            = "GameLanguage";
     private static final String OPTION_TEXT_SHOWCURRENTLINE     = "TextShowCurrentLine";
     private static final String OPTION_TEXT_SHOWLINENUMBERS     = "TextShowLineNumbers";
     private static final String OPTION_TEXT_SYMBOLWHITESPACE    = "TextShowWhiteSpace";
@@ -1215,8 +1227,11 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
     private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
     private JCheckBoxMenuItem optionShowStrrefs;
-    private final JMenu mCharsetMenu;
+    private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
+
+    // Stores available languages in BG(2)EE
+    private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<JRadioButtonMenuItem, String>();
 
     private OptionsMenu(Preferences prefs, NearInfinity browser)
     {
@@ -1486,6 +1501,89 @@ public final class BrowserMenuBar extends JMenuBar
       }
       mCharsetMenu = initCharsetMenu(charset);
       add(mCharsetMenu);
+
+      // Options->TLK Language
+      mLanguageMenu = new JMenu("TLK Language (EE only)");
+      add(mLanguageMenu);
+    }
+
+    // (Re-)creates a list of available TLK languages
+    private void resetGameLanguage()
+    {
+      final String autodetect = "Autodetect";
+      final String tlkFileName = "dialog.tlk";
+
+      for (JRadioButtonMenuItem r: gameLanguage.keySet()) {
+        r.removeActionListener(this);
+      }
+      mLanguageMenu.removeAll();
+      gameLanguage.clear();
+
+      Preferences prefs = Preferences.userNodeForPackage(getClass());
+      String selectedCode = prefs.get(OPTION_LANGUAGE_GAME, autodetect);
+
+      ButtonGroup bg = new ButtonGroup();
+      JRadioButtonMenuItem rbmi;
+
+      // adding "Autodetect" for all available game ids
+      rbmi = createLanguageMenuItem("", autodetect,
+                                    "Autodetect language from baldur.ini. Defaults to english if not available.", bg, true);
+      mLanguageMenu.add(rbmi);
+
+      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
+          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+        File langFile = new File(ResourceFactory.getRootDir(), "lang");
+        if (langFile.isDirectory()) {
+          File[] langFileList = langFile.listFiles();
+          for (int i = 0; i < langFileList.length; i++) {
+            if (langFileList[i].isDirectory()) {
+              if ((new File(langFileList[i], tlkFileName)).isFile()) {
+                String[] langCode = langFileList[i].getName().split("_");
+                if (langCode.length >= 2) {
+                  Locale locale = new Locale(langCode[0], langCode[1]);
+                  rbmi = createLanguageMenuItem(langFileList[i].getName(),
+                                                String.format("%1$s (%2$s)",
+                                                              locale.getDisplayLanguage(),
+                                                              langFileList[i].getName()),
+                                                null, bg,
+                                                selectedCode.equalsIgnoreCase(langFileList[i].getName()));
+                  mLanguageMenu.add(rbmi);
+                } else {
+                  rbmi = createLanguageMenuItem(langFileList[i].getName(), langFileList[i].getName(),
+                                                null, bg,
+                                                selectedCode.equalsIgnoreCase(langFileList[i].getName()));
+                  mLanguageMenu.add(rbmi);
+                }
+              }
+            }
+          }
+        }
+      } else {
+        rbmi.setEnabled(false);
+      }
+    }
+
+    // Initializes and returns a radio button menuitem
+    private JRadioButtonMenuItem createLanguageMenuItem(String code, String name, String tooltip,
+                                                        ButtonGroup bg, boolean selected)
+    {
+      JRadioButtonMenuItem rbmi = null;
+      if (code == null) {
+        code = "";
+      }
+      if (name != null && !name.isEmpty()) {
+        rbmi = new JRadioButtonMenuItem(name);
+        if (tooltip != null && !tooltip.isEmpty()) {
+          rbmi.setToolTipText(tooltip);
+        }
+        if (bg != null) {
+          bg.add(rbmi);
+        }
+        rbmi.setSelected(selected);
+        rbmi.addItemListener(this);
+        gameLanguage.put(rbmi, code);
+      }
+      return rbmi;
     }
 
     private JMenu initCharsetMenu(String charset)
@@ -1662,6 +1760,8 @@ public final class BrowserMenuBar extends JMenuBar
     {
       // update charset selection
       StringResource.setCharset(charsetName(getSelectedButtonData()));
+      // update language selection
+      resetGameLanguage();
     }
 
     private void storePreferences(Preferences prefs)
@@ -1708,6 +1808,14 @@ public final class BrowserMenuBar extends JMenuBar
 
       String charset = getSelectedButtonData();
       prefs.put(OPTION_TLKCHARSET, charset);
+
+      for (JRadioButtonMenuItem r: gameLanguage.keySet()) {
+        if (r.isSelected() && r.isEnabled()) {
+          String lang = gameLanguage.get(r);
+          prefs.put(OPTION_LANGUAGE_GAME, lang);
+          break;
+        }
+      }
     }
 
     // Returns the (first) index of the selected AbstractButton array
@@ -1886,6 +1994,19 @@ public final class BrowserMenuBar extends JMenuBar
           loadDebugColorScheme(fc.getSelectedFile().toString());
         }
         fc = null;
+      }
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent event)
+    {
+      if (event.getSource() instanceof JRadioButtonMenuItem &&
+          gameLanguage.containsKey(event.getSource())) {
+        if (event.getStateChange() == ItemEvent.SELECTED) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+              "Please restart NearInfinity to make the changes visible.",
+              "TLK language changed", JOptionPane.INFORMATION_MESSAGE);
+        }
       }
     }
   }
