@@ -3764,7 +3764,7 @@ public class GLSLTokenMaker extends AbstractJFlexCTokenMaker {
    *         it out.
    */
   @Override
-  public String[] getLineCommentStartAndEnd() {
+  public String[] getLineCommentStartAndEnd(int languageIndex) {
     return new String[] { "//", null };
   }
 
