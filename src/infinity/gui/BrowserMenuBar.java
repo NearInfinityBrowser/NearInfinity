@@ -1560,6 +1560,7 @@ public final class BrowserMenuBar extends JMenuBar
         }
       } else {
         rbmi.setEnabled(false);
+        rbmi.setToolTipText(null);
       }
     }
 
