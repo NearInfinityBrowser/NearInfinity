@@ -31,6 +31,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -45,14 +46,13 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultFormatter;
 import javax.swing.text.PlainDocument;
 
 import infinity.NearInfinity;
 import infinity.datatype.IdsBitmap;
-import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.KitIdsBitmap;
 import infinity.datatype.ProRef;
-import infinity.datatype.Kit2daBitmap.KitlistEntry;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewFrame;
@@ -6408,12 +6408,37 @@ public class SearchResource extends ChildFrame
       return component;
     }
 
+    // Enable or disable whether to automatically update the spinner value while typing
+    private static void setSpinnerAutoUpdate(JSpinner spinner, boolean enable)
+    {
+      if (spinner != null) {
+        JFormattedTextField ftf = (JFormattedTextField)spinner.getEditor().getComponent(0);
+        if (ftf != null) {
+          ((DefaultFormatter)ftf.getFormatter()).setCommitsOnValidEdit(enable);
+        }
+      }
+    }
+
+    // Returns whether auto update has been enabled
+    private static boolean setSpinnerAutoUpdate(JSpinner spinner)
+    {
+      if (spinner != null) {
+        JFormattedTextField ftf = (JFormattedTextField)spinner.getEditor().getComponent(0);
+        if (ftf != null) {
+          return ((DefaultFormatter)ftf.getFormatter()).getCommitsOnValidEdit();
+        }
+      }
+      return false;
+    }
+
     // creates a "min" to "max" panel
     public static JPanel createNumberRangePanel(JSpinner min, JSpinner max)
     {
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
       if (min != null && max != null) {
+        setSpinnerAutoUpdate(min, true);
+        setSpinnerAutoUpdate(max, true);
         c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         panel.add(min, c);
@@ -6438,6 +6463,8 @@ public class SearchResource extends ChildFrame
       ((SpinnerNumberModel)spinner.getModel()).setMinimum(min);
       ((SpinnerNumberModel)spinner.getModel()).setMaximum(max);
       ((SpinnerNumberModel)spinner.getModel()).setValue(value);
+
+      setSpinnerAutoUpdate(spinner, true);
 
       return spinner;
     }
