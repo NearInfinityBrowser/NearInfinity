@@ -346,11 +346,13 @@ public final class BrowserMenuBar extends JMenuBar
   ///////////////////////////////
   private static final class GameMenu extends JMenu implements ActionListener
   {
-    private final String LASTGAME_IDS[] = {"LastGameID1", "LastGameID2", "LastGameID3", "LastGameID4",
-                                           "LastGameID5"};
-    private final String LASTGAME_PATH[] = {"LastGamePath1", "LastGamePath2", "LastGamePath3", "LastGamePath4",
-                                            "LastGamePath5"};
-    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK;
+    private final String LASTGAME_IDS[] =
+      {"LastGameID1", "LastGameID2", "LastGameID3", "LastGameID4", "LastGameID5",
+       "LastGameID6", "LastGameID7", "LastGameID8", "LastGameID9", "LastGameID10"};
+    private final String LASTGAME_PATH[] =
+      {"LastGamePath1", "LastGamePath2", "LastGamePath3", "LastGamePath4", "LastGamePath5",
+       "LastGamePath6", "LastGamePath7", "LastGamePath8", "LastGamePath9", "LastGamePath10"};
+    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK, gameRecentClear;
     private final JMenuItem gameLastGame[] = new JMenuItem[LASTGAME_IDS.length];
     private final List<Integer> lastGameID = new ArrayList<Integer>();
     private final List<String> lastGamePath = new ArrayList<String>();
@@ -374,6 +376,11 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
+      // adding recently opened games list
+      JMenu recentGames = new JMenu("Recently opened games");
+      recentGames.setMnemonic('r');
+      add(recentGames);
+
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         int gameid = prefs.getInt(LASTGAME_IDS[i], -1);
         String gamepath = prefs.get(LASTGAME_PATH[i], null);
@@ -382,20 +389,26 @@ public final class BrowserMenuBar extends JMenuBar
           lastGamePath.add(gamepath);
         }
       }
-      for (int i = 0; i < lastGameID.size(); i++) {
-        gameLastGame[i] = new JMenuItem(i + 1 + " " + ResourceFactory.getGameName(lastGameID.get(i).intValue()));
-        gameLastGame[i].setToolTipText(lastGamePath.get(i));
+      for (int i = 0; i < LASTGAME_IDS.length; i++) {
+        if (i < lastGameID.size()) {
+          String label = String.format("%1$d  %2$s", i+1, ResourceFactory.getGameName(lastGameID.get(i).intValue()));
+          String toolTip = lastGamePath.get(i);
+          gameLastGame[i] = new JMenuItem(label);
+          gameLastGame[i].setToolTipText(toolTip);
+        } else {
+          gameLastGame[i] = new JMenuItem(String.valueOf(i+1));
+          gameLastGame[i].setEnabled(false);
+        }
         gameLastGame[i].addActionListener(this);
         gameLastGame[i].setActionCommand("OpenOldGame");
-        add(gameLastGame[i]);
+        recentGames.add(gameLastGame[i]);
       }
-      for (int i = lastGameID.size(); i < LASTGAME_IDS.length; i++) {
-        gameLastGame[i] = new JMenuItem(String.valueOf(i + 1));
-        gameLastGame[i].setEnabled(false);
-        gameLastGame[i].addActionListener(this);
-        gameLastGame[i].setActionCommand("OpenOldGame");
-        add(gameLastGame[i]);
-      }
+
+      recentGames.addSeparator();
+
+      gameRecentClear = new JMenuItem("Clear list of recent games");
+      gameRecentClear.addActionListener(this);
+      recentGames.add(gameRecentClear);
 
       addSeparator();
 
@@ -426,7 +439,7 @@ public final class BrowserMenuBar extends JMenuBar
         lastGameID.add(0, new Integer(oldGame));
         lastGamePath.add(0, oldFile);
       }
-      while (lastGameID.size() > 5) {
+      while (lastGameID.size() > LASTGAME_IDS.length) {
         lastGamePath.remove(lastGameID.size() - 1);
         lastGameID.remove(lastGameID.size() - 1);
       }
@@ -450,6 +463,9 @@ public final class BrowserMenuBar extends JMenuBar
         if (i < lastGameID.size()) {
           prefs.putInt(LASTGAME_IDS[i], lastGameID.get(i).intValue());
           prefs.put(LASTGAME_PATH[i], lastGamePath.get(i));
+        } else {
+          prefs.remove(LASTGAME_IDS[i]);
+          prefs.remove(LASTGAME_PATH[i]);
         }
       }
     }
@@ -480,6 +496,14 @@ public final class BrowserMenuBar extends JMenuBar
         StringResource.close();
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Read lock released",
                                       "Release Dialog.tlk", JOptionPane.INFORMATION_MESSAGE);
+      }
+      else if (event.getSource() == gameRecentClear) {
+        for (int i = 0; i < LASTGAME_IDS.length; i++) {
+          gameLastGame[i].setText(String.valueOf(i+1));
+          gameLastGame[i].setEnabled(false);
+        }
+        lastGameID.clear();
+        lastGamePath.clear();
       }
     }
   }
