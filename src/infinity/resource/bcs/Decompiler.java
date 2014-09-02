@@ -639,8 +639,7 @@ public final class Decompiler
       return new String[] {".2DA"};
     }
     else if (function.equalsIgnoreCase("StartMovie")) {
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      if (ResourceFactory.isEnhancedEdition()) {
         return new String[] {".WBM"};
       } else {
         return new String[] {".MVE"};

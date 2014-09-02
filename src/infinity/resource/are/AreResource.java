@@ -138,8 +138,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                 new TiledObject(), new AutomapNotePST()};
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE)
+             ResourceFactory.isEnhancedEdition())
       return new AddRemovable[]{new Actor(), new ITEPoint(), new SpawnPoint(),
                                 new Entrance(), new Container(), new Ambient(),
                                 new Variable(), new Door(), new Animation(),
@@ -272,8 +271,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
     } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
       list.add(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-               ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+    } else if (ResourceFactory.isEnhancedEdition()) {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_bgee));
     } else {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
@@ -400,8 +398,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+             ResourceFactory.isEnhancedEdition()) {
       offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
                                              AutomapNote.class);
       list.add(offset_automapnote);
@@ -414,8 +411,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
       list.add(count_protrap);
-      final String movieExt = (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                               ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) ? "WBM" : "MVE";
+      final String movieExt = (ResourceFactory.isEnhancedEdition()) ? "WBM" : "MVE";
       list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
       list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
       list.add(new Unknown(buffer, offset + 228, 56));

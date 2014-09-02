@@ -1554,8 +1554,7 @@ public final class BrowserMenuBar extends JMenuBar
                                     "Autodetect language from baldur.ini. Defaults to english if not available.", bg, true);
       mLanguageMenu.add(rbmi);
 
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      if (ResourceFactory.isEnhancedEdition()) {
         File langFile = new File(ResourceFactory.getRootDir(), "lang");
         if (langFile.isDirectory()) {
           File[] langFileList = langFile.listFiles();
@@ -1754,12 +1753,10 @@ public final class BrowserMenuBar extends JMenuBar
     {
       // TODO: detect specific localizations
       if (DefaultCharset.equalsIgnoreCase(charset)) {
-        switch (ResourceFactory.getGameID()) {
-          case ResourceFactory.ID_BGEE:
-          case ResourceFactory.ID_BG2EE:
-            return "UTF-8";
-          default:
-            return "windows-1252";
+        if (ResourceFactory.isEnhancedEdition()) {
+          return "UTF-8";
+        } else {
+          return "windows-1252";
         }
       } else {
         return charset;

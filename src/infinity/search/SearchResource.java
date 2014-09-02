@@ -275,16 +275,13 @@ public class SearchResource extends ChildFrame
                               ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
                               ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
                               ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE);
+                              ResourceFactory.isEnhancedEdition());
       boolean proSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
                               ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE);
+                              ResourceFactory.isEnhancedEdition());
       boolean vvcSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
                               ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE);
+                              ResourceFactory.isEnhancedEdition());
       int resTypeCount = 5;
       if (effSupported) resTypeCount++;
       if (proSupported) resTypeCount++;
@@ -751,8 +748,7 @@ public class SearchResource extends ChildFrame
 
       cbScript = Utils.createNamedResourceComboBox(new String[]{"BCS"}, false);
 
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      if (ResourceFactory.isEnhancedEdition()) {
         cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM", "PVRZ", "WBM"}, false);
       } else {
         cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM"}, false);
@@ -1998,8 +1994,7 @@ public class SearchResource extends ChildFrame
       ObjectString[] osAppearance = null;
       if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
         osAppearance = ObjectString.createString(ItmResource.s_anim11, ItmResource.s_tag11);
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                 ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      } else if (ResourceFactory.isEnhancedEdition()) {
         osAppearance = ObjectString.createString(ItmResource.s_anim_1pp, ItmResource.s_tag_1pp);
       } else {
         osAppearance = ObjectString.createString(ItmResource.s_anim, ItmResource.s_tag);
@@ -3112,8 +3107,7 @@ public class SearchResource extends ChildFrame
       StorageString[] types;
       if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+          ResourceFactory.isEnhancedEdition()) {
         types = IndexedString.createArray(StoResource.s_type_bg2, 0, 0);
       } else {
         types = IndexedString.createArray(StoResource.s_type9, 0, 0);
@@ -4445,8 +4439,7 @@ public class SearchResource extends ChildFrame
     {
       boolean hasKit = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
                         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE ||
+                        ResourceFactory.isEnhancedEdition() ||
                         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
 
       // initializing components

@@ -139,8 +139,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("SPECIFIC.IDS");  idsFile.add("SPELL.IDS");     idsFile.add("STATE.IDS");
       idsFile.add("STATS.IDS");     idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");
       idsFile.add("WEATHER.IDS");
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      if (ResourceFactory.isEnhancedEdition()) {
         idsFile.add("DIR.IDS");     idsFile.add("SONGLIST.IDS");
       }
     }

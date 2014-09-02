@@ -87,8 +87,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     list.add(version);
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+        ResourceFactory.isEnhancedEdition()) {
       list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type_bg2));
       list.add(new StringRef(buffer, offset + 12, "Name"));
       list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));

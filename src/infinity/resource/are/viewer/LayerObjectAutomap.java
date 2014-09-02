@@ -127,8 +127,7 @@ public class LayerObjectAutomap extends LayerObject
             if (srcStrref > 0) {
               String path = getParentStructure().getResourceEntry().getActualFile().toString();
               path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
-              if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                  ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+              if (ResourceFactory.isEnhancedEdition()) {
                 // processing new TOH structure
                 File tohFile = new File(path, "DEFAULT.TOH");
                 if (tohFile.exists()) {

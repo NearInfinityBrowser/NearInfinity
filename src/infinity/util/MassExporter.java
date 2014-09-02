@@ -459,8 +459,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
            ((entry.getExtension().equalsIgnoreCase("GLSL") ||
              entry.getExtension().equalsIgnoreCase("GUI") ||
              entry.getExtension().equalsIgnoreCase("SQL")) &&
-               (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE)) ||
+               ResourceFactory.isEnhancedEdition()) ||
            (entry.getExtension().equalsIgnoreCase("SRC") &&
                ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)) &&
           cbDecrypt.isSelected()) {

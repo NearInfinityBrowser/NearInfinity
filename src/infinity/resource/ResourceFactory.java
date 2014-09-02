@@ -123,6 +123,13 @@ public final class ResourceFactory
     games[ID_BG2EE] = new GameConfig("Baldur's Gate II - Enhanced Edition", "baldur.ini", bgeeDirs);
   }
 
+
+  public static boolean isEnhancedEdition()
+  {
+    return currentGame == ID_BGEE ||
+           currentGame == ID_BG2EE;
+  }
+
   public static int getGameID()
   {
     return currentGame;
@@ -169,8 +176,7 @@ public final class ResourceFactory
                (entry.getExtension().equalsIgnoreCase("SRC") && getGameID() == ID_ICEWIND2) ||
                entry.getExtension().equalsIgnoreCase("SQL") ||
                entry.getExtension().equalsIgnoreCase("GUI") ||
-               (entry.getExtension().equalsIgnoreCase("GLSL") && (getGameID() == ID_BGEE ||
-                                                                  getGameID() == ID_BG2EE)))
+               (entry.getExtension().equalsIgnoreCase("GLSL") && isEnhancedEdition()))
         res = new PlainTextResource(entry);
       else if (entry.getExtension().equalsIgnoreCase("MVE"))
         res = new MveResource(entry);
@@ -224,11 +230,9 @@ public final class ResourceFactory
         res = new TohResource(entry);
       else if (entry.getExtension().equalsIgnoreCase("TOT"))
         res = new TotResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("PVRZ") && (getGameID() == ID_BGEE ||
-                                                                 getGameID() == ID_BG2EE))
+      else if (entry.getExtension().equalsIgnoreCase("PVRZ") && isEnhancedEdition())
         res = new PvrzResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("FNT") && (getGameID() == ID_BGEE ||
-                                                                getGameID() == ID_BG2EE))
+      else if (entry.getExtension().equalsIgnoreCase("FNT") && isEnhancedEdition())
         res = new FntResource(entry);
       else
         res = new UnknownResource(entry);
@@ -251,7 +255,7 @@ public final class ResourceFactory
    */
   public static File getUserRoot(int gameID)
   {
-    if (gameID == ID_BGEE || gameID == ID_BG2EE) {
+    if (isEnhancedEdition()) {
       final String BGEE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
       final String BGEE_DIR = games[gameID].name;   //"Baldur's Gate - Enhanced Edition";
       File userDir = new File(BGEE_DOC_ROOT, BGEE_DIR);
@@ -385,7 +389,7 @@ public final class ResourceFactory
   private void fetchBIFFDirs()
   {
     // fetching the CD folders in a game installation
-    if (currentGame != ID_BGEE && currentGame != ID_BG2EE && games[currentGame].inifile != null) {
+    if (!isEnhancedEdition() && games[currentGame].inifile != null) {
       File iniFile = NIFile.getFile(rootDirs, games[currentGame].inifile);
       List<File> dirList = new ArrayList<File>();
       try {
@@ -434,7 +438,7 @@ public final class ResourceFactory
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
 
-    if (currentGame == ID_BGEE || currentGame == ID_BG2EE) {
+    if (isEnhancedEdition()) {
       String lang = BrowserMenuBar.getInstance().getSelectedGameLanguage();
 
       if (lang == null || lang.isEmpty()) {

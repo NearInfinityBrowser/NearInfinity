@@ -200,7 +200,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) { // V2.0
+             ResourceFactory.isEnhancedEdition()) { // V2.0
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
@@ -219,7 +219,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(offPocket);
       numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
       list.add(numPocket);
-      if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
+      if (ResourceFactory.isEnhancedEdition()) {
         list.add(new DecNumber(buffer, offset + 128, 4, "Zoom level"));
         list.add(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
         list.add(new Unknown(buffer, offset + 140, 40));

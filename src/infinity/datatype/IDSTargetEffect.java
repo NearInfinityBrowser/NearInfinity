@@ -51,8 +51,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     idsValue = DynamicArray.getUnsignedInt(buffer, offset);
     idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
     sIDS[2] = secondIDS;
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+    if (ResourceFactory.isEnhancedEdition()) {
       sIDS[9] = "KIT.IDS";
     }
     if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals(""))

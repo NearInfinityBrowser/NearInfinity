@@ -40,8 +40,7 @@ public final class TohResource extends AbstractStruct implements Resource
   protected int read(byte[] buffer, int offset) throws Exception
   {
     int startOffset = offset;
-    boolean isEnhanced = ((ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) ||
-                          (ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE)) &&
+    boolean isEnhanced = (ResourceFactory.isEnhancedEdition()) &&
                          (DynamicArray.getInt(buffer, offset + 4) == 2);
     list.add(new TextString(buffer, offset, 4, "Signature"));
     if (isEnhanced) {

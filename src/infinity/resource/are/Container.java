@@ -162,8 +162,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     list.add(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
     list.add(new Bitmap(buffer, offset + 36, 2, "Type", s_type));
     list.add(new DecNumber(buffer, offset + 38, 2, "Lock difficulty"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+    if (ResourceFactory.isEnhancedEdition()) {
       list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag_ee));
     } else {
       list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));

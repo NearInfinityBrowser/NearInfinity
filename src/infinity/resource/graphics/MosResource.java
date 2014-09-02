@@ -247,8 +247,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       } else {
         if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
             ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+            ResourceFactory.isEnhancedEdition()) {
           miExportMOSC = new JMenuItem("compressed");
           miExportMOSC.addActionListener(this);
         }

@@ -452,8 +452,7 @@ public final class EffectFactory
       int gameID = ResourceFactory.getGameID();
       if (gameID == ResourceFactory.ID_BG2 ||
           gameID == ResourceFactory.ID_BG2TOB ||
-          gameID == ResourceFactory.ID_BGEE ||
-          gameID == ResourceFactory.ID_BG2EE) {
+          ResourceFactory.isEnhancedEdition()) {
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
         if (map.containsKey(EffectEntry.IDX_OPCODE)) {
           int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
@@ -485,8 +484,7 @@ public final class EffectFactory
       int gameID = ResourceFactory.getGameID();
       if (gameID == ResourceFactory.ID_BG2 ||
           gameID == ResourceFactory.ID_BG2TOB ||
-          gameID == ResourceFactory.ID_BGEE ||
-          gameID == ResourceFactory.ID_BG2EE) {
+          ResourceFactory.isEnhancedEdition()) {
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
         if (map.containsKey(EffectEntry.IDX_OPCODE)) {
           int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
@@ -1240,8 +1238,7 @@ public final class EffectFactory
         restype = makeEffectParamsIWD(parent, buffer, offset, s, effectType, isV1);
       } else if (gameid == ResourceFactory.ID_BG2 ||
                  gameid == ResourceFactory.ID_BG2TOB ||
-                 gameid == ResourceFactory.ID_BGEE ||
-                 gameid == ResourceFactory.ID_BG2EE) {
+                 ResourceFactory.isEnhancedEdition()) {
         restype = makeEffectParamsBG2(parent, buffer, offset, s, effectType, isV1);
       } else if (gameid == ResourceFactory.ID_ICEWIND2) {
         restype = makeEffectParamsIWD2(parent, buffer, offset, s, effectType, isV1);
@@ -1650,7 +1647,7 @@ public final class EffectFactory
       case 0x98: // Play movie (CGameEffectPlayMovie)
         s.add(new DecNumber(buffer, offset, 4, "Parameter 1"));
         s.add(new DecNumber(buffer, offset + 4, 4, "Parameter 2"));
-        if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
+        if (ResourceFactory.isEnhancedEdition()) {
           restype = "WBM";
         } else {
           restype = "MVE";
@@ -1979,8 +1976,7 @@ public final class EffectFactory
         break;
 
       case 0xB5: // Disallow itemtype (CGameEffectRestrictEquipItem)
-        if (gameid == ResourceFactory.ID_BGEE ||
-            gameid == ResourceFactory.ID_BG2EE) {
+        if (ResourceFactory.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset, 4, "Item category", ItmResource.s_categories));
           s.add(new Bitmap(buffer, offset + 4, 4, "Restriction", new String[]{"Equip", "Use"}));
         }
@@ -2154,7 +2150,7 @@ public final class EffectFactory
       {
         s.add(new Bitmap(buffer, offset, 4, "Target",
           new String[]{"Caster", "Last hit by", "Nearest enemy"}));
-        if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
+        if (ResourceFactory.isEnhancedEdition()) {
           BitmapEx item = new BitmapEx(buffer, offset + 4, 4, "Condition",
               new String[]{"Target hit", "Enemy sighted", "HP below 50%",
               "HP below 25%", "HP below 10%", "If helpless",
@@ -2229,7 +2225,7 @@ public final class EffectFactory
 
       case 0xF3: // Drain item charges (CGameEffectDrainChargeFromAllItems)
         s.add(new Bitmap(buffer, offset, 4, "Include weapons?", s_noyes));
-        if (gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
+        if (ResourceFactory.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Parameter 2"));
@@ -3619,8 +3615,7 @@ public final class EffectFactory
     if (resourceType == null) {
       if ((gameid == ResourceFactory.ID_BG2 ||
           gameid == ResourceFactory.ID_BG2TOB ||
-          gameid == ResourceFactory.ID_BGEE ||
-          gameid == ResourceFactory.ID_BG2EE) &&
+          ResourceFactory.isEnhancedEdition()) &&
           effectType == 0x13F && param2 == 11) {    // Restrict item (BGEE)
         s.add(new TextString(buffer, offset, 8, "Script name"));
       } else {
@@ -3677,8 +3672,7 @@ public final class EffectFactory
 
     if (gameid == ResourceFactory.ID_BG2 ||
         gameid == ResourceFactory.ID_BG2TOB ||
-        gameid == ResourceFactory.ID_BGEE ||
-        gameid == ResourceFactory.ID_BG2EE) {
+        ResourceFactory.isEnhancedEdition()) {
       switch (effectType) {
         case 0xE8:    // Cast spell on condition (CGameEffectContingencyInstance)
           if (param2 == 13) {

@@ -198,8 +198,7 @@ public class LayerObjectAnimation extends LayerObject
       try {
         // PST seems to ignore a couple of animation settings
         boolean isTorment = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
-        boolean isEE = (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE);
+        boolean isEE = (ResourceFactory.isEnhancedEdition());
 
         location.x = ((DecNumber)anim.getAttribute("Location: X")).getValue();
         location.y = ((DecNumber)anim.getAttribute("Location: Y")).getValue();

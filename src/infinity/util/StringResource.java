@@ -161,8 +161,7 @@ public final class StringResource
       file.seek((long)0x0C);
     maxnr = Filereader.readInt(file);
     startindex = Filereader.readInt(file);
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+    if (ResourceFactory.isEnhancedEdition()) {
       usedCharset = utf8Charset;
     }
   }

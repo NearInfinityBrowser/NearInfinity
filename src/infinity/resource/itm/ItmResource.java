@@ -314,8 +314,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability20));
       else
         list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability));
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      if (ResourceFactory.isEnhancedEdition()) {
         list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag_1pp, s_anim_1pp));
       }
       else {
@@ -365,8 +364,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     if (version.toString().equalsIgnoreCase("V1.1")) {
       list.add(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
     } else {
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      if (ResourceFactory.isEnhancedEdition()) {
         list.add(new ResourceRef(buffer, 88, "Description image", new String[]{"BAM", "BMP"}));
       } else {
         list.add(new ResourceRef(buffer, 88, "Description image", "BAM"));
