@@ -832,6 +832,7 @@ public final class EffectFactory
       case ResourceFactory.ID_BG2TOB:
       case ResourceFactory.ID_BGEE:
       case ResourceFactory.ID_BG2EE:
+      case ResourceFactory.ID_IWDEE:    // TODO: confirm!
       case ResourceFactory.ID_UNKNOWNGAME: // Default list
         s_effname = new String[]{"AC bonus", "Modify attacks per round",
           "Cure sleep", "Berserk", "Cure berserk", "Charm creature",
@@ -1845,7 +1846,6 @@ public final class EffectFactory
                                      int effectType, boolean isV1)
   {
     String restype = null;
-    final int gameid = ResourceFactory.getGameID();
     switch (effectType) {
       case 0x0: // AC bonus (CGameEffectAC)
         s.add(new DecNumber(buffer, offset, 4, "AC value"));

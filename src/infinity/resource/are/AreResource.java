@@ -44,7 +44,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                                  "Allow day/night"};
   public static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
-  public static final String s_atype_bgee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String s_atype_ee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                                "Dream area", "Player1 can die"};
   public static final String s_atype_torment[] = {"Can rest", "Cannot save",
                                                   "Cannot rest", "Cannot save", "Too dangerous to rest",
@@ -272,7 +272,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
       list.add(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
     } else if (ResourceFactory.isEnhancedEdition()) {
-      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_bgee));
+      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_ee));
     } else {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
     }

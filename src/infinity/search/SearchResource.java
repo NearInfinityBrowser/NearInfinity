@@ -763,7 +763,8 @@ public class SearchResource extends ChildFrame
       switch (ResourceFactory.getGameID()) {
         case ResourceFactory.ID_BGEE:
         case ResourceFactory.ID_BG2EE:
-          areType = AreResource.s_atype_bgee;
+        case ResourceFactory.ID_IWDEE:    // TODO: confirm!
+          areType = AreResource.s_atype_ee;
           break;
         case ResourceFactory.ID_TORMENT:
           areType = AreResource.s_atype_torment;

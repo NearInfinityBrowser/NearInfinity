@@ -31,17 +31,16 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   private static final Vector<Vector<StrrefItem>> STRREF_ITEM = new Vector<Vector<StrrefItem>>();
   static {
     // creating maps for unknown, BG2, IWD and IWD2
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.add(new Vector<StrrefItem>());
     // initializing 'unknown' items
+    STRREF_ITEM.add(new Vector<StrrefItem>());
     STRREF_ITEM.get(0).add(new StrrefItem(-1,    "User-defined biography"));
     // initializing BG2 items
+    STRREF_ITEM.add(new Vector<StrrefItem>());
     STRREF_ITEM.get(1).add(new StrrefItem(-1,    "User-defined biography"));
     STRREF_ITEM.get(1).add(new StrrefItem(33347, "Biography of the protagonist"));
     STRREF_ITEM.get(1).add(new StrrefItem(15882, "Biography of a generic NPC"));
     // initializing IWD items
+    STRREF_ITEM.add(new Vector<StrrefItem>());
     STRREF_ITEM.get(2).add(new StrrefItem(-1,    "User-defined biography"));
     STRREF_ITEM.get(2).add(new StrrefItem(19423, "Biography of a fighter"));
     STRREF_ITEM.get(2).add(new StrrefItem(19429, "Biography of a ranger"));
@@ -52,6 +51,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     STRREF_ITEM.get(2).add(new StrrefItem(19428, "Biography of a thief"));
     STRREF_ITEM.get(2).add(new StrrefItem(19425, "Biography of a bard"));
     // initializing IWD2 items
+    STRREF_ITEM.add(new Vector<StrrefItem>());
     STRREF_ITEM.get(3).add(new StrrefItem(-1,    "User-defined biography"));
     STRREF_ITEM.get(3).add(new StrrefItem(27862, "Biography of a barbarian"));
     STRREF_ITEM.get(3).add(new StrrefItem(19425, "Biography of a bard"));
@@ -64,6 +64,18 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     STRREF_ITEM.get(3).add(new StrrefItem(19428, "Biography of a rogue"));
     STRREF_ITEM.get(3).add(new StrrefItem(27863, "Biography of a sorcerer"));
     STRREF_ITEM.get(3).add(new StrrefItem(19430, "Biography of a wizard"));
+    // TODO: check if needed!
+    // initializing IWDEE items
+    STRREF_ITEM.add(new Vector<StrrefItem>());
+    STRREF_ITEM.get(4).add(new StrrefItem(-1,    "User-defined biography"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19423, "Biography of a fighter"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19429, "Biography of a ranger"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19427, "Biography of a paladin"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19422, "Biography of a cleric"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19421, "Biography of a druid"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19430, "Biography of a mage"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19428, "Biography of a thief"));
+    STRREF_ITEM.get(4).add(new StrrefItem(19425, "Biography of a bard"));
   }
 
   private JComboBox cbStrref;
@@ -194,6 +206,9 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
         break;
       case ResourceFactory.ID_ICEWIND2:
         gameId = 3;
+        break;
+      case ResourceFactory.ID_IWDEE:    // TODO: check if needed!
+        gameId = 4;
         break;
       default:
         gameId = 0;

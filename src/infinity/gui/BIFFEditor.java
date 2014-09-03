@@ -270,7 +270,8 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     if (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
         gameid == ResourceFactory.ID_ICEWINDHOWTOT)
       formats.add(s_bifformat[BIF]);
-    else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB)
+    else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
+             ResourceFactory.isEnhancedEdition())
       formats.add(s_bifformat[BIFC]);
     cbformat = new JComboBox(formats.toArray());
     cbformat.addActionListener(this);

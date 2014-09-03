@@ -79,7 +79,7 @@ public final class ResourceFactory
   public static final int ID_UNKNOWNGAME = 0, ID_BG1 = 1, ID_BG1TOTSC = 2, ID_TORMENT = 3, ID_ICEWIND = 4;
   public static final int ID_ICEWINDHOW = 5, ID_ICEWINDHOWTOT = 6, ID_BG2 = 7, ID_BG2TOB = 8, ID_NWN = 9;
   public static final int ID_ICEWIND2 = 10, ID_KOTOR = 11, ID_TUTU = 12, ID_DEMO = 13, ID_KOTOR2 = 14;
-  public static final int ID_BGEE = 15, ID_BG2EE = 16;
+  public static final int ID_BGEE = 15, ID_BG2EE = 16, ID_IWDEE = 17;
   private static File rootDir, langRoot, userRoot;
   private static File[] rootDirs;
   private static final GameConfig[] games;
@@ -87,7 +87,7 @@ public final class ResourceFactory
   private static ResourceFactory factory;
   private static final String DIALOGFILENAME = "dialog.tlk";
   private static int currentGame;
-  private static String bgeeLang;
+  private static String eeLang;
   private File[] biffDirs;
   private JFileChooser fc;
   private ResourceTreeModel treeModel;
@@ -99,8 +99,10 @@ public final class ResourceFactory
 //    String iwddirs[] = {"Music", "Characters", "Scripts", "Sounds", "Temp", "MPSave"};
     String bgeeDirs[] = {"BPSave", "Characters", "Movies", "MPSave", "Music", "Portraits", "Save",
                          "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave"};
+    String iwdeeDirs[] = {"Characters", "Movies", "MPSave", "Music", "Portraits", "Save",
+                          "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave"};
 
-    games = new GameConfig[17];
+    games = new GameConfig[18];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
     games[ID_BG1] = new GameConfig("Baldur's Gate", "baldur.ini", bgdirs);
     games[ID_BG1TOTSC] = new GameConfig("Baldur's Gate - Tales of the Sword Coast",
@@ -121,13 +123,15 @@ public final class ResourceFactory
     games[ID_KOTOR2] = games[ID_UNKNOWNGAME];
     games[ID_BGEE] = new GameConfig("Baldur's Gate - Enhanced Edition", "baldur.ini", bgeeDirs);
     games[ID_BG2EE] = new GameConfig("Baldur's Gate II - Enhanced Edition", "baldur.ini", bgeeDirs);
+    games[ID_IWDEE] = new GameConfig("Icewind Dale - Enhanced Edition", "baldur.ini", iwdeeDirs);
   }
 
 
   public static boolean isEnhancedEdition()
   {
     return currentGame == ID_BGEE ||
-           currentGame == ID_BG2EE;
+           currentGame == ID_BG2EE ||
+           currentGame == ID_IWDEE;
   }
 
   public static int getGameID()
@@ -256,9 +260,9 @@ public final class ResourceFactory
   public static File getUserRoot(int gameID)
   {
     if (isEnhancedEdition()) {
-      final String BGEE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
-      final String BGEE_DIR = games[gameID].name;   //"Baldur's Gate - Enhanced Edition";
-      File userDir = new File(BGEE_DOC_ROOT, BGEE_DIR);
+      final String EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
+      final String EE_DIR = games[gameID].name;
+      File userDir = new File(EE_DOC_ROOT, EE_DIR);
       if (userDir.exists()) {
         return userDir;
       } else {
@@ -275,12 +279,12 @@ public final class ResourceFactory
             in.close();
             String[] splitted = new String(b).split("\\s\\s+");
             userPrefix = splitted[splitted.length-1];
-            userSuffix = BGEE_DIR;
+            userSuffix = EE_DIR;
           } catch (Throwable t) {
             return null;
           }
         } else if (System.getProperty("os.name").contains("Mac")) {
-          userSuffix = File.separator + "Documents" + File.separator + BGEE_DIR;
+          userSuffix = File.separator + "Documents" + File.separator + EE_DIR;
         }
         if (userSuffix != null) {
           userDir = new File(userPrefix, userSuffix);
@@ -320,37 +324,46 @@ public final class ResourceFactory
 
     // Main game detection
     currentGame = ID_UNKNOWNGAME;
-    if (new File(rootDir, "torment.exe").exists())
-      currentGame = ID_TORMENT;
-    else if (new File(rootDir, "idmain.exe").exists())
-      currentGame = ID_ICEWIND;
-    else if (new File(rootDir, "iwd2.exe").exists())
-      currentGame = ID_ICEWIND2;
-    else if (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "BGConfig.exe").exists())
-      currentGame = ID_BG2;
-    else if (new File(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
-             (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "Config.exe").exists()))
-      currentGame = ID_BG1;
-    else if (new File(rootDir, "movies/bgenter.wbm").exists())
-      currentGame = ID_BGEE;
-    else if (new File(rootDir, "movies/pocketzz.wbm").exists())
+    if (new File(rootDir, "movies/howseer.wbm").exists()) {
+      currentGame = ID_IWDEE;
+    } else if (new File(rootDir, "movies/pocketzz.wbm").exists()) {
       currentGame = ID_BG2EE;
+    } else if (new File(rootDir, "movies/bgenter.wbm").exists()) {
+      currentGame = ID_BGEE;
+    } else if (new File(rootDir, "torment.exe").exists() &&
+               !(new File(rootDir, "movies/sigil.wbm").exists())) {
+      currentGame = ID_TORMENT;
+    } else if (new File(rootDir, "idmain.exe").exists() &&
+               !(new File(rootDir, "movies/howseer.wbm").exists())) {
+      currentGame = ID_ICEWIND;
+    } else if (new File(rootDir, "iwd2.exe").exists() &&
+               new File(rootDir, "Data/Credits.mve").exists()) {
+      currentGame = ID_ICEWIND2;
+    } else if (new File(rootDir, "baldur.exe").exists() &&
+               new File(rootDir, "BGConfig.exe").exists()) {
+      currentGame = ID_BG2;
+    } else if (new File(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
+               (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "Config.exe").exists())) {
+      currentGame = ID_BG1;
+    }
 
     // Considering three different sources of resource files
     // Note: The order of the root directories is important. NIFile will take the first one available.
     userRoot = getUserRoot(currentGame);
-    bgeeLang = fetchLanguage(userRoot);   // BGEE stores the currently used language in its inifile
-    langRoot = NIFile.getFile(rootDir, "lang" + File.separator + bgeeLang);
-    if (!langRoot.exists())
+    eeLang = fetchLanguage(userRoot);   // BGEE stores the currently used language in its inifile
+    langRoot = NIFile.getFile(rootDir, "lang" + File.separator + eeLang);
+    if (!langRoot.exists()) {
       langRoot = null;
-    if (userRoot != null && langRoot != null)
+    }
+    if (userRoot != null && langRoot != null) {
       rootDirs = new File[]{langRoot, userRoot, rootDir};
-    else if (userRoot != null && langRoot == null)
+    } else if (userRoot != null && langRoot == null) {
       rootDirs = new File[]{userRoot, rootDir};
-    else if (userRoot == null && langRoot != null)
+    } else if (userRoot == null && langRoot != null) {
       rootDirs = new File[]{langRoot, rootDir};
-    else
+    } else {
       rootDirs = new File[]{rootDir};
+    }
 
     keyfile = new Keyfile(file, currentGame);
     factory = this;
@@ -367,16 +380,20 @@ public final class ResourceFactory
       }
 
       // Expansion pack detection
-      if (currentGame == ID_ICEWIND && resourceExists("HOWDRAG.MVE"))
+      if (currentGame == ID_ICEWIND && resourceExists("HOWDRAG.MVE")) {
       // Detect Trials of the Luremaster
-        if (resourceExists("AR9715.ARE"))
+        if (resourceExists("AR9715.ARE")) {
           currentGame = ID_ICEWINDHOWTOT;
-        else
+        } else {
           currentGame = ID_ICEWINDHOW;
-      if (currentGame == ID_BG2 && resourceExists("SARADUSH.MVE"))
+        }
+      }
+      if (currentGame == ID_BG2 && resourceExists("SARADUSH.MVE")) {
         currentGame = ID_BG2TOB;
-      if (currentGame == ID_BG1 && resourceExists("DURLAG.MVE"))
+      }
+      if (currentGame == ID_BG1 && resourceExists("DURLAG.MVE")) {
         currentGame = ID_BG1TOTSC;
+      }
 
       fetchBIFFDirs();
     } catch (Exception e) {
