@@ -640,7 +640,7 @@ public final class Decompiler
     }
     else if (function.equalsIgnoreCase("StartMovie")) {
       if (ResourceFactory.isEnhancedEdition()) {
-        return new String[] {".WBM"};
+        return new String[] {".WBM", ".MVE"};
       } else {
         return new String[] {".MVE"};
       }
