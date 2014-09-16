@@ -31,7 +31,11 @@ public final class Transition extends AbstractStruct implements AddRemovable
 
   public int getActionIndex()
   {
-    return ((DecNumber)getAttribute("Action index")).getValue();
+    if (getFlag().isFlagSet(2)) {
+      return ((DecNumber)getAttribute("Action index")).getValue();
+    } else {
+      return -1;
+    }
   }
 
   public StringRef getAssociatedText()
@@ -66,7 +70,11 @@ public final class Transition extends AbstractStruct implements AddRemovable
 
   public int getTriggerIndex()
   {
-    return ((DecNumber)getAttribute("Trigger index")).getValue();
+    if (getFlag().isFlagSet(1)) {
+      return ((DecNumber)getAttribute("Trigger index")).getValue();
+    } else {
+      return -1;
+    }
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
