@@ -66,10 +66,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String WINDOW_POSX = "WindowPosX";
   private static final String WINDOW_POSY = "WindowPosY";
   private static final String WINDOW_STATE = "WindowState";
+  private static final String WINDOW_SPLITTER = "WindowSplitter";
   private static final String LAST_GAMEDIR = "LastGameDir";
+
   private static NearInfinity browser;
 
   private final JPanel containerpanel;
+  private final JSplitPane spSplitter;
   private final ResourceTree tree;
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
@@ -235,16 +238,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     containerpanel = new JPanel(new BorderLayout());
     containerpanel.setBackground(UIManager.getColor("desktop"));
-    JSplitPane splith = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
-    splith.setBorder(BorderFactory.createEmptyBorder());
-    splith.setDividerLocation(200);
+    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
+    spSplitter.setBorder(BorderFactory.createEmptyBorder());
+    spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
     Container pane = getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(splith, BorderLayout.CENTER);
+    pane.add(spSplitter, BorderLayout.CENTER);
     pane.add(statusBar, BorderLayout.SOUTH);
 
     setSize(prefs.getInt(WINDOW_SIZEX, 930), prefs.getInt(WINDOW_SIZEY, 700));
-//    setSize(900, 700);
     int centerX = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth() - getSize().width >> 1;
     int centerY = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight() - getSize().height >> 1;
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
@@ -450,6 +452,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
     prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
     prefs.putInt(WINDOW_STATE, getExtendedState());
+    prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, ResourceFactory.getRootDir().toString());
     BrowserMenuBar.getInstance().storePreferences();
   }
