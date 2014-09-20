@@ -16,6 +16,7 @@ import infinity.datatype.HashBitmapEx;
 import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
+import infinity.datatype.MultiNumber;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
@@ -2183,7 +2184,8 @@ public final class EffectFactory
       }
 
       case 0xE9: // Modify proficiencies (CGameEffectProficiency)
-        s.add(new DecNumber(buffer, offset, 4, "# stars"));
+        s.add(new MultiNumber(buffer, offset, 4, "# stars", 3, 2,
+                              new String[]{"Active class", "Original class"}));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
         break;
 
