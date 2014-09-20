@@ -26,6 +26,7 @@ import infinity.resource.are.Actor;
 import infinity.resource.itm.ItmResource;
 import infinity.resource.spl.SplResource;
 import infinity.util.DynamicArray;
+import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
 
 import java.io.ByteArrayOutputStream;
@@ -222,7 +223,7 @@ public final class EffectFactory
         boolean isV1 = (effType.getSize() == 2);
         int ofsOpcode = effType.getOffset();
         int idxOpcode = struct.getIndexOf(struct.getAttribute(ofsOpcode));
-        if (isV1 && struct.getSize() >= ofsOpcode + 0x30) {
+        if (isV1 && struct.getSize() >= 0x30) {
           // EFF V1.0
           map.put(EffectEntry.IDX_OPCODE, idxOpcode);
           map.put(EffectEntry.OFS_OPCODE, ofsOpcode);
@@ -257,7 +258,7 @@ public final class EffectFactory
           map.put(EffectEntry.IDX_SPECIAL, idxOpcode + 15);
           map.put(EffectEntry.OFS_SPECIAL, ofsOpcode + 0x2C);
           return map;
-        } else if (!isV1 && struct.getSize() >= ofsOpcode + 0x100) {
+        } else if (!isV1 && struct.getSize() >= 0x100) {
           // EFF V2.0
           map.put(EffectEntry.IDX_OPCODE, idxOpcode);
           map.put(EffectEntry.OFS_OPCODE, ofsOpcode);
@@ -1457,10 +1458,13 @@ public final class EffectFactory
 
       case 0x53: // Immunity to projectile (CGameEffectImmunityToProjectile)
         s.add(new DecNumber(buffer, offset, 4, "Parameter 1"));
-        if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
-        else
+        if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+          IdsBitmap ids = new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS");
+          ids.addIdsMapEntry(new IdsMapEntry(0L, "None", null));
+          s.add(ids);
+        } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
+        }
         break;
 
       case 0x63: // Modify duration (CGameEffectDurationCasting)
@@ -2017,7 +2021,7 @@ public final class EffectFactory
         break;
 
       case 0xBF: // Casting level bonus (CGameEffectCastingLevelBonus)
-        s.add(new DecNumber(buffer, offset, 4, "Parameter 1"));
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
           new String[]{"Wizard", "Priest"}));
         break;
@@ -2029,10 +2033,13 @@ public final class EffectFactory
 
       case 0xC5: // Physical mirror (CGameEffectBounceProjectile)
         s.add(new DecNumber(buffer, offset, 4, "Parameter 1"));
-        if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
-          s.add(new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS"));
-        else
+        if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+          IdsBitmap ids = new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS");
+          ids.addIdsMapEntry(new IdsMapEntry(0L, "None", null));
+          s.add(ids);
+        } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
+        }
         break;
 
       case 0xC6: // Reflect specified effect (CGameEffectBounceEffect)
@@ -2074,6 +2081,7 @@ public final class EffectFactory
       case 0xFC: // Set trap (CGameEffectSetSnare)
       case 0x100: // Spell sequencer (CGameEffectSequencerInstance)
       case 0x102: // Activate spell sequencer (CGameEffectSequencerFire)
+      case 0x104: // Activate spell sequencer at point
       case 0x10A: // Remove protection from spell (CGameEffectRemoveSpellImmunity)
       case 0x139: // High-level ability (CGameEffectHighLevelAbility)
         s.add(new DecNumber(buffer, offset, 4, "Parameter 1"));
@@ -2089,7 +2097,7 @@ public final class EffectFactory
       case 0xD6: // Select spell (CGameEffectSecondaryCastList)
         s.add(new DecNumber(buffer, offset, 4, "Parameter 1"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Show",
-          new String[]{"All spells", "Known spells"}));
+          new String[]{"From 2DA", "Known spells"}));
         restype = "2DA";
         break;
 
