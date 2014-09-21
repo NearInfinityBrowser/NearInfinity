@@ -157,20 +157,20 @@ public final class ResourceFactory
   {
     Resource res = null;
     try {
-      if (entry.getExtension().equalsIgnoreCase("BAM"))
+      if (entry.getExtension().equalsIgnoreCase("BAM")) {
         res = new BamResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("TIS"))
+      } else if (entry.getExtension().equalsIgnoreCase("TIS")) {
         res = new TisResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("BMP"))
+      } else if (entry.getExtension().equalsIgnoreCase("BMP")) {
         res = new BmpResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("MOS"))
+      } else if (entry.getExtension().equalsIgnoreCase("MOS")) {
         res = new MosResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("WAV") ||
-               entry.getExtension().equalsIgnoreCase("ACM"))
+      } else if (entry.getExtension().equalsIgnoreCase("WAV") ||
+               entry.getExtension().equalsIgnoreCase("ACM")) {
         res = new SoundResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("MUS"))
+      } else if (entry.getExtension().equalsIgnoreCase("MUS")) {
         res = new MusResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("IDS") ||
+      } else if (entry.getExtension().equalsIgnoreCase("IDS") ||
                entry.getExtension().equalsIgnoreCase("2DA") ||
                entry.getExtension().equalsIgnoreCase("BIO") ||
                entry.getExtension().equalsIgnoreCase("RES") ||
@@ -179,66 +179,67 @@ public final class ResourceFactory
                (entry.getExtension().equalsIgnoreCase("SRC") && getGameID() == ID_ICEWIND2) ||
                entry.getExtension().equalsIgnoreCase("SQL") ||
                entry.getExtension().equalsIgnoreCase("GUI") ||
-               (entry.getExtension().equalsIgnoreCase("GLSL") && isEnhancedEdition()))
+               (entry.getExtension().equalsIgnoreCase("GLSL") && isEnhancedEdition())) {
         res = new PlainTextResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("MVE"))
+      } else if (entry.getExtension().equalsIgnoreCase("MVE")) {
         res = new MveResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("WBM"))
+      } else if (entry.getExtension().equalsIgnoreCase("WBM")) {
         res = new WbmResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("PLT"))
+      } else if (entry.getExtension().equalsIgnoreCase("PLT")) {
         res = new PltResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("BCS") ||
-               entry.getExtension().equalsIgnoreCase("BS"))
+      } else if (entry.getExtension().equalsIgnoreCase("BCS") ||
+               entry.getExtension().equalsIgnoreCase("BS")) {
         res = new BcsResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("ITM"))
+      } else if (entry.getExtension().equalsIgnoreCase("ITM")) {
         res = new ItmResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("EFF"))
+      } else if (entry.getExtension().equalsIgnoreCase("EFF")) {
         res = new EffResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("VEF"))
+      } else if (entry.getExtension().equalsIgnoreCase("VEF")) {
           res = new VefResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("VVC"))
+      } else if (entry.getExtension().equalsIgnoreCase("VVC")) {
         res = new VvcResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("SRC"))
+      } else if (entry.getExtension().equalsIgnoreCase("SRC")) {
         res = new SrcResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("DLG"))
+      } else if (entry.getExtension().equalsIgnoreCase("DLG")) {
         res = new DlgResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("SPL"))
+      } else if (entry.getExtension().equalsIgnoreCase("SPL")) {
         res = new SplResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("STO"))
+      } else if (entry.getExtension().equalsIgnoreCase("STO")) {
         res = new StoResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("WMP"))
+      } else if (entry.getExtension().equalsIgnoreCase("WMP")) {
         res = new WmpResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("CHU"))
+      } else if (entry.getExtension().equalsIgnoreCase("CHU")) {
         res = new ChuResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("CRE") ||
-               entry.getExtension().equalsIgnoreCase("CHR"))
+      } else if (entry.getExtension().equalsIgnoreCase("CRE") ||
+               entry.getExtension().equalsIgnoreCase("CHR")) {
         res = new CreResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("ARE"))
+      } else if (entry.getExtension().equalsIgnoreCase("ARE")) {
         res = new AreResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("WFX"))
+      } else if (entry.getExtension().equalsIgnoreCase("WFX")) {
         res = new WfxResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("PRO"))
+      } else if (entry.getExtension().equalsIgnoreCase("PRO")) {
         res = new ProResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("WED"))
+      } else if (entry.getExtension().equalsIgnoreCase("WED")) {
         res = new WedResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("GAM"))
+      } else if (entry.getExtension().equalsIgnoreCase("GAM")) {
         res = new GamResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("SAV"))
+      } else if (entry.getExtension().equalsIgnoreCase("SAV")) {
         res = new SavResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("VAR"))
+      } else if (entry.getExtension().equalsIgnoreCase("VAR")) {
         res = new VarResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("BAF"))
+      } else if (entry.getExtension().equalsIgnoreCase("BAF")) {
         res = new BafResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("TOH"))
+      } else if (entry.getExtension().equalsIgnoreCase("TOH")) {
         res = new TohResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("TOT"))
+      } else if (entry.getExtension().equalsIgnoreCase("TOT")) {
         res = new TotResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("PVRZ") && isEnhancedEdition())
+      } else if (entry.getExtension().equalsIgnoreCase("PVRZ") && isEnhancedEdition()) {
         res = new PvrzResource(entry);
-      else if (entry.getExtension().equalsIgnoreCase("FNT") && isEnhancedEdition())
+      } else if (entry.getExtension().equalsIgnoreCase("FNT") && isEnhancedEdition()) {
         res = new FntResource(entry);
-      else
+      } else {
         res = new UnknownResource(entry);
+      }
     } catch (Exception e) {
       if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().ignoreReadErrors())
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + entry + '\n' +
@@ -739,8 +740,23 @@ public final class ResourceFactory
       String options[] = {"Overwrite", "Cancel"};
       if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", "Save resource",
                                        JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
+        if (BrowserMenuBar.getInstance().backupOnSave()) {
+          try {
+            File bakFile = new File(output.getCanonicalPath() + ".bak");
+            if (bakFile.isFile()) {
+              bakFile.delete();
+            }
+            if (!bakFile.exists()) {
+              output.renameTo(bakFile);
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      } else {
         return false;
+      }
     }
     try {
       BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));

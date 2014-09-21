@@ -299,6 +299,11 @@ public final class BrowserMenuBar extends JMenuBar
     return OptionsMenu.FONTS[0];
   }
 
+  public boolean backupOnSave()
+  {
+    return optionsMenu.optionBackupOnSave.isSelected();
+  }
+
   public boolean ignoreOverrides()
   {
     return optionsMenu.optionIgnoreOverride.isSelected();
@@ -1196,6 +1201,7 @@ public final class BrowserMenuBar extends JMenuBar
     }
 
     private static final String OPTION_SHOWOFFSETS              = "ShowOffsets";
+    private static final String OPTION_BACKUPONSAVE             = "BackupOnSave";
     private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
     private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
@@ -1250,9 +1256,9 @@ public final class BrowserMenuBar extends JMenuBar
                               optionTextDebugColorSchemeEnabled;
     private JMenuItem optionTextDebugColorSchemeSelect;
 
-    private JCheckBoxMenuItem optionShowOffset, optionIgnoreOverride, optionIgnoreReadErrors;
-    private JCheckBoxMenuItem optionAutocheckBCS, optionCacheOverride, optionCheckScriptNames;
-    private JCheckBoxMenuItem optionShowStrrefs;
+    private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride;
+    private JCheckBoxMenuItem optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride;
+    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
 
@@ -1265,6 +1271,11 @@ public final class BrowserMenuBar extends JMenuBar
       setMnemonic(KeyEvent.VK_O);
 
       // Options
+      optionBackupOnSave =
+          new JCheckBoxMenuItem("Backup on save", prefs.getBoolean(OPTION_BACKUPONSAVE, false));
+      optionBackupOnSave.setToolTipText("Enable this option to automatically create a backup " +
+                                        "of the resource you want to save.");
+      add(optionBackupOnSave);
       optionIgnoreOverride =
           new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
@@ -1791,6 +1802,7 @@ public final class BrowserMenuBar extends JMenuBar
     private void storePreferences(Preferences prefs)
     {
       prefs.putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
+      prefs.putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
       prefs.putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
       prefs.putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
       prefs.putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());

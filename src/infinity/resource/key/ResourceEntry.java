@@ -146,6 +146,14 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     return false;
   }
 
+  /**
+   * Indicates whether the resource is visible for Near Infinity.
+   */
+  public boolean isVisible()
+  {
+    return !getResourceName().toUpperCase().endsWith(".BAK");
+  }
+
   protected abstract File getActualFile(boolean ignoreoverride);
 
   public abstract String getExtension();

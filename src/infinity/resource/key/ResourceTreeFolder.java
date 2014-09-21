@@ -69,7 +69,9 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
   void addResourceEntry(ResourceEntry entry)
   {
-    resourceEntries.add(entry);
+    if (entry.isVisible()) {
+      resourceEntries.add(entry);
+    }
   }
 
   Object getChild(int index)

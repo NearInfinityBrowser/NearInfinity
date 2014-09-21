@@ -116,7 +116,9 @@ public final class ResourceTreeModel implements TreeModel
       root.addFolder(folder);
     }
     folder.addResourceEntry(entry);
-    entries.put(entry.getResourceName().toUpperCase(), entry);
+    if (entry.isVisible()) {
+      entries.put(entry.getResourceName().toUpperCase(), entry);
+    }
   }
 
   public List<BIFFResourceEntry> getBIFFResourceEntries()
