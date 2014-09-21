@@ -29,7 +29,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public final class Song2daBitmap extends Datatype implements Editable
+public final class Song2daBitmap extends Datatype implements Editable, Readable
 {
   private static final LongIntegerHashMap<SonglistEntry> songNumber = new LongIntegerHashMap<SonglistEntry>();
   private TextListPanel list;
@@ -72,18 +72,7 @@ public final class Song2daBitmap extends Datatype implements Editable
 
   public Song2daBitmap(byte buffer[], int offset, int length)
   {
-    super(offset, length, "Song");
-    if (songNumber.size() == 0)
-      parseSonglist();
-
-    if (length == 4)
-      value = DynamicArray.getInt(buffer, offset);
-    else if (length == 2)
-      value = (long)DynamicArray.getShort(buffer, offset);
-    else if (length == 1)
-      value = (long)DynamicArray.getByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    this(buffer, offset, length, "Song");
   }
 
   public Song2daBitmap(byte buffer[], int offset, int length, String name)
@@ -92,14 +81,7 @@ public final class Song2daBitmap extends Datatype implements Editable
     if (songNumber.size() == 0)
       parseSonglist();
 
-    if (length == 4)
-      value = DynamicArray.getInt(buffer, offset);
-    else if (length == 2)
-      value = (long)DynamicArray.getShort(buffer, offset);
-    else if (length == 1)
-      value = (long)DynamicArray.getByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -180,6 +162,28 @@ public final class Song2daBitmap extends Datatype implements Editable
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = (long)DynamicArray.getByte(buffer, offset);
+        break;
+      case 2:
+        value = (long)DynamicArray.getShort(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

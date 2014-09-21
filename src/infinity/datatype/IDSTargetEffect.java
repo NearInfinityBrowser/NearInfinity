@@ -32,7 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
+public final class IDSTargetEffect extends Datatype implements Editable, Readable, ListSelectionListener
 {
   private final String sIDS[] = new String[]{"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
                                              "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS", ""};
@@ -48,16 +48,11 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   public IDSTargetEffect(byte buffer[], int offset, String secondIDS)
   {
     super(offset, 8, "IDS target");
-    idsValue = DynamicArray.getUnsignedInt(buffer, offset);
-    idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
     sIDS[2] = secondIDS;
     if (ResourceFactory.isEnhancedEdition()) {
       sIDS[9] = "KIT.IDS";
     }
-    if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals(""))
-      idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
-    else
-      idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -236,6 +231,22 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    idsValue = DynamicArray.getUnsignedInt(buffer, offset);
+    idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
+    if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+      idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+    } else {
+      idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

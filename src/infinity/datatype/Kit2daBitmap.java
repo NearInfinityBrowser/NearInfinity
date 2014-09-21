@@ -30,7 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public final class Kit2daBitmap extends Datatype implements Editable
+public final class Kit2daBitmap extends Datatype implements Editable, Readable
 {
   private static final LongIntegerHashMap<KitlistEntry> kitsNumber = new LongIntegerHashMap<KitlistEntry>();
   private static final LongIntegerHashMap<KitlistEntry> kitsUnusable = new LongIntegerHashMap<KitlistEntry>();
@@ -98,16 +98,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
     this.useUnusable = useUnusable;
     if (kitsNumber.size() == 0)
       parseKitlist();
-    if (buffer[offset + 3] == 0x40) {
-      this.useUnusable = false;
-      value = (long)buffer[offset + 2];
-    }
-    else {
-      value = (long)(DynamicArray.getUnsignedShort(buffer, offset + 2) +
-                     0x10000 * DynamicArray.getUnsignedShort(buffer, offset));
-      if (value < 0)
-        value += 4294967296L;
-    }
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -200,6 +191,24 @@ public final class Kit2daBitmap extends Datatype implements Editable
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    if (buffer[offset + 3] == 0x40) {
+      this.useUnusable = false;
+      value = (long)buffer[offset + 2];
+    }
+    else {
+      value = (long)(DynamicArray.getUnsignedShort(buffer, offset + 2) +
+          0x10000 * DynamicArray.getUnsignedShort(buffer, offset));
+      value &= 0xffffffff;
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

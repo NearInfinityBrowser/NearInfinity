@@ -28,7 +28,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class IdsBitmap extends Datatype implements Editable
+public class IdsBitmap extends Datatype implements Editable, Readable
 {
   protected final LongIntegerHashMap<IdsMapEntry> idsmap;
   protected TextListPanel list;
@@ -38,15 +38,7 @@ public class IdsBitmap extends Datatype implements Editable
   {
     super(offset, length, name);
     idsmap = IdsMapCache.get(resource).getMap();
-
-    if (length == 4)
-      value = DynamicArray.getUnsignedInt(buffer, offset);
-    else if (length == 2)
-      value = (long)DynamicArray.getUnsignedShort(buffer, offset);
-    else if (length == 1)
-      value = (long)DynamicArray.getUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
   public IdsBitmap(byte buffer[], int offset, int length, String name, String resource, int idsStart)
@@ -64,14 +56,7 @@ public class IdsBitmap extends Datatype implements Editable
       }
     }
 
-    if (length == 4)
-      value = DynamicArray.getUnsignedInt(buffer, offset);
-    else if (length == 2)
-      value = (long)DynamicArray.getUnsignedShort(buffer, offset);
-    else if (length == 1)
-      value = (long)DynamicArray.getUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -150,6 +135,28 @@ public class IdsBitmap extends Datatype implements Editable
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

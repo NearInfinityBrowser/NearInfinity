@@ -32,7 +32,7 @@ import javax.swing.table.AbstractTableModel;
  * A Number object consisting of multiple values of a given number of bits.
  * @author argent77
  */
-public class MultiNumber extends Datatype implements Editable
+public class MultiNumber extends Datatype implements Editable, Readable
 {
   private int value;
   private ValueTableModel mValues;
@@ -53,22 +53,7 @@ public class MultiNumber extends Datatype implements Editable
   {
     super(offset, length, name);
 
-    switch (length) {
-      case 1:
-        value = DynamicArray.getByte(buffer, offset);
-        break;
-      case 2:
-        value = DynamicArray.getShort(buffer, offset);
-        break;
-      case 3:
-        value = DynamicArray.getInt24(buffer, offset);
-        break;
-      case 4:
-        value = DynamicArray.getInt(buffer, offset);
-        break;
-      default:
-        throw new IllegalArgumentException();
-    }
+    read(buffer, offset);
 
     if (numBits < 1 || numBits > (length*8)) numBits = length*8;
 
@@ -80,16 +65,6 @@ public class MultiNumber extends Datatype implements Editable
 
     mValues = new ValueTableModel(value, numBits, numValues, valueNames);
   }
-
-//--------------------- Begin Interface Writeable ---------------------
-
-  @Override
-  public void write(OutputStream os) throws IOException
-  {
-    super.writeInt(os, value);
-  }
-
-//--------------------- End Interface Writeable ---------------------
 
 //--------------------- Begin Interface Editable ---------------------
 
@@ -140,6 +115,41 @@ public class MultiNumber extends Datatype implements Editable
   }
 
 //--------------------- End Interface Editable ---------------------
+
+//--------------------- Begin Interface Writeable ---------------------
+
+  @Override
+  public void write(OutputStream os) throws IOException
+  {
+    super.writeInt(os, value);
+  }
+
+//--------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = DynamicArray.getByte(buffer, offset);
+        break;
+      case 2:
+        value = DynamicArray.getShort(buffer, offset);
+        break;
+      case 3:
+        value = DynamicArray.getInt24(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

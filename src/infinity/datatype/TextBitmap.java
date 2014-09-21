@@ -24,7 +24,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
-public final class TextBitmap extends Datatype implements Editable
+public final class TextBitmap extends Datatype implements Editable, Readable
 {
   private final String[] ids;
   private final String[] names;
@@ -34,7 +34,7 @@ public final class TextBitmap extends Datatype implements Editable
   public TextBitmap(byte buffer[], int offset, int length, String name, String ids[], String names[])
   {
     super(offset, length, name);
-    text = DynamicArray.getString(buffer, offset, length);
+    read(buffer, offset);
     this.ids = ids;
     this.names = names;
   }
@@ -108,6 +108,16 @@ public final class TextBitmap extends Datatype implements Editable
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    text = DynamicArray.getString(buffer, offset, getSize());
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

@@ -36,7 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public final class StringRef extends Datatype implements Editable, ActionListener
+public final class StringRef extends Datatype implements Editable, Readable, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
   private InfinityTextArea taRefText;
@@ -52,7 +52,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
   public StringRef(byte buffer[], int offset, String name)
   {
     super(offset, 4, name);
-    value = DynamicArray.getInt(buffer, offset);
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -206,6 +206,16 @@ public final class StringRef extends Datatype implements Editable, ActionListene
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    value = DynamicArray.getInt(buffer, offset);
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

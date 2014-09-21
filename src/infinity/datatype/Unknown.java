@@ -23,7 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Unknown extends Datatype implements Editable
+public class Unknown extends Datatype implements Editable, Readable
 {
   private static final String UNKNOWN = "Unknown";
   InfinityTextArea textArea;
@@ -31,14 +31,13 @@ public class Unknown extends Datatype implements Editable
 
   public Unknown(byte[] buffer, int offset, int length)
   {
-    super(offset, length, UNKNOWN);
-    data = Arrays.copyOfRange(buffer, offset, offset + length);
+    this(buffer, offset, length, UNKNOWN);
   }
 
   public Unknown(byte[] buffer, int offset, int length, String name)
   {
     super(offset, length, name);
-    data = Arrays.copyOfRange(buffer, offset, offset + length);
+    read(buffer, offset);
   }
 
   public byte[] getData()
@@ -140,18 +139,23 @@ public class Unknown extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    data = Arrays.copyOfRange(buffer, offset, offset + getSize());
+  }
+
+//--------------------- End Interface Readable ---------------------
+
   @Override
   public String toString()
   {
     if (data != null && data.length > 0) {
       StringBuffer sb = new StringBuffer(3 * data.length + 1);
       for (final byte d : data) {
-        String text = Integer.toHexString((int)d);
-        if (text.length() == 1)
-          sb.append('0');
-        else if (text.length() > 2)
-          text = text.substring(text.length() - 2);
-        sb.append(text).append(' ');
+        sb.append(String.format("%1$02x ", (int)d & 0xff));
       }
       sb.append('h');
       return sb.toString();

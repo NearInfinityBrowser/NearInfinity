@@ -9,22 +9,15 @@ import infinity.util.DynamicArray;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class UnsignDecNumber extends Datatype implements InlineEditable
+public final class UnsignDecNumber extends Datatype implements InlineEditable, Readable
 {
   private long number;
 
   public UnsignDecNumber(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    number = (long)0;
-    if (length == 4)
-      number = DynamicArray.getUnsignedInt(buffer, offset);
-    else if (length == 2)
-      number = (long)DynamicArray.getUnsignedShort(buffer, offset);
-    else if (length == 1)
-      number = (long)DynamicArray.getUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    number = 0;
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------
@@ -56,6 +49,28 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        number = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        number = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        number = DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()
