@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.datatype.Datatype;
+import infinity.datatype.DecNumber;
 import infinity.datatype.Editable;
 import infinity.datatype.EffectType;
 import infinity.datatype.HexNumber;
@@ -93,6 +94,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOSTRING       = "ToStr";
   public static final String CMD_TOBIN          = "ToBin";
   public static final String CMD_TODEC          = "ToDec";
+  public static final String CMD_TOINT          = "ToInt";
   public static final String CMD_RESET          = "ResetType";
   public static final String CMD_SHOWVIEWER     = "ShowView";
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
@@ -112,6 +114,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToString = createMenuItem(CMD_TOSTRING, "Edit as string", Icons.getIcon("Refresh16.gif"), this);
   private final JMenuItem miToBin = createMenuItem(CMD_TOBIN, "Edit as binary", Icons.getIcon("Refresh16.gif"), this);
   private final JMenuItem miToDec = createMenuItem(CMD_TODEC, "Edit as decimal", Icons.getIcon("Refresh16.gif"), this);
+  private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as number", Icons.getIcon("Refresh16.gif"), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.getIcon("Refresh16.gif"), this);
   private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", null, this);
   private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
@@ -186,6 +189,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToHex);
     popupmenu.add(miToBin);
     popupmenu.add(miToDec);
+    popupmenu.add(miToInt);
     popupmenu.add(miToString);
     popupmenu.add(miReset);
     if (struct instanceof DlgResource) {
@@ -202,6 +206,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToHex.setEnabled(false);
     miToBin.setEnabled(false);
     miToDec.setEnabled(false);
+    miToInt.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
     miShowViewer.setEnabled(false);
@@ -399,6 +404,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(table.getSelectedRow(), miToBin);
     } else if (event.getActionCommand().equals(CMD_TODEC)) {
       convertAttribute(table.getSelectedRow(), miToDec);
+    } else if (event.getActionCommand().equals(CMD_TOINT)) {
+      convertAttribute(table.getSelectedRow(), miToInt);
     } else if (event.getActionCommand().equals(CMD_TOSTRING)) {
       convertAttribute(table.getSelectedRow(), miToString);
     } else if (event.getActionCommand().equals(CMD_RESET)) {
@@ -503,6 +510,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToHex.setEnabled(false);
       miToBin.setEnabled(false);
       miToDec.setEnabled(false);
+      miToInt.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
       miShowViewer.setEnabled(false);
@@ -546,12 +554,15 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (selected instanceof UnknownBinary || selected instanceof UnknownDecimal) {
         miToHex.setEnabled(true);
       }
-      miToBin.setEnabled(isDataType && isReadable && !(selected instanceof UnknownBinary ||
-                                                       selected instanceof SectionCount));
-      miToDec.setEnabled(isDataType && isReadable && !(selected instanceof UnknownDecimal ||
-                                                       selected instanceof SectionCount));
-      miToString.setEnabled(isDataType && isReadable && (selected instanceof Unknown ||
-                                                         selected instanceof ResourceRef));
+      miToBin.setEnabled(isDataType && isReadable &&
+                         !(selected instanceof UnknownBinary || selected instanceof SectionCount));
+      miToDec.setEnabled(isDataType && isReadable &&
+                         !(selected instanceof UnknownDecimal || selected instanceof SectionCount));
+      miToInt.setEnabled(isDataType && isReadable &&
+                         (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
+                         !(selected instanceof DecNumber || selected instanceof SectionCount));
+      miToString.setEnabled(isDataType && isReadable &&
+                            (selected instanceof Unknown || selected instanceof ResourceRef));
       miReset.setEnabled(isDataType && isReadable &&
                          isCachedStructEntry(((Datatype)selected).getOffset()) &&
                          getCachedStructEntry(((Datatype)selected).getOffset()) instanceof Readable);
@@ -802,6 +813,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new UnknownBinary(baos.toByteArray(), 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToDec) {
         newentry = new UnknownDecimal(baos.toByteArray(), 0, entry.getSize(), entry.getName());
+      } else if (menuitem == miToInt) {
+        newentry = new DecNumber(baos.toByteArray(), 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToString) {
         newentry = new TextString(baos.toByteArray(), 0, entry.getSize(), entry.getName());
       } else if (menuitem == miReset) {
