@@ -206,7 +206,10 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(pRGB, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LAST_LINE_START,
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.LAST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pControls.add(new JPanel(), gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LAST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(pPreview, gbc);
 
@@ -219,7 +222,7 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
                             GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
     pMain.add(rcSecondPreview, gbc);
     gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+                            GridBagConstraints.BOTH, new Insets(8, 16, 8, 8), 0, 0);
     pMain.add(pControls, gbc);
 
     // Setting up main panel
