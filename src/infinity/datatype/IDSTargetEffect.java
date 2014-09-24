@@ -34,8 +34,11 @@ import javax.swing.event.ListSelectionListener;
 
 public final class IDSTargetEffect extends Datatype implements Editable, Readable, ListSelectionListener
 {
-  private final String sIDS[] = new String[]{"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
-                                             "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS", ""};
+  private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
+                                                "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
+                                                "ALIGN.IDS", ""};
+  private final String[] sIDS;
+
   private LongIntegerHashMap<IdsMapEntry> idsMap;
   private TextListPanel fileList, valueList;
   private long idsValue, idsFile;
@@ -48,9 +51,24 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
   public IDSTargetEffect(byte buffer[], int offset, String secondIDS)
   {
     super(offset, 8, "IDS target");
+    sIDS = sIDS_default;
     sIDS[2] = secondIDS;
     if (ResourceFactory.isEnhancedEdition()) {
       sIDS[9] = "KIT.IDS";
+    }
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      sIDS[8] = "ALIGNMNT.IDS";
+    }
+    read(buffer, offset);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name, String[] ids)
+  {
+    super(offset, 8, name);
+    if (ids != null) {
+      sIDS = ids;
+    } else {
+      sIDS = sIDS_default;
     }
     read(buffer, offset);
   }
