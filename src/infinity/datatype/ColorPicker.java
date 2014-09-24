@@ -47,7 +47,6 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
   private final int shiftRed, shiftGreen, shiftBlue;
 
   private RenderCanvas rcMainPreview, rcSecondPreview, rcColorPreview;
-  private BufferedImage biColor, biGray;
   private JTextField tfHue, tfSat, tfBri, tfRed, tfGreen, tfBlue;
   private int tmpHue, tmpSat, tmpBri, tmpRed, tmpGreen, tmpBlue;
   private int value;
@@ -98,9 +97,6 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     rcColorPreview.setBackground(Color.BLACK);
     rcColorPreview.setImage(ColorConvert.createCompatibleImage(rcColorPreview.getWidth(),
                                                                rcColorPreview.getHeight(), false));
-
-    biColor = new BufferedImage(rcMainPreview.getWidth(), rcMainPreview.getHeight(), BufferedImage.TYPE_INT_RGB);
-    biGray = new BufferedImage(rcMainPreview.getWidth(), rcMainPreview.getHeight(), BufferedImage.TYPE_INT_RGB);
 
     JLabel lHue = new JLabel("H:");
     JLabel lSat = new JLabel("S:");
@@ -210,10 +206,7 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(pRGB, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
-    pControls.add(new JPanel(), gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LAST_LINE_START,
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LAST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(pPreview, gbc);
 
@@ -240,7 +233,6 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
 
     panel.setMinimumSize(panel.getPreferredSize());
 
-    initMainPreview();
     updateColorValues(value);
     return panel;
   }
@@ -562,28 +554,21 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     updatePreview();
   }
 
+  // Update main (hue/brightness) preview
   private void updateMainPreview()
   {
+    // drawing background
+    initMainPreviewMap();
+
+    // drawing marker
     BufferedImage image = (BufferedImage)rcMainPreview.getImage();
     if (image != null) {
       Graphics2D g = (Graphics2D)image.getGraphics();
       if (g != null) {
         try {
-          Color c;
-          if (tmpSat == 0) {
-            // using grayscale map
-            g.drawImage(biGray, 0, 0, null);
-            c = Color.BLUE;
-          } else {
-            // using color map
-            g.drawImage(biColor, 0, 0, null);
-            c = Color.WHITE;
-          }
-
-          // drawing marker
           int x = tmpHue * image.getWidth() / 360;
           int y = (100 - tmpBri) * image.getHeight() / 100;
-          g.setColor(c);
+          g.setColor(Color.WHITE);
           g.drawLine(x + 2, y, x + 6, y);
           g.drawLine(x - 2, y, x - 6, y);
           g.drawLine(x, y + 2, x, y + 6);
@@ -597,6 +582,7 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     rcMainPreview.repaint();
   }
 
+  // Update secondary (saturation) preview
   private void updateSecondPreview()
   {
     BufferedImage image = (BufferedImage)rcSecondPreview.getImage();
@@ -624,6 +610,7 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     rcSecondPreview.repaint();
   }
 
+  // Update color preview box
   private void updateColorPreview()
   {
     BufferedImage image = (BufferedImage)rcColorPreview.getImage();
@@ -638,23 +625,22 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     rcColorPreview.repaint();
   }
 
-  private void initMainPreview()
+  // Update main preview background map
+  private void initMainPreviewMap()
   {
-    // initializing color maps
-    if (biColor != null && biGray != null) {
-      int width = biColor.getWidth();
-      int height = biColor.getHeight();
-      int[] bufferC = ((DataBufferInt)biColor.getRaster().getDataBuffer()).getData();
-      int[] bufferG = ((DataBufferInt)biGray.getRaster().getDataBuffer()).getData();
-      if (bufferC != null && bufferG != null) {
+    BufferedImage image = (BufferedImage)rcMainPreview.getImage();
+    if (image != null) {
+      int width = image.getWidth();
+      int height = image.getHeight();
+      int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+      if (buffer != null) {
+        float s = (float)tmpSat / 100.0f;
         for (int y = 0; y < height; y++) {
           float b = 1.0f - ((float)y / (float)height);
           for (int x = 0; x < width; x++) {
             float h = (float)x / (float) width;
-            int rgb = getHsbValue(h, 1.0f, b);
-            bufferC[y*width + x] = (getRed(rgb) << 16) | (getGreen(rgb) << 8) | getBlue(rgb);
-            rgb = getHsbValue(h, 0.0f, b);
-            bufferG[y*width + x] = (getRed(rgb) << 16) | (getGreen(rgb) << 8) | getBlue(rgb);
+            int rgb = getHsbValue(h, s, b);
+            buffer[y*width + x] = (getRed(rgb) << 16) | (getGreen(rgb) << 8) | getBlue(rgb);
           }
         }
       }
