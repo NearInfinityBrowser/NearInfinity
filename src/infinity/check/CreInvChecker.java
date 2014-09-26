@@ -29,12 +29,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -48,7 +54,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
   private final List<StructEntry> items = new ArrayList<StructEntry>();
   private final List<StructEntry> slots = new ArrayList<StructEntry>();
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew;
+  private JButton bopen, bopennew, bsave;
   private SortableTable table;
 
   public CreInvChecker()
@@ -77,6 +83,34 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
         Resource resource = ResourceFactory.getResource(resourceEntry);
         new ViewFrame(resultFrame, resource);
         ((AbstractStruct)resource).getViewer().selectEntry(((Item)table.getValueAt(row, 2)).getName());
+      }
+    } else if (event.getSource() == bsave) {
+      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      fc.setDialogTitle("Save search result");
+      fc.setSelectedFile(new File("result.txt"));
+      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
+        File output = fc.getSelectedFile();
+        if (output.exists()) {
+          String options[] = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
+                                           "Save result", JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+            return;
+        }
+        try {
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          pw.println("Result of CRE inventory check");
+          pw.println("Number of hits: " + table.getRowCount());
+          for (int i = 0; i < table.getRowCount(); i++)
+            pw.println(table.getTableItemAt(i).toString());
+          pw.close();
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          e.printStackTrace();
+        }
       }
     }
   }
@@ -137,14 +171,17 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
       resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
       bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
       bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
       JLabel count = new JLabel(table.getRowCount() + " hit(s) found", JLabel.CENTER);
       count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
       resultFrame.getRootPane().setDefaultButton(bopennew);
       JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       panel.add(bopen);
       panel.add(bopennew);
+      panel.add(bsave);
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
       JPanel pane = (JPanel)resultFrame.getContentPane();
@@ -174,6 +211,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
       });
       bopen.addActionListener(this);
       bopennew.addActionListener(this);
+      bsave.addActionListener(this);
       pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       resultFrame.pack();
       Center.center(resultFrame, NearInfinity.getInstance().getBounds());
@@ -238,6 +276,13 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
         return resourceEntry.getSearchString();
       else
         return itemRef;
+    }
+
+    @Override
+    public String toString()
+    {
+      return String.format("File: %1$s  Name: %2$s  %3$s",
+                           resourceEntry.toString(), resourceEntry.getSearchString(), itemRef.toString());
     }
   }
 }

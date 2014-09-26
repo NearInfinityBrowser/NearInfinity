@@ -30,6 +30,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -38,6 +43,7 @@ import java.util.SortedMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -52,7 +58,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
 {
   private final boolean checkOnlyOverride;
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew;
+  private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
   private SortableTable errorTable, warningTable;
 
@@ -86,6 +92,41 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
         Resource resource = ResourceFactory.getResource(resourceEntry);
         new ViewFrame(resultFrame, resource);
         ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+      }
+    }
+    else if (event.getSource() == bsave) {
+      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      fc.setDialogTitle("Save result");
+      fc.setSelectedFile(new File("result.txt"));
+      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
+        File output = fc.getSelectedFile();
+        if (output.exists()) {
+          String[] options = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
+                                           "Save result", JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+            return;
+          }
+        }
+        try {
+          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          pw.println("Result of triggers & actions check");
+          if (table == errorTable) {
+            pw.println("Number of errors: " + table.getRowCount());
+          } else {
+            pw.println("Number of warnings: " + table.getRowCount());
+          }
+          for (int i = 0; i < errorTable.getRowCount(); i++) {
+            pw.println(table.getTableItemAt(i).toString());
+          }
+          pw.close();
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output,
+                                        "Save complete", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ioe) {
+          JOptionPane.showMessageDialog(resultFrame, "Error while savig " + output,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          ioe.printStackTrace();
+        }
       }
     }
   }
@@ -194,6 +235,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
       bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
       bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
       JScrollPane scrollErrorTable = new JScrollPane(errorTable);
       scrollErrorTable.getViewport().setBackground(errorTable.getBackground());
       JScrollPane scrollWarningTable = new JScrollPane(warningTable);
@@ -204,10 +246,12 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       tabbedPane.addChangeListener(this);
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
       resultFrame.getRootPane().setDefaultButton(bopennew);
       JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       panel.add(bopen);
       panel.add(bopennew);
+      panel.add(bsave);
       JPanel pane = (JPanel)resultFrame.getContentPane();
       pane.setLayout(new BorderLayout(0, 3));
       pane.add(tabbedPane, BorderLayout.CENTER);
@@ -239,6 +283,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       warningTable.addMouseListener(listener);
       bopen.addActionListener(this);
       bopennew.addActionListener(this);
+      bsave.addActionListener(this);
       pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       resultFrame.setSize(700, 600);
       Center.center(resultFrame, NearInfinity.getInstance().getBounds());
@@ -278,6 +323,13 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       else if (columnIndex == 2)
         return error;
       return lineNr;
+    }
+
+    @Override
+    public String toString()
+    {
+      return String.format("File: %1$s  Type: %2$s  Error: %3$s  Line: %4$d",
+                           resourceEntry.toString(), structEntry.getName(), error, lineNr);
     }
   }
 }

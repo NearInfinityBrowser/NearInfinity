@@ -233,9 +233,8 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     @Override
     public String toString()
     {
-      StringBuffer buf = new StringBuffer("File: ");
-      buf.append(entry.toString()).append("  Text: ").append(line).append("  Line: ").append(linenr);
-      return buf.toString();
+      return String.format("File: %1$s  Text: %2$s  Line: %3$d",
+                           entry.toString(), line, linenr);
     }
   }
 }
