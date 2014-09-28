@@ -12,17 +12,18 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
 import javax.swing.JComponent;
 
-public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasDetailViewer,
+public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasViewerTabs,
                                                                HasAddRemovable
 {
   private static final String s_type[] = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
@@ -65,15 +66,33 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerContainer(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface HasVertices ---------------------

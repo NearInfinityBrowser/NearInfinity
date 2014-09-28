@@ -14,10 +14,11 @@ import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -28,7 +29,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
-public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
 //  private static final String[] s_type = {"Store", "Tavern", "Inn", "Temple"};
   public static final String[] s_type9 = {"Store", "Tavern", "Inn", "Temple", "Container"};
@@ -70,11 +71,29 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     return scroll;
+  }
+
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
   }
 
 // --------------------- End Interface HasDetailViewer ---------------------

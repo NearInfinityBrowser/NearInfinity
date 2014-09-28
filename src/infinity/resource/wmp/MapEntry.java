@@ -10,27 +10,46 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.StringRef;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 
 import javax.swing.JComponent;
 
-final class MapEntry extends AbstractStruct implements HasDetailViewer
+final class MapEntry extends AbstractStruct implements HasViewerTabs
 {
   MapEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "Map " + nr, buffer, offset);
   }
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerMap(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception

@@ -8,10 +8,11 @@ import infinity.datatype.Flag;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
@@ -21,7 +22,7 @@ import java.io.OutputStream;
 
 import javax.swing.JComponent;
 
-public final class DlgResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+public final class DlgResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   private static final String sNonInt[] = {"Pausing dialogue", "Turn hostile",
                                            "Escape area", "Ignore attack"};
@@ -46,17 +47,35 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     if (detailViewer == null)
       detailViewer = new Viewer(this);
     return detailViewer;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -177,7 +196,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
   // sorry for this (visibility)
   public void showStateWithStructEntry(StructEntry entry) {
     if (detailViewer == null) {
-      getDetailViewer();
+      getViewerTab(0);
     }
     detailViewer.showStateWithStructEntry(entry);
   }

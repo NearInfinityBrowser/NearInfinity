@@ -14,10 +14,11 @@ import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.are.Actor;
@@ -26,7 +27,7 @@ import infinity.util.LongIntegerHashMap;
 
 import javax.swing.JComponent;
 
-class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovable, AddRemovable
+class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable, AddRemovable
 {
   private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
@@ -92,15 +93,33 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerNPC(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)

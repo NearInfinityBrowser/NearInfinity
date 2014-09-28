@@ -22,7 +22,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -85,6 +85,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener
 {
+  // Commonly used tab names
+  public static final String TAB_EDIT           = "Edit";
+  public static final String TAB_VIEW           = "View";
+
+  // Menu commands
   public static final String CMD_COPYVALUE      = "VCopy";
   public static final String CMD_PASTEVALUE     = "VPaste";
   public static final String CMD_CUT            = "Cut";
@@ -294,38 +299,69 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     splitv.setDividerLocation(2 * (NearInfinity.getInstance().getHeight() - 100) / 3);
 
     setLayout(new BorderLayout());
-    if (struct instanceof HasDetailViewer) {
+    if (struct instanceof HasViewerTabs) {
+      HasViewerTabs tabs = (HasViewerTabs)struct;
       JPanel panel = new JPanel(new BorderLayout());
       panel.add(splitv, BorderLayout.CENTER);
       panel.add(buttonPanel, BorderLayout.SOUTH);
       tabbedPane = new JTabbedPane();
-      tabbedPane.addTab("View", ((HasDetailViewer)struct).getDetailViewer());
-      tabbedPane.addTab("Edit", panel);
+
+      // adding custom tabs
+      int editIndex = -1;
+      for (int i = 0; i < tabs.getViewTabCount(); i++) {
+        if (tabs.viewTabAddedBefore(i)) {
+          // adding before "Edit"
+          if (editIndex < 0) {
+            tabbedPane.addTab(tabs.getViewTabName(i), tabs.getViewerTab(i));
+          } else {
+            tabbedPane.insertTab(tabs.getViewTabName(i), null, tabs.getViewerTab(i), null, editIndex);
+            editIndex++;
+          }
+        } else {
+          // adding after "Edit"
+          if (editIndex < 0) {
+            tabbedPane.addTab(TAB_EDIT, panel);
+            editIndex = tabbedPane.getTabCount() - 1;
+          }
+          tabbedPane.addTab(tabs.getViewTabName(i), tabs.getViewerTab(i));
+        }
+      }
+
+      // add "Edit" tab if not yet added
+      if (editIndex < 0) {
+        tabbedPane.addTab(TAB_EDIT, panel);
+        editIndex = tabbedPane.getTabCount() - 1;
+      }
+
       add(tabbedPane, BorderLayout.CENTER);
-      if (struct.getSuperStruct() != null && struct.getSuperStruct() instanceof HasDetailViewer) {
+      if (struct.getSuperStruct() != null && struct.getSuperStruct() instanceof HasViewerTabs) {
         StructViewer sViewer = struct.getSuperStruct().getViewer();
-        if (sViewer == null)
+        if (sViewer == null) {
           sViewer = struct.getSuperStruct().getSuperStruct().getViewer();
-        tabbedPane.setSelectedIndex(sViewer.tabbedPane.getSelectedIndex());
-      }
-      else if (lastIndexStruct == struct.getClass())
+        }
+        if (sViewer != null) {
+          tabbedPane.setSelectedIndex(sViewer.tabbedPane.getSelectedIndex());
+        }
+      } else if (lastIndexStruct == struct.getClass()) {
         tabbedPane.setSelectedIndex(lastIndex);
-      else if (BrowserMenuBar.getInstance().getDefaultStructView() == BrowserMenuBar.DEFAULT_EDIT)
-        tabbedPane.setSelectedIndex(1);
-      if (tabbedPane.getSelectedIndex() == 1) {
-        if (lastNameStruct == struct.getClass())
-          selectEntry(lastName);
-        else
-          table.getSelectionModel().setSelectionInterval(0, 0);
+      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == BrowserMenuBar.DEFAULT_EDIT) {
+        tabbedPane.setSelectedIndex(getEditTabIndex());
       }
-    }
-    else {
+      if (isEditTabSelected()) {
+        if (lastNameStruct == struct.getClass()) {
+          selectEntry(lastName);
+        } else {
+          table.getSelectionModel().setSelectionInterval(0, 0);
+        }
+      }
+    } else {
       add(splitv, BorderLayout.CENTER);
       add(buttonPanel, BorderLayout.SOUTH);
-      if (lastNameStruct == struct.getClass())
+      if (lastNameStruct == struct.getClass()) {
         selectEntry(lastName);
-      else
+      } else {
         table.getSelectionModel().setSelectionInterval(0, 0);
+      }
     }
 
     StructClipboard.getInstance().addChangeListener(this);
@@ -414,7 +450,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       // this should only be available for DlgResources
       DlgResource dlgRes = (DlgResource) struct;
       dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
-      JComponent detailViewer = dlgRes.getDetailViewer();
+      JComponent detailViewer = dlgRes.getViewerTab(0);
       JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
     } else if (event.getActionCommand().equals(CMD_SHOWNEWVIEWER)) {
@@ -661,18 +697,17 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   {
     StructClipboard.getInstance().removeChangeListener(this);
     if (struct instanceof Resource) {
-      if (struct instanceof HasDetailViewer) {
+      if (struct instanceof HasViewerTabs) {
         lastIndex = tabbedPane.getSelectedIndex();
         lastIndexStruct = struct.getClass();
-      }
-      else
+      } else {
         lastIndexStruct = null;
-      if (table.getSelectionModel().getMinSelectionIndex() != -1) {
-        lastName =
-        ((StructEntry)table.getModel().getValueAt(table.getSelectionModel().getMinSelectionIndex(), 1)).getName();
-        lastNameStruct = struct.getClass();
       }
-      else {
+      if (table.getSelectionModel().getMinSelectionIndex() != -1) {
+        lastName = ((StructEntry)table.getModel().getValueAt(table.getSelectionModel()
+                                 .getMinSelectionIndex(), 1)).getName();
+        lastNameStruct = struct.getClass();
+      } else {
         lastName = null;
         lastNameStruct = null;
       }
@@ -713,39 +748,72 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
+  // Helper method for finding out if a "View" tab is available
   public boolean hasViewTab()
   {
-    return (tabbedPane != null && tabbedPane.getTabCount() > 0);
+    return (getTabIndex(TAB_VIEW) >= 0);
   }
 
+  // Helper method for finding out if "View" tab is selected
   public boolean isViewTabSelected()
   {
     if (tabbedPane != null) {
-      return tabbedPane.getSelectedIndex() == 0;
+      return (getTabIndex(TAB_VIEW) == tabbedPane.getSelectedIndex());
     }
     return false;
   }
 
+  // Helper method for selecting "View" tab if available
   public void selectViewTab()
   {
-    if (tabbedPane != null && tabbedPane.getSelectedIndex() != 0) {
-      tabbedPane.setSelectedIndex(0);
+    int idx = getTabIndex(TAB_VIEW);
+    if (idx >= 0) {
+      tabbedPane.setSelectedIndex(idx);
     }
   }
 
+  // Returns whether "Edit" tab is selected
   public boolean isEditTabSelected()
   {
     if (tabbedPane != null) {
-      return tabbedPane.getSelectedIndex() == 1;
+      return (getEditTabIndex() == tabbedPane.getSelectedIndex());
     }
     return true;
   }
 
+  // Selects the "Edit" tab
   public void selectEditTab()
   {
-    if (tabbedPane != null && tabbedPane.getTabCount() > 1 && tabbedPane.getSelectedIndex() != 1) {
-      tabbedPane.setSelectedIndex(1);
+    int idx = getEditTabIndex();
+    if (idx >= 0) {
+      tabbedPane.setSelectedIndex(idx);
     }
+  }
+
+  // Returns tab index of "Edit" tab
+  public int getEditTabIndex()
+  {
+    if (tabbedPane != null) {
+      for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+        if (TAB_EDIT.equals(tabbedPane.getTitleAt(i))) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  // Returns tab index of specified tab name
+  public int getTabIndex(String name)
+  {
+    if (tabbedPane != null && name != null) {
+      for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+        if (name.equals(tabbedPane.getTitleAt(i))) {
+          return i;
+        }
+      }
+    }
+    return -1;
   }
 
   private void considerMenuEnabled()
@@ -842,8 +910,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       StructEntry o = struct.getStructEntryAt(i);
       if (structEntry == o) {
         table.getSelectionModel().setSelectionInterval(i, i);
-        if (tabbedPane != null)
-          tabbedPane.setSelectedIndex(1);
+        selectEditTab();
         return;
       }
       else if (o instanceof AbstractStruct)
@@ -871,8 +938,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         StructViewer viewer = subStruct.getViewer();
         viewer.table.getSelectionModel().setSelectionInterval(i, i);
         table.scrollRectToVisible(table.getCellRect(i, 0, true));
-        if (viewer.tabbedPane != null)
-          viewer.tabbedPane.setSelectedIndex(1);
+        viewer.selectEditTab();
         return;
       }
       else if (o instanceof AbstractStruct)

@@ -13,10 +13,11 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
@@ -28,7 +29,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
-public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   private static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   private static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
@@ -58,17 +59,35 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     return scroll;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------

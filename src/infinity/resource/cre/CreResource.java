@@ -30,7 +30,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.Effect2;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -60,8 +60,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
-public final class CreResource extends AbstractStruct implements Resource, HasAddRemovable, AddRemovable,
-                                                                 HasDetailViewer, ItemListener
+public final class CreResource extends AbstractStruct
+  implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener
 {
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
@@ -375,15 +375,33 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new Viewer(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------

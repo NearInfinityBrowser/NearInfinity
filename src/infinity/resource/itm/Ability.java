@@ -11,18 +11,19 @@ import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractAbility;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.ResourceFactory;
 import infinity.resource.spl.SplResource;
 
 import javax.swing.JComponent;
 
-public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
+public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
   public static final String[] s_yesno = {"No", "Yes"};
   public static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
@@ -65,15 +66,33 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerAbility(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception

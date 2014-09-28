@@ -11,12 +11,13 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 
 import javax.swing.JComponent;
 
-final class AreaEntry extends AbstractStruct implements HasDetailViewer
+final class AreaEntry extends AbstractStruct implements HasViewerTabs
 {
   private static final String s_flag[] = {"No flags set", "Visible", "Reveal from linked area",
                                           "Can be visited", "Has been visited"};
@@ -26,15 +27,33 @@ final class AreaEntry extends AbstractStruct implements HasDetailViewer
     super(superStruct, "Area " + nr, buffer, offset);
   }
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerArea(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception

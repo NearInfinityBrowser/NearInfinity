@@ -489,7 +489,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     else
       NearInfinity.getInstance().setViewable(newdlg);
 
-    Viewer newdlg_viewer = (Viewer) newdlg.getDetailViewer();
+    Viewer newdlg_viewer = (Viewer)newdlg.getViewerTab(0);
     if (isUndo) {
       newdlg_viewer.alive = true;
       newdlg_viewer.repaint(); // only necessary when dlg is in extra window
