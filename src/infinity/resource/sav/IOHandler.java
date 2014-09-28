@@ -12,7 +12,6 @@ import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
-import infinity.util.NIFile;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -87,7 +86,9 @@ public final class IOHandler implements Writeable
   public List<FileResourceEntry> decompress() throws Exception
   {
     List<FileResourceEntry> entries = new ArrayList<FileResourceEntry>(fileentries.size());
-    tempfolder = NIFile.getFile(ResourceFactory.getRootDirs(), '_' + entry.getTreeFolder());
+    tempfolder = createTempFolder();
+    if (tempfolder == null)
+      throw new Exception("Unable to create temp folder");
     tempfolder.mkdir();
     for (int i = 0; i < fileentries.size(); i++) {
       FileEntry fentry = fileentries.get(i);
@@ -103,6 +104,19 @@ public final class IOHandler implements Writeable
   public List<? extends ResourceEntry> getFileEntries()
   {
     return fileentries;
+  }
+
+  // Create a unique temp folder for current baldur.sav
+  private File createTempFolder()
+  {
+    for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
+      File f = new File(ResourceFactory.getUserRoot(),
+                        String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
+      if (!f.exists()) {
+        return f;
+      }
+    }
+    return null;
   }
 
 // -------------------------- INNER CLASSES --------------------------
