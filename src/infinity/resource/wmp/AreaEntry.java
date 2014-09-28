@@ -30,13 +30,13 @@ final class AreaEntry extends AbstractStruct implements HasViewerTabs
 // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewTabCount()
+  public int getViewerTabCount()
   {
     return 1;
   }
 
   @Override
-  public String getViewTabName(int index)
+  public String getViewerTabName(int index)
   {
     return StructViewer.TAB_VIEW;
   }
@@ -48,7 +48,7 @@ final class AreaEntry extends AbstractStruct implements HasViewerTabs
   }
 
   @Override
-  public boolean viewTabAddedBefore(int index)
+  public boolean viewerTabAddedBefore(int index)
   {
     return true;
   }

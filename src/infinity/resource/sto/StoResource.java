@@ -71,13 +71,13 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 // --------------------- Begin Interface HasDetailViewer ---------------------
 
   @Override
-  public int getViewTabCount()
+  public int getViewerTabCount()
   {
     return 1;
   }
 
   @Override
-  public String getViewTabName(int index)
+  public String getViewerTabName(int index)
   {
     return StructViewer.TAB_VIEW;
   }
@@ -91,7 +91,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   }
 
   @Override
-  public boolean viewTabAddedBefore(int index)
+  public boolean viewerTabAddedBefore(int index)
   {
     return true;
   }

@@ -308,13 +308,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
       // adding custom tabs
       int editIndex = -1;
-      for (int i = 0; i < tabs.getViewTabCount(); i++) {
-        if (tabs.viewTabAddedBefore(i)) {
+      for (int i = 0; i < tabs.getViewerTabCount(); i++) {
+        if (tabs.viewerTabAddedBefore(i)) {
           // adding before "Edit"
           if (editIndex < 0) {
-            tabbedPane.addTab(tabs.getViewTabName(i), tabs.getViewerTab(i));
+            tabbedPane.addTab(tabs.getViewerTabName(i), tabs.getViewerTab(i));
           } else {
-            tabbedPane.insertTab(tabs.getViewTabName(i), null, tabs.getViewerTab(i), null, editIndex);
+            tabbedPane.insertTab(tabs.getViewerTabName(i), null, tabs.getViewerTab(i), null, editIndex);
             editIndex++;
           }
         } else {
@@ -323,7 +323,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
             tabbedPane.addTab(TAB_EDIT, panel);
             editIndex = tabbedPane.getTabCount() - 1;
           }
-          tabbedPane.addTab(tabs.getViewTabName(i), tabs.getViewerTab(i));
+          tabbedPane.addTab(tabs.getViewerTabName(i), tabs.getViewerTab(i));
         }
       }
 

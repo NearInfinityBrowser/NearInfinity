@@ -13,14 +13,14 @@ public interface HasViewerTabs
    * Returns the number of additional view tabs provided by the resource viewer.
    * @return Number of provided view tabs.
    */
-  int getViewTabCount();
+  int getViewerTabCount();
 
   /**
    * Returns the name of the given view tab.
    * @param index Identifies the view tab.
    * @return The name of the given view tab. Should be short and unique.
    */
-  String getViewTabName(int index);
+  String getViewerTabName(int index);
 
   /**
    * Returns the panel containing required controls for the given view tab.
@@ -34,5 +34,5 @@ public interface HasViewerTabs
    * @param index Identifies the view tab.
    * @return true if added before the "Edit" tab, false otherwise.
    */
-  boolean viewTabAddedBefore(int index);
+  boolean viewerTabAddedBefore(int index);
 }
