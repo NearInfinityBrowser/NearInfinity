@@ -748,13 +748,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
-  // Helper method for finding out if a "View" tab is available
+  /** Helper method for finding out if a "View" tab is available. */
   public boolean hasViewTab()
   {
     return (getTabIndex(TAB_VIEW) >= 0);
   }
 
-  // Helper method for finding out if "View" tab is selected
+  /** Helper method for finding out if "View" tab is selected. */
   public boolean isViewTabSelected()
   {
     if (tabbedPane != null) {
@@ -763,7 +763,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     return false;
   }
 
-  // Helper method for selecting "View" tab if available
+  /** Helper method for selecting "View" tab if available. */
   public void selectViewTab()
   {
     int idx = getTabIndex(TAB_VIEW);
@@ -772,7 +772,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
-  // Returns whether "Edit" tab is selected
+  /** Returns whether "Edit" tab is selected. */
   public boolean isEditTabSelected()
   {
     if (tabbedPane != null) {
@@ -781,7 +781,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     return true;
   }
 
-  // Selects the "Edit" tab
+  /** Selects the "Edit" tab. */
   public void selectEditTab()
   {
     int idx = getEditTabIndex();
@@ -790,7 +790,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
-  // Returns tab index of "Edit" tab
+  /** Returns tab index of "Edit" tab. */
   public int getEditTabIndex()
   {
     if (tabbedPane != null) {
@@ -803,7 +803,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     return -1;
   }
 
-  // Returns tab index of specified tab name
+  /** Returns tab index of specified tab name.  */
   public int getTabIndex(String name)
   {
     if (tabbedPane != null && name != null) {
@@ -814,6 +814,32 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
     }
     return -1;
+  }
+
+  /** Adds a ChangeListener to the TabbedPane if available. */
+  public void addTabChangeListener(ChangeListener l)
+  {
+    if (tabbedPane != null && l != null) {
+      tabbedPane.addChangeListener(l);
+    }
+  }
+
+  /** Removes a ChangeListener from the TabbedPane if available. */
+  public void removeTabChangeListener(ChangeListener l)
+  {
+    if (tabbedPane != null && l != null) {
+      tabbedPane.removeChangeListener(l);
+    }
+  }
+
+  /** Returns an array of ChangeListeners added to the TabbedPane if available. */
+  public ChangeListener[] getTabChangeListeners()
+  {
+    if (tabbedPane != null) {
+      return tabbedPane.getChangeListeners();
+    } else {
+      return new ChangeListener[0];
+    }
   }
 
   private void considerMenuEnabled()

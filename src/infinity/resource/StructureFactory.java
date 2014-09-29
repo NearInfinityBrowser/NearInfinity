@@ -153,7 +153,7 @@ public final class StructureFactory
       case ResourceFactory.ID_BG2TOB:
       case ResourceFactory.ID_BGEE:
       case ResourceFactory.ID_BG2EE:
-      case ResourceFactory.ID_IWDEE:    // TODO: confirm!
+      case ResourceFactory.ID_IWDEE:
         game = ResourceFactory.ID_BG2;
         break;
       case ResourceFactory.ID_ICEWIND2:
