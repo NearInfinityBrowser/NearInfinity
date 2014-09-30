@@ -11,6 +11,8 @@ import infinity.resource.AddRemovable;
 
 public final class State extends AbstractStruct implements AddRemovable
 {
+  public static final String FMT_NAME = "State %1$d";
+
   private int nr;
 
   State() throws Exception
@@ -20,7 +22,7 @@ public final class State extends AbstractStruct implements AddRemovable
 
   State(AbstractStruct superStruct, byte buffer[], int offset, int count) throws Exception
   {
-    super(superStruct, "State " + count, buffer, offset);
+    super(superStruct, String.format(FMT_NAME, count), buffer, offset);
     nr = count;
   }
 

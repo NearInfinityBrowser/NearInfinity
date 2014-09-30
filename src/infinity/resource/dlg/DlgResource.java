@@ -22,6 +22,7 @@ import java.io.OutputStream;
 
 import javax.swing.JComponent;
 
+
 public final class DlgResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   private static final String sNonInt[] = {"Pausing dialogue", "Turn hostile",
@@ -29,6 +30,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
   private SectionCount countState, countTrans, countStaTri, countTranTri, countAction;
   private SectionOffset offsetState, offsetTrans, offsetStaTri, offsetTranTri, offsetAction;
   private Viewer detailViewer;
+  private TreeViewer treeViewer;
 
   public DlgResource(ResourceEntry entry) throws Exception
   {
@@ -52,27 +54,39 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int getViewerTabCount()
   {
-    return 1;
+    return 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    return StructViewer.TAB_VIEW;
+    switch (index) {
+      case 0: return StructViewer.TAB_VIEW;
+      case 1: return "Tree";
+    }
+    return null;
   }
 
   @Override
   public JComponent getViewerTab(int index)
   {
-    if (detailViewer == null)
-      detailViewer = new Viewer(this);
-    return detailViewer;
+    switch (index) {
+      case 0:
+        if (detailViewer == null)
+          detailViewer = new Viewer(this);
+        return detailViewer;
+      case 1:
+        if (treeViewer == null)
+          treeViewer = new TreeViewer(this);
+        return treeViewer;
+    }
+    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return true;
+    return (index == 0);
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------

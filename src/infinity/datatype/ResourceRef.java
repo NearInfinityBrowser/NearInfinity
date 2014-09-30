@@ -314,6 +314,11 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
       return new StringBuffer(resname).append('.').append(curtype).toString();
   }
 
+  public boolean isEmpty()
+  {
+    return (resname.equals(NONE));
+  }
+
   public String getSearchName()
   {
     ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(getResourceName());
