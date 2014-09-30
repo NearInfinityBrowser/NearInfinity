@@ -688,7 +688,14 @@ public final class ResourceFactory
       else
         return;
     } while (filename == null);
-    File output = NIFile.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar + filename);
+
+    // creating override folder in game directory if it doesn't exist
+    File outdir = NIFile.getFile(getRootDir(), OVERRIDEFOLDER.toLowerCase());
+    if (!outdir.exists()) {
+      outdir.mkdir();
+    }
+
+    File output = NIFile.getFile(outdir, File.separatorChar + filename);
     if (entry.getExtension().equalsIgnoreCase("bs"))
       output = NIFile.getFile(rootDirs, "Scripts" + File.separatorChar + filename);
 
