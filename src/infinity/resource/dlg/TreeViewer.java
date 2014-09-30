@@ -93,29 +93,31 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
   private void updateStateInfo(StateItem si)
   {
     if (si != null && si.getDialog() != null && si.getState() != null) {
+      DlgResource curDlg = si.getDialog();
+      State state = si.getState();
       boolean showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
 
       // updating info box title
-      StringBuilder sb = new StringBuilder(si.getState().getName() + ", ");
-      if (si.getDialog() != dlg) {
-        sb.append(String.format("Dialog: %1$s, ", si.getDialog().getResourceEntry().getResourceName()));
+      StringBuilder sb = new StringBuilder(state.getName() + ", ");
+      if (curDlg != dlg) {
+        sb.append(String.format("Dialog: %1$s, ", curDlg.getResourceEntry().getResourceName()));
       }
-      sb.append(String.format("Responses: %1$d", si.getState().getTransCount()));
-      if (si.getState().getTriggerIndex() >= 0) {
-        sb.append(String.format(", Weight: %1$d", si.getState().getTriggerIndex()));
+      sb.append(String.format("Responses: %1$d", state.getTransCount()));
+      if (state.getTriggerIndex() >= 0) {
+        sb.append(String.format(", Weight: %1$d", state.getTriggerIndex()));
       }
       dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
 
       // updating state text
       dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
       dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT,
-                                StringResource.getStringRef(si.getState().getResponse().getValue(),
+                                StringResource.getStringRef(state.getResponse().getValue(),
                                                             showStrrefs));
 
       // updating state triggers
-      if (si.getState().getTriggerIndex() >= 0) {
+      if (state.getTriggerIndex() >= 0) {
         dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
-        StructEntry entry = dlg.getAttribute(String.format(StateTrigger.FMT_NAME, si.getState().getTriggerIndex()));
+        StructEntry entry = curDlg.getAttribute(String.format(StateTrigger.FMT_NAME, state.getTriggerIndex()));
         if (entry instanceof StateTrigger) {
           dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, ((StateTrigger)entry).toString());
         } else {
@@ -134,40 +136,42 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
   private void updateTransitionInfo(TransitionItem ti)
   {
     if (ti != null && ti.getDialog() != null && ti.getTransition() != null) {
+      DlgResource curDlg = ti.getDialog();
+      Transition trans = ti.getTransition();
       boolean showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
       StructEntry entry;
 
       // updating info box title
-      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, ti.getTransition().getName());
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, trans.getName());
 
       // updating flags
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_FLAGS, true);
-      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_FLAGS, ti.getTransition().getFlag().toString());
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_FLAGS, trans.getFlag().toString());
 
       // updating response text
-      if (ti.getTransition().getFlag().isFlagSet(0)) {
+      if (trans.getFlag().isFlagSet(0)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, true);
         dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TEXT,
-                                  StringResource.getStringRef(ti.getTransition().getAssociatedText().getValue(),
+                                  StringResource.getStringRef(trans.getAssociatedText().getValue(),
                                                               showStrrefs));
       } else {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, false);
       }
 
       // updating journal entry
-      if (ti.getTransition().getFlag().isFlagSet(4)) {
+      if (trans.getFlag().isFlagSet(4)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, true);
         dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_JOURNAL,
-                                  StringResource.getStringRef(ti.getTransition().getJournalEntry().getValue(),
+                                  StringResource.getStringRef(trans.getJournalEntry().getValue(),
                                                               showStrrefs));
       } else {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, false);
       }
 
       // updating response trigger
-      if (ti.getTransition().getFlag().isFlagSet(1)) {
+      if (trans.getFlag().isFlagSet(1)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, true);
-        entry = dlg.getAttribute(String.format(ResponseTrigger.FMT_NAME, ti.getTransition().getTriggerIndex()));
+        entry = curDlg.getAttribute(String.format(ResponseTrigger.FMT_NAME, trans.getTriggerIndex()));
         if (entry instanceof ResponseTrigger) {
           dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, ((ResponseTrigger)entry).toString());
         } else {
@@ -178,9 +182,9 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       }
 
       // updating action
-      if (ti.getTransition().getFlag().isFlagSet(2)) {
+      if (trans.getFlag().isFlagSet(2)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, true);
-        entry = dlg.getAttribute(String.format(Action.FMT_NAME, ti.getTransition().getActionIndex()));
+        entry = curDlg.getAttribute(String.format(Action.FMT_NAME, trans.getActionIndex()));
         if (entry instanceof Action) {
           dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, ((Action)entry).toString());
         } else {
@@ -989,11 +993,8 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       JLabel l = new JLabel();
       JTextArea ta = new JTextArea();
       ta.setEditable(false);
-      ta.setFocusable(false);
       ta.setFont(l.getFont());
       ta.setBackground(l.getBackground());
-      ta.setSelectionColor(l.getBackground());
-      ta.setSelectedTextColor(l.getBackground());
       ta.setWrapStyleWord(true);
       ta.setLineWrap(true);
       l = null;
@@ -1008,11 +1009,8 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       JTextField tf = new JTextField();
       tf.setBorder(BorderFactory.createEmptyBorder());
       tf.setEditable(false);
-      tf.setFocusable(false);
       tf.setFont(l.getFont());
       tf.setBackground(l.getBackground());
-      tf.setSelectionColor(l.getBackground());
-      tf.setSelectedTextColor(l.getBackground());
       l = null;
 
       return tf;
