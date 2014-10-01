@@ -8,6 +8,8 @@ public final class ResponseTrigger extends AbstractCode
 {
   public static final String FMT_NAME = "Response trigger %1$d";
 
+  private int nr;
+
   ResponseTrigger()
   {
     super("Response trigger");
@@ -16,6 +18,12 @@ public final class ResponseTrigger extends AbstractCode
   ResponseTrigger(byte buffer[], int offset, int count)
   {
     super(buffer, offset, String.format(FMT_NAME, count));
+    this.nr = count;
+  }
+
+  public int getNumber()
+  {
+    return nr;
   }
 }
 

@@ -39,8 +39,10 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 
@@ -69,8 +71,9 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
   public void valueChanged(TreeSelectionEvent e)
   {
     if (e.getSource() == dlgTree) {
-      Object data = dlgTree.getLastSelectedPathComponent();
-      if (data != null) {
+      Object node = dlgTree.getLastSelectedPathComponent();
+      if (node instanceof DefaultMutableTreeNode) {
+        Object data = ((DefaultMutableTreeNode)node).getUserObject();
         if (data instanceof StateItem) {
           // dialog state found
           updateStateInfo((StateItem)data);
@@ -142,7 +145,11 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       StructEntry entry;
 
       // updating info box title
-      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, trans.getName());
+      StringBuilder sb = new StringBuilder(trans.getName());
+      if (curDlg != dlg) {
+        sb.append(String.format(", Dialog: %1$s", curDlg.getResourceEntry().getResourceName()));
+      }
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, sb.toString());
 
       // updating flags
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_FLAGS, true);
@@ -366,20 +373,10 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       return dlg;
     }
 
-//    public void setDialog(DlgResource dlg)
-//    {
-//      this.dlg = dlg;
-//    }
-
     public State getState()
     {
       return state;
     }
-
-//    public void setState(State state)
-//    {
-//      this.state = state;
-//    }
 
     @Override
     public String toString()
@@ -416,20 +413,10 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       return dlg;
     }
 
-//    public void setDialog(DlgResource dlg)
-//    {
-//      this.dlg = dlg;
-//    }
-
     public Transition getTransition()
     {
       return trans;
     }
-
-//    public void setTransition(Transition trans)
-//    {
-//      this.trans = trans;
-//    }
 
     @Override
     public String toString()
@@ -476,8 +463,9 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     // maps dialog resources to tables of transition index/item pairs
     private final HashMap<String, HashMap<Integer, TransitionItem>> mapTransition = new HashMap<String, HashMap<Integer, TransitionItem>>();
 
-    private DlgResource dlg;
     private RootItem root;
+    private DlgResource dlg;
+    private DefaultMutableTreeNode nodeRoot;
 
     public DlgTreeModel(DlgResource dlg)
     {
@@ -489,60 +477,30 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     @Override
     public Object getRoot()
     {
-      return root;
+      return updateNodeChildren(nodeRoot);
     }
 
     @Override
     public Object getChild(Object parent, int index)
     {
-      if (parent instanceof StateItem) {
-        // states allow multiple transitions as children
-        StateItem state = (StateItem)parent;
-        int count = state.getState().getTransCount();
-        if (index >= 0 && index < count) {
-          int transIndex = state.getState().getFirstTrans() + index;
-          String dlgName = state.getDialog().getResourceEntry().getResourceName();
-          return mapTransition.get(dlgName).get(Integer.valueOf(transIndex));
+      DefaultMutableTreeNode node = null;
+      if (parent instanceof DefaultMutableTreeNode) {
+        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
+        nodeParent = updateNodeChildren(nodeParent);
+        if (index >= 0 && index < nodeParent.getChildCount()) {
+          node = (DefaultMutableTreeNode)nodeParent.getChildAt(index);
         }
-      } else if (parent instanceof TransitionItem && index == 0) {
-        // transitions only allow a single state as child
-        TransitionItem trans = (TransitionItem)parent;
-
-        // Handling local and external dialog references separately
-        ResourceRef dlgRef = trans.getTransition().getNextDialog();
-        int stateIndex = trans.getTransition().getNextDialogState();
-        if (dlgRef.isEmpty() || dlgRef.getResourceName().equals(dlg.getResourceEntry().getResourceName())) {
-          if (mapState.containsKey(dlg.getResourceEntry().getResourceName())) {
-            return mapState.get(dlg.getResourceEntry().getResourceName()).get(Integer.valueOf(stateIndex));
-          }
-        } else {
-          if (mapState.containsKey(dlgRef.getResourceName())) {
-            return mapState.get(dlgRef.getResourceName()).get(Integer.valueOf(stateIndex));
-          }
-        }
-      } else if (parent instanceof RootItem) {
-        return ((RootItem)parent).getInitialState(index);
       }
-      return null;
+      return updateNodeChildren(node);
     }
 
     @Override
     public int getChildCount(Object parent)
     {
-      if (parent instanceof StateItem) {
-        StateItem state = (StateItem)parent;
-        return state.getState().getTransCount();
-      } else if (parent instanceof TransitionItem) {
-        TransitionItem trans = (TransitionItem)parent;
-        if (trans.getTransition().getFlag().isFlagSet(3)) {
-          // dialog is terminated
-          return 0;
-        } else {
-          // dialog continues
-          return 1;
-        }
-      } else if (parent instanceof RootItem) {
-        return ((RootItem)parent).getInitialStateCount();
+      if (parent instanceof DefaultMutableTreeNode) {
+        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
+        nodeParent = updateNodeChildren(nodeParent);
+        return nodeParent.getChildCount();
       }
       return 0;
     }
@@ -550,9 +508,8 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     @Override
     public boolean isLeaf(Object node)
     {
-      if (node instanceof TransitionItem) {
-        TransitionItem trans = (TransitionItem)node;
-        return trans.getTransition().getFlag().isFlagSet(3);
+      if (node instanceof DefaultMutableTreeNode) {
+        return ((DefaultMutableTreeNode)node).isLeaf();
       }
       return false;
     }
@@ -560,44 +517,18 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     @Override
     public void valueForPathChanged(TreePath path, Object newValue)
     {
-      // tree is immutable
+      // TODO
     }
 
     @Override
     public int getIndexOfChild(Object parent, Object child)
     {
-      if (child != null) {
-        if (parent instanceof StateItem) {
-          StateItem state = (StateItem)parent;
-          int count = state.getState().getTransCount();
-          int triggerIndex = state.getState().getTriggerIndex();
-          for (int i = 0; i < count; i++) {
-            if (mapTransition.get(state.getDialog()).get(Integer.valueOf(triggerIndex+i)) == child) {
-              return i;
-            }
-          }
-        } else if (parent instanceof TransitionItem) {
-          TransitionItem trans = (TransitionItem)parent;
-
-          // Handling local and external dialog references separately
-          ResourceRef dlgRef = trans.getTransition().getNextDialog();
-          if (dlgRef.isEmpty() || dlgRef.getResourceName().equals(dlg.getResourceEntry().getResourceName())) {
-            HashMap<Integer, StateItem> mapItem = mapState.get(dlg.getResourceEntry().getResourceName());
-            if (mapItem != null && mapItem.containsValue(child)) {
-              return 0;
-            }
-          } else {
-            HashMap<Integer, StateItem> mapItem = mapState.get(dlgRef.getResourceName());
-            if (mapItem != null && mapItem.containsValue(child)) {
-              return 0;
-            }
-          }
-        } else if (parent instanceof RootItem) {
-          RootItem root = (RootItem)parent;
-          for (int i = 0; i < root.getInitialStateCount(); i++) {
-            if (child == root.getInitialState(i)) {
-              return i;
-            }
+      if (parent instanceof DefaultMutableTreeNode && child instanceof DefaultMutableTreeNode) {
+        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
+        for (int i = 0; i < nodeParent.getChildCount(); i++) {
+          TreeNode nodeChild = nodeParent.getChildAt(i);
+          if (nodeChild == child) {
+            return i;
           }
         }
       }
@@ -648,6 +579,7 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       mapTransition.clear();
 
       root = null;
+      nodeRoot = null;
 
       this.dlg = dlg;
       initialize();
@@ -658,26 +590,6 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
         tml.treeStructureChanged(event);
       }
     }
-
-//    /** Attempts to find the state specified by the parameters. Returns null if not found. */
-//    public StateItem getState(DlgResource dlg, int stateIndex)
-//    {
-//      if (dlg == null) dlg = this.dlg;
-//      if (mapState.containsKey(dlg.getResourceEntry().getResourceName())) {
-//        return mapState.get(dlg.getResourceEntry().getResourceName()).get(Integer.valueOf(stateIndex));
-//      }
-//      return null;
-//    }
-
-//    /** Attempts to find the transition specified by the parameters. Returns null if not found. */
-//    public TransitionItem getTransition(DlgResource dlg, int transIndex)
-//    {
-//      if (dlg == null) dlg = this.dlg;
-//      if (mapTransition.containsKey(dlg.getResourceEntry().getResourceName())) {
-//        return mapTransition.get(dlg.getResourceEntry().getResourceName()).get(Integer.valueOf(transIndex));
-//      }
-//      return null;
-//    }
 
     private void initState(StateItem state)
     {
@@ -766,6 +678,75 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       for (int i = 0; i < root.getInitialStateCount(); i++) {
         initState(root.getInitialState(i));
       }
+      nodeRoot = new DefaultMutableTreeNode(root, true);
+    }
+
+    // Adds all available child nodes to the given parent node
+    private DefaultMutableTreeNode updateNodeChildren(DefaultMutableTreeNode parent)
+    {
+      if (parent != null) {
+        if (parent.getUserObject() instanceof StateItem) {
+          return updateStateNodeChildren(parent);
+        } else if (parent.getUserObject() instanceof TransitionItem) {
+          return updateTransitionNodeChildren(parent);
+        } else if (parent.getUserObject() instanceof RootItem) {
+          return updateRootNodeChildren(parent);
+        }
+      }
+      return parent;
+    }
+
+    // Adds all available transition child nodes to the given parent state node
+    private DefaultMutableTreeNode updateStateNodeChildren(DefaultMutableTreeNode parent)
+    {
+      if (parent != null && parent.getUserObject() instanceof StateItem) {
+        StateItem state = (StateItem)parent.getUserObject();
+        String dlgName = state.getDialog().getResourceEntry().getResourceName();
+        int count = state.getState().getTransCount();
+        while (parent.getChildCount() < count) {
+          int transIdx = state.getState().getFirstTrans() + parent.getChildCount();
+          TransitionItem child = mapTransition.get(dlgName).get(Integer.valueOf(transIdx));
+          boolean allowChildren = !child.getTransition().getFlag().isFlagSet(3);
+          DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, allowChildren);
+          parent.add(nodeChild);
+        }
+      }
+      return parent;
+    }
+
+    // Adds all available state child nodes to the given parent transition node
+    private DefaultMutableTreeNode updateTransitionNodeChildren(DefaultMutableTreeNode parent)
+    {
+      if (parent != null && parent.getUserObject() instanceof TransitionItem) {
+        // transitions only allow a single state as child
+        if (parent.getChildCount() < 1) {
+          TransitionItem trans = (TransitionItem)parent.getUserObject();
+          ResourceRef dlgRef = trans.getTransition().getNextDialog();
+          if (!dlgRef.isEmpty()) {
+            String dlgName = dlgRef.getResourceName();
+            int stateIdx = trans.getTransition().getNextDialogState();
+            StateItem child = mapState.get(dlgName).get(Integer.valueOf(stateIdx));
+            DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
+            parent.add(nodeChild);
+          }
+        }
+      }
+      return parent;
+    }
+
+    // Adds all available initial state child nodes to the given parent root node
+    private DefaultMutableTreeNode updateRootNodeChildren(DefaultMutableTreeNode parent)
+    {
+      if (parent != null && parent.getUserObject() instanceof RootItem) {
+        RootItem root = (RootItem)parent.getUserObject();
+        while (parent.getChildCount() < root.getInitialStateCount()) {
+          int stateIdx = parent.getChildCount();
+          StateItem child = root.getInitialState(stateIdx);
+          DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
+          parent.add(nodeChild);
+        }
+      }
+      return parent;
     }
   }
 
@@ -812,15 +793,11 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       pMainPanel.add(pState, CARD_STATE);
 
       taStateText = createReadOnlyTextArea();
-//      scroll = new JScrollPane(taStateText);
-//      scroll.setBorder(BorderFactory.createEmptyBorder());
       pStateText = new JPanel(new BorderLayout());
       pStateText.setBorder(BorderFactory.createTitledBorder("Associated text"));
       pStateText.add(taStateText, BorderLayout.CENTER);
 
       taStateTrigger = createReadOnlyTextArea();
-//      scroll = new JScrollPane(taStateTrigger);
-//      scroll.setBorder(BorderFactory.createEmptyBorder());
       pStateTrigger = new JPanel(new BorderLayout());
       pStateTrigger.setBorder(BorderFactory.createTitledBorder("State trigger"));
       pStateTrigger.add(taStateTrigger, BorderLayout.CENTER);
@@ -842,37 +819,26 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       pMainPanel.add(pResponse, CARD_RESPONSE);
 
       tfResponseFlags = createReadOnlyTextField();
-//      scroll = new JScrollPane(tfResponseFlags, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-//                               JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//      scroll.setBorder(BorderFactory.createEmptyBorder());
       pResponseFlags = new JPanel(new BorderLayout());
       pResponseFlags.setBorder(BorderFactory.createTitledBorder("Flags"));
       pResponseFlags.add(tfResponseFlags, BorderLayout.CENTER);
 
       taResponseText = createReadOnlyTextArea();
-//      scroll = new JScrollPane(taResponseText);
-//      scroll.setBorder(BorderFactory.createEmptyBorder());
       pResponseText = new JPanel(new BorderLayout());
       pResponseText.setBorder(BorderFactory.createTitledBorder("Associated text"));
       pResponseText.add(taResponseText, BorderLayout.CENTER);
 
       taResponseJournal = createReadOnlyTextArea();
-//      scroll = new JScrollPane(taResponseJournal);
-//      scroll.setBorder(BorderFactory.createEmptyBorder());
       pResponseJournal = new JPanel(new BorderLayout());
       pResponseJournal.setBorder(BorderFactory.createTitledBorder("Journal entry"));
       pResponseJournal.add(taResponseJournal, BorderLayout.CENTER);
 
       taResponseTrigger = createReadOnlyTextArea();
-//      scroll = new JScrollPane(taResponseTrigger);
-//      scroll.setBorder(BorderFactory.createEmptyBorder());
       pResponseTrigger = new JPanel(new BorderLayout());
       pResponseTrigger.setBorder(BorderFactory.createTitledBorder("Response trigger"));
       pResponseTrigger.add(taResponseTrigger, BorderLayout.CENTER);
 
       taResponseAction = createReadOnlyTextArea();
-//      scroll = new JScrollPane(taResponseAction);
-//      scroll.setBorder(BorderFactory.createEmptyBorder());
       pResponseAction = new JPanel(new BorderLayout());
       pResponseAction.setBorder(BorderFactory.createTitledBorder("Action"));
       pResponseAction.add(taResponseAction, BorderLayout.CENTER);

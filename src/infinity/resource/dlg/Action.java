@@ -8,6 +8,8 @@ public final class Action extends AbstractCode
 {
   public static final String FMT_NAME = "Action %1$d";
 
+  private int nr;
+
   public Action()
   {
     super("Action");
@@ -16,6 +18,12 @@ public final class Action extends AbstractCode
   public Action(byte buffer[], int offset, int count)
   {
     super(buffer, offset, String.format(FMT_NAME, count));
+    this.nr = count;
+  }
+
+  public int getNumber()
+  {
+    return nr;
   }
 }
 

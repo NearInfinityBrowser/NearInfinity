@@ -8,6 +8,8 @@ public final class StateTrigger extends AbstractCode
 {
   public static final String FMT_NAME = "State trigger %1$d";
 
+  private int nr;
+
   StateTrigger()
   {
     super("State trigger");
@@ -16,6 +18,12 @@ public final class StateTrigger extends AbstractCode
   StateTrigger(byte buffer[], int offset, int count)
   {
     super(buffer, offset, String.format(FMT_NAME, count));
+    this.nr = count;
+  }
+
+  public int getNumber()
+  {
+    return nr;
   }
 }
 
