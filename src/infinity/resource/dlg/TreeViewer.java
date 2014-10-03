@@ -1912,7 +1912,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if(title == null) title = "";
       TitledBorder tb = BorderFactory.createTitledBorder(title);
       Font f = tb.getTitleFont();
-      tb.setTitleFont(new Font(f.getFamily(), fontStyle, isTitle ? (f.getSize() + 1) : f.getSize()));
+      if (f == null) {
+        f = (new JLabel()).getFont();
+      }
+      if (f != null) {
+        tb.setTitleFont(new Font(f.getFamily(), fontStyle, isTitle ? (f.getSize() + 1) : f.getSize()));
+      }
       return tb;
     }
   }
