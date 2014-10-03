@@ -2200,13 +2200,16 @@ public final class EffectFactory
         break;
 
       case 7: // Set color
-      case 8: // Set color glow solid
-      case 51: // Character tint solid
-      case 52: // Character tint bright
         s.add(new ColorValue(buffer, offset, 4, "Color"));
         s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc));
         break;
 
+      case 8: // Set color glow solid
+      case 51: // Character tint solid
+      case 52: // Character tint bright
+        s.add(new ColorPicker(buffer, offset, "Color"));
+        s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc));
+        break;
 
       case 9: // Set color glow pulse
         s.add(new ColorPicker(buffer, offset, "Color"));
@@ -4155,7 +4158,7 @@ public final class EffectFactory
 
       case 232: // Creature RGB color fade
         s.add(new ColorPicker(buffer, offset, "Color"));
-        s.add(new DecNumber(buffer, offset + 4, 2, "Unused"));
+        s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc));
         s.add(new DecNumber(buffer, offset + 6, 2, "Speed"));
         break;
 
