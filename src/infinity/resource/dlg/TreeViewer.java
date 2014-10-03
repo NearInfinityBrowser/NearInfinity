@@ -10,7 +10,9 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.StringRef;
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.ViewFrame;
 import infinity.gui.ViewerUtil;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -24,6 +26,13 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,14 +42,18 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.JViewport;
+import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -61,14 +74,31 @@ import javax.swing.tree.TreePath;
 
 
 /** Show dialog content as tree structure. */
-final class TreeViewer extends JPanel implements TreeSelectionListener, TableModelListener
+final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
+                                                 TableModelListener, PropertyChangeListener
 {
+  // Max. node depth allowed to search or map the tree model
+  private static final int MAX_DEPTH = 64;
+
+  private final JPopupMenu pmTree = new JPopupMenu();
+  private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes");
+  private final JMenuItem miExpand = new JMenuItem("Expand selected node");
+  private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes");
+  private final JMenuItem miCollapse = new JMenuItem("Collapse selected nodes");
+  private final JMenuItem miEditEntry = new JMenuItem("Edit entry");
+
+  // caches ViewFrame instances used to display external dialog entries
+  private final HashMap<String, ViewFrame> mapViewer = new HashMap<String, ViewFrame>();
+
   private final DlgResource dlg;
   private final DlgTreeModel dlgModel;
   private final JTree dlgTree;
   private final ItemInfo dlgInfo;
 
   private JScrollPane spInfo, spTree;
+  private TreeWorker worker;
+  private WindowBlocker blocker;
+
 
   TreeViewer(DlgResource dlg)
   {
@@ -81,6 +111,84 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
     dlgInfo = new ItemInfo();
     initControls();
   }
+
+//--------------------- Begin Interface ActionListener ---------------------
+
+  @Override
+  public void actionPerformed(ActionEvent e)
+  {
+    if (e.getSource() == miEditEntry) {
+      TreePath path = dlgTree.getSelectionPath();
+      if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        if (node.getUserObject() instanceof ItemBase) {
+          ItemBase item = (ItemBase)node.getUserObject();
+          boolean isExtern = (!item.getDialogName().equals(dlg.getResourceEntry().getResourceName()));
+          if (isExtern) {
+            ViewFrame vf = mapViewer.get(item.getDialogName());
+            // reuseing external dialog window if possible
+            if (vf != null && vf.isVisible()) {
+              vf.toFront();
+            } else {
+              vf = new ViewFrame(this, item.getDialog());
+              mapViewer.put(item.getDialogName(), vf);
+            }
+          }
+
+          if (item.getDialog().getViewer() != null) {
+            // selecting table entry
+            Viewer viewer = (Viewer)item.getDialog().getViewerTab(0);
+            if (node.getUserObject() instanceof RootItem) {
+              item.getDialog().getViewer().selectEntry(0);
+            } else if (node.getUserObject() instanceof StateItem) {
+              int stateIdx = ((StateItem)item).getState().getNumber();
+              item.getDialog().getViewer().selectEntry(String.format(State.FMT_NAME, stateIdx));
+              viewer.showStateWithStructEntry(((StateItem)item).getState());
+            } else if (node.getUserObject() instanceof TransitionItem) {
+              int transIdx = ((TransitionItem)item).getTransition().getNumber();
+              item.getDialog().getViewer().selectEntry(String.format(Transition.FMT_NAME, transIdx));
+              viewer.showStateWithStructEntry(((TransitionItem)item).getTransition());
+            }
+            item.getDialog().selectEditTab();
+          }
+        }
+      }
+    } else if (e.getSource() == miExpandAll) {
+      if (worker == null) {
+        worker = new TreeWorker(this, TreeWorker.Type.Expand, new TreePath(dlgModel.getRoot()));
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    } else if (e.getSource() == miCollapseAll) {
+      if (worker == null) {
+        worker = new TreeWorker(this, TreeWorker.Type.Collapse, new TreePath(dlgModel.getRoot()));
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    } else if (e.getSource() == miExpand) {
+      if (worker == null) {
+        worker = new TreeWorker(this, TreeWorker.Type.Expand, dlgTree.getSelectionPath());
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    } else if (e.getSource() == miCollapse) {
+      if (worker == null) {
+        worker = new TreeWorker(this, TreeWorker.Type.Collapse, dlgTree.getSelectionPath());
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    }
+  }
+
+//--------------------- End Interface ActionListener ---------------------
 
 //--------------------- Begin Interface TreeSelectionListener ---------------------
 
@@ -130,6 +238,25 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
  }
 
 //--------------------- End Interface TableModelListener ---------------------
+
+//--------------------- Begin Interface PropertyChangeListener ---------------------
+
+ @Override
+ public void propertyChange(PropertyChangeEvent event)
+ {
+   if (event.getSource() == worker) {
+     if ("state".equals(event.getPropertyName()) &&
+         TreeWorker.StateValue.DONE == event.getNewValue()) {
+       if (blocker != null) {
+         blocker.setBlocked(false);
+         blocker = null;
+       }
+       worker = null;
+     }
+   }
+ }
+
+//--------------------- End Interface PropertyChangeListener ---------------------
 
   /** Jumps to the first available node containing the specified structure. */
   public void showStateWithStructEntry(StructEntry entry)
@@ -368,14 +495,253 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
     // setting model AFTER customizing visual appearance of the tree control
     dlgTree.setModel(dlgModel);
 
+    // initializing popup menu
+    miEditEntry.addActionListener(this);
+    miEditEntry.setEnabled(!dlgTree.isSelectionEmpty());
+    miExpand.addActionListener(this);
+    miExpand.setEnabled(!dlgTree.isSelectionEmpty());
+    miCollapse.addActionListener(this);
+    miCollapse.setEnabled(!dlgTree.isSelectionEmpty());
+    miExpandAll.addActionListener(this);
+    miCollapseAll.addActionListener(this);
+    pmTree.add(miEditEntry);
+    pmTree.addSeparator();
+    pmTree.add(miExpand);
+    pmTree.add(miCollapse);
+    pmTree.add(miExpandAll);
+    pmTree.add(miCollapseAll);
+    dlgTree.addMouseListener(new MouseAdapter()
+    {
+      @Override
+      public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
+
+      @Override
+      public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+
+      private void maybeShowPopup(MouseEvent e)
+      {
+        if (e.getSource() == dlgTree && e.isPopupTrigger()) {
+          miEditEntry.setEnabled(!dlgTree.isSelectionEmpty());
+          miExpand.setEnabled(!dlgTree.isSelectionEmpty() &&
+                              !isNodeExpanded(dlgTree.getSelectionPath()) &&
+                              dlgTree.getSelectionPath().getPathCount() > 1);
+          miCollapse.setEnabled(!dlgTree.isSelectionEmpty() &&
+                                !isNodeCollapsed(dlgTree.getSelectionPath()) &&
+                                dlgTree.getSelectionPath().getPathCount() > 1);
+
+          pmTree.show(dlgTree, e.getX(), e.getY());
+        }
+      }
+    });
+
     // putting components together
     JSplitPane splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, spTree, spInfo);
     splitv.setDividerLocation(2 * NearInfinity.getInstance().getContentPane().getHeight() / 5);
     add(splitv, BorderLayout.CENTER);
   }
 
+  // Expands all children and their children of the given path
+  private void expandNode(TreePath path, int maxDepth)
+  {
+    final TreePath curPath = path;
+    if (worker != null && worker.userCancelled()) return;
+    if (path != null && maxDepth > path.getPathCount()) {
+      TreeNode node = (TreeNode)path.getLastPathComponent();
+
+      if (worker != null) { worker.advanceProgress(); }
+      if (!dlgTree.isExpanded(path)) {
+        try {
+          SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() { dlgTree.expandPath(curPath); }
+          });
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } catch (InvocationTargetException e) {
+          e.printStackTrace();
+        }
+      }
+
+      for (int i = 0; i < node.getChildCount(); i++) {
+        expandNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth - 1);
+        if (worker != null && worker.userCancelled()) return;
+      }
+    }
+  }
+
+  // Collapses all children and their children of the given path
+  private void collapseNode(TreePath path, int maxDepth)
+  {
+    final TreePath curPath = path;
+    if (worker != null && worker.userCancelled()) return;
+    if (path != null) {
+      if (maxDepth > path.getPathCount()) {
+        TreeNode node = (TreeNode)path.getLastPathComponent();
+
+        for (int i = 0; i < node.getChildCount(); i++) {
+          collapseNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth - 1);
+          if (worker != null && worker.userCancelled()) return;
+        }
+      }
+
+      if (worker != null) { worker.advanceProgress(); }
+      if (!dlgTree.isCollapsed(path)) {
+        try {
+          SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() { dlgTree.collapsePath(curPath); }
+          });
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } catch (InvocationTargetException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
+  // Returns true if the given path contains expanded nodes
+  private boolean isNodeExpanded(TreePath path)
+  {
+    boolean retVal = true;
+    if (path != null) {
+      // evaluating current node
+      TreeNode node = (TreeNode)path.getLastPathComponent();
+      if (!node.isLeaf()) {
+        retVal = dlgTree.isExpanded(path);
+
+        // traversing child nodes
+        if (retVal) {
+          for (int i = 0; i < node.getChildCount(); i++) {
+            retVal = isNodeExpanded(path.pathByAddingChild(node.getChildAt(i)));
+            if (!retVal) break;
+          }
+        }
+      }
+    }
+    return retVal;
+  }
+
+  // Returns true if the given path contains collapsed nodes
+  private boolean isNodeCollapsed(TreePath path)
+  {
+    boolean retVal = true;
+    if (path != null) {
+      // evaluating current node
+      TreeNode node = (TreeNode)path.getLastPathComponent();
+      if (!node.isLeaf()) {
+        retVal = dlgTree.isCollapsed(path);
+
+        // traversing child nodes
+        if (retVal) {
+          for (int i = 0; i < node.getChildCount(); i++) {
+            retVal = isNodeCollapsed(path.pathByAddingChild(node.getChildAt(i)));
+            if (retVal) break;
+          }
+        }
+      }
+    }
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
+
+  // Applies expand or collapse operations on a set of dialog tree nodes in a background task
+  private static class TreeWorker extends SwingWorker<Void, Void>
+  {
+    // Display short notice after expanding more than this number of nodes
+    private static final int MAX_NODE_WAIT = 10000;
+
+    // Supported operations
+    public enum Type { Expand, Collapse }
+
+    private final TreeViewer instance;
+    private final Type type;
+    private final TreePath path;
+
+    private ProgressMonitor progress;
+
+    public TreeWorker(TreeViewer instance, Type type, TreePath path)
+    {
+      this.instance = instance;
+      this.type = type;
+      this.path = path;
+
+      String msg;
+      switch (this.type) {
+        case Expand:
+          msg = "Expanding nodes";
+          break;
+        case Collapse:
+          msg = "Collapsing nodes";
+          break;
+        default:
+          msg = "";
+      }
+      progress = new ProgressMonitor(this.instance, msg, "This may take a while...", 0, 1);
+      progress.setMillisToDecideToPopup(250);
+      progress.setMillisToPopup(1000);
+      progress.setProgress(0);
+    }
+
+    @Override
+    protected Void doInBackground() throws Exception
+    {
+      try {
+        switch (type) {
+          case Expand:
+            instance.expandNode(path, MAX_DEPTH);
+            break;
+          case Collapse:
+            instance.collapseNode(path, MAX_DEPTH);
+            break;
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return null;
+    }
+
+    @Override
+    protected void done()
+    {
+      if (progress != null) {
+        progress.close();
+        progress = null;
+      }
+    }
+
+    /** Current operation type. */
+    public Type getType()
+    {
+      return type;
+    }
+
+    /** Advances the progress bar by one unit. May display a short notice after a while. */
+    public void advanceProgress()
+    {
+      if (progress != null) {
+        progress.setMaximum(progress.getMaximum() + 1);
+        if ((progress.getMaximum() < MAX_NODE_WAIT) || getType() == Type.Collapse) {
+          if ((progress.getMaximum() - 1) % 100 == 0) {
+            progress.setNote(String.format("Processing node %1$d", progress.getMaximum() - 1));
+          }
+        } else if (progress.getMaximum() == MAX_NODE_WAIT && getType() == Type.Expand) {
+          progress.setNote("You may cancel this operation.");
+        }
+        progress.setProgress(progress.getMaximum() - 1);
+      }
+    }
+
+    /** Returns true if the user cancelled the operation. */
+    public boolean userCancelled()
+    {
+      if (progress != null) {
+        return progress.isCanceled();
+      }
+      return false;
+    }
+  }
 
   // Common base class for node type specific classes
   private static abstract class ItemBase
@@ -630,9 +996,6 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
   // Creates and manages the dialog tree structure
   private static final class DlgTreeModel implements TreeModel
   {
-    // Max. node depth allowed to search or map the tree model
-    private static final int MAX_DEPTH = 100;
-
     private enum ParamType { State, StateTrigger, Transition, ResponseTrigger, Action, Strref }
 
     private final ArrayList<TreeModelListener> listeners = new ArrayList<TreeModelListener>();
