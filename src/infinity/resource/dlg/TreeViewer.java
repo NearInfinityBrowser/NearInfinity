@@ -85,7 +85,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private final JMenuItem miExpand = new JMenuItem("Expand selected node");
   private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes");
   private final JMenuItem miCollapse = new JMenuItem("Collapse selected nodes");
-  private final JMenuItem miEditEntry = new JMenuItem("Edit entry");
+  private final JMenuItem miEditEntry = new JMenuItem("Edit selected entry");
 
   // caches ViewFrame instances used to display external dialog entries
   private final HashMap<String, ViewFrame> mapViewer = new HashMap<String, ViewFrame>();
@@ -650,7 +650,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private static class TreeWorker extends SwingWorker<Void, Void>
   {
     // Display short notice after expanding more than this number of nodes
-    private static final int MAX_NODE_WAIT = 10000;
+    private static final int MAX_NODE_WAIT = 5000;
 
     // Supported operations
     public enum Type { Expand, Collapse }
