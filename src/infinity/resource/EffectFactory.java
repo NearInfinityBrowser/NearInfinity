@@ -18,7 +18,6 @@ import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
 import infinity.datatype.MultiNumber;
-import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
 import infinity.datatype.Summon2daBitmap;
@@ -848,463 +847,25 @@ public final class EffectFactory
             // 190..
             "Increase attack speed factor", "Casting level bonus"};
         s_poricon = new String[]{
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil", "Protection from petrification",
-            "Protection from normal missiles", "Magic armor", "Held", "Sleep", "Shielded",
-            "Protection from fire", "Blessed", "Chant", "Free action", "Barkskin", "Strength",
-            "Heroism", "Invulnerable", "Protection from acid", "Protection from cold",
-            "Resist fire/cold", "Protection from electricity", "Protection from magic",
-            "Protection from undead", "Protection from poison", "Nondetection", "Good luck",
-            "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear", "Haste", "Fatigue", "Bard song",
-            "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison", "Spirit armor",
-            "Chaos", "Feeblemind", "Defensive harmony", "Champion's strength", "Dying", "Mind shield",
-            "Energy drain", "Polymorph self", "Stun", "Regeneration", "Perception", "Master thievery"};
-        break;
-
-      case ResourceFactory.ID_TORMENT:
-        s_effname = new String[]{
             // 0..9
-            "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
-            "Charm creature", "Charisma bonus", "Set color", "Set color glow solid",
-            "Set color glow pulse",
-            // 10..19
-            "Constitution bonus", "Cure poison", "Damage", "Kill target", "Defrost", "Dexterity bonus",
-            "Haste", "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
-            // 20..29
-            "Invisibility", "Lore bonus", "Luck bonus", "Reset morale", "Panic", "Poison",
-            "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
-            "Electricity resistance bonus",
-            // 30..39
-            "Fire resistance bonus", "Magic damage resistance bonus", "Raise dead",
-            "Save vs. death bonus", "Save vs. wand bonus", "Save vs. polymorph bonus",
-            "Save vs. breath bonus", "Save vs. spell bonus", "Silence", "Sleep",
-            // 40..49
-            "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-            "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
-            // 50..59
-            "Character color pulse", "Character tint solid", "Character tint bright",
-            "Animation change", "Base THAC0 bonus", "Slay", "Invert alignment", "Change alignment",
-            "Dispel effects", "Stealth bonus",
-            // 60..69
-            "Casting failure", "Unknown (61)", "Bonus priest spells", "Infravision",
-            "Remove infravision", "Blur", "Translucency", "Summon creature", "Unsummon creature",
-            "Nondetection",
-            // 70..79
-            "Remove nondetection", "Change gender", "Change AI type", "Attack damage bonus",
-            "Blindness", "Cure blindness", "Feeblemindedness", "Cure feeblemindedness", "Disease",
-            "Cure disease",
-            // 80..89
-            "Deafness", "Cure deafness", "Set AI script", "Immunity to projectile",
-            "Magical fire resistance bonus", "Magical cold resistance bonus",
-            "Slashing resistance bonus", "Crushing resistance bonus", "Piercing resistance bonus",
-            "Missile resistance bonus",
-            // 90..99
-            "Open locks bonus", "Find traps bonus", "Pick pockets bonus", "Fatigue bonus",
-            "Intoxication bonus", "Tracking bonus", "Change level", "Exceptional strength bonus",
-            "Regeneration", "Modify duration",
-            // 100..109
-            "Protection from creature type", "Immunity to effect", "Immunity to spell level",
-            "Change name", "XP bonus", "Remove gold", "Morale break", "Change portrait",
-            "Reputation bonus", "Paralyze",
-            // 110..119
-            "Retreat from", "Create weapon", "Remove item", "Equip weapon", "Dither",
-            "Detect alignment", "Detect invisible", "Clairvoyance", "Show creatures", "Mirror image",
-            // 120..129
-            "Immunity to weapons", "Visual animation effect", "Create inventory item",
-            "Remove inventory item", "Teleport", "Unlock", "Movement rate bonus", "Summon monsters",
-            "Confusion", "Aid (non-cumulative)",
-            // 130..139
-            "Bless (non-cumulative)", "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
-            "Luck (non-cumulative)", "Petrification", "Polymorph", "Force visible",
-            "Bad chant (non-cumulative)", "Set animation sequence", "Display string",
-            // 140..149
-            "Casting glow", "Lighting effects", "Display portrait icon", "Create item in slot",
-            "Disable button", "Disable spellcasting", "Cast spell", "Learn spell",
-            "Cast spell at point", "Identify",
-            // 150..159
-            "Find traps", "Replace self", "Play movie", "Sanctuary", "Entangle overlay",
-            "Minor globe overlay", "Protection from normal missiles overlay", "Web effect",
-            "Grease overlay", "Mirror image effect",
-            // 160..169
-            "Remove sanctuary", "Remove fear", "Remove paralysis", "Free action",
-            "Remove intoxication", "Pause target", "Magic resistance bonus", "Missile THAC0 bonus",
-            "Remove creature", "Prevent portrait icon",
-            // 170..179
-            "Play damage animation", "Give innate ability", "Remove spell", "Poison resistance bonus",
-            "Play sound", "Hold creature", "Unknown (176)", "Unknown (177)",
-            "Unknown (178)", "Unknown (179)",
-            // 180..189
-            "Unknown (180)", "Unknown (181)", "Unknown (182)", "Unknown (183)", "Unknown (184)",
-            "Unknown (185)", "Set state", "Play BAM file (single/dual)", "Play BAM file",
-            "Play BAM file 2",
-            // 190..199
-            "Play BAM file 3", "Play BAM file 4", "Hit point transfer", "Shake screen",
-            "Flash screen", "Tint screen", "Special spell hit", "Unknown (197)", "Unknown (198)",
-            "Unknown (199)",
-            // 200..209
-            "Unknown (200)", "Play BAM with effects", "Unknown (202)", "Curse", "Prayer",
-            "Move view to target", "Embalm", "Stop all actions", "Fist of iron", "Soul exodus",
-            // 210..
-            "Detect evil", "Induce hiccups", "Speak with dead"};
-        s_poricon = new String[]{
             "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil", "Protection from petrification",
-            "Protection from normal missiles", "Magic armor", "Held", "Sleep", "Shielded",
-            "Protection from fire", "Blessed", "Chant", "Free action", "Barkskin", "Strength",
-            "Heroism", "Invulnerable", "Protection from acid", "Protection from cold",
-            "Resist fire/cold", "Protection from electricity", "Protection from magic",
-            "Protection from undead", "Protection from poison", "Nondetection", "Good luck",
-            "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear", "Haste", "Fatigue", "Bard song",
-            "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison", "Spirit armor",
-            "Chaos", "Feeblemind", "Defensive harmony", "Champions strength", "Dying", "Mind shield",
-            "Level drain", "Polymorph self", "Stun", "Regeneration", "Perception", "Master thievery"};
-        break;
-
-      case ResourceFactory.ID_ICEWIND:
-      case ResourceFactory.ID_ICEWINDHOW:
-      case ResourceFactory.ID_ICEWINDHOWTOT:
-        s_effname = new String[]{
-            // 0..9
-            "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
-            "Charm creature", "Charisma bonus", "Set color", "Set color glow solid",
-            "Set color glow pulse",
+            "Nauseated", "Blind", "Protection from evil",
             // 10..19
-            "Constitution bonus", "Cure poison", "Damage", "Kill target", "Defrost",
-            "Dexterity bonus", "Haste", "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
+            "Protection from petrification", "Protection from normal missiles", "Magic armor", "Held",
+            "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
             // 20..29
-            "Invisibility", "Lore bonus", "Luck bonus", "Morale bonus", "Panic", "Poison",
-            "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
-            "Electricity resistance bonus",
+            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
+            "Protection from cold", "Resist fire/cold", "Protection from electricity",
+            "Protection from magic", "Protection from undead",
             // 30..39
-            "Fire resistance bonus", "Magic damage resistance bonus", "Raise dead",
-            "Save vs. death bonus", "Save vs. wand bonus", "Save vs. polymorph bonus",
-            "Save vs. breath bonus", "Save vs. spell bonus", "Silence", "Sleep",
+            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Haste", "Fatigue",
             // 40..49
-            "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-            "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
-            // 50..59
-            "Character color pulse", "Character tint solid", "Character tint bright",
-            "Animation change", "Base THAC0 bonus", "Slay", "Invert alignment", "Change alignment",
-            "Dispel effects", "Stealth bonus",
-            // 60..69
-            "Casting failure", "Unknown (61)", "Bonus priest spells", "Infravision",
-            "Remove infravision", "Blur", "Translucency", "Summon creature", "Unsummon creature",
-            "Nondetection",
-            // 70..79
-            "Remove nondetection", "Change gender", "Change AI type", "Attack damage bonus",
-            "Blindness", "Cure blindness", "Feeblemindedness", "Cure feeblemindedness", "Disease",
-            "Cure disease",
-            // 80..89
-            "Deafness", "Cure deafness", "Set AI script", "Immunity to projectile",
-            "Magical fire resistance bonus", "Magical cold resistance bonus",
-            "Slashing resistance bonus", "Crushing resistance bonus", "Piercing resistance bonus",
-            "Missile resistance bonus",
-            // 90..99
-            "Open locks bonus", "Find traps bonus", "Pick pockets bonus", "Fatigue bonus",
-            "Intoxication bonus", "Tracking bonus", "Change level", "Exceptional strength bonus",
-            "Regeneration", "Modify duration",
-            // 100..109
-            "Protection from creature type", "Immunity to effect", "Immunity to spell level",
-            "Change name", "XP bonus", "Remove gold", "Morale break", "Change portrait",
-            "Reputation bonus", "Paralyze",
-            // 110..119
-            "Unknown (110)", "Create weapon", "Remove item", "Equip weapon", "Dither",
-            "Detect alignment", "Detect invisible", "Clairvoyance", "Show creatures", "Mirror image",
-            // 120..129
-            "Immunity to weapons", "Visual animation effect", "Create inventory item",
-            "Remove inventory item", "Teleport", "Unlock", "Movement rate bonus", "Summon monsters",
-            "Confusion", "Aid (non-cumulative)",
-            // 130..139
-            "Bless (non-cumulative)", "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
-            "Luck (non-cumulative)", "Petrification", "Polymorph", "Force visible",
-            "Bad chant (non-cumulative)", "Set animation sequence", "Display string",
-            // 140..149
-            "Casting glow", "Lighting effects", "Display portrait icon", "Create item in slot",
-            "Disable button", "Disable spellcasting", "Cast spell", "Learn spell",
-            "Cast spell at point", "Identify",
-            // 150..159
-            "Find traps", "Replace self", "Play movie", "Sanctuary", "Entangle overlay",
-            "Minor globe overlay", "Protection from normal missiles overlay", "Web effect",
-            "Grease overlay", "Mirror image effect",
-            // 160..169
-            "Remove sanctuary", "Remove fear", "Remove paralysis", "Free action",
-            "Remove intoxication", "Pause target", "Magic resistance bonus", "Missile THAC0 bonus",
-            "Remove creature", "Prevent portrait icon",
-            // 170..179
-            "Play damage animation", "Give innate ability", "Remove spell", "Poison resistance bonus",
-            "Play sound", "Hold creature", "Movement rate bonus 2", "Use EFF file",
-            "THAC0 vs. type bonus", "Damage vs. type bonus",
-            // 180..189
-            "Disallow item", "Disallow item type", "Apply effect on equip item",
-            "Apply effect on equip type", "No collision detection", "Hold creature 2",
-            "Move creature", "Set local variable", "Increase spells cast per round",
-            "Increase casting speed factor",
-            // 190..199
-            "Increase attack speed factor", "Casting level bonus", "Find familiar",
-            "Invisibility detection", "Ignore dialogue pause", "Unknown (195)", "Unknown (196)",
-            "Physical mirror", "Reflect specified effect", "Reflect spell level",
-            // 200..209
-            "Spell turning", "Spell deflection", "Reflect spell school", "Reflect spell type",
-            "Protection from spell school", "Protection from spell type", "Protection from spell",
-            "Reflect specified spell", "Minimum HP", "Power word, kill",
-            // 210..219
-            "Power word, stun", "Imprisonment", "Freedom", "Maze", "Select spell",
-            "Play visual effect", "Level drain", "Power word, sleep", "Stoneskin effect",
-            "Attack roll penalty",
-            // 220..229
-            "Remove spell school protections", "Remove spell type protections", "Teleport field",
-            "Spell school deflection", "Restoration", "Detect magic", "Spell type deflection",
-            "Spell school turning", "Spell type turning", "Remove protection by school",
-            // 230..239
-            "Remove protection by type", "Time stop", "Creature RGB color fade", "Show visual effect",
-            "Snilloc's snowball swarm", "Show casting glow", "Chill touch", "Magical stone",
-            "All saving throws bonus", "Slow poison",
-            // 240..249
-            "Summon creature 2", "Vampiric touch", "Show visual overlay", "Animate dead", "Prayer",
-            "Bad prayer", "Summon creature 3", "Beltyn's burning blood", "Summon shadow",
-            "Recitation",
-            // 250..259
-            "Bad recitation", "Lich touch", "Sol's searing orb", "Bonus AC vs. weapons",
-            "Dispel specific spell", "Salamander aura", "Umber hulk gaze", "Zombie lord aura",
-            "Immunity to specific resource", "Summon creatures with cloud",
-            // 260..269
-            "Hide creature", "Immunity to effect and string", "Pomab images", "Evil turn undead",
-            "Static charge", "Cloak of fear", "Movement rate modifier", "Cure confusion",
-            "Eye of the mind", "Eye of the sword",
-            // 270..279
-            "Eye of the mage", "Eye of venom", "Eye of the spirit", "Eye of fortitude",
-            "Eye of stone", "Remove seven eyes", "Remove effect by type", "Soul eater",
-            "Shroud of flame", "Animal rage",
-            // 280..289
-            "Turn undead", "Vitriolic sphere", "Hide hit points", "Float text", "Mace of disruption",
-            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set state",
-            "Dragon gem cutscene",
-            // 290..299
-            "Display spell immunity string", "Rod of smiting", "Rest", "Beholder dispel magic",
-            "Harpy wail", "Jackalwere gaze", "Set global variable"};
-        s_poricon = new String[]{
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil", "Protection from petrification",
-            "Protection from normal missiles", "Magic armor", "Held", "Sleep", "Shielded",
-            "Protection from fire", "Blessed", "Chant", "Free action", "Barkskin", "Strength",
-            "Heroism", "Invulnerable", "Protection from acid", "Protection from cold",
-            "Resist fire/cold", "Protection from electricity", "Protection from magic",
-            "Protection from undead", "Protection from poison", "Nondetection", "Good luck",
-            "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear", "Haste", "Fatigue", "Bard song",
-            "Slow", "Regenerate", "Nauseous", "Stun", "Ghost armor", "Stoneskin", "Hopelessness",
-            "Courage", "Friends", "Hope", "Malison", "Spirit armor", "Domination", "Feeblemind",
-            "Tenser's transformation", "Mind blank", "Aid", "Find traps", "Draw upon holy might",
-            "Miscast magic", "Strength of one", "Prayer", "Defensive harmony", "Recitation",
-            "Champion's strength", "Chaotic commands", "Righteous wrath of the faithful", "Phased",
-            "Pain", "Impervious sanctity of mind", "Petrified", "Iron body", "Animal rage",
-            "Exaltation", "Cat's grace", "Blood rage", "Ballad of three heroes",
-            "Tale of curran strongheart", "Tymora's melody", "Song of kaudies", "Siren's yearning",
-            "War chant of sith", "Deaf", "Armor of faith"};
-        break;
-
-      case ResourceFactory.ID_ICEWIND2:
-        s_effname = new String[]{
-            // 0..9
-            "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
-            "Charm creature", "Charisma bonus", "Set color", "Set color glow solid",
-            "Set color glow pulse",
-            // 10..19
-            "Constitution bonus", "Cure poison", "Damage", "Kill target", "Defrost",
-            "Dexterity bonus", "Haste", "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
-            // 20..29
-            "Invisibility", "Knowledge arcana", "Luck bonus", "Morale bonus", "Panic", "Poison",
-            "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
-            "Electricity resistance bonus",
-            // 30..39
-            "Fire resistance bonus", "Magic damage resistance bonus", "Raise dead",
-            "Fortitude save bonus", "Reflex save bonus", "Will save bonus", "Unknown (36)",
-            "Unknown (37)", "Silence", "Sleep",
-            // 40..49
-            "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
-            "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
-            // 50..59
-            "Character color pulse", "Character tint solid", "Character tint bright",
-            "Animation change", "Base attack bonus", "Slay", "Invert alignment", "Change alignment",
-            "Dispel effects", "Move silently bonus",
-            // 60..69
-            "Casting failure", "Alchemy", "Bonus priest spells", "Infravision", "Remove infravision",
-            "Blur", "Translucency", "Summon creature", "Unsummon creature", "Nondetection",
-            // 70..79
-            "Remove nondetection", "Change gender", "Change AI type", "Attack damage bonus",
-            "Blindness", "Cure blindness", "Feeblemindedness", "Cure feeblemindedness", "Disease",
-            "Cure disease",
-            // 80..89
-            "Deafness", "Cure deafness", "Set AI script", "Immunity to projectile",
-            "Magical fire resistance bonus", "Magical cold resistance bonus",
-            "Slashing resistance bonus", "Crushing resistance bonus", "Piercing resistance bonus",
-            "Missile resistance bonus",
-            // 90..99
-            "Open locks bonus", "Find traps bonus", "Pick pockets bonus", "Fatigue bonus",
-            "Intoxication bonus", "Tracking bonus", "Change level", "Exceptional strength bonus",
-            "Regeneration", "Modify duration",
-            // 100..109
-            "Protection from creature type", "Immunity to effect", "Immunity to spell level",
-            "Change name", "XP bonus", "Remove gold", "Morale break", "Change portrait",
-            "Reputation bonus", "Paralyze",
-            // 110..119
-            "Unknown (110)", "Create weapon", "Remove item", "Equip weapon", "Dither",
-            "Detect alignment", "Detect invisible", "Clairvoyance", "Show creatures", "Mirror image",
-            // 120..129
-            "Immunity to weapons", "Visual animation effect", "Create inventory item",
-            "Remove inventory item", "Teleport", "Unlock", "Movement rate bonus", "Summon monsters",
-            "Confusion", "Aid (non-cumulative)",
-            // 130..139
-            "Bless (non-cumulative)", "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
-            "Luck (non-cumulative)", "Petrification", "Polymorph", "Force visible",
-            "Bad chant (non-cumulative)", "Set animation sequence", "Display string",
-            // 140..149
-            "Casting glow", "Lighting effects", "Display portrait icon", "Create item in slot",
-            "Disable button", "Disable spellcasting", "Cast spell", "Learn spell",
-            "Cast spell at point", "Identify",
-            // 150..159
-            "Find traps", "Replace self", "Play movie", "Sanctuary", "Entangle overlay",
-            "Minor globe overlay", "Protection from normal missiles overlay", "Web effect",
-            "Grease overlay", "Mirror image effect",
-            // 160..169
-            "Remove sanctuary", "Remove fear", "Remove paralysis", "Free action",
-            "Remove intoxication", "Pause target", "Magic resistance bonus", "Missile attack bonus",
-            "Remove creature", "Prevent portrait icon",
-            // 170..179
-            "Play damage animation", "Give innate ability", "Remove spell", "Poison resistance bonus",
-            "Play sound", "Hold creature", "Movement rate penalty", "Use EFF file",
-            "THAC0 vs. type bonus", "Damage vs. type bonus",
-            // 180..189
-            "Disallow item", "Disallow item type", "Apply effect on equip item",
-            "Apply effect on equip type", "No collision detection", "Hold creature 2",
-            "Move creature", "Set local variable", "Increase spells cast per round",
-            "Increase casting speed factor",
-            // 190..199
-            "Increase attack speed factor", "Casting level bonus", "Find familiar",
-            "Invisibility detection", "Ignore dialogue pause", "Unknown (195)", "Unknown (196)",
-            "Physical mirror", "Reflect specified effect", "Reflect spell level",
-            // 200..209
-            "Spell turning", "Spell deflection", "Reflect spell school", "Reflect spell type",
-            "Protection from spell school", "Protection from spell type", "Protection from spell",
-            "Reflect specified spell", "Minimum HP", "Power word, kill",
-            // 210..219
-            "Power word, stun", "Imprisonment", "Freedom", "Maze", "Select spell",
-            "Play visual effect", "Level drain", "Power word, sleep", "Stoneskin effect",
-            "Attack roll penalty",
-            // 220..229
-            "Remove spell school protections", "Remove spell type protections", "Teleport field",
-            "Spell school deflection", "Cure level drain", "Detect magic", "Spell type deflection",
-            "Spell school turning", "Spell type turning", "Remove protection by school",
-            // 230..239
-            "Remove protection by type", "Time stop", "Creature RGB color fade", "Show visual effect",
-            "Snilloc's snowball swarm", "Show casting glow", "Panic undead", "Magical stone",
-            "All saving throws bonus", "Slow poison",
-            // 240..249
-            "Summon creature 2", "Vampiric touch", "Show visual overlay", "Animate dead", "Prayer",
-            "Bad prayer", "Summon creature 3", "Beltyn's burning blood", "Summon shadow",
-            "Recitation",
-            // 250..259
-            "Bad recitation", "Lich touch", "Sol's searing orb", "Bonus AC vs. weapons",
-            "Dispel specific spell", "Salamander aura", "Umber hulk gaze", "Zombie lord aura",
-            "Immunity to specific resource", "Summon creatures with cloud",
-            // 260..269
-            "Hide creature", "Immunity to effect and resource", "Pomab images", "Evil turn undead",
-            "Static charge", "Cloak of fear", "Movement rate modifier", "Cure confusion",
-            "Eye of the mind", "Eye of the sword",
-            // 270..279
-            "Eye of the mage", "Eye of venom", "Eye of the spirit", "Eye of fortitude",
-            "Eye of stone", "Remove seven eyes", "Remove effect by type", "Soul eater",
-            "Shroud of flame", "Animal rage",
-            // 280..289
-            "Turn undead", "Vitriolic sphere", "Hide hit points", "Float text", "Mace of disruption",
-            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set state",
-            "Dragon gem cutscene",
-            // 290..299
-            "Display spell immunity string", "Rod of smiting", "Rest", "Beholder dispel magic",
-            "Harpy wail", "Jackalwere gaze", "Set global variable", "Hide in shadows bonus",
-            "Use magic device bonus", "Unknown (299)",
-            // 300..309
-            "Unknown (300)", "Unknown (301)", "Unknown (302)", "Unknown (303)", "Unknown (304)",
-            "Unknown (305)", "Unknown (306)", "Unknown (307)", "Unknown (308)", "Unknown (309)",
-            // 310..319
-            "Unknown (310)", "Unknown (311)", "Unknown (312)", "Unknown (313)", "Unknown (314)",
-            "Unknown (315)", "Unknown (316)", "Unknown (317)", "Unknown (318)", "Unknown (319)",
-            // 320..329
-            "Unknown (320)", "Unknown (321)", "Unknown (322)", "Unknown (323)", "Unknown (324)",
-            "Unknown (325)", "Unknown (326)", "Unknown (327)", "Unknown (328)", "Unknown (329)",
-            // 330..339
-            "Unknown (330)", "Unknown (331)", "Unknown (332)", "Unknown (333)", "Unknown (334)",
-            "Unknown (335)", "Unknown (336)", "Unknown (337)", "Unknown (338)", "Unknown (339)",
-            // 340..349
-            "Unknown (340)", "Unknown (341)", "Unknown (342)", "Unknown (343)", "Unknown (344)",
-            "Unknown (345)", "Unknown (346)", "Unknown (347)", "Unknown (348)", "Unknown (349)",
-            // 350..359
-            "Unknown (350)", "Unknown (351)", "Unknown (352)", "Unknown (353)", "Unknown (354)",
-            "Unknown (355)", "Unknown (356)", "Unknown (357)", "Unknown (358)", "Unknown (359)",
-            // 360..369
-            "Unknown (360)", "Unknown (361)", "Unknown (362)", "Unknown (363)", "Unknown (364)",
-            "Unknown (365)", "Unknown (366)", "Unknown (367)", "Unknown (368)", "Unknown (369)",
-            // 370..379
-            "Unknown (370)", "Unknown (371)", "Unknown (372)", "Unknown (373)", "Unknown (374)",
-            "Unknown (375)", "Unknown (376)", "Unknown (377)", "Unknown (378)", "Unknown (379)",
-            // 380..389
-            "Unknown (380)", "Unknown (381)", "Unknown (382)", "Unknown (383)", "Unknown (384)",
-            "Unknown (385)", "Unknown (386)", "Unknown (387)", "Unknown (388)", "Unknown (389)",
-            // 390..399
-            "Unknown (390)", "Unknown (391)", "Unknown (392)", "Unknown (393)", "Unknown (394)",
-            "Unknown (395)", "Unknown (396)", "Unknown (397)", "Unknown (398)", "Unknown (399)",
-            // 400..409
-            "Hopelessness", "Protection from evil", "Apply effects list", "Armor of faith",
-            "Nausea", "Enfeeblement", "Fire shield", "Death ward", "Holy power",
-            "Righteous wrath of the faithful",
-            // 410..419
-            "Summon friendly creature", "Summon hostile creature", "Control creature",
-            "Run visual effect", "Otiluke's resilient sphere", "Barkskin", "Bleeding wounds",
-            "Area effect using effects list", "Free action", "Unconsciousness",
-            // 420..429
-            "Death magic", "Entropy shield", "Storm shell", "Protection from the elements",
-            "Hold undead", "Control undead", "Aegis", "Executioner's eyes", "Banish",
-            "Apply effects list on hit",
-            // 430..439
-            "Projectile type using effects list", "Energy drain", "Tortoise shell", "Blink",
-            "Persistent using effects list", "Day blindness", "Damage reduction", "Disguise",
-            "Heroic inspiration", "Prevent AI slowdown",
-            // 440..449
-            "Barbarian rage", "Force slow", "Cleave", "Protection from arrows",
-            "Tenser's transformation", "Slippery mind", "Smite evil", "Restoration", "Alicorn lance",
-            "Call lightning",
-            // 450..459
-            "Globe of invulnerability", "Lower resistance", "Bane", "Power attack", "Expertise",
-            "Arterial strike", "Hamstring", "Rapid shot"};
-        s_poricon = new String[]{
-            "Charmed", "", "", "Confused", "Berserk", "Intoxicated", "Poisoned", "Diseased", "Blind",
-            "Protection from evil", "Protection from petrification", "Protection from normal missiles",
-            "Armor", "Held", "Asleep", "Shield", "Protection from fire", "Bless", "Chant",
-            "Free action", "Barkskin", "Strength", "Heroism", "Spell invulnerability",
-            "Protection from acid", "Protection from cold", "", "Protection from electricity",
-            "Protection from magic", "Protection from undead", "Protection from poison",
-            "Undetectable", "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
-            "Hasted", "Fatigued", "Bard song", "Slowed", "Regenerating", "Nauseous", "Stunned",
-            "Ghost armor", "Stoneskin", "Hopelessness", "Courage", "Friends", "Hope", "Malison",
-            "Spirit armor", "Dominated", "Feebleminded", "Tenser's transformation", "Mind blank",
-            "Aid", "Find traps", "Draw upon holy might", "Miscast magic", "Strength of one", "Prayer",
-            "Defensive harmony", "Recitation", "Champion's strength", "Chaotic commands",
-            "Righteous wrath of the faithful", "Phased", "Pain", "Impervious sanctity of mind",
-            "Petrified", "Iron body", "Animal rage", "Exaltation", "Cat's grace", "Blood rage",
-            "Ballad of three heroes", "Tale of curran strongheart", "Tymora's melody",
-            "Song of kaudies", "Siren's yearning", "War chant of sith", "Deaf", "Armor of faith",
-            "Bleeding wound", "Holy power", "Death ward", "Unconscious", "Iron skins", "Enfeeblement",
-            "Sanctuary", "Entangle", "Protection from the elements", "Grease", "Web",
-            "Minor globe of invulnerability", "Globe of invulnerability", "Shroud of flame",
-            "Antimagic shell", "Otiluke's resilient sphere", "Intelligence drained", "Cloak of fear",
-            "Entropy shield", "Insect plague", "Storm shell", "Shield of lathander",
-            "Greater shield of lathander", "Seven eyes", "Blur", "Invisibility", "Barbarian rage",
-            "Called shot", "Defensive spin", "Maximized attacks", "Offensive spin", "Envenom weapon",
-            "Unconscious", "Doom", "Aegis", "Executioner's eyes", "Fire shield (red)",
-            "Fire shield (blue)", "Energy drained", "Faerie fire", "Tortoise shell", "Spell shield",
-            "Negative energy protection", "Aura of vitality", "Death armor", "Blink", "Vipergout",
-            "Mind fog", "", "Stunning fist", "Quivering palm", "Gram's paradox", "Blindness",
-            "Heroic inspiration", "Vocalize", "Despair", "Ilmater's endurance", "Destructive blow",
-            "Master thievery", "Improved invisibility"};
+            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
+            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            // 50..
+            "Champion's strength", "Dying", "Mind shield", "Energy drain", "Polymorph self", "Stun",
+            "Regeneration", "Perception", "Master thievery"};
         break;
 
       case ResourceFactory.ID_BG2:
@@ -1437,41 +998,65 @@ public final class EffectFactory
             // 310..
             "Immunity to time stop", "Wish", "Immunity to sequester", "High-level ability",
             "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Ex: Set stat"};
-        s_poricon = new String[]{"Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk",
-            "Intoxicated", "Poisoned", "Nauseated", "Blind", "Protection from evil",
+        s_poricon = new String[]{
+            // 0..9
+            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
+            "Nauseated", "Blind", "Protection from evil",
+            // 10..19
             "Protection from petrification", "Protection from normal missiles", "Magic armor",
             "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
+            // 20..29
             "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
             "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead", "Protection from poison",
-            "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
-            "Haste", "Fatigue", "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness",
-            "Greater malison", "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            "Protection from magic", "Protection from undead",
+            // 30..39
+            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Haste", "Fatigue",
+            // 40..49
+            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
+            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            // 50..59
             "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery", "Energy drain", "Holy power",
-            "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic", "Spell turning",
-            "Repulsing undead", "Spell deflection", "Fire shield (red)", "Fire shield (blue)",
+            "Regeneration", "Perception", "Master thievery", "Energy drain",
+            // 60..69
+            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
+            "Spell turning", "Repulsing undead", "Spell deflection", "Fire shield (red)",
+            "Fire shield (blue)",
+            // 70..79
             "Protection from normal weapons", "Protection from magic weapons",
             "Tenser's transformation", "Protection from magic energy", "Mislead", "Contingency",
-            "Protection from the elements", "Projected image", "Maze", "Imprisonment", "Stoneskin",
-            "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
-            "Intelligence drained", "Regenerating", "Talking", "Shopping", "Negative plane protection",
-            "Ability score drained", "Spell sequencer", "Protection from energy", "Magnetized",
-            "Able to poison weapons", "Setting trap", "Glass dust", "Blade barrier", "Death ward",
+            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
+            // 80..89
+            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
+            "Intelligence drained", "Regenerating", "Talking", "Shopping",
+            // 90..99
+            "Negative plane protection", "Ability score drained", "Spell sequencer",
+            "Protection from energy", "Magnetized", "Able to poison weapons", "Setting trap",
+            "Glass dust", "Blade barrier", "Death ward",
+            // 100..109
             "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
-            "Spell immunity", "True seeing", "Detecting traps", "Improved haste", "Spell trigger",
-            "Deaf", "Enfeebled", "Infravision", "Friends", "Shield of the archons", "Spell trap",
-            "Absolute immunity", "Improved mantle", "Farsight", "Globe of invulnerability",
-            "Minor globe of invulnerability", "Spell shield", "Polymorphed", "Otiluke's resilient sphere",
-            "Nauseous", "Ghost armor", "Glitterdust", "Webbed", "Unconscious", "Mental combat",
-            "Physical mirror", "Repulse undead", "Chaotic commands", "Draw upon holy might",
-            "Strength of one", "Bleeding", "Barbarian rage", "Boon of lathander", "Storm shield",
-            "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease", "Smite", "Hardiness",
-            "Power attack", "Whirlwind attack", "Greater whirlwind attack", "Magic flute",
-            "Critical strike", "Greater deathblow", "Deathblow", "Avoid death", "Assassination",
-            "Evasion", "Greater evasion", "Improved alacrity", "Aura of flaming death",
-            "Globe of blades", "Improved chaos shield", "Chaos shield", "Fire elemental transformation",
-            "Earth elemental transformation"};
+            "Spell immunity", "True seeing", "Detecting traps",
+            // 110..119
+            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
+            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
+            // 120..129
+            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability", "Spell shield",
+            "Polymorphed", "Otiluke's resilient sphere", "Nauseous", "Ghost armor", "Glitterdust",
+            "Webbed",
+            // 130..139
+            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
+            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage",
+            "Boon of lathander",
+            // 140..149
+            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
+            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
+            // 150..159
+            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
+            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
+            "Improved alacrity",
+            // 160..
+            "Aura of flaming death", "Globe of blades", "Improved chaos shield", "Chaos shield",
+            "Fire elemental transformation", "Earth elemental transformation"};
         break;
 
       case ResourceFactory.ID_BGEE:
@@ -1619,41 +1204,65 @@ public final class EffectFactory
             "Unknown (355)", "Unknown (356)", "Unknown (357)", "Unknown (358)", "Unknown (359)",
             // 360..
             "Unknown (360)"};
-        s_poricon = new String[]{"Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk",
-            "Intoxicated", "Poisoned", "Nauseated", "Blind", "Protection from evil",
+        s_poricon = new String[]{
+            // 0..9
+            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
+            "Nauseated", "Blind", "Protection from evil",
+            // 10..19
             "Protection from petrification", "Protection from normal missiles", "Magic armor",
             "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
+            // 20..29
             "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
             "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead", "Protection from poison",
-            "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
-            "Haste", "Fatigue", "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness",
-            "Greater malison", "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            "Protection from magic", "Protection from undead",
+            // 30..39
+            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Haste", "Fatigue",
+            // 40..49
+            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
+            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            // 50..59
             "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery", "Energy drain", "Holy power",
-            "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic", "Spell turning",
-            "Repulsing undead", "Spell deflection", "Fire shield (red)", "Fire shield (blue)",
+            "Regeneration", "Perception", "Master thievery", "Energy drain",
+            // 60..69
+            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
+            "Spell turning", "Repulsing undead", "Spell deflection", "Fire shield (red)",
+            "Fire shield (blue)",
+            // 70..79
             "Protection from normal weapons", "Protection from magic weapons",
-            "Tenser's transformation", "Protection from magic energy", "Mislead", "Contingency",
-            "Protection from the elements", "Projected image", "Maze", "Imprisonment", "Stoneskin",
-            "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
-            "Intelligence drained", "Regenerating", "Talking", "Shopping", "Negative plane protection",
-            "Ability score drained", "Spell sequencer", "Protection from energy", "Magnetized",
-            "Able to poison weapons", "Setting trap", "Glass dust", "Blade barrier", "Death ward",
+            "Tenser's transformation", "Spell shield", "Mislead", "Contingency",
+            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
+            // 80..89
+            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
+            "Intelligence drained", "Regenerating", "Talking", "Shopping",
+            // 90..99
+            "Negative plane protection", "Ability score drained", "Spell sequencer",
+            "Protection from energy", "Magnetized", "Able to poison weapons", "Setting trap",
+            "Glass dust", "Blade barrier", "Death ward",
+            // 100..109
             "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
-            "Spell immunity", "True seeing", "Detecting traps", "Improved haste", "Spell trigger",
-            "Deaf", "Enfeebled", "Infravision", "Friends", "Shield of the archons", "Spell trap",
-            "Absolute immunity", "Improved mantle", "Farsight", "Globe of invulnerability",
-            "Minor globe of invulnerability", "Spell shield", "Polymorphed", "Otiluke's resilient sphere",
-            "Nauseous", "Ghost armor", "Glitterdust", "Webbed", "Unconscious", "Mental combat",
-            "Physical mirror", "Repulse undead", "Chaotic commands", "Draw upon holy might",
-            "Strength of one", "Bleeding", "Barbarian rage", "Boon of lathander", "Storm shield",
-            "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease", "Smite", "Hardiness",
-            "Power attack", "Whirlwind attack", "Greater whirlwind attack", "Magic flute",
-            "Critical strike", "Greater deathblow", "Deathblow", "Avoid death", "Assassination",
-            "Evasion", "Greater evasion", "Improved alacrity", "Aura of flaming death",
-            "Globe of blades", "Improved chaos shield", "Chaos shield", "Fire elemental transformation",
-            "Earth elemental transformation"};
+            "Spell immunity", "True seeing", "Detecting traps",
+            // 110..119
+            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
+            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
+            // 120..129
+            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability",
+            "Protection from magic energy", "Polymorphed", "Otiluke's resilient sphere", "Nauseous",
+            "Ghost armor", "Glitterdust", "Webbed",
+            // 130..139
+            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
+            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage",
+            "Boon of lathander",
+            // 140..149
+            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
+            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
+            // 150..159
+            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
+            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
+            "Improved alacrity",
+            // 160..
+            "Aura of flaming death", "Globe of blades", "Improved chaos shield",
+            "Chaos shield", "Fire elemental transformation", "Earth elemental transformation"};
         break;
 
       case ResourceFactory.ID_IWDEE:
@@ -1802,42 +1411,558 @@ public final class EffectFactory
             "Unknown (355)", "Unknown (356)", "Unknown (357)", "Unknown (358)", "Unknown (359)",
             // 360..
             "Reputation breaking point"};
-        // TODO: update icons
-        s_poricon = new String[]{"Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk",
+        s_poricon = new String[]{
+            // 0..9
+            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk",
             "Intoxicated", "Poisoned", "Nauseated", "Blind", "Protection from evil",
+            // 10..19
             "Protection from petrification", "Protection from normal missiles", "Magic armor",
             "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
+            // 20..29
             "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
             "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead", "Protection from poison",
-            "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed", "Panic", "Resist fear",
-            "Haste", "Fatigue", "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness",
-            "Greater malison", "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            "Protection from magic", "Protection from undead",
+            // 30..39
+            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Haste", "Fatigue",
+            // 40..49
+            "Bard song", "Slow", "Static Charge", "Domination", "Hopelessness", "Greater malison",
+            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            // 50..59
             "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery", "Energy drain", "Holy power",
-            "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic", "Spell turning",
-            "Repulsing undead", "Spell deflection", "Fire shield (red)", "Fire shield (blue)",
+            "Entropy Shield", "Perception", "Master thievery", "Energy drain",
+            // 60..69
+            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
+            "Spell turning", "Beltyn's Burning Blood", "Spell deflection", "Fire shield (red)",
+            "Fire shield (blue)",
+            // 70..79
             "Protection from normal weapons", "Protection from magic weapons",
-            "Tenser's transformation", "Protection from magic energy", "Mislead", "Contingency",
-            "Protection from the elements", "Projected image", "Maze", "Imprisonment", "Stoneskin",
-            "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
-            "Intelligence drained", "Regenerating", "Talking", "Shopping", "Negative plane protection",
-            "Ability score drained", "Spell sequencer", "Protection from energy", "Magnetized",
-            "Able to poison weapons", "Setting trap", "Glass dust", "Blade barrier", "Death ward",
+            "Tenser's transformation", "Spell shield", "Mislead", "Contingency",
+            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
+            // 80..89
+            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
+            "Intelligence drained", "Regenerating", "Talking", "Shopping",
+            // 90..99
+            "Negative plane protection", "Ability score drained", "Spell sequencer",
+            "Antimagic Shell", "Shroud of Flame", "Able to poison weapons", "Setting trap",
+            "Glass dust", "Blade barrier", "Death ward",
+            // 100..109
             "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
-            "Spell immunity", "True seeing", "Detecting traps", "Improved haste", "Spell trigger",
-            "Deaf", "Enfeebled", "Infravision", "Friends", "Shield of the archons", "Spell trap",
-            "Absolute immunity", "Improved mantle", "Farsight", "Globe of invulnerability",
-            "Minor globe of invulnerability", "Spell shield", "Polymorphed", "Otiluke's resilient sphere",
-            "Nauseous", "Ghost armor", "Glitterdust", "Webbed", "Unconscious", "Mental combat",
-            "Physical mirror", "Repulse undead", "Chaotic commands", "Draw upon holy might",
-            "Strength of one", "Bleeding", "Barbarian rage", "Boon of lathander", "Storm shield",
-            "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease", "Smite", "Hardiness",
-            "Power attack", "Whirlwind attack", "Greater whirlwind attack", "Magic flute",
-            "Critical strike", "Greater deathblow", "Deathblow", "Avoid death", "Assassination",
-            "Evasion", "Greater evasion", "Improved alacrity", "Aura of flaming death",
-            "Globe of blades", "Improved chaos shield", "Chaos shield", "Fire elemental transformation",
-            "Earth elemental transformation"};
+            "Spell immunity", "True seeing", "Detecting traps",
+            // 110..119
+            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
+            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
+            // 120..129
+            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability",
+            "Protection from magic energy", "Polymorphed", "Otiluke's resilient sphere", "Nauseous",
+            "Ghost armor", "Glitterdust", "Webbed",
+            // 130..139
+            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
+            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage", "Boon of lathander",
+            // 140..149
+            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
+            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
+            // 150..159
+            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
+            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
+            "Improved alacrity",
+            // 160..169
+            "Aura of flaming death", "Globe of blades", "Improved chaos shield", "Chaos shield",
+            "Shield of Lathander", "Greater Shield of Lathander", "Mind Blank", "Aid", "Phased",
+            "Pain",
+            // 170..179
+            "Impervious Sanctity of Mind", "Petrified", "Iron Body", "Animal Rage", "Exaltation",
+            "Recitation", "Blood Rage", "The Ballad of Three Heroes", "The Tale of Curran Strongheart",
+            "Tymora's Melody",
+            // 180..
+            "The Song of Kaudies", "The Siren's Yearning", "War Chant of Sith", "Prayer",
+            "Righteous Wrath of the Faithful", "Cat's Grace", "Hope", "Courage"};
+        break;
+
+      case ResourceFactory.ID_TORMENT:
+        s_effname = new String[]{
+            // 0..9
+            "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
+            "Charm creature", "Charisma bonus", "Set color", "Set color glow solid",
+            "Set color glow pulse",
+            // 10..19
+            "Constitution bonus", "Cure poison", "Damage", "Kill target", "Defrost", "Dexterity bonus",
+            "Haste", "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
+            // 20..29
+            "Invisibility", "Lore bonus", "Luck bonus", "Reset morale", "Panic", "Poison",
+            "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
+            "Electricity resistance bonus",
+            // 30..39
+            "Fire resistance bonus", "Magic damage resistance bonus", "Raise dead",
+            "Save vs. death bonus", "Save vs. wand bonus", "Save vs. polymorph bonus",
+            "Save vs. breath bonus", "Save vs. spell bonus", "Silence", "Sleep",
+            // 40..49
+            "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
+            "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+            // 50..59
+            "Character color pulse", "Character tint solid", "Character tint bright",
+            "Animation change", "Base THAC0 bonus", "Slay", "Invert alignment", "Change alignment",
+            "Dispel effects", "Stealth bonus",
+            // 60..69
+            "Casting failure", "Unknown (61)", "Bonus priest spells", "Infravision",
+            "Remove infravision", "Blur", "Translucency", "Summon creature", "Unsummon creature",
+            "Nondetection",
+            // 70..79
+            "Remove nondetection", "Change gender", "Change AI type", "Attack damage bonus",
+            "Blindness", "Cure blindness", "Feeblemindedness", "Cure feeblemindedness", "Disease",
+            "Cure disease",
+            // 80..89
+            "Deafness", "Cure deafness", "Set AI script", "Immunity to projectile",
+            "Magical fire resistance bonus", "Magical cold resistance bonus",
+            "Slashing resistance bonus", "Crushing resistance bonus", "Piercing resistance bonus",
+            "Missile resistance bonus",
+            // 90..99
+            "Open locks bonus", "Find traps bonus", "Pick pockets bonus", "Fatigue bonus",
+            "Intoxication bonus", "Tracking bonus", "Change level", "Exceptional strength bonus",
+            "Regeneration", "Modify duration",
+            // 100..109
+            "Protection from creature type", "Immunity to effect", "Immunity to spell level",
+            "Change name", "XP bonus", "Remove gold", "Morale break", "Change portrait",
+            "Reputation bonus", "Paralyze",
+            // 110..119
+            "Retreat from", "Create weapon", "Remove item", "Equip weapon", "Dither",
+            "Detect alignment", "Detect invisible", "Clairvoyance", "Show creatures", "Mirror image",
+            // 120..129
+            "Immunity to weapons", "Visual animation effect", "Create inventory item",
+            "Remove inventory item", "Teleport", "Unlock", "Movement rate bonus", "Summon monsters",
+            "Confusion", "Aid (non-cumulative)",
+            // 130..139
+            "Bless (non-cumulative)", "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
+            "Luck (non-cumulative)", "Petrification", "Polymorph", "Force visible",
+            "Bad chant (non-cumulative)", "Set animation sequence", "Display string",
+            // 140..149
+            "Casting glow", "Lighting effects", "Display portrait icon", "Create item in slot",
+            "Disable button", "Disable spellcasting", "Cast spell", "Learn spell",
+            "Cast spell at point", "Identify",
+            // 150..159
+            "Find traps", "Replace self", "Play movie", "Sanctuary", "Entangle overlay",
+            "Minor globe overlay", "Protection from normal missiles overlay", "Web effect",
+            "Grease overlay", "Mirror image effect",
+            // 160..169
+            "Remove sanctuary", "Remove fear", "Remove paralysis", "Free action",
+            "Remove intoxication", "Pause target", "Magic resistance bonus", "Missile THAC0 bonus",
+            "Remove creature", "Prevent portrait icon",
+            // 170..179
+            "Play damage animation", "Give innate ability", "Remove spell", "Poison resistance bonus",
+            "Play sound", "Hold creature", "Unknown (176)", "Unknown (177)",
+            "Unknown (178)", "Unknown (179)",
+            // 180..189
+            "Unknown (180)", "Unknown (181)", "Unknown (182)", "Unknown (183)", "Unknown (184)",
+            "Unknown (185)", "Set state", "Play BAM file (single/dual)", "Play BAM file",
+            "Play BAM file 2",
+            // 190..199
+            "Play BAM file 3", "Play BAM file 4", "Hit point transfer", "Shake screen",
+            "Flash screen", "Tint screen", "Special spell hit", "Unknown (197)", "Unknown (198)",
+            "Unknown (199)",
+            // 200..209
+            "Unknown (200)", "Play BAM with effects", "Unknown (202)", "Curse", "Prayer",
+            "Move view to target", "Embalm", "Stop all actions", "Fist of iron", "Soul exodus",
+            // 210..
+            "Detect evil", "Induce hiccups", "Speak with dead"};
+        s_poricon = new String[]{
+            // 0..9
+            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
+            "Nauseated", "Blind", "Protection from evil",
+            // 10..19
+            "Protection from petrification", "Protection from normal missiles", "Magic armor", "Held",
+            "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
+            // 20..29
+            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
+            "Protection from cold", "Resist fire/cold", "Protection from electricity",
+            "Protection from magic", "Protection from undead",
+            // 30..39
+            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Haste", "Fatigue",
+            // 40..49
+            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
+            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            // 50..
+            "Champions strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
+            "Regeneration", "Perception", "Master thievery"};
+        break;
+
+      case ResourceFactory.ID_ICEWIND:
+      case ResourceFactory.ID_ICEWINDHOW:
+      case ResourceFactory.ID_ICEWINDHOWTOT:
+        s_effname = new String[]{
+            // 0..9
+            "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
+            "Charm creature", "Charisma bonus", "Set color", "Set color glow solid",
+            "Set color glow pulse",
+            // 10..19
+            "Constitution bonus", "Cure poison", "Damage", "Kill target", "Defrost",
+            "Dexterity bonus", "Haste", "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
+            // 20..29
+            "Invisibility", "Lore bonus", "Luck bonus", "Morale bonus", "Panic", "Poison",
+            "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
+            "Electricity resistance bonus",
+            // 30..39
+            "Fire resistance bonus", "Magic damage resistance bonus", "Raise dead",
+            "Save vs. death bonus", "Save vs. wand bonus", "Save vs. polymorph bonus",
+            "Save vs. breath bonus", "Save vs. spell bonus", "Silence", "Sleep",
+            // 40..49
+            "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
+            "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+            // 50..59
+            "Character color pulse", "Character tint solid", "Character tint bright",
+            "Animation change", "Base THAC0 bonus", "Slay", "Invert alignment", "Change alignment",
+            "Dispel effects", "Stealth bonus",
+            // 60..69
+            "Casting failure", "Unknown (61)", "Bonus priest spells", "Infravision",
+            "Remove infravision", "Blur", "Translucency", "Summon creature", "Unsummon creature",
+            "Nondetection",
+            // 70..79
+            "Remove nondetection", "Change gender", "Change AI type", "Attack damage bonus",
+            "Blindness", "Cure blindness", "Feeblemindedness", "Cure feeblemindedness", "Disease",
+            "Cure disease",
+            // 80..89
+            "Deafness", "Cure deafness", "Set AI script", "Immunity to projectile",
+            "Unknown (84)", "Unknown (85)", "Slashing resistance bonus", "Crushing resistance bonus",
+            "Piercing resistance bonus", "Missile resistance bonus",
+            // 90..99
+            "Open locks bonus", "Find traps bonus", "Pick pockets bonus", "Fatigue bonus",
+            "Intoxication bonus", "Tracking bonus", "Change level", "Exceptional strength bonus",
+            "Regeneration", "Modify duration",
+            // 100..109
+            "Protection from creature type", "Immunity to effect", "Immunity to spell level",
+            "Change name", "XP bonus", "Remove gold", "Morale break", "Change portrait",
+            "Reputation bonus", "Paralyze",
+            // 110..119
+            "Unknown (110)", "Create weapon", "Remove item", "Unknown (113)", "Unknown (114)",
+            "Detect alignment", "Detect invisible", "Clairvoyance", "Unknown (118)", "Mirror image",
+            // 120..129
+            "Immunity to weapons", "Unknown (121)", "Create inventory item",
+            "Remove inventory item", "Teleport", "Unlock", "Movement rate bonus", "Summon monsters",
+            "Confusion", "Aid (non-cumulative)",
+            // 130..139
+            "Bless (non-cumulative)", "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
+            "Luck (non-cumulative)", "Petrification", "Polymorph", "Force visible",
+            "Bad chant (non-cumulative)", "Set animation sequence", "Display string",
+            // 140..149
+            "Casting glow", "Lighting effects", "Display portrait icon", "Create item in slot",
+            "Disable button", "Disable spellcasting", "Cast spell", "Learn spell",
+            "Cast spell at point", "Identify",
+            // 150..159
+            "Find traps", "Replace self", "Play movie", "Sanctuary", "Entangle overlay",
+            "Minor globe overlay", "Protection from normal missiles overlay", "Web effect",
+            "Grease overlay", "Mirror image effect",
+            // 160..169
+            "Remove sanctuary", "Remove fear", "Remove paralysis", "Free action",
+            "Remove intoxication", "Pause target", "Magic resistance bonus", "Missile THAC0 bonus",
+            "Remove creature", "Prevent portrait icon",
+            // 170..179
+            "Play damage animation", "Give innate ability", "Remove spell", "Poison resistance bonus",
+            "Play sound", "Hold creature", "Movement rate bonus 2", "Use EFF file",
+            "THAC0 vs. type bonus", "Damage vs. type bonus",
+            // 180..189
+            "Disallow item", "Disallow item type", "Apply effect on equip item",
+            "Apply effect on equip type", "No collision detection", "Hold creature 2",
+            "Move creature", "Set local variable", "Increase spells cast per round",
+            "Increase casting speed factor",
+            // 190..199
+            "Increase attack speed factor", "Casting level bonus", "Find familiar",
+            "Invisibility detection", "Unknown (194)", "Unknown (195)", "Unknown (196)",
+            "Unknown (197)", "Unknown (198)", "Unknown (199)",
+            // 200..209
+            "Unknown (200)", "Unknown (201)", "Unknown (202)", "Unknown (203)",
+            "Unknown (204)", "Unknown (205)", "Protection from spell",
+            "Unknown (207)", "Minimum HP", "Unknown (209)",
+            // 210..219
+            "Power word, stun", "Unknown (211)", "Unknown (212)", "Unknown (213)", "Unknown (214)",
+            "Unknown (215)", "Unknown (216)", "Unknown (217)", "Stoneskin effect",
+            "Unknown (219)",
+            // 220..229
+            "Unknown (220)", "Unknown (221)", "Unknown (222)", "Unknown (223)", "Unknown (224)",
+            "Unknown (225)", "Unknown (226)", "Unknown (227)", "Unknown (228)", "Unknown (229)",
+            // 230..239
+            "Unknown (230)", "Unknown (231)", "Creature RGB color fade", "Show visual effect",
+            "Snilloc's snowball swarm", "Show casting glow", "Chill touch", "Magical stone",
+            "All saving throws bonus", "Slow poison",
+            // 240..249
+            "Summon creature 2", "Vampiric touch", "Show visual overlay", "Animate dead", "Prayer",
+            "Bad prayer", "Summon creature 3", "Beltyn's burning blood", "Summon shadow",
+            "Recitation",
+            // 250..259
+            "Bad recitation", "Lich touch", "Sol's searing orb", "Bonus AC vs. weapons",
+            "Dispel specific spell", "Salamander aura", "Umber hulk gaze", "Zombie lord aura",
+            "Immunity to specific resource", "Summon creatures with cloud",
+            // 260..269
+            "Hide creature", "Immunity to effect and string", "Pomab images", "Evil turn undead",
+            "Static charge", "Cloak of fear", "Movement rate modifier", "Cure confusion",
+            "Eye of the mind", "Eye of the sword",
+            // 270..279
+            "Eye of the mage", "Eye of venom", "Eye of the spirit", "Eye of fortitude",
+            "Eye of stone", "Remove seven eyes", "Remove effect by type", "Soul eater",
+            "Shroud of flame", "Animal rage",
+            // 280..289
+            "Turn undead", "Vitriolic sphere", "Hide hit points", "Float text", "Mace of disruption",
+            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set state",
+            "Dragon gem cutscene",
+            // 290..299
+            "Display spell immunity string", "Rod of smiting", "Rest", "Beholder dispel magic",
+            "Harpy wail", "Jackalwere gaze", "Set global variable"};
+        s_poricon = new String[]{
+            // 0..9
+            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
+            "Nauseated", "Blind", "Protection from evil",
+            // 10..19
+            "Protection from petrification", "Protection from normal missiles", "Magic armor", "Held",
+            "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
+            // 20..29
+            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
+            "Protection from cold", "Resist fire/cold", "Protection from electricity",
+            "Protection from magic", "Protection from undead",
+            // 30..39
+            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Haste", "Fatigue",
+            // 40..49
+            "Bard song", "Slow", "Regenerate", "Nauseous", "Stun", "Ghost armor", "Stoneskin",
+            "Hopelessness", "Courage", "Friends",
+            // 50..59
+            "Hope", "Malison", "Spirit armor", "Domination", "Feeblemind", "Tenser's transformation",
+            "Mind blank", "Aid", "Find traps", "Draw upon holy might",
+            // 60..69
+            "Miscast magic", "Strength of one", "Prayer", "Defensive harmony", "Recitation",
+            "Champion's strength", "Chaotic commands", "Righteous wrath of the faithful", "Phased",
+            "Pain",
+            // 70..79
+            "Impervious sanctity of mind", "Petrified", "Iron body", "Animal rage", "Exaltation",
+            "Cat's grace", "Blood rage", "Ballad of three heroes", "Tale of curran strongheart",
+            "Tymora's melody",
+            // 80..
+            "Song of kaudies", "Siren's yearning", "War chant of sith", "Deaf", "Armor of faith"};
+        break;
+
+      case ResourceFactory.ID_ICEWIND2:
+        s_effname = new String[]{
+            // 0..9
+            "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
+            "Charm creature", "Charisma bonus", "Set color", "Set color glow solid",
+            "Set color glow pulse",
+            // 10..19
+            "Constitution bonus", "Cure poison", "Damage", "Kill target", "Defrost",
+            "Dexterity bonus", "Haste", "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
+            // 20..29
+            "Invisibility", "Knowledge arcana", "Luck bonus", "Morale bonus", "Panic", "Poison",
+            "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
+            "Electricity resistance bonus",
+            // 30..39
+            "Fire resistance bonus", "Magic damage resistance bonus", "Raise dead",
+            "Fortitude save bonus", "Reflex save bonus", "Will save bonus", "Unknown (36)",
+            "Unknown (37)", "Silence", "Sleep",
+            // 40..49
+            "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
+            "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+            // 50..59
+            "Character color pulse", "Character tint solid", "Character tint bright",
+            "Animation change", "Base attack bonus", "Slay", "Invert alignment", "Change alignment",
+            "Dispel effects", "Move silently bonus",
+            // 60..69
+            "Casting failure", "Alchemy", "Bonus priest spells", "Infravision", "Remove infravision",
+            "Blur", "Translucency", "Summon creature", "Unsummon creature", "Nondetection",
+            // 70..79
+            "Remove nondetection", "Change gender", "Change AI type", "Attack damage bonus",
+            "Blindness", "Cure blindness", "Feeblemindedness", "Cure feeblemindedness", "Disease",
+            "Cure disease",
+            // 80..89
+            "Deafness", "Cure deafness", "Set AI script", "Immunity to projectile",
+            "Unknown (84)", "Unknown (85)",
+            "Slashing resistance bonus", "Crushing resistance bonus", "Piercing resistance bonus",
+            "Missile resistance bonus",
+            // 90..99
+            "Open locks bonus", "Find traps bonus", "Pick pockets bonus", "Fatigue bonus",
+            "Intoxication bonus", "Tracking bonus", "Change level", "Exceptional strength bonus",
+            "Regeneration", "Modify duration",
+            // 100..109
+            "Protection from creature type", "Immunity to effect", "Immunity to spell level",
+            "Change name", "XP bonus", "Remove gold", "Morale break", "Change portrait",
+            "Reputation bonus", "Paralyze",
+            // 110..119
+            "Unknown (110)", "Create weapon", "Remove item", "Equip weapon", "Dither",
+            "Detect alignment", "Detect invisible", "Clairvoyance", "Show creatures", "Mirror image",
+            // 120..129
+            "Immunity to weapons", "Visual animation effect", "Create inventory item",
+            "Remove inventory item", "Teleport", "Unlock", "Movement rate bonus", "Unknown (127)",
+            "Confusion", "Aid (non-cumulative)",
+            // 130..139
+            "Bless (non-cumulative)", "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
+            "Luck (non-cumulative)", "Petrification", "Polymorph", "Force visible",
+            "Unknown (137)", "Set animation sequence", "Display string",
+            // 140..149
+            "Casting glow", "Lighting effects", "Display portrait icon", "Create item in slot",
+            "Disable button", "Disable spellcasting", "Cast spell", "Learn spell",
+            "Cast spell at point", "Identify",
+            // 150..159
+            "Find traps", "Replace self", "Play movie", "Sanctuary", "Entangle overlay",
+            "Unknown (155)", "Unknown (156)", "Web effect",
+            "Grease overlay", "Mirror image effect",
+            // 160..169
+            "Remove sanctuary", "Remove fear", "Remove paralysis", "Free action",
+            "Remove intoxication", "Pause target", "Magic resistance bonus", "Missile attack bonus",
+            "Remove creature", "Prevent portrait icon",
+            // 170..179
+            "Play damage animation", "Give innate ability", "Remove spell", "Poison resistance bonus",
+            "Play sound", "Hold creature", "Movement rate penalty", "Use EFF file",
+            "THAC0 vs. type bonus", "Damage vs. type bonus",
+            // 180..189
+            "Disallow item", "Disallow item type", "Apply effect on equip item",
+            "Apply effect on equip type", "No collision detection", "Hold creature 2",
+            "Move creature", "Set local variable", "Increase spells cast per round",
+            "Increase casting speed factor",
+            // 190..199
+            "Increase attack speed factor", "Casting level bonus", "Find familiar",
+            "Invisibility detection", "Unknown (194)", "Unknown (195)", "Unknown (196)",
+            "Unknown (197)", "Unknown (198)", "Unknown (199)",
+            // 200..209
+            "Unknown (200)", "Unknown (201)", "Unknown (202)", "Unknown (203)",
+            "Unknown (204)", "Unknown (205)", "Protection from spell",
+            "Unknown (207)", "Minimum HP", "Unknown (209)",
+            // 210..219
+            "Unknown (210)", "Unknown (211)", "Unknown (212)", "Unknown (213)", "Unknown (214)",
+            "Unknown (215)", "Unknown (216)", "Unknown (217)", "Stoneskin effect",
+            "Unknown (219)",
+            // 220..229
+            "Unknown (220)", "Unknown (221)", "Unknown (222)",
+            "Unknown (223)", "Unknown (224)", "Unknown (225)", "Unknown (226)",
+            "Unknown (227)", "Unknown (228)", "Unknown (229)",
+            // 230..239
+            "Unknown (230)", "Unknown (231)", "Creature RGB color fade", "Show visual effect",
+            "Unknown (234)", "Show casting glow", "Panic undead", "Unknown (237)",
+            "All saving throws bonus", "Slow poison",
+            // 240..249
+            "Unknown (240)", "Vampiric touch", "Unknown (242)", "Unknown (243)", "Prayer",
+            "Unknown (245)", "Unknown (246)", "Beltyn's burning blood", "Summon shadow",
+            "Recitation",
+            // 250..259
+            "Unknown (250)", "Unknown (251)", "Unknown (252)", "Unknown (253)",
+            "Dispel specific spell", "Salamander aura", "Umber hulk gaze", "Unknown (257)",
+            "Immunity to specific resource", "Unknown (259)",
+            // 260..269
+            "Hide creature", "Immunity to effect and resource", "Unknown (262)", "Evil turn undead",
+            "Static charge", "Cloak of fear", "Movement rate modifier", "Cure confusion",
+            "Eye of the mind", "Eye of the sword",
+            // 270..279
+            "Eye of the mage", "Eye of venom", "Eye of the spirit", "Eye of fortitude",
+            "Eye of stone", "Remove seven eyes", "Remove effect by type", "Unknown (277)",
+            "Shroud of flame", "Animal rage",
+            // 280..289
+            "Turn undead", "Vitriolic sphere", "Hide hit points", "Float text", "Mace of disruption",
+            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set state",
+            "Unknown (289)",
+            // 290..299
+            "Display spell immunity string", "Rod of smiting", "Rest", "Beholder dispel magic",
+            "Harpy wail", "Jackalwere gaze", "Set global variable", "Hide in shadows bonus",
+            "Use magic device bonus", "Unknown (299)",
+            // 300..309
+            "Unknown (300)", "Unknown (301)", "Unknown (302)", "Unknown (303)", "Unknown (304)",
+            "Unknown (305)", "Unknown (306)", "Unknown (307)", "Unknown (308)", "Unknown (309)",
+            // 310..319
+            "Unknown (310)", "Unknown (311)", "Unknown (312)", "Unknown (313)", "Unknown (314)",
+            "Unknown (315)", "Unknown (316)", "Unknown (317)", "Unknown (318)", "Unknown (319)",
+            // 320..329
+            "Unknown (320)", "Unknown (321)", "Unknown (322)", "Unknown (323)", "Unknown (324)",
+            "Unknown (325)", "Unknown (326)", "Unknown (327)", "Unknown (328)", "Unknown (329)",
+            // 330..339
+            "Unknown (330)", "Unknown (331)", "Unknown (332)", "Unknown (333)", "Unknown (334)",
+            "Unknown (335)", "Unknown (336)", "Unknown (337)", "Unknown (338)", "Unknown (339)",
+            // 340..349
+            "Unknown (340)", "Unknown (341)", "Unknown (342)", "Unknown (343)", "Unknown (344)",
+            "Unknown (345)", "Unknown (346)", "Unknown (347)", "Unknown (348)", "Unknown (349)",
+            // 350..359
+            "Unknown (350)", "Unknown (351)", "Unknown (352)", "Unknown (353)", "Unknown (354)",
+            "Unknown (355)", "Unknown (356)", "Unknown (357)", "Unknown (358)", "Unknown (359)",
+            // 360..369
+            "Unknown (360)", "Unknown (361)", "Unknown (362)", "Unknown (363)", "Unknown (364)",
+            "Unknown (365)", "Unknown (366)", "Unknown (367)", "Unknown (368)", "Unknown (369)",
+            // 370..379
+            "Unknown (370)", "Unknown (371)", "Unknown (372)", "Unknown (373)", "Unknown (374)",
+            "Unknown (375)", "Unknown (376)", "Unknown (377)", "Unknown (378)", "Unknown (379)",
+            // 380..389
+            "Unknown (380)", "Unknown (381)", "Unknown (382)", "Unknown (383)", "Unknown (384)",
+            "Unknown (385)", "Unknown (386)", "Unknown (387)", "Unknown (388)", "Unknown (389)",
+            // 390..399
+            "Unknown (390)", "Unknown (391)", "Unknown (392)", "Unknown (393)", "Unknown (394)",
+            "Unknown (395)", "Unknown (396)", "Unknown (397)", "Unknown (398)", "Unknown (399)",
+            // 400..409
+            "Hopelessness", "Protection from evil", "Apply effects list", "Armor of faith",
+            "Nausea", "Enfeeblement", "Fire shield", "Death ward", "Holy power",
+            "Righteous wrath of the faithful",
+            // 410..419
+            "Summon friendly creature", "Summon hostile creature", "Control creature",
+            "Run visual effect", "Otiluke's resilient sphere", "Barkskin", "Bleeding wounds",
+            "Area effect using effects list", "Free action", "Unconsciousness",
+            // 420..429
+            "Death magic", "Entropy shield", "Storm shell", "Protection from the elements",
+            "Hold undead", "Control undead", "Aegis", "Executioner's eyes", "Banish",
+            "Apply effects list on hit",
+            // 430..439
+            "Projectile type using effects list", "Energy drain", "Tortoise shell", "Blink",
+            "Persistent using effects list", "Day blindness", "Damage reduction", "Disguise",
+            "Heroic inspiration", "Prevent AI slowdown",
+            // 440..449
+            "Barbarian rage", "Force slow", "Cleave", "Protection from arrows",
+            "Tenser's transformation", "Slippery mind", "Smite evil", "Restoration", "Alicorn lance",
+            "Call lightning",
+            // 450..459
+            "Globe of invulnerability", "Lower resistance", "Bane", "Power attack", "Expertise",
+            "Arterial strike", "Hamstring", "Rapid shot"};
+        s_poricon = new String[]{
+            // 0..9
+            "Charmed", "", "", "Confused", "Berserk", "Intoxicated", "Poisoned", "Diseased", "Blind",
+            "Protection from evil",
+            // 10..19
+            "Protection from petrification", "Protection from normal missiles", "Armor", "Held",
+            "Asleep", "Shield", "Protection from fire", "Bless", "Chant", "Free action",
+            // 20..29
+            "Barkskin", "Strength", "Heroism", "Spell invulnerability", "Protection from acid",
+            "Protection from cold", "", "Protection from electricity", "Protection from magic",
+            "Protection from undead",
+            // 30..39
+            "Protection from poison", "Undetectable", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Hasted", "Fatigued",
+            // 40..49
+            "Bard song", "Slowed", "Regenerating", "Nauseous", "Stunned", "Ghost armor", "Stoneskin",
+            "Hopelessness", "Courage", "Friends",
+            // 50..59
+            "Hope", "Malison", "Spirit armor", "Dominated", "Feebleminded", "Tenser's transformation",
+            "Mind blank", "Aid", "Find traps", "Draw upon holy might",
+            // 60..69
+            "Miscast magic", "Strength of one", "Prayer", "Defensive harmony", "Recitation",
+            "Champion's strength", "Chaotic commands", "Righteous wrath of the faithful", "Phased",
+            "Pain",
+            // 70..79
+            "Impervious sanctity of mind", "Petrified", "Iron body", "Animal rage", "Exaltation",
+            "Cat's grace", "Blood rage", "Ballad of three heroes", "Tale of curran strongheart",
+            "Tymora's melody",
+            // 80..89
+            "Song of kaudies", "Siren's yearning", "War chant of sith", "Deaf", "Armor of faith",
+            "Bleeding wound", "Holy power", "Death ward", "Unconscious", "Iron skins",
+            // 90..99
+            "Enfeeblement", "Sanctuary", "Entangle", "Protection from the elements", "Grease", "Web",
+            "Minor globe of invulnerability", "Globe of invulnerability", "Shroud of flame",
+            "Antimagic shell",
+            // 100..109
+            "Otiluke's resilient sphere", "Intelligence drained", "Cloak of fear", "Entropy shield",
+            "Insect plague", "Storm shell", "Shield of lathander", "Greater shield of lathander",
+            "Seven eyes", "Blur",
+            // 110..119
+            "Invisibility", "Barbarian rage", "Called shot", "Defensive spin", "Maximized attacks",
+            "Offensive spin", "Envenom weapon", "Unconscious", "Doom", "Aegis",
+            // 120..129
+            "Executioner's eyes", "Fire shield (red)", "Fire shield (blue)", "Energy drained",
+            "Faerie fire", "Tortoise shell", "Spell shield", "Negative energy protection",
+            "Aura of vitality", "Death armor",
+            // 130..139
+            "Blink", "Vipergout", "Mind fog", "", "Stunning fist", "Quivering palm", "Gram's paradox",
+            "Blindness", "Heroic inspiration", "Vocalize",
+            // 140..
+            "Despair", "Ilmater's endurance", "Destructive blow", "Master thievery",
+            "Improved invisibility"};
         break;
 
       default:
@@ -1983,12 +2108,8 @@ public final class EffectFactory
       case 79: // Cure disease
       case 80: // Deafness
       case 81: // Cure deafness
-      case 113: // Equip weapon
-      case 114: // Dither
       case 116: // Detect invisible
       case 117: // Clairvoyance
-      case 118: // Show creatures
-      case 121: // Visual animation effect
       case 125: // Unlock
       case 128: // Confusion
       case 134: // Petrification
@@ -2053,13 +2174,9 @@ public final class EffectFactory
       case 33: // Save vs. death bonus / Fortitude save bonus
       case 34: // Save vs. wand bonus / Reflex save bonus
       case 35: // Save vs. polymorph bonus / Will save bonus
-      case 36: // Save vs. breath bonus
-      case 37: // Save vs. spell bonus
       case 49: // Wisdom bonus
       case 54: // Base THAC0 bonus / Base attack bonus
       case 59: // Stealth bonus / Move silently bonus
-      case 84: // Magical fire resistance bonus
-      case 85: // Magical cold resistance bonus
       case 86: // Slashing resistance bonus
       case 87: // Crushing resistance bonus
       case 88: // Piercing resistance bonus
@@ -2267,6 +2384,16 @@ public final class EffectFactory
                            new String[]{"Normal", "Jumble curse"}));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        }
+        break;
+
+      case 36: // Save vs. breath bonus
+      case 37: // Save vs. spell bonus
+        if (isIWD2) {
+          makeEffectParamsDefault(buffer, offset, s);
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Value"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
         break;
 
@@ -2508,6 +2635,16 @@ public final class EffectFactory
         break;
       }
 
+      case 84: // Magical fire resistance bonus
+      case 85: // Magical cold resistance bonus
+        if (isIWD || isIWD2) {
+          makeEffectParamsDefault(buffer, offset, s);
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Value"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        }
+        break;
+
       case 98: // Regeneration
       {
         s.add(new DecNumber(buffer, offset, 4, "Value"));
@@ -2563,6 +2700,18 @@ public final class EffectFactory
         restype = "ITM";
         break;
 
+      case 113: // Equip weapon
+      case 114: // Dither
+      case 118: // Show creatures
+      case 121: // Visual animation effect
+        if (isIWD) {
+          makeEffectParamsDefault(buffer, offset, s);
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        }
+        break;
+
       case 115: // Detect alignment
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Alignment mask",
@@ -2610,13 +2759,17 @@ public final class EffectFactory
         break;
 
       case 127: // Summon monsters
-        s.add(new DecNumber(buffer, offset, 4, "Total XP"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "From 2DA file",
-                         new String[]{"Monsum01 (ally)", "Monsum02 (ally)", "Monsum03 (ally)",
-                                      "Anisum01 (ally)", "Anisum02 (ally)", "Monsum01 (enemy)",
-                                      "Monsum02 (enemy)", "Monsum03 (enemy)",
-                                      "Anisum01 (enemy)", "Anisum02 (enemy)"}));
-        restype = "2DA";
+        if (isIWD2) {
+          makeEffectParamsDefault(buffer, offset, s);
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Total XP"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "From 2DA file",
+                           new String[]{"Monsum01 (ally)", "Monsum02 (ally)", "Monsum03 (ally)",
+                                        "Anisum01 (ally)", "Anisum02 (ally)", "Monsum01 (enemy)",
+                                        "Monsum02 (enemy)", "Monsum03 (enemy)",
+                                        "Anisum01 (enemy)", "Anisum02 (enemy)"}));
+          restype = "2DA";
+        }
         break;
 
       case 129: // Aid (non-cumulative)
@@ -2627,9 +2780,17 @@ public final class EffectFactory
       case 130: // Bless (non-cumulative)
       case 132: // Draw upon holy might (non-cumulative)
       case 133: // Luck (non-cumulative)
-      case 137: // Bad chant (non-cumulative)
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        break;
+
+      case 137: // Bad chant (non-cumulative)
+        if (isIWD2) {
+          makeEffectParamsDefault(buffer, offset, s);
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Amount"));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        }
         break;
 
       case 131: // Chant (non-cumulative)
@@ -2781,8 +2942,6 @@ public final class EffectFactory
 
       case 153: // Sanctuary
       case 154: // Entangle overlay
-      case 155: // Minor globe overlay
-      case 156: // Protection from normal missiles overlay
       case 157: // Web effect
       case 158: // Grease overlay
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
@@ -2793,6 +2952,22 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         }
         break;
+
+      case 155: // Minor globe overlay
+      case 156: // Protection from normal missiles overlay
+        if (isIWD2) {
+          makeEffectParamsDefault(buffer, offset, s);
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          if (ResourceFactory.isEnhancedEdition()) {
+            s.add(new Bitmap(buffer, offset + 4, 4, "Mode", new String[]{"Default overlay", "Custom overlay"}));
+            restype = "VVC";
+          } else {
+            s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          }
+        }
+        break;
+
 
       case 159: // Mirror image effect
         s.add(new DecNumber(buffer, offset, 4, "# images"));
@@ -3567,8 +3742,9 @@ public final class EffectFactory
         if (isIWDEE) {
           // TODO: need more info
           s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Spell target", "Target point"}));
-          s.add(new ProRef(buffer, offset + 4, "Effect type", 0x1000L));
-          s.add(new Unknown(buffer, offset + 6, 2, "Unused"));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Effect type", "PROJECTL.IDS", 0x1000));
+//          s.add(new ProRef(buffer, offset + 4, "Effect type", 0x1000L));
+//          s.add(new Unknown(buffer, offset + 6, 2, "Unused"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3694,8 +3870,9 @@ public final class EffectFactory
                            new String[]{"Set value", "AND value", "OR value", "XOR value",
                                         "AND NOT value"}));
           s.add(new DecNumber(buffer, offset + 2, 2, "Value"));
-          s.add(new ProRef(buffer, offset + 4, "Projectile type", 0x1000L));
-          s.add(new Unknown(buffer, offset + 6, 2, "Unused"));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Effect type", "PROJECTL.IDS", 0x1000));
+//          s.add(new ProRef(buffer, offset + 4, "Projectile type", 0x1000L));
+//          s.add(new Unknown(buffer, offset + 6, 2, "Unused"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3834,9 +4011,6 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
                          new String[]{"Adder's kiss", "Ball lightning", "Fizzle"}));
-        break;
-
-      case 197:
         break;
 
       case 201: // Play BAM with effects
@@ -4183,7 +4357,6 @@ public final class EffectFactory
 
       case 189: // Increase casting speed factor
       case 190: // Increase attack speed factor
-      case 237: // Magical stone
       case 239: // Slow poison
       case 281: // Vitriolic sphere
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
