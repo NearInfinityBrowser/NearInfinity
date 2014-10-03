@@ -381,6 +381,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           stateNrToShow = state.getNumber();
           transNrToShow = state.getFirstTrans();
           found = true;
+          break;
         }
       }
       if (!found) {
@@ -388,6 +389,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           if (trans.getAssociatedText().getValue() == strref) {
             transNrToShow = trans.getNumber();
             stateNrToShow = findStateForTrans(transNrToShow);
+            break;
+          }
+          else if (trans.getJournalEntry().getValue() == strref) {
+            transNrToShow = trans.getNumber();
+            stateNrToShow = findStateForTrans(transNrToShow);
+            break;
           }
         }
       }

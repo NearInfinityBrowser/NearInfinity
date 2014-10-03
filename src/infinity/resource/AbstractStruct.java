@@ -33,6 +33,7 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
@@ -314,6 +315,15 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+  @Override
+  public void fireTableChanged(TableModelEvent e)
+  {
+    super.fireTableChanged(e);
+    if (getSuperStruct() != null) {
+      getSuperStruct().fireTableChanged(e);
+    }
+  }
 
   @Override
   public String getColumnName(int columnIndex)

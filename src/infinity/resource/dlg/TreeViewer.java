@@ -8,14 +8,17 @@ import infinity.NearInfinity;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
+import infinity.datatype.StringRef;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ViewerUtil;
+import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.util.StringResource;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -23,8 +26,11 @@ import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Stack;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -33,31 +39,40 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 
 /** Show dialog content as tree structure. */
-final class TreeViewer extends JPanel implements TreeSelectionListener
+final class TreeViewer extends JPanel implements TreeSelectionListener, TableModelListener
 {
   private final DlgResource dlg;
   private final DlgTreeModel dlgModel;
   private final JTree dlgTree;
   private final ItemInfo dlgInfo;
 
+  private JScrollPane spInfo, spTree;
+
   TreeViewer(DlgResource dlg)
   {
     super(new BorderLayout());
     this.dlg = dlg;
+    this.dlg.addTableModelListener(this);
     dlgModel = new DlgTreeModel(this.dlg);
     dlgTree = new JTree();
     dlgTree.addTreeSelectionListener(this);
@@ -92,6 +107,58 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
   }
 
 //--------------------- End Interface TreeSelectionListener ---------------------
+
+//--------------------- Begin Interface TableModelListener ---------------------
+
+ @Override
+ public void tableChanged(TableModelEvent e)
+ {
+   // Insertion or removal of nodes not yet supported
+   if (e.getType() == TableModelEvent.UPDATE) {
+     if (e.getSource() instanceof State) {
+       State state = (State)e.getSource();
+       dlgModel.updateState(state);
+     } else if (e.getSource() instanceof Transition) {
+       Transition trans = (Transition)e.getSource();
+       dlgModel.updateTransition(trans);
+     } else if (e.getSource() instanceof DlgResource) {
+       dlgModel.updateRoot();
+     }
+   }
+ }
+
+//--------------------- End Interface TableModelListener ---------------------
+
+  /** Jumps to the first available node containing the specified structure. */
+  public void showStateWithStructEntry(StructEntry entry)
+  {
+    DefaultMutableTreeNode node = null;
+    if (entry instanceof State) {
+      int stateIdx = ((State)entry).getNumber();
+      node = dlgModel.findStateNode(stateIdx);
+    } else if (entry instanceof Transition) {
+      int transIdx = ((Transition)entry).getNumber();
+      node = dlgModel.findTransitionNode(transIdx);
+    } else if (entry instanceof StateTrigger) {
+      int triggerIdx = ((StateTrigger)entry).getNumber();
+      node = dlgModel.findStateTriggerNode(triggerIdx);
+    } else if (entry instanceof ResponseTrigger) {
+      int triggerIdx = ((ResponseTrigger)entry).getNumber();
+      node = dlgModel.findResponseTriggerNode(triggerIdx);
+    } else if (entry instanceof Action) {
+      int actionIdx = ((Action)entry).getNumber();
+      node = dlgModel.findActionNode(actionIdx);
+    } else if (entry instanceof StringRef) {
+      // may happen when using the DLG Search
+      node = dlgModel.findStringRefNode(((StringRef)entry).getValue());
+    }
+
+    // selecting node in tree view
+    if (node != null) {
+      dlgTree.setSelectionPath(dlgModel.getTreePath(node));
+    }
+  }
+
 
   private void updateStateInfo(StateItem si)
   {
@@ -131,6 +198,12 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       }
 
       dlgInfo.showPanel(ItemInfo.CARD_STATE);
+
+      // jumping to top of scroll area
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() { spInfo.getVerticalScrollBar().setValue(0); }
+      });
     } else {
       dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
     }
@@ -202,6 +275,12 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       }
 
       dlgInfo.showPanel(ItemInfo.CARD_RESPONSE);
+
+      // jumping to top of scroll area
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() { spInfo.getVerticalScrollBar().setValue(0); }
+      });
     } else {
       dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
     }
@@ -210,8 +289,8 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
   private void initControls()
   {
     // initializing info component
-    JScrollPane spInfo = new JScrollPane(dlgInfo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                         JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    spInfo = new JScrollPane(dlgInfo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     spInfo.getViewport().addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e)
@@ -236,7 +315,7 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
     pTree.add(dlgTree, gbc);
-    JScrollPane spTree = new JScrollPane(pTree);
+    spTree = new JScrollPane(pTree);
     spTree.setBorder(BorderFactory.createEmptyBorder());
     spTree.getHorizontalScrollBar().setUnitIncrement(16);
     spTree.getVerticalScrollBar().setUnitIncrement(16);
@@ -247,60 +326,128 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     tcr.setLeafIcon(null);
     tcr.setOpenIcon(null);
     tcr.setClosedIcon(null);
-    dlgTree.setModel(dlgModel);   // set model AFTER customizing visual appearance of the tree control
+
+    // drawing custom icons for each node type
+    dlgTree.setCellRenderer(new DefaultTreeCellRenderer() {
+      @Override
+      public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
+                                                    boolean expanded, boolean leaf, int row,
+                                                    boolean focused)
+      {
+        Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
+        if (value instanceof DefaultMutableTreeNode) {
+          Object data = ((DefaultMutableTreeNode)value).getUserObject();
+          if (data instanceof ItemBase) {
+            setIcon(((ItemBase)data).getIcon());
+          } else {
+            setIcon(null);
+          }
+        }
+        return c;
+      }
+    });
+
+    // preventing root node from collapsing
+    dlgTree.addTreeWillExpandListener(new TreeWillExpandListener() {
+      @Override
+      public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException
+      {
+      }
+
+      @Override
+      public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException
+      {
+        if (event.getPath().getLastPathComponent() == dlgModel.getRoot()) {
+          throw new ExpandVetoException(event);
+        }
+      }
+    });
+
+    // setting model AFTER customizing visual appearance of the tree control
+    dlgTree.setModel(dlgModel);
 
     // putting components together
     JSplitPane splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, spTree, spInfo);
-    int height = NearInfinity.getInstance().getContentPane().getHeight() -
-                 NearInfinity.getInstance().getStatusBar().getHeight() - 24;
-    splitv.setDividerLocation(height / 2);
+    splitv.setDividerLocation(2 * NearInfinity.getInstance().getContentPane().getHeight() / 5);
     add(splitv, BorderLayout.CENTER);
   }
 
 
 //-------------------------- INNER CLASSES --------------------------
 
-  // Meta class for identifying root node
-  private final class RootItem
+  // Common base class for node type specific classes
+  private static abstract class ItemBase
   {
+     private final DlgResource dlg;
+
+     public ItemBase(DlgResource dlg)
+     {
+       this.dlg = dlg;
+     }
+
+     /** Returns the dialog resource object. */
+     public DlgResource getDialog()
+     {
+       return dlg;
+     }
+
+     /** Returns the dialog resource name. */
+     public String getDialogName()
+     {
+       if (dlg != null) {
+         return dlg.getResourceEntry().getResourceName();
+       } else {
+         return "";
+       }
+     }
+
+     /** Returns the icon associated with the item type. */
+     public abstract Icon getIcon();
+  }
+
+  // Meta class for identifying root node
+  private static final class RootItem extends ItemBase
+  {
+    private static final ImageIcon ICON = Icons.getIcon("RowInsertAfter16.gif");
+
     private final ArrayList<StateItem> states = new ArrayList<StateItem>();
 
     private int numStates, numTransitions, numStateTriggers, numResponseTriggers, numActions;
-    private String dlgName, flags;
+    private String flags;
 
     public RootItem(DlgResource dlg)
     {
-      if (dlg != null) {
-        dlgName = dlg.getResourceEntry().getResourceName();
+      super(dlg);
 
-        StructEntry entry = dlg.getAttribute("# states");
+      if (getDialog() != null) {
+        StructEntry entry = getDialog().getAttribute("# states");
         if (entry instanceof SectionCount) {
           numStates = ((SectionCount)entry).getValue();
         }
-        entry = dlg.getAttribute("# responses");
+        entry = getDialog().getAttribute("# responses");
         if (entry instanceof SectionCount) {
           numTransitions = ((SectionCount)entry).getValue();
         }
-        entry = dlg.getAttribute("# state triggers");
+        entry = getDialog().getAttribute("# state triggers");
         if (entry instanceof SectionCount) {
           numStateTriggers = ((SectionCount)entry).getValue();
         }
-        entry = dlg.getAttribute("# response triggers");
+        entry = getDialog().getAttribute("# response triggers");
         if (entry instanceof SectionCount) {
           numResponseTriggers = ((SectionCount)entry).getValue();
         }
-        entry = dlg.getAttribute("# actions");
+        entry = getDialog().getAttribute("# actions");
         if (entry instanceof SectionCount) {
           numActions = ((SectionCount)entry).getValue();
         }
-        entry = dlg.getAttribute("Threat response");
+        entry = getDialog().getAttribute("Threat response");
         if (entry instanceof Flag) {
           flags = ((Flag)entry).toString();
         }
 
         // finding and storing initial states (sorted by trigger index in ascending order)
         for (int i = 0; i < numStates; i++) {
-          entry = dlg.getAttribute(String.format(State.FMT_NAME, i));
+          entry = getDialog().getAttribute(String.format(State.FMT_NAME, i));
           if (entry instanceof State) {
             int triggerIndex = ((State)entry).getTriggerIndex();
             if (triggerIndex >= 0) {
@@ -310,13 +457,10 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
                   break;
                 }
               }
-              states.add(j, new StateItem(dlg, (State)entry));
+              states.add(j, new StateItem(getDialog(), (State)entry));
             }
           }
         }
-      } else {
-        dlgName = "(Invalid DLG resource)";
-        flags = "";
       }
     }
 
@@ -336,9 +480,20 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     }
 
     @Override
+    public Icon getIcon()
+    {
+      return ICON;
+    }
+
+    @Override
     public String toString()
     {
-      StringBuilder sb = new StringBuilder(dlgName);
+      StringBuilder sb = new StringBuilder();
+      if (!getDialogName().isEmpty()) {
+        sb.append(getDialogName());
+      } else {
+        sb.append("(Invalid DLG resource)");
+      }
       sb.append(" (states: ").append(Integer.toString(numStates));
       sb.append(", responses: ").append(Integer.toString(numTransitions));
       sb.append(", state triggers: ").append(Integer.toString(numStateTriggers));
@@ -355,27 +510,35 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
 
 
   // Encapsulates a dialog state entry
-  private final class StateItem
+  private static final class StateItem extends ItemBase
   {
+    private static final ImageIcon ICON = Icons.getIcon("Stop16.gif");
     private static final int MAX_LENGTH = 100;    // max. string length to display
 
-    private DlgResource dlg;
     private State state;
 
     public StateItem(DlgResource dlg, State state)
     {
-      this.dlg = dlg;
+      super(dlg);
       this.state = state;
-    }
-
-    public DlgResource getDialog()
-    {
-      return dlg;
     }
 
     public State getState()
     {
       return state;
+    }
+
+    public void setState(State state)
+    {
+      if (state != null) {
+        this.state = state;
+      }
+    }
+
+    @Override
+    public Icon getIcon()
+    {
+      return ICON;
     }
 
     @Override
@@ -395,27 +558,35 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
 
 
   // Encapsulates a dialog transition entry
-  private final class TransitionItem
+  private static final class TransitionItem extends ItemBase
   {
+    private static final ImageIcon ICON = Icons.getIcon("Play16.gif");
     private static final int MAX_LENGTH = 100;    // max. string length to display
 
-    private DlgResource dlg;
     private Transition trans;
 
     public TransitionItem(DlgResource dlg, Transition trans)
     {
-      this.dlg = dlg;
+      super(dlg);
       this.trans = trans;
-    }
-
-    public DlgResource getDialog()
-    {
-      return dlg;
     }
 
     public Transition getTransition()
     {
       return trans;
+    }
+
+    public void setTransition(Transition trans)
+    {
+      if (trans != null) {
+        this.trans = trans;
+      }
+    }
+
+    @Override
+    public Icon getIcon()
+    {
+      return ICON;
     }
 
     @Override
@@ -455,8 +626,13 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
 
 
   // Creates and manages the dialog tree structure
-  private final class DlgTreeModel implements TreeModel
+  private static final class DlgTreeModel implements TreeModel
   {
+    // Max. node depth allowed to search or map the tree model
+    private static final int MAX_DEPTH = 100;
+
+    private enum ParamType { State, StateTrigger, Transition, ResponseTrigger, Action, Strref }
+
     private final ArrayList<TreeModelListener> listeners = new ArrayList<TreeModelListener>();
     // maps dialog resources to tables of state index/item pairs
     private final HashMap<String, HashMap<Integer, StateItem>> mapState = new HashMap<String, HashMap<Integer, StateItem>>();
@@ -517,7 +693,7 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
     @Override
     public void valueForPathChanged(TreePath path, Object newValue)
     {
-      // TODO
+      // immutable
     }
 
     @Override
@@ -556,6 +732,75 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
 
   //--------------------- End Interface TreeModel ---------------------
 
+    public void nodeChanged(TreeNode node)
+    {
+      if (node != null) {
+        if (node.getParent() == null) {
+          fireTreeNodesChanged(this, null, null, null);
+        } else {
+          fireTreeNodesChanged(this, createNodePath(node.getParent()),
+                               new int[]{getChildNodeIndex(node)}, new Object[]{node});
+        }
+      }
+    }
+
+//    public void nodesChanged(TreeNode node, int[] childIndices)
+//    {
+//      if (node != null && childIndices != null) {
+//        boolean isValid = true;
+//        for (int i = 0; i < childIndices.length; i++) {
+//          if (childIndices[i] < 0 || childIndices[i] >= node.getChildCount()) {
+//            isValid = false;
+//            break;
+//          }
+//        }
+//        if (isValid) {
+//          Object[] children = new Object[childIndices.length];
+//          for (int i = 0; i < children.length; i++) {
+//            children[i] = node.getChildAt(childIndices[i]);
+//          }
+//          fireTreeNodesChanged(this, createNodePath(node), childIndices, children);
+//        }
+//      } else {
+//        fireTreeNodesChanged(this, null, null, null);
+//      }
+//    }
+
+    public void nodeStructureChanged(TreeNode node)
+    {
+      if (node.getParent() == null) {
+        fireTreeStructureChanged(this, null, null, null);
+      } else {
+        fireTreeStructureChanged(this, createNodePath(node.getParent()),
+                                 new int[getChildNodeIndex(node)], new Object[]{node});
+      }
+    }
+
+//    public void nodesWereInserted(TreeNode node, int[] childIndices)
+//    {
+//      if (node != null && childIndices != null) {
+//        boolean isValid = true;
+//        for (int i = 0; i < childIndices.length; i++) {
+//          if (childIndices[i] < 0 || childIndices[i] >= node.getChildCount()) {
+//            isValid = false;
+//            break;
+//          }
+//        }
+//        if (isValid) {
+//          Object[] children = new Object[childIndices.length];
+//          for (int i = 0; i < children.length; i++) {
+//            children[i] = node.getChildAt(childIndices[i]);
+//          }
+//          fireTreeNodesInserted(this, createNodePath(node), childIndices, children);
+//        }
+//      }
+//    }
+
+//    public void nodesWereRemoved(TreeNode node, int[] childIndices, Object[] removedChildren)
+//    {
+//      fireTreeNodesRemoved(this, createNodePath(node), childIndices, removedChildren);
+//    }
+
     /** Removes any old content and re-initializes the model with the data from the given dialog resource. */
     public void reset(DlgResource dlg)
     {
@@ -582,14 +827,325 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
       nodeRoot = null;
 
       this.dlg = dlg;
-      initialize();
+
+      root = new RootItem(dlg);
+      for (int i = 0; i < root.getInitialStateCount(); i++) {
+        initState(root.getInitialState(i));
+      }
+      nodeRoot = new DefaultMutableTreeNode(root, true);
 
       // notifying listeners
-      TreeModelEvent event = new TreeModelEvent(getRoot(), new TreePath(getRoot()));
-      for (final TreeModelListener tml: listeners) {
-        tml.treeStructureChanged(event);
+      nodeStructureChanged((DefaultMutableTreeNode)getRoot());
+    }
+
+    /**
+     * Returns a fully qualified TreePath object from root to the specified node.
+     * Returns a root node TreePath object on error.
+     */
+    public TreePath getTreePath(TreeNode node)
+    {
+      if (node != null) {
+        // building reverse tree path
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        while (node != null) {
+          stack.push(node);
+          node = node.getParent();
+        }
+
+        // returning valid TreePath object
+        TreeNode[] nodes = new TreeNode[stack.size()];
+        for (int i = 0; i < nodes.length; i++) {
+          nodes[i] = stack.pop();
+        }
+        return new TreePath(nodes);
+      }
+
+      // defaults to selecting root node
+      return new TreePath(getRoot());
+    }
+
+    /** Returns the first available StateItem node matching the given state index. */
+    public DefaultMutableTreeNode findStateNode(int stateIdx)
+    {
+      return searchTreeNode(nodeRoot, ParamType.State, stateIdx, MAX_DEPTH);
+    }
+
+    /** Returns the first available TransitionItem node matching the given transition index. */
+    public DefaultMutableTreeNode findTransitionNode(int transIdx)
+    {
+      return searchTreeNode(nodeRoot, ParamType.Transition, transIdx, MAX_DEPTH);
+    }
+
+    /** Returns the first available StateItem node matching the given state trigger index. */
+    public DefaultMutableTreeNode findStateTriggerNode(int triggerIdx)
+    {
+      return searchTreeNode(nodeRoot, ParamType.StateTrigger, triggerIdx, MAX_DEPTH);
+    }
+
+    /** Returns the first available TransitionItem node matching the given response trigger index. */
+    public DefaultMutableTreeNode findResponseTriggerNode(int triggerIdx)
+    {
+      return searchTreeNode(nodeRoot, ParamType.ResponseTrigger, triggerIdx, MAX_DEPTH);
+    }
+
+    /** Returns the first available TransitionItem node matching the given action index. */
+    public DefaultMutableTreeNode findActionNode(int actionIdx)
+    {
+      return searchTreeNode(nodeRoot, ParamType.Action, actionIdx, MAX_DEPTH);
+    }
+
+    /**
+     * Returns the first available StateItem or TransitionItem node matching the given string reference
+     * of their associated text messages
+     */
+    public DefaultMutableTreeNode findStringRefNode(int strref)
+    {
+      return searchTreeNode(nodeRoot, ParamType.Strref, strref, MAX_DEPTH);
+    }
+
+    public void updateState(State state)
+    {
+      if (state != null) {
+        int stateIdx = state.getNumber();
+        HashMap<Integer, StateItem> map = mapState.get(dlg.getResourceEntry().getResourceName());
+        if (map != null) {
+          Iterator<Integer> iter = map.keySet().iterator();
+          while (iter.hasNext()) {
+            StateItem item = map.get(iter.next());
+            if (item != null && item.getState().getNumber() == stateIdx) {
+              item.setState(state);
+              triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
+              break;
+            }
+          }
+        }
       }
     }
+
+    public void updateTransition(Transition trans)
+    {
+      if (trans != null) {
+        int transIdx = trans.getNumber();
+        HashMap<Integer, TransitionItem> map = mapTransition.get(dlg.getResourceEntry().getResourceName());
+        if (map != null) {
+          Iterator<Integer> iter = map.keySet().iterator();
+          while (iter.hasNext()) {
+            TransitionItem item = map.get(iter.next());
+            if (item != null && item.getTransition().getNumber() == transIdx) {
+              item.setTransition(trans);
+              triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    public void updateRoot()
+    {
+      root = new RootItem(dlg);
+      nodeRoot.setUserObject(root);
+      nodeChanged(nodeRoot);
+    }
+
+    // Recursively parses the tree and triggers a nodeChanged event for each node containing data.
+    private void triggerNodeChanged(DefaultMutableTreeNode node, Object data)
+    {
+      if (node != null && data != null) {
+        if (node.getUserObject() == data) {
+          nodeChanged(node);
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+          triggerNodeChanged((DefaultMutableTreeNode)node.getChildAt(i), data);
+        }
+      }
+    }
+
+    // Generates an array of TreeNode objects from root to specified node
+    private Object[] createNodePath(TreeNode node)
+    {
+      Object[] retVal;
+      if (node != null) {
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        while (node != null) {
+          stack.push(node);
+          node = node.getParent();
+        }
+        retVal = new Object[stack.size()];
+        for (int i = 0; i < retVal.length; i++) {
+          retVal[i] = stack.pop();
+        }
+        return retVal;
+      } else {
+        retVal = new Object[0];
+      }
+      return retVal;
+    }
+
+    // Determines the child index based on the specified node's parent
+    private int getChildNodeIndex(TreeNode node)
+    {
+      int retVal = 0;
+      if (node != null && node.getParent() != null) {
+        TreeNode parent = node.getParent();
+        for (int i = 0; i < parent.getChildCount(); i++) {
+          if (parent.getChildAt(i) == node) {
+            retVal = i;
+            break;
+          }
+        }
+      }
+      return retVal;
+    }
+
+    private void fireTreeNodesChanged(Object source, Object[] path, int[] childIndices,
+                                      Object[] children)
+    {
+      if (!listeners.isEmpty()) {
+        TreeModelEvent event;
+        if (path == null || path.length == 0) {
+          event = new TreeModelEvent(source, (TreePath)null);
+        } else {
+          event = new TreeModelEvent(source, path, childIndices, children);
+        }
+        for (int i = listeners.size()-1; i >= 0; i--) {
+          TreeModelListener tml = listeners.get(i);
+          tml.treeNodesChanged(event);
+        }
+      }
+    }
+
+//    private void fireTreeNodesInserted(Object source, Object[] path, int[] childIndices,
+//                                       Object[] children)
+//    {
+//      if (!listeners.isEmpty()) {
+//        TreeModelEvent event;
+//        if (path == null || path.length == 0) {
+//          event = new TreeModelEvent(source, (TreePath)null);
+//        } else {
+//          event = new TreeModelEvent(source, path, childIndices, children);
+//        }
+//        for (int i = listeners.size()-1; i >= 0; i--) {
+//          TreeModelListener tml = listeners.get(i);
+//          tml.treeNodesInserted(event);
+//        }
+//      }
+//    }
+
+//    private void fireTreeNodesRemoved(Object source, Object[] path, int[] childIndices,
+//                                       Object[] children)
+//    {
+//      if (!listeners.isEmpty()) {
+//        TreeModelEvent event;
+//        if (path == null || path.length == 0) {
+//          event = new TreeModelEvent(source, (TreePath)null);
+//        } else {
+//          event = new TreeModelEvent(source, path, childIndices, children);
+//        }
+//        for (int i = listeners.size()-1; i >= 0; i--) {
+//          TreeModelListener tml = listeners.get(i);
+//          tml.treeNodesRemoved(event);
+//        }
+//      }
+//    }
+
+    private void fireTreeStructureChanged(Object source, Object[] path, int[] childIndices,
+                                       Object[] children)
+    {
+      if (!listeners.isEmpty()) {
+        TreeModelEvent event;
+        if (path == null || path.length == 0) {
+          event = new TreeModelEvent(source, (TreePath)null);
+        } else {
+          event = new TreeModelEvent(source, path, childIndices, children);
+        }
+        for (int i = listeners.size()-1; i >= 0; i--) {
+          TreeModelListener tml = listeners.get(i);
+          tml.treeStructureChanged(event);
+        }
+      }
+    }
+
+    // Recursively searches tree nodes based on the specified parameters up to a max. node depth
+    private DefaultMutableTreeNode searchTreeNode(DefaultMutableTreeNode parent,
+                                                  ParamType param, int value, int maxDepth)
+    {
+      if (parent != null && maxDepth > 0) {
+        parent = updateNodeChildren(parent);
+
+        ItemBase item = null;
+        if (parent.getUserObject() instanceof ItemBase) {
+          item = (ItemBase)parent.getUserObject();
+        }
+
+        boolean isDlg = false;
+        if (item != null) {
+          isDlg = item.getDialogName().equals(dlg.getResourceEntry().getResourceName());
+        }
+
+        // checking node properties
+        switch (param) {
+          case State:
+            if (isDlg && item instanceof StateItem &&
+                ((StateItem)item).getState().getNumber() == value) {
+              return parent;
+            }
+            break;
+          case StateTrigger:
+            if (isDlg && item instanceof StateItem &&
+                ((StateItem)item).getState().getTriggerIndex() == value) {
+              return parent;
+            }
+            break;
+          case Transition:
+            if (isDlg && item instanceof TransitionItem &&
+                ((TransitionItem)item).getTransition().getNumber() == value) {
+              return parent;
+            }
+            break;
+          case ResponseTrigger:
+            if (isDlg && item instanceof TransitionItem &&
+                ((TransitionItem)item).getTransition().getTriggerIndex() == value) {
+              return parent;
+            }
+            break;
+          case Action:
+            if (isDlg && item instanceof TransitionItem &&
+                ((TransitionItem)item).getTransition().getActionIndex() == value) {
+              return parent;
+            }
+            break;
+          case Strref:
+            if (isDlg) {
+              if (item instanceof StateItem) {
+                if (((StateItem)item).getState().getResponse().getValue() == value) {
+                  return parent;
+                }
+              } else if (item instanceof TransitionItem) {
+                if (((TransitionItem)item).getTransition().getAssociatedText().getValue() == value) {
+                  return parent;
+                } else if (((TransitionItem)item).getTransition().getJournalEntry().getValue() == value) {
+                  return parent;
+                }
+              }
+            }
+            break;
+        }
+
+        // continue searching in child nodes
+        for (int i = 0; i < parent.getChildCount(); i++) {
+          DefaultMutableTreeNode retVal = searchTreeNode((DefaultMutableTreeNode)parent.getChildAt(i),
+                                                         param, value, maxDepth-1);
+          if (retVal != null) {
+            return retVal;
+          }
+        }
+      }
+
+      // no match found
+      return null;
+    }
+
 
     private void initState(StateItem state)
     {
@@ -668,17 +1224,6 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
         }
       }
       return null;
-    }
-
-
-    // Initializing dialog entries
-    private void initialize()
-    {
-      root = new RootItem(dlg);
-      for (int i = 0; i < root.getInitialStateCount(); i++) {
-        initState(root.getInitialState(i));
-      }
-      nodeRoot = new DefaultMutableTreeNode(root, true);
     }
 
     // Adds all available child nodes to the given parent node
@@ -878,7 +1423,7 @@ final class TreeViewer extends JPanel implements TreeSelectionListener
           clearCard(CARD_STATE);
           clearCard(CARD_RESPONSE);
         }
-      cardLayout.show(pMainPanel, cardName);
+        cardLayout.show(pMainPanel, cardName);
       }
     }
 
