@@ -20,6 +20,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -40,6 +41,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
@@ -1334,17 +1336,20 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
 
       // initializing state item info
       pState = new JPanel(new GridBagLayout());
-      pState.setBorder(BorderFactory.createTitledBorder("State"));
+      pState.setBorder(createTitledBorder("State", Font.BOLD, true));
       pMainPanel.add(pState, CARD_STATE);
 
       taStateText = createReadOnlyTextArea();
+      taStateText.setMargin(new Insets(0, 4, 0, 4));
       pStateText = new JPanel(new BorderLayout());
-      pStateText.setBorder(BorderFactory.createTitledBorder("Associated text"));
+      pStateText.setBorder(createTitledBorder("Associated text", Font.BOLD, false));
       pStateText.add(taStateText, BorderLayout.CENTER);
 
       taStateTrigger = createReadOnlyTextArea();
+      taStateTrigger.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      taStateTrigger.setMargin(new Insets(0, 4, 0, 4));
       pStateTrigger = new JPanel(new BorderLayout());
-      pStateTrigger.setBorder(BorderFactory.createTitledBorder("State trigger"));
+      pStateTrigger.setBorder(createTitledBorder("State trigger", Font.BOLD, false));
       pStateTrigger.add(taStateTrigger, BorderLayout.CENTER);
 
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1360,32 +1365,39 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
 
       // initializing response item info
       pResponse = new JPanel(new GridBagLayout());
-      pResponse.setBorder(BorderFactory.createTitledBorder("Response"));
+      pResponse.setBorder(createTitledBorder("Response", Font.BOLD, true));
       pMainPanel.add(pResponse, CARD_RESPONSE);
 
       tfResponseFlags = createReadOnlyTextField();
+      tfResponseFlags.setMargin(new Insets(0, 4, 0, 4));
       pResponseFlags = new JPanel(new BorderLayout());
-      pResponseFlags.setBorder(BorderFactory.createTitledBorder("Flags"));
+      pResponseFlags.setBorder(createTitledBorder("Flags", Font.BOLD, false));
       pResponseFlags.add(tfResponseFlags, BorderLayout.CENTER);
 
       taResponseText = createReadOnlyTextArea();
+      taResponseText.setMargin(new Insets(0, 4, 0, 4));
       pResponseText = new JPanel(new BorderLayout());
-      pResponseText.setBorder(BorderFactory.createTitledBorder("Associated text"));
+      pResponseText.setBorder(createTitledBorder("Associated text", Font.BOLD, false));
       pResponseText.add(taResponseText, BorderLayout.CENTER);
 
       taResponseJournal = createReadOnlyTextArea();
+      taResponseJournal.setMargin(new Insets(0, 4, 0, 4));
       pResponseJournal = new JPanel(new BorderLayout());
-      pResponseJournal.setBorder(BorderFactory.createTitledBorder("Journal entry"));
+      pResponseJournal.setBorder(createTitledBorder("Journal entry", Font.BOLD, false));
       pResponseJournal.add(taResponseJournal, BorderLayout.CENTER);
 
       taResponseTrigger = createReadOnlyTextArea();
+      taResponseTrigger.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      taResponseTrigger.setMargin(new Insets(0, 4, 0, 4));
       pResponseTrigger = new JPanel(new BorderLayout());
-      pResponseTrigger.setBorder(BorderFactory.createTitledBorder("Response trigger"));
+      pResponseTrigger.setBorder(createTitledBorder("Response trigger", Font.BOLD, false));
       pResponseTrigger.add(taResponseTrigger, BorderLayout.CENTER);
 
       taResponseAction = createReadOnlyTextArea();
+      taResponseAction.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      taResponseAction.setMargin(new Insets(0, 4, 0, 4));
       pResponseAction = new JPanel(new BorderLayout());
-      pResponseAction.setBorder(BorderFactory.createTitledBorder("Action"));
+      pResponseAction.setBorder(createTitledBorder("Action", Font.BOLD, false));
       pResponseAction.add(taResponseAction, BorderLayout.CENTER);
 
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1437,7 +1449,11 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
     public void updateControlBorder(Type type, String title)
     {
       if (title == null) title = "";
-      getControl(type).setBorder(BorderFactory.createTitledBorder(title));
+      if (getControl(type).getBorder() instanceof TitledBorder) {
+        TitledBorder b = (TitledBorder)getControl(type).getBorder();
+        b.setTitle(" " + title + " ");
+        getControl(type).repaint();
+      }
     }
 
     /** Update content of the given control. */
@@ -1504,7 +1520,7 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
       JLabel l = new JLabel();
       JTextArea ta = new JTextArea();
       ta.setEditable(false);
-      ta.setFont(l.getFont());
+      ta.setFont(new Font(l.getFont().getFamily(), 0, l.getFont().getSize()));
       ta.setBackground(l.getBackground());
       ta.setWrapStyleWord(true);
       ta.setLineWrap(true);
@@ -1520,11 +1536,21 @@ final class TreeViewer extends JPanel implements TreeSelectionListener, TableMod
       JTextField tf = new JTextField();
       tf.setBorder(BorderFactory.createEmptyBorder());
       tf.setEditable(false);
-      tf.setFont(l.getFont());
+      tf.setFont(new Font(l.getFont().getFamily(), 0, l.getFont().getSize()));
       tf.setBackground(l.getBackground());
       l = null;
 
       return tf;
+    }
+
+    // Returns a modified TitledBorder object
+    private TitledBorder createTitledBorder(String title, int fontStyle, boolean isTitle)
+    {
+      if(title == null) title = "";
+      TitledBorder tb = BorderFactory.createTitledBorder(title);
+      Font f = tb.getTitleFont();
+      tb.setTitleFont(new Font(f.getFamily(), fontStyle, isTitle ? (f.getSize() + 1) : f.getSize()));
+      return tb;
     }
   }
 }
