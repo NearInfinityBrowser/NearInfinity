@@ -71,6 +71,7 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 
 /** Show dialog content as tree structure. */
@@ -449,6 +450,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     spTree.getHorizontalScrollBar().setUnitIncrement(16);
     spTree.getVerticalScrollBar().setUnitIncrement(16);
 
+    dlgTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     dlgTree.setRootVisible(true);
     dlgTree.setEditable(false);
     DefaultTreeCellRenderer tcr = (DefaultTreeCellRenderer)dlgTree.getCellRenderer();
