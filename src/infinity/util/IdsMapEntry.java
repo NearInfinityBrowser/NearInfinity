@@ -4,7 +4,7 @@
 
 package infinity.util;
 
-public final class IdsMapEntry implements Comparable
+public final class IdsMapEntry implements Comparable<IdsMapEntry>
 {
   private final String string;
   private final String parameters;
@@ -19,13 +19,15 @@ public final class IdsMapEntry implements Comparable
 
 // --------------------- Begin Interface Comparable ---------------------
 
-  public int compareTo(Object o)
+  @Override
+  public int compareTo(IdsMapEntry o)
   {
     return toString().compareToIgnoreCase(o.toString());
   }
 
 // --------------------- End Interface Comparable ---------------------
 
+  @Override
   public String toString()
   {
     if (parameters == null)

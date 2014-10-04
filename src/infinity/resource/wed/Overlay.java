@@ -4,14 +4,18 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
 public final class Overlay extends AbstractStruct // implements AddRemovable, HasAddRemovable
 {
-  public Overlay(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public Overlay(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Overlay", buffer, offset);
+    super(superStruct, "Overlay " + number, buffer, offset);
   }
 
   public void updateOffsets(int offset, int size)
@@ -25,6 +29,7 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
       offset_tilelookup.incValue(size);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     DecNumber width = new DecNumber(buffer, offset, 2, "Width");

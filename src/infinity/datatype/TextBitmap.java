@@ -7,17 +7,24 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class TextBitmap extends Datatype implements Editable
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.AbstractTableModel;
+
+public final class TextBitmap extends Datatype implements Editable, Readable
 {
   private final String[] ids;
   private final String[] names;
@@ -27,13 +34,14 @@ public final class TextBitmap extends Datatype implements Editable
   public TextBitmap(byte buffer[], int offset, int length, String name, String ids[], String names[])
   {
     super(offset, length, name);
-    text = Byteconvert.convertString(buffer, offset, length);
+    read(buffer, offset);
     this.ids = ids;
     this.names = names;
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     if (table == null) {
@@ -72,11 +80,13 @@ public final class TextBitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     table.scrollRectToVisible(table.getCellRect(table.getSelectedRow(), 0, false));
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     int index = table.getSelectedRow();
@@ -91,6 +101,7 @@ public final class TextBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Filewriter.writeString(os, text, getSize());
@@ -98,12 +109,44 @@ public final class TextBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    text = DynamicArray.getString(buffer, offset, getSize());
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     for (int i = 0; i < ids.length; i++)
       if (ids[i].equalsIgnoreCase(text))
         return text + " - " + names[i];
     return text;
+  }
+
+  public String getIdsName()
+  {
+    if (text != null) {
+      for (int i = 0; i < ids.length; i++) {
+        if (text.equals(ids[i])) {
+          if (i < names.length) {
+            return names[i];
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    return "";
+  }
+
+  public String getIdsValue()
+  {
+    return (text != null) ? text : "";
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -114,16 +157,19 @@ public final class TextBitmap extends Datatype implements Editable
     {
     }
 
+    @Override
     public int getRowCount()
     {
       return ids.length;
     }
 
+    @Override
     public int getColumnCount()
     {
       return 2;
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       if (columnIndex == 0)

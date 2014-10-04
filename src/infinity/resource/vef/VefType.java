@@ -4,15 +4,15 @@
 
 package infinity.resource.vef;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import infinity.datatype.Bitmap;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.TextString;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class VefType extends Bitmap
 {
@@ -26,6 +26,7 @@ public final class VefType extends Bitmap
 
   // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     super.updateValue(struct);

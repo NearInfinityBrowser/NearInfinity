@@ -4,6 +4,12 @@
 
 package infinity.resource;
 
+import infinity.gui.NewChrSettings;
+import infinity.gui.NewProSettings;
+import infinity.gui.NewResSettings;
+import infinity.util.NIFile;
+import infinity.util.ResourceStructure;
+
 import java.awt.Window;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -14,19 +20,14 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import infinity.gui.NewChrSettings;
-import infinity.gui.NewProSettings;
-import infinity.gui.NewResSettings;
-import infinity.util.ResourceStructure;
-
 // Create different pre-initialized IE game resources from scratch and writing them to disk.
 public final class StructureFactory
 {
   // Supported resource types
   public static enum ResType {
-    RES_2DA, RES_ARE, RES_BCS, RES_BIO, RES_CHR, RES_CRE, RES_EFF, RES_IDS,
-    RES_INI, RES_ITM, RES_PRO, RES_RES, RES_SPL, RES_SRC, RES_STO, RES_VEF,
-    RES_VVC, RES_WED, RES_WFX, RES_WMAP
+    RES_2DA, RES_ARE, RES_BAF, RES_BCS, RES_BIO, RES_CHR, RES_CRE, RES_EFF,
+    RES_IDS, RES_INI, RES_ITM, RES_PRO, RES_RES, RES_SPL, RES_SRC, RES_STO,
+    RES_VEF, RES_VVC, RES_WED, RES_WFX, RES_WMAP
   }
 
   private static final EnumMap<ResType, String> resExt = new EnumMap<ResType, String>(ResType.class);
@@ -35,6 +36,7 @@ public final class StructureFactory
   static {
     resExt.put(ResType.RES_2DA, "2DA");
     resExt.put(ResType.RES_ARE, "ARE");
+    resExt.put(ResType.RES_BAF, "BAF");
     resExt.put(ResType.RES_BCS, "BCS");
     resExt.put(ResType.RES_BIO, "BIO");
     resExt.put(ResType.RES_CHR, "CHR");
@@ -72,12 +74,12 @@ public final class StructureFactory
       case RES_BIO:
       case RES_CHR:
       case RES_RES:
-        savedir = new File(ResourceFactory.getRootDir(), "Characters");
+        savedir = NIFile.getFile(ResourceFactory.getRootDirs(), "Characters");
         if (!savedir.exists())
-          savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+          savedir = NIFile.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
       default:
-        savedir = new File(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+        savedir = NIFile.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
     }
     if (savedir == null || !savedir.exists())
@@ -94,7 +96,7 @@ public final class StructureFactory
       if (fileExists) {
         final String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, output + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
           return;
       }
       try {
@@ -149,7 +151,9 @@ public final class StructureFactory
         break;
       case ResourceFactory.ID_BG2:
       case ResourceFactory.ID_BG2TOB:
-      case ResourceFactory.ID_TUTU:
+      case ResourceFactory.ID_BGEE:
+      case ResourceFactory.ID_BG2EE:
+      case ResourceFactory.ID_IWDEE:
         game = ResourceFactory.ID_BG2;
         break;
       case ResourceFactory.ID_ICEWIND2:
@@ -162,6 +166,7 @@ public final class StructureFactory
     switch (type) {
       case RES_2DA:  return create2DA(game);
       case RES_ARE:  return createARE(game, fileName);
+      case RES_BAF:  return createBAF(game);
       case RES_BCS:  return createBCS(game);
       case RES_BIO:  return createRES(game, parent);
       case RES_CHR:  return createCHR(game, parent);
@@ -246,6 +251,15 @@ public final class StructureFactory
     s_are.add(ResourceStructure.ID_ARRAY, 228);             // block of zeros
 
     return s_are;
+  }
+
+  private ResourceStructure createBAF(int id) throws StructureException
+  {
+    ResourceStructure s_baf = new ResourceStructure();
+    final String s = "// Empty BCS script" + System.getProperty("line.separator");
+    s_baf.add(ResourceStructure.ID_STRING, s);
+
+    return s_baf;
   }
 
   private ResourceStructure createBCS(int id) throws StructureException
@@ -635,17 +649,6 @@ public final class StructureFactory
   }
 
 
-  // returns path without trailing path separator (except for root)
-  private String extractFilePath(String fileName)
-  {
-    if (fileName.length() > 0) {
-      int idx = fileName.lastIndexOf(File.separatorChar);
-      if (idx > 0)
-        return fileName.substring(0, idx);
-    }
-    return fileName;
-  }
-
   private String extractFileName(String fileName)
   {
     String[] s = fileName.split("[\\\\/]");
@@ -662,14 +665,6 @@ public final class StructureFactory
         return name.substring(0, idx);
     }
     return name;
-  }
-
-  // returns file extension without separator
-  private String extractFileExt(String fileName)
-  {
-    String name = extractFileName(fileName);
-    String[] s = name.split("\\.");
-    return (s.length > 0) ? s[s.length - 1] : name;
   }
 
 

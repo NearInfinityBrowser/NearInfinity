@@ -5,28 +5,71 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Editable;
+import infinity.datatype.InlineEditable;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.Unknown;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.search.*;
-import infinity.util.*;
+import infinity.search.SearchClient;
+import infinity.search.SearchMaster;
+import infinity.search.StringReferenceSearcher;
+import infinity.util.DynamicArray;
+import infinity.util.Filereader;
+import infinity.util.Filewriter;
+import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.ProgressMonitor;
+import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
                                                               ChangeListener, ItemListener
 {
   private static final String s_msgtype[] = {"No message data", "", "Ambient message", "Standard message", "", "",
                                              "", "Message with tags"};
-  private static final String s_msgtypeNWN[] = {"No message data", "Text present", "Sound present",
-                                                "Sound length present" };
   private static String signature, version;
   private static int entry_size = 26; // V1
   private final ButtonPopupMenu bfind;
@@ -44,7 +87,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   private final JPanel editcontent = new JPanel();
   private final JSlider slider = new JSlider(0, 100, 0);
   private final JTable table = new JTable();
-  private final JTextArea tatext = new JTextArea();
+  private final RSyntaxTextArea tatext = new InfinityTextArea(true);
   private final JTextField tstrref = new JTextField(5);
   private final StringEditor editor;
   private final java.util.List<StringEntry> added_entries = new ArrayList<StringEntry>();
@@ -121,7 +164,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
     JPanel textPanel = new JPanel(new BorderLayout());
     textPanel.add(new JLabel("String:"), BorderLayout.NORTH);
-    textPanel.add(new JScrollPane(tatext));
+    textPanel.add(new InfinityScrollPane(tatext, true), BorderLayout.CENTER);
 
     JPanel centerPanel = new JPanel(new GridLayout(1, 3, 6, 0));
     centerPanel.add(attributePanel);
@@ -152,6 +195,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tstrref) {
@@ -202,6 +246,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent event)
   {
     if (event.getSource() == slider) {
@@ -215,6 +260,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == bfind) {
@@ -235,6 +281,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (event.getValueIsAdjusting()) return;
@@ -266,6 +313,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- Begin Interface SearchClient ---------------------
 
+  @Override
   public String getText(int index)
   {
     if (index < 0 || index >= entries_count.getValue())
@@ -276,6 +324,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     return entry.string;
   }
 
+  @Override
   public void hitFound(int index)
   {
     showEntry(index);
@@ -358,6 +407,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
     }
 
+    @Override
     public void run()
     {
       Charset charset = StringResource.getCharset();
@@ -385,7 +435,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
                                        0, 2 * entries_count.getValue());
         progress.setMillisToDecideToPopup(100);
         for (int i = 0; i < entries_count.getValue(); i++) {
-          entries[i] = new StringEntry(Filereader.readBytes(bis, entry_size));
+          entries[i] = new StringEntry(Filereader.readBytes(bis, entry_size), charset);
           progress.setProgress(i + 1);
           if (progress.isCanceled()) {
             entries = null;
@@ -397,7 +447,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
         RandomAccessFile ranfile = new RandomAccessFile(stringfile, "r");
         for (int i = 0; i < entries.length; i++) {
-          entries[i].readString(ranfile, entries_offset.getValue(), charset);
+          entries[i].readString(ranfile, entries_offset.getValue());
           progress.setProgress(i + 1 + entries_count.getValue());
           if (progress.isCanceled()) {
             entries = null;
@@ -436,6 +486,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
     }
 
+    @Override
     public void run()
     {
       bexport.setEnabled(false);
@@ -453,7 +504,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           int result = JOptionPane.showOptionDialog(editor, output + " exists. Overwrite?",
                                                     "Save resource", JOptionPane.YES_NO_OPTION,
                                                     JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-          if (result == 1) {
+          if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
             bexport.setEnabled(true);
             bsave.setEnabled(true);
             breread.setEnabled(true);
@@ -504,9 +555,9 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
     }
 
+    @Override
     public void run()
     {
-      Charset charset = StringResource.getCharset();
       bexport.setEnabled(false);
       bsave.setEnabled(false);
       breread.setEnabled(false);
@@ -518,7 +569,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
                                                     "Save resource", JOptionPane.YES_NO_OPTION,
                                                     JOptionPane.WARNING_MESSAGE, null,
                                                     options, options[0]);
-          if (result == 1) {
+          if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
             bexport.setEnabled(true);
             bsave.setEnabled(true);
             breread.setEnabled(true);
@@ -557,11 +608,11 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
         for (int i = 0; i < entries.length; i++) {
           if (entries[i] != null)
-            entries[i].writeString(bos, charset);
+            entries[i].writeString(bos);
           progress.setProgress(i + 1 + entries_count.getValue());
         }
         for (int i = 0; i < added_entries.size(); i++) {
-          added_entries.get(i).writeString(bos, charset);
+          added_entries.get(i).writeString(bos);
           progress.setProgress(entries_count.getValue() + entries.length + i + 1);
         }
         bos.close();
@@ -586,28 +637,32 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     private int doffset, dlength;
     private String string = "";
     private byte data[];
+    private Charset charset;
 
     private StringEntry() throws Exception
     {
       super(null, null, new byte[entry_size], 0);
+      this.charset = StringResource.getCharset();
     }
 
-    StringEntry(byte buffer[]) throws Exception
+    StringEntry(byte buffer[], Charset charset) throws Exception
     {
       super(null, null, buffer, 0);
+      this.charset = (charset != null) ? charset : StringResource.getCharset();
     }
 
+    @Override
     protected int read(byte buffer[], int offset) throws Exception
     {
       if (version.equals("V1  ")) {
-        data = ArrayUtil.getSubArray(buffer, offset, 18);
-        doffset = Byteconvert.convertInt(buffer, offset + 18);
-        dlength = Byteconvert.convertInt(buffer, offset + 22);
+        data = Arrays.copyOfRange(buffer, offset, offset + 18);
+        doffset = DynamicArray.getInt(buffer, offset + 18);
+        dlength = DynamicArray.getInt(buffer, offset + 22);
       }
       else if (version.equals("V3.0")) {
-        data = ArrayUtil.getSubArray(buffer, offset, 40);
-        doffset = Byteconvert.convertInt(buffer, offset + 28);
-        dlength = Byteconvert.convertInt(buffer, offset + 32);
+        data = Arrays.copyOfRange(buffer, offset, offset + 40);
+        doffset = DynamicArray.getInt(buffer, offset + 28);
+        dlength = DynamicArray.getInt(buffer, offset + 32);
       }
       return offset + entry_size;
     }
@@ -621,22 +676,18 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
             list.add(new ResourceRef(data, 2, "Associated sound", "WAV"));
             list.add(new DecNumber(data, 10, 4, "Volume variance"));
             list.add(new DecNumber(data, 14, 4, "Pitch variance"));
-          }
-          else if (version.equals("V3.0")) { // Remember to updateValue writeField() as this changes
-            list.add(new Flag(data, 0, 4, "Entry type", s_msgtypeNWN));
-            list.add(new TextString(data, 4, 16, "Associated sound"));
-            list.add(new DecNumber(data, 20, 4, "Volume variance"));
-            list.add(new DecNumber(data, 24, 4, "Pitch variance"));
-            list.add(new Unknown(data, 36, 4, "Sound length"));
+          } else {
+            throw new Exception("Unsupported or invalid dialog.tlk version");
           }
           data = null;
         }
       } catch (Exception e) {
         data = null;
+        e.printStackTrace();
       }
     }
 
-    public void readString(RandomAccessFile ranfile, int baseoffset, Charset charset) throws IOException
+    public void readString(RandomAccessFile ranfile, int baseoffset) throws IOException
     {
       ranfile.seek((long)(baseoffset + doffset));
       string = Filereader.readString(ranfile, dlength, charset);
@@ -645,10 +696,11 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     public int update(int newoffset)
     {
       doffset = newoffset;
-      dlength = string.length();
+      dlength = string.getBytes(charset).length;
       return dlength;
     }
 
+    @Override
     public void write(OutputStream os) throws IOException
     {
       // Update must be called first
@@ -678,7 +730,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       }
     }
 
-    public void writeString(OutputStream os, Charset charset) throws IOException
+    public void writeString(OutputStream os) throws IOException
     {
       Filewriter.writeString(os, string, dlength, charset);
     }
@@ -700,6 +752,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       this.selectedrow = selectedrow;
     }
 
+    @Override
     public String getText(int index)
     {
       if (index < 0 || index >= entries_count.getValue())
@@ -713,6 +766,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       return entry.getValueAt(selectedrow, 1).toString();
     }
 
+    @Override
     public void hitFound(int index)
     {
       showEntry(index);

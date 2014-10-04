@@ -6,15 +6,24 @@ package infinity.datatype;
 
 import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class Flag extends Datatype implements Editable, ActionListener
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class Flag extends Datatype implements Editable, Readable, ActionListener
 {
   String nodesc;
   String[] table;
@@ -26,14 +35,7 @@ public class Flag extends Datatype implements Editable, ActionListener
   Flag(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    if (length == 4)
-      value = (long)Byteconvert.convertInt(buffer, offset);
-    else if (length == 2)
-      value = (long)Byteconvert.convertShort(buffer, offset);
-    else if (length == 1)
-      value = (long)Byteconvert.convertByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
   public Flag(byte buffer[], int offset, int length, String name, String[] stable)
@@ -47,6 +49,7 @@ public class Flag extends Datatype implements Editable, ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bAll) {
@@ -65,6 +68,7 @@ public class Flag extends Datatype implements Editable, ActionListener
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     this.container = container;
@@ -116,10 +120,12 @@ public class Flag extends Datatype implements Editable, ActionListener
     return panel;
   }
 
+  @Override
   public void select()
   {
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     value = (long)0;
@@ -134,6 +140,7 @@ public class Flag extends Datatype implements Editable, ActionListener
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, value);
@@ -141,6 +148,29 @@ public class Flag extends Datatype implements Editable, ActionListener
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = (long)DynamicArray.getByte(buffer, offset);
+        break;
+      case 2:
+        value = (long)DynamicArray.getShort(buffer, offset);
+        break;
+      case 4:
+        value = (long)DynamicArray.getInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     StringBuffer sb = new StringBuffer("( ");

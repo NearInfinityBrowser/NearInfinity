@@ -4,15 +4,32 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+
+public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   private static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   private static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
@@ -29,6 +46,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
@@ -41,20 +59,40 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     return scroll;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -62,26 +100,31 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateOffsets();
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets();
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateOffsets();
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets();
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
@@ -176,7 +219,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-        gameid == ResourceFactory.ID_TUTU) { // V2.0
+             ResourceFactory.isEnhancedEdition()) { // V2.0
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
@@ -195,7 +238,13 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(offPocket);
       numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
       list.add(numPocket);
-      list.add(new Unknown(buffer, offset + 128, 52));
+      if (ResourceFactory.isEnhancedEdition()) {
+        list.add(new DecNumber(buffer, offset + 128, 4, "Zoom level"));
+        list.add(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
+        list.add(new Unknown(buffer, offset + 140, 40));
+      } else {
+        list.add(new Unknown(buffer, offset + 128, 52));
+      }
     }
     else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)
       list.add(new Unknown(buffer, offset + 84, 4));
@@ -241,7 +290,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_global.getValue();
     for (int i = 0; i < count_global.getValue(); i++) {
-      Variable var = new Variable(this, buffer, offset);
+      Variable var = new Variable(this, buffer, offset, i);
       offset += var.getSize();
       list.add(var);
     }
@@ -249,7 +298,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (offKillvariable != null) { // Torment
       offset = offKillvariable.getValue();
       for (int i = 0; i < numKillVariable.getValue(); i++) {
-        KillVariable kvar = new KillVariable(this, buffer, offset);
+        KillVariable kvar = new KillVariable(this, buffer, offset, i);
         offset += kvar.getSize();
         list.add(kvar);
       }
@@ -257,7 +306,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_journal.getValue();
     for (int i = 0; i < count_journal.getValue(); i++) {
-      JournalEntry ent = new JournalEntry(this, buffer, offset);
+      JournalEntry ent = new JournalEntry(this, buffer, offset, i);
       offset += ent.getSize();
       list.add(ent);
     }
@@ -272,9 +321,11 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     if (offFamiliar != null) { // BG2
       offset = offFamiliar.getValue();
-      Familiar familiar = new Familiar(this, buffer, offset);
-      offset += familiar.getSize();
-      list.add(familiar);
+      if (offset > 0) {
+        Familiar familiar = new Familiar(this, buffer, offset);
+        offset += familiar.getSize();
+        list.add(familiar);
+      }
     }
 
     if (offIWD2 != null && numIWD2 != null) { // Icewind2

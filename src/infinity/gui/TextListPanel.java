@@ -4,25 +4,39 @@
 
 package infinity.gui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.event.MouseListener;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
 {
   private boolean sortValues = true;
-  private final Comparator ignorecasecomparator = new IgnoreCaseComparator();
+  private final Comparator<Object> ignorecasecomparator = new IgnoreCaseComparator();
   private final DefaultListModel listmodel = new DefaultListModel();
   private final JList list;
   private final JTextField tfield = new JTextField(10);
 
-  public TextListPanel(List values) {
+  public TextListPanel(List<? extends Object> values)
+  {
     this(values, true);
   }
-  public TextListPanel(List values, boolean sortValues)
+
+  public TextListPanel(List<? extends Object> values, boolean sortValues)
   {
     this.sortValues = sortValues;
     setValues(values);
@@ -40,18 +54,21 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
+  @Override
   public void insertUpdate(DocumentEvent event)
   {
     if (tfield.hasFocus())
       selectClosest(tfield.getText());
   }
 
+  @Override
   public void removeUpdate(DocumentEvent event)
   {
     if (tfield.hasFocus())
       selectClosest(tfield.getText());
   }
 
+  @Override
   public void changedUpdate(DocumentEvent event)
   {
   }
@@ -61,6 +78,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (list.hasFocus() && list.getSelectedValue() != null)
@@ -69,11 +87,13 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
 // --------------------- End Interface ListSelectionListener ---------------------
 
+  @Override
   public synchronized void addMouseListener(MouseListener listener)
   {
     list.addMouseListener(listener);
   }
 
+  @Override
   public void setEnabled(boolean enabled)
   {
     super.setEnabled(enabled);
@@ -119,7 +139,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     tfield.setText(value.toString());
   }
 
-  public void setValues(List values)
+  public void setValues(List<? extends Object> values)
   {
     if (this.sortValues) {
       Collections.sort(values, ignorecasecomparator);
@@ -148,17 +168,19 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class IgnoreCaseComparator implements Comparator
+  private static final class IgnoreCaseComparator implements Comparator<Object>
   {
     private IgnoreCaseComparator()
     {
     }
 
+    @Override
     public int compare(Object o1, Object o2)
     {
       return o1.toString().compareToIgnoreCase(o2.toString());
     }
 
+    @Override
     public boolean equals(Object obj)
     {
       return toString().equalsIgnoreCase(obj.toString());

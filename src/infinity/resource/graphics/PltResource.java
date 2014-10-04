@@ -4,40 +4,67 @@
 
 package infinity.resource.graphics;
 
-import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.gui.ButtonPanel;
+import infinity.gui.RenderCanvas;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Byteconvert;
+import infinity.resource.other.UnknownResource;
+import infinity.util.DynamicArray;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 public final class PltResource implements Resource, ActionListener
 {
+  private static final ButtonPanel.Control CtrlColorList = ButtonPanel.Control.Custom1;
+
   private final ResourceEntry entry;
   private final byte[] buffer;
-  private JButton bexport;
-  private JComboBox cbColorBMP;
-  private JLabel imageLabel;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
+  private RenderCanvas rcCanvas;
   private JPanel panel;
+  private Resource externalResource;
 
   public PltResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
     buffer = entry.getResourceData();
+
+    // checking actual data type
+    String s = new String(buffer, 0, 4);
+    if (s.equals("PLT ")) {
+      externalResource = null;
+    } else if (s.equals("BAMC") || s.equals("BAM ")) {
+      externalResource = new BamResource(entry);
+    } else {
+      externalResource = new UnknownResource(entry);
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == cbColorBMP)
-      imageLabel.setIcon(new ImageIcon(getImage()));
-    else if (event.getSource() == bexport)
+    if (buttonPanel.getControlByType(CtrlColorList) == event.getSource()) {
+      rcCanvas.setImage(getImage());
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -45,6 +72,7 @@ public final class PltResource implements Resource, ActionListener
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -55,38 +83,39 @@ public final class PltResource implements Resource, ActionListener
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    cbColorBMP = new JComboBox();
-    cbColorBMP.addItem("None");
-    List<ResourceEntry> bmps = ResourceFactory.getInstance().getResources("BMP");
-    for (int i = 0; i < bmps.size(); i++) {
-      Object o = bmps.get(i);
-      if (o.toString().startsWith("PLT"))
-        cbColorBMP.addItem(o);
+    if (externalResource == null) {
+      JComboBox cbColorBMP = new JComboBox();
+      cbColorBMP.addItem("None");
+      List<ResourceEntry> bmps = ResourceFactory.getInstance().getResources("BMP");
+      for (int i = 0; i < bmps.size(); i++) {
+        Object o = bmps.get(i);
+        if (o.toString().startsWith("PLT"))
+          cbColorBMP.addItem(o);
+      }
+      cbColorBMP.setEditable(false);
+      cbColorBMP.setSelectedIndex(0);
+      cbColorBMP.addActionListener(this);
+
+      buttonPanel.addControl(new JLabel("Colors: "));
+      buttonPanel.addControl(cbColorBMP, CtrlColorList);
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+
+      rcCanvas = new RenderCanvas(getImage());
+      JScrollPane scroll = new JScrollPane(rcCanvas);
+
+      panel = new JPanel();
+      panel.setLayout(new BorderLayout());
+      panel.add(scroll, BorderLayout.CENTER);
+      panel.add(buttonPanel, BorderLayout.SOUTH);
+      scroll.setBorder(BorderFactory.createLoweredBevelBorder());
+
+      return panel;
+    } else {
+      return externalResource.makeViewer(container);
     }
-    cbColorBMP.setEditable(false);
-    cbColorBMP.setSelectedIndex(0);
-    cbColorBMP.addActionListener(this);
-
-    bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bexport.setMnemonic('e');
-    bexport.addActionListener(this);
-    imageLabel = new JLabel(new ImageIcon(getImage()));
-    JScrollPane scroll = new JScrollPane(imageLabel);
-
-    JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(new JLabel("Colors: "));
-    bpanel.add(cbColorBMP);
-    bpanel.add(bexport);
-
-    panel = new JPanel();
-    panel.setLayout(new BorderLayout());
-    panel.add(scroll, BorderLayout.CENTER);
-    panel.add(bpanel, BorderLayout.SOUTH);
-    scroll.setBorder(BorderFactory.createLoweredBevelBorder());
-
-    return panel;
   }
 
 // --------------------- End Interface Viewable ---------------------
@@ -94,7 +123,7 @@ public final class PltResource implements Resource, ActionListener
   private BufferedImage getImage()
   {
     Palette palette = null;
-    Object item = cbColorBMP.getSelectedItem();
+    Object item = ((JComboBox)buttonPanel.getControlByType(CtrlColorList)).getSelectedItem();
     if (!item.toString().equalsIgnoreCase("None")) {
       try {
         palette = new BmpResource((ResourceEntry)item).getPalette();
@@ -105,27 +134,27 @@ public final class PltResource implements Resource, ActionListener
     }
     new String(buffer, 0, 4); // Signature
     new String(buffer, 4, 4); // Version
-    Byteconvert.convertInt(buffer, 8); // Unknown 1
-    Byteconvert.convertInt(buffer, 12); // Unknown 2
-    int width = Byteconvert.convertInt(buffer, 16);
-    int height = Byteconvert.convertInt(buffer, 20);
+    DynamicArray.getInt(buffer, 8); // Unknown 1
+    DynamicArray.getInt(buffer, 12); // Unknown 2
+    int width = DynamicArray.getInt(buffer, 16);
+    int height = DynamicArray.getInt(buffer, 20);
     int offset = 24;
-    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    BufferedImage image = ColorConvert.createCompatibleImage(width, height, false);
     for (int y = height - 1; y >= 0; y--) {
       for (int x = 0; x < width; x++) {
-        short colorIndex = Byteconvert.convertUnsignedByte(buffer, offset++);
-        short paletteIndex = Byteconvert.convertUnsignedByte(buffer, offset++);
+        short colorIndex = DynamicArray.getUnsignedByte(buffer, offset++);
+        short paletteIndex = DynamicArray.getUnsignedByte(buffer, offset++);
         if (palette == null)
-          image.setRGB(x, y, Byteconvert.convertInt(
-                  new byte[]{(byte)colorIndex, (byte)colorIndex, (byte)colorIndex, 0}, 0));
+          image.setRGB(x, y, DynamicArray.getInt(new byte[]{(byte)colorIndex, (byte)colorIndex,
+                                                            (byte)colorIndex, 0}, 0));
         else {
           short colors[] = palette.getColorBytes((int)paletteIndex);
           double factor = (double)colorIndex / 256.0;
           for (int i = 0; i < 3; i++)
             colors[i] = (short)((double)colors[i] * factor);
-          image.setRGB(x, y, Byteconvert.convertInt(new byte[]{(byte)colors[0],
-                                                               (byte)colors[1],
-                                                               (byte)colors[2], 0}, 0));
+          image.setRGB(x, y, DynamicArray.getInt(new byte[]{(byte)colors[0],
+                                                            (byte)colors[1],
+                                                            (byte)colors[2], 0}, 0));
         }
       }
     }

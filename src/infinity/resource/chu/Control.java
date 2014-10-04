@@ -4,7 +4,15 @@
 
 package infinity.resource.chu;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 
 import java.io.IOException;
@@ -21,23 +29,14 @@ final class Control extends AbstractStruct // implements AddRemovable
                                            "Right justify"};
   private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
 
-  Control(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Control(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Control", buffer, offset);
+    super(superStruct, "Control " + number, buffer, offset);
   }
-
-// --------------------- Begin Interface StructEntry ---------------------
-
-  public String getName()
-  {
-    return "Control";
-  }
-
-// --------------------- End Interface StructEntry ---------------------
-
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     getStructEntryAt(0).write(os);
@@ -46,6 +45,7 @@ final class Control extends AbstractStruct // implements AddRemovable
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public int read(byte buffer[], int offset)
   {
     list.add(new HexNumber(buffer, offset, 4, "Offset"));

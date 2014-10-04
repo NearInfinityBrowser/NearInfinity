@@ -4,39 +4,72 @@
 
 package infinity.datatype;
 
-import infinity.gui.*;
+import infinity.gui.StructViewer;
+import infinity.gui.TextListPanel;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ProRef extends Datatype implements Editable, ActionListener, ListSelectionListener
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+public final class ProRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
-  private final LongIntegerHashMap idsmap;
+  private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
   private TextListPanel list;
-  private long value;
+  private long value, minValue;
 
   public ProRef(byte buffer[], int offset, String name)
   {
+    this(buffer, offset, name, 0L);
+  }
+
+  public ProRef(byte buffer[], int offset, String name, long minValue)
+  {
     super(offset, 2, name);
-    idsmap = IdsMapCache.get("PROJECTL.IDS").getMap();
-    value = (long)Byteconvert.convertUnsignedShort(buffer, offset);
+    if (minValue < 0L) minValue = 0L;
+    this.minValue = minValue;
+    LongIntegerHashMap<IdsMapEntry> fullMap = IdsMapCache.get("PROJECTL.IDS").getMap();
+    if (minValue == 0) {
+      idsmap = fullMap;
+    } else {
+      idsmap = new LongIntegerHashMap<IdsMapEntry>();
+      long[] keys = fullMap.keys();
+      for (final long key: keys) {
+        if (key >= minValue) {
+          idsmap.put(Long.valueOf(key), fullMap.get(key));
+        }
+      }
+    }
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
@@ -54,22 +87,26 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
-    long keys[] = idsmap.keys();
+    long[] keys = idsmap.keys();
     List<ProRefEntry> items = new ArrayList<ProRefEntry>(keys.length);
     for (long id : keys) {
-      String resourcename = ((IdsMapEntry)idsmap.get(id)).getString() + ".PRO";
+      String resourcename = idsmap.get(id).getString() + ".PRO";
       ResourceEntry resourceEntry = ResourceFactory.getInstance().getResourceEntry(resourcename);
       if (resourceEntry == null)
         System.err.println("Could not find " + resourcename + " (key = " + id + ")");
       else
         items.add(new ProRefEntry(id + 1L, resourceEntry));
     }
-    items.add(new ProRefEntry(1L, NONE));
+    if (minValue <= 1L) {
+      items.add(new ProRefEntry(1L, NONE));
+    }
     list = new TextListPanel(items);
     list.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2)
@@ -124,11 +161,13 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     ProRefEntry selected = (ProRefEntry)list.getSelectedValue();
@@ -141,6 +180,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent e)
   {
     bView.setEnabled(list.getSelectedValue() != null &&
@@ -152,6 +192,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, value);
@@ -159,12 +200,28 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     if (idsmap.containsKey(value - (long)1))
-      return ResourceFactory.getInstance().getResourceEntry(((IdsMapEntry)idsmap.get(value - 1)).getString()
+      return ResourceFactory.getInstance().getResourceEntry(idsmap.get(value - 1).getString()
                                                             + ".PRO") + " (" + value + ')';
     return NONE + " (" + value + ')';
+  }
+
+  public long getValue()
+  {
+    return value - 1L;
   }
 
   public ResourceEntry getSelectedEntry()
@@ -175,9 +232,23 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
             ((IdsMapEntry)idsmap.get(value - 1)).getString() + ".PRO");
   }
 
+  public int getIdsMapEntryCount()
+  {
+    return idsmap.size();
+  }
+
+  public IdsMapEntry getIdsMapEntry(int index)
+  {
+    if (index >= 0 && index < idsmap.size()) {
+      return idsmap.get(idsmap.keys()[index]);
+    } else {
+      return null;
+    }
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class ProRefEntry implements Comparable
+  private static final class ProRefEntry implements Comparable<ProRefEntry>
   {
     private final long val;
     private final Object proref;
@@ -188,12 +259,14 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
       this.proref = proref;
     }
 
+    @Override
     public String toString()
     {
       return proref.toString() + " (" + val + ')';
     }
 
-    public int compareTo(Object o)
+    @Override
+    public int compareTo(ProRefEntry o)
     {
       return proref.toString().compareTo(o.toString());
     }

@@ -7,9 +7,16 @@ package infinity.resource.bcs;
 import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.IdsMap;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.StringResource;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 public final class Decompiler
 {
@@ -163,6 +170,10 @@ public final class Decompiler
           comment = StringResource.getStringRef(nr);
           if (generateErrors)
             stringrefsUsed.add(new Integer(nr));
+        } else {
+          StringBuilder sb = new StringBuilder();
+          decompileInteger(sb, (long)nr, p);
+          comment = getResourceFileName(p, sb.toString());
         }
       }
       else if (p.substring(0, 2).equals("P:"))
@@ -545,6 +556,9 @@ public final class Decompiler
       else if (p.substring(0, 2).equals("I:")) {
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);
+        StringBuilder sb = new StringBuilder();
+        decompileInteger(sb, (long)nr, p);
+        comment = getResourceFileName(p, sb.toString());
       }
       first = false;
     }
@@ -562,7 +576,12 @@ public final class Decompiler
 
   public static String[] getResRefType(String function)
   {
-    if (function.equalsIgnoreCase("HasItem") ||
+    if (function.equalsIgnoreCase("DropItem") ||
+        function.equalsIgnoreCase("EquipItem") ||
+        function.equalsIgnoreCase("GetItem") ||
+        function.equalsIgnoreCase("GiveItem") ||
+        function.equalsIgnoreCase("UseItem") ||
+        function.equalsIgnoreCase("HasItem") ||
         function.equalsIgnoreCase("Contains") ||
         function.equalsIgnoreCase("NumItems") ||
         function.equalsIgnoreCase("NumItemsGT") ||
@@ -587,14 +606,18 @@ public final class Decompiler
     }
     else if (function.equalsIgnoreCase("ChangeAnimation") ||
              function.equalsIgnoreCase("ChangeAnimationNoEffect") ||
+             function.equalsIgnoreCase("CreateCreature") ||
              function.equalsIgnoreCase("CreateCreatureObject") ||
+             function.equalsIgnoreCase("CreateCreatureImpassable") ||
+             function.equalsIgnoreCase("CreateCreatureDoor") ||
              function.equalsIgnoreCase("CreateCreatureObjectDoor") ||
              function.equalsIgnoreCase("CreateCreatureObjectOffScreen") ||
              function.equalsIgnoreCase("CreateCreatureOffScreen") ||
              function.equalsIgnoreCase("CreateCreatureAtLocation") ||
              function.equalsIgnoreCase("CreateCreatureObjectCopy") ||
              function.equalsIgnoreCase("CreateCreatureObjectOffset") ||
-             function.equalsIgnoreCase("CreateCreatureCopyPoint")) {
+             function.equalsIgnoreCase("CreateCreatureCopyPoint") ||
+             function.equalsIgnoreCase("CreateCreatureImpassableAllowOverlap")) {
       return new String[] {".CRE"};
     }
     else if (function.equalsIgnoreCase("AreaCheck") ||
@@ -616,10 +639,17 @@ public final class Decompiler
       return new String[] {".2DA"};
     }
     else if (function.equalsIgnoreCase("StartMovie")) {
-      return new String[] {".MVE"};
+      if (ResourceFactory.isEnhancedEdition()) {
+        return new String[] {".WBM", ".MVE"};
+      } else {
+        return new String[] {".MVE"};
+      }
     }
     else if (function.equalsIgnoreCase("AddSpecialAbility")) {
       return new String[] {".SPL"};
+    }
+    else if (function.equalsIgnoreCase("CreateVisualEffect")) {
+      return new String[] {".VEF", ".VVC", ".BAM"};
     }
     return new String[] {".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
                          ".MVE", ".SPL", ".DLG", ".VEF", ".VVC", ".BAM"};
@@ -627,7 +657,7 @@ public final class Decompiler
 
   private static String getResourceName(String function, String definition, String value)
   {
-    if (value.length() > 8)
+    if (definition.startsWith("S:") && value.length() > 8)
       return null;
     ResourceEntry entry = null;
     if (definition.equalsIgnoreCase("S:DialogFile*"))
@@ -663,10 +693,18 @@ public final class Decompiler
     else if (definition.equalsIgnoreCase("S:ResRef*")) {
       entry = decompileStringCheck(value, getResRefType(function));
     }
-    else if (definition.equalsIgnoreCase("S:Object*")) // ToDo: Better check possible?
-      entry = decompileStringCheck(value, new String[]{".ITM", ".VEF", ".VVC", ".BAM"});
-    else if (definition.equalsIgnoreCase("S:NewObject*")) // ToDo: Better check possible?
-      entry = decompileStringCheck(value, new String[]{".CRE", ".DLG", ".BCS", ".ITM"});
+    else if (definition.equalsIgnoreCase("S:Object*")) {
+      entry = decompileStringCheck(value, getResRefType(function));
+    }
+    else if (definition.equalsIgnoreCase("S:NewObject*")) {
+      entry = decompileStringCheck(value, getResRefType(function));
+    }
+    else if (definition.equalsIgnoreCase("I:Spell*Spell")) {
+      String refValue = infinity.resource.spl.Viewer.getResourceName(value, false);
+      if (refValue != null) {
+        entry = decompileStringCheck(refValue, new String[]{".SPL"});
+      }
+    }
 //    else
 //      System.out.println("Decompiler.getResourceName: " + definition + " - " + value);
     if (entry != null) {
@@ -675,6 +713,29 @@ public final class Decompiler
       return entry.getSearchString();
     }
     return null;
+  }
+
+  private static String getResourceFileName(String definition, String value)
+  {
+    if (!definition.startsWith("I:")) {
+      return null;
+    }
+    ResourceEntry entry = null;
+    if (definition.equalsIgnoreCase("I:Spell*Spell")) {
+      String refName = infinity.resource.spl.Viewer.getResourceName(value, false);
+      if (refName != null) {
+        entry = decompileStringCheck(refName, new String[]{".SPL"});
+      }
+    }
+
+    String retVal = null;
+    if (entry != null) {
+      if (generateErrors) {
+        resourcesUsed.add(entry);
+      }
+      retVal = String.format("%1$s (%2$s)", entry.getResourceName(), entry.getSearchString());
+    }
+    return retVal;
   }
 
   public static Set<ResourceEntry> getResourcesUsed()

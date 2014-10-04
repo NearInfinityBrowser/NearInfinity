@@ -4,11 +4,15 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Ambient extends AbstractStruct implements AddRemovable
+public final class Ambient extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_flag = {"Disabled", "Enabled", "Looping",
                                           "Ignore radius", "Play in random order", "High memory ambient"};
@@ -25,6 +29,7 @@ final class Ambient extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -32,6 +37,7 @@ final class Ambient extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
@@ -43,14 +49,8 @@ final class Ambient extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 40, 4, "Pitch variation"));
     list.add(new DecNumber(buffer, offset + 44, 2, "Volume variation"));
     list.add(new DecNumber(buffer, offset + 46, 2, "Volume"));
-    if (getSuperStruct() != null)
-      for (int i = 0; i < 10; i++)
-        list.add(
-                new AreResourceRef(buffer, offset + 48 + (i << 3), "Sound " + (i + 1),
-                                   (AreResource)getSuperStruct()));
-    else
-      for (int i = 0; i < 10; i++)
-        list.add(new ResourceRef(buffer, offset + 48 + (i << 3), "Sound " + (i + 1), "WAV"));
+    for (int i = 0; i < 10; i++)
+      list.add(new ResourceRef(buffer, offset + 48 + (i << 3), "Sound " + (i + 1), "WAV"));
     list.add(new DecNumber(buffer, offset + 128, 2, "# sounds"));
     list.add(new Unknown(buffer, offset + 130, 2));
     list.add(new DecNumber(buffer, offset + 132, 4, "Base interval"));

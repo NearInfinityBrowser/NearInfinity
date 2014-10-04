@@ -11,12 +11,25 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ProgressMonitor;
 
 public final class TextResourceSearcher implements Runnable, ActionListener
 {
@@ -92,6 +105,7 @@ public final class TextResourceSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bsearch || event.getSource() == tfinput) {
@@ -105,6 +119,7 @@ public final class TextResourceSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     String term = tfinput.getText();

@@ -4,25 +4,30 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.RemovableDecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
+import infinity.util.ArrayUtil;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable
 {
-  private static HexNumber findNextOffset(HexNumber offsets[], HexNumber offset)
-  {
-    for (int i = 0; i < offsets.length; i++)
-      if (offsets[i] == offset && i < offsets.length - 1)
-        return offsets[i + 1];
-    return null;
-  }
-
   public WedResource(ResourceEntry entry) throws Exception
   {
     super(entry);
@@ -30,6 +35,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Door(), new WallPolygon(), new Wallgroup()};
@@ -40,6 +46,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -47,11 +54,13 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
@@ -71,11 +80,13 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
@@ -95,8 +106,11 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
+    int startOffset = offset;
+
     list.add(new TextString(buffer, offset, 4, "Signature"));
     list.add(new TextString(buffer, offset + 4, 4, "Version"));
     SectionCount countOverlays = new SectionCount(buffer, offset + 8, 4, "# overlays",
@@ -118,7 +132,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetOverlays.getValue();
     for (int i = 0; i < countOverlays.getValue(); i++) {
-      Overlay overlay = new Overlay(this, buffer, offset);
+      Overlay overlay = new Overlay(this, buffer, offset, i);
       offset = overlay.getEndOffset();
       list.add(overlay);
     }
@@ -140,9 +154,12 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     list.add(offsetPolytable);
 
     HexNumber offsets[] = new HexNumber[]{offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile,
-                                          offsetPolygons, offsetWallgroups, offsetPolytable};
+                                          offsetPolygons, offsetWallgroups, offsetPolytable,
+                                          new HexNumber(DynamicArray.convertInt(buffer.length - startOffset),
+                                                        0, 4, "")};
     Arrays.sort(offsets, new Comparator<HexNumber>()
     {
+      @Override
       public int compare(HexNumber s1, HexNumber s2)
       {
         return s1.getValue() - s2.getValue();
@@ -151,7 +168,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetDoors.getValue();
     for (int i = 0; i < countDoors.getValue(); i++) {
-      Door door = new Door(this, buffer, offset);
+      Door door = new Door(this, buffer, offset, i);
       offset = door.getEndOffset();
       door.readVertices(buffer, offsetVertices.getValue());
       list.add(door);
@@ -159,9 +176,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetWallgroups.getValue();
     int countPolytable = 0;
-    int countWallgroups = (findNextOffset(offsets, offsetWallgroups).getValue() -
-                           offsetWallgroups.getValue()) /
-                          4;
+    int countWallgroups = (offsets[ArrayUtil.indexOf(offsets, offsetWallgroups) + 1].getValue() -
+                           offsetWallgroups.getValue()) / 4;
     for (int i = 0; i < countWallgroups; i++) {
       Wallgroup wall = new Wallgroup(this, buffer, offset, i);
       offset = wall.getEndOffset();
@@ -182,9 +198,9 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + i * 2, 2, "Wall polygon index " + i));
 
     int endoffset = offset;
-    List flatList = getFlatList();
+    List<StructEntry> flatList = getFlatList();
     for (int i = 0; i < flatList.size(); i++) {
-      StructEntry entry = (StructEntry)flatList.get(i);
+      StructEntry entry = flatList.get(i);
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

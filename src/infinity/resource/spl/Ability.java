@@ -4,28 +4,42 @@
 
 package infinity.resource.spl;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.ProRef;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractAbility;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.Effect;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.ResourceFactory;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
+public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
-  private static final String s_hostility[] = {"Hostile", "", "", "", "Non-hostile"};
-  private static final String s_abilityuse[] = {"", "", "Spell slots", "", "Innate slots"};
+  public static final String s_hostility[] = {"Hostile", "", "", "", "Non-hostile"};
+  public static final String s_abilityuse[] = {"", "", "Spell slots", "", "Innate slots"};
 
   Ability() throws Exception
   {
     super(null, "Spell ability", new byte[40], 0);
   }
 
-  Ability(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Ability(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Spell ability", buffer, offset);
+    super(superStruct, "Spell ability " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Effect()};
@@ -36,6 +50,7 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -44,15 +59,35 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerAbility(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
 
+// --------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {

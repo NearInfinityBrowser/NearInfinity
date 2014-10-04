@@ -7,10 +7,28 @@ package infinity.resource.cre;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.gui.ViewerUtil;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Effect;
+import infinity.resource.Effect2;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 
 public final class Viewer extends JPanel
 {
@@ -364,6 +382,7 @@ public final class Viewer extends JPanel
     {
     }
 
+    @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
                                                   boolean cellHasFocus)
     {

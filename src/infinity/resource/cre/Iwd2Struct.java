@@ -5,7 +5,9 @@
 package infinity.resource.cre;
 
 import infinity.datatype.DecNumber;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
 
 public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
 {
@@ -41,6 +43,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     switch (type) {
@@ -59,21 +62,25 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
 
 // --------------------- End Interface HasAddRemovable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     count.incValue(1);
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     count.incValue(-1);
   }
 
+  @Override
   protected int getAddedPosition()
   {
     return count.getValue();
   }
 
+  @Override
   protected int read(byte buffer[], int offset)
   {
     return -1;

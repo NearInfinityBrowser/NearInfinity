@@ -4,15 +4,30 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HashBitmap;
+import infinity.datatype.HexNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.are.Actor;
 import infinity.resource.cre.CreResource;
 import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovable, AddRemovable
+class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable, AddRemovable
 {
   private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
@@ -26,7 +41,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     partyOrder.put(4L, "Slot 5");
     partyOrder.put(5L, "Slot 6");
 //    partyOrder.put(0x8000L, "In party, dead");
-    partyOrder.put(0xffff, "Not in party");
+    partyOrder.put(new Long(0xffff), "Not in party");
 
     m_selected.put(0L, "Not selected");
     m_selected.put(1L, "Selected");
@@ -40,7 +55,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
           ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_TUTU ? new byte[352] :
+          ResourceFactory.isEnhancedEdition() ? new byte[352] :
           ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? new byte[360] :
           ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ? new byte[832] : new byte[384],
           0);
@@ -58,6 +73,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{};
@@ -68,6 +84,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -76,21 +93,42 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerNPC(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
 
+// --------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     ((DecNumber)getAttribute("CRE structure size")).setValue(getStructEntryAt(getRowCount() - 1).getSize());
     super.datatypeAddedInChild(child, datatype);
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof CreResource) {
@@ -99,6 +137,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
     }
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     ((DecNumber)getAttribute("CRE structure size")).setValue(getStructEntryAt(getRowCount() - 1).getSize());
@@ -112,6 +151,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       ((HexNumber)getAttribute("CRE structure offset")).setValue(entry.getOffset());
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new HashBitmap(buffer, offset, 2, "Selection state", m_selected));
@@ -159,7 +199,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       offset += 8;
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_TUTU) {
+             ResourceFactory.isEnhancedEdition()) {
       list.add(new IdsBitmap(buffer, offset + 40, 2, "Modal state", "MODAL.IDS"));
       list.add(new DecNumber(buffer, offset + 42, 2, "Happiness"));
       list.add(new Unknown(buffer, offset + 44, 96));

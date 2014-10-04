@@ -4,13 +4,32 @@
 
 package infinity.search;
 
-import infinity.gui.*;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.regex.Pattern;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 
 public final class SearchMaster extends JPanel implements Runnable, ActionListener
 {
@@ -131,6 +150,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bnext || event.getSource() == tfinput) {
@@ -153,6 +173,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     index = 0;

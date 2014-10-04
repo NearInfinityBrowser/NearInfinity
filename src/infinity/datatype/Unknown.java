@@ -4,55 +4,71 @@
 
 package infinity.datatype;
 
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.ArrayUtil;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 
-public class Unknown extends Datatype implements Editable
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
+public class Unknown extends Datatype implements Editable, Readable
 {
   private static final String UNKNOWN = "Unknown";
-  JTextArea textArea;
+  InfinityTextArea textArea;
   byte[] data;
 
   public Unknown(byte[] buffer, int offset, int length)
   {
-    super(offset, length, UNKNOWN);
-    data = ArrayUtil.getSubArray(buffer, offset, length);
+    this(buffer, offset, length, UNKNOWN);
   }
 
   public Unknown(byte[] buffer, int offset, int length, String name)
   {
     super(offset, length, name);
-    data = ArrayUtil.getSubArray(buffer, offset, length);
+    read(buffer, offset);
+  }
+
+  public byte[] getData()
+  {
+    return data;
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     if (data != null && data.length > 0) {
       JButton bUpdate;
       if (textArea == null) {
-        textArea = new JTextArea(15, 5);
+        textArea = new InfinityTextArea(15, 5, true);
         textArea.setWrapStyleWord(true);
         textArea.setLineWrap(true);
+        textArea.setEOLMarkersVisible(false);
         textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       }
       String s = toString();
       textArea.setText(s.substring(0, s.length() - 2));
+      textArea.discardAllEdits();
+      textArea.setCaretPosition(0);
+      InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
+      scroll.setLineNumbersEnabled(false);
 
       bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
       bUpdate.addActionListener(container);
       bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
-      JScrollPane scroll = new JScrollPane(textArea);
 
       GridBagLayout gbl = new GridBagLayout();
       GridBagConstraints gbc = new GridBagConstraints();
@@ -79,10 +95,12 @@ public class Unknown extends Datatype implements Editable
     }
   }
 
+  @Override
   public void select()
   {
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim();
@@ -113,6 +131,7 @@ public class Unknown extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Filewriter.writeBytes(os, data);
@@ -120,17 +139,23 @@ public class Unknown extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    data = Arrays.copyOfRange(buffer, offset, offset + getSize());
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     if (data != null && data.length > 0) {
       StringBuffer sb = new StringBuffer(3 * data.length + 1);
       for (final byte d : data) {
-        String text = Integer.toHexString((int)d);
-        if (text.length() == 1)
-          sb.append('0');
-        else if (text.length() > 2)
-          text = text.substring(text.length() - 2);
-        sb.append(text).append(' ');
+        sb.append(String.format("%1$02x ", (int)d & 0xff));
       }
       sb.append('h');
       return sb.toString();

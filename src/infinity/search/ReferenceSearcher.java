@@ -6,14 +6,20 @@ package infinity.search;
 
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
-import infinity.resource.*;
-import infinity.resource.bcs.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Compiler;
-import infinity.resource.dlg.*;
+import infinity.resource.bcs.Decompiler;
+import infinity.resource.dlg.AbstractCode;
+import infinity.resource.dlg.Action;
+import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.sav.SavResource;
 
-import java.awt.*;
+import java.awt.Component;
 import java.util.List;
 
 public final class ReferenceSearcher extends AbstractReferenceSearcher
@@ -24,6 +30,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
                                     "PRO", "SAV", "SPL", "STO", "VEF", "VVC", "WED", "WMP"}, parent);
   }
 
+  @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
     if (resource instanceof DlgResource)
@@ -54,8 +61,15 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
             else
               Decompiler.decompileDialogTrigger(code, true);
             for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
-              if (targetEntry.toString().equalsIgnoreCase(resourceUsed.toString()))
+              if (targetEntry.toString().equalsIgnoreCase(resourceUsed.toString())) {
                 addHit(entry, entry.getSearchString(), sourceCode);
+              } else if (targetEntry == resourceUsed) {
+                // searching for symbolic spell names
+                String s = infinity.resource.spl.Viewer.getSymbolicName(targetEntry, false);
+                if (s != null && s.equalsIgnoreCase(resourceUsed.toString())) {
+                  addHit(entry, s, sourceCode);
+                }
+              }
             }
           }
         } catch (Exception e) {
@@ -82,9 +96,9 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSave(ResourceEntry entry, SavResource savfile)
   {
-    List entries = savfile.getFileHandler().getFileEntries();
+    List<? extends ResourceEntry> entries = savfile.getFileHandler().getFileEntries();
     for (int i = 0; i < entries.size(); i++) {
-      ResourceEntry saventry = (ResourceEntry)entries.get(i);
+      ResourceEntry saventry = entries.get(i);
       Resource resource = ResourceFactory.getResource(saventry);
       if (resource instanceof AbstractStruct)
         searchSavStruct(entry, saventry, (AbstractStruct)resource);
@@ -95,8 +109,9 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
   {
     Decompiler.decompile(bcsfile.getCode(), true);
     for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
-      if (resourceUsed == targetEntry)
+      if (resourceUsed == targetEntry) {
         addHit(entry, null, null);
+      }
     }
   }
 

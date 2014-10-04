@@ -10,10 +10,24 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.key.BIFFArchive;
 import infinity.resource.key.BIFFEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 
 final class ChooseBIFFrame extends ChildFrame implements ActionListener
 {
@@ -145,6 +159,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bcancel)
@@ -162,8 +177,9 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
       rbbiff.setEnabled(true);
       int gameid = ResourceFactory.getGameID();
       rbbif.setEnabled(gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
-                       gameid == ResourceFactory.ID_ICEWINDHOWTOT);
-      rbbifc.setEnabled(gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB);
+                       gameid == ResourceFactory.ID_ICEWINDHOWTOT || gameid == ResourceFactory.ID_IWDEE);
+      rbbifc.setEnabled(gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
+                        ResourceFactory.isEnhancedEdition());
     }
     else if (event.getSource() == bok || event.getSource() == tfbifname) {
       if (rbcreate.isSelected()) {

@@ -9,23 +9,33 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.resource.other.PlainTextResource;
-import infinity.util.*;
+import infinity.resource.text.PlainTextResource;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
-public final class Kit2daBitmap extends Datatype implements Editable
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
+public final class Kit2daBitmap extends Datatype implements Editable, Readable
 {
   private static final LongIntegerHashMap<KitlistEntry> kitsNumber = new LongIntegerHashMap<KitlistEntry>();
   private static final LongIntegerHashMap<KitlistEntry> kitsUnusable = new LongIntegerHashMap<KitlistEntry>();
   private TextListPanel list;
-  private boolean useUnusable = true;
+  private boolean useUnusable;
   private long value;
 
   private static void parseKitlist()
@@ -79,37 +89,36 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
   public Kit2daBitmap(byte buffer[], int offset)
   {
+    this(buffer, offset, true);
+  }
+
+  public Kit2daBitmap(byte buffer[], int offset, boolean useUnusable)
+  {
     super(offset, 4, "Kit");
+    this.useUnusable = useUnusable;
     if (kitsNumber.size() == 0)
       parseKitlist();
-    if (buffer[offset + 3] == 0x40) {
-      useUnusable = false;
-      value = (long)buffer[offset + 2];
-    }
-    else {
-      value = (long)(Byteconvert.convertUnsignedShort(buffer, offset + 2) +
-                     0x10000 * Byteconvert.convertUnsignedShort(buffer, offset));
-      if (value < 0)
-        value += 4294967296L;
-    }
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
-    LongIntegerHashMap idsmap = kitsNumber;
+    LongIntegerHashMap<KitlistEntry> idsmap = kitsNumber;
     if (useUnusable)
       idsmap = kitsUnusable;
     if (list == null) {
-      long keys[] = idsmap.keys();
+      long[] keys = idsmap.keys();
       List<KitlistEntry> items = new ArrayList<KitlistEntry>(keys.length);
       for (long id : keys) {
-        items.add((KitlistEntry)idsmap.get(id));
+        items.add(idsmap.get(id));
       }
       list = new TextListPanel(items);
       list.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -146,11 +155,13 @@ public final class Kit2daBitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     KitlistEntry selected = (KitlistEntry)list.getSelectedValue();
@@ -163,12 +174,13 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (useUnusable) {
       if (value > 2147483648L)
         value -= 4294967296L;
-      byte buffer[] = Byteconvert.convertBack((int)value);
+      byte buffer[] = DynamicArray.convertInt((int)value);
       os.write((int)buffer[2]);
       os.write((int)buffer[3]);
       os.write((int)buffer[0]);
@@ -180,6 +192,25 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    if (buffer[offset + 3] == 0x40) {
+      this.useUnusable = false;
+      value = (long)buffer[offset + 2];
+    }
+    else {
+      value = (long)(DynamicArray.getUnsignedShort(buffer, offset + 2) +
+          0x10000 * DynamicArray.getUnsignedShort(buffer, offset));
+      value &= 0xffffffff;
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     Object o;
@@ -193,9 +224,27 @@ public final class Kit2daBitmap extends Datatype implements Editable
       return o.toString();
   }
 
+  public long getValue()
+  {
+    return value;
+  }
+
+  public KitlistEntry getKit(int index)
+  {
+    if (index >= 0 && index < kitsNumber.size()) {
+      return kitsNumber.get(kitsNumber.keys()[index]);
+    }
+    return null;
+  }
+
+  public int getKitsCount()
+  {
+    return kitsNumber.size();
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class KitlistEntry
+  public static final class KitlistEntry
   {
     private final long number;
     private final String name;
@@ -206,9 +255,20 @@ public final class Kit2daBitmap extends Datatype implements Editable
       this.name = name;
     }
 
+    @Override
     public String toString()
     {
       return name + " - " + number;
+    }
+
+    public long getValue()
+    {
+      return number;
+    }
+
+    public String getName()
+    {
+      return name;
     }
   }
 }

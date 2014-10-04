@@ -4,9 +4,9 @@
 
 package infinity.datatype;
 
-import infinity.resource.key.ResourceEntry;
 import infinity.resource.ResourceFactory;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.PlainTextResource;
 
 import java.util.List;
 
@@ -17,7 +17,8 @@ public final class SpawnResourceRef extends ResourceRef
     super(h_buffer, offset, name, "CRE");
   }
 
-  void addExtraEntries(List<ResourceRefEntry> entries)
+  @Override
+  void addExtraEntries(List<Object> entries)
   {
     ResourceEntry spawnRef = ResourceFactory.getInstance().getResourceEntry("SPAWNGRP.2DA");
     if (spawnRef != null) {

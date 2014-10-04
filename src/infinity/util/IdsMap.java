@@ -5,10 +5,15 @@
 package infinity.util;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
 
-import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+
+import javax.swing.JOptionPane;
 
 public final class IdsMap
 {
@@ -17,7 +22,7 @@ public final class IdsMap
   private final ResourceEntry entry;
   private Map<String, IdsMapEntry> stringEntryMap;
 
-  IdsMap(ResourceEntry entry)
+  public IdsMap(ResourceEntry entry)
   {
     this.entry = entry;
     StringTokenizer st;
@@ -74,6 +79,7 @@ public final class IdsMap
     }
   }
 
+  @Override
   public String toString()
   {
     if (entry == null)
@@ -81,7 +87,7 @@ public final class IdsMap
     return entry.toString();
   }
 
-  public List getAllValues()
+  public List<IdsMapEntry> getAllValues()
   {
     List<IdsMapEntry> list = new ArrayList<IdsMapEntry>(idEntryMap.values());
     list.addAll(overflow);

@@ -4,8 +4,19 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
 public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
@@ -22,13 +33,14 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     super(null, "Trigger", new byte[196], 0);
   }
 
-  public ITEPoint(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public ITEPoint(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Trigger", buffer, offset);
+    super(superStruct, "Trigger " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Vertex()};
@@ -39,6 +51,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -49,6 +62,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 
 // --------------------- Begin Interface HasVertices ---------------------
 
+  @Override
   public void readVertices(byte buffer[], int offset) throws Exception
   {
     int firstVertex = ((DecNumber)getAttribute("First vertex index")).getValue();
@@ -58,6 +72,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
       list.add(new Vertex(this, buffer, offset + 4 * i, i));
   }
 
+  @Override
   public int updateVertices(int offset, int number)
   {
     ((DecNumber)getAttribute("First vertex index")).setValue(number);
@@ -77,6 +92,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 
 // --------------------- End Interface HasVertices ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {
@@ -88,6 +104,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     }
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

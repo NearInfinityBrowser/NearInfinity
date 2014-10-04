@@ -4,13 +4,26 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-public final class Actor extends AbstractStruct implements AddRemovable, HasDetailViewer, HasAddRemovable
+public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs, HasAddRemovable
 {
   public static final String[] s_orientation = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                  "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
@@ -38,6 +51,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -48,6 +62,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables()
   {
     return new AddRemovable[]{};
@@ -56,15 +71,35 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerActor(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
 
+// --------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeAddedInChild(child, datatype);
@@ -72,6 +107,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
       ((DecNumber)getAttribute("CRE structure size")).setValue(child.getSize());
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof CreResource) {
@@ -80,6 +116,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
     }
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeRemovedInChild(child, datatype);
@@ -94,6 +131,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasDeta
       ((HexNumber)getAttribute("CRE structure offset")).setValue(entry.getOffset());
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

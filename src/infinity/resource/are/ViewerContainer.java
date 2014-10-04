@@ -4,14 +4,21 @@
 
 package infinity.resource.are;
 
+import infinity.datatype.Flag;
 import infinity.gui.ViewerUtil;
 import infinity.resource.StructEntry;
-import infinity.datatype.Flag;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 
-final class ViewerContainer extends JPanel
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public final class ViewerContainer extends JPanel
 {
   ViewerContainer(Container container)
   {

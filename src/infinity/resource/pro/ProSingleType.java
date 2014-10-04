@@ -17,17 +17,17 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProSingleType extends AbstractStruct implements AddRemovable
 {
-  private static final LongIntegerHashMap<String> s_facetarget = new LongIntegerHashMap<String>();
-  private static final String[] s_flags = {"No flags set", "Colored BAM", "Creates smoke", "Colored smoke",
-                                           "Not light source", "Modify for height", "Casts shadow",
-                                           "Light spot enabled", "Translucent", "Mid-level brighten", "Blended"};
-  private static final String[] s_trail = {"No flags set", "Draw at target", "Draw at source"};
+  public static final LongIntegerHashMap<String> s_facetarget = new LongIntegerHashMap<String>();
+  public static final String[] s_flags = {"No flags set", "Colored BAM", "Creates smoke", "Colored smoke",
+                                          "Not light source", "Modify for height", "Casts shadow",
+                                          "Light spot enabled", "Translucent", "Mid-level brighten", "Blended"};
+  public static final String[] s_trail = {"No flags set", "Draw at target", "Draw at source"};
 
   static {
-    s_facetarget.put(1, "Do not face target");
-    s_facetarget.put(5, "Mirrored east (reduced)");
-    s_facetarget.put(9, "Mirrored east (full)");
-    s_facetarget.put(16, "Not mirrored (full)");
+    s_facetarget.put(new Long(1), "Do not face target");
+    s_facetarget.put(new Long(5), "Mirrored east (reduced)");
+    s_facetarget.put(new Long(9), "Mirrored east (full)");
+    s_facetarget.put(new Long(16), "Not mirrored (full)");
   }
 
 
@@ -44,6 +44,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return false;   // can not be removed manually
@@ -51,6 +52,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Flags", s_flags));

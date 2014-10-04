@@ -11,8 +11,13 @@ import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
 
 final class StringLookup extends ChildFrame implements SearchClient
 {
@@ -52,6 +57,7 @@ final class StringLookup extends ChildFrame implements SearchClient
 
 // --------------------- Begin Interface SearchClient ---------------------
 
+  @Override
   public String getText(int index)
   {
     if (index < 0 || index >= StringResource.getMaxIndex())
@@ -59,6 +65,7 @@ final class StringLookup extends ChildFrame implements SearchClient
     return StringResource.getStringRef(index);
   }
 
+  @Override
   public void hitFound(int index)
   {
     strref.setValue(index);

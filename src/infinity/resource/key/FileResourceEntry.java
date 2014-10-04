@@ -8,7 +8,11 @@ import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
 import infinity.util.Filereader;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public final class FileResourceEntry extends ResourceEntry
 {
@@ -26,6 +30,7 @@ public final class FileResourceEntry extends ResourceEntry
     this.override = override;
   }
 
+  @Override
   public String toString()
   {
     return file.getName().toUpperCase();
@@ -36,16 +41,19 @@ public final class FileResourceEntry extends ResourceEntry
     file.delete();
   }
 
+  @Override
   public File getActualFile(boolean ignoreoverride)
   {
     return file;
   }
 
+  @Override
   public String getExtension()
   {
     return file.getName().substring(file.getName().lastIndexOf(".") + 1).toUpperCase();
   }
 
+  @Override
   public byte[] getResourceData(boolean ignoreoverride) throws IOException
   {
     InputStream is = new BufferedInputStream(new FileInputStream(file));
@@ -54,21 +62,25 @@ public final class FileResourceEntry extends ResourceEntry
     return buffer;
   }
 
+  @Override
   public InputStream getResourceDataAsStream(boolean ignoreoverride) throws IOException
   {
     return new BufferedInputStream(new FileInputStream(file));
   }
 
+  @Override
   public int[] getResourceInfo(boolean ignoreoverride)
   {
     return getLocalFileInfo(file);
   }
 
+  @Override
   public String getResourceName()
   {
     return file.getName();
   }
 
+  @Override
   public String getTreeFolder()
   {
     if (BrowserMenuBar.getInstance() != null &&
@@ -83,6 +95,7 @@ public final class FileResourceEntry extends ResourceEntry
     }
   }
 
+  @Override
   public boolean hasOverride()
   {
     return override;

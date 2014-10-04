@@ -78,6 +78,7 @@ public abstract class NewAbstractSettings extends JDialog implements ActionListe
     cancelButton.addActionListener(this);
 
     getRootPane().getActionMap().put("NIclose", new AbstractAction() {
+      @Override
       public void actionPerformed(ActionEvent event)
       {
         reject();
@@ -100,6 +101,7 @@ public abstract class NewAbstractSettings extends JDialog implements ActionListe
 
 //--------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == acceptButton())

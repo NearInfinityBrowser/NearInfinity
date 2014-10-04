@@ -4,37 +4,54 @@
 
 package infinity.resource.wmp;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.HasViewerTabs;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetailViewer
+final class MapEntry extends AbstractStruct implements HasViewerTabs
 {
   MapEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "Map " + nr, buffer, offset);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public AddRemovable[] getAddRemovables() throws Exception
+  @Override
+  public int getViewerTabCount()
   {
-    return new AddRemovable[]{new AreaEntry()};
+    return 1;
   }
 
-// --------------------- End Interface HasAddRemovable ---------------------
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
 
-
-// --------------------- Begin Interface HasDetailViewer ---------------------
-
-  public JComponent getDetailViewer()
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerMap(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
 
+// --------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Map", "MOS"));
@@ -44,42 +61,26 @@ final class MapEntry extends AbstractStruct implements HasAddRemovable, HasDetai
     list.add(new StringRef(buffer, offset + 20, "Name"));
     list.add(new DecNumber(buffer, offset + 24, 4, "Center location: X"));
     list.add(new DecNumber(buffer, offset + 28, 4, "Center location: Y"));
-    SectionCount area_count = new SectionCount(buffer, offset + 32, 4, "# areas",
-                                               AreaEntry.class);
+    SectionCount area_count = new SectionCount(buffer, offset + 32, 4, "# areas", AreaEntry.class);
     list.add(area_count);
-    SectionOffset area_offset = new SectionOffset(buffer, offset + 36, "Areas offset",
-                                                  AreaEntry.class);
+    SectionOffset area_offset = new SectionOffset(buffer, offset + 36, "Areas offset", AreaEntry.class);
     list.add(area_offset);
-    HexNumber link_offset = new HexNumber(buffer, offset + 40, 4, "Area links offset");
+    SectionOffset link_offset = new SectionOffset(buffer, offset + 40, "Area links offset", AreaLink.class);
     list.add(link_offset);
-    DecNumber link_count = new DecNumber(buffer, offset + 44, 4, "# area links");
+    SectionCount link_count = new SectionCount(buffer, offset + 44, 4, "# area links", AreaLink.class);
     list.add(link_count);
     list.add(new ResourceRef(buffer, offset + 48, "Map icons", "BAM"));
     list.add(new Unknown(buffer, offset + 56, 128));
 
+    int curOfs = area_offset.getValue();
     for (int i = 0; i < area_count.getValue(); i++) {
-      AreaEntry areaEntry = new AreaEntry(this, buffer, area_offset.getValue() + 240 * i, i);
+      AreaEntry areaEntry = new AreaEntry(this, buffer, curOfs, i);
+      curOfs = areaEntry.getEndOffset();
       list.add(areaEntry);
       areaEntry.readLinks(buffer, link_offset);
     }
 
     return offset + 128 + 56;
-  }
-
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
-    if (datatype instanceof AreaLink) {
-      DecNumber linkCount = (DecNumber)getAttribute("# area links");
-      linkCount.setValue(linkCount.getValue() + 1);
-    }
-  }
-
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
-    if (datatype instanceof AreaLink) {
-      DecNumber linkCount = (DecNumber)getAttribute("# area links");
-      linkCount.setValue(linkCount.getValue() - 1);
-    }
   }
 }
 

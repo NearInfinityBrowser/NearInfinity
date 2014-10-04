@@ -8,17 +8,24 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Bitmap extends Datatype implements Editable
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
+public class Bitmap extends Datatype implements Editable, Readable
 {
   private final String table[];
   private TextListPanel list;
@@ -28,18 +35,12 @@ public class Bitmap extends Datatype implements Editable
   {
     super(offset, length, name);
     this.table = table;
-    if (length == 4)
-      value = Byteconvert.convertInt(buffer, offset);
-    else if (length == 2)
-      value = (int)Byteconvert.convertShort(buffer, offset);
-    else if (length == 1)
-      value = (int)Byteconvert.convertByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
     if (list == null) {
@@ -49,6 +50,7 @@ public class Bitmap extends Datatype implements Editable
       list = new TextListPanel(values, false);
       list.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -88,11 +90,13 @@ public class Bitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String svalue = (String)list.getSelectedValue();
@@ -107,6 +111,7 @@ public class Bitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeInt(os, value);
@@ -114,6 +119,29 @@ public class Bitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = (int)DynamicArray.getByte(buffer, offset);
+        break;
+      case 2:
+        value = (int)DynamicArray.getShort(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     return getString(value);

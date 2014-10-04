@@ -4,25 +4,34 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.RemovableDecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
 
-final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
+public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
   private static final String[] s_yesno = {"No", "Yes"};
 
-  Door() throws Exception
+  public Door() throws Exception
   {
     super(null, "Door", new byte[26], 0);
   }
 
-  Door(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public Door(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Door", buffer, offset);
+    super(superStruct, "Door " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new OpenPolygon(), new ClosedPolygon()};
@@ -33,6 +42,7 @@ final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -40,6 +50,7 @@ final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof RemovableDecNumber) {
@@ -84,6 +95,7 @@ final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 //    return offset;
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 8, "Name"));

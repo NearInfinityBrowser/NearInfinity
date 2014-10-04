@@ -4,10 +4,19 @@
 
 package infinity;
 
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.ChildFrame;
+import infinity.gui.InfinityTextArea;
+import infinity.gui.ResourceTree;
+import infinity.gui.StatusBar;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.*;
 import infinity.resource.Closeable;
+import infinity.resource.EffectFactory;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.Viewable;
+import infinity.resource.ViewableContainer;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
@@ -15,29 +24,65 @@ import infinity.search.SearchFrame;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.prefs.Preferences;
+
+import javax.swing.BorderFactory;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.filechooser.FileFilter;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
-  private static final JTextArea consoletext = new JTextArea();
-  private static NearInfinity browser;
+  static {
+    // XXX: Works around a known bug in Java's Swing layouts when using FocusTraversalPolicy
+    // Note: Required for Area Viewer's JTree control; must be set before executing main()
+    System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+  }
+
+  private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
+
+  private static final boolean DEBUG = false;    // indicates whether to enable debugging features
+
+  private static final InfinityTextArea consoletext = new InfinityTextArea(true);
   private static final String KEYFILENAME = "chitin.key";
   private static final String WINDOW_SIZEX = "WindowSizeX";
   private static final String WINDOW_SIZEY = "WindowSizeY";
   private static final String WINDOW_POSX = "WindowPosX";
   private static final String WINDOW_POSY = "WindowPosY";
   private static final String WINDOW_STATE = "WindowState";
+  private static final String WINDOW_SPLITTER = "WindowSplitter";
   private static final String LAST_GAMEDIR = "LastGameDir";
+
+  private static NearInfinity browser;
+
   private final JPanel containerpanel;
+  private final JSplitPane spSplitter;
   private final ResourceTree tree;
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
   private Viewable viewable;
+
+
+  public static boolean isDebug()
+  {
+    return DEBUG;
+  }
 
   private static File findKeyfile()
   {
@@ -49,11 +94,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     chooser.setDialogTitle("Open game: Locate keyfile");
     chooser.setFileFilter(new FileFilter()
     {
+      @Override
       public boolean accept(File pathname)
       {
         return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".key");
       }
 
+      @Override
       public String getDescription()
       {
         return "Infinity Keyfile (.KEY)";
@@ -64,7 +111,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return null;
   }
 
-  public static JTextArea getConsoleText()
+  public static InfinityTextArea getConsoleText()
   {
     return consoletext;
   }
@@ -102,13 +149,16 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public static void main(String args[])
   {
-    String javaVersion = System.getProperty("java.specification.version");
+    String[] javaVersion = System.getProperty("java.specification.version").split("\\.");
     try {
-      if (Integer.parseInt(javaVersion.substring(0, 1)) < 2 &&
-          Integer.parseInt(javaVersion.substring(2, 3)) < 5) {
-        JOptionPane.showMessageDialog(null, "Version 1.5 or newer of Java is required",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
-        System.exit(10);
+      for (int i = 0; i < Math.min(JAVA_VERSION.length, javaVersion.length); i++) {
+        if (Integer.parseInt(javaVersion[i]) < JAVA_VERSION[i]) {
+          JOptionPane.showMessageDialog(null,
+                                        String.format("Version %1$d.%2$d or newer of Java is required!",
+                                                      JAVA_VERSION[0], JAVA_VERSION[1]),
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          System.exit(10);
+        }
       }
     } catch (Exception e) { // Try starting anyway if the test goes sour
       e.printStackTrace();
@@ -144,6 +194,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     addWindowListener(new WindowAdapter()
     {
+      @Override
       public void windowClosing(WindowEvent event)
       {
         if (removeViewable()) {
@@ -175,6 +226,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     statusBar = new StatusBar();
     ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
+    setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
     statusBar.setMessage(
             "Welcome to Near Infinity! - " +
             ResourceFactory.getGameName(ResourceFactory.getGameID()) +
@@ -186,16 +238,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     containerpanel = new JPanel(new BorderLayout());
     containerpanel.setBackground(UIManager.getColor("desktop"));
-    JSplitPane splith = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
-    splith.setBorder(BorderFactory.createEmptyBorder());
-    splith.setDividerLocation(200);
+    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
+    spSplitter.setBorder(BorderFactory.createEmptyBorder());
+    spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
     Container pane = getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(splith, BorderLayout.CENTER);
+    pane.add(spSplitter, BorderLayout.CENTER);
     pane.add(statusBar, BorderLayout.SOUTH);
 
     setSize(prefs.getInt(WINDOW_SIZEX, 930), prefs.getInt(WINDOW_SIZEY, 700));
-//    setSize(900, 700);
     int centerX = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth() - getSize().width >> 1;
     int centerY = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight() - getSize().height >> 1;
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
@@ -205,6 +256,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getActionCommand().equals("Open")) {
@@ -218,6 +270,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         }
         ChildFrame.closeWindows();
         ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
+        setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
         statusBar.setMessage(
                 "Welcome to Near Infinity! - " +
                 ResourceFactory.getGameName(ResourceFactory.getGameID()) +
@@ -275,8 +328,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         ChildFrame.updateWindowGUIs();
         tree.reloadRenderer();
         tree.repaint();
-        JOptionPane.showMessageDialog(this,
-                                      "It might be necessary to restart Near Infinity\nto completely change look and feel.");
+        JOptionPane.showMessageDialog(this, "It might be necessary to restart Near Infinity\n" +
+                                            "to completely change look and feel.");
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -288,16 +341,19 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
 // --------------------- Begin Interface ViewableContainer ---------------------
 
+  @Override
   public StatusBar getStatusBar()
   {
     return statusBar;
   }
 
+  @Override
   public Viewable getViewable()
   {
     return viewable;
   }
 
+  @Override
   public void setViewable(Viewable newViewable)
   {
     if (newViewable == null || !(newViewable instanceof Resource))
@@ -350,6 +406,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     removeViewable();
     ChildFrame.closeWindows();
     ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
+    setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
     statusBar.setMessage(
             "Welcome to Near Infinity! - " +
             ResourceFactory.getGameName(ResourceFactory.getGameID()) +
@@ -395,6 +452,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
     prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
     prefs.putInt(WINDOW_STATE, getExtendedState());
+    prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, ResourceFactory.getRootDir().toString());
     BrowserMenuBar.getInstance().storePreferences();
   }
@@ -411,6 +469,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       this.text = text;
     }
 
+    @Override
     public void write(byte buf[], int off, int len)
     {
       super.write(buf, off, len);

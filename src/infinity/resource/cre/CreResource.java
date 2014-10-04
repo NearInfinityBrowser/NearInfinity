@@ -5,38 +5,84 @@
 package infinity.resource.cre;
 
 import infinity.NearInfinity;
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.ColorValue;
+import infinity.datatype.Datatype;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HashBitmap;
+import infinity.datatype.HexNumber;
+import infinity.datatype.IdsBitmap;
+import infinity.datatype.IdsFlag;
+import infinity.datatype.KitIdsBitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
+import infinity.gui.ButtonPanel;
+import infinity.gui.ButtonPopupMenu;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.Effect;
+import infinity.resource.Effect2;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.search.SearchOptions;
+import infinity.util.DynamicArray;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import java.io.*;
-import java.util.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public final class CreResource extends AbstractStruct implements Resource, HasAddRemovable, AddRemovable,
-                                                                 HasDetailViewer
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+
+public final class CreResource extends AbstractStruct
+  implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener
 {
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
-  private static final String s_flag[] = {"No flags set", "Identified", "No corpse", "Permanent corpse",
-                                          "Original class: Fighter",
-                                          "Original class: Mage", "Original class: Cleric",
-                                          "Original class: Thief", "Original class: Druid",
-                                          "Original class: Ranger", "Fallen paladin", "Fallen ranger",
-                                          "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-                                          "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
-                                          "General tracking", "Race tracking", "Class tracking",
-                                          "Specifics tracking", "Gender tracking", "Alignment tracking",
-                                          "Uninterruptible"};
-  private static final String s_feats1[] = {
+  public static final String s_flag[] = {"No flags set", "Identified", "No corpse", "Permanent corpse",
+                                         "Original class: Fighter",
+                                         "Original class: Mage", "Original class: Cleric",
+                                         "Original class: Thief", "Original class: Druid",
+                                         "Original class: Ranger", "Fallen paladin", "Fallen ranger",
+                                         "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
+                                         "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
+                                         "General tracking", "Race tracking", "Class tracking",
+                                         "Specifics tracking", "Gender tracking", "Alignment tracking",
+                                         "Uninterruptible"};
+  public static final String s_feats1[] = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
     "Dash", "Deflect arrows", "Dirty fighting", "Discipline", "Dodge", "Envenom weapon", "Exotic bastard",
     "Expertise", "Extra rage", "Extra shapeshifting", "Extra smiting", "Extra turning", "Fiendslayer",
     "Forester", "Great fortitude", "Hamstring", "Heretic's bane", "Heroic inspiration", "Improved critical",
     "Improved evasion"};
-  private static final String s_feats2[] = {
+  public static final String s_feats2[] = {
     "No feats selected", "Improved initiative", "Improved turning", "Iron will", "Lightning reflexes",
     "Lingering song", "Luck of heroes", "Martial axe", "Martial bow", "Martial flail", "Martial greatsword",
     "Martial hammer", "Martial large sword", "Martial polearm", "Maximized attacks", "Mercantile background",
@@ -44,14 +90,21 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     "Simple crossbow", "Simple mace", "Simple missile", "Simple quarterstaff", "Simple small blade",
     "Slippery mind", "Snake blood", "Spell focus enchantment", "Spell focus evocation", "Spell focus necromancy",
     "Spell focus transmutation"};
-  private static final String s_feats3[] = {
+  public static final String s_feats3[] = {
     "No feats selected", "Spell penetration", "Spirit of flame", "Strong back", "Stunning fist",
     "Subvocal casting",
     "Toughness", "Two-weapon fighting", "Weapon finesse", "Wild shape boar", "Wild shape panther",
     "Wild shape shambler"};
-  private static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
-  private static final String s_noyes[] = {"No", "Yes"};
-  private static final String s_visible[] = {"Shown", "Hidden"};
+  public static final String s_attributes_pst[] = {
+    "No flags set", "", "Transparent", "", "", "Increment death variable", "Increment kill count",
+    "Script name only", "Increment faction kills", "Increment team kills", "Invulnerable",
+    "Good increment on death", "Law increment on death", "Lady increment on death", "Murder increment on death",
+    "Don't face speaker", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Died"};
+  public static final String s_attributes_iwd2[] = {"No flags set", "Mental fortitude", "Critical hit immunity",
+                                                    "Cannot be paladin", "Cannot be monk"};
+  public static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
+  public static final String s_noyes[] = {"No", "Yes"};
+  public static final String s_visible[] = {"Shown", "Hidden"};
 
   static
   {
@@ -97,6 +150,10 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     m_colorPlacement.put((long)0x00, "Not used");
   }
 
+  private boolean isChr;
+  private JMenuItem miExport, miConvert;
+  private ButtonPopupMenu bExport;
+
   public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
                                    ResourceEntry entry)
   {
@@ -107,13 +164,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       if (signature.equalsIgnoreCase("CRE ")) {
         String version = new String(buffer, 4, 4);
         if (version.equalsIgnoreCase("V1.0"))
-          scriptName = Byteconvert.convertString(buffer, 640, 32);
+          scriptName = DynamicArray.getString(buffer, 640, 32);
         else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2"))
-          scriptName = Byteconvert.convertString(buffer, 804, 32);
+          scriptName = DynamicArray.getString(buffer, 804, 32);
         else if (version.equalsIgnoreCase("V2.2"))
-          scriptName = Byteconvert.convertString(buffer, 916, 32);
+          scriptName = DynamicArray.getString(buffer, 916, 32);
         else if (version.equalsIgnoreCase("V9.0"))
-          scriptName = Byteconvert.convertString(buffer, 744, 32);
+          scriptName = DynamicArray.getString(buffer, 744, 32);
         if (scriptName.equals("") || scriptName.equalsIgnoreCase("None"))
           return;
         // Apparently script name is the only thing that matters
@@ -160,7 +217,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
         int result = JOptionPane.showOptionDialog(NearInfinity.getInstance(), output + " exists. Overwrite?",
                                                   "Save resource", JOptionPane.YES_NO_OPTION,
                                                   JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if (result == 1) return;
+        if (result != 0) return;
       }
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
@@ -244,7 +301,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   }
 
   private static int copyStruct(List<StructEntry> oldlist, List<StructEntry> newlist,
-                                int indexStructs, int offsetStructs, Class copyClass)
+                                int indexStructs, int offsetStructs,
+                                Class<? extends StructEntry> copyClass)
   {
     for (int i = indexStructs; i < oldlist.size(); i++) {
       StructEntry structEntry = oldlist.get(i);
@@ -274,15 +332,18 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   public CreResource(ResourceEntry entry) throws Exception
   {
     super(entry);
+    isChr = entry.getExtension().equalsIgnoreCase("CHR");
   }
 
   public CreResource(AbstractStruct superStruct, String name, byte data[], int startoffset) throws Exception
   {
     super(superStruct, name, data, startoffset);
+    isChr = new String(data, startoffset, 4).equalsIgnoreCase("CHR ");
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     DecNumber effectFlag = (DecNumber)getAttribute("Effect flag");
@@ -305,6 +366,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -313,18 +375,38 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new Viewer(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -332,6 +414,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateOffsets(datatype, datatype.getSize());
@@ -339,6 +422,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       updateMemorizedSpells();
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets(datatype, datatype.getSize());
@@ -347,6 +431,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     super.datatypeAddedInChild(child, datatype);
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateOffsets(datatype, -datatype.getSize());
@@ -354,6 +439,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       updateMemorizedSpells();
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets(datatype, -datatype.getSize());
@@ -362,6 +448,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     super.datatypeRemovedInChild(child, datatype);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     setExtraOffset(getExtraOffset() + offset);
@@ -555,7 +642,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 141, 1, "Wizard level"));
     list.add(new Unknown(buffer, offset + 142, 22));
 
-    LongIntegerHashMap sndmap = null;
+    LongIntegerHashMap<IdsMapEntry> sndmap = null;
     if (ResourceFactory.getInstance().resourceExists("SOUNDOFF.IDS"))
       sndmap = IdsMapCache.get("SOUNDOFF.IDS").getMap();
     if (sndmap != null) {
@@ -670,10 +757,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new Unknown(buffer, offset + 746, 15));
     list.add(new DecNumber(buffer, offset + 761, 1, "Fade amount"));
     list.add(new DecNumber(buffer, offset + 762, 1, "Fade speed"));
-    list.add(new Flag(buffer, offset + 763, 1, "Attributes",
-                      new String[]{"No flags set", "Mental fortitude",
-                                   "Critical hit immunity", "Cannot be paladin",
-                                   "Cannot be monk"}));
+    list.add(new Flag(buffer, offset + 763, 1, "Attributes", s_attributes_iwd2));
     list.add(new DecNumber(buffer, offset + 764, 1, "Visibility"));
     list.add(new Unknown(buffer, offset + 765, 2));
     list.add(new DecNumber(buffer, offset + 767, 1, "Unused skill points"));
@@ -867,13 +951,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     offset = getExtraOffset() + effects_offset.getValue();
     if (effect_flag.getValue() == 1)
       for (int i = 0; i < effects_count.getValue(); i++) {
-        Effect2 eff = new Effect2(this, buffer, offset);
+        Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
     else
       for (int i = 0; i < effects_count.getValue(); i++) {
-        Effect eff = new Effect(this, buffer, offset);
+        Effect eff = new Effect(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
@@ -1037,7 +1121,14 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 107, 1, "Spiked proficiency"));
       list.add(new DecNumber(buffer, offset + 108, 1, "Axe proficiency"));
       list.add(new DecNumber(buffer, offset + 109, 1, "Missile proficiency"));
-      list.add(new Unknown(buffer, offset + 110, 12));
+      if (ResourceFactory.isEnhancedEdition()) {
+        list.add(new Unknown(buffer, offset + 110, 9));
+        list.add(new DecNumber(buffer, offset + 119, 1, "Reputation gain/loss when killed"));
+        list.add(new DecNumber(buffer, offset + 120, 1, "Reputation gain/loss when joining party"));
+        list.add(new DecNumber(buffer, offset + 121, 1, "Reputation gain/loss when leaving party"));
+      } else {
+        list.add(new Unknown(buffer, offset + 110, 12));
+      }
     }
     else if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       list.add(new DecNumber(buffer, offset + 102, 1, "Fist proficiency"));
@@ -1082,7 +1173,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new DecNumber(buffer, offset + 122, 1, "Undead level"));
     list.add(new DecNumber(buffer, offset + 123, 1, "Tracking"));
     list.add(new TextString(buffer, offset + 124, 32, "Target"));
-    LongIntegerHashMap sndmap = null;
+    LongIntegerHashMap<IdsMapEntry> sndmap = null;
     if (ResourceFactory.getInstance().resourceExists("SNDSLOT.IDS"))
       sndmap = IdsMapCache.get("SNDSLOT.IDS").getMap();
     else if (ResourceFactory.getInstance().resourceExists("SOUNDOFF.IDS"))
@@ -1117,8 +1208,8 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     list.add(new IdsBitmap(buffer, offset + 569, 1, "Racial enemy", "RACE.IDS"));
     list.add(new DecNumber(buffer, offset + 570, 2, "Morale recovery"));
 //    list.add(new Unknown(buffer, offset + 571, 1));
-    if (ResourceFactory.getInstance().resourceExists("KITLIST.2DA"))
-      list.add(new Kit2daBitmap(buffer, offset + 572));
+    if (ResourceFactory.getInstance().resourceExists("KIT.IDS"))
+      list.add(new KitIdsBitmap(buffer, offset + 572, "Kit"));
     else {
       if (ResourceFactory.getInstance().resourceExists("DEITY.IDS"))
         list.add(new IdsBitmap(buffer, offset + 572, 2, "Deity", "DEITY.IDS"));
@@ -1147,7 +1238,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 656, 4, "Overlays size"));
       list.add(new DecNumber(buffer, offset + 660, 4, "XP second class"));
       list.add(new DecNumber(buffer, offset + 664, 4, "XP third class"));
-      LongIntegerHashMap intMap = IdsMapCache.get("INTERNAL.IDS").getMap();
+      LongIntegerHashMap<IdsMapEntry> intMap = IdsMapCache.get("INTERNAL.IDS").getMap();
       for (int i = 0; i < 10; i++) {
         if (intMap.containsKey((long)i))
           list.add(
@@ -1165,15 +1256,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
       list.add(new DecNumber(buffer, offset + 725, 1, "Collision radius")); // 0x2dd
       list.add(new Unknown(buffer, offset + 726, 1));
       list.add(new DecNumber(buffer, offset + 727, 1, "# colors"));
-      list.add(new Flag(buffer, offset + 728, 4, "Attributes",
-                        new String[]{"No flags set", "", "Transparent", "", "",
-                                     "Increment death variable", "Increment kill count",
-                                     "Script name only", "Increment faction kills",
-                                     "Increment team kills", "Invulnerable",
-                                     "Good increment on death", "Law increment on death",
-                                     "Lady increment on death", "Murder increment on death",
-                                     "Don't face speaker", "Call for help", "", "", "", "",
-                                     "", "", "", "", "", "", "", "", "", "", "Died"}));
+      list.add(new Flag(buffer, offset + 728, 4, "Attributes", s_attributes_pst));
 //      list.add(new Flag(buffer, offset + 729, 1, "Attribute flags 2",
 //                        new String[]{"No flags set", "", "Invulnerable"}));
 //      list.add(new Unknown(buffer, offset + 730, 2));
@@ -1278,7 +1361,7 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
 
     offset = getExtraOffset() + offsetKnownSpells.getValue();
     for (int i = 0; i < countKnownSpells.getValue(); i++) {
-      KnownSpells known = new KnownSpells(this, buffer, offset);
+      KnownSpells known = new KnownSpells(this, buffer, offset, i);
       offset = known.getEndOffset();
       list.add(known);
     }
@@ -1294,13 +1377,13 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
     offset = getExtraOffset() + offsetEffects.getValue();
     if (effect_flag.getValue() == 1)
       for (int i = 0; i < countEffects.getValue(); i++) {
-        Effect2 eff = new Effect2(this, buffer, offset);
+        Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
     else
       for (int i = 0; i < countEffects.getValue(); i++) {
-        Effect eff = new Effect(this, buffer, offset);
+        Effect eff = new Effect(this, buffer, offset, i);
         offset = eff.getEndOffset();
         list.add(eff);
       }
@@ -1435,12 +1518,298 @@ public final class CreResource extends AbstractStruct implements Resource, HasAd
   {
     if (getStructEntryAt(0).toString().equalsIgnoreCase("CHR "))
       ((HexNumber)getAttribute("CRE structure length")).incValue(size);
-    if (!(datatype instanceof MemorizedSpells)) {
-      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
-      if (datatype.getOffset() < offsetMemSpells.getValue() + getExtraOffset() ||
-          datatype.getOffset() == offsetMemSpells.getValue() + getExtraOffset() && size > 0)
-        offsetMemSpells.incValue(size);
+//    if (!(datatype instanceof MemorizedSpells)) {
+//      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
+//      if (datatype.getOffset() < offsetMemSpells.getValue() + getExtraOffset() ||
+//          datatype.getOffset() == offsetMemSpells.getValue() + getExtraOffset() && size > 0)
+//        offsetMemSpells.incValue(size);
+//    }
+  }
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    if (isChr) {
+      ButtonPanel panel = viewer.getButtonPanel();
+      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.ExportButton);
+      int idx = panel.getControlPosition(b);
+      if (b != null && idx >= 0) {
+        // replacing button with menu
+        b.removeActionListener(viewer);
+        panel.removeControl(idx);
+        miExport = new JMenuItem("original");
+        miExport.setToolTipText(b.getToolTipText());
+        miConvert = new JMenuItem("as CRE");
+        bExport = (ButtonPopupMenu)panel.addControl(idx, ButtonPanel.Control.ExportMenu);
+        bExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
+        bExport.addItemListener(this);
+      }
     }
+  }
+
+//--------------------- Begin Interface ItemListener ---------------------
+
+  @Override
+  public void itemStateChanged(ItemEvent event)
+  {
+    if (event.getSource() == bExport) {
+      JMenuItem item = bExport.getSelectedItem();
+      if (item == miExport) {
+        ResourceFactory.getInstance().exportResource(getResourceEntry(), NearInfinity.getInstance());
+      } else if (item == miConvert) {
+        convertCHRtoCRE(getResourceEntry());
+      }
+    }
+  }
+
+//--------------------- End Interface ItemListener ---------------------
+
+
+  // Called by "Extended Search"
+  // Checks whether the specified resource entry matches all available search options.
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
+  {
+    if (entry != null && searchOptions != null) {
+      try {
+        CreResource cre = new CreResource(entry);
+        AbstractStruct[] effects;
+        AbstractStruct[] items;
+        Datatype[] spells;
+        boolean retVal = true;
+        String key;
+        Object o;
+
+        // preparing substructures
+        DecNumber ofs = (DecNumber)cre.getAttribute("Effects offset");
+        DecNumber cnt = (DecNumber)cre.getAttribute("# effects");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          effects = new AbstractStruct[cnt.getValue()];
+          for (int idx = 0; idx < cnt.getValue(); idx++) {
+            String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Effect), idx);
+            effects[idx] = (AbstractStruct)cre.getAttribute(label);
+          }
+        } else {
+          effects = new AbstractStruct[0];
+        }
+
+        ofs = (DecNumber)cre.getAttribute("Items offset");
+        cnt = (DecNumber)cre.getAttribute("# items");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          items = new AbstractStruct[cnt.getValue()];
+          for (int idx = 0; idx < cnt.getValue(); idx++) {
+            String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Item), idx);
+            items[idx] = (AbstractStruct)cre.getAttribute(label);
+          }
+        } else {
+          items = new AbstractStruct[0];
+        }
+
+        if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+          final String[] spellTypes = new String[]{
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellCleric),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDruid),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellPaladin),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellRanger),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellSorcerer),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellWizard),
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDomain)};
+          final String spellTypesStruct = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell);
+          final String spellTypesRef = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell_ResRef);
+          List<Datatype> listSpells = new ArrayList<Datatype>(64);
+          for (int i = 0; i < spellTypes.length; i++) {
+            for (int j = 1; j < 10; j++) {
+              String label = String.format(spellTypes[i], j);
+              AbstractStruct struct1 = (AbstractStruct)cre.getAttribute(label);
+              if (struct1 != null) {
+                AbstractStruct struct2 = (AbstractStruct)struct1.getAttribute(spellTypesStruct);
+                if (struct2 != null) {
+                  Datatype struct3 = (Datatype)struct2.getAttribute(spellTypesRef);
+                  if (struct3 != null) {
+                    listSpells.add(struct3);
+                  }
+                }
+              }
+            }
+          }
+          spells = new Datatype[listSpells.size()];
+          for (int i = 0; i < spells.length; i++) {
+            spells[i] = listSpells.get(i);
+          }
+        } else {
+          ofs = (DecNumber)cre.getAttribute("Known spells offset");
+          cnt = (DecNumber)cre.getAttribute("# known spells");
+          if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+            spells = new Datatype[cnt.getValue()];
+            final String spellLabel = SearchOptions.getResourceName(SearchOptions.CRE_Spell_Spell1);
+            for (int idx = 0; idx < cnt.getValue(); idx++) {
+              String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Spell), idx);
+              AbstractStruct struct = (AbstractStruct)cre.getAttribute(label);
+              spells[idx] = (Datatype)struct.getAttribute(spellLabel);
+            }
+          } else {
+            spells = new Datatype[0];
+          }
+        }
+
+        // checking options
+        String[] keyList = new String[]{SearchOptions.CRE_Name, SearchOptions.CRE_ScriptName};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Script1, SearchOptions.CRE_Script2};
+        String[] scriptFields;
+        if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+          scriptFields = new String[]{"Team script", "Special script 1", "Override script",
+                                      "Special script 2", "Combat script", "Special script 3",
+                                      "Movement script"};
+        } else {
+          scriptFields = new String[]{"Override script", "Class script", "Race script",
+                                      "General script", "Default script"};
+        }
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < scriptFields.length; idx2++) {
+              StructEntry struct = cre.getAttribute(scriptFields[idx2]);
+              found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+            }
+            retVal &= found;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Flags, SearchOptions.CRE_Feats1,
+                               SearchOptions.CRE_Feats2, SearchOptions.CRE_Feats3,
+                               SearchOptions.CRE_Attributes};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Animation, SearchOptions.CRE_General,
+                               SearchOptions.CRE_Class, SearchOptions.CRE_Specifics,
+                               SearchOptions.CRE_Alignment, SearchOptions.CRE_Gender,
+                               SearchOptions.CRE_Sex, SearchOptions.CRE_Race,
+                               SearchOptions.CRE_Allegiance, SearchOptions.CRE_Kit,
+                               SearchOptions.CRE_Level1, SearchOptions.CRE_Level2, SearchOptions.CRE_Level3,
+                               SearchOptions.CRE_IWD2LevelTotal, SearchOptions.CRE_IWD2LevelBarbarian,
+                               SearchOptions.CRE_IWD2LevelBard, SearchOptions.CRE_IWD2LevelCleric,
+                               SearchOptions.CRE_IWD2LevelDruid, SearchOptions.CRE_IWD2LevelFighter,
+                               SearchOptions.CRE_IWD2LevelMonk, SearchOptions.CRE_IWD2LevelPaladin,
+                               SearchOptions.CRE_IWD2LevelRanger, SearchOptions.CRE_IWD2LevelRogue,
+                               SearchOptions.CRE_IWD2LevelSorcerer, SearchOptions.CRE_IWD2LevelWizard};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchNumber(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Effect_Type1, SearchOptions.CRE_Effect_Type2,
+                               SearchOptions.CRE_Effect_Type3, SearchOptions.CRE_Effect_Type4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < effects.length; idx2++) {
+              if (!found) {
+                if (effects[idx2] != null) {
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  found |= SearchOptions.Utils.matchNumber(struct, o);
+                }
+              } else {
+                break;
+              }
+            }
+            retVal &= found || (o == null);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Item_Item1, SearchOptions.CRE_Item_Item2,
+                               SearchOptions.CRE_Item_Item3, SearchOptions.CRE_Item_Item4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < items.length; idx2++) {
+              if (!found) {
+                if (items[idx2] != null) {
+                  StructEntry struct = items[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+                }
+              } else {
+                break;
+              }
+            }
+            retVal &= found || (o == null);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Spell_Spell1, SearchOptions.CRE_Spell_Spell2,
+                               SearchOptions.CRE_Spell_Spell3, SearchOptions.CRE_Spell_Spell4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            boolean found = false;
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            for (int idx2 = 0; idx2 < spells.length; idx2++) {
+              if (!found) {
+                if (spells[idx2] != null) {
+                  found |= SearchOptions.Utils.matchResourceRef(spells[idx2], o, false);
+                }
+              } else {
+                break;
+              }
+            }
+            retVal &= found || (o == null);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.CRE_Custom1, SearchOptions.CRE_Custom2,
+                               SearchOptions.CRE_Custom3, SearchOptions.CRE_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(cre, o);
+          } else {
+            break;
+          }
+        }
+
+        return retVal;
+      } catch (Exception e) {
+      }
+    }
+    return false;
   }
 }
 

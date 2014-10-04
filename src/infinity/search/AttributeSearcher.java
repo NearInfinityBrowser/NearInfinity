@@ -8,15 +8,34 @@ import infinity.datatype.DecNumber;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.ProgressMonitor;
 
 public final class AttributeSearcher implements Runnable, ActionListener
 {
@@ -30,7 +49,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
   private final JRadioButton rbless = new JRadioButton("Less than");
   private final JRadioButton rbgreater = new JRadioButton("Greater than");
   private final JTextField tfinput = new JTextField("", 15);
-  private final List files;
+  private final List<ResourceEntry> files;
   private final StructEntry structEntry;
 
   public AttributeSearcher(AbstractStruct struct, StructEntry structEntry, Component parent)
@@ -125,6 +144,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bsearch || event.getSource() == tfinput) {
@@ -142,6 +162,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     String title = structEntry.getName() + " - " + tfinput.getText();
@@ -175,7 +196,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
       ResourceEntry entry = (ResourceEntry)files.get(i);
       AbstractStruct resource = (AbstractStruct)ResourceFactory.getResource(entry);
       if (resource != null) {
-        List flatList = resource.getFlatList();
+        List<StructEntry> flatList = resource.getFlatList();
         for (int j = 0; j < flatList.size(); j++) {
           StructEntry searchEntry = (StructEntry)flatList.get(j);
           if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass() ||

@@ -4,13 +4,12 @@
 
 package infinity.util;
 
-import infinity.util.Filewriter;
-import java.util.Arrays;
-import java.util.Vector;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
+import java.util.Vector;
 
 // Create a new IE game resource from scratch.
 public class ResourceStructure implements Cloneable
@@ -226,6 +225,7 @@ public class ResourceStructure implements Cloneable
 
 // --------------------- Begin Interface Cloneable ---------------------
 
+  @Override
   public Object clone()
   {
     ResourceStructure o = new ResourceStructure();
@@ -236,6 +236,7 @@ public class ResourceStructure implements Cloneable
 
 // --------------------- End Interface Cloneable ---------------------
 
+  @Override
   public boolean equals(Object obj)
   {
     if (obj == this)
@@ -245,6 +246,7 @@ public class ResourceStructure implements Cloneable
     return (list.equals(((ResourceStructure)obj).list) && cursize == ((ResourceStructure)obj).cursize);
   }
 
+  @Override
   public int hashCode()
   {
     return super.hashCode() + list.hashCode() + cursize;
@@ -277,6 +279,7 @@ public class ResourceStructure implements Cloneable
 
 // --------------------- Begin Interface Cloneable ---------------------
 
+    @Override
     public Object clone()
     {
       return new Item(type, size, value);
@@ -284,6 +287,7 @@ public class ResourceStructure implements Cloneable
 
 // --------------------- End Interface Cloneable ---------------------
 
+    @Override
     public boolean equals(Object obj)
     {
       if (obj == this)
@@ -293,6 +297,7 @@ public class ResourceStructure implements Cloneable
       return (type == ((Item)obj).type && size == ((Item)obj).size && value == ((Item)obj).value);
     }
 
+    @Override
     public int hashCode()
     {
       return super.hashCode() + type + size + value.hashCode();
@@ -322,15 +327,15 @@ public class ResourceStructure implements Cloneable
       switch (type) {
         case ID_BYTE:
           if (value != null)
-            buf.put((byte)value);
+            buf.put((Byte)value);
           break;
         case ID_WORD:
           if (value != null)
-            buf.putShort((short)value);
+            buf.putShort((Short)value);
           break;
         case ID_DWORD:
           if (value != null)
-            buf.putInt((int)value);
+            buf.putInt((Integer)value);
           break;
         case ID_RESREF:
         case ID_STRING:

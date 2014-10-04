@@ -4,10 +4,17 @@
 
 package infinity.gui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.text.BadLocationException;
 
 public final class StatusBar extends JPanel implements CaretListener
 {
@@ -31,6 +38,7 @@ public final class StatusBar extends JPanel implements CaretListener
 
 // --------------------- Begin Interface CaretListener ---------------------
 
+  @Override
   public void caretUpdate(CaretEvent event)
   {
     if (event.getSource() instanceof JTextArea) {

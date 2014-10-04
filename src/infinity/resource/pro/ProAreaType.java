@@ -18,13 +18,13 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable
 {
-  private static final LongIntegerHashMap<String> s_proj = new LongIntegerHashMap<String>();
-  private static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
-                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
-                                               "Fragments", "Not affecting allies", "Not affecting enemies",
-                                               "Mage-level duration", "Cleric-level duration", "Draw animation",
-                                               "Cone-shaped", "Ignore visibility", "Delayed explosion",
-                                               "Skip first condition", "Single target"};
+  public static final LongIntegerHashMap<String> s_proj = new LongIntegerHashMap<String>();
+  public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
+                                              "Triggered by condition", "Delayed trigger", "Secondary projectile",
+                                              "Fragments", "Not affecting allies", "Not affecting enemies",
+                                              "Mage-level duration", "Cleric-level duration", "Draw animation",
+                                              "Cone-shaped", "Ignore visibility", "Delayed explosion",
+                                              "Skip first condition", "Single target"};
 
   static {
     s_proj.put(0L, "Fireball");
@@ -63,6 +63,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return false;   // can not be removed manually
@@ -70,6 +71,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Area flags", s_areaflags));

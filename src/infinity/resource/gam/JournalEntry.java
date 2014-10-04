@@ -4,7 +4,12 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HashBitmap;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.ResourceFactory;
@@ -17,8 +22,8 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
                                                          "Journal"};
 
   static {
-    chapter.put(0x1f, "From talk override");
-    chapter.put(0xff, "From dialog.tlk");
+    chapter.put(new Long(0x1f), "From talk override");
+    chapter.put(new Long(0xff), "From dialog.tlk");
   }
 
 
@@ -27,13 +32,14 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
     super(null, "Journal entry", new byte[12], 0);
   }
 
-  JournalEntry(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  JournalEntry(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Journal entry", buffer, offset);
+    super(superStruct, "Journal entry " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -41,13 +47,14 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new StringRef(buffer, offset, "Text"));
     list.add(new DecNumber(buffer, offset + 4, 4, "Time (ticks)"));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_TUTU) {
+        ResourceFactory.isEnhancedEdition()) {
       list.add(new UnsignDecNumber(buffer, offset + 8, 1, "Chapter"));
       list.add(new Unknown(buffer, offset + 9, 1));
       list.add(new Flag(buffer, offset + 10, 1, "Section", s_section));

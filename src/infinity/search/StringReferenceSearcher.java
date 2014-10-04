@@ -5,15 +5,21 @@
 package infinity.search;
 
 import infinity.datatype.StringRef;
-import infinity.resource.*;
-import infinity.resource.bcs.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Compiler;
-import infinity.resource.dlg.*;
+import infinity.resource.bcs.Decompiler;
+import infinity.resource.dlg.AbstractCode;
+import infinity.resource.dlg.Action;
+import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
 import infinity.resource.sav.SavResource;
+import infinity.resource.text.PlainTextResource;
 
-import java.awt.*;
+import java.awt.Component;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +36,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
     this.searchvalue = searchvalue;
   }
 
+  @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
     if (resource instanceof BcsResource)
@@ -88,7 +95,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSave(ResourceEntry entry, SavResource savfile)
   {
-    List entries = savfile.getFileHandler().getFileEntries();
+    List<? extends ResourceEntry> entries = savfile.getFileHandler().getFileEntries();
     for (int i = 0; i < entries.size(); i++) {
       ResourceEntry saventry = (ResourceEntry)entries.get(i);
       Resource resource = ResourceFactory.getResource(saventry);

@@ -4,7 +4,12 @@
 
 package infinity.resource.chu;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 
@@ -24,15 +29,15 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   Window(AbstractStruct superStruct, byte buffer[], int offset, int nr, int size) throws Exception
   {
-    super(superStruct, "Panel " + nr, buffer, offset + (size - 28));
-    if (size == 36) {
+    super(superStruct, "Panel " + nr, buffer, (size >= 36) ? (offset + 8) : offset);
+    if (size >= 36) {
       list.add(0, new TextString(buffer, offset, 8, "Name"));
-      setStartOffset(getOffset() - 8);
     }
   }
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     Collections.sort(list);
@@ -55,7 +60,7 @@ final class Window extends AbstractStruct // implements AddRemovable
     controlsoffset += (int)(first * (long)8);
     int endoffset = controlsoffset;
     for (int i = 0; i < numctrl; i++) {
-      Control control = new Control(this, buffer, controlsoffset);
+      Control control = new Control(this, buffer, controlsoffset, i);
       controlsoffset = control.getEndOffset();
       endoffset = control.readControl(buffer);
       list.add(control);
@@ -81,6 +86,7 @@ final class Window extends AbstractStruct // implements AddRemovable
     }
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new DecNumber(buffer, offset, 4, "Panel ID"));

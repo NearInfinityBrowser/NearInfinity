@@ -4,21 +4,35 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasDetailViewer,
+public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasViewerTabs,
                                                                HasAddRemovable
 {
-  private static final String s_type[] = {
-    "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
-    "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
+  private static final String s_type[] = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
+                                           "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
   private static final String s_yesno[] = {"No", "Yes"};
   private static final String s_flag[] = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
                                            "", "Disabled" };
+  private static final String s_flag_ee[] = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
+                                              "", "Disabled", "Don't clear" };
 
   public Container() throws Exception
   {
@@ -32,6 +46,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Vertex(), new Item()};
@@ -42,6 +57,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -50,18 +66,38 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerContainer(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface HasVertices ---------------------
 
+  @Override
   public void readVertices(byte buffer[], int offset) throws Exception
   {
     int firstVertex = ((DecNumber)getAttribute("First vertex index")).getValue();
@@ -71,6 +107,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
       list.add(new Vertex(this, buffer, offset + 4 * i, i));
   }
 
+  @Override
   public int updateVertices(int offset, int number)
   {
     ((DecNumber)getAttribute("First vertex index")).setValue(number);
@@ -90,6 +127,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
 // --------------------- End Interface HasVertices ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {
@@ -135,6 +173,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     return count;
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
@@ -142,7 +181,11 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     list.add(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
     list.add(new Bitmap(buffer, offset + 36, 2, "Type", s_type));
     list.add(new DecNumber(buffer, offset + 38, 2, "Lock difficulty"));
-    list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
+    if (ResourceFactory.isEnhancedEdition()) {
+      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag_ee));
+    } else {
+      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
+    }
     list.add(new DecNumber(buffer, offset + 44, 2, "Trap detection difficulty"));
     list.add(new DecNumber(buffer, offset + 46, 2, "Trap removal difficulty"));
     list.add(new Bitmap(buffer, offset + 48, 2, "Is trapped?", s_yesno));

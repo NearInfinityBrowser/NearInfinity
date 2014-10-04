@@ -4,31 +4,25 @@
 
 package infinity.datatype;
 
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class UnsignDecNumber extends Datatype implements InlineEditable
+public final class UnsignDecNumber extends Datatype implements InlineEditable, Readable
 {
   private long number;
 
   public UnsignDecNumber(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    number = (long)0;
-    if (length == 4)
-      number = Byteconvert.convertUnsignedInt(buffer, offset);
-    else if (length == 2)
-      number = (long)Byteconvert.convertUnsignedShort(buffer, offset);
-    else if (length == 1)
-      number = (long)Byteconvert.convertUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    number = 0;
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     try {
@@ -48,6 +42,7 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, number);
@@ -55,6 +50,29 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        number = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        number = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        number = DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     return Long.toString(number);

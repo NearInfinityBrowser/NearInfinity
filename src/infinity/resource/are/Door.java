@@ -4,9 +4,25 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
-import infinity.resource.vertex.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.vertex.ClosedVertex;
+import infinity.resource.vertex.ClosedVertexImpeded;
+import infinity.resource.vertex.OpenVertex;
+import infinity.resource.vertex.OpenVertexImpeded;
+import infinity.resource.vertex.Vertex;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
 {
@@ -33,6 +49,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new OpenVertex(), new ClosedVertex(), new ClosedVertexImpeded(),
@@ -44,6 +61,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -54,6 +72,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 
 // --------------------- Begin Interface HasVertices ---------------------
 
+  @Override
   public void readVertices(byte buffer[], int offset) throws Exception
   {
     DecNumber firstVertex = (DecNumber)getAttribute("First vertex index (open)");
@@ -77,6 +96,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
       list.add(new ClosedVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
   }
 
+  @Override
   public int updateVertices(int offset, int number)
   {
     // Må anta at antallet er riktig
@@ -102,6 +122,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 
 // --------------------- End Interface HasVertices ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     int offset = ((HexNumber)getSuperStruct().getAttribute("Vertices offset")).getValue();
@@ -127,6 +148,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     }
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));

@@ -4,7 +4,9 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.ResourceRef;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -17,13 +19,14 @@ final class KnownSpells extends AbstractStruct implements AddRemovable
     super(null, "Known spell", new byte[12], 0);
   }
 
-  KnownSpells(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  KnownSpells(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Known spell", buffer, offset);
+    super(superStruct, "Known spell " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -31,6 +34,7 @@ final class KnownSpells extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));

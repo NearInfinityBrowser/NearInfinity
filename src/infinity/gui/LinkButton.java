@@ -9,11 +9,16 @@ import infinity.datatype.ResourceRef;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Cursor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 
 final class LinkButton extends JLabel implements MouseListener, ActionListener
 {
@@ -44,6 +49,7 @@ final class LinkButton extends JLabel implements MouseListener, ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent e)
   {
     String cmd = e.getActionCommand();
@@ -61,6 +67,7 @@ final class LinkButton extends JLabel implements MouseListener, ActionListener
 
 // --------------------- Begin Interface MouseListener ---------------------
 
+  @Override
   public void mouseClicked(MouseEvent e)
   {
     String cmd = "OPEN_NEW";
@@ -74,18 +81,22 @@ final class LinkButton extends JLabel implements MouseListener, ActionListener
       listeners.get(i).actionPerformed(event);
   }
 
+  @Override
   public void mousePressed(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseReleased(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseEntered(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseExited(MouseEvent e)
   {
   }

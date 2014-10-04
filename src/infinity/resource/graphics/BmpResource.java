@@ -4,22 +4,32 @@
 
 package infinity.resource.graphics;
 
-import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.gui.ButtonPanel;
+import infinity.gui.RenderCanvas;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 public final class BmpResource implements Resource, ActionListener
 {
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private BufferedImage image;
-  private JButton bfind, bexport;
   private JPanel panel;
   private Palette palette;
 
@@ -28,48 +38,55 @@ public final class BmpResource implements Resource, ActionListener
     this.entry = entry;
     byte[] data = entry.getResourceData();
     new String(data, 0, 2); // Signature
-    Byteconvert.convertInt(data, 2); // Size
-    Byteconvert.convertInt(data, 6); // Reserved
-    int rasteroff = Byteconvert.convertInt(data, 10);
+    DynamicArray.getInt(data, 2); // Size
+    DynamicArray.getInt(data, 6); // Reserved
+    int rasteroff = DynamicArray.getInt(data, 10);
 
-    Byteconvert.convertInt(data, 14); // Headersize
-    int width = Byteconvert.convertInt(data, 18);
-    int height = Byteconvert.convertInt(data, 22);
-    Byteconvert.convertShort(data, 26); // Planes
-    int bitcount = (int)Byteconvert.convertShort(data, 28);
-    int compression = Byteconvert.convertInt(data, 30);
-    if (compression != 0)
-      throw new Exception("Compressed BMP files not supported");
-    Byteconvert.convertInt(data, 34); // Comprsize
-    Byteconvert.convertInt(data, 38); // Xpixprm
-    Byteconvert.convertInt(data, 42); // Ypixprm
-    Byteconvert.convertInt(data, 46); // Colorsused
-    Byteconvert.convertInt(data, 50); // Colorsimp
+    DynamicArray.getInt(data, 14); // Headersize
+    int width = DynamicArray.getInt(data, 18);
+    int height = DynamicArray.getInt(data, 22);
+    DynamicArray.getShort(data, 26); // Planes
+    int bitcount = (int)DynamicArray.getShort(data, 28);
+    int compression = DynamicArray.getInt(data, 30);
+    if ((compression == 0 || compression == 3) && bitcount <= 32) {
+      DynamicArray.getInt(data, 34); // Comprsize
+      DynamicArray.getInt(data, 38); // Xpixprm
+      DynamicArray.getInt(data, 42); // Ypixprm
+      int colsUsed = DynamicArray.getInt(data, 46); // Colorsused
+      DynamicArray.getInt(data, 50); // Colorsimp
 
-    if (bitcount <= 8)
-      palette = new Palette(data, 54, 4 * (int)Math.pow((double)2, (double)bitcount));
+      if (bitcount <= 8) {
+        if (colsUsed == 0)
+          colsUsed = 1 << bitcount;
+        int palSize = 4 * colsUsed;
+        palette = new Palette(data, rasteroff - palSize, palSize);
+      }
 
-    int bytesprline = bitcount * width / 8;
-    int padded = 4 - bytesprline % 4;
-    if (padded == 4)
-      padded = 0;
+      int bytesprline = bitcount * width / 8;
+      int padded = 4 - bytesprline % 4;
+      if (padded == 4)
+        padded = 0;
 
-    image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-    int offset = rasteroff;
-    for (int y = height - 1; y >= 0; y--) {
-      setPixels(data, offset, bitcount, bytesprline, y, palette);
-      offset += bytesprline + padded;
-    }
+      image = ColorConvert.createCompatibleImage(width, height, bitcount >= 32);
+      int offset = rasteroff;
+      for (int y = height - 1; y >= 0; y--) {
+        setPixels(data, offset, bitcount, bytesprline, y, palette);
+        offset += bytesprline + padded;
+      }
+    } else
+      throw new Exception("Unsupported BMP format");
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bfind)
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
-    else if (event.getSource() == bexport)
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -77,6 +94,7 @@ public final class BmpResource implements Resource, ActionListener
 
 // --------------------- Begin Interface Resource ---------------------
 
+  @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
@@ -87,25 +105,21 @@ public final class BmpResource implements Resource, ActionListener
 
 // --------------------- Begin Interface Viewable ---------------------
 
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bfind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
-    bexport.setMnemonic('e');
-    bexport.addActionListener(this);
-    bfind.setMnemonic('r');
-    bfind.addActionListener(this);
-    JScrollPane scroll = new JScrollPane(new JLabel(new ImageIcon(image)));
+    RenderCanvas rcCanvas = new RenderCanvas(image);
+    JScrollPane scroll = new JScrollPane(rcCanvas);
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+    scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    JPanel bpanel = new JPanel();
-    bpanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(bfind);
-    bpanel.add(bexport);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);;
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
-    panel.add(bpanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
     return panel;
   }
@@ -143,7 +157,14 @@ public final class BmpResource implements Resource, ActionListener
     else if (bitcount == 24) {
       for (int x = 0; x < width / 3; x++) {
         byte[] color = {data[offset + 3 * x], data[offset + 3 * x + 1], data[offset + 3 * x + 2], 0};
-        image.setRGB(x, y, Byteconvert.convertInt(color, 0));
+        image.setRGB(x, y, DynamicArray.getInt(color, 0));
+      }
+    }
+    else if (bitcount == 32) {
+      for (int x = 0; x < width / 4; x++) {
+        byte[] color = {data[offset + 4 * x], data[offset + 4 * x + 1],
+            data[offset + 4 * x + 2], data[offset + 4 * x + 3]};
+        image.setRGB(x, y, DynamicArray.getInt(color, 0));
       }
     }
   }

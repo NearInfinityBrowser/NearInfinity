@@ -4,7 +4,10 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
 final class Familiar extends AbstractStruct
@@ -14,6 +17,7 @@ final class Familiar extends AbstractStruct
     super(superStruct, "Familiar info", buffer, offset);
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Lawful good", "CRE"));
@@ -28,7 +32,12 @@ final class Familiar extends AbstractStruct
     HexNumber offEOS = new HexNumber(buffer, offset + 72, 4, "End of structure offset");
     list.add(offEOS);
     offset += 76;
-    int unknownSize = offEOS.getValue() > buffer.length ? buffer.length - offset : offEOS.getValue() - offset;
+    int unknownOfs = offEOS.getValue();
+    if (unknownOfs < offset) {
+      // size of unknown block appears to be always 324 bytes in valid GAM files
+      unknownOfs = Math.min(offset + 324, buffer.length);
+    }
+    int unknownSize = unknownOfs > buffer.length ? buffer.length - offset : unknownOfs - offset;
     list.add(new Unknown(buffer, offset, unknownSize));
     offset += unknownSize;
     return offset;

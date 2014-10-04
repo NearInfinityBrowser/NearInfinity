@@ -8,15 +8,39 @@ import infinity.NearInfinity;
 import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
-import infinity.resource.key.*;
+import infinity.resource.key.BIFFResourceEntry;
+import infinity.resource.key.FileResourceEntry;
+import infinity.resource.key.ResourceEntry;
+import infinity.resource.key.ResourceTreeModel;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Stack;
+
+import javax.swing.JButton;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 public final class ResourceTree extends JPanel implements TreeSelectionListener, ActionListener
 {
@@ -61,6 +85,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bprev) {
@@ -84,6 +109,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
 // --------------------- Begin Interface TreeSelectionListener ---------------------
 
+  @Override
   public void valueChanged(TreeSelectionEvent event)
   {
     Object node = tree.getLastSelectedPathComponent();
@@ -162,6 +188,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       timer.setRepeats(false);
     }
 
+    @Override
     public void keyTyped(KeyEvent event)
     {
       currentkey += new Character(event.getKeyChar()).toString().toUpperCase();
@@ -175,7 +202,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       for (int i = startrow; i < tree.getRowCount(); i++) {
         TreePath path = tree.getPathForRow(i);
         if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-            path.getLastPathComponent().toString().startsWith(currentkey)) {
+            path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
           showresource = false;
           tree.scrollPathToVisible(path);
           tree.addSelectionPath(path);
@@ -186,7 +213,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         for (int i = 0; i < startrow; i++) {
           TreePath path = tree.getPathForRow(i);
           if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-              path.getLastPathComponent().toString().startsWith(currentkey)) {
+              path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
             showresource = false;
             tree.scrollPathToVisible(path);
             tree.addSelectionPath(path);
@@ -199,6 +226,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       tree.clearSelection();
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       currentkey = "";
@@ -215,11 +243,13 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   {
     private final TreePopupMenu pmenu = new TreePopupMenu();
 
+    @Override
     public void mousePressed(MouseEvent e)
     {
       maybeShowPopup(e);
     }
 
+    @Override
     public void mouseReleased(MouseEvent e)
     {
       maybeShowPopup(e);
@@ -270,6 +300,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       mi_delete.setFont(mi_opennew.getFont());
     }
 
+    @Override
     public void show(Component invoker, int x, int y)
     {
       super.show(invoker, x, y);
@@ -282,6 +313,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         mi_delete.setEnabled(false);
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       showresource = true;
@@ -330,7 +362,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                                                        entry +
                                                                        '?',
                                            "Delete file", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
           NearInfinity.getInstance().removeViewable();
           ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
@@ -342,7 +374,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), "Are you sure you want to delete the " +
                                                                        "override file to " + entry + '?',
                                            "Delete file", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
           NearInfinity.getInstance().removeViewable();
           entry.deleteOverride();
@@ -357,6 +389,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     {
     }
 
+    @Override
     public Component getTreeCellRendererComponent(JTree tree, Object o, boolean sel, boolean expanded,
                                                   boolean leaf, int row, boolean hasFocus)
     {

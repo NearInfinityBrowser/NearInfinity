@@ -4,51 +4,58 @@
 
 package infinity.resource.wmp;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.StringRef;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.HasViewerTabs;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailViewer, HasAddRemovable
+final class AreaEntry extends AbstractStruct implements HasViewerTabs
 {
   private static final String s_flag[] = {"No flags set", "Visible", "Reveal from linked area",
                                           "Can be visited", "Has been visited"};
-
-  AreaEntry() throws Exception
-  {
-    super(null, "Area", new byte[240], 0);
-  }
 
   AreaEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "Area " + nr, buffer, offset);
   }
 
-  public AddRemovable[] getAddRemovables() throws Exception
+// --------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
   {
-    return new AddRemovable[] { new AreaLinkNorth(), new AreaLinkSouth(),
-                                new AreaLinkEast(), new AreaLinkWest() };
+    return 1;
   }
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
 
-  public JComponent getDetailViewer()
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerArea(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
-  public boolean canRemove()
+  @Override
+  public boolean viewerTabAddedBefore(int index)
   {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+// --------------------- End Interface HasViewerTabs ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Current area", "ARE"));
@@ -79,25 +86,25 @@ final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailV
     DecNumber northCount = (DecNumber)getAttribute("# links (north)");
     int offset = linkOffset.getValue() + northStart.getValue() * 216;
     for (int i = 0; i < northCount.getValue(); i++)
-      list.add(new AreaLinkNorth(this, buffer, offset + i * 216));
+      list.add(new AreaLinkNorth(this, buffer, offset + i * 216, i));
 
     DecNumber westStart = (DecNumber)getAttribute("First link (west)");
     DecNumber westCount = (DecNumber)getAttribute("# links (west)");
     offset = linkOffset.getValue() + westStart.getValue() * 216;
     for (int i = 0; i < westCount.getValue(); i++)
-      list.add(new AreaLinkWest(this, buffer, offset + i * 216));
+      list.add(new AreaLinkWest(this, buffer, offset + i * 216, i));
 
     DecNumber southStart = (DecNumber)getAttribute("First link (south)");
     DecNumber southCount = (DecNumber)getAttribute("# links (south)");
     offset = linkOffset.getValue() + southStart.getValue() * 216;
     for (int i = 0; i < southCount.getValue(); i++)
-      list.add(new AreaLinkSouth(this, buffer, offset + i * 216));
+      list.add(new AreaLinkSouth(this, buffer, offset + i * 216, i));
 
     DecNumber eastStart = (DecNumber)getAttribute("First link (east)");
     DecNumber eastCount = (DecNumber)getAttribute("# links (east)");
     offset = linkOffset.getValue() + eastStart.getValue() * 216;
     for (int i = 0; i < eastCount.getValue(); i++)
-      list.add(new AreaLinkEast(this, buffer, offset + i * 216));
+      list.add(new AreaLinkEast(this, buffer, offset + i * 216, i));
   }
 }
 

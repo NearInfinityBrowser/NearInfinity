@@ -4,12 +4,13 @@
 
 package infinity.datatype;
 
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class TextString extends Datatype implements InlineEditable
+public final class TextString extends Datatype implements InlineEditable, Readable
 {
   private final byte bytes[];
   private String text;
@@ -17,11 +18,13 @@ public final class TextString extends Datatype implements InlineEditable
   public TextString(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    bytes = ArrayUtil.getSubArray(buffer, offset, length);
+    bytes = new byte[length];
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     String newstring = (String)value;
@@ -36,6 +39,7 @@ public final class TextString extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (text == null)
@@ -46,10 +50,22 @@ public final class TextString extends Datatype implements InlineEditable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    System.arraycopy(buffer, offset, bytes, 0, getSize());
+    text = null;
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     if (text == null)
-      text = Byteconvert.convertString(bytes, 0, bytes.length);
+      text = DynamicArray.getString(bytes, 0, bytes.length);
     return text;
   }
 }

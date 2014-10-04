@@ -17,14 +17,15 @@ final class Purchases extends Bitmap implements AddRemovable
           ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? ItmResource.s_categories11 : ItmResource.s_categories);
   }
 
-  Purchases(byte buffer[], int offset)
+  Purchases(byte buffer[], int offset, int number)
   {
-    super(buffer, offset, 4, "Store purchases",
+    super(buffer, offset, 4, "Store purchases " + number,
           ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? ItmResource.s_categories11 : ItmResource.s_categories);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;

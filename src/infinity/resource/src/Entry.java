@@ -16,13 +16,14 @@ final class Entry extends AbstractStruct implements AddRemovable
     super(null, "Entry", new byte[8], 0);
   }
 
-  Entry(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Entry(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Entry", buffer, offset);
+    super(superStruct, "Entry " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -30,6 +31,7 @@ final class Entry extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new StringRef(buffer, offset, "Text"));

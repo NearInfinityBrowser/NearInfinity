@@ -4,24 +4,21 @@
 
 package infinity.datatype;
 
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.EffectFactory;
+import infinity.resource.StructEntry;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class EffectType extends Bitmap
+public final class EffectType extends Bitmap implements UpdateListener
 {
   public static final String s_dispel[] = {"No dispel/bypass resistance", "Dispel/Not bypass resistance",
                                            "Not dispel/bypass resistance", "Dispel/Bypass resistance"};
   private static final String s_target[] = {"None", "Self", "Preset target",
                                             "Party", "Everyone", "Everyone except party",
                                             "Caster group", "Target group", "Everyone except self", "Original caster"};
-  private static final String s_duration[] = {"Instant/Limited", "Instant/Permanent until death",
-                                              "Instant/While equipped", "Delay/Limited", "Delay/Permanent",
-                                              "Delay/While equipped", "Limited after duration",
-                                              "Permanent after duration", "Equipped after duration",
-                                              "Instant/Permanent", "Instant/Limited (ticks)"};
   private int attr_length;
 
   public EffectType(byte buffer[], int offset, int length)
@@ -31,6 +28,7 @@ public final class EffectType extends Bitmap
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     super.updateValue(struct);
@@ -51,40 +49,42 @@ public final class EffectType extends Bitmap
 
 // --------------------- End Interface Editable ---------------------
 
+// --------------------- Begin Interface UpdateListener ---------------------
+
+  @Override
+  public boolean valueUpdated(UpdateEvent event)
+  {
+    try {
+      return EffectFactory.updateOpcode(event.getStructure());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
+// --------------------- End Interface UpdateListener ---------------------
+
   public int readAttributes(byte buffer[], int off, List<StructEntry> list)
   {
-    String restype;
     attr_length = off;
-    if (getSize() == 2) {
+    boolean isV1 = (getSize() == 2);
+    if (isV1) {
       // EFF V1.0
       list.add(new Bitmap(buffer, off, 1, "Target", s_target));
       list.add(new DecNumber(buffer, off + 1, 1, "Power"));
-      restype = EffectFactory.getFactory().makeEffectStruct(buffer, off + 2, list, getValue());
-      list.add(new Bitmap(buffer, off + 10, 1, "Timing mode", s_duration));
-      list.add(new Bitmap(buffer, off + 11, 1, "Dispel/Resistance", s_dispel));
-      list.add(new DecNumber(buffer, off + 12, 4, "Duration"));
-      list.add(new DecNumber(buffer, off + 16, 1, "Probability 1"));
-      list.add(new DecNumber(buffer, off + 17, 1, "Probability 2"));
-      off += 18;
+      off += 2;
     }
     else {
       // EFF V2.0
       list.add(new Bitmap(buffer, off, 4, "Target", s_target));
       list.add(new DecNumber(buffer, off + 4, 4, "Power"));
-      restype = EffectFactory.getFactory().makeEffectStruct(buffer, off + 8, list, getValue());
-      list.add(new Bitmap(buffer, off + 16, 4, "Timing mode", s_duration));
-      list.add(new DecNumber(buffer, off + 20, 4, "Duration"));
-      list.add(new DecNumber(buffer, off + 24, 2, "Probability 1"));
-      list.add(new DecNumber(buffer, off + 26, 2, "Probability 2"));
-      off += 28;
+      off += 8;
     }
-    if (restype == null)
-      list.add(new Unknown(buffer, off, 8));
-    else if (restype.equalsIgnoreCase("String"))
-      list.add(new TextString(buffer, off, 8, "String"));
-    else
-      list.add(new ResourceRef(buffer, off, "Resource", restype.split(":")));
-    off += 8;
+    try {
+      off = EffectFactory.getFactory().makeEffectStruct(this, buffer, off, list, getValue(), isV1);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     attr_length = off - attr_length;
     return off;
   }

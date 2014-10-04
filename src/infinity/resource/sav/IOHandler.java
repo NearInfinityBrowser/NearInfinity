@@ -10,10 +10,21 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.Writeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filewriter;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -43,6 +54,7 @@ public final class IOHandler implements Writeable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     header.write(os);
@@ -63,18 +75,20 @@ public final class IOHandler implements Writeable
     tempfolder = null;
   }
 
-  public void compress(List entries) throws Exception
+  public void compress(List<? extends ResourceEntry> entries) throws Exception
   {
     fileentries.clear();
     for (int i = 0; i < entries.size(); i++)
-      fileentries.add(new FileEntry((ResourceEntry)entries.get(i)));
+      fileentries.add(new FileEntry(entries.get(i)));
     close();
   }
 
   public List<FileResourceEntry> decompress() throws Exception
   {
     List<FileResourceEntry> entries = new ArrayList<FileResourceEntry>(fileentries.size());
-    tempfolder = new File(ResourceFactory.getRootDir(), '_' + entry.getTreeFolder());
+    tempfolder = createTempFolder();
+    if (tempfolder == null)
+      throw new Exception("Unable to create temp folder");
     tempfolder.mkdir();
     for (int i = 0; i < fileentries.size(); i++) {
       FileEntry fentry = fileentries.get(i);
@@ -87,9 +101,22 @@ public final class IOHandler implements Writeable
     return entries;
   }
 
-  public List getFileEntries()
+  public List<? extends ResourceEntry> getFileEntries()
   {
     return fileentries;
+  }
+
+  // Create a unique temp folder for current baldur.sav
+  private File createTempFolder()
+  {
+    for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
+      File f = new File(ResourceFactory.getUserRoot(),
+                        String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
+      if (!f.exists()) {
+        return f;
+      }
+    }
+    return null;
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -108,7 +135,7 @@ public final class IOHandler implements Writeable
       offset += 4 + filenameLength.getValue();
       uncomprLength = new DecNumber(buffer, offset, 4, null);
       comprLength = new DecNumber(buffer, offset + 4, 4, null);
-      cdata = ArrayUtil.getSubArray(buffer, offset + 8, comprLength.getValue());
+      cdata = Arrays.copyOfRange(buffer, offset + 8, offset + 8 + comprLength.getValue());
     }
 
     private FileEntry(ResourceEntry rentry) throws Exception
@@ -129,7 +156,7 @@ public final class IOHandler implements Writeable
         deflater.setInput(udata);
         deflater.finish();
         int clength = deflater.deflate(cdata);
-        cdata = ArrayUtil.getSubArray(cdata, 0, clength);
+        cdata = Arrays.copyOfRange(cdata, 0, clength);
         comprLength.setValue(clength);
       }
     }
@@ -139,31 +166,37 @@ public final class IOHandler implements Writeable
       return comprLength.getOffset() + 4 + cdata.length;
     }
 
+    @Override
     public String toString()
     {
       return filename;
     }
 
+    @Override
     public String getResourceName()
     {
       return filename;
     }
 
+    @Override
     public String getExtension()
     {
       return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase();
     }
 
+    @Override
     public String getTreeFolder()
     {
       return null;
     }
 
+    @Override
     public boolean hasOverride()
     {
       return false;
     }
 
+    @Override
     public int[] getResourceInfo(boolean ignoreoverride) throws Exception
     {
       if (filename.toUpperCase().endsWith(".TIS")) {
@@ -174,7 +207,7 @@ public final class IOHandler implements Writeable
             int tilecount = uncomprLength.getValue() / tilesize;
             return new int[]{tilecount, tilesize};
           }
-          return new int[]{Byteconvert.convertInt(data, 8), Byteconvert.convertInt(data, 12)};
+          return new int[]{DynamicArray.getInt(data, 8), DynamicArray.getInt(data, 12)};
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -183,16 +216,19 @@ public final class IOHandler implements Writeable
       return new int[]{uncomprLength.getValue()};
     }
 
+    @Override
     public byte[] getResourceData(boolean ignoreoverride) throws Exception
     {
       return decompress();
     }
 
+    @Override
     public InputStream getResourceDataAsStream(boolean ignoreoverride) throws Exception
     {
       return new BufferedInputStream(new ByteArrayInputStream(decompress()));
     }
 
+    @Override
     public File getActualFile(boolean ignoreoverride)
     {
       return null;
@@ -207,6 +243,7 @@ public final class IOHandler implements Writeable
       return udata;
     }
 
+    @Override
     public void write(OutputStream os) throws IOException
     {
       Filewriter.writeInt(os, filename.length() + 1);

@@ -5,10 +5,21 @@
 package infinity.resource.gam;
 
 import infinity.gui.ViewerUtil;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 
 final class Viewer extends JPanel
 {
@@ -23,7 +34,7 @@ final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (game seconds)"), gbl, gbc, true);
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_TUTU) // V2.0 - better check?
+        ResourceFactory.isEnhancedEdition()) // V2.0 - better check?
       ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (real seconds)"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Party gold"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Master area"), gbl, gbc, true);
@@ -75,6 +86,7 @@ final class Viewer extends JPanel
     {
     }
 
+    @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
                                                   boolean cellHasFocus)
     {

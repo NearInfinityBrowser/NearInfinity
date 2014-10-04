@@ -4,26 +4,38 @@
 
 package infinity.datatype;
 
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.StructViewer;
+import infinity.gui.TextListPanel;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.ArrayUtil;
 import infinity.util.Filewriter;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class ResourceRef extends Datatype implements Editable, ActionListener, ListSelectionListener
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+public class ResourceRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
   private final String type[];
@@ -33,7 +45,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   private TextListPanel list;
   private boolean wasNull;
   private byte buffer[];
-  private final Comparator<ResourceRefEntry> ignorecaseextcomparator = new IgnoreCaseExtComparator<ResourceRefEntry>();
+  private final Comparator<Object> ignorecaseextcomparator = new IgnoreCaseExtComparator<Object>();
 
   public ResourceRef(byte h_buffer[], int offset, String name, String type)
   {
@@ -57,40 +69,13 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       this.type = new String[]{""};
     else
       this.type = type;
-    curtype = type[0];
-    buffer = ArrayUtil.getSubArray(h_buffer, offset, length);
-    if (buffer[0] == 0x00 ||
-        buffer[0] == 0x4e && buffer[1] == 0x6f && buffer[2] == 0x6e && buffer[3] == 0x65 && buffer[4] == 0x00) {
-      resname = NONE;
-      wasNull = true;
-    } else {
-      int max = buffer.length;
-      for (int i = 0; i < buffer.length; i++) {
-        if (buffer[i] == 0x00) {
-          max = i;
-          break;
-        }
-      }
-      if (max != buffer.length)
-        buffer = ArrayUtil.getSubArray(buffer, 0, max);
-      resname = new String(buffer).toUpperCase();
-    }
-    if (resname.equalsIgnoreCase(NONE))
-      resname = NONE;
-
-    // determine the correct file extension
-    if (!resname.equals(NONE)) {
-      for (int i = 0; i < type.length; i++) {
-        if (null != ResourceFactory.getInstance().getResourceEntry(resname + "." + type[i])) {
-          curtype = type[i];
-          break;
-        }
-      }
-    }
+    curtype = this.type[0];
+    read(h_buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
@@ -110,24 +95,22 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
-    List<ResourceEntry> resourceList[] = new List[type.length];
+    List<List<ResourceEntry>> resourceList = new ArrayList<List<ResourceEntry>>(type.length);
     int entrynum = 0;
     for (int i = 0; i < type.length; i++) {
-      resourceList[i] = ResourceFactory.getInstance().getResources(type[i]);
-      entrynum += resourceList[i].size();
+      resourceList.add(ResourceFactory.getInstance().getResources(type[i]));
+      entrynum += resourceList.get(i).size();
     }
 
-    List values = new ArrayList(1 + entrynum);
+    List<Object> values = new ArrayList<Object>(1 + entrynum);
     values.add(NONE);
     for (int i = 0; i < type.length; i++) {
-      for (int j = 0; j < resourceList[i].size(); j++) {
-        ResourceEntry entry = resourceList[i].get(j);
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN &&
-            entry.toString().length() <= 20)
-          values.add(new ResourceRefEntry(entry));
-        else if (entry.toString().length() <= 12 && isLegalEntry(entry))
+      for (int j = 0; j < resourceList.get(i).size(); j++) {
+        ResourceEntry entry = resourceList.get(i).get(j);
+        if (entry.toString().lastIndexOf('.') <= 8 && isLegalEntry(entry))
           values.add(new ResourceRefEntry(entry));
       }
       addExtraEntries(values);
@@ -136,6 +119,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     list = new TextListPanel(values, false);
     list.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2)
@@ -207,11 +191,13 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     Object selected = list.getSelectedValue();
@@ -242,6 +228,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent e)
   {
     bView.setEnabled(list.getSelectedValue() != null &&
@@ -254,6 +241,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     if (resname.equals(NONE)) {
@@ -268,6 +256,46 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    this.buffer = Arrays.copyOfRange(buffer, offset, offset + getSize());
+    if (this.buffer[0] == 0x00 ||
+        this.buffer[0] == 0x4e && this.buffer[1] == 0x6f &&
+        this.buffer[2] == 0x6e && this.buffer[3] == 0x65 && this.buffer[4] == 0x00) {
+      resname = NONE;
+      wasNull = true;
+    } else {
+      int max = this.buffer.length;
+      for (int i = 0; i < this.buffer.length; i++) {
+        if (this.buffer[i] == 0x00) {
+          max = i;
+          break;
+        }
+      }
+      if (max != this.buffer.length)
+        this.buffer = Arrays.copyOfRange(this.buffer, 0, max);
+      resname = new String(this.buffer).toUpperCase();
+    }
+    if (resname.equalsIgnoreCase(NONE))
+      resname = NONE;
+
+    // determine the correct file extension
+    if (!resname.equals(NONE)) {
+      for (int i = 0; i < this.type.length; i++) {
+        if (null != ResourceFactory.getInstance().getResourceEntry(resname + "." + this.type[i])) {
+          curtype = this.type[i];
+          break;
+        }
+      }
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     if (resname.equals(NONE))
@@ -280,7 +308,15 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getResourceName()
   {
-    return new StringBuffer(resname).append('.').append(curtype).toString();
+    if (resname.equals(NONE))
+      return resname;
+    else
+      return new StringBuffer(resname).append('.').append(curtype).toString();
+  }
+
+  public boolean isEmpty()
+  {
+    return (resname.equals(NONE));
   }
 
   public String getSearchName()
@@ -301,7 +337,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     return entry.toString().lastIndexOf('.') != 0;
   }
 
-  void addExtraEntries(List<ResourceRefEntry> entries)
+  void addExtraEntries(List<Object> entries)
   {
   }
 
@@ -331,6 +367,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       entry = null;
     }
 
+    @Override
     public String toString()
     {
       return name;
@@ -339,6 +376,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   final class IgnoreCaseExtComparator<T> implements Comparator<T>
   {
+    @Override
     public int compare(T o1, T o2)
     {
       if (o1 != null && o2 != null) {
@@ -350,7 +388,8 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       } else
         return 0;
     }
-    
+
+    @Override
     public boolean equals(Object obj)
     {
       return obj.equals(this);

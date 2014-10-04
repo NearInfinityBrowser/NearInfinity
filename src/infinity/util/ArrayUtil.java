@@ -4,28 +4,73 @@
 
 package infinity.util;
 
+import java.util.Arrays;
+
 public final class ArrayUtil
 {
-  public static byte[] getSubArray(byte[] buffer, int offset, int length)
+  /**
+   * Merges two or more byte arrays into one.
+   * @param first The first array to be placed into the new array.
+   * @param more More byte arrays to merge.
+   * @return A new byte array containing the data of every specified array.
+   */
+  public static byte[] mergeArrays(byte[] first, byte[]... more)
   {
-    byte r[] = new byte[length];
-    System.arraycopy(buffer, offset, r, 0, length);
-    return r;
+    int totalLength = first.length;
+    for (byte[] ar: more) {
+      totalLength += ar.length;
+    }
+
+    byte[] res = Arrays.copyOf(first, totalLength);
+    int offset = first.length;
+    for (byte[] ar: more) {
+      System.arraycopy(ar, 0, res, offset, ar.length);
+      offset += ar.length;
+    }
+
+    return res;
   }
 
-  public static byte[] mergeArrays(byte[] a1, byte[] a2)
+  /**
+   * Merges two or more generic arrays of the same type into one.
+   * Note: The result for arrays of different types but common base type is undefined.
+   * @param first The first array to be placed into the new array.
+   * @param more More arrays of the same type to merge.
+   * @return A new array containing the data of all specified arrays.
+   */
+  public static <T> T[] mergeArrays(T[] first, T[]... more)
   {
-    byte r[] = new byte[a1.length + a2.length];
-    System.arraycopy(a1, 0, r, 0, a1.length);
-    System.arraycopy(a2, 0, r, a1.length, a2.length);
-    return r;
+    int totalLength = first.length;
+    for (T[] ar: more) {
+      totalLength += ar.length;
+    }
+
+    T[] res = Arrays.copyOf(first, totalLength);
+    int offset = first.length;
+    for (T[] ar: more) {
+      System.arraycopy(ar, 0, res, offset, ar.length);
+      offset += ar.length;
+    }
+
+    return res;
   }
 
-  public static byte[] resizeArray(byte[] src, int new_size)
+  /**
+   * Searches an unsorted array of objects for a specific element in linear time.
+   * @param array The object array to search.
+   * @param obj The object to find.
+   * @return The array index of the element if found, -1 otherwise.
+   */
+  public static<T> int indexOf(T[] array, T obj)
   {
-    byte tmp[] = new byte[new_size];
-    System.arraycopy(src, 0, tmp, 0, Math.min(src.length, new_size));
-    return tmp;
+    if (array != null && array.length > 0) {
+      for (int i = 0; i < array.length; i++) {
+        if (array[i] == obj) {
+          return i;
+        }
+      }
+    }
+    return -1;
   }
 
   private ArrayUtil(){}

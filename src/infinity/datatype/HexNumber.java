@@ -13,6 +13,7 @@ public class HexNumber extends DecNumber
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     String string = (String)value;
@@ -34,6 +35,7 @@ public class HexNumber extends DecNumber
 
 // --------------------- End Interface InlineEditable ---------------------
 
+  @Override
   public String toString()
   {
     return Integer.toHexString(getValue()) + " h";

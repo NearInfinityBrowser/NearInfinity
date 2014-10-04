@@ -4,11 +4,14 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class AutomapNote extends AbstractStruct implements AddRemovable
+public final class AutomapNote extends AbstractStruct implements AddRemovable
 {
   private static final String s_flag[] = {"Gray", "Violet", "Green", "Orange", "Red", "Blue",
                                           "Dark blue", "Light gray"};
@@ -19,13 +22,14 @@ final class AutomapNote extends AbstractStruct implements AddRemovable
     super(null, "Automap note", new byte[52], 0);
   }
 
-  AutomapNote(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  AutomapNote(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Automap note", buffer, offset);
+    super(superStruct, "Automap note " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -33,6 +37,7 @@ final class AutomapNote extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new DecNumber(buffer, offset, 2, "Coordinate: X"));

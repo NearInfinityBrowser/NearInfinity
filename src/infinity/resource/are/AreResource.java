@@ -4,33 +4,54 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
-import infinity.util.Byteconvert;
+import infinity.search.SearchOptions;
+import infinity.util.DynamicArray;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
 
-public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+
+public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  private static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
-                                          "Weather", "City", "Forest", "Dungeon",
-                                          "Extended night", "Can rest"};
-  private static final String s_flag_torment[] = {"Indoors", "Hive", "", "Clerk's ward", "Lower ward",
-                                                  "Ravel's maze", "Baator", "Rubikon",
-                                                  "Negative material plane", "Curst", "Carceri",
-                                                  "Allow day/night"};
-  private static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
-                                           "Dream area"};
-  private static final String s_atype_torment[] = {"Can rest", "Cannot save",
-                                                   "Cannot rest", "Cannot save", "Too dangerous to rest",
-                                                   "Cannot save", "Can rest with permission"};
-  private static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
-  private static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
+  public static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
+                                         "Weather", "City", "Forest", "Dungeon",
+                                         "Extended night", "Can rest"};
+  public static final String s_flag_torment[] = {"Indoors", "Hive", "", "Clerk's ward", "Lower ward",
+                                                 "Ravel's maze", "Baator", "Rubikon",
+                                                 "Negative material plane", "Curst", "Carceri",
+                                                 "Allow day/night"};
+  public static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+                                          "Dream area"};
+  public static final String s_atype_ee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+                                               "Dream area", "Player1 can die"};
+  public static final String s_atype_torment[] = {"Can rest", "Cannot save",
+                                                  "Cannot rest", "Cannot save", "Too dangerous to rest",
+                                                  "Cannot save", "Can rest with permission"};
+  public static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
+  public static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
   {
@@ -43,47 +64,47 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
         ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
-      addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 84),
-                     (int)Byteconvert.convertShort(buffer, offset + 88), 272);
+      addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 84),
+                     (int)DynamicArray.getShort(buffer, offset + 88), 272);
 
     // ITEPoints
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 92),
-                   (int)Byteconvert.convertShort(buffer, offset + 90), 196);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 92),
+                   (int)DynamicArray.getShort(buffer, offset + 90), 196);
 
     // Spawnpoints
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 96),
-                   Byteconvert.convertInt(buffer, offset + 100), 200);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 96),
+                   DynamicArray.getInt(buffer, offset + 100), 200);
 
     // Entrances
-//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 104),
-//                   Byteconvert.convertInt(buffer, offset + 108), 104);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 104),
+//                   DynamicArray.getInt(buffer, offset + 108), 104);
 
     // Containers
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 112),
-                   (int)Byteconvert.convertShort(buffer, offset + 116), 192);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 112),
+                   (int)DynamicArray.getShort(buffer, offset + 116), 192);
 
     // Ambients
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 132),
-                   (int)Byteconvert.convertShort(buffer, offset + 130), 212);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 132),
+                   (int)DynamicArray.getShort(buffer, offset + 130), 212);
 
     // Variables
-//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 136),
-//                   Byteconvert.convertInt(buffer, offset + 140), 84);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 136),
+//                   DynamicArray.getInt(buffer, offset + 140), 84);
 
     // Doors
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 168),
-                   Byteconvert.convertInt(buffer, offset + 164), 200);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 168),
+                   DynamicArray.getInt(buffer, offset + 164), 200);
 
     // Animations
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 176),
-                   Byteconvert.convertInt(buffer, offset + 172), 76);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 176),
+                   DynamicArray.getInt(buffer, offset + 172), 76);
 
     // Tiled objects
-    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 184),
-                   Byteconvert.convertInt(buffer, offset + 180), 108);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 184),
+                   DynamicArray.getInt(buffer, offset + 180), 108);
 
     // Rest spawn
-//    addScriptNames(scriptNames, buffer, Byteconvert.convertInt(buffer, offset + 192), 1, 228);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 192), 1, 228);
   }
 
   private static void addScriptNames(Set<String> scriptNames, byte buffer[], int offset, int count, int size)
@@ -108,6 +129,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
@@ -117,7 +139,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                 new TiledObject(), new AutomapNotePST()};
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_TUTU)
+             ResourceFactory.isEnhancedEdition())
       return new AddRemovable[]{new Actor(), new ITEPoint(), new SpawnPoint(),
                                 new Entrance(), new Container(), new Ambient(),
                                 new Variable(), new Door(), new Animation(),
@@ -133,20 +155,40 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     return scroll;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -154,6 +196,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
@@ -170,6 +213,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (datatype instanceof Vertex)
@@ -193,6 +237,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
@@ -209,6 +254,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (datatype instanceof Vertex)
@@ -232,6 +278,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     updateActorCREOffsets();
   }
 
+  @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
@@ -239,12 +286,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     list.add(version);
     list.add(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
     list.add(new DecNumber(buffer, offset + 16, 4, "Last saved"));
-    if (version.toString().equalsIgnoreCase("V9.1"))
+    if (version.toString().equalsIgnoreCase("V9.1")) {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
       list.add(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
-    else
+    } else if (ResourceFactory.isEnhancedEdition()) {
+      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_ee));
+    } else {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
+    }
     list.add(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
     list.add(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
     list.add(new ResourceRef(buffer, offset + 36, "Area east", "ARE"));
@@ -367,7 +417,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_TUTU) {
+             ResourceFactory.isEnhancedEdition()) {
       offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
                                              AutomapNote.class);
       list.add(offset_automapnote);
@@ -380,8 +430,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
       list.add(count_protrap);
-      list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", "MVE"));
-      list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", "MVE"));
+      final String movieExt = (ResourceFactory.isEnhancedEdition()) ? "WBM" : "MVE";
+      list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
+      list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
       list.add(new Unknown(buffer, offset + 228, 56));
     }
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
@@ -398,49 +449,49 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_actors.getValue();
     for (int i = 0; i < count_actors.getValue(); i++) {
-      Actor actor = new Actor(this, buffer, offset, i + 1);
+      Actor actor = new Actor(this, buffer, offset, i);
       offset = actor.getEndOffset();
       list.add(actor);
     }
 
     offset = offset_itepoints.getValue();
     for (int i = 0; i < count_itepoints.getValue(); i++) {
-      ITEPoint ite = new ITEPoint(this, buffer, offset);
+      ITEPoint ite = new ITEPoint(this, buffer, offset, i);
       offset = ite.getEndOffset();
       list.add(ite);
     }
 
     offset = offset_spoints.getValue();
     for (int i = 0; i < count_spoints.getValue(); i++) {
-      SpawnPoint sp = new SpawnPoint(this, buffer, offset);
+      SpawnPoint sp = new SpawnPoint(this, buffer, offset, i);
       offset = sp.getEndOffset();
       list.add(sp);
     }
 
     offset = offset_entrances.getValue();
     for (int i = 0; i < count_entrances.getValue(); i++) {
-      Entrance ent = new Entrance(this, buffer, offset);
+      Entrance ent = new Entrance(this, buffer, offset, i);
       offset = ent.getEndOffset();
       list.add(ent);
     }
 
     offset = offset_containers.getValue();
     for (int i = 0; i < count_containers.getValue(); i++) {
-      Container con = new Container(this, buffer, offset, i + 1);
+      Container con = new Container(this, buffer, offset, i);
       offset = con.getEndOffset();
       list.add(con);
     }
 
     offset = offset_ambients.getValue();
     for (int i = 0; i < count_ambients.getValue(); i++) {
-      Ambient ambi = new Ambient(this, buffer, offset, i + 1);
+      Ambient ambi = new Ambient(this, buffer, offset, i);
       offset = ambi.getEndOffset();
       list.add(ambi);
     }
 
     offset = offset_variables.getValue();
     for (int i = 0; i < count_variables.getValue(); i++) {
-      Variable var = new Variable(this, buffer, offset);
+      Variable var = new Variable(this, buffer, offset, i);
       offset = var.getEndOffset();
       list.add(var);
     }
@@ -451,21 +502,21 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_doors.getValue();
     for (int i = 0; i < count_doors.getValue(); i++) {
-      Door door = new Door(this, buffer, offset, i + 1);
+      Door door = new Door(this, buffer, offset, i);
       offset = door.getEndOffset();
       list.add(door);
     }
 
     offset = offset_animations.getValue();
     for (int i = 0; i < count_animations.getValue(); i++) {
-      Animation anim = new Animation(this, buffer, offset);
+      Animation anim = new Animation(this, buffer, offset, i);
       offset = anim.getEndOffset();
       list.add(anim);
     }
 
     offset = offset_tiledobjects.getValue();
     for (int i = 0; i < count_tiledobjects.getValue(); i++) {
-      TiledObject tile = new TiledObject(this, buffer, offset);
+      TiledObject tile = new TiledObject(this, buffer, offset, i);
       offset = tile.getEndOffset();
       list.add(tile);
     }
@@ -474,14 +525,14 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       offset = offset_automapnote.getValue();
       if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
         for (int i = 0; i < count_automapnote.getValue(); i++) {
-          AutomapNotePST note = new AutomapNotePST(this, buffer, offset);
+          AutomapNotePST note = new AutomapNotePST(this, buffer, offset, i);
           offset = note.getEndOffset();
           list.add(note);
         }
       }
       else {
         for (int i = 0; i < count_automapnote.getValue(); i++) {
-          AutomapNote note = new AutomapNote(this, buffer, offset);
+          AutomapNote note = new AutomapNote(this, buffer, offset, i);
           offset = note.getEndOffset();
           list.add(note);
         }
@@ -491,7 +542,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (offset_protrap != null) { // BG2
       offset = offset_protrap.getValue();
       for (int i = 0; i < count_protrap.getValue(); i++) {
-        ProTrap trap = new ProTrap(this, buffer, offset);
+        ProTrap trap = new ProTrap(this, buffer, offset, i);
         offset = trap.getEndOffset();
         list.add(trap);
       }
@@ -566,6 +617,159 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     ((DecNumber)getAttribute("# vertices")).setValue(count);
+  }
+
+
+  // Called by "Extended Search"
+  // Checks whether the specified resource entry matches all available search options.
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
+  {
+    if (entry != null && searchOptions != null) {
+      try {
+        AreResource are = new AreResource(entry);
+        Actor[] actors;
+        Animation[] animations;
+        Item[][] items;
+//        Item[] items;
+        boolean retVal = true;
+        String key;
+        Object o;
+
+        // preparing substructures
+        DecNumber ofs = (DecNumber)are.getAttribute("Actors offset");
+        DecNumber cnt = (DecNumber)are.getAttribute("# actors");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          actors = new Actor[cnt.getValue()];
+          for (int idx = 0; idx < actors.length; idx++) {
+            actors[idx] = (Actor)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Actor), idx));
+          }
+        } else {
+          actors = new Actor[0];
+        }
+
+        ofs = (DecNumber)are.getAttribute("Animations offset");
+        cnt = (DecNumber)are.getAttribute("# animations");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          animations = new Animation[cnt.getValue()];
+          for (int idx = 0; idx < animations.length; idx++) {
+            animations[idx] = (Animation)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Animation), idx));
+          }
+        } else {
+          animations = new Animation[0];
+        }
+
+        ofs = (DecNumber)are.getAttribute("Containers offset");
+        cnt = (DecNumber)are.getAttribute("# containers");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          items = new Item[cnt.getValue()][];
+          for (int i = 0; i < cnt.getValue(); i++) {
+            String label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container), i);
+            Container container = (Container)are.getAttribute(label);
+            if (container != null) {
+              DecNumber cnt2 = (DecNumber)container.getAttribute("# items");
+              if (cnt2 != null && cnt2.getValue() > 0) {
+                items[i] = new Item[cnt2.getValue()];
+                for (int j = 0; j < cnt2.getValue(); j++) {
+                  label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container_Item), j);
+                  items[i][j] = (Item)container.getAttribute(label);
+                }
+              } else {
+                items[i] = new Item[0];
+              }
+            } else {
+              items[i] = new Item[0];
+            }
+          }
+        } else {
+          items = new Item[0][];
+        }
+
+
+        // checking options
+        String[] keyList = new String[]{SearchOptions.ARE_AreaType,
+                                        SearchOptions.ARE_Location};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_AreaScript;
+          o = searchOptions.getOption(key);
+          StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key));
+          retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_Actor_Character;
+          o = searchOptions.getOption(key);
+          boolean found = false;
+          for (int idx = 0; idx < actors.length; idx++) {
+            if (actors[idx] != null) {
+              StructEntry struct = actors[idx].getAttribute(SearchOptions.getResourceName(key));
+              found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+            }
+          }
+          retVal &= found || (o == null);
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_Animation_Animation;
+          o = searchOptions.getOption(key);
+          boolean found = false;
+          for (int idx = 0; idx < animations.length; idx++) {
+            if (animations[idx] != null) {
+              StructEntry struct = animations[idx].getAttribute(SearchOptions.getResourceName(key));
+              found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+            }
+          }
+          retVal &= found || (o == null);
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_Container_Item_Item;
+          o = searchOptions.getOption(key);
+          boolean found = false;
+          for (int idx = 0; idx < items.length; idx++) {
+            for (int idx2 = 0; idx2 < items[idx].length; idx2++) {
+              if (items[idx][idx2] != null) {
+                StructEntry struct = items[idx][idx2].getAttribute(SearchOptions.getResourceName(key));
+                found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+              }
+              if (found) {
+                break;
+              }
+            }
+            if (found) {
+              break;
+            }
+          }
+          retVal &= found || (o == null);
+        }
+
+        keyList = new String[]{SearchOptions.ARE_Custom1, SearchOptions.ARE_Custom2,
+                               SearchOptions.ARE_Custom3, SearchOptions.ARE_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(are, o);
+          } else {
+            break;
+          }
+        }
+
+        return retVal;
+      } catch (Exception e) {
+      }
+    }
+    return false;
   }
 }
 

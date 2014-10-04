@@ -6,13 +6,23 @@ package infinity.resource.key;
 
 import infinity.NearInfinity;
 import infinity.gui.WindowBlocker;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.Filereader;
 
-import javax.swing.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.zip.*;
+import java.util.Arrays;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
+
+import javax.swing.JOptionPane;
 
 public final class BIFFArchive
 {
@@ -152,20 +162,20 @@ public final class BIFFArchive
 
     int size;
     byte[] tileheader = null;
-//    Byteconvert.convertInt(header, 0); // Locator
-    int resoff = Byteconvert.convertInt(header, 4);
+//    DynamicArray.getInt(header, 0); // Locator
+    int resoff = DynamicArray.getInt(header, 4);
     if (!isTile) {
-      size = Byteconvert.convertInt(header, 8);
-//      Byteconvert.convertShort(header, 12); // Type
-//      Byteconvert.convertShort(header, 14); // Unknown
+      size = DynamicArray.getInt(header, 8);
+//      DynamicArray.getShort(header, 12); // Type
+//      DynamicArray.getShort(header, 14); // Unknown
     }
     else {
-      int tilecount = Byteconvert.convertInt(header, 8);
-      int tilesize = Byteconvert.convertInt(header, 12);
+      int tilecount = DynamicArray.getInt(header, 8);
+      int tilesize = DynamicArray.getInt(header, 12);
       size = tilecount * tilesize;
       tileheader = getTisHeader(tilecount, tilesize);
-//      Byteconvert.convertShort(header, 16); // Type
-//      Byteconvert.convertShort(header, 18); // Unknown
+//      DynamicArray.getShort(header, 16); // Type
+//      DynamicArray.getShort(header, 18); // Unknown
     }
 
     if (size > 1000000)
@@ -233,18 +243,18 @@ public final class BIFFArchive
     }
 
     int size;
-//    Byteconvert.convertInt(header, 0); // Locator
-    int resoff = Byteconvert.convertInt(header, 4);
+//    DynamicArray.getInt(header, 0); // Locator
+    int resoff = DynamicArray.getInt(header, 4);
     if (!isTile) {
-      size = Byteconvert.convertInt(header, 8);
-//      Byteconvert.convertShort(header, 12); // Type
-//      Byteconvert.convertShort(header, 14); // Unknown
+      size = DynamicArray.getInt(header, 8);
+//      DynamicArray.getShort(header, 12); // Type
+//      DynamicArray.getShort(header, 14); // Unknown
     }
     else {
-      int tilecount = Byteconvert.convertInt(header, 8);
-      size = tilecount * Byteconvert.convertInt(header, 12);
-//      Byteconvert.convertShort(header, 16); // Type
-//      Byteconvert.convertShort(header, 18); // Unknown
+      int tilecount = DynamicArray.getInt(header, 8);
+      size = tilecount * DynamicArray.getInt(header, 12);
+//      DynamicArray.getShort(header, 16); // Type
+//      DynamicArray.getShort(header, 18); // Unknown
     }
 
     if (resoff > currentoffset + block.decompSize) {
@@ -297,8 +307,8 @@ public final class BIFFArchive
     fis.close();
 
     if (isTile)
-      return new int[]{Byteconvert.convertInt(header, 8), Byteconvert.convertInt(header, 12)};
-    return new int[]{Byteconvert.convertInt(header, 8)};
+      return new int[]{DynamicArray.getInt(header, 8), DynamicArray.getInt(header, 12)};
+    return new int[]{DynamicArray.getInt(header, 8)};
   }
 
   private byte[] getBIFFResource(int offset, boolean isTile) throws IOException
@@ -489,7 +499,7 @@ public final class BIFFArchive
       }
       if (length == decompSize)
         return buffer;
-      return ArrayUtil.getSubArray(buffer, offset, length);
+      return Arrays.copyOfRange(buffer, offset, offset + length);
     }
   }
 
@@ -508,6 +518,7 @@ public final class BIFFArchive
       this.blockIndex = blockIndex;
     }
 
+    @Override
     public int read() throws IOException
     {
       if (size == 0)
@@ -524,6 +535,7 @@ public final class BIFFArchive
       return (int)b;
     }
 
+    @Override
     public int read(byte b[], int off, int len) throws IOException
     {
       if (size == 0)
@@ -545,16 +557,19 @@ public final class BIFFArchive
       return len - remainder;
     }
 
+    @Override
     public int available()
     {
       return size;
     }
 
+    @Override
     public boolean markSupported()
     {
       return false;
     }
 
+    @Override
     public void close() throws IOException
     {
       is.close();
