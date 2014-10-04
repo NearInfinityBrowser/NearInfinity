@@ -78,8 +78,8 @@ import javax.swing.tree.TreeSelectionModel;
 final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
                                                  TableModelListener, PropertyChangeListener
 {
-  // Max. node depth allowed to search or map the tree model
-  private static final int MAX_DEPTH = 64;
+  // Max. node depth allowed to search or expand the tree model
+  private static final int MAX_DEPTH = 32;
 
   private final JPopupMenu pmTree = new JPopupMenu();
   private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes");
@@ -565,7 +565,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
 
       for (int i = 0; i < node.getChildCount(); i++) {
-        expandNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth - 1);
+        expandNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth);
         if (worker != null && worker.userCancelled()) return;
       }
     }
@@ -581,7 +581,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         TreeNode node = (TreeNode)path.getLastPathComponent();
 
         for (int i = 0; i < node.getChildCount(); i++) {
-          collapseNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth - 1);
+          collapseNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth);
           if (worker != null && worker.userCancelled()) return;
         }
       }
