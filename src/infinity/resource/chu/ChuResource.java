@@ -58,7 +58,7 @@ public final class ChuResource extends AbstractStruct implements Resource //, Ha
 
     offset = windowsoffset.getValue();
     int endoffset = offset;
-    int windowsize = (controlsoffset.getValue() - windowsoffset.getValue()) / numwindows.getValue();
+    int windowsize = Math.abs(controlsoffset.getValue() - windowsoffset.getValue()) / numwindows.getValue();
     for (int i = 0; i < numwindows.getValue(); i++) {
       Window window = new Window(this, buffer, offset, i, windowsize);
       offset = window.getEndOffset();

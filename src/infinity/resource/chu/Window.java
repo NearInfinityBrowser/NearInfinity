@@ -19,6 +19,8 @@ import java.util.Collections;
 
 final class Window extends AbstractStruct // implements AddRemovable
 {
+  public static final String FMT_NAME = "Panel %1$d";
+
   private static final String hasb[] = {"No", "Yes"};
   private static final String s_flag[] = {"No flags set", "Don't dim background"};
 
@@ -29,7 +31,7 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   Window(AbstractStruct superStruct, byte buffer[], int offset, int nr, int size) throws Exception
   {
-    super(superStruct, "Panel " + nr, buffer, (size >= 36) ? (offset + 8) : offset);
+    super(superStruct, String.format(FMT_NAME, nr), buffer, (size >= 36) ? (offset + 8) : offset);
     if (size >= 36) {
       list.add(0, new TextString(buffer, offset, 8, "Name"));
     }
