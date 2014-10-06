@@ -31,9 +31,12 @@ final class Control extends AbstractStruct // implements AddRemovable
                                            "Right justify"};
   private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
 
-  Control(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  private final int size;
+
+  Control(AbstractStruct superStruct, byte buffer[], int offset, int number, int size) throws Exception
   {
     super(superStruct, String.format(FMT_NAME, number), buffer, offset);
+    this.size = size;
   }
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -55,9 +58,15 @@ final class Control extends AbstractStruct // implements AddRemovable
     return offset + 8;
   }
 
+  public int getControlSize()
+  {
+    return size;
+  }
+
   public int readControl(byte buffer[])
   {
     int offset = ((HexNumber)getAttribute("Offset")).getValue();
+    int endOffset = offset + getControlSize();
     list.add(new DecNumber(buffer, offset, 2, "Control ID"));
     list.add(new DecNumber(buffer, offset + 2, 2, "Buffer length"));
     list.add(new DecNumber(buffer, offset + 4, 2, "Position: X"));
@@ -164,6 +173,13 @@ final class Control extends AbstractStruct // implements AddRemovable
         offset += len.getValue();
         break;
     }
+
+    // handling optional gap between controls
+    if (offset < endOffset) {
+      list.add(new Unknown(buffer, offset, endOffset - offset, "Unused"));
+      offset = endOffset;
+    }
+
     return offset;
   }
 

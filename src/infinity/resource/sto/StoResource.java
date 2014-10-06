@@ -68,7 +68,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
   public int getViewerTabCount()
@@ -96,7 +96,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     return true;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception

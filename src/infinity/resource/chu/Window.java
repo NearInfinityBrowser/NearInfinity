@@ -9,6 +9,7 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
@@ -26,15 +27,12 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   Window() throws Exception
   {
-    super(null, "Panel", new byte[28], 0);
+    super(null, "Panel", new byte[36], 0);
   }
 
-  Window(AbstractStruct superStruct, byte buffer[], int offset, int nr, int size) throws Exception
+  Window(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, String.format(FMT_NAME, nr), buffer, (size >= 36) ? (offset + 8) : offset);
-    if (size >= 36) {
-      list.add(0, new TextString(buffer, offset, 8, "Name"));
-    }
+    super(superStruct, String.format(FMT_NAME, nr), buffer, offset);
   }
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -54,15 +52,24 @@ final class Window extends AbstractStruct // implements AddRemovable
 
 // --------------------- End Interface Writeable ---------------------
 
-
-  public int readControls(byte buffer[], int controlsoffset) throws Exception
+  public ChuResource getChu()
   {
-    long numctrl = ((UnsignDecNumber)getAttribute("# controls")).getValue();
-    long first = ((UnsignDecNumber)getAttribute("First control index")).getValue();
-    controlsoffset += (int)(first * (long)8);
+    if (getSuperStruct() instanceof ChuResource) {
+      return (ChuResource)getSuperStruct();
+    } else {
+      return null;
+    }
+  }
+
+  public int readControls(byte buffer[]) throws Exception
+  {
+    int numctrl = (int)((UnsignDecNumber)getAttribute("# controls")).getValue();
+    int first = (int)((UnsignDecNumber)getAttribute("First control index")).getValue();
+    int controlsoffset = getChu().getControlsOffset() + (first*8);
     int endoffset = controlsoffset;
     for (int i = 0; i < numctrl; i++) {
-      Control control = new Control(this, buffer, controlsoffset, i);
+      int size = getChu().getControlOffset(first+i+1) - getChu().getControlOffset(first+i);
+      Control control = new Control(this, buffer, controlsoffset, i, size);
       controlsoffset = control.getEndOffset();
       endoffset = control.readControl(buffer);
       list.add(control);
@@ -91,7 +98,12 @@ final class Window extends AbstractStruct // implements AddRemovable
   @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Panel ID"));
+    if (getChu().getPanelSize() == 36) {
+      list.add(0, new TextString(buffer, offset, 8, "Name"));
+      offset += 8;
+    }
+    list.add(new DecNumber(buffer, offset, 2, "Panel ID"));
+    list.add(new Unknown(buffer, offset + 2, 2));
     list.add(new DecNumber(buffer, offset + 4, 2, "Position: X"));
     list.add(new DecNumber(buffer, offset + 6, 2, "Position: Y"));
     list.add(new DecNumber(buffer, offset + 8, 2, "Width"));
