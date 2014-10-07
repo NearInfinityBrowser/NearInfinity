@@ -3063,7 +3063,8 @@ public final class EffectFactory
         break;
 
       case 182: // Apply effect on equip item
-        makeEffectParamsDefault(buffer, offset, s);
+        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         if (!isPST) {
           restype = "ITM";
         }
