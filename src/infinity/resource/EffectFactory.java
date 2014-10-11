@@ -2373,8 +2373,9 @@ public final class EffectFactory
                                 "Envenomed weapon"};
           if (isIWD2) s_type[5] = "Unused";
         } else {
-          s_type = new String[]{"1 damage per second", "Amount % damage of total HP",
-                                "Amount damage per second", "Amount damage per round"};
+          s_type = new String[]{"1 damage per second", "1 damage per second",
+                                "Amount damage per second", "1 damage per amount seconds",
+                                "Param3 damage per amount seconds"};
         }
         s.add(new Bitmap(buffer, offset + 4, 4, "Poison type", s_type));
         break;
