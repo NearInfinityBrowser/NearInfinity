@@ -78,7 +78,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Fighter-Mage", "Fighter-Cleric", "Fighter-Mage-Cleric",
            "Fighter-Mage-Thief", "Fighter-Thief", "Mage", "Mage-Thief",
            "Paladin", "Ranger", "Thief", "Elf", "Dwarf", "Half-Elf",
-           "Halfling", "Human", "Gnome", "Monk", "Druid"};
+           "Halfling", "Human", "Gnome", "Monk", "Druid", "Half-orc"};
   public static final String[] s_usability11 =
           {"None", "Chaotic", "Evil", "Good",
            "... Neutral", "Lawful", "Neutral ...", "Sensate",
