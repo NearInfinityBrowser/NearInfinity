@@ -283,7 +283,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (offRubikon != null) { // Torment
       offset = offRubikon.getValue();
       if (offset > 0) {
-        list.add(new Unknown(buffer, offset, 1720, "Modron maze state"));
+        list.add(new ModronMaze(this, buffer, offset));
         offset += 1720;
       }
     }
