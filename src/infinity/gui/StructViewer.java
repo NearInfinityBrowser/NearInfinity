@@ -847,6 +847,24 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
+  /**
+   * Returns an already existing ViewFrame of the given Viewable object if available.
+   * Returns a new ViewFrame object otherwise. Assumes top level ancestor of the given view as parent.
+   */
+  public ViewFrame getViewFrame(Viewable view)
+  {
+    return getViewFrame(getTopLevelAncestor(), view);
+  }
+
+  /**
+   * Returns an already existing ViewFrame of the given Viewable object if available.
+   * Returns a new ViewFrame object otherwise.
+   */
+  public ViewFrame getViewFrame(Component parent, Viewable view)
+  {
+    return createViewFrame(parent, view);
+  }
+
   private void considerMenuEnabled()
   {
     ListSelectionModel lsm = table.getSelectionModel();
