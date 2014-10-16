@@ -14,6 +14,8 @@ import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -59,6 +61,54 @@ final class Window extends AbstractStruct // implements AddRemovable
     } else {
       return null;
     }
+  }
+
+  /** Returns the number of controls associated with this panel. */
+  public int getControlCount()
+  {
+    return (int)((UnsignDecNumber)getAttribute("# controls")).getValue();
+  }
+
+  /** Returns the given control. Index is relative to the controls associated with this panel. */
+  public Control getControl(int index)
+  {
+    if (index >= 0 && index < getControlCount()) {
+      return (Control)getAttribute(String.format(Control.FMT_NAME, index));
+    } else {
+      return null;
+    }
+  }
+
+  /** Returns the panel id. */
+  public int getWindowId()
+  {
+    return ((DecNumber)getAttribute("Panel ID")).getValue();
+  }
+
+  /** Returns the x and y positions of the panel. */
+  public Point getWindowPosition()
+  {
+    return new Point(((DecNumber)getAttribute("Position: X")).getValue(),
+                     ((DecNumber)getAttribute("Position: Y")).getValue());
+  }
+
+  /** Returns width and height of the panel. */
+  public Dimension getWindowDimension()
+  {
+    return new Dimension(((DecNumber)getAttribute("Width")).getValue(),
+                         ((DecNumber)getAttribute("Height")).getValue());
+  }
+
+  /** Returns whether the panel references a background MOS. */
+  public boolean hasBackgroundImage()
+  {
+    return ((Bitmap)getAttribute("Has background?")).getValue() == 1;
+  }
+
+  /** Returns the background MOS for the panel. */
+  public String getBackgroundImage()
+  {
+    return ((ResourceRef)getAttribute("Background image")).getResourceName();
   }
 
   public int readControls(byte buffer[]) throws Exception

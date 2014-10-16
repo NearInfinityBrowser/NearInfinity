@@ -5,6 +5,7 @@
 package infinity.resource.chu;
 
 import infinity.datatype.Bitmap;
+import infinity.datatype.ColorPicker;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HexNumber;
@@ -12,9 +13,10 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
-import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -22,13 +24,14 @@ final class Control extends AbstractStruct // implements AddRemovable
 {
   public static final String FMT_NAME = "Control %1$d";
 
-  private static final String s_type[] = {"Button", "Progress bar", "Slider", "Text field", "",
+  private static final String s_type[] = {"Button", "", "Slider", "Text field", "",
                                           "Text area", "Label", "Scroll bar"};
   private static final String s_button[] = {"Center", "Left justify", "Right justify",
                                             "Top justify", "Bottom justify", "Anchor",
                                             "Reduce size", "Don't wrap"};
-  private static final String s_label[] = {"Center", "RGB color", "", "", "Left justify",
-                                           "Right justify"};
+  private static final String s_label[] = {"Center", "Use color", "Truecolor", "Center justify",
+                                           "Left justify", "Right justify", "Top justify",
+                                           "Middle justify", "Bottom justify", "Word wrap"};
   private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
 
   private final int size;
@@ -63,6 +66,33 @@ final class Control extends AbstractStruct // implements AddRemovable
     return size;
   }
 
+  /** Returns the control id. */
+  public int getControlId()
+  {
+    return ((DecNumber)getAttribute("Control ID")).getValue();
+  }
+
+  /** Returns the x and y position of the control. */
+  public Point getControlPosition()
+  {
+    return new Point(((DecNumber)getAttribute("Position: X")).getValue(),
+                     ((DecNumber)getAttribute("Position: Y")).getValue());
+  }
+
+  /** Returns the width and height of the control. */
+  public Dimension getControlDimensions()
+  {
+    return new Dimension(((DecNumber)getAttribute("Width")).getValue(),
+                         ((DecNumber)getAttribute("Height")).getValue());
+  }
+
+  /** Returns the control type. */
+  public int getControlType()
+  {
+    return ((Bitmap)getAttribute("Type")).getValue();
+  }
+
+
   public int readControl(byte buffer[])
   {
     int offset = ((HexNumber)getAttribute("Offset")).getValue();
@@ -80,7 +110,7 @@ final class Control extends AbstractStruct // implements AddRemovable
     switch (type.getValue()) {
       case 0: // Button
         list.add(new ResourceRef(buffer, offset + 14, "Button", "BAM"));
-        list.add(new UnsignDecNumber(buffer, offset + 22, 1, "Animation number"));
+        list.add(new DecNumber(buffer, offset + 22, 1, "Animation number"));
         list.add(new Flag(buffer, offset + 23, 1, "Text flags", s_button));
         list.add(new DecNumber(buffer, offset + 24, 1, "Frame number: Unpressed"));
         list.add(new DecNumber(buffer, offset + 25, 1, "Text anchor: Left"));
@@ -91,19 +121,6 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new DecNumber(buffer, offset + 30, 1, "Frame number: Disabled"));
         list.add(new DecNumber(buffer, offset + 31, 1, "Text anchor: Bottom"));
         offset += 32;
-        break;
-      case 1: // Progress bar
-        // TODO: find out meaning of data fields
-        list.add(new ResourceRef(buffer, offset + 14, "Image 1?", "MOS"));
-        list.add(new ResourceRef(buffer, offset + 22, "Image 2?", "MOS"));
-        list.add(new ResourceRef(buffer, offset + 30, "Image 2?", "MOS"));
-        list.add(new DecNumber(buffer, offset + 38, 2, "Number 1?"));
-        list.add(new DecNumber(buffer, offset + 40, 2, "Number 2?"));
-        list.add(new DecNumber(buffer, offset + 42, 2, "Number 3?"));
-        list.add(new DecNumber(buffer, offset + 44, 2, "Number 4?"));
-        list.add(new DecNumber(buffer, offset + 46, 2, "Number 5?"));
-        list.add(new DecNumber(buffer, offset + 48, 2, "Number 6?"));
-        offset += 50;
         break;
       case 2: // Slider
         list.add(new ResourceRef(buffer, offset + 14, "Background image", "MOS"));
@@ -139,19 +156,19 @@ final class Control extends AbstractStruct // implements AddRemovable
         offset += 106;
         break;
       case 5: // Text area
-        list.add(new ResourceRef(buffer, offset + 14, "Font 1", "BAM"));
-        list.add(new ResourceRef(buffer, offset + 22, "Font 2", "BAM"));
-        list.add(new Unknown(buffer, offset + 30, 4, "Color 1"));
-        list.add(new Unknown(buffer, offset + 34, 4, "Color 2"));
-        list.add(new Unknown(buffer, offset + 38, 4, "Color 3"));
+        list.add(new ResourceRef(buffer, offset + 14, "Font (main text)", "BAM"));
+        list.add(new ResourceRef(buffer, offset + 22, "Font (initials)", "BAM"));
+        list.add(new ColorPicker(buffer, offset + 30, "Color 1", ColorPicker.Format.RGBX));
+        list.add(new ColorPicker(buffer, offset + 34, "Color 2", ColorPicker.Format.RGBX));
+        list.add(new ColorPicker(buffer, offset + 38, "Color 3", ColorPicker.Format.RGBX));
         list.add(new DecNumber(buffer, offset + 42, 4, "Scroll bar ID"));
         offset += 46;
         break;
       case 6: // Label
         list.add(new StringRef(buffer, offset + 14, "Initial text"));
         list.add(new ResourceRef(buffer, offset + 18, "Font", "BAM"));
-        list.add(new Unknown(buffer, offset + 26, 4, "Color 1"));
-        list.add(new Unknown(buffer, offset + 30, 4, "Color 2"));
+        list.add(new ColorPicker(buffer, offset + 26, "Color 1", ColorPicker.Format.RGBX));
+        list.add(new ColorPicker(buffer, offset + 30, "Color 2", ColorPicker.Format.RGBX));
         list.add(new Flag(buffer, offset + 34, 2, "Text flags", s_label));
         offset += 36;
         break;

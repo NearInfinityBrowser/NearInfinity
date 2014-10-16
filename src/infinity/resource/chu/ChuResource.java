@@ -8,7 +8,9 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
@@ -19,10 +21,13 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ChuResource extends AbstractStruct implements Resource //, HasAddRemovable
+import javax.swing.JComponent;
+
+public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs //, HasAddRemovable
 {
   private List<Pair<Integer>> listControls;
   private int ofsPanels, numPanels, sizePanels, ofsControls, numControls;
+  private Viewer detailViewer;
 
   public ChuResource(ResourceEntry entry) throws Exception
   {
@@ -48,6 +53,37 @@ public final class ChuResource extends AbstractStruct implements Resource //, Ha
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+// --------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (detailViewer == null) {
+      detailViewer = new Viewer(this);
+    }
+    return detailViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
    // Write 'size' number of zeros to the output stream
   void writeGap(OutputStream os, int startOfs, int endOfs) throws IOException
@@ -106,6 +142,16 @@ public final class ChuResource extends AbstractStruct implements Resource //, Ha
   public int getPanelSize()
   {
     return sizePanels;
+  }
+
+  /** Returns the given panel. */
+  public Window getPanel(int index)
+  {
+    if (index >= 0 && index < getPanelCount()) {
+      return (Window)getAttribute(String.format(Window.FMT_NAME, index));
+    } else {
+      return null;
+    }
   }
 
   @Override
