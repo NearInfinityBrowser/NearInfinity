@@ -6,14 +6,15 @@ package infinity.resource.key;
 
 import infinity.gui.BIFFEditor;
 import infinity.resource.ResourceFactory;
-import infinity.util.Filewriter;
-import infinity.util.NIFile;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.RandomAccessFileNI;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -43,15 +44,15 @@ public final class BIFFWriter
 
   private static void compressBIF(File biff, File compr, String uncrfilename) throws IOException
   {
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(compr));
-    Filewriter.writeString(os, "BIF ", 4);
-    Filewriter.writeString(os, "V1.0", 4);
-    Filewriter.writeInt(os, uncrfilename.length());
-    Filewriter.writeString(os, uncrfilename, uncrfilename.length());
-    Filewriter.writeInt(os, (int)biff.length()); // Uncompressed length
-    Filewriter.writeInt(os, 0); // Compressed length
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(compr));
+    FileWriterNI.writeString(os, "BIF ", 4);
+    FileWriterNI.writeString(os, "V1.0", 4);
+    FileWriterNI.writeInt(os, uncrfilename.length());
+    FileWriterNI.writeString(os, uncrfilename, uncrfilename.length());
+    FileWriterNI.writeInt(os, (int)biff.length()); // Uncompressed length
+    FileWriterNI.writeInt(os, 0); // Compressed length
     OutputStream dos = new DeflaterOutputStream(os);
-    InputStream is = new BufferedInputStream(new FileInputStream(biff));
+    InputStream is = new BufferedInputStream(new FileInputStreamNI(biff));
     byte buffer[] = new byte[32765];
     int bytesread = is.read(buffer, 0, buffer.length);
     while (bytesread != -1) {
@@ -62,25 +63,25 @@ public final class BIFFWriter
     dos.close();
     os.close();
     int comprsize = (int)compr.length() - (0x20 + uncrfilename.length());
-    RandomAccessFile ranfile = new RandomAccessFile(compr, "rw");
+    RandomAccessFile ranfile = new RandomAccessFileNI(compr, "rw");
     ranfile.seek((long)(0x10 + uncrfilename.length()));
-    Filewriter.writeInt(ranfile, comprsize);
+    FileWriterNI.writeInt(ranfile, comprsize);
     ranfile.close();
   }
 
   private static void compressBIFC(File biff, File compr) throws Exception
   {
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(compr));
-    Filewriter.writeString(os, "BIFC", 4);
-    Filewriter.writeString(os, "V1.0", 4);
-    Filewriter.writeInt(os, (int)biff.length());
-    InputStream is = new BufferedInputStream(new FileInputStream(biff));
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(compr));
+    FileWriterNI.writeString(os, "BIFC", 4);
+    FileWriterNI.writeString(os, "V1.0", 4);
+    FileWriterNI.writeInt(os, (int)biff.length());
+    InputStream is = new BufferedInputStream(new FileInputStreamNI(biff));
     byte block[] = readBytes(is, 8192);
     while (block.length != 0) {
       byte compressed[] = compress(block);
-      Filewriter.writeInt(os, block.length);
-      Filewriter.writeInt(os, compressed.length);
-      Filewriter.writeBytes(os, compressed);
+      FileWriterNI.writeInt(os, block.length);
+      FileWriterNI.writeInt(os, compressed.length);
+      FileWriterNI.writeBytes(os, compressed);
       block = readBytes(is, 8192);
     }
     is.close();
@@ -118,7 +119,7 @@ public final class BIFFWriter
 
   public void write() throws Exception
   {
-    File dummyfile = NIFile.getFile(ResourceFactory.getRootDirs(),
+    File dummyfile = FileNI.getFile(ResourceFactory.getRootDirs(),
                               "data" + File.separatorChar + "_dummy.bif");
     writeBIFF(dummyfile);
     ResourceFactory.getKeyfile().closeBIFFFile();
@@ -127,37 +128,37 @@ public final class BIFFWriter
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = NIFile.getFile(ResourceFactory.getRootDirs(), bifentry.toString());
+        realfile = FileNI.getFile(ResourceFactory.getRootDirs(), bifentry.toString());
       else
         realfile.delete();
       dummyfile.renameTo(realfile);
     }
     else if (format == BIFFEditor.BIF) {
-      File compressedfile = NIFile.getFile(ResourceFactory.getRootDirs(),
+      File compressedfile = FileNI.getFile(ResourceFactory.getRootDirs(),
                                      "data" + File.separatorChar + "_dummy.cbf");
       compressBIF(dummyfile, compressedfile, bifentry.toString());
       dummyfile.delete();
       // Delete both BIFF version if this exist
-      String filename = NIFile.getFile(ResourceFactory.getRootDirs(), bifentry.toString()).toString();
-      new File(filename).delete();
+      String filename = FileNI.getFile(ResourceFactory.getRootDirs(), bifentry.toString()).toString();
+      new FileNI(filename).delete();
       filename = filename.substring(0, filename.lastIndexOf(".")) + ".cbf";
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = new File(filename);
+        realfile = new FileNI(filename);
       else
         realfile.delete();
       compressedfile.renameTo(realfile);
     }
     else if (format == BIFFEditor.BIFC) {
-      File compressedfile = NIFile.getFile(ResourceFactory.getRootDirs(),
+      File compressedfile = FileNI.getFile(ResourceFactory.getRootDirs(),
                                      "data" + File.separatorChar + "_dummy2.bif");
       compressBIFC(dummyfile, compressedfile);
       dummyfile.delete();
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = NIFile.getFile(ResourceFactory.getRootDirs(), bifentry.toString());
+        realfile = FileNI.getFile(ResourceFactory.getRootDirs(), bifentry.toString());
       else
         realfile.delete();
       compressedfile.renameTo(realfile);
@@ -174,42 +175,42 @@ public final class BIFFWriter
 
   private void writeBIFF(File file) throws Exception
   {
-    OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
-    Filewriter.writeString(os, "BIFF", 4);
-    Filewriter.writeString(os, "V1  ", 4);
-    Filewriter.writeInt(os, resources.size());
-    Filewriter.writeInt(os, tileresources.size());
-    Filewriter.writeInt(os, 0x14);
+    OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(file));
+    FileWriterNI.writeString(os, "BIFF", 4);
+    FileWriterNI.writeString(os, "V1  ", 4);
+    FileWriterNI.writeInt(os, resources.size());
+    FileWriterNI.writeInt(os, tileresources.size());
+    FileWriterNI.writeInt(os, 0x14);
     int offset = 20 + 16 * resources.size() + 20 * tileresources.size();
     int index = 0; // Non-tileset index starts at 0
     for (final ResourceEntry resourceEntry : resources.keySet()) {
       BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
-      Filewriter.writeInt(os, newentry.getLocator());
-      Filewriter.writeInt(os, offset); // Offset
+      FileWriterNI.writeInt(os, newentry.getLocator());
+      FileWriterNI.writeInt(os, offset); // Offset
       int info[] = resourceEntry.getResourceInfo(resources.get(resourceEntry).booleanValue());
       offset += info[0];
-      Filewriter.writeInt(os, info[0]); // Size
-      Filewriter.writeShort(os, (short)ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
-      Filewriter.writeShort(os, (short)0); // Unknown
+      FileWriterNI.writeInt(os, info[0]); // Size
+      FileWriterNI.writeShort(os, (short)ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
+      FileWriterNI.writeShort(os, (short)0); // Unknown
       index++;
     }
     index = 1; // Tileset index starts at 1
     for (final ResourceEntry resourceEntry : tileresources.keySet()) {
       BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
-      Filewriter.writeInt(os, newentry.getLocator());
-      Filewriter.writeInt(os, offset); // Offset
+      FileWriterNI.writeInt(os, newentry.getLocator());
+      FileWriterNI.writeInt(os, offset); // Offset
       int info[] = resourceEntry.getResourceInfo(tileresources.get(resourceEntry).booleanValue());
-      Filewriter.writeInt(os, info[0]); // Number of tiles
-      Filewriter.writeInt(os, info[1]); // Size of each tile (in bytes)
+      FileWriterNI.writeInt(os, info[0]); // Number of tiles
+      FileWriterNI.writeInt(os, info[1]); // Size of each tile (in bytes)
       offset += info[0] * info[1];
-      Filewriter.writeShort(os, (short)ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
-      Filewriter.writeShort(os, (short)0); // Unknown
+      FileWriterNI.writeShort(os, (short)ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
+      FileWriterNI.writeShort(os, (short)0); // Unknown
       index++;
     }
     for (final ResourceEntry resourceEntry : resources.keySet())
-      Filewriter.writeBytes(os, resourceEntry.getResourceData(resources.get(resourceEntry).booleanValue()));
+      FileWriterNI.writeBytes(os, resourceEntry.getResourceData(resources.get(resourceEntry).booleanValue()));
     for (final ResourceEntry resourceEntry : tileresources.keySet())
-      Filewriter.writeBytes(os, resourceEntry.getResourceData(tileresources.get(resourceEntry).booleanValue()));
+      FileWriterNI.writeBytes(os, resourceEntry.getResourceData(tileresources.get(resourceEntry).booleanValue()));
     os.close();
   }
 }

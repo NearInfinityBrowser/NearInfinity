@@ -54,15 +54,16 @@ import infinity.resource.wed.WedResource;
 import infinity.resource.wmp.WmpResource;
 import infinity.util.Decryptor;
 import infinity.util.IdsMapCache;
-import infinity.util.NIFile;
 import infinity.util.StringResource;
+import infinity.util.io.FileLookup;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileReaderNI;
 
 import java.awt.Component;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -262,7 +263,7 @@ public final class ResourceFactory
     if (isEnhancedEdition()) {
       final String EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
       final String EE_DIR = games[gameID].name;
-      File userDir = new File(EE_DOC_ROOT, EE_DIR);
+      File userDir = new FileNI(EE_DOC_ROOT, EE_DIR);
       if (userDir.exists()) {
         return userDir;
       } else {
@@ -287,7 +288,7 @@ public final class ResourceFactory
           userSuffix = File.separator + "Documents" + File.separator + EE_DIR;
         }
         if (userSuffix != null) {
-          userDir = new File(userPrefix, userSuffix);
+          userDir = new FileNI(userPrefix, userSuffix);
           if (userDir.exists()) {
             return userDir;
           }
@@ -324,26 +325,26 @@ public final class ResourceFactory
 
     // Main game detection
     currentGame = ID_UNKNOWNGAME;
-    if (new File(rootDir, "movies/howseer.wbm").exists()) {
+    if (new FileNI(rootDir, "movies/howseer.wbm").exists()) {
       currentGame = ID_IWDEE;
-    } else if (new File(rootDir, "movies/pocketzz.wbm").exists()) {
+    } else if (new FileNI(rootDir, "movies/pocketzz.wbm").exists()) {
       currentGame = ID_BG2EE;
-    } else if (new File(rootDir, "movies/bgenter.wbm").exists()) {
+    } else if (new FileNI(rootDir, "movies/bgenter.wbm").exists()) {
       currentGame = ID_BGEE;
-    } else if (new File(rootDir, "torment.exe").exists() &&
-               !(new File(rootDir, "movies/sigil.wbm").exists())) {
+    } else if (new FileNI(rootDir, "torment.exe").exists() &&
+               !(new FileNI(rootDir, "movies/sigil.wbm").exists())) {
       currentGame = ID_TORMENT;
-    } else if (new File(rootDir, "idmain.exe").exists() &&
-               !(new File(rootDir, "movies/howseer.wbm").exists())) {
+    } else if (new FileNI(rootDir, "idmain.exe").exists() &&
+               !(new FileNI(rootDir, "movies/howseer.wbm").exists())) {
       currentGame = ID_ICEWIND;
-    } else if (new File(rootDir, "iwd2.exe").exists() &&
-               new File(rootDir, "Data/Credits.mve").exists()) {
+    } else if (new FileNI(rootDir, "iwd2.exe").exists() &&
+               new FileNI(rootDir, "Data/Credits.mve").exists()) {
       currentGame = ID_ICEWIND2;
-    } else if (new File(rootDir, "baldur.exe").exists() &&
-               new File(rootDir, "BGConfig.exe").exists()) {
+    } else if (new FileNI(rootDir, "baldur.exe").exists() &&
+               new FileNI(rootDir, "BGConfig.exe").exists()) {
       currentGame = ID_BG2;
-    } else if (new File(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
-               (new File(rootDir, "baldur.exe").exists() && new File(rootDir, "Config.exe").exists())) {
+    } else if (new FileNI(rootDir, "movies/graphsim.mov").exists() || // Mac BG1 detection hack
+               (new FileNI(rootDir, "baldur.exe").exists() && new FileNI(rootDir, "Config.exe").exists())) {
       currentGame = ID_BG1;
     }
 
@@ -351,7 +352,7 @@ public final class ResourceFactory
     // Note: The order of the root directories is important. NIFile will take the first one available.
     userRoot = getUserRoot(currentGame);
     eeLang = fetchLanguage(userRoot);   // BGEE stores the currently used language in its inifile
-    langRoot = NIFile.getFile(rootDir, "lang" + File.separator + eeLang);
+    langRoot = FileNI.getFile(rootDir, "lang" + File.separator + eeLang);
     if (!langRoot.exists()) {
       langRoot = null;
     }
@@ -407,10 +408,10 @@ public final class ResourceFactory
   {
     // fetching the CD folders in a game installation
     if (!isEnhancedEdition() && games[currentGame].inifile != null) {
-      File iniFile = NIFile.getFile(rootDirs, games[currentGame].inifile);
+      File iniFile = FileNI.getFile(rootDirs, games[currentGame].inifile);
       List<File> dirList = new ArrayList<File>();
       try {
-        BufferedReader br = new BufferedReader(new FileReader(iniFile));
+        BufferedReader br = new BufferedReader(new FileReaderNI(iniFile));
         String line = br.readLine();
         while (line != null) {
           if (line.length() > 5 && line.substring(3, 5).equals(":=")) {
@@ -423,9 +424,9 @@ public final class ResourceFactory
             File dir;
             // Try to handle Mac relative paths
             if (line.startsWith("/"))
-              dir = NIFile.getFile(rootDirs, line);
+              dir = FileNI.getFile(rootDirs, line);
             else
-              dir = NIFile.getFile(line);
+              dir = FileNI.getFile(line);
             if (dir.exists())
               dirList.add(dir);
           }
@@ -438,12 +439,12 @@ public final class ResourceFactory
       }
       if (dirList.size() == 0) {
         // Don't panic if an .ini-file cannot be found or contains errors
-        dirList.add(NIFile.getFile(rootDirs, "CD1"));
-        dirList.add(NIFile.getFile(rootDirs, "CD2"));
-        dirList.add(NIFile.getFile(rootDirs, "CD3"));
-        dirList.add(NIFile.getFile(rootDirs, "CD4"));
-        dirList.add(NIFile.getFile(rootDirs, "CD5"));
-        dirList.add(NIFile.getFile(rootDirs, "CD6"));
+        dirList.add(FileNI.getFile(rootDirs, "CD1"));
+        dirList.add(FileNI.getFile(rootDirs, "CD2"));
+        dirList.add(FileNI.getFile(rootDirs, "CD3"));
+        dirList.add(FileNI.getFile(rootDirs, "CD4"));
+        dirList.add(FileNI.getFile(rootDirs, "CD5"));
+        dirList.add(FileNI.getFile(rootDirs, "CD6"));
       }
       biffDirs = new File[dirList.size()];
       for (int i = 0; i < dirList.size(); i++)
@@ -463,10 +464,10 @@ public final class ResourceFactory
         String iniFileName = games[currentGame].inifile;
         if (iniFileName == null || iniFileName.isEmpty())
           iniFileName = "baldur.ini";
-        File iniFile = new File(iniRoot, iniFileName);
+        File iniFile = new FileNI(iniRoot, iniFileName);
         if (iniFile.exists()) {
           try {
-            BufferedReader br = new BufferedReader(new FileReader(iniFile));
+            BufferedReader br = new BufferedReader(new FileReaderNI(iniFile));
             String line = br.readLine();
             while (line != null) {
               if (line.contains("'Language'")) {
@@ -474,7 +475,7 @@ public final class ResourceFactory
                 if (entries.length == 3) {
                   lang = entries[2].replace('\'', ' ').trim();
                   if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
-                    if (new File(rootDir, "lang" + File.separator + lang).exists()) {
+                    if (new FileNI(rootDir, "lang" + File.separator + lang).exists()) {
                       br.close();
                       return lang;
                     }
@@ -492,7 +493,7 @@ public final class ResourceFactory
       } else {
         // Using user-defined language
         if (lang.matches("[a-z]{2}_[A-Z]{2}") &&
-            new File(rootDir, "lang" + File.separator + lang).exists()) {
+            new FileNI(rootDir, "lang" + File.separator + lang).exists()) {
           return lang;
         }
       }
@@ -540,7 +541,7 @@ public final class ResourceFactory
       fc.setDialogTitle("Export resource");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     }
-    fc.setSelectedFile(new File(fc.getCurrentDirectory(), filename));
+    fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), filename));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       File output = fc.getSelectedFile();
       if (output.exists()) {
@@ -551,7 +552,7 @@ public final class ResourceFactory
           return;
       }
       try {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
         bos.write(data, 0, data.length);
         bos.close();
         JOptionPane.showMessageDialog(parent, "File exported to " + output, "Export complete",
@@ -566,11 +567,11 @@ public final class ResourceFactory
 
   public File getFile(String filename)
   {
-    File file = NIFile.getFile(rootDirs, filename);
+    File file = FileNI.getFile(rootDirs, filename);
     if (file.exists())
       return file;
     for (final File biffDir : biffDirs) {
-      file = new File(biffDir, filename);
+      file = new FileNI(biffDir, filename);
       if (file.exists())
         return file;
     }
@@ -615,13 +616,13 @@ public final class ResourceFactory
 
     // Get resources from keyfile
     keyfile.addBIFFResourceEntries(treeModel);
-    File dlg_file = new File(getTLKRoot(), DIALOGFILENAME);
+    File dlg_file = new FileNI(getTLKRoot(), DIALOGFILENAME);
     StringResource.init(dlg_file);
 
     // Add other resources
     for (final String extraDir : games[currentGame].extraDirs) {
       for (final File root: rootDirs) {
-        File directory = NIFile.getFile(root, extraDir);
+        File directory = FileNI.getFile(root, extraDir);
         if (directory.exists())
           treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), directory);
       }
@@ -633,7 +634,7 @@ public final class ResourceFactory
       // excluding language folder from search
       if (langRoot == rootDir)
         continue;
-      File overrideDir = NIFile.getFile(rootDir, OVERRIDEFOLDER);
+      File overrideDir = FileNI.getFile(rootDir, OVERRIDEFOLDER);
       if (overrideDir.exists()) {
         File overrideFiles[] = overrideDir.listFiles();
         for (final File overrideFile : overrideFiles) {
@@ -690,14 +691,14 @@ public final class ResourceFactory
     } while (filename == null);
 
     // creating override folder in game directory if it doesn't exist
-    File outdir = NIFile.getFile(getRootDir(), OVERRIDEFOLDER.toLowerCase());
+    File outdir = FileNI.getFile(getRootDir(), OVERRIDEFOLDER.toLowerCase());
     if (!outdir.exists()) {
       outdir.mkdir();
     }
 
-    File output = NIFile.getFile(outdir, File.separatorChar + filename);
+    File output = FileNI.getFile(outdir, File.separatorChar + filename);
     if (entry.getExtension().equalsIgnoreCase("bs"))
-      output = NIFile.getFile(rootDirs, "Scripts" + File.separatorChar + filename);
+      output = FileNI.getFile(rootDirs, "Scripts" + File.separatorChar + filename);
 
     if (output.exists()) {
       String options[] = {"Overwrite", "Cancel"};
@@ -708,9 +709,10 @@ public final class ResourceFactory
     }
     try {
       byte data[] = entry.getResourceData();
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
       bos.write(data, 0, data.length);
       bos.close();
+      FileLookup.getInstance().add(output);
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), entry.toString() + " copied to " + output, "Copy complete",
                                     JOptionPane.INFORMATION_MESSAGE);
       ResourceEntry newentry = new FileResourceEntry(output, !entry.getExtension().equalsIgnoreCase("bs"));
@@ -735,8 +737,8 @@ public final class ResourceFactory
       return false;
     File output;
     if (entry instanceof BIFFResourceEntry) {
-      output = NIFile.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar + entry.toString());
-      File override = NIFile.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar);
+      output = FileNI.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar + entry.toString());
+      File override = FileNI.getFile(rootDirs, OVERRIDEFOLDER + File.separatorChar);
       if (!override.exists())
         override.mkdir();
       ((BIFFResourceEntry)entry).setOverride(true);
@@ -766,7 +768,7 @@ public final class ResourceFactory
       }
     }
     try {
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
       ((Writeable)resource).write(bos);
       bos.close();
       JOptionPane.showMessageDialog(parent, "File saved to \"" + output.getAbsolutePath() + '\"',

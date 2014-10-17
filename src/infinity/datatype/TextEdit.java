@@ -9,7 +9,7 @@ import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -125,7 +125,7 @@ public final class TextEdit extends Datatype implements Editable, Readable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeBytes(os, toArray());
+    FileWriterNI.writeBytes(os, toArray());
   }
 
   // --------------------- End Interface Writeable ---------------------

@@ -5,7 +5,7 @@
 package infinity.resource.video;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Filereader;
+import infinity.util.io.FileReaderNI;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -764,9 +764,9 @@ public class MveDecoder
           curChunkType = nextChunkType;
           while (curSize < curChunkSize) {
             try {
-              int segmentSize = Filereader.readUnsignedShort(in);
-              short segmentOpcode = Filereader.readUnsignedByte(in);
-              short segmentVersion = Filereader.readUnsignedByte(in);
+              int segmentSize = FileReaderNI.readUnsignedShort(in);
+              short segmentOpcode = FileReaderNI.readUnsignedByte(in);
+              short segmentVersion = FileReaderNI.readUnsignedByte(in);
               curSize += 4;
               MveSegment segment = new MveSegment(in, segmentSize, segmentOpcode, segmentVersion);
               segments.add(segment);
@@ -792,8 +792,8 @@ public class MveDecoder
           nextChunkSize = nextChunkType = MVE_CHUNK_NONE;
         } else {
           try {
-            nextChunkSize = Filereader.readUnsignedShort(in);
-            nextChunkType = Filereader.readUnsignedShort(in);
+            nextChunkSize = FileReaderNI.readUnsignedShort(in);
+            nextChunkType = FileReaderNI.readUnsignedShort(in);
           } catch (IOException e) {
             e.printStackTrace();
             return false;

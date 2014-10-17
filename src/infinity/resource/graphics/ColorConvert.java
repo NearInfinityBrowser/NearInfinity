@@ -5,6 +5,8 @@
 package infinity.resource.graphics;
 
 import infinity.util.DynamicArray;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileNI;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -213,7 +215,7 @@ public class ColorConvert
   {
     Dimension d = new Dimension();
     try {
-      ImageInputStream iis = ImageIO.createImageInputStream(new File(fileName));
+      ImageInputStream iis = ImageIO.createImageInputStream(new FileNI(fileName));
       final Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
       if (readers.hasNext()) {
         ImageReader reader = readers.next();
@@ -455,7 +457,7 @@ public class ColorConvert
     if (file != null && file.exists()) {
       FileInputStream fis = null;
       try {
-        fis = new FileInputStream(file);
+        fis = new FileInputStreamNI(file);
         try {
           byte[] signature = new byte[8];
           fis.read(signature);
@@ -511,7 +513,7 @@ public class ColorConvert
     if (file != null && file.exists()) {
       FileInputStream fis = null;
       try {
-        fis = new FileInputStream(file);
+        fis = new FileInputStreamNI(file);
         try {
           byte[] signature = new byte[8];
           fis.read(signature);
@@ -568,7 +570,7 @@ public class ColorConvert
     if (file != null && file.exists()) {
       FileInputStream fis = null;
       try {
-        fis = new FileInputStream(file);
+        fis = new FileInputStreamNI(file);
         try {
           int size = (int)file.length();
           if (size == 768) {
@@ -609,7 +611,7 @@ public class ColorConvert
     if (file != null && file.exists()) {
       FileInputStream fis = null;
       try {
-        fis = new FileInputStream(file);
+        fis = new FileInputStreamNI(file);
         try {
           byte[] signature = new byte[8];
           fis.read(signature);

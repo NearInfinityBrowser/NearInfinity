@@ -22,8 +22,10 @@ import infinity.resource.key.ResourceEntry;
 import infinity.search.ScriptReferenceSearcher;
 import infinity.search.TextResourceSearcher;
 import infinity.util.Decryptor;
-import infinity.util.Filewriter;
-import infinity.util.NIFile;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -32,7 +34,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -147,7 +148,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)bpDecompile.getControlByType(CtrlWarnings);
       try {
         if (DEBUG) {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("bcs_org.txt"));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI("bcs_org.txt"));
           write(bos);
           bos.close();
         }
@@ -158,7 +159,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
         sourceChanged = false;
         codeChanged = true;
         if (DEBUG) {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("bcs_new.txt"));
+          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI("bcs_new.txt"));
           write(bos);
           bos.close();
         }
@@ -263,7 +264,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       File output;
       if (entry instanceof BIFFResourceEntry) {
         output =
-        NIFile.getFile(ResourceFactory.getRootDirs(),
+            FileNI.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       } else {
         output = entry.getActualFile();
@@ -382,11 +383,11 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
           });
         }
         chooser.setSelectedFile(
-                new File(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BAF"));
+                new FileNI(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BAF"));
         int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
         if (returnval == JFileChooser.APPROVE_OPTION) {
           try {
-            PrintWriter pw = new PrintWriter(new FileOutputStream(chooser.getSelectedFile()));
+            PrintWriter pw = new PrintWriterNI(new FileOutputStreamNI(chooser.getSelectedFile()));
             pw.println(sourceText.getText());
             pw.close();
             JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
@@ -560,9 +561,9 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   public void write(OutputStream os) throws IOException
   {
     if (codeText == null)
-      Filewriter.writeString(os, text, text.length());
+      FileWriterNI.writeString(os, text, text.length());
     else
-      Filewriter.writeString(os, codeText.getText(), codeText.getText().length());
+      FileWriterNI.writeString(os, codeText.getText(), codeText.getText().length());
   }
 
 // --------------------- End Interface Writeable ---------------------

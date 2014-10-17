@@ -19,6 +19,9 @@ import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -29,7 +32,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -91,7 +93,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
     else if (event.getSource() == bsave) {
       JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
       fc.setDialogTitle("Save search result");
-      fc.setSelectedFile(new File("result.txt"));
+      fc.setSelectedFile(new FileNI("result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
         File output = fc.getSelectedFile();
         if (output.exists()) {
@@ -102,7 +104,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Result of script check");
           if (table == errorTable) {
             pw.println("Number of errors: " + table.getRowCount());

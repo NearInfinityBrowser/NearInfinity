@@ -7,15 +7,15 @@ package infinity.resource.key;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.util.DynamicArray;
-import infinity.util.Filereader;
-import infinity.util.Filewriter;
 import infinity.util.IntegerHashMap;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileReaderNI;
+import infinity.util.io.FileWriterNI;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -190,8 +190,8 @@ public final class Keyfile
 
   public void addBIFFResourceEntries(ResourceTreeModel treemodel) throws Exception
   {
-    BufferedInputStream is = new BufferedInputStream(new FileInputStream(keyfile));
-    byte buffer[] = Filereader.readBytes(is, (int)keyfile.length());
+    BufferedInputStream is = new BufferedInputStream(new FileInputStreamNI(keyfile));
+    byte buffer[] = FileReaderNI.readBytes(is, (int)keyfile.length());
     is.close();
 
     signature = new String(buffer, 0, 4);
@@ -310,7 +310,7 @@ public final class Keyfile
 
   public void write() throws IOException
   {
-    BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(keyfile));
+    BufferedOutputStream os = new BufferedOutputStream(new FileOutputStreamNI(keyfile));
     int bifoff = 0x18;
     int offset = bifoff + 0x0c * biffEntries.size();
     for (int i = 0; i < biffEntries.size(); i++)
@@ -320,12 +320,12 @@ public final class Keyfile
     List<BIFFResourceEntry> resourceentries =
             ResourceFactory.getInstance().getResources().getBIFFResourceEntries();
 
-    Filewriter.writeString(os, signature, 4);
-    Filewriter.writeString(os, version, 4);
-    Filewriter.writeInt(os, biffEntries.size());
-    Filewriter.writeInt(os, resourceentries.size());
-    Filewriter.writeInt(os, bifoff);
-    Filewriter.writeInt(os, resoff);
+    FileWriterNI.writeString(os, signature, 4);
+    FileWriterNI.writeString(os, version, 4);
+    FileWriterNI.writeInt(os, biffEntries.size());
+    FileWriterNI.writeInt(os, resourceentries.size());
+    FileWriterNI.writeInt(os, bifoff);
+    FileWriterNI.writeInt(os, resoff);
 
     for (int i = 0; i < biffEntries.size(); i++)
       biffEntries.get(i).write(os);

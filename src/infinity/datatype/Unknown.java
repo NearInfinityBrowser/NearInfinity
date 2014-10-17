@@ -9,7 +9,7 @@ import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -134,7 +134,7 @@ public class Unknown extends Datatype implements Editable, Readable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeBytes(os, data);
+    FileWriterNI.writeBytes(os, data);
   }
 
 // --------------------- End Interface Writeable ---------------------

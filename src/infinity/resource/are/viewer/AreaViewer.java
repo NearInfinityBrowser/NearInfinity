@@ -100,7 +100,7 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
-import infinity.util.NIFile;
+import infinity.util.io.FileNI;
 
 /**
  * The Area Viewer shows a selected map with its associated structures, such as actors, regions or
@@ -2459,7 +2459,7 @@ public class AreaViewer extends ChildFrame
         if (wed[dayNight].hasStructChanged()) {
           File output;
           if (wed[dayNight].getResourceEntry() instanceof BIFFResourceEntry) {
-            output = NIFile.getFile(ResourceFactory.getRootDir(),
+            output = FileNI.getFile(ResourceFactory.getRootDir(),
                                     ResourceFactory.OVERRIDEFOLDER + File.separatorChar +
                                     wed[dayNight].getResourceEntry().toString());
           } else {

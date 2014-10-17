@@ -11,13 +11,14 @@ import infinity.resource.Writeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileWriterNI;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -92,9 +93,9 @@ public final class IOHandler implements Writeable
     tempfolder.mkdir();
     for (int i = 0; i < fileentries.size(); i++) {
       FileEntry fentry = fileentries.get(i);
-      File file = new File(tempfolder, fentry.toString());
-      OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
-      Filewriter.writeBytes(os, fentry.decompress());
+      File file = new FileNI(tempfolder, fentry.toString());
+      OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(file));
+      FileWriterNI.writeBytes(os, fentry.decompress());
       os.close();
       entries.add(new FileResourceEntry(file));
     }
@@ -110,8 +111,8 @@ public final class IOHandler implements Writeable
   private File createTempFolder()
   {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
-      File f = new File(ResourceFactory.getUserRoot(),
-                        String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
+      File f = new FileNI(ResourceFactory.getUserRoot(),
+                          String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
       if (!f.exists()) {
         return f;
       }
@@ -246,12 +247,12 @@ public final class IOHandler implements Writeable
     @Override
     public void write(OutputStream os) throws IOException
     {
-      Filewriter.writeInt(os, filename.length() + 1);
-      Filewriter.writeString(os, filename, filename.length());
-      Filewriter.writeByte(os, (byte)0);
+      FileWriterNI.writeInt(os, filename.length() + 1);
+      FileWriterNI.writeString(os, filename, filename.length());
+      FileWriterNI.writeByte(os, (byte)0);
       uncomprLength.write(os);
       comprLength.write(os);
-      Filewriter.writeBytes(os, cdata);
+      FileWriterNI.writeBytes(os, cdata);
     }
   }
 }

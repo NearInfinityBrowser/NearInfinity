@@ -12,7 +12,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -246,12 +246,12 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
   {
     if (resname.equals(NONE)) {
       if (wasNull)
-        Filewriter.writeBytes(os, buffer);
+        FileWriterNI.writeBytes(os, buffer);
       else
-        Filewriter.writeBytes(os, new byte[getSize()]);
+        FileWriterNI.writeBytes(os, new byte[getSize()]);
     }
     else
-      Filewriter.writeString(os, resname, getSize());
+      FileWriterNI.writeString(os, resname, getSize());
   }
 
 // --------------------- End Interface Writeable ---------------------

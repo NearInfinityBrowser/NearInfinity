@@ -40,12 +40,13 @@ import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -209,7 +210,7 @@ public final class CreResource extends AbstractStruct
     resourcename = resourcename.substring(0, resourcename.lastIndexOf(".")) + ".CRE";
     JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
     chooser.setDialogTitle("Convert CHR to CRE");
-    chooser.setSelectedFile(new File(resourcename));
+    chooser.setSelectedFile(new FileNI(resourcename));
     if (chooser.showSaveDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
       File output = chooser.getSelectedFile();
       if (output.exists()) {
@@ -224,7 +225,7 @@ public final class CreResource extends AbstractStruct
         while (!crefile.getStructEntryAt(0).toString().equals("CRE "))
           crefile.list.remove(0);
         convertToSemiStandard(crefile);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
         crefile.write(bos);
         bos.close();
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + output,

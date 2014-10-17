@@ -27,13 +27,14 @@ import infinity.resource.text.PlainTextResource;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
 import infinity.util.StringResource;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -194,7 +195,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
             return;
         }
         try {
-          PrintWriter w = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter w = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           w.println("Searched for unused strings");
           w.println("Number of hits: "  + table.getRowCount());
           w.println("");

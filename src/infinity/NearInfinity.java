@@ -23,6 +23,8 @@ import infinity.resource.key.ResourceTreeModel;
 import infinity.search.SearchFrame;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
+import infinity.util.io.FileLookup;
+import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -88,7 +90,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     JFileChooser chooser;
     if (ResourceFactory.getRootDir() == null)
-      chooser = new JFileChooser(new File("."));
+      chooser = new JFileChooser(new FileNI("."));
     else
       chooser = new JFileChooser(ResourceFactory.getRootDir());
     chooser.setDialogTitle("Open game: Locate keyfile");
@@ -123,6 +125,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static boolean reloadFactory(boolean refreshonly)
   {
+    FileLookup.getInstance().clearCache();
     IdsMapCache.clearCache();
     SearchFrame.clearCache();
     StringResource.close();
@@ -179,11 +182,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setJMenuBar(menuBar);
 
     String lastDir = prefs.get(LAST_GAMEDIR, null);
-    if (new File(KEYFILENAME).exists())
-      new ResourceFactory(new File(KEYFILENAME));
-    else if (lastDir != null && new File(lastDir, KEYFILENAME).exists())
-      new ResourceFactory(new File(lastDir, KEYFILENAME));
-    else {
+    if (new FileNI(KEYFILENAME).exists()) {
+      new ResourceFactory(new FileNI(KEYFILENAME));
+    } else if (lastDir != null && new FileNI(lastDir, KEYFILENAME).exists()) {
+      new ResourceFactory(new FileNI(lastDir, KEYFILENAME));
+    } else {
       File key = findKeyfile();
       if (key == null)
         System.exit(10);

@@ -22,6 +22,9 @@ import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 import infinity.resource.cre.Item;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -31,7 +34,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -87,7 +89,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     } else if (event.getSource() == bsave) {
       JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
       fc.setDialogTitle("Save search result");
-      fc.setSelectedFile(new File("result.txt"));
+      fc.setSelectedFile(new FileNI("result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
         File output = fc.getSelectedFile();
         if (output.exists()) {
@@ -98,7 +100,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Result of CRE inventory check");
           pw.println("Number of hits: " + table.getRowCount());
           for (int i = 0; i < table.getRowCount(); i++)

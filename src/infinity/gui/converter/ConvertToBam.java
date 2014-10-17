@@ -94,6 +94,7 @@ import infinity.resource.graphics.PseudoBamDecoder.PseudoBamCycleEntry;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import infinity.resource.key.FileResourceEntry;
 import infinity.util.Pair;
+import infinity.util.io.FileNI;
 
 public class ConvertToBam extends ChildFrame
   implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
@@ -255,7 +256,7 @@ public class ConvertToBam extends ChildFrame
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath);
-    File file = new File(rootPath);
+    File file = new FileNI(rootPath);
     if (!file.isDirectory()) {
         fc.setSelectedFile(file);
     }
@@ -318,7 +319,7 @@ public class ConvertToBam extends ChildFrame
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath);
-    File file = new File(rootPath);
+    File file = new FileNI(rootPath);
     if (!file.isDirectory()) {
         fc.setSelectedFile(file);
     }
@@ -2397,7 +2398,7 @@ public class ConvertToBam extends ChildFrame
     if (files != null && files.length > 0) {
       try {
         WindowBlocker.blockWindow(this, true);
-        framesImportBam(new File(setFileExtension(files[0].toString(), "BAM")));
+        framesImportBam(new FileNI(setFileExtension(files[0].toString(), "BAM")));
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
@@ -3500,7 +3501,7 @@ public class ConvertToBam extends ChildFrame
     File outFile = getSaveFileName(this, "Specify output file", rootPath,
                                    new FileNameExtensionFilter[]{getBamFilter()}, 0);
     if (outFile != null) {
-      outFile = new File(setFileExtension(outFile.toString(), "BAM"));
+      outFile = new FileNI(setFileExtension(outFile.toString(), "BAM"));
       bamOutputFileName = outFile.toString();
     }
 

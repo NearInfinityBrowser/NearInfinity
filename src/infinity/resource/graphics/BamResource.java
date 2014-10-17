@@ -17,6 +17,7 @@ import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
+import infinity.util.io.FileNI;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
@@ -35,7 +36,6 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -212,7 +212,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
+      fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
 
       // Output graphics format depends on BAM type
       while (fc.getChoosableFileFilters().length > 0) {
@@ -612,7 +612,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           if (image != null) {
             decoder.frameGet(control, i, image);
             try {
-              ImageIO.write(image, format, new File(filePath, fileBase + fileIndex + fileExt));
+              ImageIO.write(image, format, new FileNI(filePath, fileBase + fileIndex + fileExt));
               counter++;
             } catch (IOException e) {
               failCounter++;

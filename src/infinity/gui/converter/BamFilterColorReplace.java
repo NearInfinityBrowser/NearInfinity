@@ -9,6 +9,7 @@ import infinity.gui.ViewerUtil;
 import infinity.gui.ColorGrid.MouseOverEvent;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import infinity.util.io.FileInputStreamNI;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -223,7 +224,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         FileInputStream fis = null;
         byte[] signature = new byte[8];
         try {
-          fis = new FileInputStream(paletteFile);
+          fis = new FileInputStreamNI(paletteFile);
           fis.read(signature);
         } catch (IOException e) {
           throw new Exception("Error reading from file " + paletteFile.getName());

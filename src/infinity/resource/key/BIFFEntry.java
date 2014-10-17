@@ -7,7 +7,7 @@ package infinity.resource.key;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Writeable;
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,10 +77,10 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeInt(os, filelength);
-    Filewriter.writeInt(os, stringoffset);
-    Filewriter.writeShort(os, stringlength);
-    Filewriter.writeShort(os, location);
+    FileWriterNI.writeInt(os, filelength);
+    FileWriterNI.writeInt(os, stringoffset);
+    FileWriterNI.writeShort(os, stringlength);
+    FileWriterNI.writeShort(os, location);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -137,7 +137,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
   public void writeString(OutputStream os) throws IOException
   {
-    Filewriter.writeString(os, filename, (int)stringlength);
+    FileWriterNI.writeString(os, filename, (int)stringlength);
   }
 }
 

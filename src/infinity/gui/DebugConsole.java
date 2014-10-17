@@ -17,6 +17,9 @@ import infinity.resource.Writeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.util.StructClipboard;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -27,7 +30,6 @@ import java.awt.event.ItemListener;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -149,7 +151,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     else if (event.getSource() == bsaveconsole) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save console");
-      chooser.setSelectedFile(new File("nidebuglog.txt"));
+      chooser.setSelectedFile(new FileNI("nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
@@ -159,7 +161,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Near Infinity Debug Log");
           pw.println(BrowserMenuBar.VERSION);
           pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));

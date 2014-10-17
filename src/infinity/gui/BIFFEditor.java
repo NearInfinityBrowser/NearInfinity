@@ -12,8 +12,9 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.BIFFWriter;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Filewriter;
-import infinity.util.NIFile;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.Color;
 import java.awt.Container;
@@ -26,7 +27,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -143,10 +143,10 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       List<ResourceEntry> overrideBif = overridetable.getValueList(BIFFEditorTable.TYPE_BIF);
       for (int i = 0; i < overrideBif.size(); i++) {
         ResourceEntry entry = overrideBif.get(i);
-        File file = NIFile.getFile(ResourceFactory.getRootDirs(),
+        File file = FileNI.getFile(ResourceFactory.getRootDirs(),
                              ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
-        OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
-        Filewriter.writeBytes(os, entry.getResourceData(true));
+        OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(file));
+        FileWriterNI.writeBytes(os, entry.getResourceData(true));
         os.close();
         FileResourceEntry fileEntry = new FileResourceEntry(file, true);
         ResourceFactory.getInstance().getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
@@ -184,7 +184,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     // 4: Delete old files from override
     for (int i = 0; i < tobif.size(); i++)
-      NIFile.getFile(ResourceFactory.getRootDirs(),
+      FileNI.getFile(ResourceFactory.getRootDirs(),
                ResourceFactory.OVERRIDEFOLDER + File.separatorChar + tobif.get(i).toString()).delete();
     progress.setProgress(4, true);
 
@@ -192,7 +192,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     origbiflist.removeAll(biftable.getValueList(BIFFEditorTable.TYPE_BIF));
     origbiflist.removeAll(overridetable.getValueList(BIFFEditorTable.TYPE_BIF));
     for (int i = 0; i < origbiflist.size(); i++) {
-      File file = NIFile.getFile(ResourceFactory.getRootDirs(),
+      File file = FileNI.getFile(ResourceFactory.getRootDirs(),
                            ResourceFactory.OVERRIDEFOLDER + File.separatorChar +
                            origbiflist.get(i).toString());
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);

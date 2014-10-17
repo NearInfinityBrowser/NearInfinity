@@ -10,10 +10,10 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -244,8 +244,8 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeInt(os, (int)idsValue);
-    Filewriter.writeInt(os, (int)idsFile);
+    FileWriterNI.writeInt(os, (int)idsValue);
+    FileWriterNI.writeInt(os, (int)idsFile);
   }
 
 // --------------------- End Interface Writeable ---------------------

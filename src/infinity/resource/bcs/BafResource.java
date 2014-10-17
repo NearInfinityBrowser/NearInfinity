@@ -20,8 +20,10 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.TextResourceSearcher;
 import infinity.util.Decryptor;
-import infinity.util.Filewriter;
-import infinity.util.NIFile;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -29,7 +31,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -208,7 +209,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
       if (returnval == JFileChooser.APPROVE_OPTION) {
         try {
-          PrintWriter pw = new PrintWriter(new FileOutputStream(chooser.getSelectedFile()));
+          PrintWriter pw = new PrintWriterNI(new FileOutputStreamNI(chooser.getSelectedFile()));
           pw.println(codeText.getText());
           pw.close();
           JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
@@ -236,7 +237,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-        NIFile.getFile(ResourceFactory.getRootDirs(),
+            FileNI.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
@@ -475,7 +476,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void write(OutputStream os) throws IOException
   {
     if (sourceText == null) {
-      Filewriter.writeString(os, text, text.length());
+      FileWriterNI.writeString(os, text, text.length());
     } else {
       sourceText.write(new OutputStreamWriter(os));
     }

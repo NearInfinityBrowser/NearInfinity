@@ -14,6 +14,8 @@ import infinity.resource.graphics.DxtEncoder;
 import infinity.util.DynamicArray;
 import infinity.util.GridManager;
 import infinity.util.IntegerHashMap;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -35,7 +37,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -227,7 +228,7 @@ public class ConvertToMos extends ChildFrame
       BufferedOutputStream bos = null;
       try {
         try {
-          bos = new BufferedOutputStream(new FileOutputStream(new File(mosFileName)));
+          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(mosFileName)));
           bos.write(dst);
           bos.close();
           bos = null;
@@ -407,7 +408,7 @@ public class ConvertToMos extends ChildFrame
       BufferedOutputStream bos = null;
       try {
         try {
-          bos = new BufferedOutputStream(new FileOutputStream(new File(mosFileName)));
+          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(mosFileName)));
           bos.write(dst);
           bos.close();
           bos = null;
@@ -558,7 +559,7 @@ public class ConvertToMos extends ChildFrame
         BufferedOutputStream bos = null;
         try {
           try {
-            bos = new BufferedOutputStream(new FileOutputStream(new File(pvrzName)));
+            bos = new BufferedOutputStream(new FileOutputStreamNI(new File(pvrzName)));
             bos.write(pvrz);
             bos.close();
             bos = null;
@@ -618,9 +619,9 @@ public class ConvertToMos extends ChildFrame
         File file = null;
         do {
           if (tabPane.getSelectedIndex() == 0 && !tfOutputV1.getText().isEmpty()) {
-            file = new File(tfOutputV1.getText());
+            file = new FileNI(tfOutputV1.getText());
           } else if (tabPane.getSelectedIndex() == 1 & !tfOutputV2.getText().isEmpty()) {
-            file = new File(tfOutputV2.getText());
+            file = new FileNI(tfOutputV2.getText());
           }
           if (file != null) {
             if (!file.exists() ||
@@ -648,8 +649,8 @@ public class ConvertToMos extends ChildFrame
       hideWindow();
     } else if (event.getSource() == bInputV1 || event.getSource() == bInputV2) {
       String fileName = tfInputV1.getText().isEmpty() ? currentDir : tfInputV1.getText();
-      if ((fileName = getImageFileName(new File(fileName))) != null) {
-        currentDir = (new File(fileName)).getParent();
+      if ((fileName = getImageFileName(new FileNI(fileName))) != null) {
+        currentDir = (new FileNI(fileName)).getParent();
         tfInputV1.setText(fileName);
         tfInputV2.setText(fileName);
         if (tfOutputV1.getText().isEmpty()) {
@@ -661,8 +662,8 @@ public class ConvertToMos extends ChildFrame
       }
     } else if (event.getSource() == bOutputV1 || event.getSource() == bOutputV2) {
       String fileName = tfOutputV1.getText().isEmpty() ? currentDir : tfOutputV1.getText();
-      if ((fileName = getMosFileName(new File(fileName))) != null) {
-        currentDir = (new File(fileName)).getParent();
+      if ((fileName = getMosFileName(new FileNI(fileName))) != null) {
+        currentDir = (new FileNI(fileName)).getParent();
         tfOutputV1.setText(fileName);
         tfOutputV2.setText(fileName);
       }
@@ -979,7 +980,7 @@ public class ConvertToMos extends ChildFrame
   {
     boolean ret = false;
     if (!tfInputV1.getText().isEmpty() && !tfOutputV1.getText().isEmpty()) {
-      File f = new File(tfInputV1.getText());
+      File f = new FileNI(tfInputV1.getText());
       ret = f.exists() && f.isFile();
     }
     return ret;
@@ -1048,7 +1049,7 @@ public class ConvertToMos extends ChildFrame
     List<String> result = new Vector<String>(2);
 
     // validating input file
-    File inFile = new File(tfInputV1.getText());
+    File inFile = new FileNI(tfInputV1.getText());
     if (!inFile.exists() || !inFile.isFile()) {
       result.add(null);
       result.add(String.format("Input file \"%1$s\" does not exist.", tfInputV1.getText()));

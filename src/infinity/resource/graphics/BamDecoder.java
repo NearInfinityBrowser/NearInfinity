@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Filereader;
+import infinity.util.io.FileReaderNI;
 
 /**
  * Common base class for handling BAM resources.
@@ -46,8 +46,8 @@ public abstract class BamDecoder
       try {
         InputStream is = bamEntry.getResourceDataAsStream();
         if (is != null) {
-          String signature = Filereader.readString(is, 4);
-          String version = Filereader.readString(is, 4);
+          String signature = FileReaderNI.readString(is, 4);
+          String version = FileReaderNI.readString(is, 4);
           is.close();
           if ("BAMC".equals(signature)) {
             retVal = Type.BAMC;

@@ -5,7 +5,7 @@
 package infinity.datatype;
 
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,9 +43,9 @@ public final class TextString extends Datatype implements InlineEditable, Readab
   public void write(OutputStream os) throws IOException
   {
     if (text == null)
-      Filewriter.writeBytes(os, bytes);
+      FileWriterNI.writeBytes(os, bytes);
     else
-      Filewriter.writeString(os, text, getSize());
+      FileWriterNI.writeString(os, text, getSize());
   }
 
 // --------------------- End Interface Writeable ---------------------

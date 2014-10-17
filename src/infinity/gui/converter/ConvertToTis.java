@@ -14,6 +14,8 @@ import infinity.resource.graphics.DxtEncoder;
 import infinity.util.DynamicArray;
 import infinity.util.GridManager;
 import infinity.util.IntegerHashMap;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -35,7 +37,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -223,7 +224,7 @@ public class ConvertToTis extends ChildFrame
       BufferedOutputStream bos = null;
       try {
         try {
-          bos = new BufferedOutputStream(new FileOutputStream(new File(tisFileName)));
+          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(tisFileName)));
           bos.write(dst);
           bos.close();
           bos = null;
@@ -432,7 +433,7 @@ public class ConvertToTis extends ChildFrame
       BufferedOutputStream bos = null;
       try {
         try {
-          bos = new BufferedOutputStream(new FileOutputStream(new File(tisFileName)));
+          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(tisFileName)));
           bos.write(dst);
           bos.close();
           bos = null;
@@ -480,7 +481,7 @@ public class ConvertToTis extends ChildFrame
   public static String createValidTisName(String tisFilename, int tisVersion)
   {
     // extracting file path and filename without extension
-    File outFile = new File(tisFilename);
+    File outFile = new FileNI(tisFilename);
     String outPath = outFile.getParent();
     if (outPath == null) {
       outPath = "";
@@ -549,7 +550,7 @@ public class ConvertToTis extends ChildFrame
   // generates a PVRZ filename based on the specified parameters
   private static String generatePvrzName(String tisFileName, int page)
   {
-    File tisFile = new File(tisFileName);
+    File tisFile = new FileNI(tisFileName);
     String path = tisFile.getParent();
     if (path == null) {
       path = "";
@@ -629,7 +630,7 @@ public class ConvertToTis extends ChildFrame
         BufferedOutputStream bos = null;
         try {
           try {
-            bos = new BufferedOutputStream(new FileOutputStream(new File(pvrzName)));
+            bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(pvrzName)));
             bos.write(pvrz);
             bos.close();
             bos = null;
@@ -689,7 +690,7 @@ public class ConvertToTis extends ChildFrame
         File file = null;
         do {
           if (!tfOutput.getText().isEmpty()) {
-            file = new File(tfOutput.getText());
+            file = new FileNI(tfOutput.getText());
           }
           if (file != null) {
             if (!file.exists() ||
@@ -726,7 +727,7 @@ public class ConvertToTis extends ChildFrame
       }
       fc.setFileFilter(filters[0]);
       if (!tfInput.getText().isEmpty()) {
-        fc.setSelectedFile(new File(tfInput.getText()));
+        fc.setSelectedFile(new FileNI(tfInput.getText()));
       }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
@@ -749,7 +750,7 @@ public class ConvertToTis extends ChildFrame
       fc.setFileFilter(filter);
       String fileName = tfOutput.getText();
       if (fileName.isEmpty() && !tfInput.getText().isEmpty()) {
-        File f = new File(tfInput.getText());
+        File f = new FileNI(tfInput.getText());
         if (f.exists() && f.isFile()) {
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
@@ -1073,7 +1074,7 @@ public class ConvertToTis extends ChildFrame
   {
     boolean ret = false;
     if (!getInputFile().isEmpty()) {
-      File f = new File(getInputFile());
+      File f = new FileNI(getInputFile());
       ret = f.exists() && f.isFile();
     }
     return ret;
@@ -1129,7 +1130,7 @@ public class ConvertToTis extends ChildFrame
     boolean isValid = false;
     inFileName = inputFile;
     if (inFileName != null && !inFileName.isEmpty()) {
-      File f = new File(inFileName);
+      File f = new FileNI(inFileName);
       if (f.exists() && f.isFile()) {
         Dimension dimImage = ColorConvert.getImageDimension(inFileName);
         if (dimImage.width >= 0 && (dimImage.width % 64) == 0 &&
@@ -1169,7 +1170,7 @@ public class ConvertToTis extends ChildFrame
     List<String> ret = new Vector<String>(2);
 
     // validating input file
-    File inFile = new File(inFileName);
+    File inFile = new FileNI(inFileName);
     if (!inFile.exists() || !inFile.isFile()) {
       ret.add(null);
       ret.add(String.format("Input file \"%1$s\" does not exist.", inFileName));

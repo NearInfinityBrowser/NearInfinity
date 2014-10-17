@@ -17,7 +17,7 @@ import infinity.resource.dlg.AbstractCode;
 import infinity.resource.gam.GamResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.NIFile;
+import infinity.util.io.FileNI;
 
 import java.awt.Component;
 import java.io.ByteArrayOutputStream;
@@ -160,7 +160,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-            NIFile.getFile(ResourceFactory.getRootDirs(),
+            FileNI.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
