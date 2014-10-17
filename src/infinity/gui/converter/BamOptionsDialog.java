@@ -7,6 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ViewerUtil;
 import infinity.resource.ResourceFactory;
+import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
@@ -124,7 +125,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   {
     BamVersion = Math.min(Math.max(BamVersion, ConvertToBam.VERSION_BAMV1), ConvertToBam.VERSION_BAMV2);
     if (Path == null) Path = DefaultPath;
-    if (!Path.isEmpty() && !(new File(Path)).isDirectory()) Path = DefaultPath;
+    if (!Path.isEmpty() && !(new FileNI(Path)).isDirectory()) Path = DefaultPath;
     TransparencyThreshold = Math.min(Math.max(TransparencyThreshold, 0), 100);
     CompressionType = Math.min(Math.max(CompressionType, ConvertToBam.COMPRESSION_AUTO), ConvertToBam.COMPRESSION_DXT5);
     PvrzIndex = Math.min(Math.max(PvrzIndex, 0), 99999);
@@ -205,7 +206,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   {
     if (event.getSource() == tfPath) {
       String path = tfPath.getText();
-      if (!path.isEmpty() && !(new File(path)).isDirectory()) {
+      if (!path.isEmpty() && !(new FileNI(path)).isDirectory()) {
         tfPath.setText(Path);
       }
     }

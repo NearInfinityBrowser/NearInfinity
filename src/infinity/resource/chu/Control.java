@@ -5,6 +5,7 @@
 package infinity.resource.chu;
 
 import infinity.datatype.Bitmap;
+import infinity.datatype.ColorPicker;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HexNumber;
@@ -12,26 +13,33 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
-import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.IOException;
 import java.io.OutputStream;
 
 final class Control extends AbstractStruct // implements AddRemovable
 {
-  private static final String s_type[] = {"Button", "", "Slider", "Text field", "", "Text area",
-                                          "Label", "Scroll bar"};
+  public static final String FMT_NAME = "Control %1$d";
+
+  private static final String s_type[] = {"Button", "", "Slider", "Text field", "",
+                                          "Text area", "Label", "Scroll bar"};
   private static final String s_button[] = {"Center", "Left justify", "Right justify",
                                             "Top justify", "Bottom justify", "Anchor",
                                             "Reduce size", "Don't wrap"};
-  private static final String s_label[] = {"Center", "RGB color", "", "", "Left justify",
-                                           "Right justify"};
+  private static final String s_label[] = {"Center", "Use color", "Truecolor", "Center justify",
+                                           "Left justify", "Right justify", "Top justify",
+                                           "Middle justify", "Bottom justify", "Word wrap"};
   private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
 
-  Control(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  private final int size;
+
+  Control(AbstractStruct superStruct, byte buffer[], int offset, int number, int size) throws Exception
   {
-    super(superStruct, "Control " + number, buffer, offset);
+    super(superStruct, String.format(FMT_NAME, number), buffer, offset);
+    this.size = size;
   }
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -53,9 +61,42 @@ final class Control extends AbstractStruct // implements AddRemovable
     return offset + 8;
   }
 
+  public int getControlSize()
+  {
+    return size;
+  }
+
+  /** Returns the control id. */
+  public int getControlId()
+  {
+    return ((DecNumber)getAttribute("Control ID")).getValue();
+  }
+
+  /** Returns the x and y position of the control. */
+  public Point getControlPosition()
+  {
+    return new Point(((DecNumber)getAttribute("Position: X")).getValue(),
+                     ((DecNumber)getAttribute("Position: Y")).getValue());
+  }
+
+  /** Returns the width and height of the control. */
+  public Dimension getControlDimensions()
+  {
+    return new Dimension(((DecNumber)getAttribute("Width")).getValue(),
+                         ((DecNumber)getAttribute("Height")).getValue());
+  }
+
+  /** Returns the control type. */
+  public int getControlType()
+  {
+    return ((Bitmap)getAttribute("Type")).getValue();
+  }
+
+
   public int readControl(byte buffer[])
   {
     int offset = ((HexNumber)getAttribute("Offset")).getValue();
+    int endOffset = offset + getControlSize();
     list.add(new DecNumber(buffer, offset, 2, "Control ID"));
     list.add(new DecNumber(buffer, offset + 2, 2, "Buffer length"));
     list.add(new DecNumber(buffer, offset + 4, 2, "Position: X"));
@@ -67,9 +108,9 @@ final class Control extends AbstractStruct // implements AddRemovable
     list.add(new Unknown(buffer, offset + 13, 1));
 
     switch (type.getValue()) {
-      case 0:
+      case 0: // Button
         list.add(new ResourceRef(buffer, offset + 14, "Button", "BAM"));
-        list.add(new UnsignDecNumber(buffer, offset + 22, 1, "Animation number"));
+        list.add(new DecNumber(buffer, offset + 22, 1, "Animation number"));
         list.add(new Flag(buffer, offset + 23, 1, "Text flags", s_button));
         list.add(new DecNumber(buffer, offset + 24, 1, "Frame number: Unpressed"));
         list.add(new DecNumber(buffer, offset + 25, 1, "Text anchor: Left"));
@@ -81,7 +122,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new DecNumber(buffer, offset + 31, 1, "Text anchor: Bottom"));
         offset += 32;
         break;
-      case 2:
+      case 2: // Slider
         list.add(new ResourceRef(buffer, offset + 14, "Background image", "MOS"));
         list.add(new ResourceRef(buffer, offset + 22, "Slider knob", "BAM"));
         list.add(new DecNumber(buffer, offset + 30, 2, "Animation number"));
@@ -97,7 +138,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new DecNumber(buffer, offset + 50, 2, "Slider region: Right"));
         offset += 52;
         break;
-      case 3:
+      case 3: // Text field
         list.add(new ResourceRef(buffer, offset + 14, "Background 1", "MOS"));
         list.add(new ResourceRef(buffer, offset + 22, "Background 2", "MOS"));
         list.add(new ResourceRef(buffer, offset + 30, "Background 3", "MOS"));
@@ -114,24 +155,24 @@ final class Control extends AbstractStruct // implements AddRemovable
         list.add(new Bitmap(buffer, offset + 102, 4, "Allowed case", s_case));
         offset += 106;
         break;
-      case 5:
-        list.add(new ResourceRef(buffer, offset + 14, "Font 1", "BAM"));
-        list.add(new ResourceRef(buffer, offset + 22, "Font 2", "BAM"));
-        list.add(new Unknown(buffer, offset + 30, 4, "Color 1"));
-        list.add(new Unknown(buffer, offset + 34, 4, "Color 2"));
-        list.add(new Unknown(buffer, offset + 38, 4, "Color 3"));
+      case 5: // Text area
+        list.add(new ResourceRef(buffer, offset + 14, "Font (main text)", "BAM"));
+        list.add(new ResourceRef(buffer, offset + 22, "Font (initials)", "BAM"));
+        list.add(new ColorPicker(buffer, offset + 30, "Color 1", ColorPicker.Format.RGBX));
+        list.add(new ColorPicker(buffer, offset + 34, "Color 2", ColorPicker.Format.RGBX));
+        list.add(new ColorPicker(buffer, offset + 38, "Color 3", ColorPicker.Format.RGBX));
         list.add(new DecNumber(buffer, offset + 42, 4, "Scroll bar ID"));
         offset += 46;
         break;
-      case 6:
+      case 6: // Label
         list.add(new StringRef(buffer, offset + 14, "Initial text"));
         list.add(new ResourceRef(buffer, offset + 18, "Font", "BAM"));
-        list.add(new Unknown(buffer, offset + 26, 4, "Color 1"));
-        list.add(new Unknown(buffer, offset + 30, 4, "Color 2"));
+        list.add(new ColorPicker(buffer, offset + 26, "Color 1", ColorPicker.Format.RGBX));
+        list.add(new ColorPicker(buffer, offset + 30, "Color 2", ColorPicker.Format.RGBX));
         list.add(new Flag(buffer, offset + 34, 2, "Text flags", s_label));
         offset += 36;
         break;
-      case 7:
+      case 7: // Scroll bar
         list.add(new ResourceRef(buffer, offset + 14, "Graphics", "BAM"));
         list.add(new DecNumber(buffer, offset + 22, 2, "Animation number"));
         list.add(new DecNumber(buffer, offset + 24, 2, "Frame number: Up-arrow, unpressed"));
@@ -149,6 +190,13 @@ final class Control extends AbstractStruct // implements AddRemovable
         offset += len.getValue();
         break;
     }
+
+    // handling optional gap between controls
+    if (offset < endOffset) {
+      list.add(new Unknown(buffer, offset, endOffset - offset, "Unused"));
+      offset = endOffset;
+    }
+
     return offset;
   }
 

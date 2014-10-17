@@ -8,7 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -104,7 +104,7 @@ public final class TextBitmap extends Datatype implements Editable, Readable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeString(os, text, getSize());
+    FileWriterNI.writeString(os, text, getSize());
   }
 
 // --------------------- End Interface Writeable ---------------------

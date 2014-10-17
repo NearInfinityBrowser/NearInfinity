@@ -7,6 +7,8 @@ package infinity.resource.mus;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.sound.AudioBuffer;
 import infinity.resource.sound.AudioFactory;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileNI;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -172,16 +174,16 @@ public class Entry
     // audio file can reside in a number of different locations
     // fileDir should have no terimal separator
     String fileDir = dir + File.separatorChar + dir;
-    File acmFile = new File(entry.getActualFile().getParentFile(), fileDir +
-                            fileName + ".acm");
+    File acmFile = new FileNI(entry.getActualFile().getParentFile(), fileDir +
+                              fileName + ".acm");
     if (!acmFile.exists() || !acmFile.isFile()) {
       fileDir = "";
-      acmFile = new File(entry.getActualFile().getParentFile(), fileName + ".acm");
+      acmFile = new FileNI(entry.getActualFile().getParentFile(), fileName + ".acm");
     }
     if ((!acmFile.exists() || !acmFile.isFile()) && fileName.toUpperCase().startsWith("MX")) {
       fileDir = fileName.substring(0, 6) + File.separatorChar;
-      acmFile = new File(entry.getActualFile().getParentFile(), fileDir +
-                         fileName + ".acm");
+      acmFile = new FileNI(entry.getActualFile().getParentFile(), fileDir +
+                           fileName + ".acm");
     }
     if (!acmFile.exists() || !acmFile.isFile())
       throw new IOException("Could not find " + fileName);
@@ -191,7 +193,7 @@ public class Entry
     if (audio != null)
       return audio;
 
-    FileInputStream fis = new FileInputStream(acmFile);
+    FileInputStream fis = new FileInputStreamNI(acmFile);
     try {
       byte[] buffer = new byte[(int)acmFile.length()];
       int bytesRead = fis.read(buffer);

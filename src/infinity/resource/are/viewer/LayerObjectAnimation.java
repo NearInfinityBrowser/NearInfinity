@@ -7,7 +7,6 @@ package infinity.resource.are.viewer;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Point;
-import java.io.File;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
@@ -29,6 +28,7 @@ import infinity.resource.graphics.PseudoBamDecoder;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
+import infinity.util.io.FileNI;
 
 /**
  * Handles specific layer type: ARE/Background Animation
@@ -372,7 +372,7 @@ public class LayerObjectAnimation extends LayerObject
     if (bmpFile != null && !bmpFile.isEmpty()) {
       ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(bmpFile);
       if (entry == null) {
-        entry = new FileResourceEntry(new File(bmpFile));
+        entry = new FileResourceEntry(new FileNI(bmpFile));
       }
       if (entry != null) {
         try {

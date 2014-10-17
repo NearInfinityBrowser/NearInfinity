@@ -17,11 +17,11 @@ import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
 import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
-import infinity.util.Filereader;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileReaderNI;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -36,8 +36,8 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   {
     if (file.getName().toUpperCase().endsWith(".TIS")) {
       try {
-        InputStream is = new BufferedInputStream(new FileInputStream(file));
-        byte data[] = Filereader.readBytes(is, 24);
+        InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
+        byte data[] = FileReaderNI.readBytes(is, 24);
         is.close();
         if (!new String(data, 0, 4).equalsIgnoreCase("TIS ")) {
           int tilesize = 64 * 64 + 4 * 256;

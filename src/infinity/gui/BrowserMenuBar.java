@@ -31,8 +31,8 @@ import infinity.search.SearchFrame;
 import infinity.search.SearchResource;
 import infinity.search.TextResourceSearcher;
 import infinity.util.MassExporter;
-import infinity.util.NIFile;
 import infinity.util.StringResource;
+import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -81,7 +81,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.35.0-snapshot-20141003a";
+  public static final String VERSION = "v1.35.0-snapshot-20141007";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final int LOOKFEEL_JAVA = 0, LOOKFEEL_WINDOWS = 1, LOOKFEEL_MOTIF = 2, LOOKFEEL_PLASTICXP = 3;
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
@@ -389,7 +389,7 @@ public final class BrowserMenuBar extends JMenuBar
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         int gameid = prefs.getInt(LASTGAME_IDS[i], -1);
         String gamepath = prefs.get(LASTGAME_PATH[i], null);
-        if (gameid != -1 && gamepath != null && new File(gamepath).exists()) {
+        if (gameid != -1 && gamepath != null && new FileNI(gamepath).exists()) {
           lastGameID.add(new Integer(gameid));
           lastGamePath.add(gamepath);
         }
@@ -489,7 +489,7 @@ public final class BrowserMenuBar extends JMenuBar
         for (int i = 0; i < gameLastGame.length; i++)
           if (event.getSource() == gameLastGame[i])
             selected = i;
-        File keyfile = new File(lastGamePath.get(selected));
+        File keyfile = new FileNI(lastGamePath.get(selected));
         if (!keyfile.exists())
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), lastGamePath.get(selected) +
                                                                     " could not be found",
@@ -667,7 +667,7 @@ public final class BrowserMenuBar extends JMenuBar
           return;
         if (!filename.toUpperCase().endsWith(entry.getExtension()))
           filename = filename + '.' + entry.getExtension();
-        if (new File(entry.getActualFile().getParentFile(), filename).exists()) {
+        if (new FileNI(entry.getActualFile().getParentFile(), filename).exists()) {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
           return;
@@ -737,8 +737,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      editString2.setEnabled(new File(ResourceFactory.getTLKRoot(), "dialogF.tlk").exists());
-      editVarVar.setEnabled(NIFile.getFile(ResourceFactory.getRootDirs(), "VAR.VAR").exists());
+      editString2.setEnabled(new FileNI(ResourceFactory.getTLKRoot(), "dialogF.tlk").exists());
+      editVarVar.setEnabled(FileNI.getFile(ResourceFactory.getRootDirs(), "VAR.VAR").exists());
       if (editString2.isEnabled())
         editString2.setToolTipText("");
       else
@@ -767,7 +767,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = new File(ResourceFactory.getTLKRoot(), "dialogF.tlk");
+        File file = new FileNI(ResourceFactory.getTLKRoot(), "dialogF.tlk");
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
@@ -783,7 +783,7 @@ public final class BrowserMenuBar extends JMenuBar
         new ViewFrame(NearInfinity.getInstance(),
                       ResourceFactory.getResource(
                               new FileResourceEntry(
-                                      NIFile.getFile(ResourceFactory.getRootDirs(), "VAR.VAR"))));
+                                  FileNI.getFile(ResourceFactory.getRootDirs(), "VAR.VAR"))));
       }
       else if (event.getSource() == editBIFF)
         new BIFFEditor();
@@ -1568,12 +1568,12 @@ public final class BrowserMenuBar extends JMenuBar
       mLanguageMenu.add(rbmi);
 
       if (ResourceFactory.isEnhancedEdition()) {
-        File langFile = new File(ResourceFactory.getRootDir(), "lang");
+        File langFile = new FileNI(ResourceFactory.getRootDir(), "lang");
         if (langFile.isDirectory()) {
           File[] langFileList = langFile.listFiles();
           for (int i = 0; i < langFileList.length; i++) {
             if (langFileList[i].isDirectory()) {
-              if ((new File(langFileList[i], tlkFileName)).isFile()) {
+              if ((new FileNI(langFileList[i], tlkFileName)).isFile()) {
                 String[] langCode = langFileList[i].getName().split("_");
                 if (langCode.length >= 2) {
                   Locale locale = new Locale(langCode[0], langCode[1]);
@@ -1935,7 +1935,7 @@ public final class BrowserMenuBar extends JMenuBar
     public void loadDebugColorScheme(String fileName)
     {
       if (NearInfinity.isDebug()) {
-        if (fileName != null && !fileName.isEmpty() && (new File(fileName)).isFile()) {
+        if (fileName != null && !fileName.isEmpty() && (new FileNI(fileName)).isFile()) {
           // adding specified file reference to list
           DEBUGCOLORSCHEME = fileName;
           optionTextDebugColorSchemeSelect
@@ -1952,7 +1952,7 @@ public final class BrowserMenuBar extends JMenuBar
     public String getDebugColorScheme()
     {
       if (NearInfinity.isDebug() && optionTextDebugColorSchemeEnabled.isSelected()) {
-        if (DEBUGCOLORSCHEME != null && (new File(DEBUGCOLORSCHEME)).isFile()) {
+        if (DEBUGCOLORSCHEME != null && (new FileNI(DEBUGCOLORSCHEME)).isFile()) {
           return DEBUGCOLORSCHEME;
         }
       }
@@ -2010,7 +2010,7 @@ public final class BrowserMenuBar extends JMenuBar
         // Debug: loading external color scheme file
         File file = null;
         if (DEBUGCOLORSCHEME != null) {
-          file = new File(DEBUGCOLORSCHEME);
+          file = new FileNI(DEBUGCOLORSCHEME);
           if (!file.isFile()) {
             file = null;
           }

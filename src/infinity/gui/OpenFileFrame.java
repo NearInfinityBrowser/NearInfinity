@@ -9,6 +9,7 @@ import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -205,7 +206,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
       bExternalBrowse.setEnabled(false);
     }
     else if (event.getSource() == tfExternalName)
-      openExternalFile(new File(tfExternalName.getText()));
+      openExternalFile(new FileNI(tfExternalName.getText()));
     else if (event.getSource() == bExternalBrowse) {
       if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
         tfExternalName.setText(fc.getSelectedFile().toString());
@@ -223,7 +224,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
         new ViewFrame(this,
                       ResourceFactory.getResource((ResourceEntry)lpInternal.getSelectedValue()));
       else
-        openExternalFile(new File(tfExternalName.getText()));
+        openExternalFile(new FileNI(tfExternalName.getText()));
     }
   }
 
@@ -291,7 +292,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
     public void run()
     {
       for (int i = 0; i < files.size(); i++) {
-        File file = (File)files.get(i);
+        File file = files.get(i);
         if (!file.isDirectory())
           openExternalFile(file);
       }

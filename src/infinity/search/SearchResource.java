@@ -17,7 +17,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -77,6 +76,7 @@ import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
 import infinity.util.IdsMapEntry;
 import infinity.util.Pair;
+import infinity.util.io.FileNI;
 
 public class SearchResource extends ChildFrame
     implements ActionListener, PropertyChangeListener, Runnable
@@ -6350,7 +6350,7 @@ public class SearchResource extends ChildFrame
     public static Vector<NamedResourceEntry> createNamedResourceList(String[] extensions, boolean sort)
     {
       Vector<NamedResourceEntry> list = new Vector<NamedResourceEntry>();
-      NamedResourceEntry nre = new NamedResourceEntry(new FileResourceEntry(new File("None")));
+      NamedResourceEntry nre = new NamedResourceEntry(new FileResourceEntry(new FileNI("None")));
       list.add(nre);
       if (extensions != null) {
         for (int i = 0; i < extensions.length; i++) {

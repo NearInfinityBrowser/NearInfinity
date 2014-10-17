@@ -14,6 +14,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.MassExporter;
+import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -92,7 +93,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       } else {
         name = name + ".exe";
       }
-      fc.setSelectedFile(new File(name));
+      fc.setSelectedFile(new FileNI(name));
       fc.setDialogType(JFileChooser.SAVE_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       if (fc.showSaveDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {

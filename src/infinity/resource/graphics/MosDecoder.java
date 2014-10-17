@@ -8,7 +8,7 @@ import java.awt.Image;
 import java.io.InputStream;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Filereader;
+import infinity.util.io.FileReaderNI;
 
 /**
  * Common base class for handling MOS resources.
@@ -42,8 +42,8 @@ public abstract class MosDecoder
       try {
         InputStream is = mosEntry.getResourceDataAsStream();
         if (is != null) {
-          String signature = Filereader.readString(is, 4);
-          String version = Filereader.readString(is, 4);
+          String signature = FileReaderNI.readString(is, 4);
+          String version = FileReaderNI.readString(is, 4);
           is.close();
           if ("MOSC".equals(signature)) {
             retVal = Type.MOSC;

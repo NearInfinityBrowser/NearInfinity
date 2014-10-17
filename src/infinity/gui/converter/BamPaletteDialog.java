@@ -10,6 +10,7 @@ import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import infinity.util.io.FileInputStreamNI;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -251,7 +252,7 @@ class BamPaletteDialog extends JDialog
       FileInputStream fis = null;
       byte[] signature = new byte[8];
       try {
-        fis = new FileInputStream(paletteFile);
+        fis = new FileInputStreamNI(paletteFile);
         try {
           fis.read(signature);
         } finally {

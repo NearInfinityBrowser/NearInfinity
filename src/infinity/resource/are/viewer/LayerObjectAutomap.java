@@ -28,6 +28,7 @@ import infinity.resource.to.StringEntry;
 import infinity.resource.to.StringEntry2;
 import infinity.resource.to.TohResource;
 import infinity.resource.to.TotResource;
+import infinity.util.io.FileNI;
 
 /**
  * Handles specific layer type: ARE/Automap Note (except for PST)
@@ -129,7 +130,7 @@ public class LayerObjectAutomap extends LayerObject
               path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
               if (ResourceFactory.isEnhancedEdition()) {
                 // processing new TOH structure
-                File tohFile = new File(path, "DEFAULT.TOH");
+                File tohFile = new FileNI(path, "DEFAULT.TOH");
                 if (tohFile.exists()) {
                   FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                   TohResource toh = new TohResource(tohEntry);
@@ -155,8 +156,8 @@ public class LayerObjectAutomap extends LayerObject
                 }
               } else {
                 // processing legacy TOH/TOT structures
-                File tohFile = new File(path, "DEFAULT.TOH");
-                File totFile = new File(path, "DEFAULT.TOT");
+                File tohFile = new FileNI(path, "DEFAULT.TOH");
+                File totFile = new FileNI(path, "DEFAULT.TOT");
                 if (tohFile.exists() && totFile.exists()) {
                   FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                   FileResourceEntry totEntry = new FileResourceEntry(totFile);

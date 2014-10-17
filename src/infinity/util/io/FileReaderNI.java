@@ -2,17 +2,44 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.util;
+package infinity.util.io;
 
+import infinity.util.DynamicArray;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 
-public final class Filereader
+/**
+ * Overrides java.io.FileReader to support case sensitive file systems.
+ * Contains additional static methods for reading data from streams.
+ */
+public class FileReaderNI extends FileReader
 {
   private static final byte[] buffer4 = new byte[4];
   private static final byte[] buffer2 = new byte[2];
+
+  public FileReaderNI(String fileName) throws FileNotFoundException
+  {
+    super(FileLookup.getInstance().queryFilePath(fileName));
+  }
+
+  public FileReaderNI(File file) throws FileNotFoundException
+  {
+    super(new File(FileLookup.getInstance().queryFilePath(file)));
+  }
+
+  public FileReaderNI(FileDescriptor fd)
+  {
+    // No wrapper needed
+    super(fd);
+  }
+
 
   public static void readBytes(InputStream is, byte buffer[]) throws IOException
   {
@@ -203,7 +230,4 @@ public final class Filereader
     byte buffer[] = readBytes(is, length);
     return DynamicArray.getString(buffer, 0, length);
   }
-
-  private Filereader(){}
 }
-

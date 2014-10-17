@@ -2,15 +2,50 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package infinity.util;
+package infinity.util.io;
 
+import infinity.util.DynamicArray;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 
-public final class Filewriter
+/**
+ * Overrides java.io.FileWriter to support case sensitive file systems.
+ * Contains additional static methods for writing data to streams.
+ */
+public class FileWriterNI extends FileWriter
 {
+  public FileWriterNI(String fileName) throws IOException
+  {
+    super(FileLookup.getInstance().queryFilePath(fileName));
+  }
+
+  public FileWriterNI(File file) throws IOException
+  {
+    super(new File(FileLookup.getInstance().queryFilePath(file)));
+  }
+
+  public FileWriterNI(FileDescriptor fd)
+  {
+    // No wrapper needed
+    super(fd);
+  }
+
+  public FileWriterNI(String fileName, boolean append) throws IOException
+  {
+    super(FileLookup.getInstance().queryFilePath(fileName), append);
+  }
+
+  public FileWriterNI(File file, boolean append) throws IOException
+  {
+    super(new File(FileLookup.getInstance().queryFilePath(file)), append);
+  }
+
 
   public static void writeBytes(OutputStream os, byte buffer[]) throws IOException
   {
@@ -106,7 +141,4 @@ public final class Filewriter
       writeBytes(os, buffer);
     }
   }
-
-  private Filewriter(){}
 }
-

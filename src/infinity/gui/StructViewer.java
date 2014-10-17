@@ -130,6 +130,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final InfinityTextArea tatext = new InfinityTextArea(true);
   private final StructTable table = new StructTable();
   private final HashMap<Integer, StructEntry> entryMap = new HashMap<Integer, StructEntry>();
+  private final HashMap<Viewable, ViewFrame> viewMap = new HashMap<Viewable, ViewFrame>();
   private AddRemovable emptyTypes[];
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
@@ -165,8 +166,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       {
         if (e.getClickCount() == 2 && table.getSelectedRowCount() == 1) {
           Object selected = table.getModel().getValueAt(table.getSelectedRow(), 1);
-          if (selected instanceof Viewable)
-            new ViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
+          if (selected instanceof Viewable) {
+            createViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
+//            new ViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
+          }
         }
       }
     });
@@ -377,7 +380,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         buttonPanel.getControlPosition((JComponent)event.getSource()) >= 0) {
       if (buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit) == event.getSource()) {
         Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
-        new ViewFrame(getTopLevelAncestor(), selected);
+        createViewFrame(getTopLevelAncestor(), selected);
+//        new ViewFrame(getTopLevelAncestor(), selected);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Remove) == event.getSource()) {
         int row = table.getSelectedRow();
         AddRemovable selected = (AddRemovable)table.getModel().getValueAt(row, 1);
@@ -456,7 +460,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     } else if (event.getActionCommand().equals(CMD_SHOWNEWVIEWER)) {
       // get a copy of the resource first
       DlgResource dlgRes = (DlgResource) ResourceFactory.getResource(struct.getResourceEntry());
-      new ViewFrame(getTopLevelAncestor(), dlgRes);
+      createViewFrame(getTopLevelAncestor(), dlgRes);
+//      new ViewFrame(getTopLevelAncestor(), dlgRes);
       dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
     }
   }
@@ -842,6 +847,24 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
+  /**
+   * Returns an already existing ViewFrame of the given Viewable object if available.
+   * Returns a new ViewFrame object otherwise. Assumes top level ancestor of the given view as parent.
+   */
+  public ViewFrame getViewFrame(Viewable view)
+  {
+    return getViewFrame(getTopLevelAncestor(), view);
+  }
+
+  /**
+   * Returns an already existing ViewFrame of the given Viewable object if available.
+   * Returns a new ViewFrame object otherwise.
+   */
+  public ViewFrame getViewFrame(Component parent, Viewable view)
+  {
+    return createViewFrame(parent, view);
+  }
+
   private void considerMenuEnabled()
   {
     ListSelectionModel lsm = table.getSelectionModel();
@@ -960,7 +983,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     for (int i = 0; i < subStruct.getRowCount(); i++) {
       StructEntry o = subStruct.getStructEntryAt(i);
       if (structEntry == o) {
-        new ViewFrame(getTopLevelAncestor(), subStruct);
+        createViewFrame(getTopLevelAncestor(), subStruct);
+//        new ViewFrame(getTopLevelAncestor(), subStruct);
         StructViewer viewer = subStruct.getViewer();
         viewer.table.getSelectionModel().setSelectionInterval(i, i);
         table.scrollRectToVisible(table.getCellRect(i, 0, true));
@@ -997,6 +1021,26 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private boolean isCachedStructEntry(int offset)
   {
     return entryMap.containsKey(Integer.valueOf(offset));
+  }
+
+
+  // Recycles existing ViewFrame constructs if possible
+  private ViewFrame createViewFrame(Component parent, Viewable view)
+  {
+    ViewFrame frame = null;
+    if (view != null) {
+      if (parent == null) {
+        parent = getTopLevelAncestor();
+      }
+      frame = viewMap.get(view);
+      if (frame == null || !frame.isVisible()) {
+        frame = new ViewFrame(parent, view);
+        viewMap.put(view, frame);
+      } else {
+        frame.toFront();
+      }
+    }
+    return frame;
   }
 
 // -------------------------- INNER CLASSES --------------------------

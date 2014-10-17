@@ -5,7 +5,7 @@
 package infinity.datatype;
 
 import infinity.resource.StructEntry;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.Dimension;
 import java.io.IOException;
@@ -81,13 +81,13 @@ public abstract class Datatype implements StructEntry
   void writeInt(OutputStream os, int value) throws IOException
   {
     if (getSize() == 4)
-      Filewriter.writeInt(os, value);
+      FileWriterNI.writeInt(os, value);
     else if (getSize() == 3)
-      Filewriter.writeInt24(os, value);
+      FileWriterNI.writeInt24(os, value);
     else if (getSize() == 2)
-      Filewriter.writeShort(os, (short)value);
+      FileWriterNI.writeShort(os, (short)value);
     else if (getSize() == 1)
-      Filewriter.writeByte(os, (byte)value);
+      FileWriterNI.writeByte(os, (byte)value);
     else
       throw new IllegalArgumentException();
   }
@@ -95,13 +95,13 @@ public abstract class Datatype implements StructEntry
   void writeLong(OutputStream os, long value) throws IOException
   {
     if (getSize() == 4)
-      Filewriter.writeInt(os, (int)value);
+      FileWriterNI.writeInt(os, (int)value);
     else if (getSize() == 3)
-      Filewriter.writeInt24(os, (int)value);
+      FileWriterNI.writeInt24(os, (int)value);
     else if (getSize() == 2)
-      Filewriter.writeShort(os, (short)value);
+      FileWriterNI.writeShort(os, (short)value);
     else if (getSize() == 1)
-      Filewriter.writeByte(os, (byte)value);
+      FileWriterNI.writeByte(os, (byte)value);
     else
       throw new IllegalArgumentException();
   }

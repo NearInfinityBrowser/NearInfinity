@@ -5,6 +5,8 @@
 package infinity.util;
 
 import infinity.resource.ResourceFactory;
+import infinity.util.io.FileReaderNI;
+import infinity.util.io.RandomAccessFileNI;
 
 import java.io.File;
 import java.io.IOException;
@@ -128,10 +130,10 @@ public final class StringResource
         index *= 0x28;
         file.seek((long)(0x14 + index + 0x1C));
       }
-      int offset = startindex + Filereader.readInt(file);
-      int length = Filereader.readInt(file);
+      int offset = startindex + FileReaderNI.readInt(file);
+      int length = FileReaderNI.readInt(file);
       file.seek((long)offset);
-      return String.format(fmtResult, Filereader.readString(file, length, usedCharset), strref);
+      return String.format(fmtResult, FileReaderNI.readString(file, length, usedCharset), strref);
     } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
@@ -149,18 +151,18 @@ public final class StringResource
 
   private static void open() throws IOException
   {
-    file = new RandomAccessFile(ffile, "r");
+    file = new RandomAccessFileNI(ffile, "r");
     file.seek((long)0x00);
-    String signature = Filereader.readString(file, 4);
+    String signature = FileReaderNI.readString(file, 4);
     if (!signature.equalsIgnoreCase("TLK "))
       throw new IOException("Not valid TLK file");
-    version = Filereader.readString(file, 4);
+    version = FileReaderNI.readString(file, 4);
     if (version.equalsIgnoreCase("V1  "))
       file.seek((long)0x0A);
     else if (version.equalsIgnoreCase("V3.0"))
       file.seek((long)0x0C);
-    maxnr = Filereader.readInt(file);
-    startindex = Filereader.readInt(file);
+    maxnr = FileReaderNI.readInt(file);
+    startindex = FileReaderNI.readInt(file);
     if (ResourceFactory.isEnhancedEdition()) {
       usedCharset = utf8Charset;
     }

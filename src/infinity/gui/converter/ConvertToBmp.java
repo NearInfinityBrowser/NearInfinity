@@ -5,6 +5,8 @@ import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.ColorConvert;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -22,7 +24,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -89,7 +90,7 @@ public class ConvertToBmp extends ChildFrame
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath);
-    File file = new File(rootPath);
+    File file = new FileNI(rootPath);
     if (!file.isDirectory()) {
         fc.setSelectedFile(file);
     }
@@ -484,7 +485,7 @@ public class ConvertToBmp extends ChildFrame
   {
     String rootPath = null;
     if (!modelInputFiles.isEmpty()) {
-      rootPath = new File((String)modelInputFiles.get(modelInputFiles.size() - 1)).toString();
+      rootPath = new FileNI((String)modelInputFiles.get(modelInputFiles.size() - 1)).toString();
     }
     File[] files = getOpenFileName(this, "Choose file(s)", rootPath, true, getGraphicsFilters(), 0);
     if (files != null) {
@@ -524,7 +525,7 @@ public class ConvertToBmp extends ChildFrame
   {
     String rootPath = null;
     if (!modelInputFiles.isEmpty()) {
-      rootPath = new File((String)modelInputFiles.get(modelInputFiles.size() - 1)).toString();
+      rootPath = new FileNI((String)modelInputFiles.get(modelInputFiles.size() - 1)).toString();
     }
     File path = getOpenPathName(this, "Choose folder", rootPath);
     if (path != null && path.exists() && path.isDirectory()) {
@@ -632,8 +633,8 @@ public class ConvertToBmp extends ChildFrame
         progress.setProgress(progressIdx++);
 
         // 1. prepare data
-        File inFile = new File((String)modelInputFiles.get(i));
-        File outFile= new File(outPath, setFileExtension(inFile.getName(), "BMP"));
+        File inFile = new FileNI((String)modelInputFiles.get(i));
+        File outFile= new FileNI(outPath, setFileExtension(inFile.getName(), "BMP"));
         if (outFile.exists()) {
           if (cbOverwrite.getSelectedIndex() == 0) {          // ask
             String msg = String.format("File %1$s already exists. Overwrite?", outFile.getName());
@@ -762,7 +763,7 @@ public class ConvertToBmp extends ChildFrame
       BufferedOutputStream bos = null;
       try {
         try {
-          bos = new BufferedOutputStream(new FileOutputStream(file));
+          bos = new BufferedOutputStream(new FileOutputStreamNI(file));
 
           // writing header
           bos.write(buffer.array());

@@ -8,6 +8,8 @@ import infinity.gui.converter.ConvertToPvrz;
 import infinity.util.DynamicArray;
 import infinity.util.GridManager;
 import infinity.util.Pair;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -24,7 +26,6 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -819,7 +820,7 @@ public class PseudoBamDecoder extends BamDecoder
 
       // writing BAM to disk
       try {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(fileName)));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(fileName)));
         try {
           bos.write(bamData);
         } finally {
@@ -982,7 +983,7 @@ public class PseudoBamDecoder extends BamDecoder
 
       // writing BAM to disk
       try {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(fileName)));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(fileName)));
         try {
           bos.write(bamData);
         } finally {
@@ -1370,7 +1371,7 @@ public class PseudoBamDecoder extends BamDecoder
         // writing PVRZ to disk
         BufferedOutputStream bos = null;
         try {
-          bos = new BufferedOutputStream(new FileOutputStream(new File(pvrzName)));
+          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(pvrzName)));
           bos.write(pvrz);
           bos.close();
           bos = null;

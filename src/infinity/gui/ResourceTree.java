@@ -12,6 +12,7 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
+import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -24,7 +25,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.Stack;
 
 import javax.swing.JButton;
@@ -346,7 +346,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           return;
         if (!filename.toUpperCase().endsWith(entry.getExtension()))
           filename = filename + '.' + entry.getExtension();
-        if (new File(entry.getActualFile().getParentFile(), filename).exists()) {
+        if (new FileNI(entry.getActualFile().getParentFile(), filename).exists()) {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
           return;

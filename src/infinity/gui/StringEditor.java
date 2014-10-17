@@ -18,9 +18,14 @@ import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
 import infinity.search.StringReferenceSearcher;
 import infinity.util.DynamicArray;
-import infinity.util.Filereader;
-import infinity.util.Filewriter;
 import infinity.util.StringResource;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileReaderNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
+import infinity.util.io.RandomAccessFileNI;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -34,9 +39,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -413,13 +415,13 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       Charset charset = StringResource.getCharset();
       ProgressMonitor progress = null;
       try {
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(stringfile));
-        signature = Filereader.readString(bis, 4);
-        version = Filereader.readString(bis, 4);
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStreamNI(stringfile));
+        signature = FileReaderNI.readString(bis, 4);
+        version = FileReaderNI.readString(bis, 4);
         if (version.equals("V1  "))
-          unknown = new Unknown(Filereader.readBytes(bis, 2), 0, 2);
+          unknown = new Unknown(FileReaderNI.readBytes(bis, 2), 0, 2);
         else if (version.equals("V3.0")) {
-          unknown = new Unknown(Filereader.readBytes(bis, 4), 0, 4); // LanguageID
+          unknown = new Unknown(FileReaderNI.readBytes(bis, 4), 0, 4); // LanguageID
           entry_size = 40;
         }
         else {
@@ -427,15 +429,15 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
                                         "Error", JOptionPane.ERROR_MESSAGE);
           throw new IOException();
         }
-        entries_count = new DecNumber(Filereader.readBytes(bis, 4), 0, 4, "# entries");
-        entries_offset = new DecNumber(Filereader.readBytes(bis, 4), 0, 4, "Entries offset");
+        entries_count = new DecNumber(FileReaderNI.readBytes(bis, 4), 0, 4, "# entries");
+        entries_offset = new DecNumber(FileReaderNI.readBytes(bis, 4), 0, 4, "Entries offset");
 
         entries = new StringEntry[entries_count.getValue()];
         progress = new ProgressMonitor(NearInfinity.getInstance(), "Reading strings...", null,
                                        0, 2 * entries_count.getValue());
         progress.setMillisToDecideToPopup(100);
         for (int i = 0; i < entries_count.getValue(); i++) {
-          entries[i] = new StringEntry(Filereader.readBytes(bis, entry_size), charset);
+          entries[i] = new StringEntry(FileReaderNI.readBytes(bis, entry_size), charset);
           progress.setProgress(i + 1);
           if (progress.isCanceled()) {
             entries = null;
@@ -445,7 +447,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
         }
         bis.close();
 
-        RandomAccessFile ranfile = new RandomAccessFile(stringfile, "r");
+        RandomAccessFile ranfile = new RandomAccessFileNI(stringfile, "r");
         for (int i = 0; i < entries.length; i++) {
           entries[i].readString(ranfile, entries_offset.getValue());
           progress.setProgress(i + 1 + entries_count.getValue());
@@ -495,7 +497,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       badd.setEnabled(false);
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Export " + stringfile.getName());
-      chooser.setSelectedFile(new File("dialog.txt"));
+      chooser.setSelectedFile(new FileNI("dialog.txt"));
       int returnval = chooser.showSaveDialog(editor);
       if (returnval == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
@@ -516,7 +518,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           ProgressMonitor progress = new ProgressMonitor(editor, "Writing file...", null, 0,
                                                          entries_count.getValue());
           progress.setMillisToDecideToPopup(100);
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           for (int i = 0; i < entries.length; i++) {
             if (entries[i] != null) {
               pw.println(i + ":");
@@ -579,9 +581,9 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
         }
 
         StringResource.close();
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(stringfile));
-        Filewriter.writeString(bos, signature, 4);
-        Filewriter.writeString(bos, version, 4);
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(stringfile));
+        FileWriterNI.writeString(bos, signature, 4);
+        FileWriterNI.writeString(bos, version, 4);
         unknown.write(bos);
         entries_count.write(bos);
         entries_offset.write(bos);
@@ -690,7 +692,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     public void readString(RandomAccessFile ranfile, int baseoffset) throws IOException
     {
       ranfile.seek((long)(baseoffset + doffset));
-      string = Filereader.readString(ranfile, dlength, charset);
+      string = FileReaderNI.readString(ranfile, dlength, charset);
     }
 
     public int update(int newoffset)
@@ -709,22 +711,22 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           os.write(data);
         else
           super.write(os);
-        Filewriter.writeInt(os, doffset);
-        Filewriter.writeInt(os, dlength);
+        FileWriterNI.writeInt(os, doffset);
+        FileWriterNI.writeInt(os, dlength);
       }
       else if (version.equals("V3.0")) {
         if (getRowCount() == 0) {
           os.write(data, 0, 28);
-          Filewriter.writeInt(os, doffset);
-          Filewriter.writeInt(os, dlength);
+          FileWriterNI.writeInt(os, doffset);
+          FileWriterNI.writeInt(os, dlength);
           os.write(data, 36, 4);
         }
         else {
           getStructEntryAt(0).write(os);
           getStructEntryAt(1).write(os);
           getStructEntryAt(2).write(os);
-          Filewriter.writeInt(os, doffset);
-          Filewriter.writeInt(os, dlength);
+          FileWriterNI.writeInt(os, doffset);
+          FileWriterNI.writeInt(os, dlength);
           getStructEntryAt(3).write(os);
         }
       }
@@ -732,7 +734,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
     public void writeString(OutputStream os) throws IOException
     {
-      Filewriter.writeString(os, string, dlength, charset);
+      FileWriterNI.writeString(os, string, dlength, charset);
     }
 
     private void setString(String newstring)

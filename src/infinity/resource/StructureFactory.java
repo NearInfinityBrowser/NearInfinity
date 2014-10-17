@@ -7,13 +7,13 @@ package infinity.resource;
 import infinity.gui.NewChrSettings;
 import infinity.gui.NewProSettings;
 import infinity.gui.NewResSettings;
-import infinity.util.NIFile;
 import infinity.util.ResourceStructure;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
 
 import java.awt.Window;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.EnumMap;
 
 import javax.swing.JFileChooser;
@@ -74,12 +74,12 @@ public final class StructureFactory
       case RES_BIO:
       case RES_CHR:
       case RES_RES:
-        savedir = NIFile.getFile(ResourceFactory.getRootDirs(), "Characters");
+        savedir = FileNI.getFile(ResourceFactory.getRootDirs(), "Characters");
         if (!savedir.exists())
-          savedir = NIFile.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+          savedir = FileNI.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
       default:
-        savedir = NIFile.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+        savedir = FileNI.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
         break;
     }
     if (savedir == null || !savedir.exists())
@@ -89,7 +89,7 @@ public final class StructureFactory
     fc.setDialogTitle(title);
     fc.setFileFilter(new FileNameExtensionFilter(resExt.get(type) + " files", resExt.get(type).toLowerCase()));
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    fc.setSelectedFile(new File(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
+    fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       File output = fc.getSelectedFile();
       boolean fileExists = output.exists();
@@ -103,7 +103,7 @@ public final class StructureFactory
         try {
           ResourceStructure struct = createStructure(type, output.getName(), parent);
           if (struct != null) {
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
             struct.write(bos);
             bos.close();
             JOptionPane.showMessageDialog(parent, "File " + output + " created successfully.",

@@ -9,6 +9,8 @@ package infinity.resource.graphics;
 
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileNI;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
@@ -17,7 +19,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -116,7 +117,7 @@ public class PvrDecoder
       if (decoder != null) {
         return decoder;
       } else {
-        return createPvrDecoder(key, new BufferedInputStream(new FileInputStream(new File(fileName))));
+        return createPvrDecoder(key, new BufferedInputStream(new FileInputStreamNI(new FileNI(fileName))));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -137,7 +138,7 @@ public class PvrDecoder
       if (decoder != null) {
         return decoder;
       } else {
-        return createPvrDecoder(key, new BufferedInputStream(new FileInputStream(file)));
+        return createPvrDecoder(key, new BufferedInputStream(new FileInputStreamNI(file)));
       }
     } catch (Exception e) {
       e.printStackTrace();

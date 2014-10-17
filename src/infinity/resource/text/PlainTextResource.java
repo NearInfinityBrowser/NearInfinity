@@ -18,8 +18,8 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.TextResourceSearcher;
 import infinity.util.Decryptor;
-import infinity.util.Filewriter;
-import infinity.util.NIFile;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -98,7 +98,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-            NIFile.getFile(ResourceFactory.getRootDirs(),
+            FileNI.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
@@ -245,7 +245,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void write(OutputStream os) throws IOException
   {
     if (editor == null) {
-      Filewriter.writeString(os, text, text.length());
+      FileWriterNI.writeString(os, text, text.length());
     } else {
       editor.write(new OutputStreamWriter(os));
     }

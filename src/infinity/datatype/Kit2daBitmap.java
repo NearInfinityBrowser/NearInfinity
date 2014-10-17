@@ -11,8 +11,8 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.text.PlainTextResource;
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -187,7 +187,7 @@ public final class Kit2daBitmap extends Datatype implements Editable, Readable
       os.write((int)buffer[1]);
     }
     else
-      Filewriter.writeBytes(os, new byte[]{0x00, 0x00, (byte)value, 0x40});
+      FileWriterNI.writeBytes(os, new byte[]{0x00, 0x00, (byte)value, 0x40});
   }
 
 // --------------------- End Interface Writeable ---------------------

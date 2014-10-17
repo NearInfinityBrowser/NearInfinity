@@ -12,6 +12,8 @@ import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
 import infinity.util.DynamicArray;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -27,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -229,7 +230,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       fc.setDialogTitle("Choose target directory");
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       if (!tfTargetDir.getText().isEmpty()) {
-        fc.setSelectedFile(new File(tfTargetDir.getText()));
+        fc.setSelectedFile(new FileNI(tfTargetDir.getText()));
       }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
@@ -508,7 +509,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     String targetDir = ".";
     if (tfTargetDir.getText() != null && !tfTargetDir.getText().isEmpty())
       targetDir = tfTargetDir.getText();
-    if (!targetDir.isEmpty() && !new File(targetDir).isDirectory()) {
+    if (!targetDir.isEmpty() && !new FileNI(targetDir).isDirectory()) {
       List<String> l = new Vector<String>(2);
       l.add(null);
       l.add("Invalid target directory specified. No conversion takes place.");
@@ -557,7 +558,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         } else {
           outFileName = inFileName + ".PVRZ";
         }
-        File outFile = new File(targetDir, outFileName);
+        File outFile = new FileNI(targetDir, outFileName);
 
         // handling overwrite existing file
         if (outFile.exists()) {
@@ -690,7 +691,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
         BufferedOutputStream bos = null;
         try {
-          bos = new BufferedOutputStream(new FileOutputStream(outFile));
+          bos = new BufferedOutputStream(new FileOutputStreamNI(outFile));
           bos.write(pvrz);
           bos.close();
         } catch (Exception e) {

@@ -8,10 +8,10 @@ import infinity.NearInfinity;
 import infinity.resource.text.modes.BCSFoldParser;
 import infinity.resource.text.modes.BCSTokenMaker;
 import infinity.resource.text.modes.GLSLTokenMaker;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileNI;
 
 import java.awt.Color;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumMap;
@@ -301,11 +301,11 @@ public class InfinityTextArea extends RSyntaxTextArea
         }
       }
 
-      boolean isExternal = (NearInfinity.isDebug() && (new File(schemePath)).isFile());
+      boolean isExternal = (NearInfinity.isDebug() && (new FileNI(schemePath)).isFile());
       InputStream is;
       if (isExternal) {
         try {
-          is = new FileInputStream(schemePath);
+          is = new FileInputStreamNI(schemePath);
         } catch (IOException e) {
           is = ClassLoader.getSystemResourceAsStream(SchemeNone);
         }

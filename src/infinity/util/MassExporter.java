@@ -24,6 +24,11 @@ import infinity.resource.key.BIFFArchive;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.sound.AudioFactory;
 import infinity.resource.video.MveResource;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileReaderNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -41,8 +46,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -171,7 +174,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (event.getSource() == bExport) {
       selectedTypes = listTypes.getSelectedValues();
-      outputDir = new File(tfDirectory.getText());
+      outputDir = new FileNI(tfDirectory.getText());
       outputDir.mkdirs();
       setVisible(false);
       new Thread(this).start();
@@ -231,9 +234,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     final byte[] buffer = new byte[65536];
     if (inEntry != null && outFile != null) {
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outFile));
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(outFile));
       BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
-      Filewriter.writeBytes(bos, Filereader.readBytes(stub, 77312));
+      FileWriterNI.writeBytes(bos, FileReaderNI.readBytes(stub, 77312));
       stub.close();
       InputStream is = inEntry.getResourceDataAsStream();
       int size = inEntry.getResourceInfo()[0];
@@ -254,14 +257,14 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     if (data[0] == -1) {
       data = Decryptor.decrypt(data, 2, data.length).getBytes();
     }
-    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
-    Filewriter.writeBytes(bos, data);
+    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
+    FileWriterNI.writeBytes(bos, data);
     bos.close();
   }
 
   private void exportDecompiledScript(ResourceEntry entry, File output) throws Exception
   {
-    output = new File(outputDir, Misc.replaceFileExtension(entry.toString(), "BAF"));
+    output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "BAF"));
     if (output.exists() && !cbOverwrite.isSelected()) {
       return;
     }
@@ -271,7 +274,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         data = Decryptor.decrypt(data, 2, data.length).getBytes();
       }
       String script = Decompiler.decompile(new String(data), false);
-      PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+      PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
       pw.println(script);
       pw.close();
     }
@@ -284,8 +287,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     if (signature.equalsIgnoreCase("BAMC") || signature.equalsIgnoreCase("MOSC")) {
       data = Compressor.decompress(data);
     }
-    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
-    Filewriter.writeBytes(bos, data);
+    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
+    FileWriterNI.writeBytes(bos, data);
     bos.close();
   }
 
@@ -293,8 +296,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     byte[] buffer = AudioFactory.convertAudio(entry);
     if (buffer != null) {
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
-      Filewriter.writeBytes(bos, buffer);
+      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
+      FileWriterNI.writeBytes(bos, buffer);
       bos.close();
       buffer = null;
     }
@@ -303,7 +306,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void mosToPng(ResourceEntry entry, File output) throws Exception
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("MOS") && output != null) {
-      output = new File(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
+      output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
       if (output.exists() && !cbOverwrite.isSelected()) {
         return;
       }
@@ -328,7 +331,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void pvrzToPng(ResourceEntry entry, File output) throws Exception
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("PVRZ") && output != null) {
-      output = new File(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
+      output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
       if (output.exists() && !cbOverwrite.isSelected()) {
         return;
       }
@@ -350,7 +353,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void tisToPng(ResourceEntry entry, File output) throws Exception
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("TIS") && output != null) {
-      output = new File(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
+      output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
       if (output.exists() && !cbOverwrite.isSelected()) {
         return;
       }
@@ -392,7 +395,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   private void chrToCre(ResourceEntry entry, File output) throws Exception
   {
-    output = new File(outputDir, Misc.replaceFileExtension(entry.toString(), "CRE"));
+    output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "CRE"));
     if (output.exists() && !cbOverwrite.isSelected()) {
       return;
     }
@@ -401,7 +404,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     while (!flatList.get(0).toString().equals("CRE ")) {
       flatList.remove(0);
     }
-    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
     for (int i = 0; i < flatList.size(); i++) {
       ((Writeable)flatList.get(i)).write(bos);
     }
@@ -423,7 +426,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           size += 24;   // include header size
       }
       if (size >= 0) {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
         if (tileheader != null)
           bos.write(tileheader);
         while (size > 0) {
@@ -441,7 +444,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void export(ResourceEntry entry)
   {
     try {
-      File output = new File(outputDir, entry.toString());
+      File output = new FileNI(outputDir, entry.toString());
       if (output.exists() && !cbOverwrite.isSelected())
         return;
       if ((entry.getExtension().equalsIgnoreCase("IDS") ||
@@ -489,7 +492,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         decompressWav(entry, output);
       }
       else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExecutableMVE.isSelected()) {
-        output = new File(outputDir, Misc.replaceFileExtension(entry.toString(), "exe"));
+        output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "exe"));
         if (output.exists() && !cbOverwrite.isSelected())
           return;
         exportMovieExecutable(entry, output);

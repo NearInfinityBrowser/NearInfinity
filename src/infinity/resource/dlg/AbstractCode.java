@@ -19,7 +19,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -314,7 +314,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
   public void writeString(OutputStream os) throws IOException
   {
-    Filewriter.writeString(os, text, len.getValue());
+    FileWriterNI.writeString(os, text, len.getValue());
   }
 
   private void highlightLine(int linenr)

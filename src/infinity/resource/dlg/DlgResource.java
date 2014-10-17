@@ -213,11 +213,6 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
       getViewerTab(0);
     }
     detailViewer.showStateWithStructEntry(entry);
-
-    if (treeViewer == null) {
-      getViewerTab(1);
-    }
-    treeViewer.showStateWithStructEntry(entry);
   }
 }
 

@@ -8,7 +8,6 @@ import infinity.NearInfinity;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
-import infinity.datatype.StringRef;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ViewFrame;
 import infinity.gui.ViewerUtil;
@@ -78,8 +77,8 @@ import javax.swing.tree.TreeSelectionModel;
 final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
                                                  TableModelListener, PropertyChangeListener
 {
-  // Max. node depth allowed to search or map the tree model
-  private static final int MAX_DEPTH = 64;
+  // Max. node depth allowed to search or expand the tree model
+  private static final int MAX_DEPTH = 32;
 
   private final JPopupMenu pmTree = new JPopupMenu();
   private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes");
@@ -258,37 +257,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
  }
 
 //--------------------- End Interface PropertyChangeListener ---------------------
-
-  /** Jumps to the first available node containing the specified structure. */
-  public void showStateWithStructEntry(StructEntry entry)
-  {
-    DefaultMutableTreeNode node = null;
-    if (entry instanceof State) {
-      int stateIdx = ((State)entry).getNumber();
-      node = dlgModel.findStateNode(stateIdx);
-    } else if (entry instanceof Transition) {
-      int transIdx = ((Transition)entry).getNumber();
-      node = dlgModel.findTransitionNode(transIdx);
-    } else if (entry instanceof StateTrigger) {
-      int triggerIdx = ((StateTrigger)entry).getNumber();
-      node = dlgModel.findStateTriggerNode(triggerIdx);
-    } else if (entry instanceof ResponseTrigger) {
-      int triggerIdx = ((ResponseTrigger)entry).getNumber();
-      node = dlgModel.findResponseTriggerNode(triggerIdx);
-    } else if (entry instanceof Action) {
-      int actionIdx = ((Action)entry).getNumber();
-      node = dlgModel.findActionNode(actionIdx);
-    } else if (entry instanceof StringRef) {
-      // may happen when using the DLG Search
-      node = dlgModel.findStringRefNode(((StringRef)entry).getValue());
-    }
-
-    // selecting node in tree view
-    if (node != null) {
-      dlgTree.setSelectionPath(dlgModel.getTreePath(node));
-    }
-  }
-
 
   private void updateStateInfo(StateItem si)
   {
@@ -565,7 +533,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
 
       for (int i = 0; i < node.getChildCount(); i++) {
-        expandNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth - 1);
+        expandNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth);
         if (worker != null && worker.userCancelled()) return;
       }
     }
@@ -581,7 +549,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         TreeNode node = (TreeNode)path.getLastPathComponent();
 
         for (int i = 0; i < node.getChildCount(); i++) {
-          collapseNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth - 1);
+          collapseNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth);
           if (worker != null && worker.userCancelled()) return;
         }
       }
@@ -998,8 +966,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   // Creates and manages the dialog tree structure
   private static final class DlgTreeModel implements TreeModel
   {
-    private enum ParamType { State, StateTrigger, Transition, ResponseTrigger, Action, Strref }
-
     private final ArrayList<TreeModelListener> listeners = new ArrayList<TreeModelListener>();
     // maps dialog resources to tables of state index/item pairs
     private final HashMap<String, HashMap<Integer, StateItem>> mapState = new HashMap<String, HashMap<Integer, StateItem>>();
@@ -1111,28 +1077,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
 
-//    public void nodesChanged(TreeNode node, int[] childIndices)
-//    {
-//      if (node != null && childIndices != null) {
-//        boolean isValid = true;
-//        for (int i = 0; i < childIndices.length; i++) {
-//          if (childIndices[i] < 0 || childIndices[i] >= node.getChildCount()) {
-//            isValid = false;
-//            break;
-//          }
-//        }
-//        if (isValid) {
-//          Object[] children = new Object[childIndices.length];
-//          for (int i = 0; i < children.length; i++) {
-//            children[i] = node.getChildAt(childIndices[i]);
-//          }
-//          fireTreeNodesChanged(this, createNodePath(node), childIndices, children);
-//        }
-//      } else {
-//        fireTreeNodesChanged(this, null, null, null);
-//      }
-//    }
-
     public void nodeStructureChanged(TreeNode node)
     {
       if (node.getParent() == null) {
@@ -1142,31 +1086,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
                                  new int[getChildNodeIndex(node)], new Object[]{node});
       }
     }
-
-//    public void nodesWereInserted(TreeNode node, int[] childIndices)
-//    {
-//      if (node != null && childIndices != null) {
-//        boolean isValid = true;
-//        for (int i = 0; i < childIndices.length; i++) {
-//          if (childIndices[i] < 0 || childIndices[i] >= node.getChildCount()) {
-//            isValid = false;
-//            break;
-//          }
-//        }
-//        if (isValid) {
-//          Object[] children = new Object[childIndices.length];
-//          for (int i = 0; i < children.length; i++) {
-//            children[i] = node.getChildAt(childIndices[i]);
-//          }
-//          fireTreeNodesInserted(this, createNodePath(node), childIndices, children);
-//        }
-//      }
-//    }
-
-//    public void nodesWereRemoved(TreeNode node, int[] childIndices, Object[] removedChildren)
-//    {
-//      fireTreeNodesRemoved(this, createNodePath(node), childIndices, removedChildren);
-//    }
 
     /** Removes any old content and re-initializes the model with the data from the given dialog resource. */
     public void reset(DlgResource dlg)
@@ -1203,71 +1122,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
       // notifying listeners
       nodeStructureChanged((DefaultMutableTreeNode)getRoot());
-    }
-
-    /**
-     * Returns a fully qualified TreePath object from root to the specified node.
-     * Returns a root node TreePath object on error.
-     */
-    public TreePath getTreePath(TreeNode node)
-    {
-      if (node != null) {
-        // building reverse tree path
-        Stack<TreeNode> stack = new Stack<TreeNode>();
-        while (node != null) {
-          stack.push(node);
-          node = node.getParent();
-        }
-
-        // returning valid TreePath object
-        TreeNode[] nodes = new TreeNode[stack.size()];
-        for (int i = 0; i < nodes.length; i++) {
-          nodes[i] = stack.pop();
-        }
-        return new TreePath(nodes);
-      }
-
-      // defaults to selecting root node
-      return new TreePath(getRoot());
-    }
-
-    /** Returns the first available StateItem node matching the given state index. */
-    public DefaultMutableTreeNode findStateNode(int stateIdx)
-    {
-      return searchTreeNode(nodeRoot, ParamType.State, stateIdx, MAX_DEPTH);
-    }
-
-    /** Returns the first available TransitionItem node matching the given transition index. */
-    public DefaultMutableTreeNode findTransitionNode(int transIdx)
-    {
-      return searchTreeNode(nodeRoot, ParamType.Transition, transIdx, MAX_DEPTH);
-    }
-
-    /** Returns the first available StateItem node matching the given state trigger index. */
-    public DefaultMutableTreeNode findStateTriggerNode(int triggerIdx)
-    {
-      return searchTreeNode(nodeRoot, ParamType.StateTrigger, triggerIdx, MAX_DEPTH);
-    }
-
-    /** Returns the first available TransitionItem node matching the given response trigger index. */
-    public DefaultMutableTreeNode findResponseTriggerNode(int triggerIdx)
-    {
-      return searchTreeNode(nodeRoot, ParamType.ResponseTrigger, triggerIdx, MAX_DEPTH);
-    }
-
-    /** Returns the first available TransitionItem node matching the given action index. */
-    public DefaultMutableTreeNode findActionNode(int actionIdx)
-    {
-      return searchTreeNode(nodeRoot, ParamType.Action, actionIdx, MAX_DEPTH);
-    }
-
-    /**
-     * Returns the first available StateItem or TransitionItem node matching the given string reference
-     * of their associated text messages
-     */
-    public DefaultMutableTreeNode findStringRefNode(int strref)
-    {
-      return searchTreeNode(nodeRoot, ParamType.Strref, strref, MAX_DEPTH);
     }
 
     public void updateState(State state)
@@ -1432,87 +1286,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         }
       }
     }
-
-    // Recursively searches tree nodes based on the specified parameters up to a max. node depth
-    private DefaultMutableTreeNode searchTreeNode(DefaultMutableTreeNode parent,
-                                                  ParamType param, int value, int maxDepth)
-    {
-      if (parent != null && maxDepth > 0) {
-        parent = updateNodeChildren(parent);
-
-        ItemBase item = null;
-        if (parent.getUserObject() instanceof ItemBase) {
-          item = (ItemBase)parent.getUserObject();
-        }
-
-        boolean isDlg = false;
-        if (item != null) {
-          isDlg = item.getDialogName().equals(dlg.getResourceEntry().getResourceName());
-        }
-
-        // checking node properties
-        switch (param) {
-          case State:
-            if (isDlg && item instanceof StateItem &&
-                ((StateItem)item).getState().getNumber() == value) {
-              return parent;
-            }
-            break;
-          case StateTrigger:
-            if (isDlg && item instanceof StateItem &&
-                ((StateItem)item).getState().getTriggerIndex() == value) {
-              return parent;
-            }
-            break;
-          case Transition:
-            if (isDlg && item instanceof TransitionItem &&
-                ((TransitionItem)item).getTransition().getNumber() == value) {
-              return parent;
-            }
-            break;
-          case ResponseTrigger:
-            if (isDlg && item instanceof TransitionItem &&
-                ((TransitionItem)item).getTransition().getTriggerIndex() == value) {
-              return parent;
-            }
-            break;
-          case Action:
-            if (isDlg && item instanceof TransitionItem &&
-                ((TransitionItem)item).getTransition().getActionIndex() == value) {
-              return parent;
-            }
-            break;
-          case Strref:
-            if (isDlg) {
-              if (item instanceof StateItem) {
-                if (((StateItem)item).getState().getResponse().getValue() == value) {
-                  return parent;
-                }
-              } else if (item instanceof TransitionItem) {
-                if (((TransitionItem)item).getTransition().getAssociatedText().getValue() == value) {
-                  return parent;
-                } else if (((TransitionItem)item).getTransition().getJournalEntry().getValue() == value) {
-                  return parent;
-                }
-              }
-            }
-            break;
-        }
-
-        // continue searching in child nodes
-        for (int i = 0; i < parent.getChildCount(); i++) {
-          DefaultMutableTreeNode retVal = searchTreeNode((DefaultMutableTreeNode)parent.getChildAt(i),
-                                                         param, value, maxDepth-1);
-          if (retVal != null) {
-            return retVal;
-          }
-        }
-      }
-
-      // no match found
-      return null;
-    }
-
 
     private void initState(StateItem state)
     {

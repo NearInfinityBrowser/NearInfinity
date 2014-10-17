@@ -7,7 +7,7 @@ package infinity.resource.video;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.video.MveDecoder.MveInfo;
 import infinity.resource.video.MveDecoder.MveSegment;
-import infinity.util.Filereader;
+import infinity.util.io.FileReaderNI;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -405,8 +405,8 @@ public class MveVideoDecoder
   private void decode8_05(int startX, int startY, MveSegment segment)
   {
     // block is copied from nearby (all directions) of previous buffer - long ranged
-    int x = Filereader.signExtend(segment.getBits(8), 8);
-    int y = Filereader.signExtend(segment.getBits(8), 8);
+    int x = FileReaderNI.signExtend(segment.getBits(8), 8);
+    int y = FileReaderNI.signExtend(segment.getBits(8), 8);
     copyBlock8x8(prevBuffer, startX + x, startY + y, startX, startY);
   }
 
@@ -750,8 +750,8 @@ public class MveVideoDecoder
   private void decode16_05(int startX, int startY, MveSegment segment)
   {
     // block is copied from nearby (all directions) of previous buffer - long ranged
-    int x = Filereader.signExtend(segment.getBits(8), 8);
-    int y = Filereader.signExtend(segment.getBits(8), 8);
+    int x = FileReaderNI.signExtend(segment.getBits(8), 8);
+    int y = FileReaderNI.signExtend(segment.getBits(8), 8);
     copyBlock8x8(prevBuffer, startX + x, startY + y, startX, startY);
   }
 
