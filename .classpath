@@ -3,6 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/jorbis/jorbis.jar" sourcepath="lib/jorbis/jorbis-0.0.17.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/rsyntaxtextarea/rsyntaxtextarea.jar" sourcepath="lib/rsyntaxtextarea/RSyntaxTextArea-2.5.3.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/rsyntaxtextarea/rsyntaxtextarea.jar" sourcepath="lib/rsyntaxtextarea/RSyntaxTextArea-2.5.3-light.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
