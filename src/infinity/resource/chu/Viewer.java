@@ -178,6 +178,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         controlsList.setSelectedIndex(0);
 
         // updating main window
+        p.repaint();
         setPreview(p.getImage());
       }
     } else if (e.getSource() == controlsList) {
