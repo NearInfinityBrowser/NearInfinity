@@ -2376,6 +2376,9 @@ public final class EffectFactory
           s_type = new String[]{"1 damage per second", "1 damage per second",
                                 "Amount damage per second", "1 damage per amount seconds",
                                 "Param3 damage per amount seconds"};
+          if (isBG1) {
+            s_type[3] = "1 damage per amount+1 seconds";
+          }
         }
         s.add(new Bitmap(buffer, offset + 4, 4, "Poison type", s_type));
         break;
