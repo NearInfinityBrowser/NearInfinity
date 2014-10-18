@@ -317,15 +317,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- End Interface Writeable ---------------------
 
   @Override
-  public void fireTableChanged(TableModelEvent e)
-  {
-    super.fireTableChanged(e);
-    if (getSuperStruct() != null) {
-      getSuperStruct().fireTableChanged(e);
-    }
-  }
-
-  @Override
   public String getColumnName(int columnIndex)
   {
     if (columnIndex == 0)
