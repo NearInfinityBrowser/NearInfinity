@@ -38,6 +38,7 @@ import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -1160,8 +1161,8 @@ public final class BrowserMenuBar extends JMenuBar
   private static final class OptionsMenu extends JMenu implements ActionListener, ItemListener
   {
     private static final Font[] FONTS = {
-      new Font("Monospaced", Font.PLAIN, 12), new Font("Serif", Font.PLAIN, 12),
-      new Font("SansSerif", Font.PLAIN, 12),  new Font("Lucida", Font.PLAIN, 12)};
+      new Font(Font.MONOSPACED, Font.PLAIN, 12), new Font(Font.SERIF, Font.PLAIN, 12),
+      new Font(Font.SANS_SERIF, Font.PLAIN, 12), new Font(Font.DIALOG, Font.PLAIN, 12)};
     private static final String DefaultCharset = "Auto";
     private static final List<String[]> CharsetsUsed = new ArrayList<String[]>();
     // BCS indentations to use when decompiling (indent, title)
@@ -2110,11 +2111,23 @@ public final class BrowserMenuBar extends JMenuBar
       final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
       final String hauglidCopyrightText = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
       final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" + hauglidPage + "</a></html>";
+
       // NearInfinity copyright message
       final String[] copyNearInfinityText = new String[]{
           "This program is free and may be distributed according",
           "to the terms of the GNU Lesser General Public License."
       };
+
+      // List of contributors (ordered chronologically)
+      final String[] contributorsText = new String[]{
+          "devSin",
+          "FredSRichardson",
+          "Taimon",
+          "Valerio Bigiani (aka The Bigg)",
+          "Fredrik Lindgren (aka Wisp)",
+          "Argent77",
+      };
+
       // Third-party copyright messages
       final String[] copyThirdPartyText = new String[]{
           "Most icons (\u00A9) eclipse.org - Common Public License.",
@@ -2123,8 +2136,7 @@ public final class BrowserMenuBar extends JMenuBar
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
       };
 
-      //TODO: add list of contributors
-
+      // Fixed elements
       JLabel version = new JLabel(versionText);
       JLabel githubLink = new JLabel(githubHTML, JLabel.CENTER);
       githubLink.addMouseListener(new UrlBrowser(githubPage));
@@ -2134,11 +2146,12 @@ public final class BrowserMenuBar extends JMenuBar
       JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.CENTER);
       hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
       hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      Font defaultfont = version.getFont();
-      Font boldFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
-      Font font = defaultfont.deriveFont(13.0f);
+      final Font defaultfont = version.getFont();
+      final Font font = defaultfont.deriveFont(13.0f);
+      final Font bigFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
+      final Font smallFont = defaultfont.deriveFont(11.0f);
 
-      version.setFont(boldFont);
+      version.setFont(bigFont);
       githubLink.setFont(font);
       hauglidVersion.setFont(font);
       hauglidCopyright.setFont(font);
@@ -2168,9 +2181,45 @@ public final class BrowserMenuBar extends JMenuBar
       gbl.setConstraints(hauglidLink, gbc);
       panel.add(hauglidLink);
 
+      // Additional contributors to NearInfinity
+      gbc.insets = new Insets(9, 6, 0, 6);
+      if (contributorsText.length > 0) {
+        // trying to limit line width to a certain maximum
+        FontMetrics fm = getFontMetrics(font);
+        double maxWidth = fm.getStringBounds(hauglidCopyrightText, getGraphics()).getWidth() * 1.5;
+
+        // adding title
+        JLabel label = new JLabel("Additional Contributors:", SwingConstants.CENTER);
+        label.setFont(smallFont.deriveFont(12.0f));
+        gbl.setConstraints(label, gbc);
+        panel.add(label);
+        gbc.insets.top = 2;
+
+        // adding names
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < contributorsText.length; i++) {
+          if (i > 0) {
+            sb.append(", ");
+          }
+          String s = sb.toString() + contributorsText[i];
+          if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
+            label = new JLabel(sb.toString(), SwingConstants.CENTER);
+            label.setFont(smallFont);
+            gbl.setConstraints(label, gbc);
+            panel.add(label);
+            gbc.insets.top = 0;
+            sb = new StringBuilder();
+          }
+          sb.append(contributorsText[i]);
+        }
+        label = new JLabel(sb.toString(), SwingConstants.CENTER);
+        label.setFont(smallFont);
+        gbl.setConstraints(label, gbc);
+        panel.add(label);
+      }
+
       // NearInfinity copyright message
-      Font smallFont = defaultfont.deriveFont(11.0f);
-      gbc.insets = new Insets(3, 6, 0, 6);
+      gbc.insets.top = 9;
       for (int i = 0; i < copyNearInfinityText.length; i++) {
         JLabel label = new JLabel(copyNearInfinityText[i], SwingConstants.CENTER);
         label.setFont(smallFont);
@@ -2180,7 +2229,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
 
       // Third-party copyright mesages
-      gbc.insets.top = 6;
+      gbc.insets.top = 9;
       for (int i = 0; i < copyThirdPartyText.length; i++) {
         JLabel label = new JLabel(copyThirdPartyText[i], SwingConstants.CENTER);
         label.setFont(smallFont);

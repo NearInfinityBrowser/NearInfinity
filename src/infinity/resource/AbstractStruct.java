@@ -33,7 +33,6 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
