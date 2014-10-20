@@ -15,15 +15,13 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener
 {
   private final JButton bclearclipboard = new JButton("Clear", Icons.getIcon("New16.gif"));
-  private final JTextArea taClipBoard = new JTextArea();
+  private final InfinityTextArea taClipBoard = new InfinityTextArea(false);
 
   ClipboardViewer()
   {
@@ -31,6 +29,7 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
     setIconImage(Icons.getIcon("Paste16.gif").getImage());
     bclearclipboard.setMnemonic('c');
     bclearclipboard.addActionListener(this);
+    taClipBoard.setHighlightCurrentLine(false);
     taClipBoard.setEditable(false);
     StructClipboard.getInstance().addChangeListener(this);
 
@@ -39,7 +38,7 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
 
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(new JScrollPane(taClipBoard), BorderLayout.CENTER);
+    pane.add(new InfinityScrollPane(taClipBoard, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
     setSize(300, 400);
 

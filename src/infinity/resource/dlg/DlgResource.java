@@ -8,10 +8,11 @@ import infinity.datatype.Flag;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
@@ -21,13 +22,15 @@ import java.io.OutputStream;
 
 import javax.swing.JComponent;
 
-public final class DlgResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+
+public final class DlgResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   private static final String sNonInt[] = {"Pausing dialogue", "Turn hostile",
                                            "Escape area", "Ignore attack"};
   private SectionCount countState, countTrans, countStaTri, countTranTri, countAction;
   private SectionOffset offsetState, offsetTrans, offsetStaTri, offsetTranTri, offsetAction;
   private Viewer detailViewer;
+  private TreeViewer treeViewer;
 
   public DlgResource(ResourceEntry entry) throws Exception
   {
@@ -46,17 +49,47 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewerTabCount()
   {
-    if (detailViewer == null)
-      detailViewer = new Viewer(this);
-    return detailViewer;
+    return 2;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public String getViewerTabName(int index)
+  {
+    switch (index) {
+      case 0: return StructViewer.TAB_VIEW;
+      case 1: return "Tree";
+    }
+    return null;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    switch (index) {
+      case 0:
+        if (detailViewer == null)
+          detailViewer = new Viewer(this);
+        return detailViewer;
+      case 1:
+        if (treeViewer == null)
+          treeViewer = new TreeViewer(this);
+        return treeViewer;
+    }
+    return null;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return (index == 0);
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -177,7 +210,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
   // sorry for this (visibility)
   public void showStateWithStructEntry(StructEntry entry) {
     if (detailViewer == null) {
-      getDetailViewer();
+      getViewerTab(0);
     }
     detailViewer.showStateWithStructEntry(entry);
   }

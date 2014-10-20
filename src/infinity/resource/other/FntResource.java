@@ -6,16 +6,14 @@ package infinity.resource.other;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
+import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 
-import java.awt.Component;
-
-import javax.swing.AbstractButton;
-import javax.swing.JPanel;
+import javax.swing.JButton;
 
 public final class FntResource extends AbstractStruct implements Resource, Closeable
 {
@@ -49,18 +47,10 @@ public final class FntResource extends AbstractStruct implements Resource, Close
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
-    // removing 'Save' button
-    JPanel panel = viewer.getButtonPanel();
-    Component[] components = panel.getComponents();
-    if (components != null) {
-      viewer.getButtonPanel().removeAll();
-      for (final Component c: components) {
-        if (c instanceof AbstractButton &&
-            ((AbstractButton)c).getActionCommand().equals(StructViewer.CMD_SAVE)) {
-          continue;
-        }
-        panel.add(c);
-      }
+    // disabling 'Save' button
+    JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.Save);
+    if (bSave != null) {
+      bSave.setEnabled(false);
     }
   }
 

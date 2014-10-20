@@ -8,11 +8,12 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.ResourceFactory;
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -31,11 +32,13 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
+public final class IDSTargetEffect extends Datatype implements Editable, Readable, ListSelectionListener
 {
-  private final String sIDS[] = new String[]
-  {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
-   "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS"};
+  private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
+                                                "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
+                                                "ALIGN.IDS", ""};
+  private final String[] sIDS;
+
   private LongIntegerHashMap<IdsMapEntry> idsMap;
   private TextListPanel fileList, valueList;
   private long idsValue, idsFile;
@@ -48,13 +51,26 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   public IDSTargetEffect(byte buffer[], int offset, String secondIDS)
   {
     super(offset, 8, "IDS target");
-    idsValue = DynamicArray.getUnsignedInt(buffer, offset);
-    idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
+    sIDS = sIDS_default;
     sIDS[2] = secondIDS;
-    if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals(""))
-      idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
-    else
-      idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    if (ResourceFactory.isEnhancedEdition()) {
+      sIDS[9] = "KIT.IDS";
+    }
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      sIDS[8] = "ALIGNMNT.IDS";
+    }
+    read(buffer, offset);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name, String[] ids)
+  {
+    super(offset, 8, name);
+    if (ids != null) {
+      sIDS = ids;
+    } else {
+      sIDS = sIDS_default;
+    }
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -228,11 +244,27 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeInt(os, (int)idsValue);
-    Filewriter.writeInt(os, (int)idsFile);
+    FileWriterNI.writeInt(os, (int)idsValue);
+    FileWriterNI.writeInt(os, (int)idsFile);
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    idsValue = DynamicArray.getUnsignedInt(buffer, offset);
+    idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
+    if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+      idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+    } else {
+      idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

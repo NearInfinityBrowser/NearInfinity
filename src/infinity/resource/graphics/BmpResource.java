@@ -4,8 +4,8 @@
 
 package infinity.resource.graphics;
 
+import infinity.gui.ButtonPanel;
 import infinity.gui.RenderCanvas;
-import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -14,7 +14,6 @@ import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -28,8 +27,9 @@ import javax.swing.JScrollPane;
 public final class BmpResource implements Resource, ActionListener
 {
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private BufferedImage image;
-  private JButton bfind, bexport;
   private JPanel panel;
   private Palette palette;
 
@@ -82,10 +82,11 @@ public final class BmpResource implements Resource, ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bfind)
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
-    else if (event.getSource() == bexport)
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -107,26 +108,18 @@ public final class BmpResource implements Resource, ActionListener
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    bexport = new JButton("Export...", Icons.getIcon("Export16.gif"));
-    bfind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
-    bexport.setMnemonic('e');
-    bexport.addActionListener(this);
-    bfind.setMnemonic('r');
-    bfind.addActionListener(this);
     RenderCanvas rcCanvas = new RenderCanvas(image);
     JScrollPane scroll = new JScrollPane(rcCanvas);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    JPanel bpanel = new JPanel();
-    bpanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(bfind);
-    bpanel.add(bexport);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);;
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
-    panel.add(bpanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
     return panel;
   }

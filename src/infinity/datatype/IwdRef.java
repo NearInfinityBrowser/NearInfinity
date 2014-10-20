@@ -34,7 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class IwdRef extends Datatype implements Editable, ActionListener, ListSelectionListener
+public final class IwdRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
 {
   private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
@@ -45,7 +45,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
   {
     super(offset, 4, name);
     idsmap = IdsMapCache.get(idsfile).getMap();
-    value = DynamicArray.getUnsignedInt(buffer, offset);
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -173,6 +173,16 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    value = DynamicArray.getUnsignedInt(buffer, offset);
+  }
+
+//--------------------- End Interface Readable ---------------------
+
   @Override
   public String toString()
   {
@@ -184,6 +194,49 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
       return entry.toString() + " (" + entry.getSearchString() + ')';
     }
     return "None (" + value + ')';
+  }
+
+  public long getValue()
+  {
+    return value;
+  }
+
+  public long getValue(String ref)
+  {
+    if (ref != null && !ref.isEmpty()) {
+      if (ref.lastIndexOf('.') > 0) {
+        ref = ref.substring(0, ref.lastIndexOf(',')).toUpperCase();
+      } else {
+        ref = ref.toUpperCase();
+      }
+      if (idsmap.containsValue(ref)) {
+        long[] keys = idsmap.keys();
+        for (int i = 0; i < keys.length; i++) {
+          if (idsmap.get(keys[i]).equals(ref)) {
+            return keys[i];
+          }
+        }
+      }
+    }
+    return -1L;
+  }
+
+  public String getValueRef()
+  {
+    if (idsmap.containsKey(value)) {
+      return idsmap.get(value).getString() + ".SPL";
+    } else {
+      return "None";
+    }
+  }
+
+  public String getValueRef(long id)
+  {
+    if (idsmap.containsKey(id)) {
+      return idsmap.get(id).getString() + ".SPL";
+    } else {
+      return "None";
+    }
   }
 
 // -------------------------- INNER CLASSES --------------------------

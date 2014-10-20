@@ -6,6 +6,7 @@ package infinity;
 
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ChildFrame;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.ResourceTree;
 import infinity.gui.StatusBar;
 import infinity.gui.WindowBlocker;
@@ -22,6 +23,8 @@ import infinity.resource.key.ResourceTreeModel;
 import infinity.search.SearchFrame;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
+import infinity.util.io.FileLookup;
+import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -48,28 +51,46 @@ import javax.swing.filechooser.FileFilter;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
+  static {
+    // XXX: Works around a known bug in Java's Swing layouts when using FocusTraversalPolicy
+    // Note: Required for Area Viewer's JTree control; must be set before executing main()
+    System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+  }
+
   private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
 
-  private static final JTextArea consoletext = new JTextArea();
-  private static NearInfinity browser;
+  private static final boolean DEBUG = false;    // indicates whether to enable debugging features
+
+  private static final InfinityTextArea consoletext = new InfinityTextArea(true);
   private static final String KEYFILENAME = "chitin.key";
   private static final String WINDOW_SIZEX = "WindowSizeX";
   private static final String WINDOW_SIZEY = "WindowSizeY";
   private static final String WINDOW_POSX = "WindowPosX";
   private static final String WINDOW_POSY = "WindowPosY";
   private static final String WINDOW_STATE = "WindowState";
+  private static final String WINDOW_SPLITTER = "WindowSplitter";
   private static final String LAST_GAMEDIR = "LastGameDir";
+
+  private static NearInfinity browser;
+
   private final JPanel containerpanel;
+  private final JSplitPane spSplitter;
   private final ResourceTree tree;
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
   private Viewable viewable;
 
+
+  public static boolean isDebug()
+  {
+    return DEBUG;
+  }
+
   private static File findKeyfile()
   {
     JFileChooser chooser;
     if (ResourceFactory.getRootDir() == null)
-      chooser = new JFileChooser(new File("."));
+      chooser = new JFileChooser(new FileNI("."));
     else
       chooser = new JFileChooser(ResourceFactory.getRootDir());
     chooser.setDialogTitle("Open game: Locate keyfile");
@@ -92,7 +113,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return null;
   }
 
-  public static JTextArea getConsoleText()
+  public static InfinityTextArea getConsoleText()
   {
     return consoletext;
   }
@@ -104,6 +125,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static boolean reloadFactory(boolean refreshonly)
   {
+    FileLookup.getInstance().clearCache();
     IdsMapCache.clearCache();
     SearchFrame.clearCache();
     StringResource.close();
@@ -160,11 +182,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setJMenuBar(menuBar);
 
     String lastDir = prefs.get(LAST_GAMEDIR, null);
-    if (new File(KEYFILENAME).exists())
-      new ResourceFactory(new File(KEYFILENAME));
-    else if (lastDir != null && new File(lastDir, KEYFILENAME).exists())
-      new ResourceFactory(new File(lastDir, KEYFILENAME));
-    else {
+    if (new FileNI(KEYFILENAME).exists()) {
+      new ResourceFactory(new FileNI(KEYFILENAME));
+    } else if (lastDir != null && new FileNI(lastDir, KEYFILENAME).exists()) {
+      new ResourceFactory(new FileNI(lastDir, KEYFILENAME));
+    } else {
       File key = findKeyfile();
       if (key == null)
         System.exit(10);
@@ -219,16 +241,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     containerpanel = new JPanel(new BorderLayout());
     containerpanel.setBackground(UIManager.getColor("desktop"));
-    JSplitPane splith = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
-    splith.setBorder(BorderFactory.createEmptyBorder());
-    splith.setDividerLocation(200);
+    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
+    spSplitter.setBorder(BorderFactory.createEmptyBorder());
+    spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
     Container pane = getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(splith, BorderLayout.CENTER);
+    pane.add(spSplitter, BorderLayout.CENTER);
     pane.add(statusBar, BorderLayout.SOUTH);
 
     setSize(prefs.getInt(WINDOW_SIZEX, 930), prefs.getInt(WINDOW_SIZEY, 700));
-//    setSize(900, 700);
     int centerX = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth() - getSize().width >> 1;
     int centerY = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight() - getSize().height >> 1;
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
@@ -310,8 +331,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         ChildFrame.updateWindowGUIs();
         tree.reloadRenderer();
         tree.repaint();
-        JOptionPane.showMessageDialog(this,
-                                      "It might be necessary to restart Near Infinity\nto completely change look and feel.");
+        JOptionPane.showMessageDialog(this, "It might be necessary to restart Near Infinity\n" +
+                                            "to completely change look and feel.");
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -434,6 +455,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
     prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
     prefs.putInt(WINDOW_STATE, getExtendedState());
+    prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, ResourceFactory.getRootDir().toString());
     BrowserMenuBar.getInstance().storePreferences();
   }

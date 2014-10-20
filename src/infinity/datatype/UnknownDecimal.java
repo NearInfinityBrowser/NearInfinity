@@ -5,7 +5,6 @@
 package infinity.datatype;
 
 import infinity.resource.AbstractStruct;
-import infinity.util.DynamicArray;
 
 public final class UnknownDecimal extends Unknown
 {
@@ -50,13 +49,8 @@ public final class UnknownDecimal extends Unknown
   {
     if (data != null && data.length > 0) {
       StringBuffer sb = new StringBuffer(4 * data.length);
-      for (int i = 0; i < data.length; i++) {
-        String text = String.valueOf((int)DynamicArray.getUnsignedByte(data, i));
-        for (int j = 0; j < 3 - text.length(); j++)
-          sb.append('0');
-        if (text.length() > 3)
-          text = text.substring(text.length() - 3);
-        sb.append(text).append(' ');
+      for (final byte d : data) {
+        sb.append(String.format("%1$03d ", (int)d & 0xff));
       }
       sb.append(' ');
       return sb.toString();

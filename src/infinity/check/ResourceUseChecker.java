@@ -24,7 +24,10 @@ import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
 import infinity.resource.dlg.DlgResource;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -34,6 +37,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -45,6 +52,7 @@ import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -68,7 +76,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private final JRadioButton[] typeButtons;
   private final List<ResourceEntry> checkList = new ArrayList<ResourceEntry>();
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew;
+  private JButton bopen, bopennew, bsave;
   private SortableTable table;
   private String checkType;
 
@@ -140,6 +148,35 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
         new ViewFrame(resultFrame, resource);
       }
     }
+    else if (event.getSource() == bsave) {
+      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      fc.setDialogTitle("Save search result");
+      fc.setSelectedFile(new FileNI("result.txt"));
+      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
+        File output = fc.getSelectedFile();
+        if (output.exists()) {
+          String options[] = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
+                                           "Save result", JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+            return;
+        }
+        try {
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
+          pw.println("Result of CRE inventory check");
+          pw.println("Number of hits: " + table.getRowCount());
+          for (int i = 0; i < table.getRowCount(); i++)
+            pw.println(table.getTableItemAt(i).toString());
+          pw.close();
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -208,12 +245,15 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       resultFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
       bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
       bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
       resultFrame.getRootPane().setDefaultButton(bopennew);
       JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       panel.add(bopen);
       panel.add(bopennew);
+      panel.add(bsave);
       JLabel count = new JLabel(table.getRowCount() + " unused " + checkType + "s found", JLabel.CENTER);
       count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
       JScrollPane scrollTable = new JScrollPane(table);
@@ -244,6 +284,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       });
       bopen.addActionListener(this);
       bopennew.addActionListener(this);
+      bsave.addActionListener(this);
       pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       table.getSelectionModel().addListSelectionListener(this);
       resultFrame.pack();
@@ -344,6 +385,12 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       if (columnIndex == 0)
         return file;
       return file.getSearchString();
+    }
+
+    @Override
+    public String toString()
+    {
+      return String.format("File: %1$s  Name: %2$s", file.toString(), file.getSearchString());
     }
   }
 }

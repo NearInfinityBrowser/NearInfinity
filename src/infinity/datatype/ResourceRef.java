@@ -12,7 +12,7 @@ import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -35,7 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public class ResourceRef extends Datatype implements Editable, ActionListener, ListSelectionListener
+public class ResourceRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
   private final String type[];
@@ -69,36 +69,8 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       this.type = new String[]{""};
     else
       this.type = type;
-    curtype = type[0];
-    buffer = Arrays.copyOfRange(h_buffer, offset, offset + length);
-    if (buffer[0] == 0x00 ||
-        buffer[0] == 0x4e && buffer[1] == 0x6f && buffer[2] == 0x6e && buffer[3] == 0x65 && buffer[4] == 0x00) {
-      resname = NONE;
-      wasNull = true;
-    } else {
-      int max = buffer.length;
-      for (int i = 0; i < buffer.length; i++) {
-        if (buffer[i] == 0x00) {
-          max = i;
-          break;
-        }
-      }
-      if (max != buffer.length)
-        buffer = Arrays.copyOfRange(buffer, 0, max);
-      resname = new String(buffer).toUpperCase();
-    }
-    if (resname.equalsIgnoreCase(NONE))
-      resname = NONE;
-
-    // determine the correct file extension
-    if (!resname.equals(NONE)) {
-      for (int i = 0; i < type.length; i++) {
-        if (null != ResourceFactory.getInstance().getResourceEntry(resname + "." + type[i])) {
-          curtype = type[i];
-          break;
-        }
-      }
-    }
+    curtype = this.type[0];
+    read(h_buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -138,10 +110,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     for (int i = 0; i < type.length; i++) {
       for (int j = 0; j < resourceList.get(i).size(); j++) {
         ResourceEntry entry = resourceList.get(i).get(j);
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_NWN &&
-            entry.toString().length() <= 20)
-          values.add(new ResourceRefEntry(entry));
-        else if (entry.toString().lastIndexOf('.') <= 8 && isLegalEntry(entry))
+        if (entry.toString().lastIndexOf('.') <= 8 && isLegalEntry(entry))
           values.add(new ResourceRefEntry(entry));
       }
       addExtraEntries(values);
@@ -277,15 +246,54 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   {
     if (resname.equals(NONE)) {
       if (wasNull)
-        Filewriter.writeBytes(os, buffer);
+        FileWriterNI.writeBytes(os, buffer);
       else
-        Filewriter.writeBytes(os, new byte[getSize()]);
+        FileWriterNI.writeBytes(os, new byte[getSize()]);
     }
     else
-      Filewriter.writeString(os, resname, getSize());
+      FileWriterNI.writeString(os, resname, getSize());
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    this.buffer = Arrays.copyOfRange(buffer, offset, offset + getSize());
+    if (this.buffer[0] == 0x00 ||
+        this.buffer[0] == 0x4e && this.buffer[1] == 0x6f &&
+        this.buffer[2] == 0x6e && this.buffer[3] == 0x65 && this.buffer[4] == 0x00) {
+      resname = NONE;
+      wasNull = true;
+    } else {
+      int max = this.buffer.length;
+      for (int i = 0; i < this.buffer.length; i++) {
+        if (this.buffer[i] == 0x00) {
+          max = i;
+          break;
+        }
+      }
+      if (max != this.buffer.length)
+        this.buffer = Arrays.copyOfRange(this.buffer, 0, max);
+      resname = new String(this.buffer).toUpperCase();
+    }
+    if (resname.equalsIgnoreCase(NONE))
+      resname = NONE;
+
+    // determine the correct file extension
+    if (!resname.equals(NONE)) {
+      for (int i = 0; i < this.type.length; i++) {
+        if (null != ResourceFactory.getInstance().getResourceEntry(resname + "." + this.type[i])) {
+          curtype = this.type[i];
+          break;
+        }
+      }
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()
@@ -300,7 +308,15 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getResourceName()
   {
-    return new StringBuffer(resname).append('.').append(curtype).toString();
+    if (resname.equals(NONE))
+      return resname;
+    else
+      return new StringBuffer(resname).append('.').append(curtype).toString();
+  }
+
+  public boolean isEmpty()
+  {
+    return (resname.equals(NONE));
   }
 
   public String getSearchName()

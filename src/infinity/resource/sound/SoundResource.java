@@ -5,6 +5,7 @@
 package infinity.resource.sound;
 
 import infinity.NearInfinity;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
@@ -16,7 +17,6 @@ import infinity.search.WavReferenceSearcher;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -40,12 +40,12 @@ import javax.swing.SwingWorker;
 public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
 {
   private final ResourceEntry entry;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private AudioPlayer player;
   private AudioBuffer audioBuffer = null;
-  private JButton bPlay, bStop, bFind;
+  private JButton bPlay, bStop;
   private JMenuItem miExport, miConvert;
-  private ButtonPopupMenu bpmExport;
   private JPanel panel;
   private boolean isWAV, isReference, isClosed;
 
@@ -54,7 +54,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     this.entry = entry;
     player = new AudioPlayer();
     isWAV = false;
-    isReference = false;
+    isReference = (entry.getExtension().equalsIgnoreCase("WAV"));
     isClosed = false;
   }
 
@@ -69,7 +69,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
       bStop.setEnabled(false);
       player.stopPlay();
       bPlay.setEnabled(true);
-    } else if (event.getSource() == bFind) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new WavReferenceSearcher(entry, panel.getTopLevelAncestor());
     }
   }
@@ -81,7 +81,8 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getSource() == bpmExport) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu) == event.getSource()) {
+      ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
       if (bpmExport.getSelectedItem() == miExport) {
         ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
       } else if (bpmExport.getSelectedItem() == miConvert) {
@@ -149,49 +150,42 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    JPanel buttonPanel = new JPanel();
+    JPanel controlPanel = new JPanel();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
-    buttonPanel.setLayout(gbl);
+    controlPanel.setLayout(gbl);
     gbc.insets = new Insets(3, 3, 3, 3);
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
     bPlay = new JButton(Icons.getIcon("Play16.gif"));
     bPlay.addActionListener(this);
     gbl.setConstraints(bPlay, gbc);
-    buttonPanel.add(bPlay);
+    controlPanel.add(bPlay);
     bStop = new JButton(Icons.getIcon("Stop16.gif"));
     bStop.addActionListener(this);
     bStop.setEnabled(false);
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbl.setConstraints(bStop, gbc);
-    buttonPanel.add(bStop);
+    controlPanel.add(bStop);
 
     JPanel centerPanel = new JPanel(new BorderLayout());
-    centerPanel.add(buttonPanel, BorderLayout.CENTER);
-
-    JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    centerPanel.add(controlPanel, BorderLayout.CENTER);
 
     if (isReference) {
       // only available for WAV resource types
-      bFind = new JButton("Find references...", Icons.getIcon("Find16.gif"));
-      bFind.setMnemonic('f');
-      bFind.addActionListener(this);
-      bottomPanel.add(bFind);
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     }
 
     miExport = new JMenuItem("original");
     miConvert = new JMenuItem("as WAV");
     miConvert.setEnabled(!isWAV);
-    bpmExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miConvert});
-    bpmExport.setMnemonic('e');
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    bpmExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
     bpmExport.addItemListener(this);
-    bpmExport.setIcon(Icons.getIcon("Export16.gif"));
-    bottomPanel.add(bpmExport);
 
     panel = new JPanel(new BorderLayout());
     panel.add(centerPanel, BorderLayout.CENTER);
-    panel.add(bottomPanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
     loadSoundResource();
@@ -225,9 +219,11 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     if (bPlay != null) {
       bPlay.setEnabled(b);
     }
+    JButton bFind = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.FindReferences);
     if (bFind != null) {
       bFind.setEnabled(b);
     }
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu);
     if (bpmExport != null) {
       bpmExport.setEnabled(b);
     }

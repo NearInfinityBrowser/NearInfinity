@@ -4,10 +4,12 @@
 
 package infinity.datatype;
 
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -23,13 +25,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
 
-public final class TextEdit extends Datatype implements Editable
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
+import org.fife.ui.rtextarea.RTextArea;
+
+public final class TextEdit extends Datatype implements Editable, Readable
 {
   public static enum EOLType {
     UNIX, WINDOWS
@@ -41,7 +43,7 @@ public final class TextEdit extends Datatype implements Editable
     EOL.put(EOLType.WINDOWS, "\r\n");
   }
 
-  JTextArea textArea;
+  private InfinityTextArea textArea;
   private byte[] bytes;
   private String text;
   private EOLType eolType;
@@ -51,7 +53,7 @@ public final class TextEdit extends Datatype implements Editable
   public TextEdit(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    bytes = Arrays.copyOfRange(buffer, offset, offset + length);
+    read(buffer, offset);
     this.eolType = EOLType.UNIX;
     this.charsetName = Charset.defaultCharset().name();
     this.terminateString = false;
@@ -65,7 +67,8 @@ public final class TextEdit extends Datatype implements Editable
   {
     JButton bUpdate;
     if (textArea == null) {
-      textArea = new JTextArea(1, 200);
+      textArea = new InfinityTextArea(1, 200, true);
+      textArea.setHighlightCurrentLine(editable);
       textArea.setWrapStyleWord(true);
       textArea.setLineWrap(true);
       textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
@@ -73,12 +76,13 @@ public final class TextEdit extends Datatype implements Editable
       textArea.setEditable(editable);
     }
     textArea.setText(toString());
+    InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
+    scroll.setLineNumbersEnabled(false);
 
     bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
     bUpdate.setEnabled(editable);
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
-    JScrollPane scroll = new JScrollPane(textArea);
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -121,10 +125,20 @@ public final class TextEdit extends Datatype implements Editable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeBytes(os, toArray());
+    FileWriterNI.writeBytes(os, toArray());
   }
 
   // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    bytes = Arrays.copyOfRange(buffer, offset, offset + getSize());
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()
@@ -233,14 +247,14 @@ public final class TextEdit extends Datatype implements Editable
 //-------------------------- INNER CLASSES --------------------------
 
   // Ensures a size limit on byte level
-  private class FixedDocument extends PlainDocument
+  private class FixedDocument extends RSyntaxDocument
   {
     private int maxLength;
-    private JTextArea textArea;
+    private RTextArea textArea;
 
-    FixedDocument(JTextArea text, int length)
+    FixedDocument(RTextArea text, int length)
     {
-      super();
+      super(null);
       textArea = text;
       maxLength = length >= 0 ? length : 0;
     }

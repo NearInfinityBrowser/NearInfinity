@@ -61,8 +61,15 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
             else
               Decompiler.decompileDialogTrigger(code, true);
             for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
-              if (targetEntry.toString().equalsIgnoreCase(resourceUsed.toString()))
+              if (targetEntry.toString().equalsIgnoreCase(resourceUsed.toString())) {
                 addHit(entry, entry.getSearchString(), sourceCode);
+              } else if (targetEntry == resourceUsed) {
+                // searching for symbolic spell names
+                String s = infinity.resource.spl.Viewer.getSymbolicName(targetEntry, false);
+                if (s != null && s.equalsIgnoreCase(resourceUsed.toString())) {
+                  addHit(entry, s, sourceCode);
+                }
+              }
             }
           }
         } catch (Exception e) {
@@ -102,8 +109,9 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
   {
     Decompiler.decompile(bcsfile.getCode(), true);
     for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
-      if (resourceUsed == targetEntry)
+      if (resourceUsed == targetEntry) {
         addHit(entry, null, null);
+      }
     }
   }
 

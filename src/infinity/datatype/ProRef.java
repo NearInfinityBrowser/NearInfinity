@@ -34,19 +34,37 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class ProRef extends Datatype implements Editable, ActionListener, ListSelectionListener
+public final class ProRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
   private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
   private TextListPanel list;
-  private long value;
+  private long value, minValue;
 
   public ProRef(byte buffer[], int offset, String name)
   {
+    this(buffer, offset, name, 0L);
+  }
+
+  public ProRef(byte buffer[], int offset, String name, long minValue)
+  {
     super(offset, 2, name);
-    idsmap = IdsMapCache.get("PROJECTL.IDS").getMap();
-    value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+    if (minValue < 0L) minValue = 0L;
+    this.minValue = minValue;
+    LongIntegerHashMap<IdsMapEntry> fullMap = IdsMapCache.get("PROJECTL.IDS").getMap();
+    if (minValue == 0) {
+      idsmap = fullMap;
+    } else {
+      idsmap = new LongIntegerHashMap<IdsMapEntry>();
+      long[] keys = fullMap.keys();
+      for (final long key: keys) {
+        if (key >= minValue) {
+          idsmap.put(Long.valueOf(key), fullMap.get(key));
+        }
+      }
+    }
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -82,7 +100,9 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
       else
         items.add(new ProRefEntry(id + 1L, resourceEntry));
     }
-    items.add(new ProRefEntry(1L, NONE));
+    if (minValue <= 1L) {
+      items.add(new ProRefEntry(1L, NONE));
+    }
     list = new TextListPanel(items);
     list.addMouseListener(new MouseAdapter()
     {
@@ -180,6 +200,16 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+  }
+
+//--------------------- End Interface Readable ---------------------
+
   @Override
   public String toString()
   {
@@ -189,12 +219,31 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     return NONE + " (" + value + ')';
   }
 
+  public long getValue()
+  {
+    return value - 1L;
+  }
+
   public ResourceEntry getSelectedEntry()
   {
     if (!idsmap.containsKey(value - (long)1))
       return null;
     return ResourceFactory.getInstance().getResourceEntry(
             ((IdsMapEntry)idsmap.get(value - 1)).getString() + ".PRO");
+  }
+
+  public int getIdsMapEntryCount()
+  {
+    return idsmap.size();
+  }
+
+  public IdsMapEntry getIdsMapEntry(int index)
+  {
+    if (index >= 0 && index < idsmap.size()) {
+      return idsmap.get(idsmap.keys()[index]);
+    } else {
+      return null;
+    }
   }
 
 // -------------------------- INNER CLASSES --------------------------

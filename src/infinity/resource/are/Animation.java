@@ -51,8 +51,7 @@ public final class Animation extends AbstractStruct implements AddRemovable
   {
     boolean isBG2 = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2) ||
                     (ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB);
-    boolean isEE = (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE) ||
-                   (ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE);
+    boolean isEE = (ResourceFactory.isEnhancedEdition());
 
     list.add(new TextString(buffer, offset, 32, "Name"));
     list.add(new DecNumber(buffer, offset + 32, 2, "Location: X"));

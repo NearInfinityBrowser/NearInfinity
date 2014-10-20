@@ -13,6 +13,8 @@ import infinity.resource.AddRemovable;
 
 public final class Transition extends AbstractStruct implements AddRemovable
 {
+  public static final String FMT_NAME = "Response %1$d";
+
   private static final String[] s_flag = {"No flags set", "Text associated", "Trigger", "Action",
                                           "Terminates dialogue", "Journal entry", "", "Add unsolved quest",
                                           "Add journal note", "Add solved quest"};
@@ -25,13 +27,17 @@ public final class Transition extends AbstractStruct implements AddRemovable
 
   Transition(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Response " + nr, buffer, offset);
+    super(superStruct, String.format(FMT_NAME, nr), buffer, offset);
     this.nr = nr;
   }
 
   public int getActionIndex()
   {
-    return ((DecNumber)getAttribute("Action index")).getValue();
+    if (getFlag().isFlagSet(2)) {
+      return ((DecNumber)getAttribute("Action index")).getValue();
+    } else {
+      return -1;
+    }
   }
 
   public StringRef getAssociatedText()
@@ -66,7 +72,11 @@ public final class Transition extends AbstractStruct implements AddRemovable
 
   public int getTriggerIndex()
   {
-    return ((DecNumber)getAttribute("Trigger index")).getValue();
+    if (getFlag().isFlagSet(1)) {
+      return ((DecNumber)getAttribute("Trigger index")).getValue();
+    } else {
+      return -1;
+    }
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

@@ -5,7 +5,7 @@
 package infinity.util;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ public final class IdsMap
   private final ResourceEntry entry;
   private Map<String, IdsMapEntry> stringEntryMap;
 
-  IdsMap(ResourceEntry entry)
+  public IdsMap(ResourceEntry entry)
   {
     this.entry = entry;
     StringTokenizer st;

@@ -28,25 +28,17 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public final class IdsBitmap extends Datatype implements Editable
+public class IdsBitmap extends Datatype implements Editable, Readable
 {
-  private final LongIntegerHashMap<IdsMapEntry> idsmap;
-  private TextListPanel list;
-  private long value;
+  protected final LongIntegerHashMap<IdsMapEntry> idsmap;
+  protected TextListPanel list;
+  protected long value;
 
   public IdsBitmap(byte buffer[], int offset, int length, String name, String resource)
   {
     super(offset, length, name);
     idsmap = IdsMapCache.get(resource).getMap();
-
-    if (length == 4)
-      value = DynamicArray.getUnsignedInt(buffer, offset);
-    else if (length == 2)
-      value = (long)DynamicArray.getUnsignedShort(buffer, offset);
-    else if (length == 1)
-      value = (long)DynamicArray.getUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
   public IdsBitmap(byte buffer[], int offset, int length, String name, String resource, int idsStart)
@@ -64,14 +56,7 @@ public final class IdsBitmap extends Datatype implements Editable
       }
     }
 
-    if (length == 4)
-      value = DynamicArray.getUnsignedInt(buffer, offset);
-    else if (length == 2)
-      value = (long)DynamicArray.getUnsignedShort(buffer, offset);
-    else if (length == 1)
-      value = (long)DynamicArray.getUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -151,6 +136,28 @@ public final class IdsBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
+
   @Override
   public String toString()
   {
@@ -163,6 +170,38 @@ public final class IdsBitmap extends Datatype implements Editable
   public long getValue()
   {
     return value;
+  }
+
+  public int getIdsMapEntryCount()
+  {
+    return idsmap.size();
+  }
+
+  public IdsMapEntry getIdsMapEntryByIndex(int index)
+  {
+    if (index >= 0 && index < idsmap.size()) {
+      return idsmap.get(idsmap.keys()[index]);
+    } else {
+      return null;
+    }
+  }
+
+  public IdsMapEntry getIdsMapEntryById(long id)
+  {
+    if (idsmap.containsKey(Long.valueOf(id))) {
+      return idsmap.get(Long.valueOf(id));
+    } else {
+      return null;
+    }
+  }
+
+  public void addIdsMapEntry(IdsMapEntry entry)
+  {
+    if (entry != null) {
+      if (!idsmap.containsKey(Long.valueOf(entry.getID()))) {
+        idsmap.put(Long.valueOf(entry.getID()), entry);
+      }
+    }
   }
 }
 

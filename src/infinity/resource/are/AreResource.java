@@ -13,15 +13,17 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
+import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
 
 import java.io.IOException;
@@ -32,24 +34,24 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
-public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  private static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
-                                          "Weather", "City", "Forest", "Dungeon",
-                                          "Extended night", "Can rest"};
-  private static final String s_flag_torment[] = {"Indoors", "Hive", "", "Clerk's ward", "Lower ward",
-                                                  "Ravel's maze", "Baator", "Rubikon",
-                                                  "Negative material plane", "Curst", "Carceri",
-                                                  "Allow day/night"};
-  private static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
-                                           "Dream area"};
-  private static final String s_atype_bgee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
-                                                "Dream area", "Player1 can die"};
-  private static final String s_atype_torment[] = {"Can rest", "Cannot save",
-                                                   "Cannot rest", "Cannot save", "Too dangerous to rest",
-                                                   "Cannot save", "Can rest with permission"};
-  private static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
-  private static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
+  public static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
+                                         "Weather", "City", "Forest", "Dungeon",
+                                         "Extended night", "Can rest"};
+  public static final String s_flag_torment[] = {"Indoors", "Hive", "", "Clerk's ward", "Lower ward",
+                                                 "Ravel's maze", "Baator", "Rubikon",
+                                                 "Negative material plane", "Curst", "Carceri",
+                                                 "Allow day/night"};
+  public static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+                                          "Dream area"};
+  public static final String s_atype_ee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+                                               "Dream area", "Player1 can die"};
+  public static final String s_atype_torment[] = {"Can rest", "Cannot save",
+                                                  "Cannot rest", "Cannot save", "Too dangerous to rest",
+                                                  "Cannot save", "Can rest with permission"};
+  public static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
+  public static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
   {
@@ -137,8 +139,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                 new TiledObject(), new AutomapNotePST()};
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE)
+             ResourceFactory.isEnhancedEdition())
       return new AddRemovable[]{new Actor(), new ITEPoint(), new SpawnPoint(),
                                 new Entrance(), new Container(), new Ambient(),
                                 new Variable(), new Door(), new Animation(),
@@ -154,17 +155,35 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     return scroll;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -271,9 +290,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
     } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
       list.add(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-               ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
-      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_bgee));
+    } else if (ResourceFactory.isEnhancedEdition()) {
+      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_ee));
     } else {
       list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
     }
@@ -399,8 +417,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+             ResourceFactory.isEnhancedEdition()) {
       offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
                                              AutomapNote.class);
       list.add(offset_automapnote);
@@ -413,8 +430,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
       list.add(count_protrap);
-      final String movieExt = (ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-                               ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) ? "WBM" : "MVE";
+      final String movieExt = (ResourceFactory.isEnhancedEdition()) ? "WBM" : "MVE";
       list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
       list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
       list.add(new Unknown(buffer, offset + 228, 56));
@@ -601,6 +617,159 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     ((DecNumber)getAttribute("# vertices")).setValue(count);
+  }
+
+
+  // Called by "Extended Search"
+  // Checks whether the specified resource entry matches all available search options.
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
+  {
+    if (entry != null && searchOptions != null) {
+      try {
+        AreResource are = new AreResource(entry);
+        Actor[] actors;
+        Animation[] animations;
+        Item[][] items;
+//        Item[] items;
+        boolean retVal = true;
+        String key;
+        Object o;
+
+        // preparing substructures
+        DecNumber ofs = (DecNumber)are.getAttribute("Actors offset");
+        DecNumber cnt = (DecNumber)are.getAttribute("# actors");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          actors = new Actor[cnt.getValue()];
+          for (int idx = 0; idx < actors.length; idx++) {
+            actors[idx] = (Actor)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Actor), idx));
+          }
+        } else {
+          actors = new Actor[0];
+        }
+
+        ofs = (DecNumber)are.getAttribute("Animations offset");
+        cnt = (DecNumber)are.getAttribute("# animations");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          animations = new Animation[cnt.getValue()];
+          for (int idx = 0; idx < animations.length; idx++) {
+            animations[idx] = (Animation)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Animation), idx));
+          }
+        } else {
+          animations = new Animation[0];
+        }
+
+        ofs = (DecNumber)are.getAttribute("Containers offset");
+        cnt = (DecNumber)are.getAttribute("# containers");
+        if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
+          items = new Item[cnt.getValue()][];
+          for (int i = 0; i < cnt.getValue(); i++) {
+            String label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container), i);
+            Container container = (Container)are.getAttribute(label);
+            if (container != null) {
+              DecNumber cnt2 = (DecNumber)container.getAttribute("# items");
+              if (cnt2 != null && cnt2.getValue() > 0) {
+                items[i] = new Item[cnt2.getValue()];
+                for (int j = 0; j < cnt2.getValue(); j++) {
+                  label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container_Item), j);
+                  items[i][j] = (Item)container.getAttribute(label);
+                }
+              } else {
+                items[i] = new Item[0];
+              }
+            } else {
+              items[i] = new Item[0];
+            }
+          }
+        } else {
+          items = new Item[0][];
+        }
+
+
+        // checking options
+        String[] keyList = new String[]{SearchOptions.ARE_AreaType,
+                                        SearchOptions.ARE_Location};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_AreaScript;
+          o = searchOptions.getOption(key);
+          StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key));
+          retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_Actor_Character;
+          o = searchOptions.getOption(key);
+          boolean found = false;
+          for (int idx = 0; idx < actors.length; idx++) {
+            if (actors[idx] != null) {
+              StructEntry struct = actors[idx].getAttribute(SearchOptions.getResourceName(key));
+              found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+            }
+          }
+          retVal &= found || (o == null);
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_Animation_Animation;
+          o = searchOptions.getOption(key);
+          boolean found = false;
+          for (int idx = 0; idx < animations.length; idx++) {
+            if (animations[idx] != null) {
+              StructEntry struct = animations[idx].getAttribute(SearchOptions.getResourceName(key));
+              found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+            }
+          }
+          retVal &= found || (o == null);
+        }
+
+        if (retVal) {
+          key = SearchOptions.ARE_Container_Item_Item;
+          o = searchOptions.getOption(key);
+          boolean found = false;
+          for (int idx = 0; idx < items.length; idx++) {
+            for (int idx2 = 0; idx2 < items[idx].length; idx2++) {
+              if (items[idx][idx2] != null) {
+                StructEntry struct = items[idx][idx2].getAttribute(SearchOptions.getResourceName(key));
+                found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+              }
+              if (found) {
+                break;
+              }
+            }
+            if (found) {
+              break;
+            }
+          }
+          retVal &= found || (o == null);
+        }
+
+        keyList = new String[]{SearchOptions.ARE_Custom1, SearchOptions.ARE_Custom2,
+                               SearchOptions.ARE_Custom3, SearchOptions.ARE_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(are, o);
+          } else {
+            break;
+          }
+        }
+
+        return retVal;
+      } catch (Exception e) {
+      }
+    }
+    return false;
   }
 }
 

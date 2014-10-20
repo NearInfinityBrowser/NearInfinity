@@ -18,6 +18,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.EnumMap;
 
 import javax.swing.SwingConstants;
@@ -281,7 +282,8 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
                                         image.getWidth(),
                                         image.getHeight());
       if (region.contains(pt)) {
-        int color = image.getRGB(pt.x - region.x, pt.y - region.y);
+        int[] data = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        int color = data[(pt.y - region.y)*image.getWidth() + (pt.x - region.x)];
         // (near) transparent pixels (alpha <= 16) are disregarded
         return ((color >>> 24) > 0x10);
       } else {

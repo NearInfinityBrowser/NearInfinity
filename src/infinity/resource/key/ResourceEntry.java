@@ -7,16 +7,21 @@ package infinity.resource.key;
 import infinity.NearInfinity;
 import infinity.gui.BrowserMenuBar;
 import infinity.resource.ResourceFactory;
+import infinity.resource.are.AreResource;
 import infinity.resource.cre.CreResource;
 import infinity.resource.itm.ItmResource;
+import infinity.resource.other.EffResource;
+import infinity.resource.other.VvcResource;
+import infinity.resource.pro.ProResource;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
+import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
-import infinity.util.Filereader;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileReaderNI;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -31,8 +36,8 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   {
     if (file.getName().toUpperCase().endsWith(".TIS")) {
       try {
-        InputStream is = new BufferedInputStream(new FileInputStream(file));
-        byte data[] = Filereader.readBytes(is, 24);
+        InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
+        byte data[] = FileReaderNI.readBytes(is, 24);
         is.close();
         if (!new String(data, 0, 4).equalsIgnoreCase("TIS ")) {
           int tilesize = 64 * 64 + 4 * 256;
@@ -109,6 +114,44 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
       }
     }
     return searchString;
+  }
+
+  /**
+   * Returns whether the current resource matches all of the search options specified in the
+   * SearchOptions argument.
+   * @param searchOptions Contains the options to check the resource against.
+   * @return <code>true</code> if all options are matching, <code>false</code> otherwise.
+   */
+  public boolean matchSearchOptions(SearchOptions searchOptions)
+  {
+    if (searchOptions != null && !searchOptions.isEmpty()) {
+      if ("ARE".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return AreResource.matchSearchOptions(this, searchOptions);
+      } else if ("CRE".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return CreResource.matchSearchOptions(this, searchOptions);
+      } else if ("EFF".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return EffResource.matchSearchOptions(this, searchOptions);
+      } else if ("ITM".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return ItmResource.matchSearchOptions(this, searchOptions);
+      } else if ("PRO".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return ProResource.matchSearchOptions(this, searchOptions);
+      } else if ("SPL".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return SplResource.matchSearchOptions(this, searchOptions);
+      } else if ("STO".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return StoResource.matchSearchOptions(this, searchOptions);
+      } else if ("VVC".equalsIgnoreCase(searchOptions.getResourceType())) {
+        return VvcResource.matchSearchOptions(this, searchOptions);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the resource is visible for Near Infinity.
+   */
+  public boolean isVisible()
+  {
+    return !getResourceName().toUpperCase().endsWith(".BAK");
   }
 
   protected abstract File getActualFile(boolean ignoreoverride);

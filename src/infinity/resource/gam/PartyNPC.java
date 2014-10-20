@@ -14,10 +14,11 @@ import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.are.Actor;
@@ -26,7 +27,7 @@ import infinity.util.LongIntegerHashMap;
 
 import javax.swing.JComponent;
 
-class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovable, AddRemovable
+class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable, AddRemovable
 {
   private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
@@ -54,8 +55,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
           ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
           ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE ? new byte[352] :
+          ResourceFactory.isEnhancedEdition() ? new byte[352] :
           ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? new byte[360] :
           ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ? new byte[832] : new byte[384],
           0);
@@ -93,15 +93,33 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerNPC(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
@@ -181,7 +199,7 @@ class PartyNPC extends AbstractStruct implements HasDetailViewer, HasAddRemovabl
       offset += 8;
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) {
+             ResourceFactory.isEnhancedEdition()) {
       list.add(new IdsBitmap(buffer, offset + 40, 2, "Modal state", "MODAL.IDS"));
       list.add(new DecNumber(buffer, offset + 42, 2, "Happiness"));
       list.add(new Unknown(buffer, offset + 44, 96));

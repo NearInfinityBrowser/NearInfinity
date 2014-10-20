@@ -17,6 +17,9 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.Viewable;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -27,7 +30,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -147,18 +149,18 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     else if (event.getSource() == bsave) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save search result");
-      chooser.setSelectedFile(new File("result.txt"));
+      chooser.setSelectedFile(new FileNI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Searched for: " + query);
           pw.println("Number of hits: " + table.getRowCount());
           for (int i = 0; i < table.getRowCount(); i++)
@@ -233,9 +235,8 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     @Override
     public String toString()
     {
-      StringBuffer buf = new StringBuffer("File: ");
-      buf.append(entry.toString()).append("  Text: ").append(line).append("  Line: ").append(linenr);
-      return buf.toString();
+      return String.format("File: %1$s  Text: %2$s  Line: %3$d",
+                           entry.toString(), line, linenr);
     }
   }
 }

@@ -248,7 +248,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
                                                       "Updated version exists",
                                                       JOptionPane.YES_NO_CANCEL_OPTION,
                                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-            if (choice == 2)
+            if (choice == 2 || choice == JOptionPane.CLOSED_OPTION)
               return false;
             if (choice == 0)
               return true;

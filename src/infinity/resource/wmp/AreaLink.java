@@ -10,9 +10,8 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
-import infinity.resource.AddRemovable;
 
-abstract class AreaLink extends AbstractStruct implements AddRemovable
+abstract class AreaLink extends AbstractStruct
 {
   AreaLink(String name) throws Exception
   {
@@ -23,16 +22,6 @@ abstract class AreaLink extends AbstractStruct implements AddRemovable
   {
     super(superStruct, name, buffer, offset);
   }
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
-  @Override
-  public boolean canRemove()
-  {
-    return true;
-  }
-
-//--------------------- End Interface AddRemovable ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception

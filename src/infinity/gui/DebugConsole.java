@@ -17,6 +17,9 @@ import infinity.resource.Writeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.util.StructClipboard;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -27,7 +30,6 @@ import java.awt.event.ItemListener;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -40,8 +42,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.ProgressMonitor;
 
 final class DebugConsole extends ChildFrame implements ActionListener, ItemListener
@@ -122,7 +122,8 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     bsaveconsole.setMnemonic('s');
     bsaveconsole.addActionListener(this);
 
-    JTextArea taconsole = NearInfinity.getConsoleText();
+    InfinityTextArea taconsole = NearInfinity.getConsoleText();
+    taconsole.setHighlightCurrentLine(false);
     taconsole.setEditable(false);
     taconsole.setFont(BrowserMenuBar.getInstance().getScriptFont());
 
@@ -133,7 +134,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
 
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(new JScrollPane(taconsole), BorderLayout.CENTER);
+    pane.add(new InfinityScrollPane(taconsole, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
 
     setSize(450, 450);
@@ -150,17 +151,17 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     else if (event.getSource() == bsaveconsole) {
       JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
       chooser.setDialogTitle("Save console");
-      chooser.setSelectedFile(new File("nidebuglog.txt"));
+      chooser.setSelectedFile(new FileNI("nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Near Infinity Debug Log");
           pw.println(BrowserMenuBar.VERSION);
           pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));

@@ -6,15 +6,16 @@ package infinity.gui;
 
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.Viewable;
-import infinity.resource.graphics.BamResource2;
+import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.BmpResource;
-import infinity.resource.graphics.MosResource2;
+import infinity.resource.graphics.MosResource;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
@@ -24,6 +25,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -43,7 +45,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
@@ -60,10 +61,14 @@ public final class ViewerUtil
       return;
     JLabel label = new JLabel(entry.getName());
     JComponent text;
-    if (entry instanceof ResourceRef)
+    if (entry instanceof ResourceRef) {
       text = new LinkButton((ResourceRef)entry);
-    else {
-      text = new JLabel(entry.toString());
+    } else {
+      if (entry instanceof StringRef) {
+        text = new JLabel(((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs()));
+      } else {
+        text = new JLabel(entry.toString());
+      }
       text.setFont(text.getFont().deriveFont(Font.PLAIN));
     }
 
@@ -82,12 +87,36 @@ public final class ViewerUtil
     panel.add(text);
   }
 
+  public static void addLabelFieldPair(JPanel panel, String name, String field, GridBagLayout gbl,
+                                       GridBagConstraints gbc, boolean endline)
+  {
+    if (name != null) {
+      JLabel label = new JLabel(name);
+      JComponent text = new JLabel((field != null) ? field : "");
+      text.setFont(text.getFont().deriveFont(Font.PLAIN));
+
+      gbc.weightx = 0.0;
+      gbc.fill = GridBagConstraints.NONE;
+      gbc.gridwidth = 1;
+      gbc.anchor = GridBagConstraints.WEST;
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+
+      gbc.weightx = 1.0;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      if (endline)
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+      gbl.setConstraints(text, gbc);
+      panel.add(text);
+    }
+  }
+
   public static JLabel makeBamPanel(ResourceRef iconRef, int frameNr)
   {
     ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamResource2 iconBam = new BamResource2(iconEntry);
+        BamResource iconBam = new BamResource(iconEntry);
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
         label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -105,7 +134,7 @@ public final class ViewerUtil
     ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamResource2 iconBam = new BamResource2(iconEntry);
+        BamResource iconBam = new BamResource(iconEntry);
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
         frameNr = iconBam.getFrameIndex(animNr, frameNr);
         label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));
@@ -159,8 +188,8 @@ public final class ViewerUtil
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         if (resource instanceof BmpResource) {
           label.setIcon(new ImageIcon(((BmpResource)resource).getImage()));
-        } else if (resource instanceof MosResource2) {
-          label.setIcon(new ImageIcon(((MosResource2)resource).getImage()));
+        } else if (resource instanceof MosResource) {
+          label.setIcon(new ImageIcon(((MosResource)resource).getImage()));
         }
         return label;
       }
@@ -190,17 +219,48 @@ public final class ViewerUtil
 
   public static JPanel makeTextAreaPanel(StructEntry entry)
   {
-    JTextArea ta = new JTextArea(entry.toString());
+    String text;
+    if (entry instanceof StringRef) {
+      text = ((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs());
+    } else {
+      text = entry.toString();
+    }
+    InfinityTextArea ta = new InfinityTextArea(text, true);
     ta.setCaretPosition(0);
+    ta.setHighlightCurrentLine(false);
     ta.setEditable(false);
     ta.setLineWrap(true);
     ta.setWrapStyleWord(true);
+    InfinityScrollPane scroll = new InfinityScrollPane(ta, true);
+    scroll.setLineNumbersEnabled(false);
     ta.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
-    panel.add(new JScrollPane(ta), BorderLayout.CENTER);
+    panel.add(scroll, BorderLayout.CENTER);
     panel.setPreferredSize(new Dimension(5, 5));
     return panel;
+  }
+
+  /** Initializes a {@link GridBagConstraints} instance. */
+  public static GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY,
+                                          int gridWidth, int gridHeight, double weightX, double weightY,
+                                          int anchor, int fill, Insets insets, int iPadX, int iPadY)
+  {
+    if (gbc == null) gbc = new GridBagConstraints();
+
+    gbc.gridx = gridX;
+    gbc.gridy = gridY;
+    gbc.gridwidth = gridWidth;
+    gbc.gridheight = gridHeight;
+    gbc.weightx = weightX;
+    gbc.weighty = weightY;
+    gbc.anchor = anchor;
+    gbc.fill = fill;
+    gbc.insets = (insets == null) ? new Insets(0, 0, 0, 0) : insets;
+    gbc.ipadx = iPadX;
+    gbc.ipady = iPadY;
+
+    return gbc;
   }
 
   private ViewerUtil(){}

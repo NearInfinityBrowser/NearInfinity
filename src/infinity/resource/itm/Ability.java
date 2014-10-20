@@ -11,36 +11,37 @@ import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractAbility;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.ResourceFactory;
 import infinity.resource.spl.SplResource;
 
 import javax.swing.JComponent;
 
-final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
+public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
-  private static final String[] s_yesno = {"No", "Yes"};
-  private static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
-  private static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
-  private static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
-  private static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
-                                              "", "", "", "", "", "", "Hostile", "Recharge after resting",
-                                              "", "", "", "", "Bypass armor", "Keen edge", "", "", "", "", "", "",
-                                              "", "Ex: toggle backstab", "Ex: cannot target invisible"};
+  public static final String[] s_yesno = {"No", "Yes"};
+  public static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
+  public static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
+  public static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
+  public static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
+                                             "", "", "", "", "", "", "Hostile", "Recharge after resting",
+                                             "", "", "", "", "Bypass armor", "Keen edge", "", "", "", "", "", "",
+                                             "", "Ex: toggle backstab", "Ex: cannot target invisible"};
 
   Ability() throws Exception
   {
     super(null, "Item ability", new byte[56], 0);
   }
 
-  Ability(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Ability(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Item ability", buffer, offset);
+    super(superStruct, "Item ability " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
@@ -65,23 +66,40 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerAbility(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BGEE ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+        ResourceFactory.isEnhancedEdition()) {
       list.add(new Bitmap(buffer, offset, 1, "Type", s_type));
       list.add(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
       list.add(new Bitmap(buffer, offset + 2, 1, "Ability location", s_abilityuse));

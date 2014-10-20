@@ -5,9 +5,11 @@
 package infinity.resource.mus;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
 import infinity.gui.WindowBlocker;
-import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
@@ -16,12 +18,11 @@ import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.TextResourceSearcher;
-import infinity.util.Filewriter;
-import infinity.util.NIFile;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -38,9 +39,7 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -51,12 +50,12 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   private static int lastIndex = -1;
   private final ResourceEntry entry;
   private final String text;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private JTabbedPane tabbedPane;
-  private ButtonPopupMenu bfind;
-  private JButton bsave, bexport;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private JTextArea editor;
+  private InfinityTextArea editor;
   private Viewer viewer;
   private boolean resourceChanged;
 
@@ -72,14 +71,15 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bsave) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
       if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor())) {
         setDocumentModified(false);
       }
       viewer.loadMusResource(this);
     }
-    else if (event.getSource() == bexport)
+    else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -94,7 +94,8 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     if (resourceChanged) {
       File output;
       if (entry instanceof BIFFResourceEntry) {
-        output = NIFile.getFile(ResourceFactory.getRootDirs(),
+        output =
+            FileNI.getFile(ResourceFactory.getRootDirs(),
                  ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
       } else {
         output = entry.getActualFile();
@@ -105,7 +106,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0) {
         ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-      } else if (result == 2) {
+      } else if (result != 1) {
         throw new Exception("Save aborted");
       }
     }
@@ -145,13 +146,13 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getSource() == bfind) {
-      if (bfind.getSelectedItem() == ifindall) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
+      ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
+      if (bpmFind.getSelectedItem() == ifindall) {
         String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
         List<ResourceEntry> files = ResourceFactory.getInstance().getResources(type);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
-      }
-      else if (bfind.getSelectedItem() == ifindthis) {
+      } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
         files.add(entry);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
@@ -237,9 +238,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   public void write(OutputStream os) throws IOException
   {
     if (editor == null)
-      Filewriter.writeString(os, text, text.length());
+      FileWriterNI.writeString(os, text, text.length());
     else
-      Filewriter.writeString(os, editor.getText(), editor.getText().length());
+      FileWriterNI.writeString(os, editor.getText(), editor.getText().length());
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -252,43 +253,31 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   private JComponent getEditor(CaretListener caretListener)
   {
     ifindall =
-    new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
+        new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
     ifindthis = new JMenuItem("in this file only");
-    bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindall, ifindthis});
-    bfind.addItemListener(this);
-    editor = new JTextArea();
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
+    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
+    bpmFind.addItemListener(this);
+    editor = new InfinityTextArea(text, true);
+    editor.discardAllEdits();
     editor.addCaretListener(caretListener);
-    editor.setText(text);
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
     editor.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
     editor.getDocument().addDocumentListener(this);
-    bexport = new JButton("Export");
-    bexport.setMnemonic('e');
-    bexport.setToolTipText("NB! Will export last *saved* version");
-    bexport.addActionListener(this);
-    bsave = new JButton("Save");
-    bsave.setMnemonic('a');
-    bsave.addActionListener(this);
-    bfind.setIcon(Icons.getIcon("Find16.gif"));
-    bexport.setIcon(Icons.getIcon("Export16.gif"));
-    bsave.setIcon(Icons.getIcon("Save16.gif"));
-    bsave.setEnabled(getDocumentModified());
-
-    JPanel bpanel = new JPanel();
-    bpanel.setLayout(new GridLayout(1, 3, 6, 0));
-    bpanel.add(bfind);
-    bpanel.add(bexport);
-    bpanel.add(bsave);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    JButton bSave = (JButton)buttonPanel.addControl(ButtonPanel.Control.Save);
+    bSave.addActionListener(this);
+    bSave.setEnabled(getDocumentModified());
 
     JPanel lowerpanel = new JPanel();
     lowerpanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    lowerpanel.add(bpanel);
+    lowerpanel.add(buttonPanel);
 
     JPanel panel2 = new JPanel();
     panel2.setLayout(new BorderLayout());
-    panel2.add(new JScrollPane(editor), BorderLayout.CENTER);
+    panel2.add(new InfinityScrollPane(editor, true), BorderLayout.CENTER);
     panel2.add(lowerpanel, BorderLayout.SOUTH);
 
     return panel2;
@@ -303,7 +292,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   {
     if (b != resourceChanged) {
       resourceChanged = b;
-      bsave.setEnabled(resourceChanged);
+      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(resourceChanged);
     }
   }
 }

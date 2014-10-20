@@ -31,7 +31,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public final class ColorValue extends Datatype implements Editable, ChangeListener, ActionListener
+public final class ColorValue extends Datatype implements Editable, Readable, ChangeListener, ActionListener
 {
   private static BufferedImage image;
   private JLabel colors[], infolabel;
@@ -78,16 +78,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
   public ColorValue(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    if (length == 4)
-      number = DynamicArray.getInt(buffer, offset);
-    else if (length == 2)
-      number = (int)DynamicArray.getShort(buffer, offset);
-    else if (length == 1)
-      number = (int)DynamicArray.getByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
-    if (number < 0)
-      number += 256;
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -225,6 +216,30 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        number = (int)DynamicArray.getByte(buffer, offset);
+        break;
+      case 2:
+        number = (int)DynamicArray.getShort(buffer, offset);
+        break;
+      case 4:
+        number = DynamicArray.getInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+    if (number < 0)
+      number += 256;
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

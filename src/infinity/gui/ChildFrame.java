@@ -5,6 +5,7 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
+import infinity.icon.Icons;
 import infinity.resource.Closeable;
 
 import java.awt.event.ActionEvent;
@@ -103,6 +104,7 @@ public class ChildFrame extends JFrame
   public ChildFrame(String title, boolean closeOnInvisible)
   {
     super(title);
+    setIconImage(Icons.getIcon("Application16.gif").getImage());
     this.closeOnInvisible = closeOnInvisible;
     windows.add(this);
     JPanel pane = new JPanel();

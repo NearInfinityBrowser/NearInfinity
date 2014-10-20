@@ -18,6 +18,9 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -25,6 +28,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +39,7 @@ import java.util.SortedMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -43,7 +51,7 @@ import javax.swing.event.ListSelectionListener;
 public final class BCSIDSChecker implements Runnable, ActionListener, ListSelectionListener
 {
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew;
+  private JButton bopen, bopennew, bsave;
   private SortableTable table;
 
   public BCSIDSChecker()
@@ -73,6 +81,35 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
         ViewFrame viewFrame = new ViewFrame(resultFrame, resource);
         BcsResource bcsfile = (BcsResource)viewFrame.getViewable();
         bcsfile.highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
+      }
+    }
+    else if (event.getSource() == bsave) {
+      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      fc.setDialogTitle("Save search result");
+      fc.setSelectedFile(new FileNI("result.txt"));
+      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
+        File output = fc.getSelectedFile();
+        if (output.exists()) {
+          String options[] = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
+                                           "Save result", JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+            return;
+        }
+        try {
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
+          pw.println("Result of unknown IDS references in BCS & BS files");
+          pw.println("Number of hits: " + table.getRowCount());
+          for (int i = 0; i < table.getRowCount(); i++)
+            pw.println(table.getTableItemAt(i).toString());
+          pw.close();
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          e.printStackTrace();
+        }
       }
     }
   }
@@ -135,14 +172,17 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
       bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
       bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
       JLabel count = new JLabel(table.getRowCount() + " hits(s) found", JLabel.CENTER);
       count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
       resultFrame.getRootPane().setDefaultButton(bopennew);
       JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       panel.add(bopen);
       panel.add(bopennew);
+      panel.add(bsave);
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
       JPanel pane = (JPanel)resultFrame.getContentPane();
@@ -171,6 +211,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       });
       bopen.addActionListener(this);
       bopennew.addActionListener(this);
+      bsave.addActionListener(this);
       pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       resultFrame.pack();
       Center.center(resultFrame, NearInfinity.getInstance().getBounds());
@@ -219,6 +260,13 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       else if (columnIndex == 1)
         return error;
       return lineNr;
+    }
+
+    @Override
+    public String toString()
+    {
+      return String.format("File: %1$s  Error: %2$s  Line: %3$d",
+                           resourceEntry.toString(), error, lineNr);
     }
   }
 }

@@ -13,16 +13,16 @@ import java.io.OutputStream;
 
 public abstract class AbstractAbility extends AbstractStruct
 {
-  protected static final String[] s_type = {"", "Melee", "Ranged", "Magical", "Launcher"};
-  protected static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
-                                                  "Any point within range", "Caster", "",
-                                                  "Caster (keep spell, no animation)"};
-  protected static final String[] s_dmgtype = {"None", "Piercing", "Crushing", "Slashing", "Missile",
-                                               "Fist", "Piercing or crushing", "Piercing or slashing",
-                                               "Crushing or slashing", "Blunt missile"};
+  public static final String[] s_type = {"", "Melee", "Ranged", "Magical", "Launcher"};
+  public static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
+                                               "Any point within range", "Caster", "",
+                                               "Caster (keep spell, no animation)"};
+  public static final String[] s_dmgtype = {"None", "Piercing", "Crushing", "Slashing", "Missile",
+                                            "Fist", "Piercing or crushing", "Piercing or slashing",
+                                            "Crushing or slashing", "Blunt missile"};
 
   // ToDo: these are pretty nasty in here?
-  protected static final String[] s_proj_iwd = {"", "None", "Arrow",
+  public static final String[] s_proj_iwd = {"", "None", "Arrow",
     "Arrow exploding", "Arrow flaming", "Arrow heavy", "Arrow non-magical",
     "Axe", "Axe exploding", "Axe flaming", "Axe heavy", "Axe non-magical",
     "Bolt", "Bolt exploding", "Bolt flaming", "Bolt heavy", "Bolt non-magical",
@@ -140,7 +140,7 @@ public abstract class AbstractAbility extends AbstractStruct
     "Half-dragon acid breath", "Half-dragon fire breath",
     "Half-dragon lightning breath", "Guardian acid breath", "Ultrablast",
     "Boulder big (trap)", "Fire trap", "Acid trap", "Chimera fire breath"};
-  protected static final String[] s_proj_pst = {"", "None", "Arrow",
+  public static final String[] s_proj_pst = {"", "None", "Arrow",
     "Arrow exploding", "Arrow flaming", "Arrow heavy", "Arrow shocking", "Axe",
     "Axe exploding", "Axe flaming", "Axe heavy", "Axe shocking", "Bolt",
     "Bolt exploding", "Bolt flaming", "Bolt heavy", "Bolt shocking", "Bullet",
@@ -228,7 +228,7 @@ public abstract class AbstractAbility extends AbstractStruct
     "Reign of anger 1", "Reign of anger 2", "Reign of anger 3",
     "Reign of anger 4", "Reign of anger 5", "Power of one", "Succubus kiss",
     "Embalming"};
-  protected static final String[] s_projectile = {"", "None", "Arrow",
+  public static final String[] s_projectile = {"", "None", "Arrow",
     "Arrow exploding", "Arrow flaming", "Arrow heavy", "Arrow shocking", "Axe",
     "Axe exploding", "Axe flaming", "Axe heavy", "Axe shocking", "Bolt",
     "Bolt exploding", "Bolt flaming", "Bolt heavy", "Bolt shocking", "Bullet",

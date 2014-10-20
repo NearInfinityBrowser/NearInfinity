@@ -8,7 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -24,7 +24,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
-public final class TextBitmap extends Datatype implements Editable
+public final class TextBitmap extends Datatype implements Editable, Readable
 {
   private final String[] ids;
   private final String[] names;
@@ -34,7 +34,7 @@ public final class TextBitmap extends Datatype implements Editable
   public TextBitmap(byte buffer[], int offset, int length, String name, String ids[], String names[])
   {
     super(offset, length, name);
-    text = DynamicArray.getString(buffer, offset, length);
+    read(buffer, offset);
     this.ids = ids;
     this.names = names;
   }
@@ -104,10 +104,20 @@ public final class TextBitmap extends Datatype implements Editable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeString(os, text, getSize());
+    FileWriterNI.writeString(os, text, getSize());
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    text = DynamicArray.getString(buffer, offset, getSize());
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()
@@ -116,6 +126,27 @@ public final class TextBitmap extends Datatype implements Editable
       if (ids[i].equalsIgnoreCase(text))
         return text + " - " + names[i];
     return text;
+  }
+
+  public String getIdsName()
+  {
+    if (text != null) {
+      for (int i = 0; i < ids.length; i++) {
+        if (text.equals(ids[i])) {
+          if (i < names.length) {
+            return names[i];
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    return "";
+  }
+
+  public String getIdsValue()
+  {
+    return (text != null) ? text : "";
   }
 
 // -------------------------- INNER CLASSES --------------------------

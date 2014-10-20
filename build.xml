@@ -1,24 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="NearInfinity" default="binary" basedir=".">
-  <property name="src" location="src"/>
-  <property name="build" location="build"/>
+  <property name="jar.file" value="NearInfinity.jar"/>
+  <property name="build.path" location="build"/>
+  <property name="src.path" location="src"/>
+  <property name="lib.path.rel" value="lib"/>
+  <property name="lib.path.abs" location="${lib.path.rel}"/>
+  <property name="jorbis.file" value="${lib.path.rel}/jorbis/jorbis.jar"/>
+  <property name="rsyntaxtextarea.file" value="${lib.path.rel}/rsyntaxtextarea/rsyntaxtextarea.jar"/>
 
   <target name="binary">
-    <mkdir dir="${build}"/>
+    <mkdir dir="${build.path}"/>
 
-    <javac srcdir="${src}"
-           destdir="${build}"
-           includeantruntime="false">
+    <javac srcdir="${src.path}"
+           destdir="${build.path}"
+           includeantruntime="false"
+           debug="false"
+           debuglevel="lines,vars,source"
+           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}">
       <!--<compilerarg value="-Xlint:unchecked"/>-->
     </javac>
 
-    <copy todir="${build}">
-      <fileset dir="${src}" excludes="**/*.java"/>
+    <copy todir="${build.path}">
+      <fileset dir="${src.path}" excludes="**/*.java"/>
     </copy>
 
-    <jar destfile="NearInfinity.jar"
-         basedir="${build}"
+    <jar destfile="${jar.file}"
+         basedir="${build.path}"
          includes="**/*">
+      <zipgroupfileset dir="${lib.path.abs}" includes="**/*.jar"/>
       <manifest>
         <attribute name="Main-Class" value="infinity.NearInfinity"/>
       </manifest>
@@ -26,10 +35,10 @@
   </target>
 
   <target name="clean">
-    <delete dir="${build}"/>
-    <delete file="NearInfinity.jar"/>
+    <delete dir="${build.path}"/>
+    <delete file="${jar.file}"/>
     <delete>
-      <fileset dir="${src}" includes="**/*.class"/>
+      <fileset dir="${src.path}" includes="**/*.class"/>
     </delete>
   </target>
 </project>

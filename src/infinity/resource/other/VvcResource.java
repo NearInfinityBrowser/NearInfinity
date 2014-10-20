@@ -12,20 +12,22 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.search.SearchOptions;
 
 public final class VvcResource extends AbstractStruct implements Resource
 {
-  private static final String s_transparency[] = {"No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
-                                                  "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
-                                                  "3D blend", "Not covered by wall", "Persist through time stop", "Ignore dream palette",
-                                                  "2D blend"};
-  private static final String s_tint[] = {"No flags set", "Not light source", "Light source", "Internal brightness", "Time stopped", "",
-                                          "Internal gamma", "Non-reserved palette", "Full palette", "", "Dream palette"};
-  private static final String s_seq[] = {"No flags set", "Looping", "Special lighting", "Modify for height", "Draw animation", "Custom palette",
-                                         "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};
-  private static final String s_face[] = {"Use current", "Face target", "Follow target", "Follow path", "Lock orientation"};
-  private static final String s_noyes[] = {"No", "Yes"};
+  public static final String s_transparency[] = {"No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
+                                                 "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
+                                                 "3D blend", "Not covered by wall", "Persist through time stop", "Ignore dream palette",
+                                                 "2D blend"};
+  public static final String s_tint[] = {"No flags set", "Not light source", "Light source", "Internal brightness", "Time stopped", "",
+                                         "Internal gamma", "Non-reserved palette", "Full palette", "", "Dream palette"};
+  public static final String s_seq[] = {"No flags set", "Looping", "Special lighting", "Modify for height", "Draw animation", "Custom palette",
+                                        "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};
+  public static final String s_face[] = {"Use current", "Face target", "Follow target", "Follow path", "Lock orientation"};
+  public static final String s_noyes[] = {"No", "Yes"};
 
   public VvcResource(ResourceEntry entry) throws Exception
   {
@@ -72,6 +74,57 @@ public final class VvcResource extends AbstractStruct implements Resource
     list.add(new ResourceRef(buffer, offset + 148, "Ending sound", "WAV"));
     list.add(new Unknown(buffer, offset + 156, 336));
     return offset + 492;
+  }
+
+
+  // Called by "Extended Search"
+  // Checks whether the specified resource entry matches all available search options.
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
+  {
+    if (entry != null && searchOptions != null) {
+      try {
+        VvcResource vvc = new VvcResource(entry);
+        boolean retVal = true;
+        String key;
+        Object o;
+
+        if (retVal) {
+          key = SearchOptions.VVC_Animation;
+          o = searchOptions.getOption(key);
+          StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key));
+          retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
+        }
+
+        String[] keyList = new String[]{SearchOptions.VVC_Flags, SearchOptions.VVC_ColorAdjustment,
+                                        SearchOptions.VVC_Sequencing, SearchOptions.VVC_Orientation};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key));
+            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+          } else {
+            break;
+          }
+        }
+
+        keyList = new String[]{SearchOptions.VVC_Custom1, SearchOptions.VVC_Custom2,
+                               SearchOptions.VVC_Custom3, SearchOptions.VVC_Custom4};
+        for (int idx = 0; idx < keyList.length; idx++) {
+          if (retVal) {
+            key = keyList[idx];
+            o = searchOptions.getOption(key);
+            retVal &= SearchOptions.Utils.matchCustomFilter(vvc, o);
+          } else {
+            break;
+          }
+        }
+
+        return retVal;
+      } catch (Exception e) {
+      }
+    }
+    return false;
   }
 }
 

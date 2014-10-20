@@ -11,20 +11,21 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractAbility;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.ResourceFactory;
 
 import javax.swing.JComponent;
 
-final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasDetailViewer
+public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
-  private static final String s_hostility[] = {"Hostile", "", "", "", "Non-hostile"};
-  private static final String s_abilityuse[] = {"", "", "Spell slots", "", "Innate slots"};
+  public static final String s_hostility[] = {"Hostile", "", "", "", "Non-hostile"};
+  public static final String s_abilityuse[] = {"", "", "Spell slots", "", "Innate slots"};
 
   Ability() throws Exception
   {
@@ -58,15 +59,33 @@ final class Ability extends AbstractAbility implements AddRemovable, HasAddRemov
 //--------------------- End Interface AddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     return new ViewerAbility(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception

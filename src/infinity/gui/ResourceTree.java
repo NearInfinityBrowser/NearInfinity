@@ -12,6 +12,7 @@ import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
+import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -24,7 +25,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.Stack;
 
 import javax.swing.JButton;
@@ -202,7 +202,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       for (int i = startrow; i < tree.getRowCount(); i++) {
         TreePath path = tree.getPathForRow(i);
         if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-            path.getLastPathComponent().toString().startsWith(currentkey)) {
+            path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
           showresource = false;
           tree.scrollPathToVisible(path);
           tree.addSelectionPath(path);
@@ -213,7 +213,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         for (int i = 0; i < startrow; i++) {
           TreePath path = tree.getPathForRow(i);
           if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-              path.getLastPathComponent().toString().startsWith(currentkey)) {
+              path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
             showresource = false;
             tree.scrollPathToVisible(path);
             tree.addSelectionPath(path);
@@ -346,7 +346,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           return;
         if (!filename.toUpperCase().endsWith(entry.getExtension()))
           filename = filename + '.' + entry.getExtension();
-        if (new File(entry.getActualFile().getParentFile(), filename).exists()) {
+        if (new FileNI(entry.getActualFile().getParentFile(), filename).exists()) {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
           return;
@@ -362,7 +362,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                                                        entry +
                                                                        '?',
                                            "Delete file", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
           NearInfinity.getInstance().removeViewable();
           ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
@@ -374,7 +374,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), "Are you sure you want to delete the " +
                                                                        "override file to " + entry + '?',
                                            "Delete file", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
           NearInfinity.getInstance().removeViewable();
           entry.deleteOverride();

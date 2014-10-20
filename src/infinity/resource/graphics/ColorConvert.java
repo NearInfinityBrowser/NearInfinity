@@ -4,6 +4,10 @@
 
 package infinity.resource.graphics;
 
+import infinity.util.DynamicArray;
+import infinity.util.io.FileInputStreamNI;
+import infinity.util.io.FileNI;
+
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -11,8 +15,15 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
+import java.awt.image.IndexColorModel;
+import java.awt.image.VolatileImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -50,7 +61,8 @@ public class ColorConvert
    * Creates a BufferedImage object in the native color format for best possible performance.
    * @param width Image width in pixels
    * @param height Image height in pixels
-   * @param transparency The transparency type (either one of OPAQUE, BITMASK or TRANSLUCENT)
+   * @param transparency The transparency type (either one of <code>Transparency.OPAQUE</code>,
+   *                     <code>Transparency.BITMASK</code> or <code>Transparency.TRANSLUCENT</code>).
    * @return A new BufferedImage object with the specified properties.
    */
   public static BufferedImage createCompatibleImage(int width, int height, int transparency)
@@ -63,6 +75,35 @@ public class ColorConvert
   }
 
   /**
+   * Creates a VolatileImage object in the native color format for best possible performance.
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @param hasTransparency Transparency support
+   * @return A new VolatileImage object with the specified properties.
+   */
+  public static VolatileImage createVolatileImage(int width, int height, boolean hasTransparency)
+  {
+    return createVolatileImage(width, height,
+                               hasTransparency ? Transparency.TRANSLUCENT : Transparency.OPAQUE);
+  }
+
+  /**
+   * Creates a VolatileImage object in the native color format for best possible performance.
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @param transparency The transparency type (either one of <code>Transparency.OPAQUE</code>,
+   *                     <code>Transparency.BITMASK</code> or <code>Transparency.TRANSLUCENT</code>).
+   * @return A new VolatileImage object with the specified properties.
+   */
+  public static VolatileImage createVolatileImage(int width, int height, int transparency)
+  {
+    GraphicsConfiguration gc =
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+    return gc.createCompatibleVolatileImage(width, height, transparency);
+  }
+
+  /**
    * Converts a generic image object into a BufferedImage object if possible.
    * @param img The image to convert into a BufferedImage object.
    * @param hasTransparency Indicates whether the converted image should support transparency.
@@ -71,27 +112,98 @@ public class ColorConvert
    */
   public static BufferedImage toBufferedImage(Image img, boolean hasTransparency)
   {
+    return toBufferedImage(img, hasTransparency, true);
+  }
+
+  /**
+   * Converts a generic image object into a BufferedImage object if possible.
+   * Returns a BufferedImage object that is guaranteed to be either in true color or indexed color format.
+   * @param img The image to convert into a BufferedImage object.
+   * @param hasTransparency Indicates whether the converted image should support transparency.
+   *        (Does nothing if the specified image object is already a BufferedImage object.)
+   * @param forceTrueColor Indicates whether the returned BufferedImage object will alway be in
+   *        true color color format (i.e. pixels in ARGB format, with or without transparency support).
+   * @return A BufferedImage object of the specified image in either BufferedImage.TYPE_BYTE_INDEXED format
+   *         or one of the true color formats, Returns <code>null</code> on error.
+   */
+  public static BufferedImage toBufferedImage(Image img, boolean hasTransparency, boolean forceTrueColor)
+  {
     if (img != null) {
       if (img instanceof BufferedImage) {
-        try {
-          // the main purpose of this method is direct access to the underlying data buffer
-          BufferedImage image = (BufferedImage)img;
-          int[] tmp = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-          if (tmp == null)
-            throw new Exception();
-          tmp = null;
-          return image;
-        } catch (Exception e) {
+        BufferedImage srcImage = (BufferedImage)img;
+        int type = srcImage.getRaster().getDataBuffer().getDataType();
+        if (type == DataBuffer.TYPE_INT) {
+          return srcImage;
+        } else if (!forceTrueColor) {
+          // attempting to convert special formats into 8-bit paletted image format
+          BufferedImage dstImage = convertToIndexedImage(srcImage);
+          if (dstImage != null) {
+            return dstImage;
+          }
         }
       }
       final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
                                                         hasTransparency);
       Graphics2D g = (Graphics2D)image.getGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
+      try {
+        g.drawImage(img, 0, 0, null);
+      } finally {
+        g.dispose();
+        g = null;
+      }
       return image;
     }
     return null;
+  }
+
+  /**
+   * Attempts to create a deep copy of the specified BufferedImage object without losing any of its
+   * original properties. Creates a truecolored BufferedImage object if source image format is not
+   * fully supported.
+   * Note: Only indexed and truecolored BufferedImage objects are fully supported!
+   * @param image The image object to clone.
+   * @return A new BufferedImage object possessing the content and properties of the source image.
+   *         Returns <code>null</code> on error.
+   */
+  public static BufferedImage cloneImage(BufferedImage image)
+  {
+    BufferedImage dstImage = null;
+    if (image != null) {
+      if ((image.getType() == BufferedImage.TYPE_BYTE_INDEXED ||
+           image.getType() == BufferedImage.TYPE_BYTE_BINARY) &&
+          image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_BYTE) {
+        // Pixel size: Integer and palette available
+        IndexColorModel cm1 = (IndexColorModel)image.getColorModel();
+        int[] colors = new int[1 << cm1.getPixelSize()];
+        cm1.getRGBs(colors);
+        IndexColorModel cm2 = new IndexColorModel(cm1.getPixelSize(), colors.length, colors, 0,
+                                                  cm1.hasAlpha(), cm1.getTransparentPixel(),
+                                                  DataBuffer.TYPE_BYTE);
+        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType(), cm2);
+        byte[] srcBuf = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        byte[] dstBuf = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(srcBuf, 0, dstBuf, 0, dstBuf.length);
+        srcBuf = null; dstBuf = null;
+      } else if (image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
+        // Pixel size: Integer
+        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        int[] srcBuf = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        int[] dstBuf = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(srcBuf, 0, dstBuf, 0, dstBuf.length);
+        srcBuf = null; dstBuf = null;
+      } else {
+        // Fall back solution: create a truecolored version of the source image
+        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        Graphics2D g = (Graphics2D)dstImage.getGraphics();
+        try {
+          g.drawImage(image, 0, 0, null);
+        } finally {
+          g.dispose();
+          g = null;
+        }
+      }
+    }
+    return dstImage;
   }
 
   /**
@@ -103,7 +215,7 @@ public class ColorConvert
   {
     Dimension d = new Dimension();
     try {
-      ImageInputStream iis = ImageIO.createImageInputStream(new File(fileName));
+      ImageInputStream iis = ImageIO.createImageInputStream(new FileNI(fileName));
       final Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
       if (readers.hasNext()) {
         ImageReader reader = readers.next();
@@ -125,25 +237,27 @@ public class ColorConvert
 
   /**
    * Calculates the nearest color available in the palette for the specified color value.
-   * Note: For better color matching results the palette is expected in HSL color model.
-   * @param rgbColor The source color value in XRGB format (X is ignored).
-   * @param hslPalette A HSL palette with the available color entries. Use the method
-   *                   {@link #toHslPalette(int[], int[])} to convert a RGB palette into the HSL format.
+   * Note: For better color matching results the palette is expected in HCL color model.
+   * @param rgbColor The source color value in ARGB format (A is ignored).
+   * @param hclPalette A HCL palette with the available color entries. Use the method
+   *                   {@link #toHclPalette(int[], int[])} to convert a RGB palette into the HCL format.
    * @return The palette index pointing to the nearest color, or -1 on error.
    */
-  public static int nearestColor(int rgbColor, int[] hslPalette)
+  public static int nearestColor(int rgbColor, int[] hclPalette)
   {
     int index = -1;
-    if (hslPalette != null && hslPalette.length > 0) {
+    if (hclPalette != null && hclPalette.length > 0) {
       int distance = Integer.MAX_VALUE;
-      int v = rgbToHsl(rgbColor);
-      int h = (v >>> 16) & 0xff, s = (v >>> 8) & 0xff, l = v & 0xff;
-      final int wh = 4, ws = 1, wl = 16;  // different weights for a more visually appealing color table
-      for (int i = 0; i < hslPalette.length; i++) {
-        int dh = ((hslPalette[i] >>> 16) & 0xff) - h;
-        int ds = ((hslPalette[i] >>> 8) & 0xff) - s;
-        int dl = (hslPalette[i] & 0xff) - l;
-        int curDistance = (wh*dh*dh) + (ws*ds*ds) + (wl*dl*dl);
+      int v = rgbToHcl(rgbColor);
+      int h = (byte)((v >>> 16) & 0xff), s = (byte)((v >>> 8) & 0xff), l = (byte)(v & 0xff);
+      for (int i = 0; i < hclPalette.length; i++) {
+        int h2 = (byte)((hclPalette[i] >>> 16) & 0xff);
+        int s2 = (byte)((hclPalette[i] >>> 8) & 0xff);
+        int l2 = (byte)(hclPalette[i] & 0xff);
+        int dh = (h2 - h);
+        int ds = (s2 - s);
+        int dl = (l2 - l);
+        int curDistance = dh*dh + ds*ds + dl*dl;
         if (curDistance < distance) {
           distance = curDistance;
           index = i;
@@ -156,17 +270,17 @@ public class ColorConvert
   }
 
   /**
-   * Converts an array of colors from the RGB color model into the HSL color model. This is needed
+   * Converts an array of colors from the RGB color model into the HCL color model. This is needed
    * if you want to use the method {@link #nearestColor(int, int[])}.
    * @param rgbPalette The source RGB palette.
-   * @param hslPalette An array to store the resulting HSL colors into.
+   * @param hclPalette An array to store the resulting HCL colors into.
    * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
    */
-  public static boolean toHslPalette(int[] rgbPalette, int[] hslPalette)
+  public static boolean toHclPalette(int[] rgbPalette, int[] hclPalette)
   {
-    if (rgbPalette != null && hslPalette != null && hslPalette.length >= rgbPalette.length) {
+    if (rgbPalette != null && hclPalette != null && hclPalette.length >= rgbPalette.length) {
       for (int i = 0; i < rgbPalette.length; i++) {
-        hslPalette[i] = rgbToHsl(rgbPalette[i]);
+        hclPalette[i] = rgbToHcl(rgbPalette[i]);
       }
       return true;
     }
@@ -174,45 +288,63 @@ public class ColorConvert
   }
 
   /**
-   * Converts an RGB color value to HSL.
-   * @param color The color value in XRGB format (X is ignored).
-   * @return The HSL representation of the color in XHSL format (X is 0).
+   * Converts an RGB color value into a normalized HCL color (hue, chroma, luminance).
+   * @param color The color value in ARGB format (A is ignored).
+   * @return The normalized HCL representation of the color. Range of each component: [-128..127]
    */
-  public static int rgbToHsl(int color)
+  public static int rgbToHcl(int color)
   {
+    // using HCL (hue, chrome, luminance) approach
     float r = (float)((color >>> 16) & 0xff) / 255.0f;
     float g = (float)((color >>> 8) & 0xff) / 255.0f;
     float b = (float)(color & 0xff) / 255.0f;
     float cmax = r; if (g > cmax) cmax = g; if (b > cmax) cmax = b;
     float cmin = r; if (g < cmin) cmin = g; if (b < cmin) cmin = b;
     float cdelta = cmax - cmin;
-    float h, s, l;
+    float h, c, l;
 
     l = (cmax + cmin) / 2.0f;
+    if (l < 0.0f) l = 0.0f; else if (l > 1.0f) l = 1.0f;
 
     if (cdelta == 0.0f) {
       h = 0.0f;
-      s = 0.0f;
+      c = 0.0f;
     } else {
-      if (cmax == r) {
-        h = ((g - b) / cdelta) % 6.0f;
-      } else if (cmax == g) {
-        h = ((b - r) / cdelta) + 2.0f;
-      } else {    // if (cmax == b)
-        h = ((r - g) / cdelta) + 4.0f;
-      }
-      h /= 6.0f;
+      c = cdelta;
 
-      float v = 2.0f * l - 1.0f;
-      if (v < 0.0f) v += 1.0f;
-      if (v > 1.0f) v -= 1.0f;
-      s = cdelta / v;
+      final float cdelta2 = cdelta / 2.0f;
+      float dr = (((cmax - r) / 6.0f) + cdelta2) / cdelta;
+      float dg = (((cmax - g) / 6.0f) + cdelta2) / cdelta;
+      float db = (((cmax - b) / 6.0f) + cdelta2) / cdelta;
+
+      final float c13 = 1.0f/3.0f;
+      final float c23 = 2.0f/3.0f;
+      if (r == cmax) {
+        h = db - dg;
+      } else if (g == cmax) {
+        h = c13 + dr - db;
+      } else {
+        h = c23 + dg - dr;
+      }
+
+      if (h < 0.0f) h += 1.0f;
+      if (h > 1.0f) h -= 1.0f;
     }
 
-    if (h < 0.0f) h = 0.0f; if (h > 1.0f) h = 1.0f;
-    if (s < 0.0f) s = 0.0f; if (s > 1.0f) s = 1.0f;
-    if (l < 0.0f) l = 0.0f; if (l > 1.0f) l = 1.0f;
-    return ((int)(h * 255.0f) << 16) | ((int)(s * 255.0f) << 8) | (int)(l * 255.0f);
+    // normalizing: h = [0..2], c = [0..1], l = [-1..1]
+    h *= 2.0f;
+    l = (l - 0.5f) * 2.0f;
+
+    double x= c * Math.cos(h*Math.PI);
+    double y = c * Math.sin(h*Math.PI);
+    double z = l;
+
+    // re-normalizing values for conversion into integer range [-128..127]
+    x = Math.floor(x * 127.5);
+    y = Math.floor(y * 127.5);
+    z = Math.floor(z * 127.5);
+
+    return (((int)x & 0xff) << 16) | (((int)y & 0xff) << 8) | ((int)z & 0xff);
   }
 
   /**
@@ -312,6 +444,278 @@ public class ColorConvert
       return true;
     }
     return false;
+  }
+
+  /**
+   * Attempts to load a palette from the specified Windows BMP file.
+   * @param file The Windows BMP file to extract the palette from.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteBMP(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStreamNI(file);
+        try {
+          byte[] signature = new byte[8];
+          fis.read(signature);
+          if ("BM".equals(new String(signature, 0, 2, Charset.forName("US-ASCII")))) {
+            // extracting palette from BMP file
+            byte[] header = new byte[54];
+            System.arraycopy(signature, 0, header, 0, signature.length);
+            fis.read(header, signature.length, header.length - signature.length);
+            if (DynamicArray.getInt(header, 0x0e) == 0x28 &&      // correct BMP header size
+                DynamicArray.getInt(header, 0x12) > 0 &&          // valid width
+                DynamicArray.getInt(header, 0x16) > 0 &&          // valid height
+                (DynamicArray.getShort(header, 0x1c) == 4 ||      // either 4bpp
+                 DynamicArray.getInt(header, 0x1c) == 8) &&       // or 8bpp
+                DynamicArray.getInt(header, 0x1e) == 0) {         // no special encoding
+              int bpp = DynamicArray.getUnsignedShort(header, 0x1c);
+              int colorCount = 1 << bpp;
+              byte[] palette = new byte[colorCount*4];
+              fis.read(palette);
+              int[] retVal = new int[colorCount];
+              for (int i =0; i < colorCount; i++) {
+                retVal[i] = DynamicArray.getInt(palette, i << 2) & 0x00ffffff;
+              }
+              return retVal;
+            } else {
+              throw new Exception("Error loading palette from BMP file " + file.getName());
+            }
+          } else {
+            throw new Exception("Invalid BMP file " + file.getName());
+          }
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read BMP file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+  /**
+   * Attempts to load a palette from the specified Windows PAL file.
+   * @param file The Windows PAL file to load.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPalettePAL(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStreamNI(file);
+        try {
+          byte[] signature = new byte[8];
+          fis.read(signature);
+          if ("RIFF".equals(new String(signature, 0, 4, Charset.forName("US-ASCII")))) {
+            // extracting palette from Windows palette file
+            byte[] signature2 = new byte[8];
+            fis.read(signature2);
+            if ("PAL data".equals(new String(signature2, Charset.forName("US-ASCII")))) {
+              byte[] header = new byte[8];
+              fis.read(header);
+              int numColors = DynamicArray.getUnsignedShort(header, 6);
+              if (numColors >= 2 && numColors <= 256) {
+                byte[] palData = new byte[numColors << 2];
+                fis.read(palData);
+                int[] retVal = new int[numColors];
+                for (int i = 0; i < numColors; i++) {
+                  int col = DynamicArray.getInt(palData, i << 2);
+                  retVal[i] = ((col << 16) & 0xff0000) | (col & 0x00ff00) | ((col >> 16) & 0x0000ff);
+                }
+                return retVal;
+              } else {
+                throw new Exception("Invalid number of color entries in Windows palette file " + file.getName());
+              }
+            } else {
+              throw new Exception("Error loading palette from Windows palette file " + file.getName());
+            }
+          } else {
+            throw new Exception("Invalid Windows palette file " + file.getName());
+          }
+
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read Windows palette file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+  /**
+   * Attempts to load a palette from the specified Adobe Color Table file.
+   * @param file The Adobe Color Table file to load.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteACT(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStreamNI(file);
+        try {
+          int size = (int)file.length();
+          if (size == 768) {
+            byte[] palData = new byte[size];
+            fis.read(palData);
+            int count = size / 3;
+            int[] retVal = new int[count];
+            for (int ofs = 0, i = 0; i < count; i++, ofs += 3) {
+              retVal[i] = ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
+            }
+            return retVal;
+          } else {
+            throw new Exception("Invalid Adobe Photoshop palette file " + file.getName());
+          }
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read Adobe Photoshop palette file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+  /**
+   * Attempts to load a palette from the specified BAM file.
+   * @param file The BAM file to extract the palette from.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteBAM(File file) throws Exception
+  {
+    if (file != null && file.exists()) {
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStreamNI(file);
+        try {
+          byte[] signature = new byte[8];
+          fis.read(signature);
+          String s = new String(signature, Charset.forName("US-ASCII"));
+          if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
+            byte[] bamData = new byte[(int)file.length()];
+            System.arraycopy(signature, 0, bamData, 0, signature.length);
+            fis.read(bamData, signature.length, bamData.length - signature.length);
+            if ("BAMCV1  ".equals(s)) {
+              bamData = Compressor.decompress(bamData);
+            }
+            // extracting palette from BAM v1 file
+            int ofs = DynamicArray.getInt(bamData, 0x10);
+            if (ofs >= 0x18 && ofs < bamData.length - 1024) {
+              int[] retVal = new int[256];
+              for (int i = 0; i < 256; i++) {
+                retVal[i] = DynamicArray.getInt(bamData, ofs+(i << 2)) & 0x00ffffff;
+              }
+              return retVal;
+            } else {
+              throw new Exception("Error loading palette from BAM file " + file.getName());
+            }
+          } else {
+            throw new Exception("Unsupport file type.");
+          }
+        } finally {
+          if (fis != null) {
+            fis.close();
+            fis = null;
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read BAM file " + file.getName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+
+  /**
+   * Attempts to convert a 1-, 2- or 4-bit paletted image or a grayscale image into an 8-bit paletted
+   * image.
+   * @param image The image to convert.
+   * @return The converted image if the source format is compatible with a 256 color table,
+   *         <code>null</code> otherwise.
+   */
+  private static BufferedImage convertToIndexedImage(BufferedImage image)
+  {
+    if (image != null) {
+      if (image.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+        // converting 1-, 2-, 4-bit image data into paletted image
+        int[] cmap = new int[256];
+        IndexColorModel srcPal = (IndexColorModel)image.getColorModel();
+        int bits = srcPal.getPixelSize();
+        int bitMask = (1 << bits) - 1;
+        int numColors = 1 << bits;
+        for (int i = 0; i < 256; i++) {
+          if (i < numColors) {
+            cmap[i] = srcPal.getRGB(i) | (srcPal.hasAlpha() ? (srcPal.getAlpha(i) << 24) : 0xff000000);
+          } else {
+            cmap[i] = 0xff000000;
+          }
+        }
+        IndexColorModel dstPal;
+        dstPal = new IndexColorModel(8, 256, cmap, 0, srcPal.hasAlpha(), -1, DataBuffer.TYPE_BYTE);
+        BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(),
+            BufferedImage.TYPE_BYTE_INDEXED, dstPal);
+        byte[] src = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        byte[] dst = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        int srcOfs = 0, srcBitPos = 8 - bits, dstOfs = 0;
+        while (dstOfs < dst.length) {
+          dst[dstOfs] = (byte)((src[srcOfs] >>> srcBitPos) & bitMask);
+          srcBitPos -= bits;
+          if (srcBitPos < 0) {
+            srcBitPos += 8;
+            srcOfs++;
+          }
+          dstOfs++;
+        }
+        cmap = null;
+        src = null; dst = null;
+        return dstImage;
+      } else if (image.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+        // converting grayscaled image with implicit palette into indexed image with explicit palette
+        int[] cmap = new int[256];
+        for (int i = 0; i < cmap.length; i++) {
+          cmap[i] = (i << 16) | (i << 8) | i;
+        }
+        IndexColorModel cm = new IndexColorModel(8, 256, cmap, 0, false, -1, DataBuffer.TYPE_BYTE);
+        BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(),
+                                                   BufferedImage.TYPE_BYTE_INDEXED, cm);
+        byte[] src = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        byte[] dst = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(src, 0, dst, 0, src.length);
+        cmap = null;
+        src = null; dst = null;
+        return dstImage;
+      } else if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        return image;
+      }
+    }
+    return null;
   }
 
 //-------------------------- INNER CLASSES --------------------------

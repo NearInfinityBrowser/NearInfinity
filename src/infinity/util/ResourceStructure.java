@@ -4,6 +4,8 @@
 
 package infinity.util;
 
+import infinity.util.io.FileWriterNI;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -149,7 +151,7 @@ public class ResourceStructure implements Cloneable
   {
     byte[] data = getBytes();
     if (data != null)
-      Filewriter.writeBytes(os, data);
+      FileWriterNI.writeBytes(os, data);
   }
 
 

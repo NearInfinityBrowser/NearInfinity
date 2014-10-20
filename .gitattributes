@@ -1,6 +1,7 @@
 *.java text diff=java
 *.xml text
 *.txt text
+*.flex text
 .project text
 .classpath text
 

@@ -4,19 +4,17 @@
 
 package infinity.resource.graphics;
 
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
-import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -34,7 +32,8 @@ import javax.swing.SwingConstants;
 public class PvrzResource implements Resource, ActionListener, Closeable
 {
   private final ResourceEntry entry;
-  private ButtonPopupMenu mnuExport;
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
   private JMenuItem miExport, miPNG;
   private RenderCanvas rcImage;
   private JPanel panel;
@@ -107,9 +106,8 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     miExport.addActionListener(this);
     miPNG = new JMenuItem("as PNG");
     miPNG.addActionListener(this);
-    mnuExport = new ButtonPopupMenu("Export...", new JMenuItem[]{miExport, miPNG});
-    mnuExport.setIcon(Icons.getIcon("Export16.gif"));
-    mnuExport.setMnemonic('e');
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    bpmExport.setMenuItems(new JMenuItem[]{miExport, miPNG});
     rcImage = new RenderCanvas();
     rcImage.setHorizontalAlignment(SwingConstants.CENTER);
     rcImage.setVerticalAlignment(SwingConstants.CENTER);
@@ -124,14 +122,10 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    JPanel bPanel = new JPanel();
-    bPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    bPanel.add(mnuExport);
-
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
-    panel.add(bPanel, BorderLayout.SOUTH);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
     return panel;
@@ -155,24 +149,15 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     PvrDecoder decoder = null;
     if (entry != null) {
       try {
-        byte[] data = entry.getResourceData();
-        int size = DynamicArray.getInt(data, 0);
-        int marker = DynamicArray.getUnsignedShort(data, 4);
-        if ((size & 0xff) != 0x34 && marker != 0x9c78)
-          throw new Exception("Invalid PVRZ resource");
-        data = Compressor.decompress(data, 0);
-
-        decoder = new PvrDecoder(data);
-        image = ColorConvert.createCompatibleImage(decoder.info().width(),
-                                                   decoder.info().height(), true);
+        decoder = PvrDecoder.loadPvr(entry);
+        image = new BufferedImage(decoder.getWidth(), decoder.getHeight(), BufferedImage.TYPE_INT_ARGB);
         if (!decoder.decode(image)) {
           image = null;
         }
-        decoder.close();
+        decoder = null;
       } catch (Exception e) {
         image = null;
         if (decoder != null) {
-          decoder.close();
           decoder = null;
         }
         e.printStackTrace();

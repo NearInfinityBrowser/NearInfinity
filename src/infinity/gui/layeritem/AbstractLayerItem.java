@@ -33,6 +33,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   private Vector<LayerItemListener> itemStateListener;
   private String actionCommand;
   private Viewable viewable;
+  private Object objData;
   private String message;
   private ItemState itemState;
   private Point location;
@@ -108,7 +109,11 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public ActionListener[] getActionListeners()
   {
-    return (ActionListener[])actionListener.toArray();
+    ActionListener[] array = new ActionListener[actionListener.size()];
+    for (int i = 0; i < actionListener.size(); i++) {
+      array[i] = actionListener.get(i);
+    }
+    return array;
   }
 
   public void removeActionListener(ActionListener l)
@@ -127,7 +132,11 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public LayerItemListener[] getLayerItemListeners()
   {
-    return (LayerItemListener[])itemStateListener.toArray();
+    LayerItemListener[] array = new LayerItemListener[itemStateListener.size()];
+    for (int i = 0; i < itemStateListener.size(); i++) {
+      array[i] = itemStateListener.get(i);
+    }
+    return array;
   }
 
   public void removeLayerItemListener(LayerItemListener l)
@@ -220,6 +229,24 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   public ItemState getItemState()
   {
     return itemState;
+  }
+
+  /**
+   * Attaches a custom data object to this layer item.
+   * @param data The data item to attach.
+   */
+  public void setData(Object data)
+  {
+    objData = data;
+  }
+
+  /**
+   * Returns the custom data object that has been attached to this layer item.
+   * @return The custom data object attached to this layer item.
+   */
+  public Object getData()
+  {
+    return objData;
   }
 
   /**

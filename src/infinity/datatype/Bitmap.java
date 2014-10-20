@@ -25,7 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Bitmap extends Datatype implements Editable
+public class Bitmap extends Datatype implements Editable, Readable
 {
   private final String table[];
   private TextListPanel list;
@@ -35,14 +35,7 @@ public class Bitmap extends Datatype implements Editable
   {
     super(offset, length, name);
     this.table = table;
-    if (length == 4)
-      value = DynamicArray.getInt(buffer, offset);
-    else if (length == 2)
-      value = (int)DynamicArray.getShort(buffer, offset);
-    else if (length == 1)
-      value = (int)DynamicArray.getByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -125,6 +118,28 @@ public class Bitmap extends Datatype implements Editable
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = (int)DynamicArray.getByte(buffer, offset);
+        break;
+      case 2:
+        value = (int)DynamicArray.getShort(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

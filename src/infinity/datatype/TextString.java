@@ -5,13 +5,12 @@
 package infinity.datatype;
 
 import infinity.util.DynamicArray;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 
-public final class TextString extends Datatype implements InlineEditable
+public final class TextString extends Datatype implements InlineEditable, Readable
 {
   private final byte bytes[];
   private String text;
@@ -19,7 +18,8 @@ public final class TextString extends Datatype implements InlineEditable
   public TextString(byte buffer[], int offset, int length, String name)
   {
     super(offset, length, name);
-    bytes = Arrays.copyOfRange(buffer, offset, offset + length);
+    bytes = new byte[length];
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------
@@ -43,12 +43,23 @@ public final class TextString extends Datatype implements InlineEditable
   public void write(OutputStream os) throws IOException
   {
     if (text == null)
-      Filewriter.writeBytes(os, bytes);
+      FileWriterNI.writeBytes(os, bytes);
     else
-      Filewriter.writeString(os, text, getSize());
+      FileWriterNI.writeString(os, text, getSize());
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public void read(byte[] buffer, int offset)
+  {
+    System.arraycopy(buffer, offset, bytes, 0, getSize());
+    text = null;
+  }
+
+//--------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

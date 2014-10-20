@@ -13,10 +13,11 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
@@ -28,7 +29,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
-public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasDetailViewer
+public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   private static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   private static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
@@ -58,17 +59,35 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public JComponent getDetailViewer()
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
   {
     JScrollPane scroll = new JScrollPane(new Viewer(this));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     return scroll;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return true;
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -200,7 +219,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(new Unknown(buffer, offset + 120, 64));
     }
     else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             gameid == ResourceFactory.ID_BGEE || gameid == ResourceFactory.ID_BG2EE) { // V2.0
+             ResourceFactory.isEnhancedEdition()) { // V2.0
       list.add(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       list.add(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       list.add(new Flag(buffer, offset + 96, 4, "Configuration",
@@ -219,7 +238,13 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       list.add(offPocket);
       numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
       list.add(numPocket);
-      list.add(new Unknown(buffer, offset + 128, 52));
+      if (ResourceFactory.isEnhancedEdition()) {
+        list.add(new DecNumber(buffer, offset + 128, 4, "Zoom level"));
+        list.add(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
+        list.add(new Unknown(buffer, offset + 140, 40));
+      } else {
+        list.add(new Unknown(buffer, offset + 128, 52));
+      }
     }
     else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)
       list.add(new Unknown(buffer, offset + 84, 4));
@@ -258,7 +283,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (offRubikon != null) { // Torment
       offset = offRubikon.getValue();
       if (offset > 0) {
-        list.add(new Unknown(buffer, offset, 1720, "Modron maze state"));
+        list.add(new ModronMaze(this, buffer, offset));
         offset += 1720;
       }
     }

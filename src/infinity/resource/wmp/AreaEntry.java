@@ -11,55 +11,49 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
-import infinity.resource.AddRemovable;
-import infinity.resource.HasAddRemovable;
-import infinity.resource.HasDetailViewer;
+import infinity.resource.HasViewerTabs;
 
 import javax.swing.JComponent;
 
-final class AreaEntry extends AbstractStruct implements AddRemovable, HasDetailViewer, HasAddRemovable
+final class AreaEntry extends AbstractStruct implements HasViewerTabs
 {
   private static final String s_flag[] = {"No flags set", "Visible", "Reveal from linked area",
                                           "Can be visited", "Has been visited"};
-
-  AreaEntry() throws Exception
-  {
-    super(null, "Area", new byte[240], 0);
-  }
 
   AreaEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "Area " + nr, buffer, offset);
   }
 
+// --------------------- Begin Interface HasViewerTabs ---------------------
+
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public int getViewerTabCount()
   {
-    return new AddRemovable[] { new AreaLinkNorth(), new AreaLinkSouth(),
-                                new AreaLinkEast(), new AreaLinkWest() };
+    return 1;
   }
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_VIEW;
+  }
 
   @Override
-  public JComponent getDetailViewer()
+  public JComponent getViewerTab(int index)
   {
     return new ViewerArea(this);
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
   @Override
-  public boolean canRemove()
+  public boolean viewerTabAddedBefore(int index)
   {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+// --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   protected int read(byte buffer[], int offset) throws Exception

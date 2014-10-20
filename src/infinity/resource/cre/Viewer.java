@@ -38,16 +38,23 @@ public final class Viewer extends JPanel
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
 
-    gbc.insets = new Insets(2, 3, 3, 0);
+    gbc.insets = new Insets(2, 6, 3, 0);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Allegiance"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Alignment"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("General"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Race"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Class"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gender"), gbl, gbc, true);
-    if (ResourceFactory.getInstance().resourceExists("KIT.IDS"))
+    if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Kit"), gbl, gbc, true);
-    else
+    } else {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Mage type"), gbl, gbc, true);
+    }
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Racial enemy"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Animation"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Morale"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Morale break"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Morale recovery"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. death"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. wand"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. polymorph"), gbl, gbc, true);
@@ -73,7 +80,7 @@ public final class Viewer extends JPanel
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
 
-    gbc.insets = new Insets(2, 3, 3, 0);
+    gbc.insets = new Insets(2, 6, 3, 0);
 
     // 22
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Allegiance"), gbl, gbc, true);
@@ -127,7 +134,7 @@ public final class Viewer extends JPanel
     p.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute("Feats (3/3)"), 1), BorderLayout.NORTH);
     p.add(makeSkillPanelIWD2(cre), BorderLayout.CENTER);
 
-    JPanel panel = new JPanel(new GridLayout(1, 3, 6, 0));
+    JPanel panel = new JPanel(new GridLayout(1, 6, 6, 0));
     panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute("Feats (1/3)"), 1));
     panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute("Feats (2/3)"), 1));
     panel.add(p);
@@ -213,7 +220,8 @@ public final class Viewer extends JPanel
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
 
-    gbc.insets = new Insets(1, 3, 2, 0);
+    gbc.insets = new Insets(1, 6, 2, 0);
+    gbc.anchor = GridBagConstraints.FIRST_LINE_START;
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Alchemy"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Animal empathy"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Bluff"), gbl, gbc, true);
@@ -240,7 +248,7 @@ public final class Viewer extends JPanel
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
 
-    gbc.insets = new Insets(2, 3, 3, 0);
+    gbc.insets = new Insets(2, 6, 3, 0);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP value"), gbl, gbc, true);
@@ -304,14 +312,14 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Charisma"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("THAC0"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("# attacks"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Hide in shadows"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Detect illusions"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Set traps"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Lore"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Open locks"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Move silently"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Find/disarm traps"), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Pickpockets"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Hide in shadows"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Detect illusions"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Set traps"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Lore"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Open locks"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Move silently"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Find/disarm traps"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Pickpockets"), gbl, gbc, true);
 //    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Tracking"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Script name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Override script"), gbl, gbc, true);
@@ -330,7 +338,7 @@ public final class Viewer extends JPanel
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
 
-    gbc.insets = new Insets(2, 3, 3, 0);
+    gbc.insets = new Insets(2, 6, 3, 0);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Name"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP value"), gbl, gbc, true);
