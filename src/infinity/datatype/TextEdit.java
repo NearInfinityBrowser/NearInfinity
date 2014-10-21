@@ -31,7 +31,7 @@ import javax.swing.text.BadLocationException;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rtextarea.RTextArea;
 
-public final class TextEdit extends Datatype implements Editable, Readable
+public final class TextEdit extends Datatype implements Editable
 {
   public static enum EOLType {
     UNIX, WINDOWS
@@ -133,9 +133,11 @@ public final class TextEdit extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     bytes = Arrays.copyOfRange(buffer, offset, offset + getSize());
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

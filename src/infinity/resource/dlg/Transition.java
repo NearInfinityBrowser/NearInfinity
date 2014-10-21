@@ -90,7 +90,7 @@ public final class Transition extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Flags", s_flag));
     list.add(new StringRef(buffer, offset + 4, "Associated text"));

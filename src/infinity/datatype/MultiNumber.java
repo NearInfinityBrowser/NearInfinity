@@ -32,7 +32,7 @@ import javax.swing.table.AbstractTableModel;
  * A Number object consisting of multiple values of a given number of bits.
  * @author argent77
  */
-public class MultiNumber extends Datatype implements Editable, Readable
+public class MultiNumber extends Datatype implements Editable
 {
   private int value;
   private ValueTableModel mValues;
@@ -129,7 +129,7 @@ public class MultiNumber extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -147,6 +147,8 @@ public class MultiNumber extends Datatype implements Editable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

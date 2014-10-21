@@ -29,7 +29,7 @@ public final class Effect extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     EffectType type = new EffectType(buffer, offset, 2);
     list.add(type);

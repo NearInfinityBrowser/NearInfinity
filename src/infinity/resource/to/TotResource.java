@@ -18,7 +18,7 @@ public final class TotResource extends AbstractStruct implements Resource
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     if (buffer != null && buffer.length > 0) {
       // TODO: fetch number of valid string entries from associated TOH resource

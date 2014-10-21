@@ -34,7 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class IwdRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
+public final class IwdRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
   private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
@@ -176,9 +176,11 @@ public final class IwdRef extends Datatype implements Editable, Readable, Action
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     value = DynamicArray.getUnsignedInt(buffer, offset);
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

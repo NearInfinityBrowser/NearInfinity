@@ -25,7 +25,7 @@ public class StringEntry2 extends AbstractStruct
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     int len = 0;
     while ((len < buffer.length - offset) && buffer[offset + len] != 0) {

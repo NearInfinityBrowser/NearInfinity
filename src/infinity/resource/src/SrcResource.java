@@ -29,7 +29,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     SectionCount entry_count = new SectionCount(buffer, offset, 4, "# entries", Entry.class);
     list.add(entry_count);

@@ -152,7 +152,7 @@ class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable,
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new HashBitmap(buffer, offset, 2, "Selection state", m_selected));
     list.add(new HashBitmap(buffer, offset + 2, 2, "Party position", partyOrder));

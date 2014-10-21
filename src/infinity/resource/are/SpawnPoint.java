@@ -38,7 +38,7 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
     list.add(new DecNumber(buffer, offset + 32, 2, "Location: X"));

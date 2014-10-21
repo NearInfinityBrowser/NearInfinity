@@ -95,7 +95,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
 // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||

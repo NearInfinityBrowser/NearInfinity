@@ -73,7 +73,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
 // --------------------- End Interface Writeable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 4, "Signature"));
     list.add(new TextString(buffer, offset + 4, 4, "Version"));

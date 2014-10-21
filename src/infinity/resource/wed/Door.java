@@ -96,7 +96,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 8, "Name"));
     list.add(new Bitmap(buffer, offset + 8, 2, "Is door?", s_yesno));

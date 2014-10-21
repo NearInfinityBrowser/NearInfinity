@@ -25,7 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Bitmap extends Datatype implements Editable, Readable
+public class Bitmap extends Datatype implements Editable
 {
   private final String table[];
   private TextListPanel list;
@@ -122,7 +122,7 @@ public class Bitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -137,6 +137,8 @@ public class Bitmap extends Datatype implements Editable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

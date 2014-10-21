@@ -30,7 +30,7 @@ public final class FntResource extends AbstractStruct implements Resource, Close
   }
 
   @Override
-  protected int read(byte[] buffer, int startoffset) throws Exception
+  public int read(byte[] buffer, int startoffset) throws Exception
   {
     String resName = getResourceEntry().getResourceName();
     if (resName.lastIndexOf('.') > 0)

@@ -309,7 +309,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, 0, 4, "Signature"));
     TextString version = new TextString(buffer, 4, 4, "Version");

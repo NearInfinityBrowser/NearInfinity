@@ -155,7 +155,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     initData(buffer, offset);
 

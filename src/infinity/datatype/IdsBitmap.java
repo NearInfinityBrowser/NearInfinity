@@ -28,7 +28,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class IdsBitmap extends Datatype implements Editable, Readable
+public class IdsBitmap extends Datatype implements Editable
 {
   protected final LongIntegerHashMap<IdsMapEntry> idsmap;
   protected TextListPanel list;
@@ -139,7 +139,7 @@ public class IdsBitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -154,6 +154,8 @@ public class IdsBitmap extends Datatype implements Editable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

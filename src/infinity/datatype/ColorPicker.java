@@ -34,7 +34,7 @@ import javax.swing.JTextField;
 
 
 /** Implements a RGB color picker control. */
-public class ColorPicker extends Datatype implements Editable, Readable, MouseListener, FocusListener
+public class ColorPicker extends Datatype implements Editable, MouseListener, FocusListener
 {
   /** Supported color formats. */
   public enum Format {
@@ -269,7 +269,7 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     value = DynamicArray.getInt(buffer, offset);
     tmpRed = getRed(value);
@@ -280,6 +280,8 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     tmpHue = (int)Math.round(hsb[0]*360.0f);
     tmpSat = (int)Math.round(hsb[1]*100.0f);
     tmpBri = (int)Math.round(hsb[2]*100.0f);
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

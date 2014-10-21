@@ -35,7 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public class ResourceRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
+public class ResourceRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
   private final String type[];
@@ -259,7 +259,7 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     this.buffer = Arrays.copyOfRange(buffer, offset, offset + getSize());
     if (this.buffer[0] == 0x00 ||
@@ -291,6 +291,8 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
         }
       }
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

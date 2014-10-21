@@ -35,7 +35,7 @@ final class MemorizedSpells extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));
     list.add(new Bitmap(buffer, offset + 8, 2, "Memorization", s_mem));

@@ -26,7 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class HashBitmap extends Datatype implements Editable, Readable
+public class HashBitmap extends Datatype implements Editable
 {
   private final LongIntegerHashMap<String> idsmap;
   private TextListPanel list;
@@ -127,7 +127,7 @@ public class HashBitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -142,6 +142,8 @@ public class HashBitmap extends Datatype implements Editable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

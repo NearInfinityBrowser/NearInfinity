@@ -32,7 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class IDSTargetEffect extends Datatype implements Editable, Readable, ListSelectionListener
+public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
 {
   private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
                                                 "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
@@ -253,7 +253,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     idsValue = DynamicArray.getUnsignedInt(buffer, offset);
     idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
@@ -262,6 +262,8 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
     } else {
       idsMap = new LongIntegerHashMap<IdsMapEntry>();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

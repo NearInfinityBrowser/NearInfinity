@@ -892,7 +892,5 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     for (int i = 0; i < flatList.size(); i++)
       flatList.get(i).write(os);
   }
-
-  protected abstract int read(byte buffer[], int startoffset) throws Exception;
 }
 

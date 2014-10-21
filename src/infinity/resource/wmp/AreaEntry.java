@@ -56,7 +56,7 @@ final class AreaEntry extends AbstractStruct implements HasViewerTabs
 // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new ResourceRef(buffer, offset, "Current area", "ARE"));
     list.add(new ResourceRef(buffer, offset + 8, "Original area", "ARE"));

@@ -9,7 +9,7 @@ import infinity.util.DynamicArray;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class UnsignDecNumber extends Datatype implements InlineEditable, Readable
+public final class UnsignDecNumber extends Datatype implements InlineEditable
 {
   private long number;
 
@@ -53,7 +53,7 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable, R
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -68,6 +68,8 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable, R
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

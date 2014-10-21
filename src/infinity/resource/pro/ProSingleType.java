@@ -53,7 +53,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Flags", s_flags));
     list.add(new ResourceRef(buffer, offset + 4, "Projectile animation", "BAM"));

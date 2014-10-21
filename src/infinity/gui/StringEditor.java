@@ -654,7 +654,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     }
 
     @Override
-    protected int read(byte buffer[], int offset) throws Exception
+    public int read(byte buffer[], int offset) throws Exception
     {
       if (version.equals("V1  ")) {
         data = Arrays.copyOfRange(buffer, offset, offset + 18);

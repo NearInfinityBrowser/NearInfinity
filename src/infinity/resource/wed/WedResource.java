@@ -107,7 +107,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     int startOffset = offset;
 

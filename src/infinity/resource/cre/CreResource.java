@@ -450,7 +450,7 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     setExtraOffset(getExtraOffset() + offset);
     TextString signature = new TextString(buffer, offset, 4, "Signature");

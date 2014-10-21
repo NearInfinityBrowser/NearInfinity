@@ -23,7 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Unknown extends Datatype implements Editable, Readable
+public class Unknown extends Datatype implements Editable
 {
   private static final String UNKNOWN = "Unknown";
   InfinityTextArea textArea;
@@ -142,9 +142,11 @@ public class Unknown extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     data = Arrays.copyOfRange(buffer, offset, offset + getSize());
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

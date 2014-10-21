@@ -72,7 +72,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new Flag(buffer, offset, 4, "Area flags", s_areaflags));
     list.add(new DecNumber(buffer, offset + 4, 2, "Trap size"));

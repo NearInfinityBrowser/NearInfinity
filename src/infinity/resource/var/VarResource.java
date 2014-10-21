@@ -28,7 +28,7 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface HasAddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     int count = buffer.length / 44;
     for (int i = 0; i < count; i++)

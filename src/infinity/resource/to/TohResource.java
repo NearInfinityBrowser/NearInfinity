@@ -37,7 +37,7 @@ public final class TohResource extends AbstractStruct implements Resource
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     int startOffset = offset;
     boolean isEnhanced = (ResourceFactory.isEnhancedEdition()) &&

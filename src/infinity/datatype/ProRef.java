@@ -34,7 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class ProRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
+public final class ProRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
   private final LongIntegerHashMap<IdsMapEntry> idsmap;
@@ -203,9 +203,11 @@ public final class ProRef extends Datatype implements Editable, Readable, Action
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

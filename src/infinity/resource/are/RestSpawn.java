@@ -20,7 +20,7 @@ public final class RestSpawn extends AbstractStruct // implements AddRemovable
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
     for (int i = 0; i < 10; i++)

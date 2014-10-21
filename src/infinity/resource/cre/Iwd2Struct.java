@@ -81,7 +81,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
   }
 
   @Override
-  protected int read(byte buffer[], int offset)
+  public int read(byte buffer[], int offset)
   {
     return -1;
   }

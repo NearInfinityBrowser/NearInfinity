@@ -146,7 +146,7 @@ final class Window extends AbstractStruct // implements AddRemovable
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     if (getChu().getPanelSize() == 36) {
       list.add(0, new TextString(buffer, offset, 8, "Name"));

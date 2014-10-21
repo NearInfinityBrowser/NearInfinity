@@ -30,7 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public final class Kit2daBitmap extends Datatype implements Editable, Readable
+public final class Kit2daBitmap extends Datatype implements Editable
 {
   private static final LongIntegerHashMap<KitlistEntry> kitsNumber = new LongIntegerHashMap<KitlistEntry>();
   private static final LongIntegerHashMap<KitlistEntry> kitsUnusable = new LongIntegerHashMap<KitlistEntry>();
@@ -195,7 +195,7 @@ public final class Kit2daBitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     if (buffer[offset + 3] == 0x40) {
       this.useUnusable = false;
@@ -206,6 +206,8 @@ public final class Kit2daBitmap extends Datatype implements Editable, Readable
           0x10000 * DynamicArray.getUnsignedShort(buffer, offset));
       value &= 0xffffffff;
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

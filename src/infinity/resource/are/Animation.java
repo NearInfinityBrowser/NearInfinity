@@ -47,7 +47,7 @@ public final class Animation extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     boolean isBG2 = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2) ||
                     (ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB);

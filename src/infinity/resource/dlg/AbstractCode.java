@@ -49,10 +49,10 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   private static final ButtonPanel.Control CtrlErrors   = ButtonPanel.Control.Custom3;
   private static final ButtonPanel.Control CtrlWarnings = ButtonPanel.Control.Custom4;
 
-  private final DecNumber len;
-  private final DecNumber off;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
+  private DecNumber len;
+  private DecNumber off;
   private ScriptTextArea textArea;
   private SortedMap<Integer, String> errors, warnings;
   private String text;
@@ -66,8 +66,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   AbstractCode(byte buffer[], int offset, String nane)
   {
     super(offset, 8, nane);
-    off = new DecNumber(buffer, offset, 4, "Offset");
-    len = new DecNumber(buffer, offset + 4, 4, "Length");
+    read(buffer, offset);
     text = new String(buffer, off.getValue(), len.getValue());
   }
 
@@ -280,6 +279,18 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+// --------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    off = new DecNumber(buffer, offset, 4, "Offset");
+    len = new DecNumber(buffer, offset + 4, 4, "Length");
+    return offset + getSize();
+  }
+
+// --------------------- End Interface Readable ---------------------
 
   @Override
   public String toString()

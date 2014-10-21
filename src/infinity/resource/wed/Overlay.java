@@ -30,7 +30,7 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     DecNumber width = new DecNumber(buffer, offset, 2, "Width");
     list.add(width);

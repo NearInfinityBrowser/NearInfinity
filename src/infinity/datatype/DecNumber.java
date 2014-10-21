@@ -9,7 +9,7 @@ import infinity.util.DynamicArray;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class DecNumber extends Datatype implements InlineEditable, Readable
+public class DecNumber extends Datatype implements InlineEditable
 {
   private int number;
 
@@ -53,7 +53,7 @@ public class DecNumber extends Datatype implements InlineEditable, Readable
 // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -68,6 +68,8 @@ public class DecNumber extends Datatype implements InlineEditable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 // --------------------- End Interface Readable ---------------------

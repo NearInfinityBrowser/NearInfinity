@@ -88,7 +88,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new DecNumber(buffer, offset, 4, "Vertex index"));
     list.add(new SectionCount(buffer, offset + 4, 4, "# vertices", Vertex.class));

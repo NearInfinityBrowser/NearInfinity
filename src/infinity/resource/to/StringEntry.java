@@ -26,7 +26,7 @@ public final class StringEntry extends AbstractStruct
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new HexNumber(buffer, offset, 4, "Offset to next free region"));
     list.add(new HexNumber(buffer, offset + 4, 4, "Offset of preceeding entry"));

@@ -4,7 +4,9 @@
 
 package infinity.resource;
 
-public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeable
+import infinity.datatype.Readable;
+
+public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeable, Readable
 {
   Object clone() throws CloneNotSupportedException;
 

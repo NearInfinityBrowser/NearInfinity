@@ -28,7 +28,7 @@ public class StrRefEntry extends AbstractStruct
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     list.add(new StringRef(buffer, offset, "Overridden strref"));
     list.add(new Unknown(buffer, offset + 4, 4));

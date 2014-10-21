@@ -23,7 +23,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class Flag extends Datatype implements Editable, Readable, ActionListener
+public class Flag extends Datatype implements Editable, ActionListener
 {
   String nodesc;
   String[] table;
@@ -151,21 +151,23 @@ public class Flag extends Datatype implements Editable, Readable, ActionListener
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
-        value = (long)DynamicArray.getByte(buffer, offset);
+        value = DynamicArray.getUnsignedByte(buffer, offset);
         break;
       case 2:
-        value = (long)DynamicArray.getShort(buffer, offset);
+        value = DynamicArray.getUnsignedShort(buffer, offset);
         break;
       case 4:
-        value = (long)DynamicArray.getInt(buffer, offset);
+        value = DynamicArray.getUnsignedInt(buffer, offset);
         break;
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

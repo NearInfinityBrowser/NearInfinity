@@ -10,7 +10,7 @@ import infinity.util.io.FileWriterNI;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class TextString extends Datatype implements InlineEditable, Readable
+public final class TextString extends Datatype implements InlineEditable
 {
   private final byte bytes[];
   private String text;
@@ -53,10 +53,12 @@ public final class TextString extends Datatype implements InlineEditable, Readab
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     System.arraycopy(buffer, offset, bytes, 0, getSize());
     text = null;
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

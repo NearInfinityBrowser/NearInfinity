@@ -105,7 +105,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     list.add(new TextString(buffer, offset, 32, "Name"));
     list.add(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
