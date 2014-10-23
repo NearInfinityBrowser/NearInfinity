@@ -118,7 +118,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
           } else {
             pw.println("Number of warnings: " + table.getRowCount());
           }
-          for (int i = 0; i < errorTable.getRowCount(); i++) {
+          for (int i = 0; i < table.getRowCount(); i++) {
             pw.println(table.getTableItemAt(i).toString());
           }
           pw.close();
