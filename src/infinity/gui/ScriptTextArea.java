@@ -361,10 +361,10 @@ public class ScriptTextArea extends InfinityTextArea
     }
     // and now the ambiguous
     else if (definition.equalsIgnoreCase("S:Effect*")) {
-      return new String[] { ".BAM", ".VEF", ".VVC" };
+      return new String[] { ".VEF", ".VVC", ".BAM" };
     }
     else if (definition.equalsIgnoreCase("S:DialogFile*")) {
-      return new String[] { ".DLG", ".VEF", ".VVC" };
+      return new String[] { ".DLG", ".VEF", ".VVC", ".BAM" };
     }
     else if (definition.equalsIgnoreCase("S:Object*")) {
       return Decompiler.getResRefType(function);
