@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.SectionCount;
@@ -16,19 +17,60 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
-public final class TohResource extends AbstractStruct implements Resource
+public final class TohResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  private HexViewer hexViewer;
+
   public TohResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
+
+//--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      BasicColorMap colorMap = new BasicColorMap(this, false);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, StrRefEntry.class);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.GREEN, StrRefEntry2.class);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.RED, StringEntry.class);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.CYAN, StringEntry2.class);
+      hexViewer = new HexViewer(this, colorMap);
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   public void close() throws Exception
@@ -101,6 +143,8 @@ public final class TohResource extends AbstractStruct implements Resource
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
+    viewer.addTabChangeListener(hexViewer);
+
     // disabling 'Save' button
     JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.Save);
     if (bSave != null) {

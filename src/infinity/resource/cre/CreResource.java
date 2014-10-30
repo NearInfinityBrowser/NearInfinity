@@ -25,6 +25,8 @@ import infinity.datatype.UnsignDecNumber;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
@@ -154,6 +156,7 @@ public final class CreResource extends AbstractStruct
   private boolean isChr;
   private JMenuItem miExport, miConvert;
   private ButtonPopupMenu bExport;
+  private HexViewer hexViewer;
 
   public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
                                    ResourceEntry entry)
@@ -381,25 +384,42 @@ public final class CreResource extends AbstractStruct
   @Override
   public int getViewerTabCount()
   {
-    return 1;
+    return 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    return StructViewer.TAB_VIEW;
+    switch (index) {
+      case 0:
+        return StructViewer.TAB_VIEW;
+      case 1:
+        return StructViewer.TAB_RAW;
+    }
+    return null;
   }
 
   @Override
   public JComponent getViewerTab(int index)
   {
-    return new Viewer(this);
+    switch (index) {
+      case 0:
+        return new Viewer(this);
+      case 1:
+      {
+        if (hexViewer == null) {
+          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
+      }
+    }
+    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return true;
+    return (index == 0);
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------
@@ -413,7 +433,30 @@ public final class CreResource extends AbstractStruct
     super.writeFlatList(os);
   }
 
+
 // --------------------- End Interface Writeable ---------------------
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+    if (isChr) {
+      ButtonPanel panel = viewer.getButtonPanel();
+      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.ExportButton);
+      int idx = panel.getControlPosition(b);
+      if (b != null && idx >= 0) {
+        // replacing button with menu
+        b.removeActionListener(viewer);
+        panel.removeControl(idx);
+        miExport = new JMenuItem("original");
+        miExport.setToolTipText(b.getToolTipText());
+        miConvert = new JMenuItem("as CRE");
+        bExport = (ButtonPopupMenu)panel.addControl(idx, ButtonPanel.Control.ExportMenu);
+        bExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
+        bExport.addItemListener(this);
+      }
+    }
+  }
 
   @Override
   protected void datatypeAdded(AddRemovable datatype)
@@ -421,6 +464,7 @@ public final class CreResource extends AbstractStruct
     updateOffsets(datatype, datatype.getSize());
     if (datatype instanceof SpellMemorization)
       updateMemorizedSpells();
+    hexViewer.dataModified();
   }
 
   @Override
@@ -430,6 +474,7 @@ public final class CreResource extends AbstractStruct
     if (datatype instanceof MemorizedSpells)
       updateMemorizedSpells();
     super.datatypeAddedInChild(child, datatype);
+    hexViewer.dataModified();
   }
 
   @Override
@@ -438,6 +483,7 @@ public final class CreResource extends AbstractStruct
     updateOffsets(datatype, -datatype.getSize());
     if (datatype instanceof SpellMemorization)
       updateMemorizedSpells();
+    hexViewer.dataModified();
   }
 
   @Override
@@ -447,6 +493,7 @@ public final class CreResource extends AbstractStruct
     if (datatype instanceof MemorizedSpells)
       updateMemorizedSpells();
     super.datatypeRemovedInChild(child, datatype);
+    hexViewer.dataModified();
   }
 
   @Override
@@ -1527,28 +1574,7 @@ public final class CreResource extends AbstractStruct
 //    }
   }
 
-  @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
-    if (isChr) {
-      ButtonPanel panel = viewer.getButtonPanel();
-      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.ExportButton);
-      int idx = panel.getControlPosition(b);
-      if (b != null && idx >= 0) {
-        // replacing button with menu
-        b.removeActionListener(viewer);
-        panel.removeControl(idx);
-        miExport = new JMenuItem("original");
-        miExport.setToolTipText(b.getToolTipText());
-        miConvert = new JMenuItem("as CRE");
-        bExport = (ButtonPopupMenu)panel.addControl(idx, ButtonPanel.Control.ExportMenu);
-        bExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
-        bExport.addItemListener(this);
-      }
-    }
-  }
-
-//--------------------- Begin Interface ItemListener ---------------------
+  //--------------------- Begin Interface ItemListener ---------------------
 
   @Override
   public void itemStateChanged(ItemEvent event)

@@ -14,6 +14,8 @@ import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -38,6 +40,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   private static final String s_torment[] = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
                                              "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
                                              "Line", "None"};
+
+  private HexViewer hexViewer;
 
   public GamResource(ResourceEntry entry) throws Exception
   {
@@ -64,27 +68,46 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int getViewerTabCount()
   {
-    return 1;
+    return 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    return StructViewer.TAB_VIEW;
+    switch (index) {
+      case 0:
+        return StructViewer.TAB_VIEW;
+      case 1:
+        return StructViewer.TAB_RAW;
+    }
+    return null;
   }
 
   @Override
   public JComponent getViewerTab(int index)
   {
-    JScrollPane scroll = new JScrollPane(new Viewer(this));
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    return scroll;
+    switch (index) {
+      case 0:
+      {
+        JScrollPane scroll = new JScrollPane(new Viewer(this));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        return scroll;
+      }
+      case 1:
+      {
+        if (hexViewer == null) {
+          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
+      }
+    }
+    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return true;
+    return (index == 0);
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------
@@ -101,27 +124,37 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface Writeable ---------------------
 
   @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateOffsets();
+    hexViewer.dataModified();
   }
 
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets();
+    hexViewer.dataModified();
   }
 
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateOffsets();
+    hexViewer.dataModified();
   }
 
   @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets();
+    hexViewer.dataModified();
   }
 
   @Override

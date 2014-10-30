@@ -14,6 +14,8 @@ import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -52,6 +54,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                                   "Cannot save", "Can rest with permission"};
   public static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
   public static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
+
+  private HexViewer hexViewer;
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
   {
@@ -160,27 +164,46 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int getViewerTabCount()
   {
-    return 1;
+    return 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    return StructViewer.TAB_VIEW;
+    switch (index) {
+      case 0:
+        return StructViewer.TAB_VIEW;
+      case 1:
+        return StructViewer.TAB_RAW;
+    }
+    return null;
   }
 
   @Override
   public JComponent getViewerTab(int index)
   {
-    JScrollPane scroll = new JScrollPane(new Viewer(this));
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    return scroll;
+    switch (index) {
+      case 0: // view tab
+      {
+        JScrollPane scroll = new JScrollPane(new Viewer(this));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        return scroll;
+      }
+      case 1: // raw tab
+      {
+        if (hexViewer == null) {
+          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
+      }
+    }
+    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return true;
+    return (index == 0);
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------
@@ -197,6 +220,12 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface Writeable ---------------------
 
   @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
@@ -211,6 +240,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Container)
       updateItems();
     updateActorCREOffsets();
+    hexViewer.dataModified();
   }
 
   @Override
@@ -235,6 +265,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     updateActorCREOffsets();
+    hexViewer.dataModified();
   }
 
   @Override
@@ -252,6 +283,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Container)
       updateItems();
     updateActorCREOffsets();
+    hexViewer.dataModified();
   }
 
   @Override
@@ -276,6 +308,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     updateActorCREOffsets();
+    hexViewer.dataModified();
   }
 
   @Override

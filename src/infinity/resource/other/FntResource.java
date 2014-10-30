@@ -8,15 +8,21 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.ResourceRef;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.ResourceDataProvider;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 
-public final class FntResource extends AbstractStruct implements Resource, Closeable
+public final class FntResource extends AbstractStruct implements Resource, Closeable, HasViewerTabs
 {
+  private HexViewer hexViewer;
 
   public FntResource(ResourceEntry entry) throws Exception
   {
@@ -44,14 +50,47 @@ public final class FntResource extends AbstractStruct implements Resource, Close
     return buffer.length;
   }
 
+  //--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      hexViewer = new HexViewer(this, new BasicColorMap(this, true),
+                                new ResourceDataProvider(getResourceEntry()));
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
+
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
+    viewer.addTabChangeListener(hexViewer);
+
     // disabling 'Save' button
     JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.Save);
     if (bSave != null) {
       bSave.setEnabled(false);
     }
   }
-
 }

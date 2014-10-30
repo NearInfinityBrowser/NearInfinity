@@ -15,6 +15,8 @@ import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
@@ -85,6 +87,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 //    m_priesttype.put((long)0x8000, "Cleric/Paladin");
   }
 
+  private HexViewer hexViewer;
+
   public static String getSearchString(byte buffer[])
   {
     return new StringRef(buffer, 8, "").toString().trim();
@@ -111,27 +115,46 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int getViewerTabCount()
   {
-    return 1;
+    return 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    return StructViewer.TAB_VIEW;
+    switch (index) {
+      case 0:
+        return StructViewer.TAB_VIEW;
+      case 1:
+        return StructViewer.TAB_RAW;
+    }
+    return null;
   }
 
   @Override
   public JComponent getViewerTab(int index)
   {
-    JScrollPane scroll = new JScrollPane(new Viewer(this));
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    return scroll;
+    switch (index) {
+      case 0:
+      {
+        JScrollPane scroll = new JScrollPane(new Viewer(this));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        return scroll;
+      }
+      case 1:
+      {
+        if (hexViewer == null) {
+          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
+      }
+    }
+    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return true;
+    return (index == 0);
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------
@@ -155,6 +178,12 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface Writeable ---------------------
 
   @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
@@ -175,6 +204,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
+    hexViewer.dataModified();
   }
 
   @Override
@@ -189,6 +219,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           ((Ability)se).incEffectsIndex(1);
       }
     }
+    hexViewer.dataModified();
   }
 
   @Override
@@ -212,6 +243,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
+    hexViewer.dataModified();
   }
 
   @Override
@@ -226,6 +258,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           ((Ability)se).incEffectsIndex(-1);
       }
     }
+    hexViewer.dataModified();
   }
 
   @Override

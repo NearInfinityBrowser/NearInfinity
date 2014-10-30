@@ -240,7 +240,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tree.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     containerpanel = new JPanel(new BorderLayout());
-    containerpanel.setBackground(UIManager.getColor("desktop"));
     spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
     spSplitter.setBorder(BorderFactory.createEmptyBorder());
     spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));

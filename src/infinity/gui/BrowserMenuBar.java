@@ -151,6 +151,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionShowStrrefs.isSelected();
   }
 
+  public boolean getHexColorMapEnabled()
+  {
+    return optionsMenu.optionShowHexColored.isSelected();
+  }
+
   public boolean cacheOverride()
   {
     return optionsMenu.optionCacheOverride.isSelected();
@@ -1209,6 +1214,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
+    private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
     private static final String OPTION_LOOKANDFEEL              = "LookAndFeel";
@@ -1259,7 +1265,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride;
     private JCheckBoxMenuItem optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride;
-    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs;
+    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionShowHexColored;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
 
@@ -1281,27 +1287,30 @@ public final class BrowserMenuBar extends JMenuBar
           new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
       optionIgnoreReadErrors =
-      new JCheckBoxMenuItem("Ignore Read Errors", prefs.getBoolean(OPTION_IGNOREREADERRORS, false));
+          new JCheckBoxMenuItem("Ignore Read Errors", prefs.getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
       optionShowOffset =
-      new JCheckBoxMenuItem("Show Hex Offsets", prefs.getBoolean(OPTION_SHOWOFFSETS, false));
+          new JCheckBoxMenuItem("Show Hex Offsets", prefs.getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
       optionAutocheckBCS =
-      new JCheckBoxMenuItem("Autocheck BCS", prefs.getBoolean(OPTION_AUTOCHECK_BCS, true));
+          new JCheckBoxMenuItem("Autocheck BCS", prefs.getBoolean(OPTION_AUTOCHECK_BCS, true));
       add(optionAutocheckBCS);
       optionCacheOverride =
-      new JCheckBoxMenuItem("Autocheck for Overrides", prefs.getBoolean(OPTION_CACHEOVERRIDE, false));
+          new JCheckBoxMenuItem("Autocheck for Overrides", prefs.getBoolean(OPTION_CACHEOVERRIDE, false));
       optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
                                          "to discover new override files added while NI is open");
       add(optionCacheOverride);
       optionCheckScriptNames =
-      new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
+          new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
       optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
                                             "but many features involving script names will be disabled.");
       add(optionCheckScriptNames);
       optionShowStrrefs =
-      new JCheckBoxMenuItem("Show Strrefs in View tabs", prefs.getBoolean(OPTION_SHOWSTRREFS, false));
+          new JCheckBoxMenuItem("Show Strrefs in View tabs", prefs.getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
+      optionShowHexColored =
+          new JCheckBoxMenuItem("Show colored blocks in Raw tabs", prefs.getBoolean(OPTION_SHOWHEXCOLORED, true));
+      add(optionShowHexColored);
 
       addSeparator();
 
@@ -1810,6 +1819,7 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
       prefs.putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
+      prefs.putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
       prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
       prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
@@ -2055,7 +2065,7 @@ public final class BrowserMenuBar extends JMenuBar
   private static final class HelpMenu extends JMenu implements ActionListener
   {
     private final JMenuItem helpAbout, helpLicense, helpBsdLicense,
-                            helpJOrbisLicense, helpFifeLicense;
+                            helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense;
 
     private HelpMenu()
     {
@@ -2084,6 +2094,10 @@ public final class BrowserMenuBar extends JMenuBar
       helpFifeLicense =
           makeMenuItem("Fifesoft License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpFifeLicense);
+
+      helpJHexViewLicense =
+          makeMenuItem("JHexView License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+      miscLicenses.add(helpJHexViewLicense);
     }
 
     @Override
@@ -2099,6 +2113,8 @@ public final class BrowserMenuBar extends JMenuBar
           displayLicense("infinity/JOrbis.License.txt", "LGPL License");
       } else if (event.getSource() == helpFifeLicense) {
         displayLicense("infinity/RSyntaxTextArea.License.txt", "BSD License");
+      } else if (event.getSource() == helpJHexViewLicense) {
+        displayLicense("infinity/JHexView.License.txt", "GPL License");
       }
     }
 
@@ -2134,6 +2150,7 @@ public final class BrowserMenuBar extends JMenuBar
           "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
           "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
+          "JHexView by Sebastian Porst - GNU General Public License.",
       };
 
       // Fixed elements

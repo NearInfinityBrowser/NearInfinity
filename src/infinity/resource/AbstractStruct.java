@@ -791,6 +791,23 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
+  public boolean hasRawTab()
+  {
+    return (viewer != null && viewer.hasRawTab());
+  }
+
+  public boolean isRawTabSelected()
+  {
+    return (viewer != null && viewer.isRawTabSelected());
+  }
+
+  public void selectRawTab()
+  {
+    if (viewer != null) {
+      viewer.selectRawTab();
+    }
+  }
+
   // To be overriden by subclasses
   protected void viewerInitialized(StructViewer viewer)
   {

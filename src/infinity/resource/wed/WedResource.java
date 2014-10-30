@@ -10,9 +10,13 @@ import infinity.datatype.RemovableDecNumber;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
+import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
@@ -26,8 +30,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable
+import javax.swing.JComponent;
+
+public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  private HexViewer hexViewer;
+
   public WedResource(ResourceEntry entry) throws Exception
   {
     super(entry);
@@ -54,10 +62,48 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
   @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
+    hexViewer.dataModified();
   }
 
   @Override
@@ -78,12 +124,14 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
+    hexViewer.dataModified();
   }
 
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
+    hexViewer.dataModified();
   }
 
   @Override
@@ -104,6 +152,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
+    hexViewer.dataModified();
   }
 
   @Override

@@ -76,6 +76,7 @@ import infinity.datatype.ResourceRef;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
+import infinity.gui.DataMenuItem;
 import infinity.gui.RenderCanvas;
 import infinity.gui.StructViewer;
 import infinity.gui.ViewFrame;
@@ -356,9 +357,9 @@ public class AreaViewer extends ChildFrame
     } else if (event.getSource() instanceof AbstractLayerItem) {
       AbstractLayerItem item = (AbstractLayerItem)event.getSource();
       showTable(item);
-    } else if (event.getSource() instanceof LayerMenuItem) {
-      LayerMenuItem lmi = (LayerMenuItem)event.getSource();
-      AbstractLayerItem item = lmi.getLayerItem();
+    } else if (event.getSource() instanceof DataMenuItem<?>) {
+      DataMenuItem<AbstractLayerItem> lmi = (DataMenuItem<AbstractLayerItem>)event.getSource();
+      AbstractLayerItem item = lmi.getData();
       showTable(item);
     } else if (event.getSource() == tbAre) {
       showTable(map.getAreItem());
@@ -1724,12 +1725,12 @@ public class AreaViewer extends ChildFrame
                   } else {
                     sb.append(items[k].getMessage());
                   }
-                  LayerMenuItem lmi = new LayerMenuItem(sb.toString(), items[k]);
+                  DataMenuItem<AbstractLayerItem> dmi = new DataMenuItem<AbstractLayerItem>(sb.toString(), null, items[k]);
                   if (lenPrefix + lenMsg > MaxLen) {
-                    lmi.setToolTipText(items[k].getMessage());
+                    dmi.setToolTipText(items[k].getMessage());
                   }
-                  lmi.addActionListener(this);
-                  menuItems.add(lmi);
+                  dmi.addActionListener(this);
+                  menuItems.add(dmi);
                 }
               }
             }
@@ -2344,24 +2345,6 @@ public class AreaViewer extends ChildFrame
 
 
 //----------------------------- INNER CLASSES -----------------------------
-
-  // Associates a menu item with a layer item
-  private class LayerMenuItem extends JMenuItem
-  {
-    private AbstractLayerItem layerItem;
-
-    public LayerMenuItem(String text, AbstractLayerItem item)
-    {
-      super(text);
-      layerItem = item;
-    }
-
-    public AbstractLayerItem getLayerItem()
-    {
-      return layerItem;
-    }
-  }
-
 
   // Handles map-specific properties
   private static class Map

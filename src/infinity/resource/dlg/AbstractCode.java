@@ -316,6 +316,11 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     return len.getValue();
   }
 
+  public int getTextOffset()
+  {
+    return off.getValue();
+  }
+
   public int updateOffset(int offs)
   {
     off.setValue(offs);

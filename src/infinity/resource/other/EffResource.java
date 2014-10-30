@@ -4,17 +4,25 @@
 
 package infinity.resource.other;
 
+import javax.swing.JComponent;
+
 import infinity.datatype.EffectType;
 import infinity.datatype.TextString;
+import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Effect2;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
 
-public final class EffResource extends AbstractStruct implements Resource
+public final class EffResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  private HexViewer hexViewer;
+
   public EffResource(ResourceEntry entry) throws Exception
   {
     super(entry);
@@ -36,6 +44,42 @@ public final class EffResource extends AbstractStruct implements Resource
     return offset + 216;
   }
 
+//--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.
@@ -112,5 +156,6 @@ public final class EffResource extends AbstractStruct implements Resource
     }
     return false;
   }
+
 }
 
