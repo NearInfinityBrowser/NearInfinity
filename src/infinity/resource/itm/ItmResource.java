@@ -67,8 +67,9 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Earrings", "Tattoos", "Lenses", "Teeth"};
   public static final String[] s_flags =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
-           "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed", "Conversable", "", "", "", "",
-           "", "", "", "", "", "", "", "", "Ex: undispellable", "Ex: toggle critical hits"};
+           "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed",
+           "Conversable", "", "EE: Forbid off-hand weapon", "", "", "", "", "", "", "", "", "", "",
+           "EE: Undispellable", "Ex: Toggle critical hits"};
   public static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
@@ -355,8 +356,6 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       list.add(new Bitmap(buffer, 28, 2, "Category", s_categories11));
       list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability11));
       list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag11, s_anim11));
-//      list.add(new Bitmap(buffer, 36, 1, "Disable paper doll?", new String[]{"No", "Yes"}));
-//      list.add(new Unknown(buffer, 37, 15));
     }
     else {
       list.add(new ResourceRef(buffer, 16, "Used up item", "ITM"));

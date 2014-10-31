@@ -29,10 +29,11 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
   public static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
   public static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
-  public static final String[] s_recharge = {"No flags set", "Add strength bonus", "Breakable", "", "",
-                                             "", "", "", "", "", "", "Hostile", "Recharge after resting",
-                                             "", "", "", "", "Bypass armor", "Keen edge", "", "", "", "", "", "",
-                                             "", "Ex: toggle backstab", "Ex: cannot target invisible"};
+  public static final String[] s_recharge = {
+    "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
+    "EE: THAC0 strength bonus", "", "", "", "", "", "",
+    "Hostile", "Recharge after resting", "", "", "", "", "Bypass armor", "Keen edge", "",
+    "", "", "", "", "", "", "Ex: Toggle backstab", "Ex: Cannot target invisible"};
 
   Ability() throws Exception
   {
@@ -137,15 +138,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     list.add(new DecNumber(buffer, offset + 32, 2, "First effect index"));
     list.add(new DecNumber(buffer, offset + 34, 2, "# charges"));
     list.add(new Bitmap(buffer, offset + 36, 2, "When drained", s_drain));
-//    list.add(new Unknown(buffer, offset + 37, 1));
-//    list.add(new Bitmap(buffer, offset + 38, 1, "Allow strength bonus?", s_yesno));
     list.add(new Flag(buffer, offset + 38, 4, "Flags", s_recharge));
-//    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
-//      list.add(
-//              new Bitmap(buffer, offset + 40, 2, "Attack type",
-//                         new String[]{"Normal", "Bypass armour", "Keen"}));
-//    else
-//      list.add(new Unknown(buffer, offset + 40, 2));
     if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
       list.add(new ProRef(buffer, offset + 42, "Projectile"));
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)

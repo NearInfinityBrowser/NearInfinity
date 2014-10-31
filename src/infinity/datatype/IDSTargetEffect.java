@@ -34,6 +34,9 @@ import javax.swing.event.ListSelectionListener;
 
 public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
 {
+  /** The default field name of this datatype. */
+  public static final String DEFAULT_NAME = "IDS target";
+
   private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
                                                 "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
                                                 "ALIGN.IDS", ""};
@@ -45,12 +48,32 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
   public IDSTargetEffect(byte buffer[], int offset)
   {
-    this(buffer, offset, "EA.IDS");
+    this(buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
   }
 
-  public IDSTargetEffect(byte buffer[], int offset, String secondIDS)
+  public IDSTargetEffect(byte buffer[], int offset, int size)
   {
-    super(offset, 8, "IDS target");
+    this(buffer, offset, size, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name)
+  {
+    this(buffer, offset, 8, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name)
+  {
+    this(buffer, offset, size, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name, String secondIDS)
+  {
+    this(buffer, offset, 8, name, secondIDS);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name, String secondIDS)
+  {
+    super(offset, size, (name != null) ? name : DEFAULT_NAME);
     sIDS = sIDS_default;
     sIDS[2] = secondIDS;
     if (ResourceFactory.isEnhancedEdition()) {
@@ -64,7 +87,12 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
   public IDSTargetEffect(byte buffer[], int offset, String name, String[] ids)
   {
-    super(offset, 8, name);
+    this(buffer, offset, 8, name, ids);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name, String[] ids)
+  {
+    super(offset, size, (name != null) ? name : DEFAULT_NAME);
     if (ids != null) {
       sIDS = ids;
     } else {
@@ -244,8 +272,20 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   @Override
   public void write(OutputStream os) throws IOException
   {
-    FileWriterNI.writeInt(os, (int)idsValue);
-    FileWriterNI.writeInt(os, (int)idsFile);
+    switch (getSize()) {
+      case 2:
+        FileWriterNI.writeByte(os, (byte)idsValue);
+        FileWriterNI.writeByte(os, (byte)idsFile);
+        break;
+      case 4:
+        FileWriterNI.writeShort(os, (short)idsValue);
+        FileWriterNI.writeShort(os, (short)idsFile);
+        break;
+      case 8:
+        FileWriterNI.writeInt(os, (int)idsValue);
+        FileWriterNI.writeInt(os, (int)idsFile);
+        break;
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -255,12 +295,34 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   @Override
   public int read(byte[] buffer, int offset)
   {
-    idsValue = DynamicArray.getUnsignedInt(buffer, offset);
-    idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
-    if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
-      idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
-    } else {
-      idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    switch (getSize()) {
+      case 2:
+        idsValue = DynamicArray.getUnsignedByte(buffer, offset);
+        idsFile = DynamicArray.getUnsignedByte(buffer, offset + 1);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
+      case 4:
+        idsValue = DynamicArray.getUnsignedShort(buffer, offset);
+        idsFile = DynamicArray.getUnsignedShort(buffer, offset + 2);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
+      case 8:
+        idsValue = DynamicArray.getUnsignedInt(buffer, offset);
+        idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
     }
 
     return offset + getSize();

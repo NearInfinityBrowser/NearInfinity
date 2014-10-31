@@ -115,7 +115,7 @@ public class Flag extends Datatype implements Editable, ActionListener
     panel.add(bPanel, BorderLayout.SOUTH);
 
     panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
+    panel.setPreferredSize(DIM_WIDE);
 
     return panel;
   }

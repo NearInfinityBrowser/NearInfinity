@@ -12,8 +12,10 @@ import infinity.datatype.IdsBitmap;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
+import infinity.resource.ResourceFactory;
 import infinity.util.LongIntegerHashMap;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable
@@ -25,6 +27,11 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
                                               "Mage-level duration", "Cleric-level duration", "Draw animation",
                                               "Cone-shaped", "Ignore visibility", "Delayed explosion",
                                               "Skip first condition", "Single target"};
+  public static final String[] s_areaflagsEx = {
+    "No flags set", "Paletted ring", "Random speed", "Start scattered", "Paletted center",
+    "Repeat scattering", "Paletted animation", "", "", "", "Oriented fireball puffs",
+    "Use hit dice lookup", "", "", "Blend are/ring anim", "Glow area/ring anim",
+  };
 
   static {
     s_proj.put(0L, "Fireball");
@@ -74,6 +81,10 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
+    final String[] s_types = ResourceFactory.isEnhancedEdition() ?
+                             new String[]{"VVC", "BAM"} :
+                               new String[]{"VEF", "VVC", "BAM"};
+
     list.add(new Flag(buffer, offset, 4, "Area flags", s_areaflags));
     list.add(new DecNumber(buffer, offset + 4, 2, "Trap size"));
     list.add(new DecNumber(buffer, offset + 6, 2, "Explosion size"));
@@ -86,9 +97,22 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     list.add(new ColorValue(buffer, offset + 24, 1, "Explosion color"));
     list.add(new Unknown(buffer, offset + 25, 1, "Unused"));
     list.add(new ProRef(buffer, offset + 26, "Explosion projectile"));
-    list.add(new ResourceRef(buffer, offset + 28, "Explosion animation", new String[]{"VVC", "BAM"}));
+    list.add(new ResourceRef(buffer, offset + 28, "Explosion animation", s_types));
     list.add(new DecNumber(buffer, offset + 36, 2, "Cone width"));
-    list.add(new Unknown(buffer, offset + 38, 218));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
+      list.add(new Unknown(buffer, offset + 38, 2));
+      list.add(new ResourceRef(buffer, offset + 40, "Spread animation", s_types));
+      list.add(new ResourceRef(buffer, offset + 48, "Ring animation", s_types));
+      list.add(new ResourceRef(buffer, offset + 56, "Area sound", "WAV"));
+      list.add(new Flag(buffer, offset + 64, 4, "Extended flags", s_areaflagsEx));
+      list.add(new UnsignDecNumber(buffer, offset + 68, 2, "# dice for multiple targets"));
+      list.add(new UnsignDecNumber(buffer, offset + 70, 2, "Dice size for multiple targets"));
+      list.add(new DecNumber(buffer, offset + 72, 2, "Animation granularity"));
+      list.add(new DecNumber(buffer, offset + 74, 2, "Animation granularity divider"));
+      list.add(new Unknown(buffer, offset + 38, 180));
+    } else {
+      list.add(new Unknown(buffer, offset + 38, 218));
+    }
 
     return offset + 256;
   }

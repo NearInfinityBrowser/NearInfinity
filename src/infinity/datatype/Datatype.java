@@ -13,6 +13,7 @@ import java.io.OutputStream;
 
 public abstract class Datatype implements StructEntry
 {
+  protected static final Dimension DIM_WIDE = new Dimension(800, 100);
   protected static final Dimension DIM_BROAD = new Dimension(650, 100);
   protected static final Dimension DIM_MEDIUM = new Dimension(400, 100);
   private final int length;

@@ -274,7 +274,12 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       if (ResourceFactory.isEnhancedEdition()) {
         list.add(new DecNumber(buffer, offset + 128, 4, "Zoom level"));
         list.add(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
-        list.add(new Unknown(buffer, offset + 140, 40));
+        if (gameid == ResourceFactory.ID_IWDEE) {
+          list.add(new ResourceRef(buffer, offset + 140, "Worldmap", "WMP"));
+          list.add(new Unknown(buffer, offset + 148, 32));
+        } else {
+          list.add(new Unknown(buffer, offset + 140, 40));
+        }
       } else {
         list.add(new Unknown(buffer, offset + 128, 52));
       }

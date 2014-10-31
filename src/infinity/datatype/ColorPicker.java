@@ -41,7 +41,11 @@ public class ColorPicker extends Datatype implements Editable, MouseListener, Fo
     /** Byte order: {unused, red, green, blue} */
     XRGB,
     /** Byte order: {red, green, blue, unused} */
-    RGBX
+    RGBX,
+    /** Byte order: {blue, green red, unused} */
+    BGRX,
+    /** Byte order: {unused blue, green red} */
+    XBGR,
   }
 
   private final int shiftRed, shiftGreen, shiftBlue;
@@ -63,6 +67,8 @@ public class ColorPicker extends Datatype implements Editable, MouseListener, Fo
     switch (fmt) {
       case RGBX: shiftRed = 0; shiftGreen = 8; shiftBlue = 16; break;
       case XRGB: shiftRed = 8; shiftGreen = 16; shiftBlue = 24; break;
+      case BGRX: shiftRed = 16; shiftGreen = 8; shiftBlue = 0; break;
+      case XBGR: shiftRed = 24; shiftGreen = 16; shiftBlue = 8; break;
       default: shiftRed = shiftGreen = shiftBlue = 0; break;
     }
     read(buffer, offset);

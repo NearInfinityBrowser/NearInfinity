@@ -36,6 +36,7 @@ import javax.swing.event.ListSelectionListener;
 
 public final class ProRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
+  private static final String DEFAULT = "Default";
   private static final String NONE = "None";
   private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
@@ -44,19 +45,29 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
   public ProRef(byte buffer[], int offset, String name)
   {
-    this(buffer, offset, name, 0L);
+    this(buffer, offset, 2, name, 0L);
+  }
+
+  public ProRef(byte buffer[], int offset, int size, String name)
+  {
+    this(buffer, offset, size, name, 0L);
   }
 
   public ProRef(byte buffer[], int offset, String name, long minValue)
   {
-    super(offset, 2, name);
+    this(buffer, offset, 2, name, 0L);
+  }
+
+  public ProRef(byte buffer[], int offset, int size, String name, long minValue)
+  {
+    super(offset, size, name);
     if (minValue < 0L) minValue = 0L;
     this.minValue = minValue;
     LongIntegerHashMap<IdsMapEntry> fullMap = IdsMapCache.get("PROJECTL.IDS").getMap();
     if (minValue == 0) {
       idsmap = fullMap;
     } else {
-      idsmap = new LongIntegerHashMap<IdsMapEntry>();
+      idsmap = new LongIntegerHashMap<IdsMapEntry>(fullMap.size());
       long[] keys = fullMap.keys();
       for (final long key: keys) {
         if (key >= minValue) {
@@ -74,11 +85,11 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   {
     if (event.getSource() == bView) {
       ProRefEntry selected = (ProRefEntry)list.getSelectedValue();
-      if (selected == null || !(selected.proref instanceof ResourceEntry))
+      if (selected == null || !(selected.getProRef() instanceof ResourceEntry))
         new ViewFrame(list.getTopLevelAncestor(), null);
       else
         new ViewFrame(list.getTopLevelAncestor(),
-                      ResourceFactory.getResource((ResourceEntry)selected.proref));
+                      ResourceFactory.getResource((ResourceEntry)selected.getProRef()));
     }
   }
 
@@ -92,14 +103,20 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   {
     long[] keys = idsmap.keys();
     List<ProRefEntry> items = new ArrayList<ProRefEntry>(keys.length);
-    for (long id : keys) {
-      String resourcename = idsmap.get(id).getString() + ".PRO";
-      ResourceEntry resourceEntry = ResourceFactory.getInstance().getResourceEntry(resourcename);
-      if (resourceEntry == null)
-        System.err.println("Could not find " + resourcename + " (key = " + id + ")");
-      else
-        items.add(new ProRefEntry(id + 1L, resourceEntry));
+    for (final long id : keys) {
+      if (id > 0L) {
+        String resourcename = idsmap.get(id).getString() + ".PRO";
+        ResourceEntry resourceEntry = ResourceFactory.getInstance().getResourceEntry(resourcename);
+        if (resourceEntry == null) {
+          System.err.println("Could not find " + resourcename + " (key = " + id + ")");
+        } else {
+          items.add(new ProRefEntry(id + 1L, resourceEntry));
+        }
+      }
     }
+
+    items.add(new ProRefEntry(0L, DEFAULT));
+
     if (minValue <= 1L) {
       items.add(new ProRefEntry(1L, NONE));
     }
@@ -126,8 +143,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bView = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
     bView.addActionListener(this);
-    bView.setEnabled(list.getSelectedValue() != null &&
-                     !((ProRefEntry)list.getSelectedValue()).proref.toString().equals(NONE));
+    bView.setEnabled(isValidProjectile((ProRefEntry)list.getSelectedValue()));
     list.addListSelectionListener(this);
 
     GridBagLayout gbl = new GridBagLayout();
@@ -183,8 +199,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
-    bView.setEnabled(list.getSelectedValue() != null &&
-                     !((ProRefEntry)list.getSelectedValue()).proref.toString().equals(NONE));
+    bView.setEnabled(isValidProjectile((ProRefEntry)list.getSelectedValue()));
   }
 
 // --------------------- End Interface ListSelectionListener ---------------------
@@ -205,7 +220,17 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   @Override
   public int read(byte[] buffer, int offset)
   {
-    value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+    switch (getSize()) {
+      case 1:
+        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        value = (long)DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+    }
 
     return offset + getSize();
   }
@@ -215,10 +240,16 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   @Override
   public String toString()
   {
-    if (idsmap.containsKey(value - (long)1))
+    if (idsmap.containsKey(value - 1L)) {
       return ResourceFactory.getInstance().getResourceEntry(idsmap.get(value - 1).getString()
                                                             + ".PRO") + " (" + value + ')';
-    return NONE + " (" + value + ')';
+    } else if (value == 1L) {
+      return NONE + " (" + value + ')';
+    } else if (value == 0L) {
+      return DEFAULT + " (" + value + ')';
+    } else {
+      return "Unknown (" + value + ')';
+    }
   }
 
   public long getValue()
@@ -248,6 +279,13 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     }
   }
 
+  // Does the specified argument point to a valid PRO resource?
+  private boolean isValidProjectile(ProRefEntry entry)
+  {
+    String value = (entry != null) ? entry.getProRef().toString() : null;
+    return (value != null && !value.equals(NONE) && !value.equals(DEFAULT));
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class ProRefEntry implements Comparable<ProRefEntry>
@@ -271,6 +309,11 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     public int compareTo(ProRefEntry o)
     {
       return proref.toString().compareTo(o.toString());
+    }
+
+    public Object getProRef()
+    {
+      return proref;
     }
   }
 }

@@ -42,7 +42,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
                                               "Can steal", "Can donate", "Can buy cures",
                                               "Can buy drinks", "", "", "Tavern quality 1", "Tavern quality 2",
-                                              "", "Fence", "", "Ex: toggle recharge"};
+                                              "", "Fence", "EE: Ignore reputation", "Ex: Toggle recharge",
+                                              "EE: Can sell critical"};
   public static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 
   private HexViewer hexViewer;

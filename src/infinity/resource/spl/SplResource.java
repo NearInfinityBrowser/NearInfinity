@@ -57,11 +57,10 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                          "Swirl magenta", "Swirl purple", "Swirl red",
                                          "Swirl white"};
   public static final String[] s_spellflag = {"No flags set", "", "", "", "", "", "", "", "",
-                                              "", "", "Hostile",
-                                              "No LOS required", "Allow spotting", "Outdoors only",
-                                              "Non-magical ability", "Trigger/Contingency",
+                                              "", "", "Hostile", "No LOS required", "Allow spotting",
+                                              "Outdoors only", "Ignore dead/wild magic", "Ignore wild surge",
                                               "Non-combat ability", "", "", "", "", "", "", "",
-                                              "Ex: can target invisible", "Ex: castable when silenced"};
+                                              "Ex: Can target invisible", "EE: Castable when silenced"};
   public static final String[] s_exclude = { "None", "Chaotic", "Evil", "Good",
                                              "... Neutral", "Lawful", "Neutral ...",
                                              "Abjurer", "Conjurer", "Diviner", "Enchanter",

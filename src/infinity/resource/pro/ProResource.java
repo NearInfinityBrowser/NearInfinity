@@ -7,11 +7,14 @@ package infinity.resource.pro;
 import javax.swing.JComponent;
 
 import infinity.datatype.Bitmap;
+import infinity.datatype.ColorPicker;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
 import infinity.datatype.HashBitmapEx;
+import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.datatype.UpdateEvent;
@@ -24,6 +27,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
@@ -37,6 +41,15 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_behave = {"No flags set", "Show sparks", "Use height",
                                             "Loop fire sound", "Loop impact sound", "Ignore center",
                                             "Draw as background"};
+  public static final String[] s_flagsEx = {
+    "No flags set", "Bounce from walls", "Pass target", "Draw center VVC once", "Hit immediately",
+    "Face target", "Curved path", "Start random frame", "Pillar", "Semi-trans. trail puff VEF",
+    "Tinted trail puff VEF", "Multiple proj.", "Default spell on missed", "Falling path", "Comet",
+    "Lined up AoE", "Rectangular AoE", "Draw behind target", "Casting glow fx", "Travel door",
+    "Stop/fade after hit", "Display string", "Random path", "Start random seq.", "Color pulse on hit",
+    "Touch projectile", "Neg. IDS1", "Neg. IDS2", "Use either IDS", "Delayed payload",
+    "Limited path count", "IWD style check", "Caster affected"};
+
   public static final LongIntegerHashMap<String> m_projtype = new LongIntegerHashMap<String>();
   static {
     m_projtype.put(1L, "No BAM");
@@ -153,6 +166,10 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
+    final String[] s_types = ResourceFactory.isEnhancedEdition() ?
+                             new String[]{"VVC", "BAM"} :
+                               new String[]{"VEF", "VVC", "BAM"};
+
     list.add(new TextString(buffer, offset, 4, "Signature"));
     list.add(new TextString(buffer, offset + 4, 4, "Version"));
     HashBitmapEx projtype = new HashBitmapEx(buffer, offset + 8, 2, "Projectile type", m_projtype);
@@ -162,9 +179,22 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     list.add(new Flag(buffer, offset + 12, 4, "Behavior", s_behave));
     list.add(new ResourceRef(buffer, offset + 16, "Fire sound", "WAV"));
     list.add(new ResourceRef(buffer, offset + 24, "Impact sound", "WAV"));
-    list.add(new ResourceRef(buffer, offset + 32, "Source animation", new String[]{"VVC", "BAM"}));
+    list.add(new ResourceRef(buffer, offset + 32, "Source animation", s_types));
     list.add(new Bitmap(buffer, offset + 40, 4, "Particle color", s_color));
-    list.add(new Unknown(buffer, offset + 44, 212));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
+      list.add(new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx));
+      list.add(new StringRef(buffer, offset + 48, "String"));
+      list.add(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
+      list.add(new DecNumber(buffer, offset + 56, 2, "Color speed"));
+      list.add(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
+      list.add(new IDSTargetEffect(buffer, offset + 60, 4, "IDS entry 1"));
+      list.add(new IDSTargetEffect(buffer, offset + 64, 4, "IDS entry 2"));
+      list.add(new ResourceRef(buffer, 68, "Default spell", "SPL"));
+      list.add(new ResourceRef(buffer, 76, "Success spell", "SPL"));
+      list.add(new Unknown(buffer, offset + 84, 172));
+    } else {
+      list.add(new Unknown(buffer, offset + 44, 212));
+    }
     offset += 256;
 
     if (projtype.getValue() > 1L) {
