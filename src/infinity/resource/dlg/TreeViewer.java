@@ -125,13 +125,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           ItemBase item = (ItemBase)node.getUserObject();
           boolean isExtern = (!item.getDialogName().equals(dlg.getResourceEntry().getResourceName()));
           if (isExtern) {
-            ViewFrame vf = mapViewer.get(item.getDialogName());
+            ViewFrame vf = mapViewer.get(item.getDialogName().toUpperCase());
             // reuseing external dialog window if possible
             if (vf != null && vf.isVisible()) {
               vf.toFront();
             } else {
               vf = new ViewFrame(this, item.getDialog());
-              mapViewer.put(item.getDialogName(), vf);
+              mapViewer.put(item.getDialogName().toUpperCase(), vf);
             }
           }
 
@@ -1128,7 +1128,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (state != null) {
         int stateIdx = state.getNumber();
-        HashMap<Integer, StateItem> map = mapState.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
         if (map != null) {
           Iterator<Integer> iter = map.keySet().iterator();
           while (iter.hasNext()) {
@@ -1147,7 +1147,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (trans != null) {
         int transIdx = trans.getNumber();
-        HashMap<Integer, TransitionItem> map = mapTransition.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
         if (map != null) {
           Iterator<Integer> iter = map.keySet().iterator();
           while (iter.hasNext()) {
@@ -1291,10 +1291,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (state != null) {
         DlgResource dlg = state.getDialog();
-        HashMap<Integer, StateItem> map = mapState.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
         if (map == null) {
           map = new HashMap<Integer, StateItem>();
-          mapState.put(dlg.getResourceEntry().getResourceName(), map);
+          setStateTable(dlg.getResourceEntry().getResourceName(), map);
         }
 
         if (!map.containsKey(Integer.valueOf(state.getState().getNumber()))) {
@@ -1315,10 +1315,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (trans != null) {
         DlgResource dlg = trans.getDialog();
-        HashMap<Integer, TransitionItem> map = mapTransition.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
         if (map == null) {
           map = new HashMap<Integer, TransitionItem>();
-          mapTransition.put(dlg.getResourceEntry().getResourceName(), map);
+          setTransitionTable(dlg.getResourceEntry().getResourceName(), map);
         }
 
         if (!map.containsKey(Integer.valueOf(trans.getTransition().getNumber()))) {
@@ -1345,13 +1345,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private DlgResource getDialogResource(String dlgName)
     {
       if (dlgName != null) {
-        if (mapState.containsKey(dlgName)) {
-          HashMap<Integer, StateItem> map = mapState.get(dlgName);
+        if (containsStateTable(dlgName)) {
+          HashMap<Integer, StateItem> map = getStateTable(dlgName);
           if (!map.keySet().isEmpty()) {
             return map.get(map.keySet().iterator().next()).getDialog();
           }
-        } else if (mapTransition.containsKey(dlgName)) {
-          HashMap<Integer, TransitionItem> map = mapTransition.get(dlgName);
+        } else if (containsTransitionTable(dlgName)) {
+          HashMap<Integer, TransitionItem> map = getTransitionTable(dlgName);
           if (!map.keySet().isEmpty()) {
             return map.get(map.keySet().iterator().next()).getDialog();
           }
@@ -1390,7 +1390,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         int count = state.getState().getTransCount();
         while (parent.getChildCount() < count) {
           int transIdx = state.getState().getFirstTrans() + parent.getChildCount();
-          TransitionItem child = mapTransition.get(dlgName).get(Integer.valueOf(transIdx));
+          TransitionItem child = getTransitionTable(dlgName).get(Integer.valueOf(transIdx));
           boolean allowChildren = !child.getTransition().getFlag().isFlagSet(3);
           DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, allowChildren);
           parent.add(nodeChild);
@@ -1410,7 +1410,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           if (!dlgRef.isEmpty()) {
             String dlgName = dlgRef.getResourceName();
             int stateIdx = trans.getTransition().getNextDialogState();
-            StateItem child = mapState.get(dlgName).get(Integer.valueOf(stateIdx));
+            StateItem child = getStateTable(dlgName).get(Integer.valueOf(stateIdx));
             DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
             parent.add(nodeChild);
           }
@@ -1432,6 +1432,62 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         }
       }
       return parent;
+    }
+
+    // Returns the state table of the specified dialog resource
+    private HashMap<Integer, StateItem> getStateTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapState.get(dlgName.toUpperCase());
+      } else {
+        return null;
+      }
+    }
+
+    // Adds or replaces a dialog resource entry with its associated state table
+    private void setStateTable(String dlgName, HashMap<Integer, StateItem> map)
+    {
+      if (dlgName != null) {
+        mapState.put(dlgName.toUpperCase(), map);
+      }
+    }
+
+    // Returns whether the specified dialog resource has been mapped
+    private boolean containsStateTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapState.containsKey(dlgName.toUpperCase());
+      } else {
+        return false;
+      }
+    }
+
+    // Returns the transition table of the specified dialog resource
+    private HashMap<Integer, TransitionItem> getTransitionTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapTransition.get(dlgName.toUpperCase());
+      } else {
+        return null;
+      }
+    }
+
+    // Adds or replaces a dialog resource entry with its associated transition table
+    private void setTransitionTable(String dlgName, HashMap<Integer, TransitionItem> map)
+    {
+      if (dlgName != null) {
+        mapTransition.put(dlgName.toUpperCase(), map);
+      }
+    }
+
+    // Returns whether the specified dialog resource has been mapped
+    private boolean containsTransitionTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapTransition.containsKey(dlgName.toUpperCase());
+      } else {
+        return false;
+      }
     }
   }
 
