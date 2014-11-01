@@ -31,7 +31,7 @@ public class FileReaderNI extends FileReader
 
   public FileReaderNI(File file) throws FileNotFoundException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public FileReaderNI(FileDescriptor fd)

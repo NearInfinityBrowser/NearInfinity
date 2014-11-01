@@ -27,7 +27,7 @@ public class FileWriterNI extends FileWriter
 
   public FileWriterNI(File file) throws IOException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public FileWriterNI(FileDescriptor fd)
@@ -43,7 +43,7 @@ public class FileWriterNI extends FileWriter
 
   public FileWriterNI(File file, boolean append) throws IOException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)), append);
+    super(FileLookup.getInstance().queryFile(file), append);
   }
 
 

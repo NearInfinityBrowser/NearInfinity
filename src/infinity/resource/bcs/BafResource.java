@@ -205,7 +205,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         });
       }
       chooser.setSelectedFile(
-              new File(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BCS"));
+              new FileNI(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BCS"));
       int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
       if (returnval == JFileChooser.APPROVE_OPTION) {
         try {

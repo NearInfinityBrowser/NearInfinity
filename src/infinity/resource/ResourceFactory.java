@@ -752,7 +752,7 @@ public final class ResourceFactory
                                        JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
         if (BrowserMenuBar.getInstance().backupOnSave()) {
           try {
-            File bakFile = new File(output.getCanonicalPath() + ".bak");
+            File bakFile = new FileNI(output.getCanonicalPath() + ".bak");
             if (bakFile.isFile()) {
               bakFile.delete();
             }

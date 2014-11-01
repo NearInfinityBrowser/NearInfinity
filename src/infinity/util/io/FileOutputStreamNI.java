@@ -19,7 +19,7 @@ public class FileOutputStreamNI extends FileOutputStream
 
   public FileOutputStreamNI(File file) throws FileNotFoundException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public FileOutputStreamNI(FileDescriptor fdObj)
@@ -35,7 +35,7 @@ public class FileOutputStreamNI extends FileOutputStream
 
   public FileOutputStreamNI(File file, boolean append) throws FileNotFoundException
   {
-    super(FileLookup.getInstance().queryFilePath(file), append);
+    super(FileLookup.getInstance().queryFile(file), append);
   }
 
 }
