@@ -99,7 +99,9 @@ public class ResourceMenuCreator implements IMenuCreator, ActionListener
       popup.add(mi);
     }
 
-    popup.addSeparator();
+    if (!list.isEmpty()) {
+      popup.addSeparator();
+    }
 
     miUndo.setText(String.format("Undo %1$s", getHexView().getUndoPresentationName()));
     miUndo.setEnabled(isUndoAvailable());
