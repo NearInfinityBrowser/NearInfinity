@@ -187,8 +187,10 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       list.add(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
       list.add(new DecNumber(buffer, offset + 56, 2, "Color speed"));
       list.add(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
-      list.add(new IDSTargetEffect(buffer, offset + 60, 4, "IDS entry 1"));
-      list.add(new IDSTargetEffect(buffer, offset + 64, 4, "IDS entry 2"));
+      list.add(new DecNumber(buffer, offset + 60, 2, "IDS1 value"));
+      list.add(new DecNumber(buffer, offset + 62, 2, "IDS1 type"));
+      list.add(new DecNumber(buffer, offset + 64, 2, "IDS2 value"));
+      list.add(new DecNumber(buffer, offset + 66, 2, "IDS2 type"));
       list.add(new ResourceRef(buffer, 68, "Default spell", "SPL"));
       list.add(new ResourceRef(buffer, 76, "Success spell", "SPL"));
       list.add(new Unknown(buffer, offset + 84, 172));
