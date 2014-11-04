@@ -108,7 +108,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
       addField(new UnsignDecNumber(buffer, offset + 70, 2, "Dice size for multiple targets"));
       addField(new DecNumber(buffer, offset + 72, 2, "Animation granularity"));
       addField(new DecNumber(buffer, offset + 74, 2, "Animation granularity divider"));
-      addField(new Unknown(buffer, offset + 38, 180));
+      addField(new Unknown(buffer, offset + 76, 180));
     } else {
       addField(new Unknown(buffer, offset + 38, 218));
     }
