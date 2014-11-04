@@ -189,8 +189,8 @@ public final class DialogSearcher implements Runnable, ActionListener
   private Map<StructEntry, StructEntry> makeSearchMap(AbstractStruct struct)
   {
     SortedMap<StructEntry, StructEntry> map = new TreeMap<StructEntry, StructEntry>();
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry entry = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry entry = struct.getField(i);
       if (entry instanceof AbstractStruct)
         map.putAll(makeSearchMap((AbstractStruct)entry));
       else if (cbsearchcode.isSelected() && entry instanceof AbstractCode)

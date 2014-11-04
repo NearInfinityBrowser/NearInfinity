@@ -9,6 +9,7 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.text.PlainTextResource;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
@@ -72,12 +73,22 @@ public final class Song2daBitmap extends Datatype implements Editable
 
   public Song2daBitmap(byte buffer[], int offset, int length)
   {
-    this(buffer, offset, length, "Song");
+    this(null, buffer, offset, length);
+  }
+
+  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length)
+  {
+    this(parent, buffer, offset, length, "Song");
   }
 
   public Song2daBitmap(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     if (songNumber.size() == 0)
       parseSonglist();
 

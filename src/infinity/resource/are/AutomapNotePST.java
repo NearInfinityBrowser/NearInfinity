@@ -38,11 +38,11 @@ public final class AutomapNotePST extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Coordinate: X"));
-    list.add(new DecNumber(buffer, offset + 4, 4, "Coordinate: Y"));
-    list.add(new TextString(buffer, offset + 8, 500, "Text"));
-    list.add(new Bitmap(buffer, offset + 508, 4, "Is read only?", s_yesno));
-    list.add(new Unknown(buffer, offset + 512, 20));
+    addField(new DecNumber(buffer, offset, 4, "Coordinate: X"));
+    addField(new DecNumber(buffer, offset + 4, 4, "Coordinate: Y"));
+    addField(new TextString(buffer, offset + 8, 500, "Text"));
+    addField(new Bitmap(buffer, offset + 508, 4, "Is read only?", s_yesno));
+    addField(new Unknown(buffer, offset + 512, 20));
     return offset + 532;
   }
 }

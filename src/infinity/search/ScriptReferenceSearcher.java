@@ -51,23 +51,25 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
         ResourceRef ref = (ResourceRef)o;
-        if (struct instanceof CreResource)
+        if (struct instanceof CreResource) {
           addHit(entry, entry.getSearchString(), ref);
-        else if (struct instanceof Actor)
-          addHit(entry, struct.getStructEntryAt(20).toString(), ref);
-        else
+        } else if (struct instanceof Actor) {
+          addHit(entry, struct.getField(20).toString(), ref);
+        } else {
           addHit(entry, null, ref);
+        }
       }
       else if (o instanceof Actor ||
                o instanceof Container ||
                o instanceof Door ||
-               o instanceof ITEPoint)
+               o instanceof ITEPoint) {
         searchStruct(entry, (AbstractStruct)o);
+      }
     }
   }
 }

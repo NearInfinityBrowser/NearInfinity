@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.graphics.BmpResource;
 import infinity.util.DynamicArray;
 
@@ -77,7 +78,12 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
 
   public ColorValue(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public ColorValue(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
   }
 

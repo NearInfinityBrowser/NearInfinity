@@ -5,6 +5,7 @@
 package infinity.datatype;
 
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 
 import java.util.Vector;
 
@@ -18,7 +19,12 @@ public class BitmapEx extends Bitmap
 
   public BitmapEx(byte buffer[], int offset, int length, String name, String[] table)
   {
-    super(buffer, offset, length, name, table);
+    this(null, buffer, offset, length, name, table);
+  }
+
+  public BitmapEx(StructEntry parent, byte buffer[], int offset, int length, String name, String[] table)
+  {
+    super(parent, buffer, offset, length, name, table);
     listeners = new Vector<UpdateListener>();
   }
 

@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 
 import java.awt.GridBagConstraints;
@@ -33,7 +34,12 @@ public class Bitmap extends Datatype implements Editable
 
   public Bitmap(byte buffer[], int offset, int length, String name, String[] table)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, table);
+  }
+
+  public Bitmap(StructEntry parent, byte buffer[], int offset, int length, String name, String[] table)
+  {
+    super(parent, offset, length, name);
     this.table = table;
     read(buffer, offset);
   }

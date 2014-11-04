@@ -358,6 +358,7 @@ public class AreaViewer extends ChildFrame
       AbstractLayerItem item = (AbstractLayerItem)event.getSource();
       showTable(item);
     } else if (event.getSource() instanceof DataMenuItem<?>) {
+      @SuppressWarnings("unchecked")
       DataMenuItem<AbstractLayerItem> lmi = (DataMenuItem<AbstractLayerItem>)event.getSource();
       AbstractLayerItem item = lmi.getData();
       showTable(item);

@@ -10,6 +10,7 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
@@ -43,7 +44,12 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
   public IwdRef(byte buffer[], int offset, String name, String idsfile)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name, idsfile);
+  }
+
+  public IwdRef(StructEntry parent, byte buffer[], int offset, String name, String idsfile)
+  {
+    super(parent, offset, 4, name);
     idsmap = IdsMapCache.get(idsfile).getMap();
     read(buffer, offset);
   }

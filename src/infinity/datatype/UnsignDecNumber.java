@@ -4,6 +4,7 @@
 
 package infinity.datatype;
 
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 
 import java.io.IOException;
@@ -15,7 +16,12 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
   public UnsignDecNumber(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public UnsignDecNumber(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     number = 0;
     read(buffer, offset);
   }

@@ -3,6 +3,7 @@ package infinity.datatype;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import infinity.resource.StructEntry;
 import infinity.util.IdsMapEntry;
 
 /**
@@ -14,13 +15,23 @@ public class KitIdsBitmap extends IdsBitmap
 
   public KitIdsBitmap(byte buffer[], int offset, String name)
   {
-    super(buffer, offset, 4, name, "KIT.IDS");
+    this(null, buffer, offset, name);
+  }
+
+  public KitIdsBitmap(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    super(parent, buffer, offset, 4, name, "KIT.IDS");
     init();
   }
 
   public KitIdsBitmap(byte buffer[], int offset, String name, int idsStart)
   {
-    super(buffer, offset, 4, name, "KIT.IDS", idsStart);
+    this(null, buffer, offset, name, idsStart);
+  }
+
+  public KitIdsBitmap(StructEntry parent, byte buffer[], int offset, String name, int idsStart)
+  {
+    super(parent, buffer, offset, 4, name, "KIT.IDS", idsStart);
     init();
   }
 

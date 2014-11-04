@@ -81,7 +81,7 @@ public final class StructClipboard
     contentsClass = struct.getClass();
     try {
       for (int i = firstIndex; i <= lastIndex; i++) {
-        StructEntry entry = struct.getStructEntryAt(i);
+        StructEntry entry = struct.getField(i);
         contents.add((StructEntry)entry.clone());
       }
     } catch (CloneNotSupportedException e) {
@@ -98,7 +98,7 @@ public final class StructClipboard
     contentsClass = struct.getClass();
     try {
       for (int i = firstIndex; i <= lastIndex; i++) {
-        StructEntry entry = struct.getStructEntryAt(i);
+        StructEntry entry = struct.getField(i);
         contents.add((StructEntry)entry.clone());
       }
     } catch (CloneNotSupportedException e) {
@@ -113,7 +113,7 @@ public final class StructClipboard
     contentsClass = struct.getClass();
     try {
       for (int i = firstIndex; i <= lastIndex; i++) {
-        StructEntry entry = struct.getStructEntryAt(i);
+        StructEntry entry = struct.getField(i);
         contents.add((StructEntry)entry.clone());
       }
     } catch (CloneNotSupportedException e) {
@@ -121,7 +121,7 @@ public final class StructClipboard
     }
     hasValues = false;
     for (int i = firstIndex; i <= lastIndex; i++)
-      struct.removeDatatype((AddRemovable)struct.getStructEntryAt(firstIndex), true);
+      struct.removeDatatype((AddRemovable)struct.getField(firstIndex), true);
     fireStateChanged();
   }
 
@@ -184,7 +184,7 @@ public final class StructClipboard
   public int pasteValue(AbstractStruct struct, int index)
   {
     for (int i = 0; i < contents.size(); i++) {
-      StructEntry oldEntry = struct.getStructEntryAt(index + i);
+      StructEntry oldEntry = struct.getField(index + i);
       StructEntry newEntry = contents.get(i);
       if (oldEntry.getClass() != newEntry.getClass() ||
           oldEntry.getSize() != newEntry.getSize())
@@ -192,7 +192,7 @@ public final class StructClipboard
     }
     try {
       for (int i = 0; i < contents.size(); i++) {
-        StructEntry oldEntry = struct.getStructEntryAt(index + i);
+        StructEntry oldEntry = struct.getField(index + i);
         StructEntry newEntry = (StructEntry)contents.get(i).clone();
         newEntry.copyNameAndOffset(oldEntry);
         struct.setListEntry(index + i, newEntry);

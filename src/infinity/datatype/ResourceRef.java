@@ -11,6 +11,7 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.io.FileWriterNI;
 
@@ -49,22 +50,44 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public ResourceRef(byte h_buffer[], int offset, String name, String type)
   {
-    this(h_buffer, offset, 8, name, type);
+    this(null, h_buffer, offset, 8, name, type);
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, String type)
+  {
+    this(parent, h_buffer, offset, 8, name, type);
   }
 
   public ResourceRef(byte h_buffer[], int offset, int length, String name, String type)
   {
-    this(h_buffer, offset, length, name, new String[]{type});
+    this(null, h_buffer, offset, length, name, new String[]{type});
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, int length, String name,
+                     String type)
+  {
+    this(parent, h_buffer, offset, length, name, new String[]{type});
   }
 
   public ResourceRef(byte h_buffer[], int offset, String name, String[] type)
   {
-    this(h_buffer, offset, 8, name, type);
+    this(null, h_buffer, offset, 8, name, type);
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, String[] type)
+  {
+    this(parent, h_buffer, offset, 8, name, type);
   }
 
   public ResourceRef(byte h_buffer[], int offset, int length, String name, String[] type)
   {
-    super(offset, length, name);
+    this(null, h_buffer, offset, length, name, type);
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, int length, String name,
+                     String[] type)
+  {
+    super(parent, offset, length, name);
     if (type == null || type.length == 0)
       this.type = new String[]{""};
     else

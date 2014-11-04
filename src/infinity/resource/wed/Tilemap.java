@@ -28,11 +28,11 @@ public final class Tilemap extends AbstractStruct // implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 2, "Primary tile index"));
-    list.add(new DecNumber(buffer, offset + 2, 2, "Primary tile count"));
-    list.add(new DecNumber(buffer, offset + 4, 2, "Secondary tile index"));
-    list.add(new Flag(buffer, offset + 6, 1, "Draw Overlays", s_flags));
-    list.add(new Unknown(buffer, offset + 7, 3));
+    addField(new DecNumber(buffer, offset, 2, "Primary tile index"));
+    addField(new DecNumber(buffer, offset + 2, 2, "Primary tile count"));
+    addField(new DecNumber(buffer, offset + 4, 2, "Secondary tile index"));
+    addField(new Flag(buffer, offset + 6, 1, "Draw Overlays", s_flags));
+    addField(new Unknown(buffer, offset + 7, 3));
     return offset + 10;
   }
 }

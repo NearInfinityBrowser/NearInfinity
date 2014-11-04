@@ -5,6 +5,7 @@
 package infinity.datatype;
 
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.LongIntegerHashMap;
 
 import java.util.Vector;
@@ -20,7 +21,13 @@ public class HashBitmapEx extends HashBitmap
 
   public HashBitmapEx(byte buffer[], int offset, int length, String name, LongIntegerHashMap<String> idsmap)
   {
-    super(buffer, offset, length, name, idsmap);
+    this(null, buffer, offset, length, name, idsmap);
+  }
+
+  public HashBitmapEx(StructEntry parent, byte buffer[], int offset, int length, String name,
+                      LongIntegerHashMap<String> idsmap)
+  {
+    super(parent, buffer, offset, length, name, idsmap);
     listeners = new Vector<UpdateListener>();
   }
 

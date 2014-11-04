@@ -99,17 +99,17 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
     SectionCount entry_count = new SectionCount(buffer, offset + 8, 4, "# maps", MapEntry.class);
-    list.add(entry_count);
+    addField(entry_count);
     SectionOffset entry_offset = new SectionOffset(buffer, offset + 12, "Maps offset", MapEntry.class);
-    list.add(entry_offset);
+    addField(entry_offset);
     offset = entry_offset.getValue();
     for (int i = 0; i < entry_count.getValue(); i++) {
       MapEntry entry = new MapEntry(this, buffer, offset, i);
       offset = entry.getEndOffset();
-      list.add(entry);
+      addField(entry);
     }
     return offset;
   }

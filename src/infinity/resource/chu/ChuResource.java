@@ -44,15 +44,17 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Window)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Window) {
         ((Window)o).writeControlsTable(os);
+      }
     }
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Window)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Window) {
         ((Window)o).writeControls(os);
+      }
     }
   }
 
@@ -185,17 +187,17 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   {
     initData(buffer, offset);
 
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
-    list.add(new SectionCount(buffer, offset + 8, 4, "# panels", Window.class));
-    list.add(new SectionOffset(buffer, offset + 12, "Controls offset", Control.class));
-    list.add(new SectionOffset(buffer, offset + 16, "Panels offset", Window.class));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new SectionCount(buffer, offset + 8, 4, "# panels", Window.class));
+    addField(new SectionOffset(buffer, offset + 12, "Controls offset", Control.class));
+    addField(new SectionOffset(buffer, offset + 16, "Panels offset", Window.class));
     offset += 20;
 
     // handling optional gap between header and panels section
     int endoffset = Math.min(getPanelsOffset(), getControlsOffset());
     if (offset < endoffset) {
-      list.add(new Unknown(buffer, offset, endoffset - offset, "Unused"));
+      addField(new Unknown(buffer, offset, endoffset - offset, "Unused"));
     }
 
     offset = endoffset;
@@ -203,12 +205,12 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
       Window window = new Window(this, buffer, offset, i);
       offset = window.getEndOffset();
       endoffset = Math.max(endoffset, window.readControls(buffer));
-      list.add(window);
+      addField(window);
     }
 
     // handling optional gap between panels section and controls section
     if (offset < ofsControls) {
-      list.add(new Unknown(buffer, offset, ofsControls - offset, "Unused"));
+      addField(new Unknown(buffer, offset, ofsControls - offset, "Unused"));
     }
 
     return Math.max(offset, endoffset);

@@ -32,8 +32,8 @@ public final class Effect extends AbstractStruct implements AddRemovable
   public int read(byte buffer[], int offset) throws Exception
   {
     EffectType type = new EffectType(buffer, offset, 2);
-    list.add(type);
-    offset = type.readAttributes(buffer, offset + 2, list);
+    addField(type);
+    offset = type.readAttributes(buffer, offset + 2, getList());
     return offset;
   }
 }

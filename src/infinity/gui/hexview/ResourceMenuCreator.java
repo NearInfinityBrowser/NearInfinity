@@ -129,6 +129,7 @@ public class ResourceMenuCreator implements IMenuCreator, ActionListener
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() instanceof DataMenuItem<?>) {
+      @SuppressWarnings("unchecked")
       DataMenuItem<StructEntry[]> mi = (DataMenuItem<StructEntry[]>)e.getSource();
       StructEntry[] entries = mi.getData();
       StructViewer curViewer = null;

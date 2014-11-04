@@ -37,14 +37,14 @@ class CompBase extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Ticks until start"));
-    list.add(new Unknown(buffer, offset + 4, 4));
-    list.add(new DecNumber(buffer, offset + 8, 4, "Ticks until loop"));
+    addField(new DecNumber(buffer, offset, 4, "Ticks until start"));
+    addField(new Unknown(buffer, offset + 4, 4));
+    addField(new DecNumber(buffer, offset + 8, 4, "Ticks until loop"));
     VefType type = new VefType(buffer, offset + 12, 4);
-    list.add(type);
-    offset = type.readAttributes(buffer, offset + 16, list);
-    list.add(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_bool));
-    list.add(new Unknown(buffer, offset + 4, 196));
+    addField(type);
+    offset = type.readAttributes(buffer, offset + 16, getList());
+    addField(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_bool));
+    addField(new Unknown(buffer, offset + 4, 196));
     offset += 200;
     return offset;
   }

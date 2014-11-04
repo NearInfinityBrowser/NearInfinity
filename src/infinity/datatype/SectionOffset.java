@@ -12,7 +12,13 @@ public final class SectionOffset extends HexNumber
 
   public SectionOffset(byte buffer[], int offset, String desc, Class<? extends StructEntry> section)
   {
-    super(buffer, offset, 4, desc);
+    this(null, buffer, offset, desc, section);
+  }
+
+  public SectionOffset(StructEntry parent, byte buffer[], int offset, String desc,
+                       Class<? extends StructEntry> section)
+  {
+    super(parent, buffer, offset, 4, desc);
     this.section = section;
   }
 

@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
 
@@ -34,7 +35,13 @@ public class HashBitmap extends Datatype implements Editable
 
   public HashBitmap(byte buffer[], int offset, int length, String name, LongIntegerHashMap<String> idsmap)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, idsmap);
+  }
+
+  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap)
+  {
+    super(parent, offset, length, name);
     this.idsmap = new LongIntegerHashMap<String>(idsmap);
 
     read(buffer, offset);

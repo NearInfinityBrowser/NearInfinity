@@ -34,8 +34,8 @@ final class Entry extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new StringRef(buffer, offset, "Text"));
-    list.add(new Unknown(buffer, offset + 4, 4));
+    addField(new StringRef(buffer, offset, "Text"));
+    addField(new Unknown(buffer, offset + 4, 4));
     return offset + 8;
   }
 }

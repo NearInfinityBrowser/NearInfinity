@@ -7,6 +7,7 @@ package infinity.datatype;
 import java.util.StringTokenizer;
 
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.text.PlainTextResource;
 import infinity.util.LongIntegerHashMap;
 
@@ -19,7 +20,12 @@ public class Summon2daBitmap extends HashBitmap
 
   public Summon2daBitmap(byte[] buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name, getSummonTable());
+    this(null, buffer, offset, length, name);
+  }
+
+  public Summon2daBitmap(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  {
+    super(parent, buffer, offset, length, name, getSummonTable());
   }
 
   private static LongIntegerHashMap<String> getSummonTable()

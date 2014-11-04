@@ -35,10 +35,10 @@ public final class Iwd2Song extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new IwdRef(buffer, offset, "ResRef", "LISTSONG.2DA"));
-    list.add(new DecNumber(buffer, offset + 4, 4, "# memorizable"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "# remaining"));
-    list.add(new Unknown(buffer, offset + 12, 4));
+    addField(new IwdRef(buffer, offset, "ResRef", "LISTSONG.2DA"));
+    addField(new DecNumber(buffer, offset + 4, 4, "# memorizable"));
+    addField(new DecNumber(buffer, offset + 8, 4, "# remaining"));
+    addField(new Unknown(buffer, offset + 12, 4));
     return offset + 16;
   }
 }

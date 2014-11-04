@@ -40,13 +40,13 @@ public final class AutomapNote extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 2, "Coordinate: X"));
-    list.add(new DecNumber(buffer, offset + 2, 2, "Coordinate: Y"));
-    list.add(new StringRef(buffer, offset + 4, "Text"));
-    list.add(new Bitmap(buffer, offset + 8, 2, "Text location", s_source));
-    list.add(new Bitmap(buffer, offset + 10, 2, "Marker color", s_flag));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Control ID"));
-    list.add(new Unknown(buffer, offset + 16, 36));
+    addField(new DecNumber(buffer, offset, 2, "Coordinate: X"));
+    addField(new DecNumber(buffer, offset + 2, 2, "Coordinate: Y"));
+    addField(new StringRef(buffer, offset + 4, "Text"));
+    addField(new Bitmap(buffer, offset + 8, 2, "Text location", s_source));
+    addField(new Bitmap(buffer, offset + 10, 2, "Marker color", s_flag));
+    addField(new DecNumber(buffer, offset + 12, 4, "Control ID"));
+    addField(new Unknown(buffer, offset + 16, 36));
     return offset + 52;
   }
 }

@@ -38,8 +38,8 @@ public class Vertex extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset)
   {
-    list.add(new DecNumber(buffer, offset, 2, "X"));
-    list.add(new DecNumber(buffer, offset + 2, 2, "Y"));
+    addField(new DecNumber(buffer, offset, 2, "X"));
+    addField(new DecNumber(buffer, offset + 2, 2, "Y"));
     return offset + 4;
   }
 }

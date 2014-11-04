@@ -73,11 +73,11 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
   public int read(byte buffer[], int offset) throws Exception
   {
     SectionCount entry_count = new SectionCount(buffer, offset, 4, "# entries", Entry.class);
-    list.add(entry_count);
+    addField(entry_count);
     offset += 4;
     for (int i = 0; i < entry_count.getValue(); i++) {
       Entry entry = new Entry(this, buffer, offset, i);
-      list.add(entry);
+      addField(entry);
       offset = entry.getEndOffset();
     }
     return offset;

@@ -24,20 +24,25 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
     super(superStruct, name, offset, count.getValue() + 2);
     this.count = count;
     this.type = type;
-    if (type == TYPE_SPELL)
-      for (int i = 0; i < count.getValue(); i++)
-        list.add(new Iwd2Spell(this, buffer, offset + 16 * i));
-    else if (type == TYPE_ABILITY)
-      for (int i = 0; i < count.getValue(); i++)
-        list.add(new Iwd2Ability(this, buffer, offset + 16 * i));
-    else if (type == TYPE_SHAPE)
-      for (int i = 0; i < count.getValue(); i++)
-        list.add(new Iwd2Shape(this, buffer, offset + 16 * i));
-    else if (type == TYPE_SONG)
-      for (int i = 0; i < count.getValue(); i++)
-        list.add(new Iwd2Song(this, buffer, offset + 16 * i));
-    list.add(new DecNumber(buffer, offset + 16 * count.getValue(), 4, "# memorizable (total)"));
-    list.add(new DecNumber(buffer, offset + 16 * count.getValue() + 4, 4, "# free uses remaining"));
+    if (type == TYPE_SPELL) {
+      for (int i = 0; i < count.getValue(); i++) {
+        addField(new Iwd2Spell(this, buffer, offset + 16 * i));
+      }
+    } else if (type == TYPE_ABILITY) {
+      for (int i = 0; i < count.getValue(); i++) {
+        addField(new Iwd2Ability(this, buffer, offset + 16 * i));
+      }
+    } else if (type == TYPE_SHAPE) {
+      for (int i = 0; i < count.getValue(); i++) {
+        addField(new Iwd2Shape(this, buffer, offset + 16 * i));
+      }
+    } else if (type == TYPE_SONG) {
+      for (int i = 0; i < count.getValue(); i++) {
+        addField(new Iwd2Song(this, buffer, offset + 16 * i));
+      }
+    }
+    addField(new DecNumber(buffer, offset + 16 * count.getValue(), 4, "# memorizable (total)"));
+    addField(new DecNumber(buffer, offset + 16 * count.getValue() + 4, 4, "# free uses remaining"));
     setOffset(offset);
   }
 

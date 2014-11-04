@@ -19,9 +19,16 @@ public abstract class Datatype implements StructEntry
   private final int length;
   private String name;
   private int offset;
+  private StructEntry parent;
 
   protected Datatype(int offset, int length, String name)
   {
+    this(null, offset, length, name);
+  }
+
+  protected Datatype(StructEntry parent, int offset, int length, String name)
+  {
+    this.parent = parent;
     this.offset = offset;
     this.length = length;
     this.name = name;
@@ -54,6 +61,12 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
+  public StructEntry getParent()
+  {
+    return parent;
+  }
+
+  @Override
   public String getName()
   {
     return name;
@@ -75,6 +88,12 @@ public abstract class Datatype implements StructEntry
   public void setOffset(int newoffset)
   {
     offset = newoffset;
+  }
+
+  @Override
+  public void setParent(StructEntry parent)
+  {
+    this.parent = parent;
   }
 
 // --------------------- End Interface StructEntry ---------------------

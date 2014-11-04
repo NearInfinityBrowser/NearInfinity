@@ -41,14 +41,14 @@ final class ItemSale extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Item", "ITM"));
-    list.add(new Unknown(buffer, offset + 8, 2));
-    list.add(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
-    list.add(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
-    list.add(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
-    list.add(new Flag(buffer, offset + 16, 4, "Flags", s_itemflag));
-    list.add(new DecNumber(buffer, offset + 20, 4, "# in stock"));
-    list.add(new Bitmap(buffer, offset + 24, 4, "Infinite supply?", s_noyes));
+    addField(new ResourceRef(buffer, offset, "Item", "ITM"));
+    addField(new Unknown(buffer, offset + 8, 2));
+    addField(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
+    addField(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
+    addField(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
+    addField(new Flag(buffer, offset + 16, 4, "Flags", s_itemflag));
+    addField(new DecNumber(buffer, offset + 20, 4, "# in stock"));
+    addField(new Bitmap(buffer, offset + 24, 4, "Infinite supply?", s_noyes));
     return offset + 28;
   }
 }

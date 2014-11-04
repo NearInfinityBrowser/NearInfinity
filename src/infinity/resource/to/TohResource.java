@@ -84,21 +84,21 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
     int startOffset = offset;
     boolean isEnhanced = (ResourceFactory.isEnhancedEdition()) &&
                          (DynamicArray.getInt(buffer, offset + 4) == 2);
-    list.add(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
     if (isEnhanced) {
-      list.add(new DecNumber(buffer, offset + 4, 4, "Version"));
+      addField(new DecNumber(buffer, offset + 4, 4, "Version"));
     } else {
-      list.add(new TextString(buffer, offset + 4, 4, "Version"));
+      addField(new TextString(buffer, offset + 4, 4, "Version"));
     }
-    list.add(new Unknown(buffer, offset + 8, 4));
+    addField(new Unknown(buffer, offset + 8, 4));
     SectionCount scStrref = new SectionCount(buffer, offset + 12, 4, "# strref entries", StrRefEntry.class);
-    list.add(scStrref);
+    addField(scStrref);
     SectionOffset soStrref = null;
     if (isEnhanced) {
       soStrref = new SectionOffset(buffer, offset + 16, "Strref entries offset", StrRefEntry.class);
-      list.add(soStrref);
+      addField(soStrref);
     } else {
-      list.add(new Unknown(buffer, offset + 16, 4));
+      addField(new Unknown(buffer, offset + 16, 4));
     }
 
     List<Integer> ofsList = null;
@@ -115,25 +115,25 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
         // adding strref entries structure
         StrRefEntry2 entry = new StrRefEntry2(this, buffer, offset, i);
         offset = entry.getEndOffset();
-        list.add(entry);
+        addField(entry);
       } else {
         StrRefEntry entry = new StrRefEntry(this, buffer, offset, i);
         offset = entry.getEndOffset();
-        list.add(entry);
+        addField(entry);
       }
     }
 
     if (isEnhanced) {
       for (int i = 0; i < scStrref.getValue(); i++) {
         StringEntry2 entry = new StringEntry2(this, buffer, startOffset + ofsList.get(i), i);
-        list.add(entry);
+        addField(entry);
         offset += entry.getEndOffset();
       }
     }
 
     int endoffset = offset;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

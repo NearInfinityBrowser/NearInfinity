@@ -13,6 +13,7 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.StringReferenceSearcher;
 import infinity.util.DynamicArray;
@@ -45,13 +46,23 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
   public StringRef(String name, int value)
   {
-    super(0, 8, name); // OK?
+    this(null, name, value);
+  }
+
+  public StringRef(StructEntry parent, String name, int value)
+  {
+    super(parent, 0, 8, name); // OK?
     this.value = value;
   }
 
   public StringRef(byte buffer[], int offset, String name)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name);
+  }
+
+  public StringRef(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    super(parent, offset, 4, name);
     read(buffer, offset);
   }
 

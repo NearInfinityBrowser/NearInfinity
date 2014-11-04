@@ -73,7 +73,7 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
   {
     int count = buffer.length / 44;
     for (int i = 0; i < count; i++)
-      list.add(new Entry(this, buffer, offset + i * 44, i));
+      addField(new Entry(this, buffer, offset + i * 44, i));
     return offset + count * 44;
   }
 

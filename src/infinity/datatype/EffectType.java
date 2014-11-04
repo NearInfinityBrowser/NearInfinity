@@ -23,7 +23,12 @@ public final class EffectType extends Bitmap implements UpdateListener
 
   public EffectType(byte buffer[], int offset, int length)
   {
-    super(buffer, offset, length, "Type", EffectFactory.getFactory().getEffectNameArray());
+    this(null, buffer, offset, length);
+  }
+
+  public EffectType(StructEntry parent, byte buffer[], int offset, int length)
+  {
+    super(parent, buffer, offset, length, "Type", EffectFactory.getFactory().getEffectNameArray());
   }
 
 // --------------------- Begin Interface Editable ---------------------

@@ -36,7 +36,7 @@ public class StringEntry2 extends AbstractStruct
     edit.setCharset("UTF-8");
     edit.setEditable(false);
     edit.setStringTerminated(true);
-    list.add(edit);
+    addField(edit);
     return offset + len + 1;
   }
 }

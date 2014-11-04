@@ -9,6 +9,7 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.text.PlainTextResource;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
@@ -89,12 +90,22 @@ public final class Kit2daBitmap extends Datatype implements Editable
 
   public Kit2daBitmap(byte buffer[], int offset)
   {
-    this(buffer, offset, true);
+    this(null, buffer, offset, true);
+  }
+
+  public Kit2daBitmap(StructEntry parent, byte buffer[], int offset)
+  {
+    this(parent, buffer, offset, true);
   }
 
   public Kit2daBitmap(byte buffer[], int offset, boolean useUnusable)
   {
-    super(offset, 4, "Kit");
+    this(null, buffer, offset, useUnusable);
+  }
+
+  public Kit2daBitmap(StructEntry parent, byte buffer[], int offset, boolean useUnusable)
+  {
+    super(parent, offset, 4, "Kit");
     this.useUnusable = useUnusable;
     if (kitsNumber.size() == 0)
       parseKitlist();

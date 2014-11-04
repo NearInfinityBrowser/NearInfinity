@@ -28,92 +28,93 @@ public final class Song extends AbstractStruct // implements AddRemovable
   public int read(byte buffer[], int offset) throws Exception
   {
     if (ResourceFactory.getInstance().resourceExists("SONGLIST.2DA")) { // BG2
-      list.add(new Song2daBitmap(buffer, offset, 4, "Day song"));
-      list.add(new Song2daBitmap(buffer, offset + 4, 4, "Night song"));
-      list.add(new Song2daBitmap(buffer, offset + 8, 4, "Victory song"));
-      list.add(new Song2daBitmap(buffer, offset + 12, 4, "Battle song"));
-      list.add(new Song2daBitmap(buffer, offset + 16, 4, "Defeat song"));
-      list.add(new Song2daBitmap(buffer, offset + 20, 4, "Alternative day song"));
-      list.add(new Song2daBitmap(buffer, offset + 24, 4, "Alternative night song"));
-      list.add(new Song2daBitmap(buffer, offset + 28, 4, "Alternative victory song"));
-      list.add(new Song2daBitmap(buffer, offset + 32, 4, "Alternative battle song"));
-      list.add(new Song2daBitmap(buffer, offset + 36, 4, "Alternative defeat song"));
+      addField(new Song2daBitmap(buffer, offset, 4, "Day song"));
+      addField(new Song2daBitmap(buffer, offset + 4, 4, "Night song"));
+      addField(new Song2daBitmap(buffer, offset + 8, 4, "Victory song"));
+      addField(new Song2daBitmap(buffer, offset + 12, 4, "Battle song"));
+      addField(new Song2daBitmap(buffer, offset + 16, 4, "Defeat song"));
+      addField(new Song2daBitmap(buffer, offset + 20, 4, "Alternative day song"));
+      addField(new Song2daBitmap(buffer, offset + 24, 4, "Alternative night song"));
+      addField(new Song2daBitmap(buffer, offset + 28, 4, "Alternative victory song"));
+      addField(new Song2daBitmap(buffer, offset + 32, 4, "Alternative battle song"));
+      addField(new Song2daBitmap(buffer, offset + 36, 4, "Alternative defeat song"));
     }
     else if (ResourceFactory.getInstance().resourceExists("MUSICLIS.IDS")) { // IWD
-      list.add(new IdsBitmap(buffer, offset, 4, "Day song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 4, 4, "Night song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 8, 4, "Victory song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 16, 4, "Defeat song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 20, 4, "Alternative day song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 24, 4, "Alternative Night song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 28, 4, "Alternative victory song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "MUSICLIS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 36, 4, "Alternative defeat song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset, 4, "Day song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 4, 4, "Night song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 8, 4, "Victory song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 16, 4, "Defeat song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 20, 4, "Alternative day song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 24, 4, "Alternative Night song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 28, 4, "Alternative victory song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "MUSICLIS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 36, 4, "Alternative defeat song", "MUSICLIS.IDS"));
     }
     else if (ResourceFactory.getInstance().resourceExists("MUSIC.IDS")) { // IWD2
-      list.add(new IdsBitmap(buffer, offset, 4, "Day song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 4, 4, "Night song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 8, 4, "Victory song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 16, 4, "Defeat song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 20, 4, "Alternative day song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 24, 4, "Alternative night song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 28, 4, "Alternative victory song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "MUSIC.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 36, 4, "Alternative defeat song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset, 4, "Day song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 4, 4, "Night song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 8, 4, "Victory song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 16, 4, "Defeat song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 20, 4, "Alternative day song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 24, 4, "Alternative night song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 28, 4, "Alternative victory song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "MUSIC.IDS"));
+      addField(new IdsBitmap(buffer, offset + 36, 4, "Alternative defeat song", "MUSIC.IDS"));
     }
     else if (ResourceFactory.getInstance().resourceExists("SONGS.IDS")) { // PST
-      list.add(new IdsBitmap(buffer, offset, 4, "Day song", "SONGS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 4, 4, "Night song", "SONGS.IDS"));
-      list.add(new Unknown(buffer, offset + 8, 4));
-      list.add(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "SONGS.IDS"));
-      list.add(new Unknown(buffer, offset + 16, 4));
-      list.add(new IdsBitmap(buffer, offset + 20, 4, "Alternative day song", "SONGS.IDS"));
-      list.add(new IdsBitmap(buffer, offset + 24, 4, "Alternative night song", "SONGS.IDS"));
-      list.add(new Unknown(buffer, offset + 28, 4));
-      list.add(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "SONGS.IDS"));
-      list.add(new Unknown(buffer, offset + 36, 4));
+      addField(new IdsBitmap(buffer, offset, 4, "Day song", "SONGS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 4, 4, "Night song", "SONGS.IDS"));
+      addField(new Unknown(buffer, offset + 8, 4));
+      addField(new IdsBitmap(buffer, offset + 12, 4, "Battle song", "SONGS.IDS"));
+      addField(new Unknown(buffer, offset + 16, 4));
+      addField(new IdsBitmap(buffer, offset + 20, 4, "Alternative day song", "SONGS.IDS"));
+      addField(new IdsBitmap(buffer, offset + 24, 4, "Alternative night song", "SONGS.IDS"));
+      addField(new Unknown(buffer, offset + 28, 4));
+      addField(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "SONGS.IDS"));
+      addField(new Unknown(buffer, offset + 36, 4));
     }
     else { // BG
-      list.add(new DecNumber(buffer, offset, 4, "Day song"));
-      list.add(new DecNumber(buffer, offset + 4, 4, "Night song"));
-      list.add(new DecNumber(buffer, offset + 8, 4, "Victory song"));
-      list.add(new DecNumber(buffer, offset + 12, 4, "Battle song"));
-      list.add(new DecNumber(buffer, offset + 16, 4, "Defeat song"));
-      list.add(new DecNumber(buffer, offset + 20, 4, "Alternative day song"));
-      list.add(new DecNumber(buffer, offset + 24, 4, "Alternative night song"));
-      list.add(new DecNumber(buffer, offset + 28, 4, "Alternative day song"));
-      list.add(new DecNumber(buffer, offset + 32, 4, "Alternative victory song"));
-      list.add(new DecNumber(buffer, offset + 36, 4, "Alternative defeat song"));
+      addField(new DecNumber(buffer, offset, 4, "Day song"));
+      addField(new DecNumber(buffer, offset + 4, 4, "Night song"));
+      addField(new DecNumber(buffer, offset + 8, 4, "Victory song"));
+      addField(new DecNumber(buffer, offset + 12, 4, "Battle song"));
+      addField(new DecNumber(buffer, offset + 16, 4, "Defeat song"));
+      addField(new DecNumber(buffer, offset + 20, 4, "Alternative day song"));
+      addField(new DecNumber(buffer, offset + 24, 4, "Alternative night song"));
+      addField(new DecNumber(buffer, offset + 28, 4, "Alternative day song"));
+      addField(new DecNumber(buffer, offset + 32, 4, "Alternative victory song"));
+      addField(new DecNumber(buffer, offset + 36, 4, "Alternative defeat song"));
     }
     if (getSuperStruct() != null) {
-      list.add(new AreResourceRef(buffer, offset + 40, "Main ambient (day) 1",
+      addField(new AreResourceRef(buffer, offset + 40, "Main ambient (day) 1",
                                   (AreResource)getSuperStruct()));
-      list.add(new AreResourceRef(buffer, offset + 48, "Main ambient (day) 2",
+      addField(new AreResourceRef(buffer, offset + 48, "Main ambient (day) 2",
                                   (AreResource)getSuperStruct()));
-      list.add(new DecNumber(buffer, offset + 56, 4, "Main ambient volume (day)"));
-      list.add(new AreResourceRef(buffer, offset + 60, "Main ambient (night) 1",
+      addField(new DecNumber(buffer, offset + 56, 4, "Main ambient volume (day)"));
+      addField(new AreResourceRef(buffer, offset + 60, "Main ambient (night) 1",
                                   (AreResource)getSuperStruct()));
-      list.add(new AreResourceRef(buffer, offset + 68, "Main ambient (night) 2",
+      addField(new AreResourceRef(buffer, offset + 68, "Main ambient (night) 2",
                                   (AreResource)getSuperStruct()));
-      list.add(new DecNumber(buffer, offset + 76, 4, "Main ambient volume (night)"));
+      addField(new DecNumber(buffer, offset + 76, 4, "Main ambient volume (night)"));
     }
     else {
-      list.add(new ResourceRef(buffer, offset + 40, "Main ambient (day) 1", "WAV"));
-      list.add(new ResourceRef(buffer, offset + 48, "Main ambient (day) 2", "WAV"));
-      list.add(new DecNumber(buffer, offset + 56, 4, "Main ambient volume (day)"));
-      list.add(new ResourceRef(buffer, offset + 60, "Main ambient (night) 1", "WAV"));
-      list.add(new ResourceRef(buffer, offset + 68, "Main ambient (night) 2", "WAV"));
-      list.add(new DecNumber(buffer, offset + 76, 4, "Main ambient volume (night)"));
+      addField(new ResourceRef(buffer, offset + 40, "Main ambient (day) 1", "WAV"));
+      addField(new ResourceRef(buffer, offset + 48, "Main ambient (day) 2", "WAV"));
+      addField(new DecNumber(buffer, offset + 56, 4, "Main ambient volume (day)"));
+      addField(new ResourceRef(buffer, offset + 60, "Main ambient (night) 1", "WAV"));
+      addField(new ResourceRef(buffer, offset + 68, "Main ambient (night) 2", "WAV"));
+      addField(new DecNumber(buffer, offset + 76, 4, "Main ambient volume (night)"));
     }
-    if (ResourceFactory.getInstance().resourceExists("REVERB.IDS"))
-      list.add(new IdsBitmap(buffer, offset + 80, 4, "Reverb", "REVERB.IDS"));
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
-      list.add(new Bitmap(buffer, offset + 80, 4, "Reverb", s_reverb));
-    else
-      list.add(new Unknown(buffer, offset + 80, 4));
-    list.add(new Unknown(buffer, offset + 84, 60));
+    if (ResourceFactory.getInstance().resourceExists("REVERB.IDS")) {
+      addField(new IdsBitmap(buffer, offset + 80, 4, "Reverb", "REVERB.IDS"));
+    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      addField(new Bitmap(buffer, offset + 80, 4, "Reverb", s_reverb));
+    } else {
+      addField(new Unknown(buffer, offset + 80, 4));
+    }
+    addField(new Unknown(buffer, offset + 84, 60));
     return offset + 144;
   }
 }

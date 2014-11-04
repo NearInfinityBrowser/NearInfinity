@@ -37,9 +37,9 @@ final class KnownSpells extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));
-    list.add(new DecNumber(buffer, offset + 8, 2, "Level"));
-    list.add(new Bitmap(buffer, offset + 10, 2, "Type", s_spelltype));
+    addField(new ResourceRef(buffer, offset, "Spell", "SPL"));
+    addField(new DecNumber(buffer, offset + 8, 2, "Level"));
+    addField(new Bitmap(buffer, offset + 10, 2, "Type", s_spelltype));
     return offset + 12;
   }
 }

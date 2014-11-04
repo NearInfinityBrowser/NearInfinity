@@ -34,8 +34,8 @@ final class Cure extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "Price"));
+    addField(new ResourceRef(buffer, offset, "Spell", "SPL"));
+    addField(new DecNumber(buffer, offset + 8, 4, "Price"));
     return offset + 12;
   }
 }

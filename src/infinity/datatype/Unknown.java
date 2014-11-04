@@ -9,6 +9,7 @@ import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
@@ -31,12 +32,22 @@ public class Unknown extends Datatype implements Editable
 
   public Unknown(byte[] buffer, int offset, int length)
   {
-    this(buffer, offset, length, UNKNOWN);
+    this(null, buffer, offset, length, UNKNOWN);
+  }
+
+  public Unknown(StructEntry parent, byte[] buffer, int offset, int length)
+  {
+    this(parent, buffer, offset, length, UNKNOWN);
   }
 
   public Unknown(byte[] buffer, int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public Unknown(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
   }
 

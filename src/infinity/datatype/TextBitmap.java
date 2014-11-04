@@ -7,6 +7,7 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.io.FileWriterNI;
 
@@ -33,7 +34,13 @@ public final class TextBitmap extends Datatype implements Editable
 
   public TextBitmap(byte buffer[], int offset, int length, String name, String ids[], String names[])
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, ids, names);
+  }
+
+  public TextBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    String ids[], String names[])
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
     this.ids = ids;
     this.names = names;

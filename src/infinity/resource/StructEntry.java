@@ -11,12 +11,17 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
   Object clone() throws CloneNotSupportedException;
 
   void copyNameAndOffset(StructEntry fromEntry);
+
   String getName();
 
   int getOffset();
 
+  StructEntry getParent();
+
   int getSize();
 
   void setOffset(int newoffset);
+
+  void setParent(StructEntry parent);
 }
 

@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
@@ -36,14 +37,25 @@ public class IdsBitmap extends Datatype implements Editable
 
   public IdsBitmap(byte buffer[], int offset, int length, String name, String resource)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, resource);
+  }
+
+  public IdsBitmap(StructEntry parent, byte buffer[], int offset, int length, String name, String resource)
+  {
+    super(parent, offset, length, name);
     idsmap = IdsMapCache.get(resource).getMap();
     read(buffer, offset);
   }
 
   public IdsBitmap(byte buffer[], int offset, int length, String name, String resource, int idsStart)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, resource, idsStart);
+  }
+
+  public IdsBitmap(StructEntry parent, byte buffer[], int offset, int length, String name, String resource,
+                   int idsStart)
+  {
+    super(parent, offset, length, name);
     LongIntegerHashMap<IdsMapEntry> orgmap = IdsMapCache.get(resource).getMap();
     idsmap = new LongIntegerHashMap<IdsMapEntry>();
 

@@ -64,10 +64,10 @@ public final class State extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset)
   {
-    list.add(new StringRef(buffer, offset, "Response"));
-    list.add(new DecNumber(buffer, offset + 4, 4, "First response index"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "# responses"));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Trigger index"));
+    addField(new StringRef(buffer, offset, "Response"));
+    addField(new DecNumber(buffer, offset + 4, 4, "First response index"));
+    addField(new DecNumber(buffer, offset + 8, 4, "# responses"));
+    addField(new DecNumber(buffer, offset + 12, 4, "Trigger index"));
     return offset + 16;
   }
 }

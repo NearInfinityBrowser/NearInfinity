@@ -66,14 +66,15 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
       for (int i = 0; offset + 524 <= buffer.length; i++) {
         StringEntry entry = new StringEntry(this, buffer, offset, i);
         offset = entry.getEndOffset();
-        list.add(entry);
+        addField(entry);
       }
-    } else
-      list.add(new Unknown(buffer, offset, 0, "(Empty)"));  // Placeholder for empty structure
+    } else {
+      addField(new Unknown(buffer, offset, 0, "(Empty)"));  // Placeholder for empty structure
+    }
 
     int endoffset = offset;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

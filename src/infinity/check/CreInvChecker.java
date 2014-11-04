@@ -233,8 +233,8 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     HexNumber slots_offset = (HexNumber)cre.getAttribute("Item slots offset");
     items.clear();
     slots.clear();
-    for (int i = 0; i < cre.getRowCount(); i++) {
-      StructEntry entry = cre.getStructEntryAt(i);
+    for (int i = 0; i < cre.getFieldCount(); i++) {
+      StructEntry entry = cre.getField(i);
       if (entry instanceof Item)
         items.add(entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&

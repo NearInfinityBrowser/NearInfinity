@@ -61,8 +61,8 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
       if (resource instanceof HasAddRemovable) {
         AbstractStruct struct = (AbstractStruct)resource;
         int firstIndex = 0;
-        for (int i = 0; i < struct.getRowCount(); i++) {
-          StructEntry structEntry = struct.getStructEntryAt(i);
+        for (int i = 0; i < struct.getFieldCount(); i++) {
+          StructEntry structEntry = struct.getField(i);
           if (firstIndex == 0 && structEntry instanceof AddRemovable)
             firstIndex = i;
           if (firstIndex > 0 && !(structEntry instanceof AddRemovable)) {
@@ -72,7 +72,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           }
         }
         if (firstIndex != 0)
-          StructClipboard.getInstance().cut(struct, firstIndex, struct.getRowCount() - 1);
+          StructClipboard.getInstance().cut(struct, firstIndex, struct.getFieldCount() - 1);
         if (StructClipboard.getInstance().getContentType(struct) != StructClipboard.CLIPBOARD_EMPTY) {
           StructClipboard.getInstance().paste(struct);
           StructClipboard.getInstance().clear();

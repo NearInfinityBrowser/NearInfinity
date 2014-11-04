@@ -39,11 +39,11 @@ public final class Variable extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
-    list.add(new Unknown(buffer, offset + 34, 6));
-    list.add(new DecNumber(buffer, offset + 40, 4, "Value"));
-    list.add(new Unknown(buffer, offset + 44, 40));
+    addField(new TextString(buffer, offset, 32, "Name"));
+    addField(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
+    addField(new Unknown(buffer, offset + 34, 6));
+    addField(new DecNumber(buffer, offset + 40, 4, "Value"));
+    addField(new Unknown(buffer, offset + 44, 40));
     return offset + 84;
   }
 }

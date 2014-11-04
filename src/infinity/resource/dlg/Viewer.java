@@ -472,8 +472,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     staTriList.clear();
     transTriList.clear();
     actionList.clear();
-    for (int i = 0; i < dlg.getRowCount(); i++) {
-      StructEntry entry = dlg.getStructEntryAt(i);
+    for (int i = 0; i < dlg.getFieldCount(); i++) {
+      StructEntry entry = dlg.getField(i);
       if (entry instanceof State)
         stateList.add((State)entry);
       else if (entry instanceof Transition)

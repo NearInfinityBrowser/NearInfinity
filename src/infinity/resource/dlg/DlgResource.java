@@ -98,24 +98,26 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
   public void write(OutputStream os) throws IOException
   {
     offsetState.setValue(0x30);
-    if (list.size() >= 13 && getStructEntryAt(12).getName().equalsIgnoreCase("Threat response"))
+    if (getFieldCount() >= 13 && getField(12).getName().equalsIgnoreCase("Threat response"))
       offsetState.setValue(0x34);
     offsetTrans.setValue(offsetState.getValue() + 0x10 * countState.getValue());
     offsetStaTri.setValue(offsetTrans.getValue() + 0x20 * countTrans.getValue());
     offsetTranTri.setValue(offsetStaTri.getValue() + 0x8 * countStaTri.getValue());
     offsetAction.setValue(offsetTranTri.getValue() + 0x8 * countTranTri.getValue());
     int stringoff = offsetAction.getValue() + 0x8 * countAction.getValue();
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof AbstractCode)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof AbstractCode) {
         stringoff += ((AbstractCode)o).updateOffset(stringoff);
+      }
     }
     super.write(os);
 
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof AbstractCode)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof AbstractCode) {
         ((AbstractCode)o).writeString(os);
+      }
     }
   }
 
@@ -124,60 +126,61 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
-    list.add(version);
+    addField(version);
     if (!version.toString().equalsIgnoreCase("V1.0")) {
-      list.clear();
+      clearFields();
       throw new Exception("Unsupported version: " + version);
     }
 
     countState = new SectionCount(buffer, offset + 8, 4, "# states",
                                   State.class);
-    list.add(countState);
+    addField(countState);
     offsetState = new SectionOffset(buffer, offset + 12, "States offset",
                                     State.class);
-    list.add(offsetState);
+    addField(offsetState);
     countTrans = new SectionCount(buffer, offset + 16, 4, "# responses",
                                   Transition.class);
-    list.add(countTrans);
+    addField(countTrans);
     offsetTrans = new SectionOffset(buffer, offset + 20, "Responses offset",
                                     Transition.class);
-    list.add(offsetTrans);
+    addField(offsetTrans);
     offsetStaTri = new SectionOffset(buffer, offset + 24, "State triggers offset",
                                      StateTrigger.class);
-    list.add(offsetStaTri);
+    addField(offsetStaTri);
     countStaTri = new SectionCount(buffer, offset + 28, 4, "# state triggers",
                                    StateTrigger.class);
-    list.add(countStaTri);
+    addField(countStaTri);
     offsetTranTri = new SectionOffset(buffer, offset + 32, "Response triggers offset",
                                       ResponseTrigger.class);
-    list.add(offsetTranTri);
+    addField(offsetTranTri);
     countTranTri = new SectionCount(buffer, offset + 36, 4, "# response triggers",
                                     ResponseTrigger.class);
-    list.add(countTranTri);
+    addField(countTranTri);
     offsetAction = new SectionOffset(buffer, offset + 40, "Actions offset",
                                      infinity.resource.dlg.Action.class);
-    list.add(offsetAction);
+    addField(offsetAction);
     countAction = new SectionCount(buffer, offset + 44, 4, "# actions",
                                    infinity.resource.dlg.Action.class);
-    list.add(countAction);
+    addField(countAction);
 
-    if (offsetState.getValue() > 0x30)
-      list.add(new Flag(buffer, offset + 48, 4, "Threat response", sNonInt));
+    if (offsetState.getValue() > 0x30) {
+      addField(new Flag(buffer, offset + 48, 4, "Threat response", sNonInt));
+    }
 
     offset = offsetState.getValue();
     for (int i = 0; i < countState.getValue(); i++) {
       State state = new State(this, buffer, offset, i);
       offset = state.getEndOffset();
-      list.add(state);
+      addField(state);
     }
 
     offset = offsetTrans.getValue();
     for (int i = 0; i < countTrans.getValue(); i++) {
       Transition transition = new Transition(this, buffer, offset, i);
       offset = transition.getEndOffset();
-      list.add(transition);
+      addField(transition);
     }
 
     int textSize = 0;
@@ -186,7 +189,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
       StateTrigger statri = new StateTrigger(buffer, offset, i);
       offset += statri.getSize();
       textSize += statri.getTextLength();
-      list.add(statri);
+      addField(statri);
     }
 
     offset = offsetTranTri.getValue();
@@ -194,7 +197,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
       ResponseTrigger trantri = new ResponseTrigger(buffer, offset, i);
       offset += trantri.getSize();
       textSize += trantri.getTextLength();
-      list.add(trantri);
+      addField(trantri);
     }
 
     offset = offsetAction.getValue();
@@ -202,7 +205,7 @@ public final class DlgResource extends AbstractStruct implements Resource, HasAd
       Action action = new Action(buffer, offset, i);
       offset += action.getSize();
       textSize += action.getTextLength();
-      list.add(action);
+      addField(action);
     }
     return offset + textSize;
   }

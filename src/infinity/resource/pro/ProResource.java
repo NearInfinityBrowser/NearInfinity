@@ -12,7 +12,6 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
 import infinity.datatype.HashBitmapEx;
-import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
@@ -166,47 +165,46 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
-    final String[] s_types = ResourceFactory.isEnhancedEdition() ?
-                             new String[]{"VVC", "BAM"} :
-                               new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = ResourceFactory.isEnhancedEdition() ? new String[]{"VVC", "BAM"} :
+                                                                   new String[]{"VEF", "VVC", "BAM"};
 
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
     HashBitmapEx projtype = new HashBitmapEx(buffer, offset + 8, 2, "Projectile type", m_projtype);
     projtype.addUpdateListener(this);
-    list.add(projtype);
-    list.add(new DecNumber(buffer, offset + 10, 2, "Speed"));
-    list.add(new Flag(buffer, offset + 12, 4, "Behavior", s_behave));
-    list.add(new ResourceRef(buffer, offset + 16, "Fire sound", "WAV"));
-    list.add(new ResourceRef(buffer, offset + 24, "Impact sound", "WAV"));
-    list.add(new ResourceRef(buffer, offset + 32, "Source animation", s_types));
-    list.add(new Bitmap(buffer, offset + 40, 4, "Particle color", s_color));
+    addField(projtype);
+    addField(new DecNumber(buffer, offset + 10, 2, "Speed"));
+    addField(new Flag(buffer, offset + 12, 4, "Behavior", s_behave));
+    addField(new ResourceRef(buffer, offset + 16, "Fire sound", "WAV"));
+    addField(new ResourceRef(buffer, offset + 24, "Impact sound", "WAV"));
+    addField(new ResourceRef(buffer, offset + 32, "Source animation", s_types));
+    addField(new Bitmap(buffer, offset + 40, 4, "Particle color", s_color));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
-      list.add(new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx));
-      list.add(new StringRef(buffer, offset + 48, "String"));
-      list.add(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
-      list.add(new DecNumber(buffer, offset + 56, 2, "Color speed"));
-      list.add(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
-      list.add(new DecNumber(buffer, offset + 60, 2, "IDS1 value"));
-      list.add(new DecNumber(buffer, offset + 62, 2, "IDS1 type"));
-      list.add(new DecNumber(buffer, offset + 64, 2, "IDS2 value"));
-      list.add(new DecNumber(buffer, offset + 66, 2, "IDS2 type"));
-      list.add(new ResourceRef(buffer, 68, "Default spell", "SPL"));
-      list.add(new ResourceRef(buffer, 76, "Success spell", "SPL"));
-      list.add(new Unknown(buffer, offset + 84, 172));
+      addField(new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx));
+      addField(new StringRef(buffer, offset + 48, "String"));
+      addField(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
+      addField(new DecNumber(buffer, offset + 56, 2, "Color speed"));
+      addField(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
+      addField(new DecNumber(buffer, offset + 60, 2, "IDS1 value"));
+      addField(new DecNumber(buffer, offset + 62, 2, "IDS1 type"));
+      addField(new DecNumber(buffer, offset + 64, 2, "IDS2 value"));
+      addField(new DecNumber(buffer, offset + 66, 2, "IDS2 type"));
+      addField(new ResourceRef(buffer, 68, "Default spell", "SPL"));
+      addField(new ResourceRef(buffer, 76, "Success spell", "SPL"));
+      addField(new Unknown(buffer, offset + 84, 172));
     } else {
-      list.add(new Unknown(buffer, offset + 44, 212));
+      addField(new Unknown(buffer, offset + 44, 212));
     }
     offset += 256;
 
     if (projtype.getValue() > 1L) {
       ProSingleType single = new ProSingleType(this, buffer, offset);
-      list.add(single);
+      addField(single);
       offset += single.getSize();
     }
     if (projtype.getValue() > 2L) {
       ProAreaType area = new ProAreaType(this, buffer, offset);
-      list.add(area);
+      addField(area);
       offset += area.getSize();
     }
 

@@ -93,13 +93,13 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
     EffectType type = new EffectType(buffer, offset + 8, 4);
-    list.add(type);
-    offset = type.readAttributes(buffer, offset + 12, list);
+    addField(type);
+    offset = type.readAttributes(buffer, offset + 12, getList());
 
-    offset = readCommon(list, buffer, offset);
+    offset = readCommon(getList(), buffer, offset);
 
     return offset;
   }

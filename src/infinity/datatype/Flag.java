@@ -6,6 +6,7 @@ package infinity.datatype;
 
 import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
@@ -34,13 +35,23 @@ public class Flag extends Datatype implements Editable, ActionListener
 
   Flag(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  Flag(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
   }
 
   public Flag(byte buffer[], int offset, int length, String name, String[] stable)
   {
-    this(buffer, offset, length, name);
+    this(null, buffer, offset, length, name, stable);
+  }
+
+  public Flag(StructEntry parent, byte buffer[], int offset, int length, String name, String[] stable)
+  {
+    this(parent, buffer, offset, length, name);
     nodesc = stable[0];
     table = new String[8 * length];
     for (int i = 1; i < stable.length; i++)

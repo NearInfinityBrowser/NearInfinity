@@ -28,8 +28,8 @@ public class StrRefEntry2 extends AbstractStruct
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
-    list.add(new StringRef(buffer, offset, "Overridden strref"));
-    list.add(new HexNumber(buffer, offset + 4, 4, "Relative override string offset"));
+    addField(new StringRef(buffer, offset, "Overridden strref"));
+    addField(new HexNumber(buffer, offset + 4, 4, "Relative override string offset"));
     return offset + 8;
   }
 }

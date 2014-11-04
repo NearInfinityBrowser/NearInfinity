@@ -10,6 +10,7 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
@@ -45,22 +46,42 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
   public ProRef(byte buffer[], int offset, String name)
   {
-    this(buffer, offset, 2, name, 0L);
+    this(null, buffer, offset, name);
+  }
+
+  public ProRef(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    this(parent, buffer, offset, 2, name, 0L);
   }
 
   public ProRef(byte buffer[], int offset, int size, String name)
   {
-    this(buffer, offset, size, name, 0L);
+    this(null, buffer, offset, size, name, 0L);
+  }
+
+  public ProRef(StructEntry parent, byte buffer[], int offset, int size, String name)
+  {
+    this(parent, buffer, offset, size, name, 0L);
   }
 
   public ProRef(byte buffer[], int offset, String name, long minValue)
   {
-    this(buffer, offset, 2, name, 0L);
+    this(null, buffer, offset, 2, name, 0L);
+  }
+
+  public ProRef(StructEntry parent, byte buffer[], int offset, String name, long minValue)
+  {
+    this(parent, buffer, offset, 2, name, 0L);
   }
 
   public ProRef(byte buffer[], int offset, int size, String name, long minValue)
   {
-    super(offset, size, name);
+    this(null, buffer, offset, size, name, minValue);
+  }
+
+  public ProRef(StructEntry parent, byte buffer[], int offset, int size, String name, long minValue)
+  {
+    super(parent, offset, size, name);
     if (minValue < 0L) minValue = 0L;
     this.minValue = minValue;
     LongIntegerHashMap<IdsMapEntry> fullMap = IdsMapCache.get("PROJECTL.IDS").getMap();

@@ -4,6 +4,7 @@
 
 package infinity.datatype;
 
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.io.FileWriterNI;
 
@@ -17,7 +18,12 @@ public final class TextString extends Datatype implements InlineEditable
 
   public TextString(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public TextString(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     bytes = new byte[length];
     read(buffer, offset);
   }

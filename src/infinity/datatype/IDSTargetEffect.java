@@ -9,6 +9,7 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
@@ -48,32 +49,63 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
   public IDSTargetEffect(byte buffer[], int offset)
   {
-    this(buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
+    this(null, buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset)
+  {
+    this(parent, buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
   }
 
   public IDSTargetEffect(byte buffer[], int offset, int size)
   {
-    this(buffer, offset, size, DEFAULT_NAME, "EA.IDS");
+    this(null, buffer, offset, size, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size)
+  {
+    this(parent, buffer, offset, size, DEFAULT_NAME, "EA.IDS");
   }
 
   public IDSTargetEffect(byte buffer[], int offset, String name)
   {
-    this(buffer, offset, 8, name, "EA.IDS");
+    this(null, buffer, offset, 8, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    this(parent, buffer, offset, 8, name, "EA.IDS");
   }
 
   public IDSTargetEffect(byte buffer[], int offset, int size, String name)
   {
-    this(buffer, offset, size, name, "EA.IDS");
+    this(null, buffer, offset, size, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size, String name)
+  {
+    this(parent, buffer, offset, size, name, "EA.IDS");
   }
 
   public IDSTargetEffect(byte buffer[], int offset, String name, String secondIDS)
   {
-    this(buffer, offset, 8, name, secondIDS);
+    this(null, buffer, offset, 8, name, secondIDS);
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, String name, String secondIDS)
+  {
+    this(parent, buffer, offset, 8, name, secondIDS);
   }
 
   public IDSTargetEffect(byte buffer[], int offset, int size, String name, String secondIDS)
   {
-    super(offset, size, (name != null) ? name : DEFAULT_NAME);
+    this(null, buffer, offset, size, name, secondIDS);
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size, String name,
+                         String secondIDS)
+  {
+    super(parent, offset, size, (name != null) ? name : DEFAULT_NAME);
     sIDS = sIDS_default;
     sIDS[2] = secondIDS;
     if (ResourceFactory.isEnhancedEdition()) {

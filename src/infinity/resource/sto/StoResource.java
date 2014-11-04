@@ -125,96 +125,97 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
-    list.add(version);
+    addField(version);
     if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
         ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
         ResourceFactory.isEnhancedEdition()) {
-      list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type_bg2));
-      list.add(new StringRef(buffer, offset + 12, "Name"));
-      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
+      addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type_bg2));
+      addField(new StringRef(buffer, offset + 12, "Name"));
+      addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
     }
 //    else if (version.toString().equalsIgnoreCase("V9.0")) {
-//      list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
-//      list.add(new StringRef(buffer, offset + 12, "Name"));
-//      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag));
+//      addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
+//      addField(new StringRef(buffer, offset + 12, "Name"));
+//      addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag));
 //    }
     else {
-      list.add(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
-      list.add(new StringRef(buffer, offset + 12, "Name"));
-      list.add(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
+      addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
+      addField(new StringRef(buffer, offset + 12, "Name"));
+      addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
     }
-    list.add(new DecNumber(buffer, offset + 20, 4, "Sell markup"));
-    list.add(new DecNumber(buffer, offset + 24, 4, "Buy markup"));
-    list.add(new DecNumber(buffer, offset + 28, 4, "Depreciation rate"));
-//    list.add(new Unknown(buffer, offset + 30, 2));
-    list.add(new DecNumber(buffer, offset + 32, 2, "Stealing difficulty"));
-    if (version.toString().equalsIgnoreCase("V9.0"))
-      list.add(new Unknown(buffer, offset + 34, 2));
-    else
-      list.add(new UnsignDecNumber(buffer, offset + 34, 2, "Storage capacity"));
-    list.add(new Unknown(buffer, offset + 36, 8));
+    addField(new DecNumber(buffer, offset + 20, 4, "Sell markup"));
+    addField(new DecNumber(buffer, offset + 24, 4, "Buy markup"));
+    addField(new DecNumber(buffer, offset + 28, 4, "Depreciation rate"));
+//    addField(new Unknown(buffer, offset + 30, 2));
+    addField(new DecNumber(buffer, offset + 32, 2, "Stealing difficulty"));
+    if (version.toString().equalsIgnoreCase("V9.0")) {
+      addField(new Unknown(buffer, offset + 34, 2));
+    } else {
+      addField(new UnsignDecNumber(buffer, offset + 34, 2, "Storage capacity"));
+    }
+    addField(new Unknown(buffer, offset + 36, 8));
     SectionOffset offset_purchased = new SectionOffset(buffer, offset + 44, "Items purchased offset",
                                                        Purchases.class);
-    list.add(offset_purchased);
+    addField(offset_purchased);
     SectionCount count_purchased = new SectionCount(buffer, offset + 48, 4, "# items purchased",
                                                     Purchases.class);
-    list.add(count_purchased);
+    addField(count_purchased);
     SectionOffset offset_sale;
     SectionCount count_sale;
     if (version.toString().equals("V1.0") || version.toString().equals("V9.0")) {
       offset_sale = new SectionOffset(buffer, offset + 52, "Items for sale offset",
                                       ItemSale.class);
-      list.add(offset_sale);
+      addField(offset_sale);
       count_sale = new SectionCount(buffer, offset + 56, 4, "# items for sale",
                                     ItemSale.class);
-      list.add(count_sale);
+      addField(count_sale);
     }
     else if (version.toString().equals("V1.1")) {
       offset_sale = new SectionOffset(buffer, offset + 52, "Items for sale offset",
                                       ItemSale11.class);
-      list.add(offset_sale);
+      addField(offset_sale);
       count_sale = new SectionCount(buffer, offset + 56, 4, "# items for sale",
                                     ItemSale11.class);
-      list.add(count_sale);
+      addField(count_sale);
     }
     else {
-      list.clear();
+      clearFields();
       throw new Exception("Unsupported version: " + version);
     }
-    list.add(new DecNumber(buffer, offset + 60, 4, "Lore"));
-    list.add(new DecNumber(buffer, offset + 64, 4, "Cost to identify"));
-    list.add(new ResourceRef(buffer, offset + 68, "Rumors (drinks)", "DLG"));
+    addField(new DecNumber(buffer, offset + 60, 4, "Lore"));
+    addField(new DecNumber(buffer, offset + 64, 4, "Cost to identify"));
+    addField(new ResourceRef(buffer, offset + 68, "Rumors (drinks)", "DLG"));
     SectionOffset offset_drinks = new SectionOffset(buffer, offset + 76, "Drinks offset",
                                                     Drink.class);
-    list.add(offset_drinks);
+    addField(offset_drinks);
     SectionCount count_drinks = new SectionCount(buffer, offset + 80, 4, "# drinks for sale",
                                                  Drink.class);
-    list.add(count_drinks);
-    list.add(new ResourceRef(buffer, offset + 84, "Rumors (donations)", "DLG"));
-    list.add(new Flag(buffer, offset + 92, 4, "Available rooms", s_rooms));
-    list.add(new DecNumber(buffer, offset + 96, 4, "Price peasant room"));
-    list.add(new DecNumber(buffer, offset + 100, 4, "Price merchant room"));
-    list.add(new DecNumber(buffer, offset + 104, 4, "Price noble room"));
-    list.add(new DecNumber(buffer, offset + 108, 4, "Price royal room"));
+    addField(count_drinks);
+    addField(new ResourceRef(buffer, offset + 84, "Rumors (donations)", "DLG"));
+    addField(new Flag(buffer, offset + 92, 4, "Available rooms", s_rooms));
+    addField(new DecNumber(buffer, offset + 96, 4, "Price peasant room"));
+    addField(new DecNumber(buffer, offset + 100, 4, "Price merchant room"));
+    addField(new DecNumber(buffer, offset + 104, 4, "Price noble room"));
+    addField(new DecNumber(buffer, offset + 108, 4, "Price royal room"));
     SectionOffset offset_cures = new SectionOffset(buffer, offset + 112, "Cures offset",
                                                    Cure.class);
-    list.add(offset_cures);
+    addField(offset_cures);
     SectionCount count_cures = new SectionCount(buffer, offset + 116, 4, "# cures for sale",
                                                 Cure.class);
-    list.add(count_cures);
-    list.add(new Unknown(buffer, offset + 120, 36));
+    addField(count_cures);
+    addField(new Unknown(buffer, offset + 120, 36));
     if (version.toString().equals("V9.0")) {
-      list.add(new UnsignDecNumber(buffer, offset + 156, 2, "Storage capacity"));
-      list.add(new Unknown(buffer, offset + 158, 82));
+      addField(new UnsignDecNumber(buffer, offset + 156, 2, "Storage capacity"));
+      addField(new Unknown(buffer, offset + 158, 82));
     }
 
     offset = offset_drinks.getValue();
     for (int i = 0; i < count_drinks.getValue(); i++) {
       Drink drink = new Drink(this, buffer, offset, i);
       offset = drink.getEndOffset();
-      list.add(drink);
+      addField(drink);
     }
 
     offset = offset_sale.getValue();
@@ -222,14 +223,14 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
       for (int i = 0; i < count_sale.getValue(); i++) {
         ItemSale sale = new ItemSale(this, buffer, offset, i);
         offset = sale.getEndOffset();
-        list.add(sale);
+        addField(sale);
       }
     }
     else if (version.toString().equals("V1.1")) {
       for (int i = 0; i < count_sale.getValue(); i++) {
         ItemSale11 sale = new ItemSale11(this, buffer, offset, i);
         offset = sale.getEndOffset();
-        list.add(sale);
+        addField(sale);
       }
     }
 
@@ -237,19 +238,19 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     for (int i = 0; i < count_cures.getValue(); i++) {
       Cure cure = new Cure(this, buffer, offset, i);
       offset = cure.getEndOffset();
-      list.add(cure);
+      addField(cure);
     }
 
     offset = offset_purchased.getValue();
     for (int i = 0; i < count_purchased.getValue(); i++) {
       Purchases pur = new Purchases(buffer, offset, i);
       offset += pur.getSize();
-      list.add(pur);
+      addField(pur);
     }
 
     int endoffset = offset;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

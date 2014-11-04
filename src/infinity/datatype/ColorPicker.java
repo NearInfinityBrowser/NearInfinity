@@ -5,6 +5,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.resource.graphics.ColorConvert;
 import infinity.util.DynamicArray;
 
@@ -58,12 +59,23 @@ public class ColorPicker extends Datatype implements Editable, MouseListener, Fo
   /** Initializing color picker with the most commonly used color format <code>Format.XRGB</code>. */
   public ColorPicker(byte[] buffer, int offset, String name)
   {
-    this(buffer, offset, name, Format.XRGB);
+    this(null, buffer, offset, name, Format.XRGB);
+  }
+
+  /** Initializing color picker with the most commonly used color format <code>Format.XRGB</code>. */
+  public ColorPicker(StructEntry parent, byte[] buffer, int offset, String name)
+  {
+    this(parent, buffer, offset, name, Format.XRGB);
   }
 
   public ColorPicker(byte[] buffer, int offset, String name, Format fmt)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name, fmt);
+  }
+
+  public ColorPicker(StructEntry parent, byte[] buffer, int offset, String name, Format fmt)
+  {
+    super(parent, offset, 4, name);
     switch (fmt) {
       case RGBX: shiftRed = 0; shiftGreen = 8; shiftBlue = 16; break;
       case XRGB: shiftRed = 8; shiftGreen = 16; shiftBlue = 24; break;

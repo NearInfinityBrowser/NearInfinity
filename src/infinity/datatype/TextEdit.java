@@ -9,6 +9,7 @@ import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
@@ -52,7 +53,12 @@ public final class TextEdit extends Datatype implements Editable
 
   public TextEdit(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public TextEdit(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
     this.eolType = EOLType.UNIX;
     this.charsetName = Charset.defaultCharset().name();

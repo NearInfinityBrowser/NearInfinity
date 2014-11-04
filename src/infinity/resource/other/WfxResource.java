@@ -33,13 +33,13 @@ public final class WfxResource extends AbstractStruct implements Resource, HasVi
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "SR curve radius"));
-    list.add(new Flag(buffer, offset + 12, 4, "Flags", s_flag));
-    list.add(new DecNumber(buffer, offset + 16, 4, "Pitch variation"));
-    list.add(new DecNumber(buffer, offset + 20, 4, "Volume variation"));
-    list.add(new Unknown(buffer, offset + 24, 240));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new DecNumber(buffer, offset + 8, 4, "SR curve radius"));
+    addField(new Flag(buffer, offset + 12, 4, "Flags", s_flag));
+    addField(new DecNumber(buffer, offset + 16, 4, "Pitch variation"));
+    addField(new DecNumber(buffer, offset + 20, 4, "Volume variation"));
+    addField(new Unknown(buffer, offset + 24, 240));
     return offset + 264;
   }
 

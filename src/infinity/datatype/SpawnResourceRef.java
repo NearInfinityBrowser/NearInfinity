@@ -5,6 +5,7 @@
 package infinity.datatype;
 
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.text.PlainTextResource;
 
@@ -14,7 +15,12 @@ public final class SpawnResourceRef extends ResourceRef
 {
   public SpawnResourceRef(byte h_buffer[], int offset, String name)
   {
-    super(h_buffer, offset, name, "CRE");
+    this(null, h_buffer, offset, name);
+  }
+
+  public SpawnResourceRef(StructEntry parent, byte h_buffer[], int offset, String name)
+  {
+    super(parent, h_buffer, offset, name, "CRE");
   }
 
   @Override

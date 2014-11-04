@@ -244,7 +244,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     lowerpanel.add(new JPanel(), CARD_EMPTY);
     cards.show(lowerpanel, CARD_EMPTY);
 
-    if (struct instanceof HasAddRemovable && struct.getRowCount() > 0) {
+    if (struct instanceof HasAddRemovable && struct.getFieldCount() > 0) {
       try {
         emptyTypes = ((HasAddRemovable)struct).getAddRemovables();
       } catch (Exception e) {
@@ -291,7 +291,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     bView.setEnabled(false);
     bView.addActionListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.Print)).addActionListener(this);
-    if (struct instanceof Resource && struct.getRowCount() > 0 && struct.getSuperStruct() == null) {
+    if (struct instanceof Resource && struct.getFieldCount() > 0 && struct.getSuperStruct() == null) {
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.Save)).addActionListener(this);
     }
@@ -679,7 +679,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public void tableChanged(TableModelEvent event)
   {
     if (event.getType() == TableModelEvent.UPDATE) {
-      StructEntry structEntry = struct.getStructEntryAt(event.getFirstRow());
+      StructEntry structEntry = struct.getField(event.getFirstRow());
       if (structEntry instanceof Editable && (editable == null || (structEntry.getOffset() == editable.getOffset() &&
                                                                    structEntry != editable))) {
         editable = (Editable)structEntry;
@@ -748,8 +748,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   public void selectEntry(String name)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry entry = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry entry = struct.getField(i);
       if (entry.getName().equals(name)) {
         selectEntry(entry);
         return;
@@ -764,8 +764,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   public void selectEntry(int offset, boolean recursive)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry entry = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry entry = struct.getField(i);
       if (entry instanceof AbstractStruct && recursive) {
         selectEntry((AbstractStruct)entry, offset);
       } else if (entry.getOffset() == offset) {
@@ -963,7 +963,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   private void convertAttribute(int index, JMenuItem menuitem)
   {
-    StructEntry entry = struct.getStructEntryAt(index);
+    StructEntry entry = struct.getField(index);
     if (!isCachedStructEntry(entry.getOffset())) setCachedStructEntry(entry);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
@@ -1000,8 +1000,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   private void selectEntry(StructEntry structEntry)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (structEntry == o) {
         table.getSelectionModel().setSelectionInterval(i, i);
         selectEditTab();
@@ -1014,8 +1014,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   private void selectEntry(AbstractStruct subStruct, int offset)
   {
-    for (int i = 0; i < subStruct.getRowCount(); i++) {
-      StructEntry entry = subStruct.getStructEntryAt(i);
+    for (int i = 0; i < subStruct.getFieldCount(); i++) {
+      StructEntry entry = subStruct.getField(i);
       if (entry instanceof AbstractStruct)
         selectEntry((AbstractStruct)entry, offset);
       else if (entry.getOffset() == offset)
@@ -1025,8 +1025,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   private void selectSubEntry(AbstractStruct subStruct, StructEntry structEntry)
   {
-    for (int i = 0; i < subStruct.getRowCount(); i++) {
-      StructEntry o = subStruct.getStructEntryAt(i);
+    for (int i = 0; i < subStruct.getFieldCount(); i++) {
+      StructEntry o = subStruct.getField(i);
       if (structEntry == o) {
         createViewFrame(getTopLevelAncestor(), subStruct);
 //        new ViewFrame(getTopLevelAncestor(), subStruct);

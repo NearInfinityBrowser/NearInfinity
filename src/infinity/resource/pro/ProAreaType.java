@@ -81,37 +81,36 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
-    final String[] s_types = ResourceFactory.isEnhancedEdition() ?
-                             new String[]{"VVC", "BAM"} :
-                               new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = ResourceFactory.isEnhancedEdition() ? new String[]{"VVC", "BAM"} :
+                                                                   new String[]{"VEF", "VVC", "BAM"};
 
-    list.add(new Flag(buffer, offset, 4, "Area flags", s_areaflags));
-    list.add(new DecNumber(buffer, offset + 4, 2, "Trap size"));
-    list.add(new DecNumber(buffer, offset + 6, 2, "Explosion size"));
-    list.add(new ResourceRef(buffer, offset + 8, "Explosion sound", "WAV"));
-    list.add(new DecNumber(buffer, offset + 16, 2, "Explosion frequency (frames)"));
-    list.add(new IdsBitmap(buffer, offset + 18, 2, "Fragment animation", "ANIMATE.IDS"));
-    list.add(new ProRef(buffer, offset + 20, "Secondary projectile"));
-    list.add(new DecNumber(buffer, offset + 22, 1, "# repetitions"));
-    list.add(new HashBitmap(buffer, offset + 23, 1, "Explosion effect", s_proj));
-    list.add(new ColorValue(buffer, offset + 24, 1, "Explosion color"));
-    list.add(new Unknown(buffer, offset + 25, 1, "Unused"));
-    list.add(new ProRef(buffer, offset + 26, "Explosion projectile"));
-    list.add(new ResourceRef(buffer, offset + 28, "Explosion animation", s_types));
-    list.add(new DecNumber(buffer, offset + 36, 2, "Cone width"));
+    addField(new Flag(buffer, offset, 4, "Area flags", s_areaflags));
+    addField(new DecNumber(buffer, offset + 4, 2, "Trap size"));
+    addField(new DecNumber(buffer, offset + 6, 2, "Explosion size"));
+    addField(new ResourceRef(buffer, offset + 8, "Explosion sound", "WAV"));
+    addField(new DecNumber(buffer, offset + 16, 2, "Explosion frequency (frames)"));
+    addField(new IdsBitmap(buffer, offset + 18, 2, "Fragment animation", "ANIMATE.IDS"));
+    addField(new ProRef(buffer, offset + 20, "Secondary projectile"));
+    addField(new DecNumber(buffer, offset + 22, 1, "# repetitions"));
+    addField(new HashBitmap(buffer, offset + 23, 1, "Explosion effect", s_proj));
+    addField(new ColorValue(buffer, offset + 24, 1, "Explosion color"));
+    addField(new Unknown(buffer, offset + 25, 1, "Unused"));
+    addField(new ProRef(buffer, offset + 26, "Explosion projectile"));
+    addField(new ResourceRef(buffer, offset + 28, "Explosion animation", s_types));
+    addField(new DecNumber(buffer, offset + 36, 2, "Cone width"));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
-      list.add(new Unknown(buffer, offset + 38, 2));
-      list.add(new ResourceRef(buffer, offset + 40, "Spread animation", s_types));
-      list.add(new ResourceRef(buffer, offset + 48, "Ring animation", s_types));
-      list.add(new ResourceRef(buffer, offset + 56, "Area sound", "WAV"));
-      list.add(new Flag(buffer, offset + 64, 4, "Extended flags", s_areaflagsEx));
-      list.add(new UnsignDecNumber(buffer, offset + 68, 2, "# dice for multiple targets"));
-      list.add(new UnsignDecNumber(buffer, offset + 70, 2, "Dice size for multiple targets"));
-      list.add(new DecNumber(buffer, offset + 72, 2, "Animation granularity"));
-      list.add(new DecNumber(buffer, offset + 74, 2, "Animation granularity divider"));
-      list.add(new Unknown(buffer, offset + 38, 180));
+      addField(new Unknown(buffer, offset + 38, 2));
+      addField(new ResourceRef(buffer, offset + 40, "Spread animation", s_types));
+      addField(new ResourceRef(buffer, offset + 48, "Ring animation", s_types));
+      addField(new ResourceRef(buffer, offset + 56, "Area sound", "WAV"));
+      addField(new Flag(buffer, offset + 64, 4, "Extended flags", s_areaflagsEx));
+      addField(new UnsignDecNumber(buffer, offset + 68, 2, "# dice for multiple targets"));
+      addField(new UnsignDecNumber(buffer, offset + 70, 2, "Dice size for multiple targets"));
+      addField(new DecNumber(buffer, offset + 72, 2, "Animation granularity"));
+      addField(new DecNumber(buffer, offset + 74, 2, "Animation granularity divider"));
+      addField(new Unknown(buffer, offset + 38, 180));
     } else {
-      list.add(new Unknown(buffer, offset + 38, 218));
+      addField(new Unknown(buffer, offset + 38, 218));
     }
 
     return offset + 256;

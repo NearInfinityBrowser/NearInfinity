@@ -26,18 +26,18 @@ abstract class AreaLink extends AbstractStruct
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Target area"));
-    list.add(new TextString(buffer, offset + 4, 32, "Target entrance"));
-    list.add(new DecNumber(buffer, offset + 36, 4, "Distance scale"));
-    list.add(new Flag(buffer, offset + 40, 4, "Default entrance",
+    addField(new DecNumber(buffer, offset, 4, "Target area"));
+    addField(new TextString(buffer, offset + 4, 32, "Target entrance"));
+    addField(new DecNumber(buffer, offset + 36, 4, "Distance scale"));
+    addField(new Flag(buffer, offset + 40, 4, "Default entrance",
                       new String[]{"No default set", "North", "East", "South", "West"}));
-    list.add(new ResourceRef(buffer, offset + 44, "Random encounter area 1", "ARE"));
-    list.add(new ResourceRef(buffer, offset + 52, "Random encounter area 2", "ARE"));
-    list.add(new ResourceRef(buffer, offset + 60, "Random encounter area 3", "ARE"));
-    list.add(new ResourceRef(buffer, offset + 68, "Random encounter area 4", "ARE"));
-    list.add(new ResourceRef(buffer, offset + 76, "Random encounter area 5", "ARE"));
-    list.add(new DecNumber(buffer, offset + 84, 4, "Random encounter probability"));
-    list.add(new Unknown(buffer, offset + 88, 128));
+    addField(new ResourceRef(buffer, offset + 44, "Random encounter area 1", "ARE"));
+    addField(new ResourceRef(buffer, offset + 52, "Random encounter area 2", "ARE"));
+    addField(new ResourceRef(buffer, offset + 60, "Random encounter area 3", "ARE"));
+    addField(new ResourceRef(buffer, offset + 68, "Random encounter area 4", "ARE"));
+    addField(new ResourceRef(buffer, offset + 76, "Random encounter area 5", "ARE"));
+    addField(new DecNumber(buffer, offset + 84, 4, "Random encounter probability"));
+    addField(new Unknown(buffer, offset + 88, 128));
     return offset + 216;
   }
 }
