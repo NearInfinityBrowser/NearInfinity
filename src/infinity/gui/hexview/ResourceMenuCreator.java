@@ -18,7 +18,6 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
-import infinity.resource.dlg.AbstractCode;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -130,36 +129,34 @@ public class ResourceMenuCreator implements IMenuCreator, ActionListener
   {
     if (e.getSource() instanceof DataMenuItem<?>) {
       @SuppressWarnings("unchecked")
-      DataMenuItem<StructEntry[]> mi = (DataMenuItem<StructEntry[]>)e.getSource();
-      StructEntry[] entries = mi.getData();
-      StructViewer curViewer = null;
-      if (entries != null && entries.length > 0) {
-        // opens every StructEntry in the list and selects the respective data field
-        for (int i = 0; i < entries.length; i++) {
-          StructEntry entry = entries[i];
-          if (entry != null) {
-            if (entry instanceof AbstractStruct) {
-              if (entry == getStruct()) {
-                curViewer = ((AbstractStruct)entry).getViewer();
-                if (curViewer != null) {
-                  curViewer.selectEditTab();
-                  curViewer.selectEntry(entry.getOffset(), false);
-                }
-              } else {
-                if (curViewer != null) {
-                  curViewer.selectEntry(entry.getOffset(), false);
-                }
-                ViewFrame curFrame = curViewer.getViewFrame((AbstractStruct)entry);
-                if (curFrame.getViewable() instanceof AbstractStruct) {
-                  curViewer = ((AbstractStruct)curFrame.getViewable()).getViewer();
-                } else {
-                  curViewer = null;
-                }
+      DataMenuItem<StructEntry> mi = (DataMenuItem<StructEntry>)e.getSource();
+      StructEntry entry = mi.getData();
+      if (entry != null) {
+        List<StructEntry> listEntries = entry.getStructChain();
+        StructViewer curViewer = null;
+        for (int i = 0; i < listEntries.size(); i++) {
+          entry = listEntries.get(i);
+          if (entry instanceof AbstractStruct) {
+            if (entry == getStruct()) {
+              curViewer = ((AbstractStruct)entry).getViewer();
+              if (curViewer != null) {
+                curViewer.selectEditTab();
+                curViewer.selectEntry(entry.getOffset(), false);
               }
-            } else if (curViewer != null) {
-              curViewer.selectEntry(entry.getOffset(), false);
-              curViewer = null;
+            } else {
+              if (curViewer != null) {
+                curViewer.selectEntry(entry.getOffset(), false);
+              }
+              ViewFrame curFrame = curViewer.getViewFrame((AbstractStruct)entry);
+              if (curFrame.getViewable() instanceof AbstractStruct) {
+                curViewer = ((AbstractStruct)curFrame.getViewable()).getViewer();
+              } else {
+                curViewer = null;
+              }
             }
+          } else if (curViewer != null) {
+            curViewer.selectEntry(entry.getOffset(), false);
+            curViewer = null;
           }
         }
       }
@@ -194,47 +191,22 @@ public class ResourceMenuCreator implements IMenuCreator, ActionListener
   private List<JMenuItem> createStructEntries(int offset)
   {
     List<JMenuItem> list = new ArrayList<JMenuItem>();
-    List<StructEntry> listEntries = new ArrayList<StructEntry>();
-    StructEntry curEntry = getStruct();
-    while (curEntry != null) {
-      listEntries.add(curEntry);
-
-      if (curEntry instanceof AbstractStruct) {
-        StructEntry newEntry = null;
-        for (final StructEntry e: ((AbstractStruct)curEntry).getList()) {
-          if (e instanceof AbstractCode) {
-            // AbstractCode instances consist of two separate data blocks
-            AbstractCode ac = (AbstractCode)e;
-            if ((offset >= ac.getOffset() && offset < ac.getOffset()+ac.getSize()) ||
-                (offset >= ac.getTextOffset() && offset < ac.getTextOffset()+ac.getTextLength())) {
-              newEntry = e;
-              break;
-            }
-          } else {
-            if (offset >= e.getOffset() && offset < e.getOffset()+e.getSize()) {
-              newEntry = e;
-              break;
-            }
-          }
+    if (getHexView().getData() instanceof StructuredDataProvider) {
+      StructEntry curEntry = ((StructuredDataProvider)getHexView().getData()).getFieldAt(offset);
+      if (curEntry != null) {
+        List<StructEntry> listEntries = curEntry.getStructChain();
+        // we don't need actual resource structure
+        if (!listEntries.isEmpty() && listEntries.get(0) == getStruct()) {
+          listEntries.remove(0);
         }
-        curEntry = newEntry;
-      } else {
-        curEntry = null;
+        for (int i = 0; i < listEntries.size(); i++) {
+          StructEntry e = listEntries.get(i);
+          JMenuItem mi = new DataMenuItem<StructEntry>(String.format("Go to \"%1$s\"", e.getName()),
+                                                       null, e);
+          list.add(mi);
+        }
       }
     }
-
-    // skipping root structure
-    for (int i = 1; i < listEntries.size(); i++) {
-      StructEntry[] entries = new StructEntry[i+1];
-      for (int j = 0; j <= i; j++) {
-        entries[j] = listEntries.get(j);
-      }
-      JMenuItem mi =
-          new DataMenuItem<StructEntry[]>(String.format("Go to \"%1$s\"",
-                                                        entries[i].getName()), null, entries);
-      list.add(mi);
-    }
-
     return list;
   }
 

@@ -4,11 +4,15 @@
 
 package infinity.resource.vef;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
+import infinity.resource.StructEntry;
 
 class CompBase extends AbstractStruct implements AddRemovable
 {
@@ -42,7 +46,11 @@ class CompBase extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 8, 4, "Ticks until loop"));
     VefType type = new VefType(buffer, offset + 12, 4);
     addField(type);
-    offset = type.readAttributes(buffer, offset + 16, getList());
+
+    List<StructEntry> list = new ArrayList<StructEntry>();
+    offset = type.readAttributes(buffer, offset + 16, list);
+    addToList(getList().size() - 1, list);
+
     addField(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_bool));
     addField(new Unknown(buffer, offset + 4, 196));
     offset += 200;

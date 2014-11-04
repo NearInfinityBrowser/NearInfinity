@@ -10,6 +10,8 @@ import infinity.util.io.FileWriterNI;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Vector;
 
 public abstract class Datatype implements StructEntry
 {
@@ -82,6 +84,22 @@ public abstract class Datatype implements StructEntry
   public int getSize()
   {
     return length;
+  }
+
+  @Override
+  public List<StructEntry> getStructChain()
+  {
+    List<StructEntry> list = new Vector<StructEntry>();
+    StructEntry e = this;
+    while (e != null) {
+      list.add(0, e);
+      e = e.getParent();
+      if (list.contains(e)) {
+        // avoid infinite loops
+        break;
+      }
+    }
+    return list;
   }
 
   @Override

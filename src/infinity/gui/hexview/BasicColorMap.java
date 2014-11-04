@@ -9,6 +9,7 @@ import infinity.datatype.SectionOffset;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 import infinity.resource.dlg.AbstractCode;
+import infinity.util.MapEntry;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -70,10 +71,9 @@ public class BasicColorMap implements IColormap
   // Contains color definitions for specific data types.
   // Works only on top-level datatypes that are preferably described by a section offset and count.
   private final EnumMap<Coloring, Structure> typeMap = new EnumMap<Coloring, Structure>(Coloring.class);
-
+  private final MapEntry<Long, Color> cachedColor = new MapEntry<Long, Color>();
   private final AbstractStruct struct;
 
-  private Color cachedColor = null;
   private List<StructEntry> listStructures;
 
   /**
@@ -108,17 +108,13 @@ public class BasicColorMap implements IColormap
   @Override
   public boolean colorize(byte value, long currentOffset)
   {
-    cachedColor = getStructureColor((int)currentOffset);
-    return (cachedColor != null);
+    return (getCachedColor(currentOffset) != null);
   }
 
   @Override
   public Color getBackgroundColor(byte value, long currentOffset)
   {
-    if (cachedColor == null) {
-      cachedColor = getStructureColor((int)currentOffset);
-    }
-    return cachedColor;
+    return getCachedColor(currentOffset);
   }
 
   @Override
@@ -237,6 +233,15 @@ public class BasicColorMap implements IColormap
     return listStructures;
   }
 
+  // Returns the cached color for a specific offset.
+  private Color getCachedColor(long offset)
+  {
+    if (cachedColor.getKey() != Long.valueOf(offset)) {
+      cachedColor.setKey(Long.valueOf(offset));
+      cachedColor.setValue(getStructureColor((int)offset));
+    }
+    return cachedColor.getValue();
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 

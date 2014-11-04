@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -243,6 +244,22 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public int getSize()
   {
     return endoffset - startoffset;
+  }
+
+  @Override
+  public List<StructEntry> getStructChain()
+  {
+    List<StructEntry> list = new Vector<StructEntry>();
+    StructEntry e = this;
+    while (e != null) {
+      list.add(0, e);
+      e = e.getParent();
+      if (list.contains(e)) {
+        // avoid infinite loops
+        break;
+      }
+    }
+    return list;
   }
 
   @Override
@@ -502,6 +519,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return entry;
   }
 
+  /** Adds list of entries to the AbstractStruct table after the specified index. */
+  public void addToList(int startIndex, List<StructEntry> toBeAdded)
+  {
+    if (toBeAdded != null) {
+      startIndex = Math.max(-1, Math.min(list.size() - 1, startIndex));
+      for (int i = 0; i < toBeAdded.size(); i++) {
+        addField(toBeAdded.get(i), startIndex+i+1);
+      }
+    }
+  }
+
+  /** Adds list of entries to the AbstractStruct table after the specified StructEntry object. */
   public void addToList(StructEntry startFromEntry, List<StructEntry> toBeAdded)
   {
     if (toBeAdded != null) {
@@ -510,7 +539,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         addField(toBeAdded.get(i), startIndex+i);
       }
     }
-//    list.addAll(1 + list.indexOf(startFromEntry), toBeAdded);
   }
 
   /**

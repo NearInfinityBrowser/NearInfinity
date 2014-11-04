@@ -4,6 +4,9 @@
 
 package infinity.resource;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import infinity.datatype.EffectType;
 
 public final class Effect extends AbstractStruct implements AddRemovable
@@ -33,7 +36,9 @@ public final class Effect extends AbstractStruct implements AddRemovable
   {
     EffectType type = new EffectType(buffer, offset, 2);
     addField(type);
-    offset = type.readAttributes(buffer, offset + 2, getList());
+    List<StructEntry> list = new ArrayList<StructEntry>();
+    offset = type.readAttributes(buffer, offset + 2, list);
+    addToList(getList().size() - 1, list);
     return offset;
   }
 }

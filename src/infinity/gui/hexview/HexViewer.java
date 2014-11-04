@@ -198,7 +198,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     this.findData = new FindData(this);
 
     if (this.dataProvider instanceof StructuredDataProvider) {
-      this.pInfo = new InfoPanel(this.struct);
+      this.pInfo = new InfoPanel();
     } else {
       this.pInfo = null;
     }
@@ -385,9 +385,13 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   /** Notify HexViewer that data has been changed. */
   public void dataModified()
   {
-    if (getHexView().getData() instanceof StructuredDataProvider) {
-      // notifying the data provider that data has changed
-      ((StructuredDataProvider)getHexView().getData()).reset();
+    if (getDataProvider() instanceof StructuredDataProvider) {
+      // notifying data provider that data has changed
+      ((StructuredDataProvider)getDataProvider()).reset();
+    }
+    if (getColorMap() instanceof BasicColorMap) {
+      // notifying color map that data has changed
+      ((BasicColorMap)getColorMap()).reset();
     }
   }
 
@@ -521,35 +525,36 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     }
   }
 
+  private IDataProvider getDataProvider()
+  {
+    return dataProvider;
+  }
+
+  private IColormap getColorMap()
+  {
+    return colorMap;
+  }
+
 //-------------------------- INNER CLASSES --------------------------
 
   // Panel component showing information about the currently selected data.
-  // TODO: Add support for 3rd-level fields and higher (info panel and colored blocks)
   private final class InfoPanel extends JPanel
   {
     private final List<StructEntryTableModel> listModels = new ArrayList<StructEntryTableModel>();
     private final List<Component> listComponents = new ArrayList<Component>();
-    private final AbstractStruct struct;
 
     private JPanel mainPanel;
     private int offset;
 
-    public InfoPanel(AbstractStruct struct)
+    public InfoPanel()
     {
       super();
 
       if (struct == null) {
         throw new NullPointerException("struct is null");
       }
-      this.struct = struct;
 
       init();
-    }
-
-    /** Returns the associated resource structure. */
-    public AbstractStruct getStruct()
-    {
-      return struct;
     }
 
 //    /** Returns current offset. */
@@ -588,69 +593,52 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     // Updates tables and table models based on the data at the specified offset
     private void updatePanel(int offset)
     {
-      // checking existing structures
-      int curIdx = 0;   // points to the last valid structure in the list
-      while (curIdx < listModels.size()) {
-        StructEntry e = listModels.get(curIdx).getStruct();
-        if (offset < e.getOffset() || offset >= e.getOffset() + e.getSize()) {
-          curIdx--;
-          break;
-        }
-        curIdx++;
-      }
-
-      // removing invalid models and controls
-      for (int i = listModels.size() - 1; i > curIdx; i--) {
-        listModels.remove(i);
-        Component c = listComponents.remove(i);
-        removeComponentFromPanel(c);
-      }
-
-      if (offset >= 0 && offset < getStruct().getSize()) {
-        // setting topmost leveled structure containing data at the given offset
-        StructEntry curEntry = null;
-        curIdx = listModels.size() - 1;
-        if (curIdx >= 0) {
-          curEntry = listModels.get(curIdx).getStruct();
+      StructuredDataProvider data = (getDataProvider() instanceof StructuredDataProvider) ?
+                                    (StructuredDataProvider)getDataProvider() : null;
+      if (data != null) {
+        // creating list of nested StructEntry objects
+        StructEntry newEntry = data.getFieldAt(offset);
+        final List<StructEntry> list;
+        if (newEntry != null) {
+          list = newEntry.getStructChain();
+          if (!list.isEmpty() && list.get(0) == getStruct()) {
+            list.remove(0);
+          }
         } else {
-          curEntry = getStruct();
+          list = new ArrayList<StructEntry>();
         }
 
-        // adding updated models and tables to the lists
-        while (curEntry != null) {
-          if (curEntry instanceof AbstractStruct) {
-            StructEntry oldEntry = curEntry;
-            for (final StructEntry e: ((AbstractStruct)curEntry).getList()) {
-              boolean match = false;
-              if (e instanceof AbstractCode) {
-                // AbstractCode instances consist of two separate data blocks
-                AbstractCode ac = (AbstractCode)e;
-                match = (offset >= ac.getOffset() && offset < ac.getOffset() + ac.getSize()) ||
-                        (offset >= ac.getTextOffset() && offset < ac.getTextOffset() + ac.getTextLength());
-              } else {
-                match = (offset >= e.getOffset() && offset < e.getOffset() + e.getSize());
-              }
-              if (match) {
-                StructEntryTableModel model = new StructEntryTableModel(e);
-                listModels.add(model);
-                Component c = createInfoTable(model, listComponents.size()+1);
-                listComponents.add(c);
-                addComponentToPanel(c);
-                curEntry = e;
-                break;
-              }
-            }
-            // prevent infinite loops
-            if (oldEntry == curEntry) {
-              curEntry = null;
-            }
+        // removing invalid models and controls
+        int lastIdx = listModels.size() - 1;
+        for ( ; lastIdx >= 0; lastIdx--) {
+          StructEntry curEntry = listModels.get(lastIdx).getStruct();
+          if (!list.contains(curEntry)) {
+            listModels.remove(lastIdx);
+            Component c = listComponents.remove(lastIdx);
+            removeComponentFromPanel(c);
           } else {
-            curEntry = null;
+            break;
           }
         }
+        // lastIdx contains the highest index of remaining structures
+
+        // adding updated models and tables to the lists
+        for (int i = lastIdx + 1; i < list.size(); i++) {
+          StructEntryTableModel model = new StructEntryTableModel(list.get(i));
+          listModels.add(model);
+          Component c = createInfoTable(model, listComponents.size() + 1);
+          listComponents.add(c);
+          addComponentToPanel(c);
+        }
+      } else {
+        for (int i = listModels.size() - 1; i >= 0; i--) {
+          listModels.remove(i);
+          Component c = listComponents.remove(i);
+          removeComponentFromPanel(c);
+        }
       }
 
-      // notify panel of the changed layout
+      // notifying panel of the changed layout
       revalidate();
       repaint();
     }
@@ -718,10 +706,10 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
 
 
   // Manages the representation of a single StructEntry instance
-  private static class StructEntryTableModel extends AbstractTableModel
+  private class StructEntryTableModel extends AbstractTableModel
   {
-    private static final String[] names = new String[]{ "Name", "Start offset", "Length",
-                                                        "Structure type", "Value" };
+    private final String[] names = new String[]{"Name", "Start offset", "Length",
+                                                 "Structure type", "Value"};
 
     private final StructEntry entry;
 

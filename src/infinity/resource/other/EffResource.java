@@ -4,6 +4,9 @@
 
 package infinity.resource.other;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JComponent;
 
 import infinity.datatype.EffectType;
@@ -37,7 +40,9 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
     addField(new TextString(buffer, offset + 12, 4, "Version 2"));
     EffectType type = new EffectType(buffer, offset + 16, 4);
     addField(type);
-    offset = type.readAttributes(buffer, offset + 20, getList());
+    List<StructEntry> list = new ArrayList<StructEntry>();
+    offset = type.readAttributes(buffer, offset + 20, list);
+    addToList(getList().size() - 1, list);
 
     Effect2.readCommon(getList(), buffer, offset);
 

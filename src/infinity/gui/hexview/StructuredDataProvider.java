@@ -240,6 +240,17 @@ public class StructuredDataProvider implements IDataProvider
     return struct;
   }
 
+  /** Returns the StructEntry instance located at the specified offset. */
+  public StructEntry getFieldAt(int offset)
+  {
+    int index = findStructureIndex(offset);
+    if (index >= 0) {
+      return getCachedList().get(index);
+    } else {
+      return null;
+    }
+  }
+
   protected void fireDataChanged()
   {
     if (!listeners.isEmpty()) {
@@ -262,7 +273,7 @@ public class StructuredDataProvider implements IDataProvider
   // Returns the list index of the StructEntry containing the specified offset. Returns -1 on failure.
   private int findStructureIndex(int offset)
   {
-    if (!getCachedList().isEmpty()) {
+    if (offset >= 0 && offset < getDataLength() && !getCachedList().isEmpty()) {
       int baseIndex = 0;
       int curIndex = Math.max(baseIndex, Math.min(getCachedList().size()-1, getCachedList().size()/2));
       int diff = curIndex;

@@ -14,6 +14,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.spl.SplResource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class Effect2 extends AbstractStruct implements AddRemovable
@@ -97,7 +98,9 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     addField(new TextString(buffer, offset + 4, 4, "Version"));
     EffectType type = new EffectType(buffer, offset + 8, 4);
     addField(type);
-    offset = type.readAttributes(buffer, offset + 12, getList());
+    List<StructEntry> list = new ArrayList<StructEntry>();
+    offset = type.readAttributes(buffer, offset + 12, list);
+    addToList(getList().size() - 1, list);
 
     offset = readCommon(getList(), buffer, offset);
 

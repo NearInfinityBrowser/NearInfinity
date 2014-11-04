@@ -4,6 +4,8 @@
 
 package infinity.resource;
 
+import java.util.List;
+
 import infinity.datatype.Readable;
 
 public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeable, Readable
@@ -19,6 +21,9 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
   StructEntry getParent();
 
   int getSize();
+
+  /** Creates a list of StructEntry object, starting from root up to this object. */
+  List<StructEntry> getStructChain();
 
   void setOffset(int newoffset);
 
