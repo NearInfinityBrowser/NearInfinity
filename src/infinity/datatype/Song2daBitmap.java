@@ -41,7 +41,7 @@ public final class Song2daBitmap extends Datatype implements Editable
     try {
       PlainTextResource songlist = new PlainTextResource(
               ResourceFactory.getInstance().getResourceEntry("SONGLIST.2DA"));
-      StringTokenizer st = new StringTokenizer(songlist.getText(), "\n");
+      StringTokenizer st = new StringTokenizer(songlist.getText(), "\r\n");
       if (st.hasMoreTokens())
         st.nextToken();
       if (st.hasMoreTokens())

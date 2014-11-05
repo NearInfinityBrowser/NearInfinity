@@ -36,7 +36,7 @@ public class Summon2daBitmap extends HashBitmap
       try {
         PlainTextResource smtables =
             new PlainTextResource(ResourceFactory.getInstance().getResourceEntry(TableName));
-        StringTokenizer stLine = new StringTokenizer(smtables.getText(), "\n");
+        StringTokenizer stLine = new StringTokenizer(smtables.getText(), "\r\n");
 
         // skipping header
         for (int i = 0; i < 3; i++) {

@@ -27,7 +27,7 @@ public final class IdsMap
     this.entry = entry;
     StringTokenizer st;
     try {
-      st = new StringTokenizer(new PlainTextResource(entry).getText(), "\n");
+      st = new StringTokenizer(new PlainTextResource(entry).getText(), "\r\n");
     } catch (Exception e) {
       e.printStackTrace();
       return;
