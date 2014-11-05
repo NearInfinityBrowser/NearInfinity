@@ -2986,6 +2986,7 @@ public final class EffectFactory
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         }
+        restype = "SPL";
         break;
 
       case 151: // Replace self
