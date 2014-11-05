@@ -290,7 +290,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "Party AI disabled", "",
-                                     "", "", "Fullscreen mode", "Button bar hidden",
+                                     "", "", "Fullscreen mode", "",
                                      "Console hidden", "Automap notes hidden"}));
       numIWD2 = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
       addField(numIWD2);

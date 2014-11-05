@@ -44,7 +44,9 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
     offset = type.readAttributes(buffer, offset + 20, list);
     addToList(getList().size() - 1, list);
 
-    Effect2.readCommon(getList(), buffer, offset);
+    list.clear();
+    Effect2.readCommon(list, buffer, offset);
+    addToList(getList().size() - 1, list);
 
     return offset + 216;
   }

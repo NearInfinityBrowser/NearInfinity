@@ -9,7 +9,10 @@ import infinity.resource.StructEntry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import tv.porst.jhexview.DataChangedEvent;
@@ -273,30 +276,71 @@ public class StructuredDataProvider implements IDataProvider
   // Returns the list index of the StructEntry containing the specified offset. Returns -1 on failure.
   private int findStructureIndex(int offset)
   {
-    if (offset >= 0 && offset < getDataLength() && !getCachedList().isEmpty()) {
-      int baseIndex = 0;
-      int curIndex = Math.max(baseIndex, Math.min(getCachedList().size()-1, getCachedList().size()/2));
-      int diff = curIndex;
-      while (diff > 0) {
-        StructEntry entry = getCachedList().get(curIndex);
-        if (offset >= entry.getOffset() && offset < entry.getOffset()+entry.getSize()) {
-          break;
-        }
-        if (offset < entry.getOffset()) {
-          // seek before current entry
-          int newIndex = Math.max(baseIndex, Math.min(curIndex-1, (curIndex-baseIndex)/2));
-          diff = curIndex - newIndex;
-          curIndex = newIndex;
+    StructEntry key = new EmptyStructure(offset);
+    int index = Collections.binarySearch(getCachedList(), key, new Comparator<StructEntry>() {
+      @Override
+      public int compare(StructEntry obj, StructEntry key)
+      {
+        if (key.getOffset() < obj.getOffset()) {
+          return 1;
+        } else if (key.getOffset() >= obj.getOffset()+obj.getSize()) {
+          return -1;
         } else {
-          // seek after current entry
-          baseIndex = curIndex+1;
-          int newIndex = Math.max(baseIndex, Math.min(getCachedList().size()-1, baseIndex + (curIndex-baseIndex)/2));
-          diff = newIndex - curIndex;
-          curIndex = newIndex;
+          return 0;
         }
       }
-      return curIndex;
+    });
+    if (index >= 0 && index < getCachedList().size()) {
+      return index;
+    } else {
+      return -1;
     }
-    return -1;
+  }
+
+
+//-------------------------- INNER CLASSES --------------------------
+
+  // A dummy StructEntry implementation that can be used as key in a search operations.
+  private class EmptyStructure implements StructEntry
+  {
+    private int offset;
+
+    public EmptyStructure(int offset) { this.offset = offset; }
+
+    @Override
+    public Object clone() { return null; }
+
+    @Override
+    public int compareTo(StructEntry o) { return 0; }
+
+    @Override
+    public void write(OutputStream os) throws IOException {}
+
+    @Override
+    public int read(byte[] buffer, int offset) throws Exception { return offset; }
+
+    @Override
+    public void copyNameAndOffset(StructEntry fromEntry) {}
+
+    @Override
+    public String getName() { return ""; }
+
+    @Override
+    public int getOffset() { return offset; }
+
+    @Override
+    public StructEntry getParent() { return null; }
+
+    @Override
+    public int getSize() { return 0; }
+
+    @Override
+    public List<StructEntry> getStructChain() { return null; }
+
+    @Override
+    public void setOffset(int newoffset) { this.offset = newoffset; }
+
+    @Override
+    public void setParent(StructEntry parent) {}
   }
 }

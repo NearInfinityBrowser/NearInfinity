@@ -102,7 +102,9 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     offset = type.readAttributes(buffer, offset + 12, list);
     addToList(getList().size() - 1, list);
 
-    offset = readCommon(getList(), buffer, offset);
+    list.clear();
+    offset = readCommon(list, buffer, offset);
+    addToList(getList().size() - 1, list);
 
     return offset;
   }

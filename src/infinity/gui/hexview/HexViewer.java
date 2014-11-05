@@ -52,6 +52,7 @@ import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StatusBar;
 import infinity.gui.ViewerUtil;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
@@ -130,6 +131,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   private IMenuCreator menuCreator;
   private JScrollPane spInfo;
   private boolean tabSelected;
+  private int cachedSize;
 
   // Returns a short description of the specified structure type
   public static String getTypeDesc(StructEntry type)
@@ -204,6 +206,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     }
 
     init();
+    cachedSize = getDataProvider().getDataLength();
   }
 
 //--------------------- Begin Interface IHexViewListener ---------------------
@@ -340,7 +343,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       }
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_REFRESH)) {
-      dataModified();
+      dataModified(false);
       getHexView().requestFocusInWindow();
     }
   }
@@ -382,16 +385,33 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     return hexView;
   }
 
-  /** Notify HexViewer that data has been changed. */
+  /** Notify HexViewer that data has been changed. Executes a forced reset. */
   public void dataModified()
   {
-    if (getDataProvider() instanceof StructuredDataProvider) {
-      // notifying data provider that data has changed
-      ((StructuredDataProvider)getDataProvider()).reset();
-    }
-    if (getColorMap() instanceof BasicColorMap) {
-      // notifying color map that data has changed
-      ((BasicColorMap)getColorMap()).reset();
+    dataModified(true);
+  }
+
+  /** Notify HexViewer that data has been changed. Specify whether to force a reset. */
+  public void dataModified(boolean force)
+  {
+    if (force || cachedSize != getDataProvider().getDataLength()) {
+      WindowBlocker.blockWindow(true);
+      try {
+        if (getDataProvider() instanceof StructuredDataProvider) {
+          // notifying data provider that data has changed
+          ((StructuredDataProvider)getDataProvider()).reset();
+        }
+        if (hexView.isColorMapEnabled()) {
+          // notifying color map that data has changed
+          if (getColorMap() instanceof BasicColorMap) {
+            ((BasicColorMap)getColorMap()).reset();
+          }
+        }
+
+        cachedSize = getDataProvider().getDataLength();
+      } finally {
+        WindowBlocker.blockWindow(false);
+      }
     }
   }
 

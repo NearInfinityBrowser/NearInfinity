@@ -835,8 +835,9 @@ public final class CreResource extends AbstractStruct
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 946 + 4 * i,
                                               "Bard spells " + (i + 1) + " offset", null);
-      DecNumber s_count = (DecNumber)addField(new DecNumber(buffer, offset + 1198 + 4 * i, 4,
-                                                            "Bard spells " + (i + 1) + " count"));
+      DecNumber s_count = new DecNumber(buffer, offset + 1198 + 4 * i, 4,
+                                        "Bard spells " + (i + 1) + " count");
+      addField(s_off);
       addField(s_count);
       AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
                                         s_count, "Bard spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
