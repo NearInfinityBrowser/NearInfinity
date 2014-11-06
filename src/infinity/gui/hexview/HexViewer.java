@@ -14,6 +14,7 @@ import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -85,6 +86,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -124,8 +126,8 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   private final JHexView hexView = new JHexView();
   private final InfoPanel pInfo;
   private final ButtonPanel buttonPanel = new ButtonPanel();
-  private final FindData findData;
 
+  private FindData findData;
   private IDataProvider dataProvider;
   private IColormap colorMap;
   private IMenuCreator menuCreator;
@@ -197,7 +199,6 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     this.dataProvider.addListener(this);
     this.colorMap = colorMap;
     this.menuCreator = new ResourceMenuCreator(getHexView(), this.struct);
-    this.findData = new FindData(this);
 
     if (this.dataProvider instanceof StructuredDataProvider) {
       this.pInfo = new InfoPanel();
@@ -246,16 +247,16 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == buttonPanel.getControlByType(BUTTON_FIND)) {
-      if (findData.find()) {
+      if (getFindData().find()) {
         boolean b;
         String s = null;
-        if (findData.getDataType() == FindData.Type.Text) {
-          b = !findData.getText().isEmpty();
-          s = findData.getText();
+        if (getFindData().getDataType() == FindData.Type.Text) {
+          b = !getFindData().getText().isEmpty();
+          s = getFindData().getText();
         } else {
-          b = (findData.getBytes().length > 0);
-          if (findData.getBytes().length > 0) {
-            s = byteArrayToString(findData.getBytes());
+          b = (getFindData().getBytes().length > 0);
+          if (getFindData().getBytes().length > 0) {
+            s = byteArrayToString(getFindData().getBytes());
           }
         }
 
@@ -343,7 +344,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       }
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_REFRESH)) {
-      dataModified(false);
+      dataModified(true);
       getHexView().requestFocusInWindow();
     }
   }
@@ -483,23 +484,39 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     add(buttonPanel, BorderLayout.SOUTH);
   }
 
+  private FindData getFindData()
+  {
+    if (findData == null) {
+      Window w = null;
+      if (getStruct().getViewer() != null) {
+        w = SwingUtilities.getWindowAncestor(getStruct().getViewer());
+      }
+      if (w == null) {
+        w = NearInfinity.getInstance();
+      }
+      findData = new FindData(w);
+    }
+
+    return findData;
+  }
+
   // Attempts to find the next match of the search string as defined in the FindData instance, starting at offset.
   private void findPattern(int offset)
   {
-    if (findData.getDataType() == FindData.Type.Text) {
-      offset = getHexView().findAscii(offset, findData.getText(), findData.isCaseSensitive());
+    if (getFindData().getDataType() == FindData.Type.Text) {
+      offset = getHexView().findAscii(offset, getFindData().getText(), getFindData().isCaseSensitive());
       if (offset >= 0) {
         getHexView().setCurrentOffset(offset);
-        getHexView().setSelectionLength(findData.getText().length()*2);
+        getHexView().setSelectionLength(getFindData().getText().length()*2);
       } else {
         JOptionPane.showMessageDialog(this, "No match found.", "Find", JOptionPane.INFORMATION_MESSAGE);
       }
     } else {
-      if (findData.getBytes().length > 0) {
-        offset = getHexView().findHex(offset, findData.getBytes());
+      if (getFindData().getBytes().length > 0) {
+        offset = getHexView().findHex(offset, getFindData().getBytes());
         if (offset >= 0) {
           getHexView().setCurrentOffset(offset);
-          getHexView().setSelectionLength(findData.getBytes().length*2);
+          getHexView().setSelectionLength(getFindData().getBytes().length*2);
         } else {
           JOptionPane.showMessageDialog(this, "No match found.", "Find", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -815,9 +832,9 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     private JTextField tfSearch;
     private JComboBox cbType;
 
-    public FindData(JComponent parent)
+    public FindData(Window parent)
     {
-      super(NearInfinity.getInstance(), "Find", Dialog.ModalityType.APPLICATION_MODAL);
+      super(parent, "Find", Dialog.ModalityType.APPLICATION_MODAL);
       init(parent);
       text = "";
       bytes = new byte[0];
@@ -913,7 +930,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       return bytes;
     }
 
-    private void init(JComponent parent)
+    private void init(Window parent)
     {
       setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
       setLayout(new GridBagLayout());
