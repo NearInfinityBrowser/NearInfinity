@@ -277,7 +277,11 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         addField(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
         if (gameid == ResourceFactory.ID_IWDEE) {
           addField(new ResourceRef(buffer, offset + 140, "Worldmap", "WMP"));
-          addField(new Unknown(buffer, offset + 148, 32));
+          addField(new Unknown(buffer, offset + 148, 8));
+          addField(new Bitmap(buffer, offset + 156, 4, "Familiar owner",
+                              new String[]{"Party member 0", "Party member 1", "Party member 2",
+                                           "Party member 3", "Party member 4", "Party member 5"}));
+          addField(new Unknown(buffer, offset + 160, 20));
         } else {
           addField(new Unknown(buffer, offset + 140, 40));
         }
