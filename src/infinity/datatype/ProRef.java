@@ -88,7 +88,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     if (minValue == 0) {
       idsmap = fullMap;
     } else {
-      idsmap = new LongIntegerHashMap<IdsMapEntry>(fullMap.size());
+      idsmap = new LongIntegerHashMap<IdsMapEntry>();
       long[] keys = fullMap.keys();
       for (final long key: keys) {
         if (key >= minValue) {

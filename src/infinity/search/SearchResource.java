@@ -75,6 +75,7 @@ import infinity.resource.pro.ProSingleType;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
 import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 import infinity.util.Pair;
 import infinity.util.io.FileNI;
 
@@ -3667,10 +3668,10 @@ public class SearchResource extends ChildFrame
       return Utils.getRangeValues(cbLabel[id].isSelected(), sEffects[id]);
     }
 
-    public int getOptionEffectCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionEffectCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -3861,10 +3862,10 @@ public class SearchResource extends ChildFrame
       return null;
     }
 
-    public int getOptionFilterCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionFilterCount()
+//    {
+//      return entryCount;
+//    }
 
     private JPanel createFilterPanel(int entry, int type)
     {
@@ -4110,7 +4111,8 @@ public class SearchResource extends ChildFrame
         cbTiming[i].addActionListener(this);
       }
 
-      cbMode = Utils.defaultWidth(new JComboBox(IndexedString.createArray(EffectFactory.s_duration, 0, 0)), 130);
+//      cbMode = Utils.defaultWidth(new JComboBox(IndexedString.createArray(EffectFactory.s_duration, 0, 0)), 130);
+      cbMode = Utils.defaultWidth(new JComboBox(IndexedString.createArray(EffectFactory.m_duration)), 130);
       sDuration[0] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 0, 1);
       sDuration[1] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 3600, 1);
 
@@ -4720,10 +4722,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbItems[id].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionItemCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionItemCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -4828,10 +4830,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbSpells[id].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionSpellCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionSpellCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -4937,10 +4939,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbScripts[id].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionScriptCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionScriptCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -5976,10 +5978,10 @@ public class SearchResource extends ChildFrame
       return 0;
     }
 
-    public int getOptionPurchasedCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionPurchasedCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -6086,10 +6088,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbItems[index].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionItemCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionItemCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -6146,7 +6148,7 @@ public class SearchResource extends ChildFrame
     private String s;
     private int index;
 
-    // automatically create string/index pairs
+    // automatically create string/index pairs from string array
     public static IndexedString[] createArray(String[] strings, int startIndex, int ofsIndex)
     {
       IndexedString[] retVal = null;
@@ -6159,6 +6161,22 @@ public class SearchResource extends ChildFrame
         retVal = new IndexedString[0];
       }
 
+      return retVal;
+    }
+
+    // automatically create string/index pairs from HashBitmap source
+    public static IndexedString[] createArray(LongIntegerHashMap<String> map)
+    {
+      IndexedString[] retVal = null;
+      if (map != null) {
+        long[] keys = map.keys();
+        retVal = new IndexedString[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+          retVal[i] = new IndexedString(map.get(keys[i]), (int)keys[i]);
+        }
+      } else {
+        retVal = new IndexedString[0];
+      }
       return retVal;
     }
 
@@ -6249,10 +6267,10 @@ public class SearchResource extends ChildFrame
       return entry;
     }
 
-    public String getResourceName()
-    {
-      return (resName != null) ? resName : "";
-    }
+//    public String getResourceName()
+//    {
+//      return (resName != null) ? resName : "";
+//    }
 
     @Override
     public String toString()
@@ -6305,17 +6323,17 @@ public class SearchResource extends ChildFrame
       this.upperCase = upperCase;
     }
 
-    /** Returns max. number of characters of content allowed for the document. */
-    public int getMaxLength()
-    {
-      return maxLength;
-    }
+//    /** Returns max. number of characters of content allowed for the document. */
+//    public int getMaxLength()
+//    {
+//      return maxLength;
+//    }
 
-    /** Returns whether the document converts all characters into uppercase versions */
-    public boolean isUpperCase()
-    {
-      return upperCase;
-    }
+//    /** Returns whether the document converts all characters into uppercase versions */
+//    public boolean isUpperCase()
+//    {
+//      return upperCase;
+//    }
 
     @Override
     public void insertString(int off, String str, AttributeSet a) throws BadLocationException
@@ -6414,16 +6432,16 @@ public class SearchResource extends ChildFrame
     }
 
     // Returns whether auto update has been enabled
-    private static boolean setSpinnerAutoUpdate(JSpinner spinner)
-    {
-      if (spinner != null) {
-        JFormattedTextField ftf = (JFormattedTextField)spinner.getEditor().getComponent(0);
-        if (ftf != null) {
-          return ((DefaultFormatter)ftf.getFormatter()).getCommitsOnValidEdit();
-        }
-      }
-      return false;
-    }
+//    private static boolean setSpinnerAutoUpdate(JSpinner spinner)
+//    {
+//      if (spinner != null) {
+//        JFormattedTextField ftf = (JFormattedTextField)spinner.getEditor().getComponent(0);
+//        if (ftf != null) {
+//          return ((DefaultFormatter)ftf.getFormatter()).getCommitsOnValidEdit();
+//        }
+//      }
+//      return false;
+//    }
 
     // creates a "min" to "max" panel
     public static JPanel createNumberRangePanel(JSpinner min, JSpinner max)

@@ -30,19 +30,34 @@ import javax.swing.JPanel;
 public class HashBitmap extends Datatype implements Editable
 {
   private final LongIntegerHashMap<String> idsmap;
+  private final boolean sortByName;
   private TextListPanel list;
   private long value;
 
-  public HashBitmap(byte buffer[], int offset, int length, String name, LongIntegerHashMap<String> idsmap)
+  public HashBitmap(byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap)
   {
-    this(null, buffer, offset, length, name, idsmap);
+    this(null, buffer, offset, length, name, idsmap, true);
+  }
+
+  public HashBitmap(byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+  {
+    this(null, buffer, offset, length, name, idsmap, sortByName);
   }
 
   public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
                     LongIntegerHashMap<String> idsmap)
   {
+    this(parent, buffer, offset, length, name, idsmap, true);
+  }
+
+  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+  {
     super(parent, offset, length, name);
     this.idsmap = new LongIntegerHashMap<String>(idsmap);
+    this.sortByName = sortByName;
 
     read(buffer, offset);
   }
@@ -59,7 +74,7 @@ public class HashBitmap extends Datatype implements Editable
         if (idsmap.containsKey(id))
           items.add(idsmap.get(id).toString() + " - " + id);
       }
-      list = new TextListPanel(items);
+      list = new TextListPanel(items, sortByName);
       list.addMouseListener(new MouseAdapter()
       {
         @Override
@@ -167,6 +182,20 @@ public class HashBitmap extends Datatype implements Editable
   public long getValue()
   {
     return value;
+  }
+
+  public long[] getKeys()
+  {
+    return idsmap.keys();
+  }
+
+  public String getSymbol(long index)
+  {
+    if (idsmap.containsKey(index)) {
+      return idsmap.get(index).toString();
+    } else {
+      return null;
+    }
   }
 }
 

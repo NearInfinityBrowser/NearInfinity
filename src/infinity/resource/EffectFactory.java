@@ -96,6 +96,7 @@ public final class EffectFactory
   }
 
   // contains IDS mappings for BGEE's opcode 319 "Item Usability"
+  public static final LongIntegerHashMap<String> m_duration = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_itemids = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<String>();
@@ -257,11 +258,6 @@ public final class EffectFactory
                                             "0.5 attack per round", "1.5 attacks per round",
                                             "2.5 attacks per round", "3.5 attacks per round",
                                             "4.5 attacks per round"};
-  public static final String s_duration[] = {"Instant/Limited", "Instant/Permanent until death",
-                                             "Instant/While equipped", "Delay/Limited", "Delay/Permanent",
-                                             "Delay/While equipped", "Limited after duration",
-                                             "Permanent after duration", "Equipped after duration",
-                                             "Instant/Permanent", "Instant/Limited (ticks)"};
   public static final String s_summoncontrol[] = {"Match target", "Match target", "From CRE file",
                                                   "Match target", "From CRE file", "Hostile",
                                                   "From CRE file", "", "From CRE file"};
@@ -284,6 +280,19 @@ public final class EffectFactory
 
 
   static {
+    m_duration.put(0L, "Instant/Limited");
+    m_duration.put(1L, "Instant/Permanent until death");
+    m_duration.put(2L, "Instant/While equipped");
+    m_duration.put(3L, "Delay/Limited");
+    m_duration.put(4L, "Delay/Permanent");
+    m_duration.put(5L, "Delay/While equipped");
+    m_duration.put(6L, "Limited after duration");
+    m_duration.put(7L, "Permanent after duration");
+    m_duration.put(8L, "Equipped after duration");
+    m_duration.put(9L, "Instant/Permanent");
+    m_duration.put(10L, "Instant/Limited (ticks)");
+    m_duration.put(4096L, "Absolute duration");
+
     m_itemids.put(2L, "EA.IDS");
     m_itemids.put(3L, "GENERAL.IDS");
     m_itemids.put(4L, "RACE.IDS");
@@ -4785,11 +4794,11 @@ public final class EffectFactory
   private int makeEffectCommon1(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
   {
     if (isV1) {
-      s.add(new Bitmap(buffer, offset, 1, "Timing mode", s_duration));
+      s.add(new HashBitmap(buffer, offset, 1, "Timing mode", m_duration, false));
       s.add(new Bitmap(buffer, offset + 1, 1, "Dispel/Resistance", EffectType.s_dispel));
       offset += 2;
     } else {
-      s.add(new Bitmap(buffer, offset, 4, "Timing mode", s_duration));
+      s.add(new HashBitmap(buffer, offset, 4, "Timing mode", m_duration, false));
       offset += 4;
     }
 

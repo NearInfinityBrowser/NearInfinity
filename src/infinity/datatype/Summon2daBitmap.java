@@ -11,8 +11,6 @@ import infinity.resource.StructEntry;
 import infinity.resource.text.PlainTextResource;
 import infinity.util.LongIntegerHashMap;
 
-// TODO: Extend implementation to support opening the selected 2DA resource
-
 /** Specialized HashBitmap type for parsing SMTABLES.2DA from IWDEE. */
 public class Summon2daBitmap extends HashBitmap
 {
