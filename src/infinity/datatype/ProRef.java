@@ -261,7 +261,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   @Override
   public String toString()
   {
-    if (idsmap.containsKey(value - 1L)) {
+    if (value > 1L && idsmap.containsKey(value - 1L)) {
       return ResourceFactory.getInstance().getResourceEntry(idsmap.get(value - 1).getString()
                                                             + ".PRO") + " (" + value + ')';
     } else if (value == 1L) {
