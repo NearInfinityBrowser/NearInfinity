@@ -8,8 +8,10 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
+import infinity.resource.ResourceFactory;
 
 public final class Item extends AbstractStruct implements AddRemovable
 {
@@ -40,7 +42,11 @@ public final class Item extends AbstractStruct implements AddRemovable
   public int read(byte buffer[], int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, "Item", "ITM"));
-    addField(new Unknown(buffer, offset + 8, 2));
+    if (ResourceFactory.isEnhancedEdition()) {
+      addField(new UnsignDecNumber(buffer, offset + 8, 2, "Duration"));
+    } else {
+      addField(new Unknown(buffer, offset + 8, 2));
+    }
     addField(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
     addField(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
     addField(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
