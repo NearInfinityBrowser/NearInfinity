@@ -28,6 +28,7 @@ import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,6 +37,8 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
@@ -175,7 +178,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     super("Near Infinity");
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setIconImage(Icons.getIcon("Application16.gif").getImage());
+    setAppIcon();
     Preferences prefs = Preferences.userNodeForPackage(getClass());
 
     BrowserMenuBar menuBar = new BrowserMenuBar(this);
@@ -457,6 +460,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, ResourceFactory.getRootDir().toString());
     BrowserMenuBar.getInstance().storePreferences();
+  }
+
+  private void setAppIcon()
+  {
+    List<Image> list = new ArrayList<Image>();
+    for (int i = 4; i < 8; i++) {
+      list.add(Icons.getImage(String.format("App%1$d.png", 1 << i)));
+    }
+    setIconImages(list);
   }
 
 // -------------------------- INNER CLASSES --------------------------

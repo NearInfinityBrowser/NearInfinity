@@ -2130,8 +2130,8 @@ public final class BrowserMenuBar extends JMenuBar
 
       // NearInfinity copyright message
       final String[] copyNearInfinityText = new String[]{
-          "This program is free and may be distributed according",
-          "to the terms of the GNU Lesser General Public License."
+          "This program is free and may be distributed according to the terms of ",
+          "the GNU Lesser General Public License."
       };
 
       // List of contributors (ordered chronologically)
@@ -2142,6 +2142,9 @@ public final class BrowserMenuBar extends JMenuBar
           "Valerio Bigiani (aka The Bigg)",
           "Fredrik Lindgren (aka Wisp)",
           "Argent77",
+      };
+      final String[] contributorsMisc = new String[]{
+          "Near Infinity logo/icon by Cuv and Troodon80",
       };
 
       // Third-party copyright messages
@@ -2155,12 +2158,12 @@ public final class BrowserMenuBar extends JMenuBar
 
       // Fixed elements
       JLabel version = new JLabel(versionText);
-      JLabel githubLink = new JLabel(githubHTML, JLabel.CENTER);
+      JLabel githubLink = new JLabel(githubHTML, JLabel.LEADING);
       githubLink.addMouseListener(new UrlBrowser(githubPage));
       githubLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.CENTER);
-      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.CENTER);
-      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.CENTER);
+      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.LEADING);
+      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.LEADING);
+      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.LEADING);
       hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
       hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       final Font defaultfont = version.getFont();
@@ -2198,66 +2201,77 @@ public final class BrowserMenuBar extends JMenuBar
       gbl.setConstraints(hauglidLink, gbc);
       panel.add(hauglidLink);
 
-      // Additional contributors to NearInfinity
+      // Adding code contributors
       gbc.insets = new Insets(9, 6, 0, 6);
-      if (contributorsText.length > 0) {
-        // trying to limit line width to a certain maximum
-        FontMetrics fm = getFontMetrics(font);
-        double maxWidth = fm.getStringBounds(hauglidCopyrightText, getGraphics()).getWidth() * 1.5;
+      // trying to limit line width to a certain maximum
+      FontMetrics fm = getFontMetrics(font);
+      double maxWidth = fm.getStringBounds(hauglidCopyrightText, getGraphics()).getWidth() * 1.75;
 
-        // adding title
-        JLabel label = new JLabel("Additional Contributors:", SwingConstants.CENTER);
-        label.setFont(smallFont.deriveFont(12.0f));
-        gbl.setConstraints(label, gbc);
-        panel.add(label);
-        gbc.insets.top = 2;
+      // adding title
+      JLabel label = new JLabel("Additional Contributors:", SwingConstants.LEADING);
+      label.setFont(smallFont.deriveFont(12.0f));
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+      gbc.insets.top = 2;
 
-        // adding names
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < contributorsText.length; i++) {
-          if (i > 0) {
+      // adding names
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < contributorsText.length; i++) {
+        if (i > 0) {
+          if (i+1 == contributorsText.length) {
+            sb.append(" and ");
+          } else {
             sb.append(", ");
           }
-          String s = sb.toString() + contributorsText[i];
-          if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
-            label = new JLabel(sb.toString(), SwingConstants.CENTER);
-            label.setFont(smallFont);
-            gbl.setConstraints(label, gbc);
-            panel.add(label);
-            gbc.insets.top = 0;
-            sb = new StringBuilder();
-          }
-          sb.append(contributorsText[i]);
         }
-        label = new JLabel(sb.toString(), SwingConstants.CENTER);
+        String s = sb.toString() + contributorsText[i];
+        if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
+          label = new JLabel(sb.toString(), SwingConstants.LEADING);
+          label.setFont(smallFont);
+          gbl.setConstraints(label, gbc);
+          panel.add(label);
+          gbc.insets.top = 0;
+          sb = new StringBuilder();
+        }
+        sb.append(contributorsText[i]);
+      }
+      label = new JLabel(sb.toString(), SwingConstants.LEADING);
+      label.setFont(smallFont);
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+
+      // Adding misc. contributors
+      gbc.insets.top = 4;
+      for (int i = 0; i < contributorsMisc.length; i++) {
+        label = new JLabel(contributorsMisc[i], SwingConstants.LEADING);
         label.setFont(smallFont);
         gbl.setConstraints(label, gbc);
         panel.add(label);
+        gbc.insets.top = 0;
       }
 
       // NearInfinity copyright message
-      gbc.insets.top = 9;
+      gbc.insets.top = 12;
       for (int i = 0; i < copyNearInfinityText.length; i++) {
-        JLabel label = new JLabel(copyNearInfinityText[i], SwingConstants.CENTER);
+        label = new JLabel(copyNearInfinityText[i], SwingConstants.LEADING);
         label.setFont(smallFont);
         gbl.setConstraints(label, gbc);
         panel.add(label);
         gbc.insets.top = 0;
       }
 
-      // Third-party copyright mesages
-      gbc.insets.top = 9;
+      // Third-party copyright messages
+      gbc.insets.top = 12;
       for (int i = 0; i < copyThirdPartyText.length; i++) {
-        JLabel label = new JLabel(copyThirdPartyText[i], SwingConstants.CENTER);
+        label = new JLabel(copyThirdPartyText[i], SwingConstants.LEADING);
         label.setFont(smallFont);
         gbl.setConstraints(label, gbc);
         panel.add(label);
         gbc.insets.top = 0;
       }
 
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                    panel, "About Near Infinity",
-                                    JOptionPane.PLAIN_MESSAGE);
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "About Near Infinity",
+                                    JOptionPane.INFORMATION_MESSAGE, Icons.getIcon("App128.png"));
     }
 
     private void displayLicense(String classPath, String title)
