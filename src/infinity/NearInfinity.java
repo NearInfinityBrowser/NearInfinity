@@ -50,6 +50,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileFilter;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
@@ -211,20 +212,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
     });
     try {
-      switch (menuBar.getLookAndFeel()) {
-        case BrowserMenuBar.LOOKFEEL_JAVA:
-          UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-          break;
-        case BrowserMenuBar.LOOKFEEL_WINDOWS:
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-          break;
-        case BrowserMenuBar.LOOKFEEL_MOTIF:
-          UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-          break;
-        case BrowserMenuBar.LOOKFEEL_PLASTICXP:
-          UIManager.setLookAndFeel("com.jgoodies.plaf.plastic.PlasticXPLookAndFeel");
-          break;
-      }
+      LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
+      UIManager.setLookAndFeel(info.getClassName());
       SwingUtilities.updateComponentTreeUI(this);
     } catch (Exception e) {
       e.printStackTrace();
@@ -315,20 +304,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
     else if (event.getActionCommand().equals("ChangeLook")) {
       try {
-        switch (BrowserMenuBar.getInstance().getLookAndFeel()) {
-          case BrowserMenuBar.LOOKFEEL_JAVA:
-            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-            break;
-          case BrowserMenuBar.LOOKFEEL_WINDOWS:
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            break;
-          case BrowserMenuBar.LOOKFEEL_MOTIF:
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-            break;
-          case BrowserMenuBar.LOOKFEEL_PLASTICXP:
-            UIManager.setLookAndFeel("com.jgoodies.plaf.plastic.PlasticXPLookAndFeel");
-            break;
-        }
+        LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
+        UIManager.setLookAndFeel(info.getClassName());
         SwingUtilities.updateComponentTreeUI(this);
         ChildFrame.updateWindowGUIs();
         tree.reloadRenderer();

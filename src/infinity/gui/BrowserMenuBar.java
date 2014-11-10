@@ -78,13 +78,17 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
   public static final String VERSION = "v1.35.0-snapshot-20141105";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
-  public static final int LOOKFEEL_JAVA = 0, LOOKFEEL_WINDOWS = 1, LOOKFEEL_MOTIF = 2, LOOKFEEL_PLASTICXP = 3;
+//  public static final int LOOKFEEL_JAVA = 0, LOOKFEEL_WINDOWS = 1, LOOKFEEL_MOTIF = 2, LOOKFEEL_PLASTICXP = 3;
+  public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
+      new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
   public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
   private static BrowserMenuBar menuBar;
@@ -282,7 +286,7 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.getDefaultStructView();
   }
 
-  public int getLookAndFeel()
+  public LookAndFeelInfo getLookAndFeel()
   {
     return optionsMenu.getLookAndFeel();
   }
@@ -1217,7 +1221,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
-    private static final String OPTION_LOOKANDFEEL              = "LookAndFeel";
+    private static final String OPTION_LOOKANDFEELCLASS         = "LookAndFeelClass";
     private static final String OPTION_VIEWOREDITSHOWN          = "ViewOrEditShown";
     private static final String OPTION_FONT                     = "Font";
     private static final String OPTION_TLKCHARSET               = "TLKCharsetType";
@@ -1245,7 +1249,8 @@ public final class BrowserMenuBar extends JMenuBar
     private static String DEBUGCOLORSCHEME = "";
 
     private final JRadioButtonMenuItem showOverrides[] = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem lookAndFeel[] = new JRadioButtonMenuItem[4];
+    private final DataRadioButtonMenuItem lookAndFeel[];
+//    private final JRadioButtonMenuItem lookAndFeel[] = new JRadioButtonMenuItem[4];
     private final JRadioButtonMenuItem showResRef[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
@@ -1502,23 +1507,30 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->Look and Feel
       JMenu lookandfeelmenu = new JMenu("Look and Feel");
       add(lookandfeelmenu);
-      int selectedfeel = prefs.getInt(OPTION_LOOKANDFEEL, LOOKFEEL_JAVA);
-      lookAndFeel[LOOKFEEL_JAVA] = new JRadioButtonMenuItem("Java", selectedfeel == LOOKFEEL_JAVA);
-      lookAndFeel[LOOKFEEL_WINDOWS] = new JRadioButtonMenuItem("Native", selectedfeel == LOOKFEEL_WINDOWS);
-      lookAndFeel[LOOKFEEL_MOTIF] = new JRadioButtonMenuItem("Motif", selectedfeel == LOOKFEEL_MOTIF);
-      try {
-        Class.forName("com.jgoodies.plaf.plastic.PlasticLookAndFeel");
-        lookAndFeel[LOOKFEEL_PLASTICXP] =
-        new JRadioButtonMenuItem("Plastic XP", selectedfeel == LOOKFEEL_PLASTICXP);
-      } catch (ClassNotFoundException e) {
-        if (selectedfeel == LOOKFEEL_PLASTICXP)
-          lookAndFeel[LOOKFEEL_JAVA].setSelected(true);
-      }
+      final String selectedLF = prefs.get(OPTION_LOOKANDFEELCLASS, DEFAULT_LOOKFEEL.getClassName());
+      LookAndFeelInfo[] info = UIManager.getInstalledLookAndFeels();
       bg = new ButtonGroup();
+      if (info != null && info.length > 0) {
+        // dynamically create a list of supported look&feel themes
+        lookAndFeel = new DataRadioButtonMenuItem[info.length];
+        for (int i = 0; i < info.length; i++) {
+          lookAndFeel[i] = new DataRadioButtonMenuItem(info[i].getName(), info[i]);
+          lookAndFeel[i].setSelected(selectedLF.equalsIgnoreCase(info[i].getClassName()));
+          bg.add(lookAndFeel[i]);
+        }
+      } else {
+        // fallback solution: adding default look&feel theme
+        lookAndFeel = new DataRadioButtonMenuItem[1];
+        lookAndFeel[0] = new DataRadioButtonMenuItem(DEFAULT_LOOKFEEL.getName(), DEFAULT_LOOKFEEL);
+        lookAndFeel[0].setSelected(true);
+        bg.add(lookAndFeel[0]);
+      }
+      if (bg.getSelection() == null) {
+        lookAndFeel[0].setSelected(true);
+      }
       for (final JRadioButtonMenuItem lf : lookAndFeel) {
         if (lf != null) {
           lookandfeelmenu.add(lf);
-          bg.add(lf);
           lf.setActionCommand("ChangeLook");
           lf.addActionListener(browser);
         }
@@ -1822,7 +1834,7 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
       prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
-      prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
+      prefs.put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
       prefs.putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
       prefs.putInt(OPTION_FONT, selectedFont);
@@ -1989,13 +2001,14 @@ public final class BrowserMenuBar extends JMenuBar
       return OVERRIDE_SPLIT;
     }
 
-    public int getLookAndFeel()
+    public LookAndFeelInfo getLookAndFeel()
     {
       for (int i = 0; i < lookAndFeel.length; i++) {
-        if (lookAndFeel[i] != null && lookAndFeel[i].isSelected())
-          return i;
+        if (lookAndFeel[i] != null && lookAndFeel[i].isSelected()) {
+          return ((LookAndFeelInfo)lookAndFeel[i].getData());
+        }
       }
-      return LOOKFEEL_JAVA;
+      return DEFAULT_LOOKFEEL;
     }
 
     public int getDefaultStructView()
