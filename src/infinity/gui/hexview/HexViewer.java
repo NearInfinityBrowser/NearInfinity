@@ -56,6 +56,7 @@ import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Closeable;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.dlg.AbstractCode;
@@ -112,7 +113,7 @@ import tv.porst.jhexview.JHexView;
  * @author argent77
  */
 public class HexViewer extends JPanel implements IHexViewListener, IDataChangedListener,
-                                                 ActionListener, ChangeListener
+                                                 ActionListener, ChangeListener, Closeable
 {
   private static final ButtonPanel.Control BUTTON_FIND      = ButtonPanel.Control.FindButton;
   private static final ButtonPanel.Control BUTTON_FINDNEXT  = ButtonPanel.Control.Custom1;
@@ -373,6 +374,32 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   }
 
 //--------------------- End Interface ChangeListener ---------------------
+
+//--------------------- Begin Interface Closeable ---------------------
+
+  @Override
+  public void close() throws Exception
+  {
+    // setting HexView component invisible will clean up resources
+    getHexView().setVisible(false);
+
+    if (dataProvider instanceof StructuredDataProvider) {
+      ((StructuredDataProvider)dataProvider).close();
+    } else if (dataProvider instanceof ResourceDataProvider) {
+      ((ResourceDataProvider)dataProvider).clear();
+    }
+
+    if (colorMap instanceof BasicColorMap) {
+      ((BasicColorMap)colorMap).close();
+    }
+
+    if (findData != null) {
+      findData.dispose();
+      findData = null;
+    }
+  }
+
+//--------------------- End Interface Closeable ---------------------
 
   /** Returns the associated resource structure. */
   public AbstractStruct getStruct()

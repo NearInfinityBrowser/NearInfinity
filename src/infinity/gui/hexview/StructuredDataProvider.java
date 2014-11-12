@@ -222,14 +222,20 @@ public class StructuredDataProvider implements IDataProvider
 
 //--------------------- End Interface IDataProvider ---------------------
 
-  /** Re-initializes data cache. */
-  public void reset()
+  /** Cleans up resources. */
+  public void close()
   {
     if (listStructures != null) {
       listStructures.clear();
       listStructures = null;
       dataSize = -1;
     }
+  }
+
+  /** Re-initializes data cache. */
+  public void reset()
+  {
+    close();
     listStructures = getStruct().getFlatList();
     dataSize = 0;
     for (final StructEntry e: listStructures) {

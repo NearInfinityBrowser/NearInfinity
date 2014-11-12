@@ -21,6 +21,7 @@ import infinity.datatype.UnknownDecimal;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
+import infinity.resource.Closeable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
@@ -731,6 +732,18 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         lastName = null;
         lastNameStruct = null;
       }
+    }
+
+    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+      Component c = tabbedPane.getComponentAt(i);
+      if (c instanceof Closeable) {
+        try {
+          ((Closeable)c).close();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+      tabbedPane.removeTabAt(i);
     }
   }
 

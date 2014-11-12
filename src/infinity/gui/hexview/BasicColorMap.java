@@ -143,9 +143,20 @@ public class BasicColorMap implements IColormap
 
 //--------------------- End Interface IColormap ---------------------
 
+  /** Cleans up resources. */
+  public void close()
+  {
+    if (listBlocks != null) {
+      listBlocks.clear();
+      listBlocks = null;
+    }
+  }
+
   /** Re-initializes data cache. */
   public void reset()
   {
+    close();
+
     if (listBlocks == null) {
       listBlocks = new ArrayList<ColoredBlock>();
     }
@@ -181,7 +192,12 @@ public class BasicColorMap implements IColormap
         }
         if (found) break;
       }
+      chain.clear();
+      chain = null;
     }
+    flatList.clear();
+    flatList = null;
+
     combineColoredBlocks();
   }
 
