@@ -86,7 +86,6 @@ public final class BrowserMenuBar extends JMenuBar
 {
   public static final String VERSION = "v1.35.0-snapshot-20141105";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
-//  public static final int LOOKFEEL_JAVA = 0, LOOKFEEL_WINDOWS = 1, LOOKFEEL_MOTIF = 2, LOOKFEEL_PLASTICXP = 3;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
@@ -1248,9 +1247,10 @@ public final class BrowserMenuBar extends JMenuBar
     // For debugging purposes only
     private static String DEBUGCOLORSCHEME = "";
 
+    private final List<DataRadioButtonMenuItem<LookAndFeelInfo>> lookAndFeel =
+        new ArrayList<DataRadioButtonMenuItem<LookAndFeelInfo>>();
+
     private final JRadioButtonMenuItem showOverrides[] = new JRadioButtonMenuItem[3];
-    private final DataRadioButtonMenuItem lookAndFeel[];
-//    private final JRadioButtonMenuItem lookAndFeel[] = new JRadioButtonMenuItem[4];
     private final JRadioButtonMenuItem showResRef[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
@@ -1512,21 +1512,23 @@ public final class BrowserMenuBar extends JMenuBar
       bg = new ButtonGroup();
       if (info != null && info.length > 0) {
         // dynamically create a list of supported look&feel themes
-        lookAndFeel = new DataRadioButtonMenuItem[info.length];
+        DataRadioButtonMenuItem<LookAndFeelInfo> dbmi;
         for (int i = 0; i < info.length; i++) {
-          lookAndFeel[i] = new DataRadioButtonMenuItem(info[i].getName(), info[i]);
-          lookAndFeel[i].setSelected(selectedLF.equalsIgnoreCase(info[i].getClassName()));
-          bg.add(lookAndFeel[i]);
+          dbmi = new DataRadioButtonMenuItem<LookAndFeelInfo>(info[i].getName(),
+                                                              selectedLF.equalsIgnoreCase(info[i].getClassName()),
+                                                              info[i]);
+          lookAndFeel.add(dbmi);
+          bg.add(dbmi);
         }
       } else {
         // fallback solution: adding default look&feel theme
-        lookAndFeel = new DataRadioButtonMenuItem[1];
-        lookAndFeel[0] = new DataRadioButtonMenuItem(DEFAULT_LOOKFEEL.getName(), DEFAULT_LOOKFEEL);
-        lookAndFeel[0].setSelected(true);
-        bg.add(lookAndFeel[0]);
+        DataRadioButtonMenuItem<LookAndFeelInfo> dbmi;
+        dbmi = new DataRadioButtonMenuItem<LookAndFeelInfo>(DEFAULT_LOOKFEEL.getName(), true, DEFAULT_LOOKFEEL);
+        lookAndFeel.add(dbmi);
+        bg.add(dbmi);
       }
       if (bg.getSelection() == null) {
-        lookAndFeel[0].setSelected(true);
+        lookAndFeel.get(0).setSelected(true);
       }
       for (final JRadioButtonMenuItem lf : lookAndFeel) {
         if (lf != null) {
@@ -1649,8 +1651,10 @@ public final class BrowserMenuBar extends JMenuBar
     {
       bgCharsetButtons = new ButtonGroup();
       JMenu menu = new JMenu("TLK Charset");
-      DataRadioButtonMenuItem dmi = new DataRadioButtonMenuItem("Autodetect Charset", (Object)DefaultCharset);
-      dmi.setToolTipText("Attempts to determine the correct character encoding automatically. May not work reliably for non-english games.");
+      DataRadioButtonMenuItem<String> dmi =
+          new DataRadioButtonMenuItem<String>("Autodetect Charset", false, DefaultCharset);
+      dmi.setToolTipText("Attempts to determine the correct character encoding automatically. " +
+                         "May not work reliably for non-english games.");
       dmi.addActionListener(this);
       bgCharsetButtons.add(dmi);
       menu.add(dmi);
@@ -1659,7 +1663,7 @@ public final class BrowserMenuBar extends JMenuBar
       for (int i = 0; i < CharsetsUsed.size(); i++) {
         String[] info = CharsetsUsed.get(i);
         if (info != null && info.length > 2) {
-          dmi = new DataRadioButtonMenuItem(info[0], (Object)info[1]);
+          dmi = new DataRadioButtonMenuItem<String>(info[0], false, info[1]);
           StringBuilder sb = new StringBuilder();
           sb.append(info[2]);
           Charset cs = Charset.forName(info[1]);
@@ -1706,7 +1710,7 @@ public final class BrowserMenuBar extends JMenuBar
 
           boolean official = !(name.startsWith("x-") || name.startsWith("X-"));
           String desc = official ? name : String.format("%1$s (unofficial)", name.substring(2));
-          dmi = new DataRadioButtonMenuItem(desc, (Object)name);
+          dmi = new DataRadioButtonMenuItem<String>(desc, false, name);
           Charset cs = Charset.forName(name);
           if (cs != null && !cs.aliases().isEmpty()) {
             StringBuilder sb = new StringBuilder("Charset aliases: ");
@@ -1746,17 +1750,17 @@ public final class BrowserMenuBar extends JMenuBar
     }
 
     // Returns the menuitem that is associated with the specified string
-    private DataRadioButtonMenuItem findCharsetButton(String charset)
+    private DataRadioButtonMenuItem<String> findCharsetButton(String charset)
     {
       if (bgCharsetButtons != null && charset != null && !charset.isEmpty()) {
         Enumeration<AbstractButton> buttonSet = bgCharsetButtons.getElements();
         while (buttonSet.hasMoreElements()) {
           AbstractButton b = buttonSet.nextElement();
-          if (b instanceof DataRadioButtonMenuItem) {
-            String data = (String)((DataRadioButtonMenuItem)b).getData();
+          if (b instanceof DataRadioButtonMenuItem<?>) {
+            String data = ((DataRadioButtonMenuItem<String>)b).getData();
             if (data != null) {
               if (charset.equalsIgnoreCase(data)) {
-                return (DataRadioButtonMenuItem)b;
+                return (DataRadioButtonMenuItem<String>)b;
               }
             }
           }
@@ -1772,10 +1776,10 @@ public final class BrowserMenuBar extends JMenuBar
       if (buttonSet != null) {
         while (buttonSet.hasMoreElements()) {
           AbstractButton b = buttonSet.nextElement();
-          if (b instanceof DataRadioButtonMenuItem) {
-            DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)b;
+          if (b instanceof DataRadioButtonMenuItem<?>) {
+            DataRadioButtonMenuItem<String> dmi = (DataRadioButtonMenuItem<String>)b;
             if (dmi.isSelected()) {
-              return (dmi.hasData() ? (String)dmi.getData() : DefaultCharset);
+              return (dmi.getData() != null) ? (String)dmi.getData() : DefaultCharset;
             }
           }
         }
@@ -2003,9 +2007,9 @@ public final class BrowserMenuBar extends JMenuBar
 
     public LookAndFeelInfo getLookAndFeel()
     {
-      for (int i = 0; i < lookAndFeel.length; i++) {
-        if (lookAndFeel[i] != null && lookAndFeel[i].isSelected()) {
-          return ((LookAndFeelInfo)lookAndFeel[i].getData());
+      for (int i = 0; i < lookAndFeel.size(); i++) {
+        if (lookAndFeel.get(i) != null && lookAndFeel.get(i).isSelected()) {
+          return lookAndFeel.get(i).getData();
         }
       }
       return DEFAULT_LOOKFEEL;
@@ -2021,8 +2025,8 @@ public final class BrowserMenuBar extends JMenuBar
     @Override
     public void actionPerformed(ActionEvent event)
     {
-      if (event.getSource() instanceof DataRadioButtonMenuItem) {
-        DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
+      if (event.getSource() instanceof DataRadioButtonMenuItem<?>) {
+        DataRadioButtonMenuItem<String> dmi = (DataRadioButtonMenuItem<String>)event.getSource();
         String csName = (String)dmi.getData();
         if (csName != null) {
           StringResource.setCharset(charsetName(csName));
@@ -2305,33 +2309,6 @@ public final class BrowserMenuBar extends JMenuBar
 
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, title,
                                     JOptionPane.PLAIN_MESSAGE);
-    }
-  }
-
-  // JRadioButtonMenuItem with associated data object
-  private static class DataRadioButtonMenuItem extends JRadioButtonMenuItem
-  {
-    private Object data;
-
-    public DataRadioButtonMenuItem(String text, Object data)
-    {
-      super(text);
-      this.data = data;
-    }
-
-    public void setData(Object data)
-    {
-      this.data = data;
-    }
-
-    public Object getData()
-    {
-      return data;
-    }
-
-    public boolean hasData()
-    {
-      return data != null;
     }
   }
 }

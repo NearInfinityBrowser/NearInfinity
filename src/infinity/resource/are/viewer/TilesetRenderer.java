@@ -1196,15 +1196,15 @@ public class TilesetRenderer extends RenderCanvas
       }
     }
 
-    // Returns the primary tile index of the specified frame (useful for animated tiles)
-    public int getPrimaryIndex(int frame)
-    {
-      if (tileCount > 0) {
-        return tileIdx[frame % tileCount];
-      } else {
-        return -1;
-      }
-    }
+//    // Returns the primary tile index of the specified frame (useful for animated tiles)
+//    public int getPrimaryIndex(int frame)
+//    {
+//      if (tileCount > 0) {
+//        return tileIdx[frame % tileCount];
+//      } else {
+//        return -1;
+//      }
+//    }
 
     // Sets a new selected primary tile index
     public void setCurrentPrimaryIndex(int frame)
@@ -1215,11 +1215,11 @@ public class TilesetRenderer extends RenderCanvas
       }
     }
 
-    // Returns the primary tile count
-    public int getPrimaryIndexCount()
-    {
-      return tileCount;
-    }
+//    // Returns the primary tile count
+//    public int getPrimaryIndexCount()
+//    {
+//      return tileCount;
+//    }
 
     // Advances the primary tile index by 1 for animated tiles, wraps around automatically
     public void advancePrimaryIndex()

@@ -4088,17 +4088,17 @@ public class ConvertToBam extends ChildFrame
       return decoder;
     }
 
-    /** Adds a new frame to the global frames list. */
-    public void add(BufferedImage image, Point center)
-    {
-      insert(getDecoder().frameCount(), new BufferedImage[]{image}, new Point[]{center});
-    }
+//    /** Adds a new frame to the global frames list. */
+//    public void add(BufferedImage image, Point center)
+//    {
+//      insert(getDecoder().frameCount(), new BufferedImage[]{image}, new Point[]{center});
+//    }
 
-    /** Adds an array of images to the global frames list. */
-    public void add(BufferedImage[] images, Point[] centers)
-    {
-      insert(getDecoder().frameCount(), images, centers);
-    }
+//    /** Adds an array of images to the global frames list. */
+//    public void add(BufferedImage[] images, Point[] centers)
+//    {
+//      insert(getDecoder().frameCount(), images, centers);
+//    }
 
     /** Inserts the image into the global frames list. */
     public void insert(int pos, BufferedImage image, Point center)
@@ -4298,11 +4298,11 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-    /** Adds one frame index to the current cycle. */
-    public void add(int index)
-    {
-      insert(getControl().cycleFrameCount(), new int[]{index});
-    }
+//    /** Adds one frame index to the current cycle. */
+//    public void add(int index)
+//    {
+//      insert(getControl().cycleFrameCount(), new int[]{index});
+//    }
 
     /** Adds the specified array of frame indices to the current cycle. */
     public void add(int[] indices)
@@ -4326,11 +4326,11 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-    /** Removes one entry from the current cycle. */
-    public void remove(int pos)
-    {
-      remove(pos, 1);
-    }
+//    /** Removes one entry from the current cycle. */
+//    public void remove(int pos)
+//    {
+//      remove(pos, 1);
+//    }
 
     /**
      * Removes a number of entries from the current cycle.
@@ -4447,17 +4447,17 @@ public class ConvertToBam extends ChildFrame
     }
 
 
-    /** Adds a new empty cycle to the cycles list. */
-    public void add()
-    {
-      insert(getControl().cycleCount(), new int[0]);
-    }
+//    /** Adds a new empty cycle to the cycles list. */
+//    public void add()
+//    {
+//      insert(getControl().cycleCount(), new int[0]);
+//    }
 
-    /** Adds a new cycle with the specified frame index to the cycles list. */
-    public void add(int index)
-    {
-      insert(getControl().cycleCount(), new int[]{index});
-    }
+//    /** Adds a new cycle with the specified frame index to the cycles list. */
+//    public void add(int index)
+//    {
+//      insert(getControl().cycleCount(), new int[]{index});
+//    }
 
     /** Adds a new cycle with the specified frame indices to the cycles list. */
     public void add(int[] indices)
@@ -4465,17 +4465,17 @@ public class ConvertToBam extends ChildFrame
       insert(getControl().cycleCount(), indices);
     }
 
-    /** Insert an empty cycle at the specified cycle position. */
-    public void insert(int pos)
-    {
-      insert(pos, new int[0]);
-    }
+//    /** Insert an empty cycle at the specified cycle position. */
+//    public void insert(int pos)
+//    {
+//      insert(pos, new int[0]);
+//    }
 
-    /** Inserts a cycle with one frame index at the specified cycle position. */
-    public void insert(int pos, int index)
-    {
-      insert(pos, new int[]{index});
-    }
+//    /** Inserts a cycle with one frame index at the specified cycle position. */
+//    public void insert(int pos, int index)
+//    {
+//      insert(pos, new int[]{index});
+//    }
 
     /** Inserts a cycle with the specified frame indices at the specified cycle position. */
     public void insert(int pos, int[] indices)
@@ -4486,11 +4486,11 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-    /** Removes one cycle at the specified cycle position. */
-    public void remove(int pos)
-    {
-      remove(pos, 1);
-    }
+//    /** Removes one cycle at the specified cycle position. */
+//    public void remove(int pos)
+//    {
+//      remove(pos, 1);
+//    }
 
     /** Removes a number of cycles at the specified cycle position. */
     public void remove(int pos, int count)
