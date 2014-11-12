@@ -158,7 +158,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
                type instanceof UnsignDecNumber) {
       return "Number";
     } else if (type instanceof Flag) {
-      return "Flag/Bitfield";
+      return "Flags/Bitfield";
     } else if (type instanceof IDSTargetEffect) {
       return "IDS file/entry";
     } else if (type instanceof ProRef) {
@@ -207,8 +207,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       this.pInfo = null;
     }
 
-    init();
-    cachedSize = getDataProvider().getDataLength();
+    initGUI();
   }
 
 //--------------------- Begin Interface IHexViewListener ---------------------
@@ -361,6 +360,10 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       if (!tabSelected && getStruct().isRawTabSelected()) {
         // actions when entering Raw tab
         tabSelected = true;
+
+        // performs lazy first-time initializations
+        initialize();
+
         getHexView().requestFocusInWindow();
         updateStatusBar((int)getHexView().getCurrentOffset());
       } else if (tabSelected) {
@@ -444,12 +447,14 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   }
 
   // initialize controls
-  private void init()
+  private void initGUI()
   {
     setLayout(new BorderLayout());
 
     // configuring hexview
     Color textColor = dataProvider.isEditable() ? Color.BLACK: Color.GRAY;
+    hexView.setEnabled(false);
+    hexView.setDefinitionStatus(JHexView.DefinitionStatus.UNDEFINED);
     hexView.setAddressMode(JHexView.AddressMode.BIT32);
     hexView.setSeparatorsVisible(false);
     hexView.setBytesPerColumn(1);
@@ -470,14 +475,6 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     hexView.setFontColorAsciiView(textColor);
     hexView.setFontColorModified(Color.RED);
     hexView.setSelectionColor(new Color(0xc0c0c0));
-    hexView.setColormap(colorMap);
-    hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getHexColorMapEnabled());
-    hexView.setMenuCreator(menuCreator);
-    hexView.setEnabled(true);
-    hexView.addHexListener(this);
-    hexView.setData(dataProvider);
-    hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ?
-        JHexView.DefinitionStatus.DEFINED : JHexView.DefinitionStatus.UNDEFINED);
 
     // Info panel only available for structured data
     if (pInfo != null) {
@@ -488,7 +485,6 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       splitv.setDividerLocation(2 * NearInfinity.getInstance().getContentPane().getHeight() / 3);
       add(splitv, BorderLayout.CENTER);
 
-      pInfo.setOffset(0);
     } else {
       add(hexView, BorderLayout.CENTER);
     }
@@ -597,6 +593,33 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   private IColormap getColorMap()
   {
     return colorMap;
+  }
+
+  private boolean isInitialized()
+  {
+    return (getHexView().getData() == dataProvider && getHexView().getColorMap() == colorMap);
+  }
+
+  // Performs final initializations required to display data
+  private void initialize()
+  {
+    if (!isInitialized()) {
+      hexView.setEnabled(true);
+      hexView.setColormap(colorMap);
+      hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getHexColorMapEnabled());
+      hexView.setMenuCreator(menuCreator);
+      hexView.setEnabled(true);
+      hexView.addHexListener(this);
+      hexView.setData(dataProvider);
+      hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ?
+          JHexView.DefinitionStatus.DEFINED : JHexView.DefinitionStatus.UNDEFINED);
+
+      if (pInfo != null) {
+        pInfo.setOffset(0);
+      }
+
+      cachedSize = getDataProvider().getDataLength();
+    }
   }
 
 //-------------------------- INNER CLASSES --------------------------
