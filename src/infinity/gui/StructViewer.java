@@ -734,16 +734,18 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
     }
 
-    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-      Component c = tabbedPane.getComponentAt(i);
-      if (c instanceof Closeable) {
-        try {
-          ((Closeable)c).close();
-        } catch (Exception e) {
-          e.printStackTrace();
+    if (tabbedPane != null) {
+      for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+        Component c = tabbedPane.getComponentAt(i);
+        if (c instanceof Closeable) {
+          try {
+            ((Closeable)c).close();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
+        tabbedPane.removeTabAt(i);
       }
-      tabbedPane.removeTabAt(i);
     }
   }
 
