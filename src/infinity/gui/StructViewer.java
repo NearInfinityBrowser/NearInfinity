@@ -744,8 +744,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
             e.printStackTrace();
           }
         }
-        tabbedPane.removeTabAt(i);
       }
+      tabbedPane = null;
     }
   }
 

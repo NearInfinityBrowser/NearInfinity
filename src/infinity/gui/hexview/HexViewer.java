@@ -124,14 +124,14 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   private static final String FMT_OFFSET = "%1$Xh (%1$d)";
 
   private final AbstractStruct struct;
-  private final JHexView hexView = new JHexView();
+  private final JHexView hexView;
+  private final IMenuCreator menuCreator;
+  private final IDataProvider dataProvider;
+  private final IColormap colorMap;
   private final InfoPanel pInfo;
-  private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final ButtonPanel buttonPanel;
 
   private FindData findData;
-  private IDataProvider dataProvider;
-  private IColormap colorMap;
-  private IMenuCreator menuCreator;
   private JScrollPane spInfo;
   private boolean tabSelected;
   private int cachedSize;
@@ -196,10 +196,12 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       throw new NullPointerException("struct is null");
     }
     this.struct = struct;
+    this.hexView = new JHexView();
     this.dataProvider = (dataProvider == null) ? new StructuredDataProvider(this.struct) : dataProvider;
     this.dataProvider.addListener(this);
     this.colorMap = colorMap;
-    this.menuCreator = new ResourceMenuCreator(getHexView(), this.struct);
+    this.menuCreator = new ResourceMenuCreator(hexView, this.struct);
+    this.buttonPanel = new ButtonPanel();
 
     if (this.dataProvider instanceof StructuredDataProvider) {
       this.pInfo = new InfoPanel();
@@ -360,10 +362,6 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       if (!tabSelected && getStruct().isRawTabSelected()) {
         // actions when entering Raw tab
         tabSelected = true;
-
-        // performs lazy first-time initializations
-        initialize();
-
         getHexView().requestFocusInWindow();
         updateStatusBar((int)getHexView().getCurrentOffset());
       } else if (tabSelected) {
@@ -383,8 +381,8 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   @Override
   public void close() throws Exception
   {
-    // setting HexView component invisible will clean up resources
-    getHexView().setVisible(false);
+    hexView.setVisible(false);
+    hexView.dispose();
 
     if (dataProvider instanceof StructuredDataProvider) {
       ((StructuredDataProvider)dataProvider).close();
@@ -475,6 +473,16 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     hexView.setFontColorAsciiView(textColor);
     hexView.setFontColorModified(Color.RED);
     hexView.setSelectionColor(new Color(0xc0c0c0));
+    hexView.setColormap(colorMap);
+    hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getHexColorMapEnabled());
+    hexView.setMenuCreator(menuCreator);
+    hexView.setEnabled(true);
+    hexView.addHexListener(this);
+    hexView.setData(dataProvider);
+    hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ?
+        JHexView.DefinitionStatus.DEFINED : JHexView.DefinitionStatus.UNDEFINED);
+
+    cachedSize = getDataProvider().getDataLength();
 
     // Info panel only available for structured data
     if (pInfo != null) {
@@ -485,6 +493,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       splitv.setDividerLocation(2 * NearInfinity.getInstance().getContentPane().getHeight() / 3);
       add(splitv, BorderLayout.CENTER);
 
+      pInfo.setOffset(0);
     } else {
       add(hexView, BorderLayout.CENTER);
     }
@@ -593,33 +602,6 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   private IColormap getColorMap()
   {
     return colorMap;
-  }
-
-  private boolean isInitialized()
-  {
-    return (getHexView().getData() == dataProvider && getHexView().getColorMap() == colorMap);
-  }
-
-  // Performs final initializations required to display data
-  private void initialize()
-  {
-    if (!isInitialized()) {
-      hexView.setEnabled(true);
-      hexView.setColormap(colorMap);
-      hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getHexColorMapEnabled());
-      hexView.setMenuCreator(menuCreator);
-      hexView.setEnabled(true);
-      hexView.addHexListener(this);
-      hexView.setData(dataProvider);
-      hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ?
-          JHexView.DefinitionStatus.DEFINED : JHexView.DefinitionStatus.UNDEFINED);
-
-      if (pInfo != null) {
-        pInfo.setOffset(0);
-      }
-
-      cachedSize = getDataProvider().getDataLength();
-    }
   }
 
 //-------------------------- INNER CLASSES --------------------------
