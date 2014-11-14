@@ -2229,7 +2229,7 @@ public final class BrowserMenuBar extends JMenuBar
       label.setFont(smallFont.deriveFont(12.0f));
       gbl.setConstraints(label, gbc);
       panel.add(label);
-      gbc.insets.top = 2;
+      gbc.insets.top = 1;
 
       // adding names
       StringBuilder sb = new StringBuilder();
@@ -2269,6 +2269,12 @@ public final class BrowserMenuBar extends JMenuBar
 
       // NearInfinity copyright message
       gbc.insets.top = 12;
+      label = new JLabel("Near Infinity license:");
+      label.setFont(smallFont.deriveFont(12.0f));
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+      gbc.insets.top = 1;
+
       for (int i = 0; i < copyNearInfinityText.length; i++) {
         label = new JLabel(copyNearInfinityText[i], SwingConstants.LEADING);
         label.setFont(smallFont);
@@ -2279,6 +2285,12 @@ public final class BrowserMenuBar extends JMenuBar
 
       // Third-party copyright messages
       gbc.insets.top = 12;
+      label = new JLabel("Additional licenses:");
+      label.setFont(smallFont.deriveFont(12.0f));
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+      gbc.insets.top = 1;
+
       for (int i = 0; i < copyThirdPartyText.length; i++) {
         label = new JLabel(copyThirdPartyText[i], SwingConstants.LEADING);
         label.setFont(smallFont);
