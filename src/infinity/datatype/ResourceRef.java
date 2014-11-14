@@ -44,7 +44,6 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   String resname;
   private JButton bView;
   private TextListPanel list;
-  private boolean wasNull;
   private byte buffer[];
   private final Comparator<Object> ignorecaseextcomparator = new IgnoreCaseExtComparator<Object>();
 
@@ -267,14 +266,11 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (resname.equals(NONE)) {
-      if (wasNull)
-        FileWriterNI.writeBytes(os, buffer);
-      else
-        FileWriterNI.writeBytes(os, new byte[getSize()]);
-    }
-    else
+    if (resname.equalsIgnoreCase(NONE)) {
+      FileWriterNI.writeBytes(os, buffer);
+    } else {
       FileWriterNI.writeString(os, resname, getSize());
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -285,11 +281,9 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   public int read(byte[] buffer, int offset)
   {
     this.buffer = Arrays.copyOfRange(buffer, offset, offset + getSize());
-    if (this.buffer[0] == 0x00 ||
-        this.buffer[0] == 0x4e && this.buffer[1] == 0x6f &&
-        this.buffer[2] == 0x6e && this.buffer[3] == 0x65 && this.buffer[4] == 0x00) {
+    String s = new String(this.buffer);
+    if (this.buffer[0] == 0x00 || s.equalsIgnoreCase(NONE)) {
       resname = NONE;
-      wasNull = true;
     } else {
       int max = this.buffer.length;
       for (int i = 0; i < this.buffer.length; i++) {
@@ -298,12 +292,15 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
           break;
         }
       }
-      if (max != this.buffer.length)
-        this.buffer = Arrays.copyOfRange(this.buffer, 0, max);
-      resname = new String(this.buffer).toUpperCase();
+      if (max < this.buffer.length) {
+        resname = new String(this.buffer, 0, max).toUpperCase();
+      } else {
+        resname = new String(this.buffer).toUpperCase();
+      }
+
+      if (resname.equalsIgnoreCase(NONE))
+        resname = NONE;
     }
-    if (resname.equalsIgnoreCase(NONE))
-      resname = NONE;
 
     // determine the correct file extension
     if (!resname.equals(NONE)) {
