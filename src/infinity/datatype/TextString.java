@@ -10,6 +10,7 @@ import infinity.util.io.FileWriterNI;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 public final class TextString extends Datatype implements InlineEditable
 {
@@ -48,10 +49,15 @@ public final class TextString extends Datatype implements InlineEditable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (text == null)
-      FileWriterNI.writeBytes(os, bytes);
-    else
-      FileWriterNI.writeString(os, text, getSize());
+    if (text != null) {
+      byte[] buf = text.getBytes(Charset.forName("ISO-8859-1"));
+      int len = Math.min(buf.length, bytes.length);
+      System.arraycopy(buf, 0, bytes, 0, len);
+      if (len < bytes.length) {
+        bytes[len] = 0;
+      }
+    }
+    FileWriterNI.writeBytes(os, bytes);
   }
 
 // --------------------- End Interface Writeable ---------------------
