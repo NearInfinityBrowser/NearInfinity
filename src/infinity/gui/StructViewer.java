@@ -349,7 +349,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         if (sViewer == null) {
           sViewer = struct.getSuperStruct().getSuperStruct().getViewer();
         }
-        if (sViewer != null) {
+        if (sViewer != null && sViewer.tabbedPane != null) {
           tabbedPane.setSelectedIndex(sViewer.tabbedPane.getSelectedIndex());
         }
       } else if (lastIndexStruct == struct.getClass()) {
@@ -718,7 +718,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   {
     StructClipboard.getInstance().removeChangeListener(this);
     if (struct instanceof Resource) {
-      if (struct instanceof HasViewerTabs) {
+      if (tabbedPane != null && struct instanceof HasViewerTabs) {
         lastIndex = tabbedPane.getSelectedIndex();
         lastIndexStruct = struct.getClass();
       } else {
@@ -807,9 +807,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   /** Helper method for selecting "View" tab if available. */
   public void selectViewTab()
   {
-    int idx = getTabIndex(TAB_VIEW);
-    if (idx >= 0) {
-      tabbedPane.setSelectedIndex(idx);
+    if (tabbedPane != null) {
+      int idx = getTabIndex(TAB_VIEW);
+      if (idx >= 0) {
+        tabbedPane.setSelectedIndex(idx);
+      }
     }
   }
 
@@ -825,9 +827,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   /** Selects the "Edit" tab. */
   public void selectEditTab()
   {
-    int idx = getEditTabIndex();
-    if (idx >= 0) {
-      tabbedPane.setSelectedIndex(idx);
+    if (tabbedPane != null) {
+      int idx = getEditTabIndex();
+      if (idx >= 0) {
+        tabbedPane.setSelectedIndex(idx);
+      }
     }
   }
 
@@ -862,9 +866,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   /** Helper method for selecting "Raw" tab if available. */
   public void selectRawTab()
   {
-    int idx = getTabIndex(TAB_RAW);
-    if (idx >= 0) {
-      tabbedPane.setSelectedIndex(idx);
+    if (tabbedPane != null) {
+      int idx = getTabIndex(TAB_RAW);
+      if (idx >= 0) {
+        tabbedPane.setSelectedIndex(idx);
+      }
     }
   }
 
