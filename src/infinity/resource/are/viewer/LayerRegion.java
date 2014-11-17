@@ -40,7 +40,7 @@ public class LayerRegion extends BasicLayer<LayerObjectRegion>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, ITEPoint.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectRegion obj = new LayerObjectRegion(are, (ITEPoint)listStruct.get(i));
             setListeners(obj);
             list.add(obj);

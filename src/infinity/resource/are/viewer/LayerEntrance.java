@@ -40,7 +40,7 @@ public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, Entrance.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectEntrance obj = new LayerObjectEntrance(are, (Entrance)listStruct.get(i));
             setListeners(obj);
             list.add(obj);

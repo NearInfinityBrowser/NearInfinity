@@ -40,7 +40,7 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, ProTrap.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectProTrap obj = new LayerObjectProTrap(are, (ProTrap)listStruct.get(i));
             setListeners(obj);
             list.add(obj);

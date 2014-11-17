@@ -73,6 +73,7 @@ import javax.swing.tree.TreePath;
 import infinity.NearInfinity;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionOffset;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
@@ -167,7 +168,8 @@ public class AreaViewer extends ChildFrame
       if (wedEntry != null) {
         try {
           WedResource wedFile = new WedResource(wedEntry);
-          Overlay overlay = (Overlay)wedFile.getAttribute("Overlay 0");
+          int ofs = ((SectionOffset)wedFile.getAttribute("Overlays offset")).getValue();
+          Overlay overlay = (Overlay)wedFile.getAttribute(ofs, false);
           ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
           ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
           if (tisEntry != null)
@@ -622,7 +624,7 @@ public class AreaViewer extends ChildFrame
       DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
       if (node.getLevel() == 1) {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
-        for (int i = 0; i < root.getChildCount(); i++) {
+        for (int i = 0, cCount = root.getChildCount(); i < cCount; i++) {
           if (root.getChildAt(i) == node) {
             switch (1 << i) {
               case ViewerConstants.SIDEBAR_VISUALSTATE:
@@ -649,7 +651,7 @@ public class AreaViewer extends ChildFrame
       DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
       if (node.getLevel() == 1) {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
-        for (int i = 0; i < root.getChildCount(); i++) {
+        for (int i = 0, cCount = root.getChildCount(); i < cCount; i++) {
           if (root.getChildAt(i) == node) {
             switch (1 << i) {
               case ViewerConstants.SIDEBAR_VISUALSTATE:
@@ -805,7 +807,7 @@ public class AreaViewer extends ChildFrame
     l.setFont(new Font(l.getFont().getFontName(), Font.BOLD, l.getFont().getSize()+1));
     t = new DefaultMutableTreeNode(l);
     top.add(t);
-    for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
+    for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
       LayerType layer = LayerManager.getLayerType(i);
       cbLayers[i] = new JCheckBox(LayerManager.getLayerTypeLabel(layer));
       cbLayers[i].addActionListener(this);
@@ -1102,7 +1104,7 @@ public class AreaViewer extends ChildFrame
     // expanding main sections in sidebar based on current settings
     DefaultTreeModel model = (DefaultTreeModel)treeControls.getModel();
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
-    for (int i = 0; i < root.getChildCount(); i++) {
+    for (int i = 0, cCount = root.getChildCount(); i < cCount; i++) {
       DefaultMutableTreeNode node = (DefaultMutableTreeNode)root.getChildAt(i);
       int bit = 1 << i;
       if ((Settings.SidebarControls & bit) != 0) {
@@ -1153,7 +1155,7 @@ public class AreaViewer extends ChildFrame
     layerManager.setSchedule(LayerManager.toSchedule(getHour()));
     addLayerItems();
     updateScheduledItems();
-    for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
+    for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
       LayerType layer = LayerManager.getLayerType(i);
       int bit = 1 << i;
       boolean isChecked = (Settings.LayerFlags & bit) != 0;
@@ -1679,14 +1681,14 @@ public class AreaViewer extends ChildFrame
       pmItems.removeAll();
 
       // for each active layer...
-      for (int i = 0; i < Settings.ListLayerOrder.size(); i++) {
+      for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
         LayerStackingType stacking = Settings.ListLayerOrder.get(i);
         LayerType layer = Settings.stackingToLayer(stacking);
         if (isLayerEnabled(stacking)) {
           List<LayerObject> itemList = layerManager.getLayerObjects(layer);
           if (itemList != null && !itemList.isEmpty()) {
             // for each layer object...
-            for (int j = 0; j < itemList.size(); j++) {
+            for (int j = 0, ilSize = itemList.size(); j < ilSize; j++) {
               AbstractLayerItem[] items = itemList.get(j).getLayerItems();
               // for each layer item...
               for (int k = 0; k < items.length; k++) {
@@ -1741,7 +1743,7 @@ public class AreaViewer extends ChildFrame
 
       // updating context menu with the prepared item list
       if (!menuItems.isEmpty()) {
-        for (int i = 0; i < menuItems.size(); i++) {
+        for (int i = 0, miSize = menuItems.size(); i < miSize; i++) {
           pmItems.add(menuItems.get(i));
         }
       }
@@ -1786,7 +1788,7 @@ public class AreaViewer extends ChildFrame
   private void reloadAreLayers(boolean order)
   {
     if (layerManager != null) {
-      for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
+      for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
         LayerType layer = LayerManager.getLayerType(i);
         LayerStackingType layer2 = Settings.layerToStacking(layer);
         if (layer != LayerType.DoorPoly && layer != LayerType.WallPoly) {
@@ -1933,7 +1935,7 @@ public class AreaViewer extends ChildFrame
   private void updateScheduledItems()
   {
     if (layerManager != null) {
-      for (int i = 0; i < LayerManager.getLayerTypeCount(); i++) {
+      for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
         LayerType layer = LayerManager.getLayerType(i);
         layerManager.setLayerVisible(layer, isLayerEnabled(layer));
       }
@@ -1973,7 +1975,7 @@ public class AreaViewer extends ChildFrame
     if (layerManager != null) {
       List<LayerObject> list = layerManager.getLayerObjects(LayerType.Animation);
       if (list != null) {
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0, size = list.size(); i < size; i++) {
           LayerObjectAnimation obj = (LayerObjectAnimation)list.get(i);
           obj.setLighting(visualState);
         }
@@ -2040,7 +2042,7 @@ public class AreaViewer extends ChildFrame
   // Adds items of all available layers to the map canvas.
   private void addLayerItems()
   {
-    for (int i = 0; i < Settings.ListLayerOrder.size(); i++) {
+    for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
       addLayerItems(Settings.ListLayerOrder.get(i));
     }
   }
@@ -2051,7 +2053,7 @@ public class AreaViewer extends ChildFrame
     if (layer != null && layerManager != null) {
       List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0, size = list.size(); i < size; i++) {
           addLayerItem(layer, list.get(i));
         }
       }
@@ -2088,7 +2090,7 @@ public class AreaViewer extends ChildFrame
   // Removes all items of all available layers.
   private void removeLayerItems()
   {
-    for (int i = 0; i < Settings.ListLayerOrder.size(); i++) {
+    for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
       removeLayerItems(Settings.ListLayerOrder.get(i));
     }
   }
@@ -2099,7 +2101,7 @@ public class AreaViewer extends ChildFrame
     if (layer != null && layerManager != null) {
       List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0, size = list.size(); i < size; i++) {
           removeLayerItem(layer, list.get(i));
         }
       }
@@ -2135,10 +2137,10 @@ public class AreaViewer extends ChildFrame
   {
     if (layerManager != null) {
       int index = 0;
-      for (int i = 0; i < Settings.ListLayerOrder.size(); i++) {
+      for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
         List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(Settings.ListLayerOrder.get(i)));
         if (list != null) {
-          for (int j = 0; j < list.size(); j++) {
+          for (int j = 0, size = list.size(); j < size; j++) {
             if (Settings.ListLayerOrder.get(i) == LayerStackingType.AmbientRange) {
               // Special: process ambient ranges only
               LayerObjectAmbient obj = (LayerObjectAmbient)list.get(j);
@@ -2174,7 +2176,7 @@ public class AreaViewer extends ChildFrame
   // Updates all items of all available layers.
   private void updateLayerItems()
   {
-    for (int i = 0; i < Settings.ListLayerOrder.size(); i++) {
+    for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
       updateLayerItems(Settings.ListLayerOrder.get(i));
     }
   }
@@ -2185,7 +2187,7 @@ public class AreaViewer extends ChildFrame
     if (layer != null && layerManager != null) {
       List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0, size = list.size(); i < size; i++) {
           updateLayerItem(list.get(i));
         }
       }
@@ -2273,7 +2275,7 @@ public class AreaViewer extends ChildFrame
       if (((DefaultMutableTreeNode)node).getUserObject() == c) {
         return node;
       }
-      for (int i = 0; i < node.getChildCount(); i++) {
+      for (int i = 0, cCount = node.getChildCount(); i < cCount; i++) {
         TreeNode retVal = getTreeNodeOf(node.getChildAt(i), c);
         if (retVal != null) {
           return retVal;
@@ -2737,7 +2739,7 @@ public class AreaViewer extends ChildFrame
     public ChangeListener[] getChangeListeners()
     {
       ChangeListener[] retVal = new ChangeListener[listeners.size()];
-      for (int i = 0; i < listeners.size(); i++) {
+      for (int i = 0, size = listeners.size(); i < size; i++) {
         retVal[i] = listeners.get(i);
       }
       return retVal;
@@ -2784,7 +2786,7 @@ public class AreaViewer extends ChildFrame
     private void fireStateChanged()
     {
       ChangeEvent event = new ChangeEvent(this);
-      for (int i = 0; i < listeners.size(); i++) {
+      for (int i = 0, size = listeners.size(); i < size; i++) {
         listeners.get(i).stateChanged(event);
       }
     }

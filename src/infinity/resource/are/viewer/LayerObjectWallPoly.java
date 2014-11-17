@@ -155,7 +155,7 @@ public class LayerObjectWallPoly extends LayerObject
   {
     if (flags != null) {
       int numFlags = 0;
-      for (int i = 0; i < (flags.getSize() << 3); i++) {
+      for (int i = 0, size = flags.getSize() << 3; i < size; i++) {
         if (flags.isFlagSet(i)) {
           numFlags++;
         }
@@ -164,7 +164,7 @@ public class LayerObjectWallPoly extends LayerObject
       if (numFlags > 0) {
         StringBuilder sb = new StringBuilder("[");
 
-        for (int i = 0; i < (flags.getSize() << 3); i++) {
+        for (int i = 0, size = flags.getSize() << 3; i < size; i++) {
           if (flags.isFlagSet(i)) {
             numFlags--;
             if (desc != null && i+1 < desc.length) {

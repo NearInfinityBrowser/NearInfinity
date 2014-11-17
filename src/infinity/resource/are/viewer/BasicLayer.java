@@ -19,11 +19,11 @@ import java.util.List;
  * @author argent77
  *
  */
-public abstract class BasicLayer<O extends LayerObject>
+public abstract class BasicLayer<E extends LayerObject>
 {
   private final LayerType layerType;
   private final int layerTypeIndex;
-  private final List<O> listObjects = new ArrayList<O>();
+  private final List<E> listObjects = new ArrayList<E>();
   private final AreaViewer viewer;
 
   private AbstractStruct parent;
@@ -48,8 +48,9 @@ public abstract class BasicLayer<O extends LayerObject>
     this.layerType = type;
     // getting associated layer type index
     int idx = -1;
-    for (int i = 0; i < LayerType.values().length; i++) {
-      if (LayerType.values()[i] == this.layerType) {
+    LayerType[] lt = LayerType.values();
+    for (int i = 0; i < lt.length; i++) {
+      if (lt[i] == this.layerType) {
         idx = i;
       }
     }
@@ -131,7 +132,7 @@ public abstract class BasicLayer<O extends LayerObject>
    * @param index The index of the layer object.
    * @return The layer object, of <code>null</code> if not available.
    */
-  public O getLayerObject(int index)
+  public E getLayerObject(int index)
   {
     if (index >= 0 && index < listObjects.size()) {
       return listObjects.get(index);
@@ -144,7 +145,7 @@ public abstract class BasicLayer<O extends LayerObject>
    * Returns the list of layer objects for direct manipulation.
    * @return List of layer objects.
    */
-  public List<O> getLayerObjects()
+  public List<E> getLayerObjects()
   {
     return listObjects;
   }
@@ -163,9 +164,9 @@ public abstract class BasicLayer<O extends LayerObject>
    */
   public void setLayerVisible(boolean visible)
   {
-    for (int i = 0; i < listObjects.size(); i++) {
+    for (int i = 0, size = listObjects.size(); i < size; i++) {
       boolean state = visible && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
-      O obj = listObjects.get(i);
+      E obj = listObjects.get(i);
       AbstractLayerItem[] items = obj.getLayerItems();
       for (int j = 0; j < items.length; j++) {
         items[j].setVisible(state);
@@ -178,11 +179,11 @@ public abstract class BasicLayer<O extends LayerObject>
    * Returns the layer object containing the specified layer item.
    * @return The object, if it has been found, <code>null</code> otherwise.
    */
-  public O getLayerObjectOf(AbstractLayerItem item)
+  public E getLayerObjectOf(AbstractLayerItem item)
   {
     if (item != null) {
-      for (int i = 0; i < listObjects.size(); i++) {
-        O obj = listObjects.get(i);
+      for (int i = 0, size = listObjects.size(); i < size; i++) {
+        E obj = listObjects.get(i);
         AbstractLayerItem[] items = obj.getLayerItems();
         for (int j = 0; j < items.length; j++) {
           if (items[j] == item) {
@@ -208,7 +209,7 @@ public abstract class BasicLayer<O extends LayerObject>
   public void close()
   {
     if (getViewer() != null) {
-      for (int i = 0; i < listObjects.size(); i++) {
+      for (int i = 0, size = listObjects.size(); i < size; i++) {
         listObjects.get(i).close();
       }
     }
@@ -267,7 +268,7 @@ public abstract class BasicLayer<O extends LayerObject>
    */
   public boolean isScheduled(int index)
   {
-    O obj = getLayerObject(index);
+    E obj = getLayerObject(index);
     if (obj != null) {
       return !isScheduleEnabled() || obj.isScheduled(getSchedule());
     } else {
@@ -289,7 +290,7 @@ public abstract class BasicLayer<O extends LayerObject>
     if (getParent() != null && baseOfs >= 0 && count >= 0 && type != null) {
       List<StructEntry> list = getParent().getList();
       int cnt = 0;
-      for (int i = 0; i < list.size(); i++) {
+      for (int i = 0, size = list.size(); i < size; i++) {
         if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
           listStruct.add(list.get(i));
           cnt++;

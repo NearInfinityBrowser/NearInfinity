@@ -40,7 +40,7 @@ public class LayerContainer extends BasicLayer<LayerObjectContainer>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, Container.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectContainer obj = new LayerObjectContainer(are, (Container)listStruct.get(i));
             setListeners(obj);
             list.add(obj);

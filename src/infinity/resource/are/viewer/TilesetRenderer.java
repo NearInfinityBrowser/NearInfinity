@@ -18,8 +18,10 @@ import java.util.List;
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.gui.RenderCanvas;
 import infinity.resource.ResourceFactory;
@@ -391,7 +393,7 @@ public class TilesetRenderer extends RenderCanvas
    */
   public void advanceTileFrame()
   {
-    for (int i = 1; i < listTilesets.size(); i++) {
+    for (int i = 1, size = listTilesets.size(); i < size; i++) {
       listTilesets.get(i).advanceTileFrame();
       hasChangedOverlays = true;
     }
@@ -406,7 +408,7 @@ public class TilesetRenderer extends RenderCanvas
    */
   public void setTileFrame(int index)
   {
-    for (int i = 1; i < listTilesets.size(); i++) {
+    for (int i = 1, size = listTilesets.size(); i < size; i++) {
       listTilesets.get(i).setTileFrame(index);
       hasChangedOverlays = true;
     }
@@ -636,12 +638,14 @@ public class TilesetRenderer extends RenderCanvas
   {
     if (wed != null) {
       // loading overlay structures
+      SectionOffset so = (SectionOffset)wed.getAttribute("Overlays offset");
       SectionCount sc = (SectionCount)wed.getAttribute("# overlays");
-      if (sc != null) {
-        for (int i = 0; i < sc.getValue(); i++) {
-          Overlay ovl = (Overlay)wed.getAttribute(String.format("Overlay %1$d", i));
+      if (so != null && sc != null) {
+        for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
+          Overlay ovl = (Overlay)wed.getAttribute(curOfs, false);
           if (ovl != null) {
             listTilesets.add(new Tileset(wed, ovl));
+            curOfs += ovl.getSize();
           } else {
             release(true);
             return false;
@@ -653,20 +657,25 @@ public class TilesetRenderer extends RenderCanvas
       }
 
       // loading door structures
+      so = (SectionOffset)wed.getAttribute("Doors offset");
       sc = (SectionCount)wed.getAttribute("# doors");
-      if (sc != null) {
-        for (int i = 0; i < sc.getValue(); i++) {
-          Door door = (Door)wed.getAttribute(String.format("Door %1$d", i));
+      HexNumber lookupOfs = (HexNumber)wed.getAttribute("Door tilemap lookup offset");
+      if (so != null && sc != null && lookupOfs != null) {
+        for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
+          Door door = (Door)wed.getAttribute(curOfs, false);
           if (door != null) {
             String name = ((TextString)door.getAttribute("Name")).toString();
             boolean isClosed = ((Bitmap)door.getAttribute("Is door?")).getValue() == 1;
+            final int tileSize = 2;
+            int tileIdx = ((DecNumber)door.getAttribute("Tilemap lookup index")).getValue();
             int tileCount = ((SectionCount)door.getAttribute("# tilemap indexes")).getValue();
             if (tileCount < 0) tileCount = 0;
             int[] indices = new int[tileCount];
             for (int j = 0; j < tileCount; j++) {
-              indices[j] = ((DecNumber)door.getAttribute(String.format("Tilemap index %1$d", j))).getValue();
+              indices[j] = ((DecNumber)door.getAttribute(lookupOfs.getValue() + (tileIdx+j)*tileSize, false)).getValue();
             }
             listDoorTileIndices.add(new DoorInfo(name, isClosed, indices));
+            curOfs += door.getSize();
           } else {
             listDoorTileIndices.add(new DoorInfo("", true, new int[]{}));   // needed as placeholder
           }
@@ -733,8 +742,9 @@ public class TilesetRenderer extends RenderCanvas
   // draws all tiles of the map
   private void drawAllTiles()
   {
-    for (int i = 0; i < listTilesets.get(0).listTiles.size(); i++) {
-      Tile tile = listTilesets.get(0).listTiles.get(i);
+    Tileset ts = listTilesets.get(0);
+    for (int i = 0, size = ts.listTiles.size(); i < size; i++) {
+      Tile tile = ts.listTiles.get(i);
       drawTile(tile, isDoorTile(tile));
     }
   }
@@ -742,8 +752,9 @@ public class TilesetRenderer extends RenderCanvas
   // draws overlayed tiles only
   private void drawOverlayTiles()
   {
-    for (int i = 0; i < listTilesets.get(0).listOverlayTiles.size(); i++) {
-      Tile tile = listTilesets.get(0).listOverlayTiles.get(i);
+    Tileset ts = listTilesets.get(0);
+    for (int i = 0, size = ts.listOverlayTiles.size(); i < size; i++) {
+      Tile tile = ts.listOverlayTiles.get(i);
       drawTile(tile, isDoorTile(tile));
     }
   }
@@ -751,9 +762,9 @@ public class TilesetRenderer extends RenderCanvas
   // draws door tiles only
   private void drawDoorTiles()
   {
-    for (int i = 0; i < listDoorTileIndices.size(); i++) {
+    for (int i = 0, size = listDoorTileIndices.size(); i < size; i++) {
       DoorInfo di = listDoorTileIndices.get(i);
-      for (int j = 0; j < di.getIndicesCount(); j++) {
+      for (int j = 0, iCount = di.getIndicesCount(); j < iCount; j++) {
         Tile tile = listTilesets.get(0).listTiles.get(di.getIndex(j));
         drawTile(tile, isDoorTile(tile));
       }
@@ -974,9 +985,9 @@ public class TilesetRenderer extends RenderCanvas
   {
     if (tile != null) {
       int tileIdx = tile.getPrimaryIndex();
-      for (int i = 0; i < listDoorTileIndices.size(); i++) {
+      for (int i = 0, size = listDoorTileIndices.size(); i < size; i++) {
         DoorInfo di = listDoorTileIndices.get(i);
-        for (int j = 0; j < di.getIndicesCount(); j++) {
+        for (int j = 0, iCount = di.getIndicesCount(); j < iCount; j++) {
           if (di.getIndex(j) == tileIdx) {
             return true;
           }
@@ -990,7 +1001,7 @@ public class TilesetRenderer extends RenderCanvas
   private void notifyChangeListeners()
   {
     if (hasChangedMap || hasChangedAppearance || hasChangedOverlays || hasChangedDoorState) {
-      for (int i = 0; i < listChangeListener.size(); i++) {
+      for (int i = 0, size = listChangeListener.size(); i < size; i++) {
         listChangeListener.get(i).tilesetChanged(new TilesetChangeEvent(this,
             hasChangedMap, hasChangedAppearance, hasChangedOverlays, hasChangedDoorState));
       }
@@ -1019,14 +1030,14 @@ public class TilesetRenderer extends RenderCanvas
 
     public void advanceTileFrame()
     {
-      for (int i = 0; i < listTiles.size(); i++) {
+      for (int i = 0, size = listTiles.size(); i < size; i++) {
         listTiles.get(i).advancePrimaryIndex();
       }
     }
 
     public void setTileFrame(int index)
     {
-      for (int i = 0; i < listTiles.size(); i++) {
+      for (int i = 0, size = listTiles.size(); i < size; i++) {
         listTiles.get(i).setCurrentPrimaryIndex(index);
       }
     }
@@ -1042,7 +1053,7 @@ public class TilesetRenderer extends RenderCanvas
             TisDecoder decoder = TisDecoder.loadTis(tisEntry);
             isTilesetV1 = decoder.getType() == TisDecoder.Type.PALETTE;
             BufferedImage tileImage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
-            for (int i = 0; i < decoder.getTileCount(); i++) {
+            for (int i = 0, tCount = decoder.getTileCount(); i < tCount; i++) {
               decoder.getTile(i, tileImage);
               int[] srcData = ((DataBufferInt)tileImage.getRaster().getDataBuffer()).getData();
               int[] dstData = new int[64*64];
@@ -1062,26 +1073,29 @@ public class TilesetRenderer extends RenderCanvas
         // storing tile information
         tilesX = ((DecNumber)ovl.getAttribute("Width")).getValue();
         tilesY = ((DecNumber)ovl.getAttribute("Height")).getValue();
+        int mapOfs = ((SectionOffset)ovl.getAttribute("Tilemap offset")).getValue();
+        int idxOfs = ((DecNumber)ovl.getAttribute("Tilemap lookup offset")).getValue();
         int tileCount = tilesX * tilesY;
-        for (int i = 0; i < tileCount; i++) {
-          Tilemap tile = (Tilemap)ovl.getAttribute(String.format("Tilemap %1$d", i));
+        for (int i = 0, curOfs = mapOfs; i < tileCount; i++) {
+          Tilemap tile = (Tilemap)ovl.getAttribute(curOfs, false);
           // tile coordinates in pixels
           int x = (i % tilesX) * 64;
           int y = (i / tilesX) * 64;
 
           if (tile != null) {
             // initializing list of primary tile indices
+            final int idxSize = 2;
             int index = ((DecNumber)tile.getAttribute("Primary tile index")).getValue();
             int count = ((DecNumber)tile.getAttribute("Primary tile count")).getValue();
             if (count < 0) count = 0;
             int[] tileIdx = new int[count];
             for (int j = 0; j < count; j++) {
               if (index >= 0) {
-                try {
-                  tileIdx[j] = ((DecNumber)ovl.getAttribute(String.format("Tilemap index %1$d", index + j))).getValue();
-                } catch (Exception e) {
+                DecNumber dn = (DecNumber)ovl.getAttribute(idxOfs + (index+j)*idxSize, false);
+                if (dn != null) {
+                  tileIdx[j] = dn.getValue();
+                } else {
                   tileIdx[j] = -1;
-                  e.printStackTrace();
                 }
               } else {
                 tileIdx[j] = -1;
@@ -1101,13 +1115,14 @@ public class TilesetRenderer extends RenderCanvas
             }
 
             listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTilesetV1));
+            curOfs += tile.getSize();
           } else {
             listTiles.add(new Tile(x, y, 0, new int[]{}, -1, 0, true));     // needed as placeholder
           }
         }
 
         // grouping overlayed tiles for faster access
-        for (int i = 0; i < listTiles.size(); i++) {
+        for (int i = 0, size = listTiles.size(); i < size; i++) {
           Tile tile = listTiles.get(i);
           if (tile.getFlags() > 0) {
             listOverlayTiles.add(tile);
@@ -1277,28 +1292,28 @@ public class TilesetRenderer extends RenderCanvas
   // Stores relevant information about door structures
   private static class DoorInfo
   {
-    private String name;        // door info structure name
-    private boolean isClosed;   // indicates the door state for the specified list of tile indices
+//    private String name;        // door info structure name
+//    private boolean isClosed;   // indicates the door state for the specified list of tile indices
     private int[] indices;      // list of tilemap indices used for the door
 
     public DoorInfo(String name, boolean isClosed, int[] indices)
     {
-      this.name = (name != null) ? name : "";
-      this.isClosed = isClosed;
+//      this.name = (name != null) ? name : "";
+//      this.isClosed = isClosed;
       this.indices = (indices != null) ? indices : new int[0];
     }
 
-    // Returns the name of the door structure
-    public String getName()
-    {
-      return name;
-    }
+//    // Returns the name of the door structure
+//    public String getName()
+//    {
+//      return name;
+//    }
 
-    // Returns whether the tile indices are used for the closed state of the door
-    public boolean isClosed()
-    {
-      return isClosed;
-    }
+//    // Returns whether the tile indices are used for the closed state of the door
+//    public boolean isClosed()
+//    {
+//      return isClosed;
+//    }
 
     // Returns number of tiles used in this door structure
     public int getIndicesCount()

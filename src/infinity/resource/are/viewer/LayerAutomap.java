@@ -51,14 +51,14 @@ public class LayerAutomap extends BasicLayer<LayerObject>
           int count = sc.getValue();
           if (isTorment()) {
             List<StructEntry> listStruct = getStructures(ofs, count, AutomapNotePST.class);
-            for (int i = 0; i < listStruct.size(); i++) {
+            for (int i = 0, size = listStruct.size(); i < size; i++) {
               LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, (AutomapNotePST)listStruct.get(i));
               setListeners(obj);
               list.add(obj);
             }
           } else {
             List<StructEntry> listStruct = getStructures(ofs, count, AutomapNote.class);
-            for (int i = 0; i < listStruct.size(); i++) {
+            for (int i = 0, size = listStruct.size(); i < size; i++) {
               LayerObjectAutomap obj = new LayerObjectAutomap(are, (AutomapNote)listStruct.get(i));
               setListeners(obj);
               list.add(obj);

@@ -40,7 +40,7 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, SpawnPoint.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectSpawnPoint obj = new LayerObjectSpawnPoint(are, (SpawnPoint)listStruct.get(i));
             setListeners(obj);
             list.add(obj);
