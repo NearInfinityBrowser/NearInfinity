@@ -269,10 +269,14 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     while (!svalue.equals(getString(fSelected)))
       fSelected++;
 
-    if (idsFile < sIDS.length && !sIDS[fSelected].equals(""))
+    if (idsFile < sIDS.length && !sIDS[fSelected].equals("")) {
       idsMap = IdsMapCache.get(sIDS[fSelected]).getMap();
-    else
+      if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[fSelected].equalsIgnoreCase("EA.IDS")) {
+        idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+      }
+    } else {
       idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    }
 
     long[] keys = idsMap.keys();
     List<Object> items = new ArrayList<Object>(keys.length);
@@ -333,6 +337,9 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
         idsFile = DynamicArray.getUnsignedByte(buffer, offset + 1);
         if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
           idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
         } else {
           idsMap = new LongIntegerHashMap<IdsMapEntry>();
         }
@@ -342,6 +349,9 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
         idsFile = DynamicArray.getUnsignedShort(buffer, offset + 2);
         if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
           idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
         } else {
           idsMap = new LongIntegerHashMap<IdsMapEntry>();
         }
@@ -351,6 +361,9 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
         idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
         if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
           idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
         } else {
           idsMap = new LongIntegerHashMap<IdsMapEntry>();
         }
