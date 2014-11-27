@@ -19,12 +19,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -59,6 +63,7 @@ public class ButtonPopupWindow extends JButton
   public static final int LEFT    = 3;
 
   private final PopupWindow window = new PopupWindow(this);
+  private final List<PopupWindowListener> listeners = new ArrayList<PopupWindowListener>();
 
   private PopupWindow ignoredWindow;    // used to determine whether to hide the current window on lost focus
   private int windowAlign;
@@ -153,6 +158,36 @@ public class ButtonPopupWindow extends JButton
     init(content, align);
   }
 
+  /** Adds a new PopupWindowListener to this component. */
+  public void addPopupWindowListener(PopupWindowListener listener)
+  {
+    if (listener != null) {
+      if (listeners.indexOf(listener) < 0) {
+        listeners.add(listener);
+      }
+    }
+  }
+
+  /** Returns all registered PopupWindowListener object. */
+  public PopupWindowListener[] getPopupWindowListeners()
+  {
+    PopupWindowListener[] retVal = new PopupWindowListener[listeners.size()];
+    for (int i = 0, size = listeners.size(); i < size; i++) {
+      retVal[i] = listeners.get(i);
+    }
+    return retVal;
+  }
+
+  /** Removes a PopupWindowListener from this component. */
+  public void removePopupWindowListener(PopupWindowListener listener)
+  {
+    if (listener != null) {
+      int idx = listeners.indexOf(listener);
+      if (idx >= 0) {
+        listeners.remove(idx);
+      }
+    }
+  }
 
   /**
    * Returns the popup window.
@@ -226,6 +261,52 @@ public class ButtonPopupWindow extends JButton
     }
   }
 
+  /**
+   * Registers a custom action for a specific keystroke.
+   * @param key A unique key to link the keystroke to the action.
+   * @param keyStroke The keystroke object defining the keyboard input sequence.
+   * @param action The action to process.
+   */
+  public void addGlobalKeyStroke(Object key, KeyStroke keyStroke, Action action)
+  {
+    if (key != null && keyStroke != null && action != null) {
+      final InputMap inputMap = window.getRootPane().getInputMap(WHEN_IN_FOCUSED_WINDOW);
+      final ActionMap actionMap = window.getRootPane().getActionMap();
+      inputMap.put(keyStroke, key);
+      actionMap.put(key, action);
+    }
+  }
+
+  /**
+   * Removes a keystroke action from the window.
+   * @param key The key which identifies the action.
+   * @param keyStroke The keystroke which triggers the action.
+   */
+  public void removeGlobalKeyStroke(Object key, KeyStroke keyStroke)
+  {
+    if (key != null && keyStroke != null) {
+      final InputMap inputMap = window.getRootPane().getInputMap(WHEN_IN_FOCUSED_WINDOW);
+      final ActionMap actionMap = window.getRootPane().getActionMap();
+      inputMap.remove(keyStroke);
+      actionMap.remove(key);
+    }
+  }
+
+  protected void firePopupWindowListener(boolean becomeVisible)
+  {
+    PopupWindowEvent event = null;
+    for (int i = 0, size = listeners.size(); i < size; i++) {
+      if (event == null) {
+        event = new PopupWindowEvent(this);
+      }
+      if (becomeVisible) {
+        listeners.get(i).popupWindowWillBecomeVisible(event);
+      } else {
+        listeners.get(i).popupWindowWillBecomeInvisible(event);
+      }
+    }
+  }
+
   private void init(Component content, int align)
   {
     ignoredWindow = window;
@@ -259,94 +340,101 @@ public class ButtonPopupWindow extends JButton
 
   private void showWindow()
   {
-    // notify the parent window to stay open if of type PopupWindow
-    PopupWindow parent = getParentPopupWindow(window);
-    if (parent != null) {
-      parent.getButton().setIgnoredWindow(window);
-    }
+    if (!window.isVisible()) {
+      firePopupWindowListener(true);
 
-    // determine correct window location
-    DisplayMode dm = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
-    Dimension dimScreen = new Dimension(dm.getWidth(), dm.getHeight());
-    Rectangle rectButton = new Rectangle(getLocationOnScreen(), getSize());
-    Dimension dimWin = window.getSize();
-    Point location = new Point();
+      // notify the parent window to stay open if of type PopupWindow
+      PopupWindow parent = getParentPopupWindow(window);
+      if (parent != null) {
+        parent.getButton().setIgnoredWindow(window);
+      }
 
-    if (windowAlign == RIGHT) {
-      if (dimWin.width >= dimScreen.width - rectButton.x - rectButton.width) {
-        // show left of the button
-        location.x = rectButton.x - dimWin.width;
-      } else {
-        // show right of the button
-        location.x = rectButton.x + rectButton.width;
-      }
-    } else if (windowAlign == LEFT) {
-      if (dimWin.width > rectButton.x) {
-        // show right of the button
-        location.x = rectButton.x + rectButton.width;
-      } else {
-        // show left of the button
-        location.x = rectButton.x - dimWin.width;
-      }
-    } else if (windowAlign == TOP) {
-      if (dimWin.height > rectButton.y) {
-        // show below button
-        location.y = rectButton.y + rectButton.height;
-      } else {
-        // show below button
-        location.y = rectButton.y - dimWin.height;
-      }
-    } else {    // defaults to BOTTOM
-      if (dimWin.height >= dimScreen.height - rectButton.y - rectButton.height) {
-        // show on top of button
-        location.y = rectButton.y - dimWin.height;
-      } else {
-        // show below button
-        location.y = rectButton.y + rectButton.height;
-      }
-    }
+      // determine correct window location
+      DisplayMode dm = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
+      Dimension dimScreen = new Dimension(dm.getWidth(), dm.getHeight());
+      Rectangle rectButton = new Rectangle(getLocationOnScreen(), getSize());
+      Dimension dimWin = window.getSize();
+      Point location = new Point();
 
-    if (windowAlign == RIGHT || windowAlign == LEFT) {
-      if (dimWin.height < dimScreen.height - rectButton.y) {
-        // align with button vertically
-        location.y = rectButton.y;
-      } else {
-        location.y = dimScreen.height - dimWin.height;
-      }
-    } else {
-      // considering locale-specific horizontal orientations
-      if (ComponentOrientation.getOrientation(Locale.getDefault()) == ComponentOrientation.RIGHT_TO_LEFT) {
-        if (rectButton.x + rectButton.width >= dimWin.width) {
-          // align with button horizontally
-          location.x = rectButton.x + rectButton.width - dimWin.width;
+      if (windowAlign == RIGHT) {
+        if (dimWin.width >= dimScreen.width - rectButton.x - rectButton.width) {
+          // show left of the button
+          location.x = rectButton.x - dimWin.width;
         } else {
-          location.x = 0;
+          // show right of the button
+          location.x = rectButton.x + rectButton.width;
         }
-      } else {    // default: left-to-right orientation
-        if (dimWin.width < dimScreen.width - rectButton.x) {
-          // align with button horizontally
-          location.x = rectButton.x;
+      } else if (windowAlign == LEFT) {
+        if (dimWin.width > rectButton.x) {
+          // show right of the button
+          location.x = rectButton.x + rectButton.width;
         } else {
-          location.x = dimScreen.width - dimWin.width;
+          // show left of the button
+          location.x = rectButton.x - dimWin.width;
+        }
+      } else if (windowAlign == TOP) {
+        if (dimWin.height > rectButton.y) {
+          // show below button
+          location.y = rectButton.y + rectButton.height;
+        } else {
+          // show below button
+          location.y = rectButton.y - dimWin.height;
+        }
+      } else {    // defaults to BOTTOM
+        if (dimWin.height >= dimScreen.height - rectButton.y - rectButton.height) {
+          // show on top of button
+          location.y = rectButton.y - dimWin.height;
+        } else {
+          // show below button
+          location.y = rectButton.y + rectButton.height;
         }
       }
-    }
 
-    // translate absolute to relative coordinates
-    if (window.getParent() != null) {
-      location.x -= window.getParent().getLocation().x;
-      location.y -= window.getParent().getLocation().y;
-    }
-    window.setLocation(location);
+      if (windowAlign == RIGHT || windowAlign == LEFT) {
+        if (dimWin.height < dimScreen.height - rectButton.y) {
+          // align with button vertically
+          location.y = rectButton.y;
+        } else {
+          location.y = dimScreen.height - dimWin.height;
+        }
+      } else {
+        // considering locale-specific horizontal orientations
+        if (ComponentOrientation.getOrientation(Locale.getDefault()) == ComponentOrientation.RIGHT_TO_LEFT) {
+          if (rectButton.x + rectButton.width >= dimWin.width) {
+            // align with button horizontally
+            location.x = rectButton.x + rectButton.width - dimWin.width;
+          } else {
+            location.x = 0;
+          }
+        } else {    // default: left-to-right orientation
+          if (dimWin.width < dimScreen.width - rectButton.x) {
+            // align with button horizontally
+            location.x = rectButton.x;
+          } else {
+            location.x = dimScreen.width - dimWin.width;
+          }
+        }
+      }
 
-    window.setVisible(true);
-    window.requestFocusInWindow();
+      // translate absolute to relative coordinates
+      if (window.getParent() != null) {
+        location.x -= window.getParent().getLocation().x;
+        location.y -= window.getParent().getLocation().y;
+      }
+      window.setLocation(location);
+
+      window.setVisible(true);
+      window.requestFocusInWindow();
+    }
   }
 
   private void hideWindow()
   {
-    window.setVisible(false);
-    window.getButton().requestFocusInWindow();
+    if (window.isVisible()) {
+      firePopupWindowListener(false);
+      window.setVisible(false);
+      window.getButton().requestFocusInWindow();
+    }
   }
 
   // Returns the direct parent of the specified window if of type PopupWindow, or null if not available
