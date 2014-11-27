@@ -18,7 +18,7 @@ import infinity.resource.are.AreResource;
  */
 public class LayerActor extends BasicLayer<LayerObjectActor>
 {
-  private static final String AvailableFmt = "%1$d actor%2$s available";
+  private static final String AvailableFmt = "Actors: %1$d";
 
   public LayerActor(AreResource are, AreaViewer viewer)
   {
@@ -57,6 +57,6 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

@@ -311,10 +311,10 @@ public abstract class BasicLayer<E extends LayerObject>
       AbstractLayerItem[] items = obj.getLayerItems();
       for (int i = 0; i < items.length; i++) {
         if (items[i] != null) {
-          items[i].addActionListener(viewer);
-          items[i].addLayerItemListener(viewer);
-          items[i].addMouseListener(viewer);
-          items[i].addMouseMotionListener(viewer);
+          items[i].addActionListener(viewer.getListeners());
+          items[i].addLayerItemListener(viewer.getListeners());
+          items[i].addMouseListener(viewer.getListeners());
+          items[i].addMouseMotionListener(viewer.getListeners());
         }
       }
     }

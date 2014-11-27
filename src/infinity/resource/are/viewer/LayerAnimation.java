@@ -24,7 +24,7 @@ import infinity.resource.are.AreResource;
  */
 public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 {
-  private static final String AvailableFmt = "%1$d background animation%2$s available";
+  private static final String AvailableFmt = "Background animations: %1$d";
 
   private boolean realEnabled, realPlaying, forcedInterpolation, isAnimActiveIgnored;
   private int frameState;
@@ -95,7 +95,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 
   /**

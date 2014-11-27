@@ -18,7 +18,7 @@ import infinity.resource.are.Entrance;
  */
 public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
 {
-  private static final String AvailableFmt = "%1$d entrance%2$s available";
+  private static final String AvailableFmt = "Entrances: %1$d";
 
   public LayerEntrance(AreResource are, AreaViewer viewer)
   {
@@ -57,6 +57,6 @@ public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

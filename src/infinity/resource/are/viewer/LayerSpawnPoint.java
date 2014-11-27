@@ -18,7 +18,7 @@ import infinity.resource.are.SpawnPoint;
  */
 public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
 {
-  private static final String AvailableFmt = "%1$d spawn point%2$s available";
+  private static final String AvailableFmt = "Spawn points: %1$d";
 
   public LayerSpawnPoint(AreResource are, AreaViewer viewer)
   {
@@ -57,6 +57,6 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

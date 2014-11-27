@@ -18,7 +18,7 @@ import infinity.resource.are.ProTrap;
  */
 public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
 {
-  private static final String AvailableFmt = "%1$d projectile trap%2$s available";
+  private static final String AvailableFmt = "Projectile traps: %1$d";
 
   public LayerProTrap(AreResource are, AreaViewer viewer)
   {
@@ -57,6 +57,6 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

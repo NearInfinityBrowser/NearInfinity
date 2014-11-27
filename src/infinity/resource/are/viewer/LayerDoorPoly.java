@@ -19,7 +19,7 @@ import infinity.resource.wed.WedResource;
  */
 public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
 {
-  private static final String AvailableFmt = "%1$d door polygon%2$s available";
+  private static final String AvailableFmt = "Door polygons: %1$d";
 
   private boolean doorClosed;
 
@@ -61,7 +61,7 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 
   @Override

@@ -18,7 +18,7 @@ import infinity.resource.are.Container;
  */
 public class LayerContainer extends BasicLayer<LayerObjectContainer>
 {
-  private static final String AvailableFmt = "%1$d container%2$s available";
+  private static final String AvailableFmt = "Containers: %1$d";
 
   public LayerContainer(AreResource are, AreaViewer viewer)
   {
@@ -57,6 +57,6 @@ public class LayerContainer extends BasicLayer<LayerObjectContainer>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

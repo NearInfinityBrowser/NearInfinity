@@ -18,7 +18,7 @@ import infinity.resource.are.Door;
  */
 public class LayerDoor extends BasicLayer<LayerObjectDoor>
 {
-  private static final String AvailableFmt = "%1$d door%2$s available";
+  private static final String AvailableFmt = "Doors: %1$d";
 
   private boolean doorClosed;
 
@@ -60,7 +60,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 
   @Override

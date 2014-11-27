@@ -18,7 +18,7 @@ import infinity.resource.wed.WedResource;
  */
 public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
 {
-  private static final String AvailableFmt = "%1$d wall polygon%2$s available";
+  private static final String AvailableFmt = "Wall polygons: %1$d";
 
   public LayerWallPoly(WedResource wed, AreaViewer viewer)
   {
@@ -57,6 +57,6 @@ public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

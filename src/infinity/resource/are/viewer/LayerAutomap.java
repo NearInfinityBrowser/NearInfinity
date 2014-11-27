@@ -20,7 +20,7 @@ import infinity.resource.are.AutomapNotePST;
  */
 public class LayerAutomap extends BasicLayer<LayerObject>
 {
-  private static final String AvailableFmt = "%1$d automap note%2$s available";
+  private static final String AvailableFmt = "Automap notes: %1$d";
 
   public LayerAutomap(AreResource are, AreaViewer viewer)
   {
@@ -76,6 +76,6 @@ public class LayerAutomap extends BasicLayer<LayerObject>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

@@ -20,13 +20,22 @@ public final class LayerManager
 {
   // Defines order of drawing
   public static final LayerType[] LayerOrdered = new LayerType[]{
-    LayerType.Actor, LayerType.Entrance, LayerType.Ambient, LayerType.ProTrap, LayerType.Animation,
-    LayerType.SpawnPoint, LayerType.Automap, LayerType.Container, LayerType.Door, LayerType.Region,
-    LayerType.Transition, LayerType.DoorPoly, LayerType.WallPoly
+    LayerType.Actor,
+    LayerType.Entrance,
+    LayerType.Ambient,
+    LayerType.ProTrap,
+    LayerType.Animation,
+    LayerType.SpawnPoint,
+    LayerType.Automap,
+    LayerType.Container,
+    LayerType.Door,
+    LayerType.Region,
+    LayerType.Transition,
+    LayerType.DoorPoly,
+    LayerType.WallPoly
   };
 
   private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<LayerType, String>(LayerType.class);
-  private static final EnumMap<LayerType, String> LayerAvailabilityFmt = new EnumMap<LayerType, String>(LayerType.class);
   static {
     LayerLabels.put(LayerType.Actor, "Actors");
     LayerLabels.put(LayerType.Region, "Regions");
@@ -41,19 +50,6 @@ public final class LayerManager
     LayerLabels.put(LayerType.ProTrap, "Projectile Traps");
     LayerLabels.put(LayerType.DoorPoly, "Door Polygons");
     LayerLabels.put(LayerType.WallPoly, "Wall Polygons");
-    LayerAvailabilityFmt.put(LayerType.Actor, "%1$d actor%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Region, "%1$d region%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Entrance, "%1$d entrance%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Container, "%1$d container%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Ambient, "%1$d ambient sound%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Door, "%1$d door%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Animation, "%1$d background animation%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Automap, "%1$d automap note%2$s available");
-    LayerAvailabilityFmt.put(LayerType.SpawnPoint, "%1$d spawn point%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Transition, "%1$d map transition%2$s available");
-    LayerAvailabilityFmt.put(LayerType.ProTrap, "%1$d projectile trap%2$s available");
-    LayerAvailabilityFmt.put(LayerType.DoorPoly, "%1$d door polygon%2$s available");
-    LayerAvailabilityFmt.put(LayerType.WallPoly, "%1$d wall polygon%2$s available");
   }
 
   private final EnumMap<LayerType, BasicLayer<?>> layers = new EnumMap<LayerType, BasicLayer<?>>(LayerType.class);

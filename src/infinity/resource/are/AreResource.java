@@ -23,11 +23,13 @@ import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
+import infinity.resource.are.viewer.AreaViewer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
 import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
 
+import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
@@ -56,6 +58,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
 
   private HexViewer hexViewer;
+  private AreaViewer areaViewer;
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
   {
@@ -130,6 +133,21 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   {
     super(entry);
   }
+
+//--------------------- Begin Interface Closeable ---------------------
+
+ @Override
+ public void close() throws Exception
+ {
+   super.close();
+   if (areaViewer != null) {
+     areaViewer.close();
+     areaViewer.dispose();
+     areaViewer = null;
+   }
+ }
+
+//--------------------- End Interface Closeable ---------------------
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
@@ -659,6 +677,19 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     ((DecNumber)getAttribute("# vertices")).setValue(count);
   }
 
+  /** Displays the area viewer for this ARE resource. */
+  AreaViewer showAreaViewer(Component parent)
+  {
+    if (areaViewer == null) {
+      areaViewer = new AreaViewer(parent, this);
+    } else if (!areaViewer.isVisible()) {
+      areaViewer.setVisible(true);
+      areaViewer.toFront();
+    } else {
+      areaViewer.toFront();
+    }
+    return areaViewer;
+  }
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.
@@ -670,7 +701,6 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         Actor[] actors;
         Animation[] animations;
         Item[][] items;
-//        Item[] items;
         boolean retVal = true;
         String key;
         Object o;

@@ -110,8 +110,6 @@ import infinity.util.io.FileNI;
  * @author argent77
  */
 public class AreaViewer extends ChildFrame
-    implements ActionListener, MouseListener, MouseMotionListener, ChangeListener, TilesetChangeListener,
-               PropertyChangeListener, LayerItemListener, ComponentListener, TreeExpansionListener
 {
   private static final String LabelInfoX = "Position X:";
   private static final String LabelInfoY = "Position Y:";
@@ -121,6 +119,7 @@ public class AreaViewer extends ChildFrame
   private static final String LabelAnimateOverlays = "Animate overlays";
   private static final String LabelDrawGrid = "Show grid";
 
+  private final Listeners listeners;
   private final Map map;
   private final Point mapCoordinates = new Point();
   private final String windowTitle;
@@ -160,7 +159,7 @@ public class AreaViewer extends ChildFrame
    * @param are The ARE resource to check
    * @return <code>true</code> if area is viewable, <code>false</code> otherwise.
    */
-  public static boolean IsValid(AreResource are)
+  public static boolean isValid(AreResource are)
   {
     if (are != null) {
       ResourceRef wedRef = (ResourceRef)are.getAttribute("WED resource");
@@ -181,6 +180,19 @@ public class AreaViewer extends ChildFrame
     return false;
   }
 
+  // Returns the general day time (day/twilight/night)
+  private static int getDayTime()
+  {
+    return ViewerConstants.getDayTime(Settings.TimeOfDay);
+  }
+
+
+  // Returns the currently selected day time in hours
+  private static int getHour()
+  {
+    return Settings.TimeOfDay;
+  }
+
 
   public AreaViewer(AreResource are)
   {
@@ -189,9 +201,10 @@ public class AreaViewer extends ChildFrame
 
   public AreaViewer(Component parent, AreResource are)
   {
-    super("", true);
+    super("");
     windowTitle = String.format("Area Viewer: %1$s", (are != null) ? are.getName() : "[Unknown]");
     initProgressMonitor(parent, "Initializing " + are.getName(), "Loading ARE resource...", 3, 0, 0);
+    listeners = new Listeners(this);
     map = new Map(this, are);
     // loading map in dedicated thread
     workerInitGui = new SwingWorker<Void, Void>() {
@@ -205,7 +218,7 @@ public class AreaViewer extends ChildFrame
         return null;
       }
     };
-    workerInitGui.addPropertyChangeListener(this);
+    workerInitGui.addPropertyChangeListener(listeners);
     workerInitGui.execute();
   }
 
@@ -218,461 +231,14 @@ public class AreaViewer extends ChildFrame
     return rcCanvas;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
-
-  @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() instanceof JCheckBox) {
-      JCheckBox cb = (JCheckBox)event.getSource();
-      LayerType layer = getLayerType(cb);
-      if (layer != null) {
-        showLayer(layer, cb.isSelected());
-        if (layer == LayerType.Ambient) {
-          // Taking care of local ambient ranges
-          updateAmbientRange();
-        } else if (layer == LayerType.Animation) {
-          // Taking care of real animation display
-          updateRealAnimation();
-        }
-        updateScheduledItems();
-      } else if (cb == cbLayerAmbientRange) {
-        updateAmbientRange();
-      } else if (cb == cbLayerRealAnimation[0]) {
-        if (cbLayerRealAnimation[0].isSelected()) {
-          cbLayerRealAnimation[1].setSelected(false);
-        }
-        updateRealAnimation();
-      } else if (cb == cbLayerRealAnimation[1]) {
-        if (cbLayerRealAnimation[1].isSelected()) {
-          cbLayerRealAnimation[0].setSelected(false);
-        }
-        updateRealAnimation();
-      } else if (cb == cbEnableSchedules) {
-        WindowBlocker.blockWindow(this, true);
-        try {
-          Settings.EnableSchedules = cbEnableSchedules.isSelected();
-          updateTimeSchedules();
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      } else if (cb == cbDrawClosed) {
-        WindowBlocker.blockWindow(this, true);
-        try {
-          setDoorState(cb.isSelected());
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      } else if (cb == cbDrawGrid) {
-        WindowBlocker.blockWindow(this, true);
-        try {
-          setTileGridEnabled(cb.isSelected());
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      } else if (cb == cbDrawOverlays) {
-        WindowBlocker.blockWindow(this, true);
-        try {
-          setOverlaysEnabled(cb.isSelected());
-          cbAnimateOverlays.setEnabled(cb.isSelected());
-          if (!cb.isSelected() && cbAnimateOverlays.isSelected()) {
-            cbAnimateOverlays.setSelected(false);
-            setOverlaysAnimated(false);
-          }
-          updateTreeNode(cbAnimateOverlays);
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      } else if (cb == cbAnimateOverlays) {
-        WindowBlocker.blockWindow(this, true);
-        try {
-          setOverlaysAnimated(cb.isSelected());
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      } else if (cb == cbMiniMaps[ViewerConstants.MAP_SEARCH]) {
-        if (cb.isSelected()) {
-          cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
-          cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
-        }
-        WindowBlocker.blockWindow(this, true);
-        try {
-          updateMiniMap();
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      } else if (cb == cbMiniMaps[ViewerConstants.MAP_LIGHT]) {
-        if (cb.isSelected()) {
-          cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
-          cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
-        }
-        WindowBlocker.blockWindow(this, true);
-        try {
-          updateMiniMap();
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      } else if (cb == cbMiniMaps[ViewerConstants.MAP_HEIGHT]) {
-        if (cb.isSelected()) {
-          cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
-          cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
-        }
-        WindowBlocker.blockWindow(this, true);
-        try {
-          updateMiniMap();
-        } finally {
-          WindowBlocker.blockWindow(this, false);
-        }
-      }
-    } else if (event.getSource() == cbZoomLevel) {
-      WindowBlocker.blockWindow(this, true);
-      try {
-        int previousZoomLevel = Settings.ZoomLevel;
-        try {
-          setZoomLevel(cbZoomLevel.getSelectedIndex());
-        } catch (OutOfMemoryError e) {
-          e.printStackTrace();
-          cbZoomLevel.hidePopup();
-          WindowBlocker.blockWindow(this, false);
-          String msg = "Not enough memory to set selected zoom level.\n"
-                       + "(Note: It is highly recommended to close and reopen the area viewer.)";
-          JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-          cbZoomLevel.setSelectedIndex(previousZoomLevel);
-          setZoomLevel(previousZoomLevel);
-        }
-      } finally {
-        WindowBlocker.blockWindow(this, false);
-      }
-    } else if (event.getSource() == timerOverlays) {
-      // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
-      if (workerOverlays == null) {
-        workerOverlays = new SwingWorker<Void, Void>() {
-          @Override
-          protected Void doInBackground() throws Exception {
-            advanceOverlayAnimation();
-            return null;
-          }
-        };
-        workerOverlays.addPropertyChangeListener(this);
-        workerOverlays.execute();
-      }
-    } else if (event.getSource() instanceof AbstractLayerItem) {
-      AbstractLayerItem item = (AbstractLayerItem)event.getSource();
-      showTable(item);
-    } else if (event.getSource() instanceof DataMenuItem<?>) {
-      @SuppressWarnings("unchecked")
-      DataMenuItem<AbstractLayerItem> lmi = (DataMenuItem<AbstractLayerItem>)event.getSource();
-      AbstractLayerItem item = lmi.getData();
-      showTable(item);
-    } else if (event.getSource() == tbAre) {
-      showTable(map.getAreItem());
-    } else if (event.getSource() == tbWed) {
-      showTable(map.getWedItem(getCurrentWedIndex()));
-    } else if (event.getSource() == tbSongs) {
-      showTable(map.getSongItem());
-    } else if (event.getSource() == tbRest) {
-      showTable(map.getRestItem());
-    } else if (event.getSource() == tbSettings) {
-      viewSettings();
-    } else if (event.getSource() == tbRefresh) {
-      WindowBlocker.blockWindow(this, true);
-      try {
-        reloadLayers();
-      } finally {
-        WindowBlocker.blockWindow(this, false);
-      }
-//    } else if (ArrayUtil.indexOf(tbAddLayerItem, event.getSource()) >= 0) {
-//      // TODO: include "Add layer item" functionality
-//      int index = ArrayUtil.indexOf(tbAddLayerItem, event.getSource());
-//      switch (LayerManager.getLayerType(index)) {
-//        case Actor:
-//        case Ambient:
-//        case Animation:
-//        case Automap:
-//        case Container:
-//        case Door:
-//        case DoorPoly:
-//        case Entrance:
-//        case ProTrap:
-//        case Region:
-//        case SpawnPoint:
-//        case Transition:
-//        case WallPoly:
-//          break;
-//      }
-    }
-  }
-
-//--------------------- End Interface ActionListener ---------------------
-
-//--------------------- Begin Interface MouseMotionListener ---------------------
-
-  @Override
-  public void mouseDragged(MouseEvent event)
-  {
-    if (event.getSource() == rcCanvas && isMapDragging(event.getLocationOnScreen())) {
-      moveMapViewport();
-    }
-  }
-
-  @Override
-  public void mouseMoved(MouseEvent event)
-  {
-    if (event.getSource() == rcCanvas) {
-      showMapCoordinates(event.getPoint());
-    } else if (event.getSource() instanceof AbstractLayerItem) {
-      AbstractLayerItem item = (AbstractLayerItem)event.getSource();
-      MouseEvent newEvent = new MouseEvent(rcCanvas, event.getID(), event.getWhen(), event.getModifiers(),
-                                           event.getX() + item.getX(), event.getY() + item.getY(),
-                                           event.getXOnScreen(), event.getYOnScreen(),
-                                           event.getClickCount(), event.isPopupTrigger(), event.getButton());
-      rcCanvas.dispatchEvent(newEvent);
-    }
-  }
-
-//--------------------- End Interface MouseMotionListener ---------------------
-
-//--------------------- Begin Interface MouseListener ---------------------
-
-  @Override
-  public void mouseClicked(MouseEvent event)
-  {
-  }
-
-  @Override
-  public void mousePressed(MouseEvent event)
-  {
-    if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == rcCanvas) {
-      setMapDraggingEnabled(true, event.getLocationOnScreen());
-    } else {
-      showItemPopup(event);
-    }
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent event)
-  {
-    if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == rcCanvas) {
-      setMapDraggingEnabled(false, event.getLocationOnScreen());
-    } else {
-      showItemPopup(event);
-    }
-  }
-
-  @Override
-  public void mouseEntered(MouseEvent event)
-  {
-  }
-
-  @Override
-  public void mouseExited(MouseEvent event)
-  {
-  }
-
-//--------------------- End Interface MouseListener ---------------------
-
-//--------------------- Begin Interface ChangeListener ---------------------
-
-  @Override
-  public void stateChanged(ChangeEvent event)
-  {
-    if (event.getSource() == pDayTime) {
-      if (workerLoadMap == null) {
-        // loading map in a separate thread
-        if (workerLoadMap == null) {
-          blocker = new WindowBlocker(this);
-          blocker.setBlocked(true);
-          workerLoadMap = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() throws Exception
-            {
-              setHour(pDayTime.getHour());
-              return null;
-            }
-          };
-          workerLoadMap.addPropertyChangeListener(this);
-          workerLoadMap.execute();
-        }
-      }
-    } else if (event.getSource() == spCanvas.getViewport()) {
-      setViewpointCenter();
-    }
-  }
-
-//--------------------- End Interface ChangeListener ---------------------
-
-//--------------------- Begin Interface TilesetChangeListener ---------------------
-
-  @Override
-  public void tilesetChanged(TilesetChangeEvent event)
-  {
-    if (event.getSource() == rcCanvas) {
-      if (event.hasChangedMap()) {
-        updateLayerItems();
-      }
-    }
-  }
-
-//--------------------- End Interface TilesetChangeListener ---------------------
-
-//--------------------- Begin Interface LayerItemListener ---------------------
-
-  @Override
-  public void layerItemChanged(LayerItemEvent event)
-  {
-    if (event.getSource() instanceof AbstractLayerItem) {
-      AbstractLayerItem item = (AbstractLayerItem)event.getSource();
-      if (event.isHighlighted()) {
-        setInfoText(item.getMessage());
-      } else {
-        setInfoText(null);
-      }
-    }
-  }
-
-//--------------------- End Interface LayerItemListener ---------------------
-
-//--------------------- Begin Interface PropertyChangeListener ---------------------
-
-  @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
-    if (event.getSource() == workerInitGui) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
-        releaseProgressMonitor();
-        workerInitGui = null;
-      }
-    } else if (event.getSource() == workerLoadMap) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
-        if (blocker != null) {
-          blocker.setBlocked(false);
-          blocker = null;
-        }
-        releaseProgressMonitor();
-        workerLoadMap = null;
-      }
-    } else if (event.getSource() == workerOverlays) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
-        // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
-        workerOverlays = null;
-      }
-    }
-  }
-
-//--------------------- End Interface PropertyChangeListener ---------------------
-
-//--------------------- Begin Interface ComponentListener ---------------------
-
-  @Override
-  public void componentResized(ComponentEvent event)
-  {
-    if (event.getSource() == rcCanvas) {
-      // changing panel size whenever the tileset size changes
-      pCanvas.setPreferredSize(rcCanvas.getSize());
-      pCanvas.setSize(rcCanvas.getSize());
-    }
-    if (event.getSource() == spCanvas) {
-      if (isAutoZoom()) {
-        setZoomLevel(Settings.ZoomFactorIndexAuto);
-      }
-      // centering the tileset if it fits into the viewport
-      Dimension pDim = rcCanvas.getPreferredSize();
-      Dimension spDim = pCanvas.getSize();
-      if (pDim.width < spDim.width || pDim.height < spDim.height) {
-        Point pLocation = rcCanvas.getLocation();
-        Point pDistance = new Point();
-        if (pDim.width < spDim.width) {
-          pDistance.x = pLocation.x - (spDim.width - pDim.width) / 2;
-        }
-        if (pDim.height < spDim.height) {
-          pDistance.y = pLocation.y - (spDim.height - pDim.height) / 2;
-        }
-        rcCanvas.setLocation(pLocation.x - pDistance.x, pLocation.y - pDistance.y);
-      } else {
-        rcCanvas.setLocation(0, 0);
-      }
-    }
-  }
-
-  @Override
-  public void componentMoved(ComponentEvent event)
-  {
-  }
-
-  @Override
-  public void componentShown(ComponentEvent event)
-  {
-  }
-
-  @Override
-  public void componentHidden(ComponentEvent event)
-  {
-  }
-
-//--------------------- End Interface ComponentListener ---------------------
-
-//--------------------- Begin Interface TreeExpansionListener ---------------------
-
-  @Override
-  public void treeExpanded(TreeExpansionEvent event)
-  {
-    if (event.getPath().getLastPathComponent() instanceof DefaultMutableTreeNode) {
-      // Storing the expanded state of the node if it marks a sidebar section
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
-      if (node.getLevel() == 1) {
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
-        for (int i = 0, cCount = root.getChildCount(); i < cCount; i++) {
-          if (root.getChildAt(i) == node) {
-            switch (1 << i) {
-              case ViewerConstants.SIDEBAR_VISUALSTATE:
-                Settings.SidebarControls |= ViewerConstants.SIDEBAR_VISUALSTATE;
-                break;
-              case ViewerConstants.SIDEBAR_LAYERS:
-                Settings.SidebarControls |= ViewerConstants.SIDEBAR_LAYERS;
-                break;
-              case ViewerConstants.SIDEBAR_MINIMAPS:
-                Settings.SidebarControls |= ViewerConstants.SIDEBAR_MINIMAPS;
-                break;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  @Override
-  public void treeCollapsed(TreeExpansionEvent event)
-  {
-    if (event.getPath().getLastPathComponent() instanceof DefaultMutableTreeNode) {
-      // Storing the collapsed state of the node if it marks a sidebar section
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
-      if (node.getLevel() == 1) {
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
-        for (int i = 0, cCount = root.getChildCount(); i < cCount; i++) {
-          if (root.getChildAt(i) == node) {
-            switch (1 << i) {
-              case ViewerConstants.SIDEBAR_VISUALSTATE:
-                Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_VISUALSTATE;
-                break;
-              case ViewerConstants.SIDEBAR_LAYERS:
-                Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_LAYERS;
-                break;
-              case ViewerConstants.SIDEBAR_MINIMAPS:
-                Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_MINIMAPS;
-                break;
-            }
-          }
-        }
-      }
-    }
-  }
-
-//--------------------- End Interface TreeExpansionListener ---------------------
-
 //--------------------- Begin Class ChildFrame ---------------------
+
+  /** Returns the instance which handles all listeners of the area viewer. */
+  Listeners getListeners()
+  {
+    return listeners;
+  }
+
 
   @Override
   protected boolean windowClosing(boolean forced) throws Exception
@@ -723,10 +289,10 @@ public class AreaViewer extends ChildFrame
     // Creating main view area
     pCanvas = new JPanel(new GridBagLayout());
     rcCanvas = new TilesetRenderer();
-    rcCanvas.addComponentListener(this);
-    rcCanvas.addMouseListener(this);
-    rcCanvas.addMouseMotionListener(this);
-    rcCanvas.addChangeListener(this);
+    rcCanvas.addComponentListener(listeners);
+    rcCanvas.addMouseListener(listeners);
+    rcCanvas.addMouseMotionListener(listeners);
+    rcCanvas.addChangeListener(listeners);
     rcCanvas.setHorizontalAlignment(RenderCanvas.CENTER);
     rcCanvas.setVerticalAlignment(RenderCanvas.CENTER);
     rcCanvas.setLocation(0, 0);
@@ -735,8 +301,8 @@ public class AreaViewer extends ChildFrame
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pCanvas.add(rcCanvas, c);
     spCanvas = new JScrollPane(pCanvas);
-    spCanvas.addComponentListener(this);
-    spCanvas.getViewport().addChangeListener(this);
+    spCanvas.addComponentListener(listeners);
+    spCanvas.getViewport().addChangeListener(listeners);
     spCanvas.getVerticalScrollBar().setUnitIncrement(16);
     spCanvas.getHorizontalScrollBar().setUnitIncrement(16);
     JPanel pView = new JPanel(new BorderLayout());
@@ -755,32 +321,32 @@ public class AreaViewer extends ChildFrame
     Dimension d = bpwDayTime.getPreferredSize();
     bpwDayTime.setIconTextGap(8);
     pDayTime = new DayTimePanel(bpwDayTime, getHour());
-    pDayTime.addChangeListener(this);
+    pDayTime.addChangeListener(listeners);
     bpwDayTime.setContent(pDayTime);
     bpwDayTime.setPreferredSize(d);
     bpwDayTime.setMargin(new Insets(2, bpwDayTime.getMargin().left, 2, bpwDayTime.getMargin().right));
 
     cbEnableSchedules = new JCheckBox(LabelEnableSchedule);
     cbEnableSchedules.setToolTipText("Enable activity schedules on layer structures that support them (e.g. actors, ambient sounds or background animations.");
-    cbEnableSchedules.addActionListener(this);
+    cbEnableSchedules.addActionListener(listeners);
 
     cbDrawClosed = new JCheckBox(LabelDrawClosed);
     cbDrawClosed.setToolTipText("Draw opened or closed states of doors");
-    cbDrawClosed.addActionListener(this);
+    cbDrawClosed.addActionListener(listeners);
 
     cbDrawGrid = new JCheckBox(LabelDrawGrid);
-    cbDrawGrid.addActionListener(this);
+    cbDrawGrid.addActionListener(listeners);
 
     cbDrawOverlays = new JCheckBox(LabelDrawOverlays);
-    cbDrawOverlays.addActionListener(this);
+    cbDrawOverlays.addActionListener(listeners);
 
     cbAnimateOverlays = new JCheckBox(LabelAnimateOverlays);
-    cbAnimateOverlays.addActionListener(this);
+    cbAnimateOverlays.addActionListener(listeners);
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
     cbZoomLevel = new JComboBox(Settings.LabelZoomFactor);
     cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
-    cbZoomLevel.addActionListener(this);
+    cbZoomLevel.addActionListener(listeners);
     JPanel pZoom = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
@@ -810,23 +376,23 @@ public class AreaViewer extends ChildFrame
     for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
       LayerType layer = LayerManager.getLayerType(i);
       cbLayers[i] = new JCheckBox(LayerManager.getLayerTypeLabel(layer));
-      cbLayers[i].addActionListener(this);
+      cbLayers[i].addActionListener(listeners);
       t2 = new DefaultMutableTreeNode(cbLayers[i]);
       t.add(t2);
       if (i == LayerManager.getLayerTypeIndex(LayerType.Ambient)) {
         // Initializing ambient sound range checkbox
         cbLayerAmbientRange = new JCheckBox("Show local sound ranges");
-        cbLayerAmbientRange.addActionListener(this);
+        cbLayerAmbientRange.addActionListener(listeners);
         t3 = new DefaultMutableTreeNode(cbLayerAmbientRange);
         t2.add(t3);
       } else if (i == LayerManager.getLayerTypeIndex(LayerType.Animation)) {
         // Initializing real animation checkboxes
         cbLayerRealAnimation[0] = new JCheckBox("Show actual animations");
-        cbLayerRealAnimation[0].addActionListener(this);
+        cbLayerRealAnimation[0].addActionListener(listeners);
         t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[0]);
         t2.add(t3);
         cbLayerRealAnimation[1] = new JCheckBox("Animate actual animations");
-        cbLayerRealAnimation[1].addActionListener(this);
+        cbLayerRealAnimation[1].addActionListener(listeners);
         t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[1]);
         t2.add(t3);
       }
@@ -834,11 +400,11 @@ public class AreaViewer extends ChildFrame
 
     // Adding mini map entries
     cbMiniMaps[ViewerConstants.MAP_SEARCH] = new JCheckBox("Display search map");
-    cbMiniMaps[ViewerConstants.MAP_SEARCH].addActionListener(this);
+    cbMiniMaps[ViewerConstants.MAP_SEARCH].addActionListener(listeners);
     cbMiniMaps[ViewerConstants.MAP_LIGHT] = new JCheckBox("Display light map");
-    cbMiniMaps[ViewerConstants.MAP_LIGHT].addActionListener(this);
+    cbMiniMaps[ViewerConstants.MAP_LIGHT].addActionListener(listeners);
     cbMiniMaps[ViewerConstants.MAP_HEIGHT] = new JCheckBox("Display height map");
-    cbMiniMaps[ViewerConstants.MAP_HEIGHT].addActionListener(this);
+    cbMiniMaps[ViewerConstants.MAP_HEIGHT].addActionListener(listeners);
 
     l = new JLabel("Mini maps");
     l.setFont(new Font(l.getFont().getFontName(), Font.BOLD, l.getFont().getSize()+1));
@@ -849,7 +415,7 @@ public class AreaViewer extends ChildFrame
     t.add(new DefaultMutableTreeNode(cbMiniMaps[2]));
 
     treeControls = new JTree(new DefaultTreeModel(top));
-    treeControls.addTreeExpansionListener(this);
+    treeControls.addTreeExpansionListener(listeners);
     treeControls.setBackground(getBackground());
     treeControls.setRootVisible(false);
     treeControls.setShowsRootHandles(true);
@@ -925,12 +491,12 @@ public class AreaViewer extends ChildFrame
     toolBar.setFloatable(false);
     tbView = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_viewMode.png"), true);
     tbView.setToolTipText("Enter view mode");
-    tbView.addActionListener(this);
+    tbView.addActionListener(listeners);
     tbView.setEnabled(false);
 //    toolBar.add(tbView);
     tbEdit = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_editMode.png"), false);
     tbEdit.setToolTipText("Enter edit mode");
-    tbEdit.addActionListener(this);
+    tbEdit.addActionListener(listeners);
     tbEdit.setEnabled(false);
 //    toolBar.add(tbEdit);
 
@@ -939,73 +505,73 @@ public class AreaViewer extends ChildFrame
     JToggleButton tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addActor.png"), false);
     tb.setToolTipText("Add a new actor to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Actor)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addRegion.png"), false);
     tb.setToolTipText("Add a new region to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Region)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addEntrance.png"), false);
     tb.setToolTipText("Add a new entrance to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Entrance)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addContainer.png"), false);
     tb.setToolTipText("Add a new container to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Container)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAmbient.png"), false);
     tb.setToolTipText("Add a new global ambient sound to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Ambient)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addDoor.png"), false);
     tb.setToolTipText("Add a new door to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Door)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAnim.png"), false);
     tb.setToolTipText("Add a new background animation to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Animation)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAutomap.png"), false);
     tb.setToolTipText("Add a new automap note to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Automap)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addSpawnPoint.png"), false);
     tb.setToolTipText("Add a new spawn point to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.SpawnPoint)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addProTrap.png"), false);
     tb.setToolTipText("Add a new projectile trap to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.ProTrap)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addDoorPoly.png"), false);
     tb.setToolTipText("Add a new door polygon to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addWallPoly.png"), false);
     tb.setToolTipText("Add a new wall polygon to the map");
-    tb.addActionListener(this);
+    tb.addActionListener(listeners);
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.WallPoly)] = tb;
@@ -1014,29 +580,29 @@ public class AreaViewer extends ChildFrame
 
     tbAre = new JButton(Icons.getIcon(ViewerIcons.class, "icn_mapAre.png"));
     tbAre.setToolTipText(String.format("Edit ARE structure (%1$s)", map.getAre().getName()));
-    tbAre.addActionListener(this);
+    tbAre.addActionListener(listeners);
     toolBar.add(tbAre);
     tbWed = new JButton(Icons.getIcon(ViewerIcons.class, "icn_mapWed.png"));
-    tbWed.addActionListener(this);
+    tbWed.addActionListener(listeners);
     toolBar.add(tbWed);
     tbSongs = new JButton(Icons.getIcon(ViewerIcons.class, "icn_songs.png"));
     tbSongs.setToolTipText("Edit song entries");
-    tbSongs.addActionListener(this);
+    tbSongs.addActionListener(listeners);
     toolBar.add(tbSongs);
     tbRest = new JButton(Icons.getIcon(ViewerIcons.class, "icn_rest.png"));
     tbRest.setToolTipText("Edit rest encounters");
-    tbRest.addActionListener(this);
+    tbRest.addActionListener(listeners);
     toolBar.add(tbRest);
 
     toolBar.addSeparator(dimSeparator);
 
     tbSettings = new JButton(Icons.getIcon(ViewerIcons.class, "icn_settings.png"));
     tbSettings.setToolTipText("Area viewer settings");
-    tbSettings.addActionListener(this);
+    tbSettings.addActionListener(listeners);
     toolBar.add(tbSettings);
     tbRefresh = new JButton(Icons.getIcon(ViewerIcons.class, "icn_refresh.png"));
     tbRefresh.setToolTipText("Update map");
-    tbRefresh.addActionListener(this);
+    tbRefresh.addActionListener(listeners);
     toolBar.add(tbRefresh);
     pView.add(toolBar, BorderLayout.NORTH);
 
@@ -1052,7 +618,7 @@ public class AreaViewer extends ChildFrame
     pMain.add(pSideBar, c);
 
     // setting frame rate for overlay animations to 5 fps (in-game frame rate: 7.5 fps)
-    timerOverlays = new Timer(1000/5, this);
+    timerOverlays = new Timer(1000/5, listeners);
 
     advanceProgressMonitor("Initializing map...");
     Container pane = getContentPane();
@@ -1192,7 +758,6 @@ public class AreaViewer extends ChildFrame
     applySettings();
   }
 
-
   // Updates the window title
   private void updateWindowTitle()
   {
@@ -1227,18 +792,6 @@ public class AreaViewer extends ChildFrame
 
     setTitle(String.format("%1$s  (Time: %2$02d:00 (%3$s), Schedules: %4$s, Doors: %5$s, Overlays: %6$s, Grid: %7$s, Zoom: %8$d%%)",
                            windowTitle, getHour(), dayNight, scheduleState, doorState, overlayState, gridState, zoom));
-  }
-
-  // Returns the general day time (day/twilight/night)
-  private static int getDayTime()
-  {
-    return ViewerConstants.getDayTime(Settings.TimeOfDay);
-  }
-
-  // Returns the currently selected day time in hours
-  private static int getHour()
-  {
-    return Settings.TimeOfDay;
   }
 
   // Sets day time to a specific hour (0..23).
@@ -1732,7 +1285,7 @@ public class AreaViewer extends ChildFrame
                   if (lenPrefix + lenMsg > MaxLen) {
                     dmi.setToolTipText(items[k].getMessage());
                   }
-                  dmi.addActionListener(this);
+                  dmi.addActionListener(listeners);
                   menuItems.add(dmi);
                 }
               }
@@ -2348,6 +1901,474 @@ public class AreaViewer extends ChildFrame
 
 
 //----------------------------- INNER CLASSES -----------------------------
+
+  // Handles all events of the viewer
+  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, ChangeListener,
+                                     TilesetChangeListener, PropertyChangeListener, LayerItemListener,
+                                     ComponentListener, TreeExpansionListener
+  {
+    private final AreaViewer viewer;
+
+    public Listeners(AreaViewer viewer)
+    {
+      this.viewer = viewer;
+    }
+
+    //--------------------- Begin Interface ActionListener ---------------------
+
+    @Override
+    public void actionPerformed(ActionEvent event)
+    {
+      if (event.getSource() instanceof JCheckBox) {
+        JCheckBox cb = (JCheckBox)event.getSource();
+        LayerType layer = getLayerType(cb);
+        if (layer != null) {
+          showLayer(layer, cb.isSelected());
+          if (layer == LayerType.Ambient) {
+            // Taking care of local ambient ranges
+            updateAmbientRange();
+          } else if (layer == LayerType.Animation) {
+            // Taking care of real animation display
+            updateRealAnimation();
+          }
+          updateScheduledItems();
+        } else if (cb == cbLayerAmbientRange) {
+          updateAmbientRange();
+        } else if (cb == cbLayerRealAnimation[0]) {
+          if (cbLayerRealAnimation[0].isSelected()) {
+            cbLayerRealAnimation[1].setSelected(false);
+          }
+          updateRealAnimation();
+        } else if (cb == cbLayerRealAnimation[1]) {
+          if (cbLayerRealAnimation[1].isSelected()) {
+            cbLayerRealAnimation[0].setSelected(false);
+          }
+          updateRealAnimation();
+        } else if (cb == cbEnableSchedules) {
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            Settings.EnableSchedules = cbEnableSchedules.isSelected();
+            updateTimeSchedules();
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        } else if (cb == cbDrawClosed) {
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            setDoorState(cb.isSelected());
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        } else if (cb == cbDrawGrid) {
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            setTileGridEnabled(cb.isSelected());
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        } else if (cb == cbDrawOverlays) {
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            setOverlaysEnabled(cb.isSelected());
+            cbAnimateOverlays.setEnabled(cb.isSelected());
+            if (!cb.isSelected() && cbAnimateOverlays.isSelected()) {
+              cbAnimateOverlays.setSelected(false);
+              setOverlaysAnimated(false);
+            }
+            updateTreeNode(cbAnimateOverlays);
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        } else if (cb == cbAnimateOverlays) {
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            setOverlaysAnimated(cb.isSelected());
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        } else if (cb == cbMiniMaps[ViewerConstants.MAP_SEARCH]) {
+          if (cb.isSelected()) {
+            cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
+            cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
+          }
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            updateMiniMap();
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        } else if (cb == cbMiniMaps[ViewerConstants.MAP_LIGHT]) {
+          if (cb.isSelected()) {
+            cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
+            cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
+          }
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            updateMiniMap();
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        } else if (cb == cbMiniMaps[ViewerConstants.MAP_HEIGHT]) {
+          if (cb.isSelected()) {
+            cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
+            cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
+          }
+          WindowBlocker.blockWindow(viewer, true);
+          try {
+            updateMiniMap();
+          } finally {
+            WindowBlocker.blockWindow(viewer, false);
+          }
+        }
+      } else if (event.getSource() == cbZoomLevel) {
+        WindowBlocker.blockWindow(viewer, true);
+        try {
+          int previousZoomLevel = Settings.ZoomLevel;
+          try {
+            setZoomLevel(cbZoomLevel.getSelectedIndex());
+          } catch (OutOfMemoryError e) {
+            e.printStackTrace();
+            cbZoomLevel.hidePopup();
+            WindowBlocker.blockWindow(viewer, false);
+            String msg = "Not enough memory to set selected zoom level.\n"
+                + "(Note: It is highly recommended to close and reopen the area viewer.)";
+            JOptionPane.showMessageDialog(viewer, msg, "Error", JOptionPane.ERROR_MESSAGE);
+            cbZoomLevel.setSelectedIndex(previousZoomLevel);
+            setZoomLevel(previousZoomLevel);
+          }
+        } finally {
+          WindowBlocker.blockWindow(viewer, false);
+        }
+      } else if (event.getSource() == timerOverlays) {
+        // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
+        if (workerOverlays == null) {
+          workerOverlays = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+              advanceOverlayAnimation();
+              return null;
+            }
+          };
+          workerOverlays.addPropertyChangeListener(this);
+          workerOverlays.execute();
+        }
+      } else if (event.getSource() instanceof AbstractLayerItem) {
+        AbstractLayerItem item = (AbstractLayerItem)event.getSource();
+        showTable(item);
+      } else if (event.getSource() instanceof DataMenuItem<?>) {
+        @SuppressWarnings("unchecked")
+        DataMenuItem<AbstractLayerItem> lmi = (DataMenuItem<AbstractLayerItem>)event.getSource();
+        AbstractLayerItem item = lmi.getData();
+        showTable(item);
+      } else if (event.getSource() == tbAre) {
+        showTable(map.getAreItem());
+      } else if (event.getSource() == tbWed) {
+        showTable(map.getWedItem(getCurrentWedIndex()));
+      } else if (event.getSource() == tbSongs) {
+        showTable(map.getSongItem());
+      } else if (event.getSource() == tbRest) {
+        showTable(map.getRestItem());
+      } else if (event.getSource() == tbSettings) {
+        viewSettings();
+      } else if (event.getSource() == tbRefresh) {
+        WindowBlocker.blockWindow(viewer, true);
+        try {
+          reloadLayers();
+        } finally {
+          WindowBlocker.blockWindow(viewer, false);
+        }
+//      } else if (ArrayUtil.indexOf(tbAddLayerItem, event.getSource()) >= 0) {
+//        // TODO: include "Add layer item" functionality
+//        int index = ArrayUtil.indexOf(tbAddLayerItem, event.getSource());
+//        switch (LayerManager.getLayerType(index)) {
+//          case Actor:
+//          case Ambient:
+//          case Animation:
+//          case Automap:
+//          case Container:
+//          case Door:
+//          case DoorPoly:
+//          case Entrance:
+//          case ProTrap:
+//          case Region:
+//          case SpawnPoint:
+//          case Transition:
+//          case WallPoly:
+//            break;
+//        }
+      }
+    }
+
+    //--------------------- End Interface ActionListener ---------------------
+
+    //--------------------- Begin Interface MouseMotionListener ---------------------
+
+    @Override
+    public void mouseDragged(MouseEvent event)
+    {
+      if (event.getSource() == rcCanvas && isMapDragging(event.getLocationOnScreen())) {
+        moveMapViewport();
+      }
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent event)
+    {
+      if (event.getSource() == rcCanvas) {
+        showMapCoordinates(event.getPoint());
+      } else if (event.getSource() instanceof AbstractLayerItem) {
+        AbstractLayerItem item = (AbstractLayerItem)event.getSource();
+        MouseEvent newEvent = new MouseEvent(rcCanvas, event.getID(), event.getWhen(), event.getModifiers(),
+            event.getX() + item.getX(), event.getY() + item.getY(),
+            event.getXOnScreen(), event.getYOnScreen(),
+            event.getClickCount(), event.isPopupTrigger(), event.getButton());
+        rcCanvas.dispatchEvent(newEvent);
+      }
+    }
+
+    //--------------------- End Interface MouseMotionListener ---------------------
+
+    //--------------------- Begin Interface MouseListener ---------------------
+
+    @Override
+    public void mouseClicked(MouseEvent event)
+    {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent event)
+    {
+      if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == rcCanvas) {
+        setMapDraggingEnabled(true, event.getLocationOnScreen());
+      } else {
+        showItemPopup(event);
+      }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent event)
+    {
+      if (event.getButton() == MouseEvent.BUTTON1 && event.getSource() == rcCanvas) {
+        setMapDraggingEnabled(false, event.getLocationOnScreen());
+      } else {
+        showItemPopup(event);
+      }
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent event)
+    {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent event)
+    {
+    }
+
+    //--------------------- End Interface MouseListener ---------------------
+
+    //--------------------- Begin Interface ChangeListener ---------------------
+
+    @Override
+    public void stateChanged(ChangeEvent event)
+    {
+      if (event.getSource() == pDayTime) {
+        if (workerLoadMap == null) {
+          // loading map in a separate thread
+          if (workerLoadMap == null) {
+            blocker = new WindowBlocker(viewer);
+            blocker.setBlocked(true);
+            workerLoadMap = new SwingWorker<Void, Void>() {
+              @Override
+              protected Void doInBackground() throws Exception
+              {
+                setHour(pDayTime.getHour());
+                return null;
+              }
+            };
+            workerLoadMap.addPropertyChangeListener(this);
+            workerLoadMap.execute();
+          }
+        }
+      } else if (event.getSource() == spCanvas.getViewport()) {
+        setViewpointCenter();
+      }
+    }
+
+    //--------------------- End Interface ChangeListener ---------------------
+
+    //--------------------- Begin Interface TilesetChangeListener ---------------------
+
+    @Override
+    public void tilesetChanged(TilesetChangeEvent event)
+    {
+      if (event.getSource() == rcCanvas) {
+        if (event.hasChangedMap()) {
+          updateLayerItems();
+        }
+      }
+    }
+
+    //--------------------- End Interface TilesetChangeListener ---------------------
+
+    //--------------------- Begin Interface LayerItemListener ---------------------
+
+    @Override
+    public void layerItemChanged(LayerItemEvent event)
+    {
+      if (event.getSource() instanceof AbstractLayerItem) {
+        AbstractLayerItem item = (AbstractLayerItem)event.getSource();
+        if (event.isHighlighted()) {
+          setInfoText(item.getMessage());
+        } else {
+          setInfoText(null);
+        }
+      }
+    }
+
+    //--------------------- End Interface LayerItemListener ---------------------
+
+    //--------------------- Begin Interface PropertyChangeListener ---------------------
+
+    @Override
+    public void propertyChange(PropertyChangeEvent event)
+    {
+      if (event.getSource() == workerInitGui) {
+        if ("state".equals(event.getPropertyName()) &&
+            SwingWorker.StateValue.DONE == event.getNewValue()) {
+          releaseProgressMonitor();
+          workerInitGui = null;
+        }
+      } else if (event.getSource() == workerLoadMap) {
+        if ("state".equals(event.getPropertyName()) &&
+            SwingWorker.StateValue.DONE == event.getNewValue()) {
+          if (blocker != null) {
+            blocker.setBlocked(false);
+            blocker = null;
+          }
+          releaseProgressMonitor();
+          workerLoadMap = null;
+        }
+      } else if (event.getSource() == workerOverlays) {
+        if ("state".equals(event.getPropertyName()) &&
+            SwingWorker.StateValue.DONE == event.getNewValue()) {
+          // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
+          workerOverlays = null;
+        }
+      }
+    }
+
+    //--------------------- End Interface PropertyChangeListener ---------------------
+
+    //--------------------- Begin Interface ComponentListener ---------------------
+
+    @Override
+    public void componentResized(ComponentEvent event)
+    {
+      if (event.getSource() == rcCanvas) {
+        // changing panel size whenever the tileset size changes
+        pCanvas.setPreferredSize(rcCanvas.getSize());
+        pCanvas.setSize(rcCanvas.getSize());
+      }
+      if (event.getSource() == spCanvas) {
+        if (isAutoZoom()) {
+          setZoomLevel(Settings.ZoomFactorIndexAuto);
+        }
+        // centering the tileset if it fits into the viewport
+        Dimension pDim = rcCanvas.getPreferredSize();
+        Dimension spDim = pCanvas.getSize();
+        if (pDim.width < spDim.width || pDim.height < spDim.height) {
+          Point pLocation = rcCanvas.getLocation();
+          Point pDistance = new Point();
+          if (pDim.width < spDim.width) {
+            pDistance.x = pLocation.x - (spDim.width - pDim.width) / 2;
+          }
+          if (pDim.height < spDim.height) {
+            pDistance.y = pLocation.y - (spDim.height - pDim.height) / 2;
+          }
+          rcCanvas.setLocation(pLocation.x - pDistance.x, pLocation.y - pDistance.y);
+        } else {
+          rcCanvas.setLocation(0, 0);
+        }
+      }
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent event)
+    {
+    }
+
+    @Override
+    public void componentShown(ComponentEvent event)
+    {
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent event)
+    {
+    }
+
+    //--------------------- End Interface ComponentListener ---------------------
+
+    //--------------------- Begin Interface TreeExpansionListener ---------------------
+
+    @Override
+    public void treeExpanded(TreeExpansionEvent event)
+    {
+      if (event.getPath().getLastPathComponent() instanceof DefaultMutableTreeNode) {
+        // Storing the expanded state of the node if it marks a sidebar section
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
+        if (node.getLevel() == 1) {
+          DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
+          for (int i = 0, cCount = root.getChildCount(); i < cCount; i++) {
+            if (root.getChildAt(i) == node) {
+              switch (1 << i) {
+                case ViewerConstants.SIDEBAR_VISUALSTATE:
+                  Settings.SidebarControls |= ViewerConstants.SIDEBAR_VISUALSTATE;
+                  break;
+                case ViewerConstants.SIDEBAR_LAYERS:
+                  Settings.SidebarControls |= ViewerConstants.SIDEBAR_LAYERS;
+                  break;
+                case ViewerConstants.SIDEBAR_MINIMAPS:
+                  Settings.SidebarControls |= ViewerConstants.SIDEBAR_MINIMAPS;
+                  break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    @Override
+    public void treeCollapsed(TreeExpansionEvent event)
+    {
+      if (event.getPath().getLastPathComponent() instanceof DefaultMutableTreeNode) {
+        // Storing the collapsed state of the node if it marks a sidebar section
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
+        if (node.getLevel() == 1) {
+          DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
+          for (int i = 0, cCount = root.getChildCount(); i < cCount; i++) {
+            if (root.getChildAt(i) == node) {
+              switch (1 << i) {
+                case ViewerConstants.SIDEBAR_VISUALSTATE:
+                  Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_VISUALSTATE;
+                  break;
+                case ViewerConstants.SIDEBAR_LAYERS:
+                  Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_LAYERS;
+                  break;
+                case ViewerConstants.SIDEBAR_MINIMAPS:
+                  Settings.SidebarControls &= ~ViewerConstants.SIDEBAR_MINIMAPS;
+                  break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    //--------------------- End Interface TreeExpansionListener ---------------------
+  }
+
 
   // Handles map-specific properties
   private static class Map
