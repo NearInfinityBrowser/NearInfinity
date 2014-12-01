@@ -1187,7 +1187,13 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 108, 1, "Axe proficiency"));
       addField(new DecNumber(buffer, offset + 109, 1, "Missile proficiency"));
       if (ResourceFactory.isEnhancedEdition()) {
-        addField(new Unknown(buffer, offset + 110, 9));
+        if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
+          addField(new Unknown(buffer, offset + 110, 7));
+          addField(new Bitmap(buffer, offset + 117, 1, "Nightmare mode", s_noyes));
+          addField(new UnsignDecNumber(buffer, offset + 118, 1, "Translucency"));
+        } else {
+          addField(new Unknown(buffer, offset + 110, 9));
+        }
         addField(new DecNumber(buffer, offset + 119, 1, "Reputation gain/loss when killed"));
         addField(new DecNumber(buffer, offset + 120, 1, "Reputation gain/loss when joining party"));
         addField(new DecNumber(buffer, offset + 121, 1, "Reputation gain/loss when leaving party"));
