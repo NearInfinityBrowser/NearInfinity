@@ -732,6 +732,24 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return null;
   }
 
+  /**
+   * Returns whether any parent of the current AbstractStruct object is an instance of
+   * the specified class type.
+   */
+  public boolean isChildOf(Class<? extends AbstractStruct> struct)
+  {
+    if (struct != null) {
+      AbstractStruct parent = getSuperStruct();
+      while (parent != null) {
+        if (struct.isInstance(parent)) {
+          return true;
+        }
+        parent = parent.getSuperStruct();
+      }
+    }
+    return false;
+  }
+
   // end - implements Viewable
 
   public StructViewer getViewer()

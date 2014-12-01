@@ -36,6 +36,8 @@ import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
+import infinity.resource.are.AreResource;
+import infinity.resource.gam.GamResource;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
@@ -157,6 +159,7 @@ public final class CreResource extends AbstractStruct
   private JMenuItem miExport, miConvert;
   private ButtonPopupMenu bExport;
   private HexViewer hexViewer;
+  private Boolean hasRawTab;
 
   public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
                                    ResourceEntry entry)
@@ -384,7 +387,7 @@ public final class CreResource extends AbstractStruct
   @Override
   public int getViewerTabCount()
   {
-    return 2;
+    return showRawTab() ? 2 : 1;
   }
 
   @Override
@@ -394,7 +397,7 @@ public final class CreResource extends AbstractStruct
       case 0:
         return StructViewer.TAB_VIEW;
       case 1:
-        return StructViewer.TAB_RAW;
+        return showRawTab() ? StructViewer.TAB_RAW : null;
     }
     return null;
   }
@@ -406,12 +409,10 @@ public final class CreResource extends AbstractStruct
       case 0:
         return new Viewer(this);
       case 1:
-      {
-        if (hexViewer == null) {
+        if (showRawTab() && hexViewer == null) {
           hexViewer = new HexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
-      }
     }
     return null;
   }
@@ -420,6 +421,16 @@ public final class CreResource extends AbstractStruct
   public boolean viewerTabAddedBefore(int index)
   {
     return (index == 0);
+  }
+
+  // Needed for embedded CRE resources
+  private boolean showRawTab()
+  {
+    if (hasRawTab == null) {
+      hasRawTab = !(Boolean.valueOf(this.isChildOf(GamResource.class)) ||
+                    Boolean.valueOf(this.isChildOf(AreResource.class)));
+    }
+    return hasRawTab.booleanValue();
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------
