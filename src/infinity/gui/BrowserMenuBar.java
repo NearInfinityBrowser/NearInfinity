@@ -90,7 +90,12 @@ public final class BrowserMenuBar extends JMenuBar
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
   public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
+
+  // Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac)
+  private static final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
   private static BrowserMenuBar menuBar;
+
   private final EditMenu editMenu;
   private final FileMenu fileMenu;
   private final GameMenu gameMenu;
@@ -113,7 +118,7 @@ public final class BrowserMenuBar extends JMenuBar
     if (icon != null)
       item.setIcon(icon);
     if (shortKey != -1)
-      item.setAccelerator(KeyStroke.getKeyStroke(shortKey, ActionEvent.CTRL_MASK));
+      item.setAccelerator(KeyStroke.getKeyStroke(shortKey, CTRL_MASK));
     if (listener != null)
       item.addActionListener(listener);
     return item;
@@ -1014,7 +1019,7 @@ public final class BrowserMenuBar extends JMenuBar
       toolClipBoard.addActionListener(this);
       add(toolClipBoard);
       toolConsole = new JCheckBoxMenuItem("Show Debug Console", Icons.getIcon("Properties16.gif"));
-      toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.CTRL_MASK));
+      toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK));
       toolConsole.addActionListener(this);
       add(toolConsole);
 
@@ -1457,13 +1462,13 @@ public final class BrowserMenuBar extends JMenuBar
       add(showresrefmenu);
       int selectedresref = prefs.getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
       showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
-      showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, CTRL_MASK));
       showResRef[RESREF_REF_NAME] =
       new JRadioButtonMenuItem("Filename (Name)", selectedresref == RESREF_REF_NAME);
-      showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, CTRL_MASK));
       showResRef[RESREF_NAME_REF] =
       new JRadioButtonMenuItem("Name (Filename)", selectedresref == RESREF_NAME_REF);
-      showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, CTRL_MASK));
       bg = new ButtonGroup();
       for (int i = RESREF_ONLY; i <= RESREF_NAME_REF; i++) {
         showresrefmenu.add(showResRef[i]);
