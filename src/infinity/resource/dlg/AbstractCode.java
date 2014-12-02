@@ -33,7 +33,6 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.SortedMap;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;

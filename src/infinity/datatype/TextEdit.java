@@ -23,7 +23,6 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.EnumMap;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;

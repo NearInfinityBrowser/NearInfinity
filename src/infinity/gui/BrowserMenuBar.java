@@ -62,7 +62,6 @@ import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
