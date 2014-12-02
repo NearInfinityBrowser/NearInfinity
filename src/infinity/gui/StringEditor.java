@@ -31,6 +31,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -116,7 +117,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
     table.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    tatext.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    tatext.setMargin(new Insets(3, 3, 3, 3));
     tatext.setLineWrap(true);
     tatext.setWrapStyleWord(true);
     ifindattribute.setEnabled(false);

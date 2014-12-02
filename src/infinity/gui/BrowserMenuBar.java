@@ -2313,7 +2313,7 @@ public final class BrowserMenuBar extends JMenuBar
       JTextPane tphelp = new JTextPane();
       tphelp.setFont(new Font("Monospaced", Font.PLAIN, 12));
       tphelp.setEditable(false);
-      tphelp.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      tphelp.setMargin(new Insets(3, 3, 3, 3));
       panel.add(new JScrollPane(tphelp), BorderLayout.CENTER);
       panel.setPreferredSize(new Dimension(640, 480));
 

@@ -23,6 +23,7 @@ import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -143,7 +144,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   public JComponent edit(ActionListener container)
   {
     textArea = new ScriptTextArea();
-    textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    textArea.setMargin(new Insets(3, 3, 3, 3));
     String convertedText = text;
     int index = convertedText.indexOf((int)'\r');
     while (index != -1) {

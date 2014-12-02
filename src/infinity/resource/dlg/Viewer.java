@@ -551,7 +551,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
       }
-      textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      textArea.setMargin(new Insets(3, 3, 3, 3));
       textArea.setFont(BrowserMenuBar.getInstance().getScriptFont());
       InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
       if (!useHighlighting) {

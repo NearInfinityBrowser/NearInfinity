@@ -117,7 +117,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
       taRefText.setWrapStyleWord(true);
-      taRefText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      taRefText.setMargin(new Insets(3, 3, 3, 3));
       bPlay = new JButton("Sound", Icons.getIcon("Volume16.gif"));
       bPlay.setToolTipText("Opens associated sound");
       bPlay.addActionListener(this);

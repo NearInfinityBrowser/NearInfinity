@@ -14,6 +14,7 @@ import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -77,7 +78,7 @@ public final class TextEdit extends Datatype implements Editable
       textArea.setHighlightCurrentLine(editable);
       textArea.setWrapStyleWord(true);
       textArea.setLineWrap(true);
-      textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      textArea.setMargin(new Insets(3, 3, 3, 3));
       textArea.setDocument(new FixedDocument(textArea, bytes.length));
       textArea.setEditable(editable);
     }

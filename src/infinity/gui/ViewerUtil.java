@@ -233,7 +233,7 @@ public final class ViewerUtil
     ta.setWrapStyleWord(true);
     InfinityScrollPane scroll = new InfinityScrollPane(ta, true);
     scroll.setLineNumbersEnabled(false);
-    ta.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    ta.setMargin(new Insets(3, 3, 3, 3));
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
     panel.add(scroll, BorderLayout.CENTER);

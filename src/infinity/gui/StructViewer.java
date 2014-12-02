@@ -230,7 +230,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     tatext.setHighlightCurrentLine(false);
     tatext.setEOLMarkersVisible(false);
     tatext.setEditable(false);
-    tatext.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    tatext.setMargin(new Insets(3, 3, 3, 3));
     tatext.setFont(BrowserMenuBar.getInstance().getScriptFont());
     InfinityScrollPane scroll = new InfinityScrollPane(tatext, true);
     scroll.setLineNumbersEnabled(false);
