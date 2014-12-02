@@ -9,9 +9,9 @@ import javax.swing.JRadioButtonMenuItem;
  *
  * @param <E> Specifies the type of the user-defined data that can be assigned.
  */
-public class DataRadioButtonMenuItem<E> extends JRadioButtonMenuItem
+public class DataRadioButtonMenuItem extends JRadioButtonMenuItem
 {
-  private E data;
+  private Object data;
 
   /** Creates a JRadioButtonMenuItem with no set text or icon. */
   public DataRadioButtonMenuItem()
@@ -45,7 +45,7 @@ public class DataRadioButtonMenuItem<E> extends JRadioButtonMenuItem
    * Creates a radio button menu item whose properties are taken from the Action supplied and
    * assigns the specified user-defined data.
    */
-  public DataRadioButtonMenuItem(Action a, E data)
+  public DataRadioButtonMenuItem(Action a, Object data)
   {
     super(a);
     this.data = data;
@@ -69,7 +69,7 @@ public class DataRadioButtonMenuItem<E> extends JRadioButtonMenuItem
    * Creates a radio button menu item with the specified text, selection state and
    * user-defined data.
    */
-  public DataRadioButtonMenuItem(String text, boolean selected, E data)
+  public DataRadioButtonMenuItem(String text, boolean selected, Object data)
   {
     super(text, selected);
     this.data = data;
@@ -86,7 +86,7 @@ public class DataRadioButtonMenuItem<E> extends JRadioButtonMenuItem
    * Creates a radio button menu item with the specified image, selection state and
    * user-defined data, but no text.
    */
-  public DataRadioButtonMenuItem(Icon icon, boolean selected, E data)
+  public DataRadioButtonMenuItem(Icon icon, boolean selected, Object data)
   {
     super(icon, selected);
     this.data = data;
@@ -103,20 +103,20 @@ public class DataRadioButtonMenuItem<E> extends JRadioButtonMenuItem
    * Creates a radio button menu item that has the specified text, image, selection state and
    * user-defined data.
    */
-  public DataRadioButtonMenuItem(String text, Icon icon, boolean selected, E data)
+  public DataRadioButtonMenuItem(String text, Icon icon, boolean selected, Object data)
   {
     super(text, icon, selected);
     this.data = data;
   }
 
   /** Returns the attached data object. */
-  public E getData()
+  public Object getData()
   {
     return data;
   }
 
   /** Assigns a new data object to the JRadioButtonMenuItem instance. */
-  public void setData(E data)
+  public void setData(Object data)
   {
     this.data = data;
   }
