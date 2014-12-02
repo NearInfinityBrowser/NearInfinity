@@ -13,6 +13,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.DynamicArray;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
@@ -267,7 +268,12 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   public void write(OutputStream os) throws IOException
   {
     if (resname.equalsIgnoreCase(NONE)) {
-      FileWriterNI.writeBytes(os, buffer);
+      String s = DynamicArray.getString(buffer, 0, buffer.length);
+      if (s.equalsIgnoreCase(NONE)) {
+        FileWriterNI.writeBytes(os, buffer);
+      } else {
+        FileWriterNI.writeBytes(os, (byte)0, buffer.length);
+      }
     } else {
       FileWriterNI.writeString(os, resname, getSize());
     }
