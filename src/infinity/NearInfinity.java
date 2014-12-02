@@ -5,8 +5,12 @@
 package infinity;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
 import infinity.gui.InfinityTextArea;
+import infinity.gui.PopupWindowEvent;
+import infinity.gui.PopupWindowListener;
+import infinity.gui.QuickSearch;
 import infinity.gui.ResourceTree;
 import infinity.gui.StatusBar;
 import infinity.gui.WindowBlocker;
@@ -27,8 +31,11 @@ import infinity.util.io.FileLookup;
 import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,12 +49,14 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -83,6 +92,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
   private Viewable viewable;
+  private ButtonPopupWindow bpwQuickSearch;
 
 
   public static boolean isDebug()
@@ -231,8 +241,81 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tree = new ResourceTree(treemodel);
     tree.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
+    JToolBar toolBar = new JToolBar("Navigation", JToolBar.HORIZONTAL);
+    JButton b;
+    toolBar.setRollover(true);
+    toolBar.setFloatable(false);
+    b = new JButton(Icons.getIcon("Expand16.png"));
+    b.addActionListener(this);
+    b.setActionCommand("Expand");
+    b.setToolTipText("Expand selected node");
+    b.setMargin(new Insets(4, 4, 4, 4));
+    toolBar.add(b);
+    b = new JButton(Icons.getIcon("Collapse16.png"));
+    b.addActionListener(this);
+    b.setActionCommand("Collapse");
+    b.setToolTipText("Collapse selected node");
+    b.setMargin(new Insets(4, 4, 4, 4));
+    toolBar.add(b);
+    toolBar.addSeparator(new Dimension(8, 24));
+    b = new JButton(Icons.getIcon("ExpandAll24.png"));
+    b.addActionListener(this);
+    b.setActionCommand("ExpandAll");
+    b.setToolTipText("Expand all");
+    b.setMargin(new Insets(0, 0, 0, 0));
+    toolBar.add(b);
+    b = new JButton(Icons.getIcon("CollapseAll24.png"));
+    b.addActionListener(this);
+    b.setActionCommand("CollapseAll");
+    b.setToolTipText("Collapse all");
+    b.setMargin(new Insets(0, 0, 0, 0));
+    toolBar.add(b);
+    toolBar.addSeparator(new Dimension(8, 24));
+    bpwQuickSearch = new ButtonPopupWindow(Icons.getIcon("Magnify16.png"));
+    bpwQuickSearch.setToolTipText("Find resource");
+    bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
+    toolBar.add(bpwQuickSearch);
+    bpwQuickSearch.addPopupWindowListener(new PopupWindowListener() {
+
+      @Override
+      public void popupWindowWillBecomeVisible(PopupWindowEvent event)
+      {
+        // XXX: Working around a visual glitch in QuickSearch's JComboBox popup list
+        //      by creating new QuickSearch instances on activation
+        bpwQuickSearch.setContent(new QuickSearch(bpwQuickSearch, tree));
+
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run()
+          {
+            Component c = bpwQuickSearch.getContent();
+            if (c != null) {
+              c.requestFocusInWindow();
+            }
+          }
+        });
+      }
+
+      @Override
+      public void popupWindowWillBecomeInvisible(PopupWindowEvent event)
+      {
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run()
+          {
+            bpwQuickSearch.setContent(null);
+            tree.requestFocusInWindow();
+          }
+        });
+      }
+    });
+
+    JPanel leftPanel = new JPanel(new BorderLayout());
+    leftPanel.add(tree, BorderLayout.CENTER);
+    leftPanel.add(toolBar, BorderLayout.NORTH);
+
     containerpanel = new JPanel(new BorderLayout());
-    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
+    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
     spSplitter.setBorder(BorderFactory.createEmptyBorder());
     spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
     Container pane = getContentPane();
@@ -246,6 +329,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
     setVisible(true);
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
+
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run()
+      {
+        tree.requestFocusInWindow();
+      }
+    });
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -314,6 +405,42 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
                                             "to completely change look and feel.");
       } catch (Exception e) {
         e.printStackTrace();
+      }
+    }
+    else if (event.getActionCommand().equals("Collapse")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.collapseSelected();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
+    }
+    else if (event.getActionCommand().equals("Expand")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.expandSelected();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
+    }
+    else if (event.getActionCommand().equals("CollapseAll")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.collapseAll();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
+    }
+    else if (event.getActionCommand().equals("ExpandAll")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.expandAll();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
       }
     }
   }

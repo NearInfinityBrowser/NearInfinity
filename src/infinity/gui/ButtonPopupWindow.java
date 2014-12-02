@@ -67,6 +67,7 @@ public class ButtonPopupWindow extends JButton
 
   private PopupWindow ignoredWindow;    // used to determine whether to hide the current window on lost focus
   private int windowAlign;
+  private Component content;
 
   public ButtonPopupWindow()
   {
@@ -206,10 +207,20 @@ public class ButtonPopupWindow extends JButton
   {
     displayWindow(false);
     window.getContentPane().removeAll();
-    if (content != null) {
-      window.getContentPane().add(content, BorderLayout.CENTER);
+    this.content = content;
+    if (this.content != null) {
+      window.getContentPane().add(this.content, BorderLayout.CENTER);
     }
     window.pack();
+  }
+
+  /**
+   * Returns the currently assigned content of the popup window.
+   * @return Current content of the popup window. Can be <code>null</code>.
+   */
+  public Component getContent()
+  {
+    return content;
   }
 
   /**
@@ -493,6 +504,7 @@ public class ButtonPopupWindow extends JButton
     public void mousePressed(MouseEvent event)
     {
       if (event.getSource() instanceof ButtonPopupWindow &&
+          event.getButton() == MouseEvent.BUTTON1 &&
           !event.isPopupTrigger() &&
           event.getComponent().isEnabled() &&
           window != null) {

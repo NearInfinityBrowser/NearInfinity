@@ -11,6 +11,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.key.ResourceTreeFolder;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.util.io.FileNI;
 
@@ -25,6 +26,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.Stack;
 
 import javax.swing.JButton;
@@ -140,6 +142,12 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
 // --------------------- End Interface TreeSelectionListener ---------------------
 
+  @Override
+  public boolean requestFocusInWindow()
+  {
+    return tree.requestFocusInWindow();
+  }
+
   public ResourceEntry getSelected()
   {
     Object node = tree.getLastSelectedPathComponent();
@@ -164,6 +172,11 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     }
   }
 
+  public ResourceTreeModel getModel()
+  {
+    return (ResourceTreeModel)tree.getModel();
+  }
+
   public void setModel(ResourceTreeModel treemodel)
   {
     nextstack.removeAllElements();
@@ -172,6 +185,72 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     bprev.setEnabled(false);
     tree.setModel(treemodel);
     tree.repaint();
+  }
+
+  public void expandAll()
+  {
+    ResourceTreeModel model = (ResourceTreeModel)tree.getModel();
+    if (model != null) {
+      ResourceTreeFolder root = (ResourceTreeFolder)model.getRoot();
+      processAllNodes(tree, new TreePath(root), true);
+    }
+  }
+
+  public void collapseAll()
+  {
+    ResourceTreeModel model = (ResourceTreeModel)tree.getModel();
+    if (model != null) {
+      ResourceTreeFolder root = (ResourceTreeFolder)model.getRoot();
+      processAllNodes(tree, new TreePath(root), false);
+      tree.expandPath(new TreePath(root));  // virtual root node is always expanded
+    }
+  }
+
+  public void expandSelected()
+  {
+    TreePath path = tree.getSelectionPath();
+    if (path != null && path.getPathCount() > 1) {
+      Object node = path.getPathComponent(1);
+      if (node instanceof ResourceTreeFolder) {
+        Object root = path.getPathComponent(0);
+        processAllNodes(tree, new TreePath(new Object[]{root, node}), true);
+      }
+    }
+  }
+
+  public void collapseSelected()
+  {
+    TreePath path = tree.getSelectionPath();
+    if (path != null && path.getPathCount() > 1) {
+      Object node = path.getPathComponent(1);
+      if (node instanceof ResourceTreeFolder) {
+        Object root = path.getPathComponent(0);
+        processAllNodes(tree, new TreePath(new Object[]{root, node}), false);
+      }
+    }
+  }
+
+  private static void processAllNodes(JTree tree, TreePath parent, boolean expand)
+  {
+    if (tree != null && parent != null) {
+      Object node = parent.getLastPathComponent();
+      if (node instanceof ResourceTreeFolder) {
+        ResourceTreeFolder folder = (ResourceTreeFolder)node;
+        if (folder.getChildCount() >= 0) {
+          List<ResourceTreeFolder> list = folder.getFolders();
+          for (int i = 0, size = list.size(); i < size; i++) {
+            ResourceTreeFolder f = list.get(i);
+            TreePath path = parent.pathByAddingChild(f);
+            processAllNodes(tree, path, expand);
+          }
+        }
+      }
+      if (expand) {
+        tree.expandPath(parent);
+      } else {
+        tree.collapsePath(parent);
+      }
+    }
   }
 
 // -------------------------- INNER CLASSES --------------------------
