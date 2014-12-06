@@ -270,7 +270,8 @@ public final class ResourceFactory
         // fallback solution
         String userPrefix = System.getProperty("user.home");
         String userSuffix = null;
-        if (System.getProperty("os.name").contains("Windows")) {
+        String osName = System.getProperty("os.name");
+        if (osName.contains("Windows")) {
           try {
             Process p = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v personal");
             p.waitFor();
@@ -284,8 +285,10 @@ public final class ResourceFactory
           } catch (Throwable t) {
             return null;
           }
-        } else if (System.getProperty("os.name").contains("Mac")) {
+        } else if (osName.contains("Mac")) {
           userSuffix = File.separator + "Documents" + File.separator + EE_DIR;
+        } else if (osName.contains("Linux") || osName.contains("BSD")) {
+          userSuffix = File.separator + ".local" + File.separator + "share" + File.separator + EE_DIR;
         }
         if (userSuffix != null) {
           userDir = new FileNI(userPrefix, userSuffix);
