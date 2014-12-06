@@ -654,7 +654,8 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         BamV1Decoder.BamV1Control control = decoderV1.createControl();
         int[] palette = control.getPalette();
         int transIndex = control.getTransparencyIndex();
-        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, false, transIndex, DataBuffer.TYPE_BYTE);
+        boolean hasAlpha = control.isAlphaEnabled();
+        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, hasAlpha, transIndex, DataBuffer.TYPE_BYTE);
         image = new BufferedImage(decoder.getFrameInfo(frameIdx).getWidth(),
                                   decoder.getFrameInfo(frameIdx).getHeight(),
                                   BufferedImage.TYPE_BYTE_INDEXED, cm);
