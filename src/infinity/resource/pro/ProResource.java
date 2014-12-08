@@ -178,7 +178,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 16, "Fire sound", "WAV"));
     addField(new ResourceRef(buffer, offset + 24, "Impact sound", "WAV"));
     addField(new ResourceRef(buffer, offset + 32, "Source animation", s_types));
-    addField(new Bitmap(buffer, offset + 40, 4, "Particle color", s_color));
+    addField(new Bitmap(buffer, offset + 40, 2, "Particle color", s_color));
+    addField(new Unknown(buffer, offset + 42, 2));
     if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
       addField(new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx));
       addField(new StringRef(buffer, offset + 48, "String"));
