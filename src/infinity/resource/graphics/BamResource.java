@@ -310,7 +310,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     }
 
     Dimension dim = (decoder != null) ? bamControl.getSharedDimension() : new Dimension(1, 1);
-    rcDisplay = new RenderCanvas(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
+    rcDisplay = new RenderCanvas(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
 
@@ -502,7 +502,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
   {
     if (decoder != null && viewerInitialized()) {
       Dimension dim = bamControl.getSharedDimension();
-      rcDisplay.setImage(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
+      rcDisplay.setImage(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
       updateCanvas();
     }
   }
