@@ -98,7 +98,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     addField(new ProRef(buffer, offset + 26, "Explosion projectile"));
     addField(new ResourceRef(buffer, offset + 28, "Explosion animation", s_types));
     addField(new DecNumber(buffer, offset + 36, 2, "Cone width"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
+    if (ResourceFactory.isEnhancedEdition()) {
       addField(new Unknown(buffer, offset + 38, 2));
       addField(new ResourceRef(buffer, offset + 40, "Spread animation", s_types));
       addField(new ResourceRef(buffer, offset + 48, "Ring animation", s_types));
