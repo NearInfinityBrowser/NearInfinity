@@ -1621,7 +1621,7 @@ public class ConvertToBam extends ChildFrame
     l = new JLabel("Frame:");
     cbFiltersShowMarker = new JCheckBox("Show markers", false);
     cbFiltersShowMarker.addActionListener(this);
-    sFiltersPreviewFrame = new JSpinner(new SpinnerNumberModel(0, 0, 9999, 1));
+    sFiltersPreviewFrame = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
     sFiltersPreviewFrame.addChangeListener(this);
     JPanel pDummy = new JPanel();
     pDummy.setPreferredSize(cbFiltersShowMarker.getPreferredSize());
