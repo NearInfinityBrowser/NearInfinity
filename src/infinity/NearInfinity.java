@@ -137,6 +137,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return browser;
   }
 
+  /** Returns the NearInfinity version. */
+  public static String getVersion()
+  {
+    return BrowserMenuBar.VERSION;
+  }
+
   private static boolean reloadFactory(boolean refreshonly)
   {
     FileLookup.getInstance().clearCache();
@@ -370,11 +376,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       blocker.setBlocked(false);
     }
     else if (event.getActionCommand().equals("Exit")) {
-      if (removeViewable()) {
-        ChildFrame.closeWindows();
-        storePreferences();
-        System.exit(0);
-      }
+      quit();
     }
     else if (event.getActionCommand().equals("Refresh")) {
       blocker.setBlocked(true);
@@ -551,6 +553,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public void showResourceEntry(ResourceEntry resourceEntry)
   {
     tree.select(resourceEntry);
+  }
+
+  public void quit()
+  {
+    if (removeViewable()) {
+      ChildFrame.closeWindows();
+      storePreferences();
+      System.exit(0);
+    }
   }
 
   private void storePreferences()
