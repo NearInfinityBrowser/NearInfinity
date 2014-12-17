@@ -1121,7 +1121,6 @@ public final class EffectFactory
         break;
 
       case ResourceFactory.ID_BGEE:
-      case ResourceFactory.ID_BG2EE:
         s_effname = new String[]{
             // 0..9
             "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
@@ -1252,6 +1251,207 @@ public final class EffectFactory
             "Restrict item",
             // 320..
             "Change weather", "Remove effects by resource"};
+        s_poricon = new String[]{
+            // 0..9
+            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
+            "Nauseated", "Blind", "Protection from evil",
+            // 10..19
+            "Protection from petrification", "Protection from normal missiles", "Magic armor",
+            "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
+            // 20..29
+            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
+            "Protection from cold", "Resist fire/cold", "Protection from electricity",
+            "Protection from magic", "Protection from undead",
+            // 30..39
+            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
+            "Panic", "Resist fear", "Haste", "Fatigue",
+            // 40..49
+            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
+            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
+            // 50..59
+            "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
+            "Regeneration", "Perception", "Master thievery", "Energy drain",
+            // 60..69
+            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
+            "Spell turning", "Repulsing undead", "Spell deflection", "Fire shield (red)",
+            "Fire shield (blue)",
+            // 70..79
+            "Protection from normal weapons", "Protection from magic weapons",
+            "Tenser's transformation", "Spell shield", "Mislead", "Contingency",
+            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
+            // 80..89
+            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
+            "Intelligence drained", "Regenerating", "Talking", "Shopping",
+            // 90..99
+            "Negative plane protection", "Ability score drained", "Spell sequencer",
+            "Protection from energy", "Magnetized", "Able to poison weapons", "Setting trap",
+            "Glass dust", "Blade barrier", "Death ward",
+            // 100..109
+            "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
+            "Spell immunity", "True seeing", "Detecting traps",
+            // 110..119
+            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
+            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
+            // 120..129
+            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability",
+            "Protection from magic energy", "Polymorphed", "Otiluke's resilient sphere", "Nauseous",
+            "Ghost armor", "Glitterdust", "Webbed",
+            // 130..139
+            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
+            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage",
+            "Boon of lathander",
+            // 140..149
+            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
+            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
+            // 150..159
+            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
+            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
+            "Improved alacrity",
+            // 160..
+            "Aura of flaming death", "Globe of blades", "Improved chaos shield",
+            "Chaos shield", "Fire elemental transformation", "Earth elemental transformation"};
+        break;
+
+      case ResourceFactory.ID_BG2EE:
+        s_effname = new String[]{
+            // 0..9
+            "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
+            "Charm creature", "Charisma bonus", "Set color", "Set color glow solid",
+            "Set color glow pulse",
+            // 10..19
+            "Constitution bonus", "Cure poison", "Damage", "Kill target", "Defrost",
+            "Dexterity bonus", "Haste", "Current HP bonus", "Maximum HP bonus", "Intelligence bonus",
+            // 20..29
+            "Invisibility", "Lore bonus", "Luck bonus", "Reset morale", "Panic", "Poison",
+            "Remove curse", "Acid resistance bonus", "Cold resistance bonus",
+            "Electricity resistance bonus",
+            // 30..39
+            "Fire resistance bonus", "Magic damage resistance bonus", "Raise dead",
+            "Save vs. death bonus", "Save vs. wand bonus", "Save vs. polymorph bonus",
+            "Save vs. breath bonus", "Save vs. spell bonus", "Silence", "Sleep",
+            // 40..49
+            "Slow", "Sparkle", "Bonus wizard spells", "Stone to flesh", "Strength bonus", "Stun",
+            "Cure stun", "Remove invisibility", "Vocalize", "Wisdom bonus",
+            // 50..59
+            "Character color pulse", "Character tint solid", "Character tint bright",
+            "Animation change", "Base THAC0 bonus", "Slay", "Invert alignment", "Change alignment",
+            "Dispel effects", "Move silently bonus",
+            // 60..69
+            "Casting failure", "Creature RGB color fade", "Bonus priest spells", "Infravision",
+            "Remove infravision", "Blur", "Translucency", "Summon creature", "Unsummon creature",
+            "Nondetection",
+            // 70..79
+            "Remove nondetection", "Change gender", "Change AI type", "Attack damage bonus",
+            "Blindness", "Cure blindness", "Feeblemindedness", "Cure feeblemindedness", "Disease",
+            "Cure disease",
+            // 80..89
+            "Deafness", "Cure deafness", "Set AI script", "Immunity to projectile",
+            "Magical fire resistance bonus", "Magical cold resistance bonus",
+            "Slashing resistance bonus", "Crushing resistance bonus", "Piercing resistance bonus",
+            "Missile resistance bonus",
+            // 90..99
+            "Open locks bonus", "Find traps bonus", "Pick pockets bonus", "Fatigue bonus",
+            "Intoxication bonus", "Tracking bonus", "Change level", "Exceptional strength bonus",
+            "Regeneration", "Modify duration",
+            // 100..109
+            "Protection from creature type", "Immunity to effect", "Immunity to spell level",
+            "Change name", "XP bonus", "Remove gold", "Morale break", "Change portrait",
+            "Reputation bonus", "Paralyze",
+            // 110..119
+            "Unknown (110)", "Create weapon", "Remove item", "Equip weapon", "Dither",
+            "Detect alignment", "Detect invisible", "Clairvoyance",  "Show creatures", "Mirror image",
+            // 120..129
+            "Immunity to weapons", "Visual animation effect", "Create inventory item",
+            "Remove inventory item", "Teleport", "Unlock", "Movement rate bonus", "Summon monsters",
+            "Confusion", "Aid (non-cumulative)",
+            // 130..139
+            "Bless (non-cumulative)", "Chant (non-cumulative)", "Draw upon holy might (non-cumulative)",
+            "Luck (non-cumulative)", "Petrification", "Polymorph", "Force visible",
+            "Bad chant (non-cumulative)", "Set animation sequence", "Display string",
+            // 140..149
+            "Casting glow", "Lighting effects", "Display portrait icon", "Create item in slot",
+            "Disable button", "Disable spellcasting", "Cast spell", "Learn spell",
+            "Cast spell at point", "Identify",
+            // 150..159
+            "Find traps", "Replace self", "Play movie", "Sanctuary", "Entangle overlay",
+            "Minor globe overlay", "Protection from normal missiles overlay", "Web effect",
+            "Grease overlay", "Mirror image effect",
+            // 160..169
+            "Remove sanctuary", "Remove fear", "Remove paralysis", "Free action",
+            "Remove intoxication", "Pause target", "Magic resistance bonus", "Missile THAC0 bonus",
+            "Remove creature", "Prevent portrait icon",
+            // 170..179
+            "Play damage animation", "Give innate ability", "Remove spell", "Poison resistance bonus",
+            "Play sound", "Hold creature", "Movement rate bonus 2", "Use EFF file",
+            "THAC0 vs. type bonus", "Damage vs. type bonus",
+            // 180..189
+            "Disallow item", "Disallow item type", "Apply effect on equip item",
+            "Apply effect on equip type", "No collision detection", "Hold creature 2",
+            "Move creature", "Set local variable", "Increase spells cast per round",
+            "Increase casting speed factor",
+            // 190..199
+            "Increase attack speed factor", "Casting level bonus", "Find familiar",
+            "Invisibility detection", "Ignore dialogue pause", "Drain CON and HP on death",
+            "Disable familiar", "Physical mirror", "Reflect specified effect", "Reflect spell level",
+            // 200..209
+            "Spell turning", "Spell deflection", "Reflect spell school", "Reflect spell type",
+            "Protection from spell school", "Protection from spell type", "Protection from spell",
+            "Reflect specified spell", "Minimum HP", "Power word, kill",
+            // 210..219
+            "Power word, stun", "Imprisonment", "Freedom", "Maze", "Select spell",
+            "Play visual effect", "Level drain", "Power word, sleep", "Stoneskin effect",
+            "Attack roll penalty",
+            // 220..229
+            "Remove spell school protections", "Remove spell type protections", "Teleport field",
+            "Spell school deflection", "Restoration", "Detect magic", "Spell type deflection",
+            "Spell school turning", "Spell type turning", "Remove protection by school",
+            // 230..239
+            "Remove protection by type", "Time stop", "Cast spell on condition",
+            "Modify proficiencies", "Create contingency", "Wing buffet", "Project image",
+            "Set image type", "Disintegrate", "Farsight",
+            // 240..249
+            "Remove portrait icon", "Control creature", "Cure confusion", "Drain item charges",
+            "Drain wizard spells", "Check for berserk", "Berserk effect", "Attack nearest creature",
+            "Melee hit effect", "Ranged hit effect",
+            // 250..259
+            "Maximum damage each hit", "Change bard song", "Set trap", "Set automap note",
+            "Remove automap note", "Create item (days)", "Spell sequencer", "Create spell sequencer",
+            "Activate spell sequencer", "Spell trap",
+            // 260..269
+            "Activate spell sequencer at point", "Restore lost spells", "Visual range bonus",
+            "Backstab bonus", "Drop item", "Set global variable", "Remove protection from spell",
+            "Disable display string", "Clear fog of war", "Shake screen",
+            // 270..279
+            "Unpause target", "Disable creature", "Use EFF file on condition", "Zone of sweet air",
+            "Phase", "Hide in shadows bonus", "Detect illusions bonus", "Set traps bonus",
+            "THAC0 bonus", "Enable button",
+            // 280..289
+            "Wild magic", "Wild surge bonus", "Modify script state", "Use EFF file as curse",
+            "Melee THAC0 bonus", "Melee weapon damage bonus", "Missile weapon damage bonus",
+            "Remove feet circle", "Fist THAC0 bonus", "Fist damage bonus",
+            // 290..299
+            "Change title", "Disable visual effects", "Immunity to backstab", "Set persistent AI",
+            "Set existence delay", "Disable permanent death", "Immunity to specific animation",
+            "Immunity to turn undead", "Pocket plane", "Chaos shield effect",
+            // 300..309
+            "Modify collision behavior", "Critical hit bonus", "Can use any item",
+            "Backstab every hit", "Mass raise dead", "Off-hand THAC0 bonus", "Main hand THAC0 bonus",
+            "Tracking", "Immunity to tracking", "Set local variable",
+            // 310..319
+            "Immunity to time stop", "Wish", "Immunity to sequester", "High-level ability",
+            "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Protection from spell",
+            "Restrict item",
+            // 320..329
+            "Change weather", "Remove effects by resource", "Protection from area of effect spell",
+            "Turn undead level", "Immunity to spell and message", "All saving throws bonus",
+            "Apply effects list", "Show visual effect", "Set state", "Slow poison",
+            // 330..339
+            "Float text", "Summon creatures 2", "Attack damage type bonus", "Static charge",
+            "Turn undead", "Seven eyes", "Seven eyes overlay", "Remove effects by opcode",
+            "Disable rest or save", "Alter visual animation effect",
+            // 340..
+            "Backstab hit effect", "Critical hit effect", "Override creature data",
+            "HP swap"};
         s_poricon = new String[]{
             // 0..9
             "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
@@ -2096,7 +2296,7 @@ public final class EffectFactory
     boolean isIWD = (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
                      gameid == ResourceFactory.ID_ICEWINDHOWTOT);
     boolean isIWD2 = (gameid == ResourceFactory.ID_ICEWIND2);
-    boolean isIWDEE = (gameid == ResourceFactory.ID_IWDEE);
+    boolean isExtended = (gameid == ResourceFactory.ID_IWDEE || gameid == ResourceFactory.ID_BG2EE);
 
     switch (effectType) {
       case 0: // AC bonus
@@ -2172,7 +2372,7 @@ public final class EffectFactory
 
       case 3: // Berserk
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        if (isIWD || isIWD2 || isIWDEE) {
+        if (isIWD || isIWD2 || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Berserk type",
                            new String[]{"Normal", "Constant", "Blood rage"}));
         } else {
@@ -2283,7 +2483,7 @@ public final class EffectFactory
         } else {
           s.add(new Bitmap(buffer, offset, 4, "Display text?", s_yesno));
         }
-        if (isIWDEE) {
+        if (isExtended) {
           LongIntegerHashMap<String> map = new LongIntegerHashMap<String>();
           map.put(0L, "Acid");
           map.put(1L, "Burning");
@@ -2324,7 +2524,7 @@ public final class EffectFactory
 
       case 15: // Dexterity bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        if (isIWD || isIWD2 || isIWDEE) {
+        if (isIWD || isIWD2 || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Set", "Set % of", "Cat's grace"}));
         } else {
@@ -2466,7 +2666,7 @@ public final class EffectFactory
 
       case 39: // Sleep
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        if (isIWD || isIWD2 || isIWDEE) {
+        if (isIWD || isIWD2 || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
@@ -2488,7 +2688,7 @@ public final class EffectFactory
 
       case 44: // Strength bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        if (isIWD || isIWD2 || isIWDEE) {
+        if (isIWD || isIWD2 || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Set", "Set % of", "Wizard strength"}));
         } else {
@@ -2579,7 +2779,7 @@ public final class EffectFactory
 
       case 66: // Translucency
         s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
-        if (isIWD || isIWD2 || isIWDEE) {
+        if (isIWD || isIWD2 || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Visual effect",
                            new String[]{"Draw instantly", "Fade in", "Fade out"}));
         } else {
@@ -2816,7 +3016,7 @@ public final class EffectFactory
 
       case 124: // Teleport
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        if (isIWD || isIWD2 || isIWDEE) {
+        if (isIWD || isIWD2 || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Behavior",
                            new String[]{"Normal", "Source to target", "Return to start",
                                         "Exchange with target"}));
@@ -2903,7 +3103,7 @@ public final class EffectFactory
       case 140: // Casting glow
       {
         final LongIntegerHashMap<String> m_castglow = new LongIntegerHashMap<String>();
-        if (isIWDEE) {
+        if (isExtended) {
           m_castglow.put(0L, "Use projectile");
         }
         m_castglow.put(9L, "Necromancy");
@@ -2914,7 +3114,7 @@ public final class EffectFactory
         m_castglow.put(14L, "Conjuration");
         m_castglow.put(15L, "Invocation");
         m_castglow.put(16L, "Divination");
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new ProRef(buffer, offset, "Projectile"));
           s.add(new DecNumber(buffer, offset + 2, 2, "Unused"));
         } else {
@@ -3232,11 +3432,12 @@ public final class EffectFactory
   {
     String restype = null;
     int gameid = ResourceFactory.getGameID();
-    boolean isIWDEE = (gameid == ResourceFactory.ID_IWDEE);
+    boolean isExtended = (gameid == ResourceFactory.ID_IWDEE || gameid == ResourceFactory.ID_BG2EE);
+//    boolean isIWDEE = (gameid == ResourceFactory.ID_IWDEE);
 
     switch (effectType) {
       case 61: // Creature RGB color fade
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new ColorPicker(buffer, offset, "Color"));
           s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc));
           s.add(new DecNumber(buffer, offset + 6, 2, "Fade speed"));
@@ -3728,7 +3929,7 @@ public final class EffectFactory
       case 318: // Protection from Spell
       case 324: // Immunity to spell and message
       case 326: // Apply effects list
-        if (isIWDEE) {
+        if (isExtended) {
           int param2 = DynamicArray.getInt(buffer, offset + 4);
           if (param2 >= 102 && param2 <= 109) {
             s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", s_cretype_ee[param2]));
@@ -3802,7 +4003,7 @@ public final class EffectFactory
 
       case 323: // Turn undead level
       case 325: // All saving throws bonus
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         } else {
@@ -3811,7 +4012,7 @@ public final class EffectFactory
         break;
 
       case 327: // Show visual effect
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Spell target", "Target point"}));
           s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
         } else {
@@ -3820,7 +4021,7 @@ public final class EffectFactory
         break;
 
       case 328: // Set state
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           int special = DynamicArray.getInt(buffer, offset + 0x28);
           if (special == 1) {
@@ -3834,7 +4035,7 @@ public final class EffectFactory
         break;
 
       case 329: // Slow poison
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         } else {
@@ -3843,7 +4044,7 @@ public final class EffectFactory
         break;
 
       case 330: // Float text
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new StringRef(buffer, offset, "String"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Display type",
                            new String[]{"String reference", "Cynicism"}));
@@ -3853,7 +4054,7 @@ public final class EffectFactory
         break;
 
       case 331: // Summon creatures 2
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "# creatures"));
           s.add(new Summon2daBitmap(buffer, offset + 4, 4, "2DA reference"));
           restype = "2DA";
@@ -3863,7 +4064,7 @@ public final class EffectFactory
         break;
 
       case 332: // Attack damage type bonus
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Damage type", s_damagetype));
         } else {
@@ -3872,7 +4073,7 @@ public final class EffectFactory
         break;
 
       case 333: // Static charge
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "# hits"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Cast at level"));
           restype = "SPL";
@@ -3882,7 +4083,7 @@ public final class EffectFactory
         break;
 
       case 334: // Turn undead
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         } else {
@@ -3891,7 +4092,7 @@ public final class EffectFactory
         break;
 
       case 335: // Seven eyes
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new IdsBitmap(buffer, offset, 4, "State", "SPLSTATE.IDS"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Identifier"));
           restype = "SPL";
@@ -3901,7 +4102,7 @@ public final class EffectFactory
         break;
 
       case 336: // Seven eyes overlay
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new Bitmap(buffer, offset, 4, "Last VVC letter",
                            new String[]{"None", "A", "B", "C", "D", "E", "F", "G"}));
           s.add(new DecNumber(buffer, offset + 4, 4, "Type"));
@@ -3912,7 +4113,7 @@ public final class EffectFactory
         break;
 
       case 337: // Remove effects by opcode
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Match 'Parameter 2' value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
         } else {
@@ -3921,7 +4122,7 @@ public final class EffectFactory
         break;
 
       case 338: // Disable rest or save
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new StringRef(buffer, offset, "Message"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Mode",
                            new String[]{"Cannot rest", "Cannot save", "Cannot rest or save"}));
@@ -3931,7 +4132,7 @@ public final class EffectFactory
         break;
 
       case 339: // Alter visual animation effect
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new Bitmap(buffer, offset, 2, "Modifier type",
                            new String[]{"Set value", "AND value", "OR value", "XOR value",
                                         "AND NOT value"}));
@@ -3944,7 +4145,7 @@ public final class EffectFactory
         break;
 
       case 340: // Backstab hit effect
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
           restype = "SPL";
@@ -3954,7 +4155,7 @@ public final class EffectFactory
         break;
 
       case 341: // Critical hit effect
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
                            new String[]{"Always", "By this weapon only"}));
@@ -3965,7 +4166,7 @@ public final class EffectFactory
         break;
 
       case 342: // Override creature data
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Field", new String[]{"Body heat", "Blood color"}));
         } else {
@@ -3974,7 +4175,7 @@ public final class EffectFactory
         break;
 
       case 343: // HP swap
-        if (isIWDEE) {
+        if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Mode",
                 new String[]{"Swap if caster HP > target HP", "Always swap"}));

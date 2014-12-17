@@ -1187,7 +1187,8 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 108, 1, "Axe proficiency"));
       addField(new DecNumber(buffer, offset + 109, 1, "Missile proficiency"));
       if (ResourceFactory.isEnhancedEdition()) {
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE) {
+        if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE ||
+            ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
           addField(new Unknown(buffer, offset + 110, 7));
           addField(new Bitmap(buffer, offset + 117, 1, "Nightmare mode", s_noyes));
           addField(new UnsignDecNumber(buffer, offset + 118, 1, "Translucency"));
