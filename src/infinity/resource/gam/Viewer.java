@@ -44,7 +44,9 @@ final class Viewer extends JPanel
   Viewer(GamResource gam)
   {
     JPanel stats1Panel, stats2Panel;
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
+        ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC) {
       stats1Panel =
       ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class, null);
       stats2Panel =
