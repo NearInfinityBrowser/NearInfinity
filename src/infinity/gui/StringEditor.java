@@ -71,7 +71,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
                                                               ChangeListener, ItemListener
 {
-  private static final String s_flags[] = { "None", "Has text", "Has sound", "Has tokens" };
+  private static final String s_flags[] = { "None", "Has text", "Has sound", "Has token" };
   private static String signature, version;
   private static int entry_size = 26; // V1
   private final ButtonPopupMenu bfind;
