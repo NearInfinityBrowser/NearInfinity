@@ -4,26 +4,16 @@
 
 package infinity.util;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-public final class LongIntegerHashMap<V> extends HashMap<Long, V>
+public final class LongIntegerHashMap<V> extends TreeMap<Long, V>
 {
   public LongIntegerHashMap()
   {
     super();
-  }
-
-  public LongIntegerHashMap(int initialCapacity)
-  {
-    super(initialCapacity);
-  }
-
-  public LongIntegerHashMap(int initialCapacity, float loadFactor)
-  {
-    super(initialCapacity, loadFactor);
   }
 
   public LongIntegerHashMap(Map<Long, ? extends V> m)

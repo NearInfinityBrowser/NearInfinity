@@ -661,7 +661,7 @@ public final class Decompiler
       return null;
     ResourceEntry entry = null;
     if (definition.equalsIgnoreCase("S:DialogFile*"))
-      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:CutScene*") || definition.equalsIgnoreCase("S:ScriptFile*")
              || definition.equalsIgnoreCase("S:Script*"))
       entry = decompileStringCheck(value, new String[]{".BCS"});
@@ -673,7 +673,7 @@ public final class Decompiler
     else if (definition.equalsIgnoreCase("S:TextList*"))
       entry = decompileStringCheck(value, new String[]{".2DA"});
     else if (definition.equalsIgnoreCase("S:Effect*"))
-      entry = decompileStringCheck(value, new String[]{".BAM", ".VEF", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".VEF", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:Parchment*"))
       entry = decompileStringCheck(value, new String[]{".MOS"});
     else if (definition.equalsIgnoreCase("S:Spell*") || definition.equalsIgnoreCase("S:Res*"))

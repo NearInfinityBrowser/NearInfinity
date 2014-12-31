@@ -42,9 +42,9 @@ final class Window extends AbstractStruct // implements AddRemovable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Collections.sort(list);
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    Collections.sort(getList());
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry instanceof Control)
         break;
       else
@@ -122,47 +122,49 @@ final class Window extends AbstractStruct // implements AddRemovable
       Control control = new Control(this, buffer, controlsoffset, i, size);
       controlsoffset = control.getEndOffset();
       endoffset = control.readControl(buffer);
-      list.add(control);
+      addField(control);
     }
     return endoffset;
   }
 
   public void writeControls(OutputStream os) throws IOException
   {
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Control)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Control) {
         ((Control)o).writeControl(os);
+      }
     }
   }
 
   public void writeControlsTable(OutputStream os) throws IOException
   {
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Control)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Control) {
         ((Control)o).write(os);
+      }
     }
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
     if (getChu().getPanelSize() == 36) {
-      list.add(0, new TextString(buffer, offset, 8, "Name"));
+      addField(new TextString(buffer, offset, 8, "Name"), 0);
       offset += 8;
     }
-    list.add(new DecNumber(buffer, offset, 2, "Panel ID"));
-    list.add(new Unknown(buffer, offset + 2, 2));
-    list.add(new DecNumber(buffer, offset + 4, 2, "Position: X"));
-    list.add(new DecNumber(buffer, offset + 6, 2, "Position: Y"));
-    list.add(new DecNumber(buffer, offset + 8, 2, "Width"));
-    list.add(new DecNumber(buffer, offset + 10, 2, "Height"));
-    list.add(new Bitmap(buffer, offset + 12, 2, "Has background?", hasb));
-    list.add(new UnsignDecNumber(buffer, offset + 14, 2, "# controls"));
-    list.add(new ResourceRef(buffer, offset + 16, "Background image", "MOS"));
-    list.add(new UnsignDecNumber(buffer, offset + 24, 2, "First control index"));
-    list.add(new Flag(buffer, offset + 26, 2, "Flags", s_flag));
+    addField(new DecNumber(buffer, offset, 2, "Panel ID"));
+    addField(new Unknown(buffer, offset + 2, 2));
+    addField(new DecNumber(buffer, offset + 4, 2, "Position: X"));
+    addField(new DecNumber(buffer, offset + 6, 2, "Position: Y"));
+    addField(new DecNumber(buffer, offset + 8, 2, "Width"));
+    addField(new DecNumber(buffer, offset + 10, 2, "Height"));
+    addField(new Bitmap(buffer, offset + 12, 2, "Has background?", hasb));
+    addField(new UnsignDecNumber(buffer, offset + 14, 2, "# controls"));
+    addField(new ResourceRef(buffer, offset + 16, "Background image", "MOS"));
+    addField(new UnsignDecNumber(buffer, offset + 24, 2, "First control index"));
+    addField(new Flag(buffer, offset + 26, 2, "Flags", s_flag));
     return offset + 28;
   }
 }

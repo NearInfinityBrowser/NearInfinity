@@ -20,9 +20,9 @@ import infinity.resource.are.AreResource;
  */
 public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
 {
-  private static final String[] AvailableFmt = new String[]{"%1$d global ambient sound%2$s available",
-                                                            "%1$d local ambient sound%2$s available",
-                                                            "%1$d ambient sound%2$s available"};
+  private static final String[] AvailableFmt = new String[]{"Global ambient sounds: %1$d",
+                                                            "Local ambient sound: %1$d",
+                                                            "Ambient sounds: %1$d"};
 
   // stores ambient sound objects with local radius
   private final List<LayerObjectAmbient> listGlobalSounds = new ArrayList<LayerObjectAmbient>();
@@ -54,7 +54,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, Ambient.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectAmbient obj = new LayerObjectAmbient(are, (Ambient)listStruct.get(i));
             setListeners(obj);
             list.add(obj);
@@ -83,7 +83,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
     List<LayerObjectAmbient> list = getLayerObjects();
     boolean state;
     if (list != null) {
-      for (int i = 0; i < list.size(); i++) {
+      for (int i = 0, size = list.size(); i < size; i++) {
         LayerObjectAmbient obj = list.get(i);
         state = isLayerVisible(ViewerConstants.AMBIENT_ITEM_ICON) && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
         AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
@@ -252,7 +252,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
       case ViewerConstants.AMBIENT_TYPE_LOCAL:
         idx++;
       case ViewerConstants.AMBIENT_TYPE_GLOBAL:
-        return String.format(AvailableFmt[idx], count, (count == 1) ? "" : "s");
+        return String.format(AvailableFmt[idx], count);
       default:
         return "";
     }

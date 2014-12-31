@@ -16,11 +16,13 @@ public class PrintWriterNI extends PrintWriter
 {
   public PrintWriterNI(Writer out)
   {
+    // No wrapper needed
     super(out);
   }
 
   public PrintWriterNI(OutputStream out)
   {
+    // No wrapper needed
     super(out);
   }
 
@@ -31,16 +33,18 @@ public class PrintWriterNI extends PrintWriter
 
   public PrintWriterNI(File file) throws FileNotFoundException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public PrintWriterNI(Writer out, boolean autoFlush)
   {
+    // No wrapper needed
     super(out, autoFlush);
   }
 
   public PrintWriterNI(OutputStream out, boolean autoFlush)
   {
+    // No wrapper needed
     super(out, autoFlush);
   }
 
@@ -51,7 +55,7 @@ public class PrintWriterNI extends PrintWriter
 
   public PrintWriterNI(File file, String csn) throws FileNotFoundException, UnsupportedEncodingException
   {
-    super(FileLookup.getInstance().queryFilePath(file), csn);
+    super(FileLookup.getInstance().queryFile(file), csn);
   }
 
 }

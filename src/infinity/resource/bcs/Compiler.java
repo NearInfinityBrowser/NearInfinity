@@ -325,7 +325,7 @@ public final class Compiler
     else {                                                          // Resource checks
       String resourceTypes[] = new String[0];
       if (definition.equalsIgnoreCase("S:DialogFile*"))
-        resourceTypes = new String[] {".DLG", ".VEF", ".VVC"};
+        resourceTypes = new String[] {".DLG", ".VEF", ".VVC", ".BAM"};
       else if (definition.equalsIgnoreCase("S:CutScene*") ||
                definition.equalsIgnoreCase("S:ScriptFile*") ||
                definition.equalsIgnoreCase("S:Script*"))
@@ -342,7 +342,7 @@ public final class Compiler
       else if (definition.equalsIgnoreCase("S:TextList*"))
         resourceTypes = new String[]{".2DA"};
       else if (definition.equalsIgnoreCase("S:Effect*"))
-        resourceTypes = new String[]{".BAM", ".VEF", ".VVC"};
+        resourceTypes = new String[]{".VEF", ".VVC", ".BAM"};
       else if (definition.equalsIgnoreCase("S:Parchment*"))
         resourceTypes = new String[]{".MOS"};
       else if (definition.equalsIgnoreCase("S:Spell*") ||

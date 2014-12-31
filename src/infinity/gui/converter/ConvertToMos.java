@@ -430,7 +430,7 @@ public class ConvertToMos extends ChildFrame
       dst = null;
 
       // generating PVRZ files
-      if (!createPvrzPages(new File(mosFileName).getParent(), img, dxtType, pageList, entryList,
+      if (!createPvrzPages(new FileNI(mosFileName).getParent(), img, dxtType, pageList, entryList,
                            result, progress)) {
         return false;
       }
@@ -559,7 +559,7 @@ public class ConvertToMos extends ChildFrame
         BufferedOutputStream bos = null;
         try {
           try {
-            bos = new BufferedOutputStream(new FileOutputStreamNI(new File(pvrzName)));
+            bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(pvrzName)));
             bos.write(pvrz);
             bos.close();
             bos = null;

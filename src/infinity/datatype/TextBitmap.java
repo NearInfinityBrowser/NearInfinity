@@ -7,6 +7,7 @@ package infinity.datatype;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.io.FileWriterNI;
 
@@ -24,7 +25,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
-public final class TextBitmap extends Datatype implements Editable, Readable
+public final class TextBitmap extends Datatype implements Editable
 {
   private final String[] ids;
   private final String[] names;
@@ -33,7 +34,13 @@ public final class TextBitmap extends Datatype implements Editable, Readable
 
   public TextBitmap(byte buffer[], int offset, int length, String name, String ids[], String names[])
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, ids, names);
+  }
+
+  public TextBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    String ids[], String names[])
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
     this.ids = ids;
     this.names = names;
@@ -112,9 +119,11 @@ public final class TextBitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     text = DynamicArray.getString(buffer, offset, getSize());
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

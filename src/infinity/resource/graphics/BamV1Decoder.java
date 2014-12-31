@@ -13,6 +13,7 @@ import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.List;
 
+import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
@@ -223,8 +224,17 @@ public class BamV1Decoder extends BamDecoder
 
         // initializing palette
         bamPalette = new int[256];
+        int alphaMask = ResourceFactory.isEnhancedEdition() ? 0 : 0xff000000;
+        boolean alphaUsed = false;  // determines whether alpha is actually used
         for (int i = 0; i < 256; i++) {
-          bamPalette[i] = 0xff000000 | DynamicArray.getInt(bamData, ofsPalette + 4*i);
+          bamPalette[i] = alphaMask | DynamicArray.getInt(bamData, ofsPalette + 4*i);
+          alphaUsed |= (bamPalette[i] & 0xff000000) != 0;
+        }
+        if (!alphaUsed) {
+          // fix palette if needed
+          for (int i = 0; i < bamPalette.length; i++) {
+            bamPalette[i] |= 0xff000000;
+          }
         }
 
         // creating default bam control instance as a fallback option
@@ -427,6 +437,20 @@ public class BamV1Decoder extends BamDecoder
         }
       }
       return 0;
+    }
+
+    /** Returns whether the palette makes use of alpha transparency. */
+    public boolean isAlphaEnabled()
+    {
+      if (ResourceFactory.isEnhancedEdition()) {
+        for (int i = 0; i < currentPalette.length; i++) {
+          int mask = currentPalette[i] & 0xff000000;
+          if (mask != 0 && mask != 0xff000000) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     /**
@@ -640,33 +664,49 @@ public class BamV1Decoder extends BamDecoder
 
       // some optimizations: don't prepare if the palette hasn't change
       boolean isNormalMode = (getTransparencyMode() == TransparencyMode.Normal);
-      boolean transSet = false;
       int idx = 0;
+      int transIndex = -1;
+      int alphaMask = ResourceFactory.isEnhancedEdition() ? 0 : 0xff000000;
+      boolean alphaUsed = false;  // determines whether alpha is actually used
       if (externalPalette != null) {
         // filling palette entries from external palette, as much as possible
         for (; idx < externalPalette.length && idx < 256; idx++) {
-          currentPalette[idx] = 0xff000000 | externalPalette[idx];
-          if (transparencyEnabled && isNormalMode && !transSet &&
-              (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-            currentPalette[idx] = 0;
-            transSet = true;
+          currentPalette[idx] = alphaMask | externalPalette[idx];
+          alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
+          if (isNormalMode && transIndex < 0 && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
+            transIndex = idx;
           }
         }
       }
       // filling remaining entries with BAM palette
       if (getDecoder().bamPalette != null) {
         for (; idx < getDecoder().bamPalette.length; idx++) {
-          currentPalette[idx] = 0xff000000 | getDecoder().bamPalette[idx];
-          if (transparencyEnabled && isNormalMode && !transSet &&
-              (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-            currentPalette[idx] = 0;
-            transSet = true;
+          currentPalette[idx] = alphaMask | getDecoder().bamPalette[idx];
+          alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
+          if (isNormalMode && transIndex < 0 && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
+            transIndex = idx;
           }
         }
       }
 
+      // removing alpha support if needed
+      if (!alphaUsed) {
+        for (int i = 0; i < currentPalette.length; i++) {
+          currentPalette[i] |= 0xff000000;
+        }
+      }
+
+      // applying transparent index
+      if (isNormalMode && transIndex >= 0) {
+        if (transparencyEnabled) {
+          currentPalette[transIndex] = 0;
+        } else {
+          currentPalette[transIndex] |= 0xff000000;
+        }
+      }
+
       // falling back to transparency at color index 0
-      if (transparencyEnabled && !transSet) {
+      if (transparencyEnabled && transIndex < 0) {
         currentPalette[0] = 0;
       }
     }

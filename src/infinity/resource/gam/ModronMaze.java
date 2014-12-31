@@ -19,43 +19,43 @@ public final class ModronMaze extends AbstractStruct
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     int curOfs = offset;
 
     // adding room data
     for (int i = 0; i < 64; i++) {
       ModronMazeEntry entry = new ModronMazeEntry(this, buffer, curOfs, i);
-      list.add(entry);
+      addField(entry);
       curOfs += entry.getSize();
     }
 
     // adding header data
-    list.add(new DecNumber(buffer, curOfs, 4, "Size: X"));
+    addField(new DecNumber(buffer, curOfs, 4, "Size: X"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Size: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, "Size: Y"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Nordom position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, "Nordom position: X"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Nordom position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, "Nordom position: Y"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Main hall position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, "Main hall position: X"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Main hall position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, "Main hall position: Y"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Foyer position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, "Foyer position: X"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Foyer position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, "Foyer position: Y"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Engine room position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, "Engine room position: X"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "Engine room position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, "Engine room position: Y"));
     curOfs += 4;
-    list.add(new DecNumber(buffer, curOfs, 4, "# traps"));
+    addField(new DecNumber(buffer, curOfs, 4, "# traps"));
     curOfs += 4;
-    list.add(new Bitmap(buffer, curOfs, 4, "Initialized", s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, "Initialized", s_noyes));
     curOfs += 4;
-    list.add(new Unknown(buffer, curOfs, 8));
+    addField(new Unknown(buffer, curOfs, 8));
     curOfs += 8;
 
     return curOfs;

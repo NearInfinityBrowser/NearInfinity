@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public final class FileLookup
 {
-  private static FileLookup instance = null;
+  private static final FileLookup instance = new FileLookup();
 
   private final boolean isCaseSensitive;
 
@@ -31,11 +31,29 @@ public final class FileLookup
   /** Returns the current FileLookup instance. */
   public static FileLookup getInstance()
   {
-    if (instance == null) {
-      // lazy construction
-      instance = new FileLookup();
-    }
     return instance;
+  }
+
+  /**
+   * Convenience method of {@link #queryFilePath(File)}.
+   * Encapsulates and returns the resulting path string in a file object.
+   */
+  public File queryFile(File file)
+  {
+    if (file instanceof FileNI) {
+      return file;
+    } else {
+      return new File(queryFilePath(file));
+    }
+  }
+
+  /**
+   * Convenience method of {@link #queryFilePath(String)}.
+   * Encapsulates and returns the resulting path string in a file object.
+   */
+  public File queryFile(String fileName)
+  {
+    return new File(queryFilePath(fileName));
   }
 
   /**
@@ -48,12 +66,10 @@ public final class FileLookup
    */
   public String queryFilePath(File file)
   {
-    if (file != null) {
-      if (file instanceof FileNI) {
-        return file.getPath();
-      } else {
-        return queryFilePath(file.getPath());
-      }
+    if (file instanceof FileNI) {
+      return file.getPath();
+    } else if (file != null) {
+      return queryFilePath(file.getPath());
     } else {
       return null;
     }

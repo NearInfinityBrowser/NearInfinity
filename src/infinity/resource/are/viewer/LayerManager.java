@@ -20,13 +20,22 @@ public final class LayerManager
 {
   // Defines order of drawing
   public static final LayerType[] LayerOrdered = new LayerType[]{
-    LayerType.Actor, LayerType.Entrance, LayerType.Ambient, LayerType.ProTrap, LayerType.Animation,
-    LayerType.SpawnPoint, LayerType.Automap, LayerType.Container, LayerType.Door, LayerType.Region,
-    LayerType.Transition, LayerType.DoorPoly, LayerType.WallPoly
+    LayerType.Actor,
+    LayerType.Entrance,
+    LayerType.Ambient,
+    LayerType.ProTrap,
+    LayerType.Animation,
+    LayerType.SpawnPoint,
+    LayerType.Automap,
+    LayerType.Container,
+    LayerType.Door,
+    LayerType.Region,
+    LayerType.Transition,
+    LayerType.DoorPoly,
+    LayerType.WallPoly
   };
 
   private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<LayerType, String>(LayerType.class);
-  private static final EnumMap<LayerType, String> LayerAvailabilityFmt = new EnumMap<LayerType, String>(LayerType.class);
   static {
     LayerLabels.put(LayerType.Actor, "Actors");
     LayerLabels.put(LayerType.Region, "Regions");
@@ -41,23 +50,9 @@ public final class LayerManager
     LayerLabels.put(LayerType.ProTrap, "Projectile Traps");
     LayerLabels.put(LayerType.DoorPoly, "Door Polygons");
     LayerLabels.put(LayerType.WallPoly, "Wall Polygons");
-    LayerAvailabilityFmt.put(LayerType.Actor, "%1$d actor%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Region, "%1$d region%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Entrance, "%1$d entrance%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Container, "%1$d container%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Ambient, "%1$d ambient sound%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Door, "%1$d door%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Animation, "%1$d background animation%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Automap, "%1$d automap note%2$s available");
-    LayerAvailabilityFmt.put(LayerType.SpawnPoint, "%1$d spawn point%2$s available");
-    LayerAvailabilityFmt.put(LayerType.Transition, "%1$d map transition%2$s available");
-    LayerAvailabilityFmt.put(LayerType.ProTrap, "%1$d projectile trap%2$s available");
-    LayerAvailabilityFmt.put(LayerType.DoorPoly, "%1$d door polygon%2$s available");
-    LayerAvailabilityFmt.put(LayerType.WallPoly, "%1$d wall polygon%2$s available");
   }
 
-  @SuppressWarnings("rawtypes")
-  private final EnumMap<LayerType, BasicLayer> layers = new EnumMap<LayerType, BasicLayer>(LayerType.class);
+  private final EnumMap<LayerType, BasicLayer<?>> layers = new EnumMap<LayerType, BasicLayer<?>>(LayerType.class);
   private final AreaViewer viewer;
 
   private AreResource are;
@@ -92,9 +87,9 @@ public final class LayerManager
    */
   public static int getLayerTypeIndex(LayerType layer)
   {
-    LayerType[] l = LayerType.values();
-    for (int i = 0; i < LayerType.values().length; i++) {
-      if (l[i] == layer) {
+    LayerType[] lt = LayerType.values();
+    for (int i = 0; i < lt.length; i++) {
+      if (lt[i] == layer) {
         return i;
       }
     }
@@ -238,9 +233,8 @@ public final class LayerManager
   {
     if (enable != scheduleEnabled) {
       scheduleEnabled = enable;
-      for (int i = 0; i < getLayerTypeCount(); i++) {
-        @SuppressWarnings("rawtypes")
-        BasicLayer bl = getLayer(getLayerType(i));
+      for (int i = 0, ltCount = getLayerTypeCount(); i < ltCount; i++) {
+        BasicLayer<?> bl = getLayer(getLayerType(i));
         if (bl != null) {
           bl.setScheduleEnabled(scheduleEnabled);
         }
@@ -266,9 +260,8 @@ public final class LayerManager
     schedule %= 24;
     if (schedule != this.schedule) {
       this.schedule = schedule;
-      for (int i = 0; i < getLayerTypeCount(); i++) {
-        @SuppressWarnings("rawtypes")
-        BasicLayer bl = getLayer(getLayerType(i));
+      for (int i = 0, ltCount = getLayerTypeCount(); i < ltCount; i++) {
+        BasicLayer<?> bl = getLayer(getLayerType(i));
         if (bl != null) {
           bl.setSchedule(this.schedule);
         }
@@ -315,8 +308,7 @@ public final class LayerManager
   public void close()
   {
     for (LayerType layer: LayerType.values()) {
-      @SuppressWarnings("rawtypes")
-      BasicLayer bl = layers.get(layer);
+      BasicLayer<?> bl = layers.get(layer);
       if (bl != null) {
         bl.close();
       }
@@ -332,8 +324,7 @@ public final class LayerManager
   public void close(LayerType layer)
   {
     if (layer != null) {
-      @SuppressWarnings("rawtypes")
-      BasicLayer bl = layers.get(layer);
+      BasicLayer<?> bl = layers.get(layer);
       if (bl != null) {
         bl.close();
       }
@@ -345,8 +336,7 @@ public final class LayerManager
    * @param layer
    * @return
    */
-  @SuppressWarnings("rawtypes")
-  public BasicLayer getLayer(LayerType layer)
+  public BasicLayer<?> getLayer(LayerType layer)
   {
     if (layer != null) {
       return layers.get(layer);
@@ -362,8 +352,7 @@ public final class LayerManager
    */
   public int getLayerObjectCount(LayerType layer)
   {
-    @SuppressWarnings("rawtypes")
-    BasicLayer bl = layers.get(layer);
+    BasicLayer<?> bl = layers.get(layer);
     if (bl != null) {
       return bl.getLayerObjectCount();
     }
@@ -378,8 +367,7 @@ public final class LayerManager
    */
   public LayerObject getLayerObject(LayerType layer, int index)
   {
-    @SuppressWarnings("rawtypes")
-    BasicLayer bl = layers.get(layer);
+    BasicLayer<?> bl = layers.get(layer);
     if (bl != null) {
       return bl.getLayerObject(index);
     }
@@ -391,13 +379,11 @@ public final class LayerManager
    * @param layer The layer of the objects
    * @return A list of objects or <code>null</code> if not found.
    */
-  @SuppressWarnings("unchecked")
   public List<LayerObject> getLayerObjects(LayerType layer)
   {
-    @SuppressWarnings("rawtypes")
-    BasicLayer bl = layers.get(layer);
+    BasicLayer<?> bl = layers.get(layer);
     if (bl != null) {
-      return bl.getLayerObjects();
+      return (List<LayerObject>)bl.getLayerObjects();
     }
     return null;
   }
@@ -552,8 +538,7 @@ public final class LayerManager
   public boolean isLayerVisible(LayerType layer)
   {
     if (layer != null) {
-      @SuppressWarnings("rawtypes")
-      BasicLayer bl = layers.get(layer);
+      BasicLayer<?> bl = layers.get(layer);
       if (bl != null) {
         return bl.isLayerVisible();
       }
@@ -570,8 +555,7 @@ public final class LayerManager
   public void setLayerVisible(LayerType layer, boolean visible)
   {
     if (layer != null) {
-      @SuppressWarnings("rawtypes")
-      BasicLayer bl = layers.get(layer);
+      BasicLayer<?> bl = layers.get(layer);
       if (bl != null) {
         bl.setLayerVisible(visible);
       }
@@ -588,8 +572,7 @@ public final class LayerManager
     if (item != null) {
       for (final LayerType type: LayerType.values())
       {
-        @SuppressWarnings("rawtypes")
-        BasicLayer bl = layers.get(type);
+        BasicLayer<?> bl = layers.get(type);
         if (bl != null) {
           LayerObject obj = bl.getLayerObjectOf(item);
           if (obj != null) {

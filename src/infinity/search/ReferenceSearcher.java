@@ -45,8 +45,8 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
   {
-    for (int i = 0; i < dialog.getRowCount(); i++) {
-      StructEntry o = dialog.getStructEntryAt(i);
+    for (int i = 0; i < dialog.getFieldCount(); i++) {
+      StructEntry o = dialog.getField(i);
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
         addHit(entry, entry.getSearchString(), o);
@@ -84,8 +84,8 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSavStruct(ResourceEntry entry, ResourceEntry saventry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
         addHit(entry, saventry.toString(), o);
@@ -117,8 +117,8 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
         addHit(entry, entry.getSearchString(), o);

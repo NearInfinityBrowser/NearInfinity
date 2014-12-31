@@ -27,7 +27,7 @@ public class FileWriterNI extends FileWriter
 
   public FileWriterNI(File file) throws IOException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public FileWriterNI(FileDescriptor fd)
@@ -43,13 +43,30 @@ public class FileWriterNI extends FileWriter
 
   public FileWriterNI(File file, boolean append) throws IOException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)), append);
+    super(FileLookup.getInstance().queryFile(file), append);
   }
 
-
+  /**
+   * Writes the buffer content to the output stream.
+   * @param os The output stream.
+   * @param buffer The buffer to write.
+   */
   public static void writeBytes(OutputStream os, byte buffer[]) throws IOException
   {
     os.write(buffer);
+  }
+
+  /**
+   * Writes the specified byte value 'count' times to the output stream.
+   * @param os The output stream.
+   * @param value The value to write.
+   * @param count The number of times to write 'value'.
+   */
+  public static void writeBytes(OutputStream os, byte value, int count) throws IOException
+  {
+    while (count-- > 0) {
+      os.write(value);
+    }
   }
 
   /**

@@ -18,7 +18,7 @@ public class RandomAccessFileNI extends RandomAccessFile
 
   public RandomAccessFileNI(File file, String mode) throws FileNotFoundException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)), mode);
+    super(FileLookup.getInstance().queryFile(file), mode);
   }
 
 }

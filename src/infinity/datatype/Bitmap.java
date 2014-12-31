@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 
 import java.awt.GridBagConstraints;
@@ -25,7 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Bitmap extends Datatype implements Editable, Readable
+public class Bitmap extends Datatype implements Editable
 {
   private final String table[];
   private TextListPanel list;
@@ -33,7 +34,12 @@ public class Bitmap extends Datatype implements Editable, Readable
 
   public Bitmap(byte buffer[], int offset, int length, String name, String[] table)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, table);
+  }
+
+  public Bitmap(StructEntry parent, byte buffer[], int offset, int length, String name, String[] table)
+  {
+    super(parent, offset, length, name);
     this.table = table;
     read(buffer, offset);
   }
@@ -122,7 +128,7 @@ public class Bitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -137,6 +143,8 @@ public class Bitmap extends Datatype implements Editable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

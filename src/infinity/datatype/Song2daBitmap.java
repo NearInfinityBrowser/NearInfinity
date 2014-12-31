@@ -9,6 +9,7 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.text.PlainTextResource;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
@@ -29,7 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public final class Song2daBitmap extends Datatype implements Editable, Readable
+public final class Song2daBitmap extends Datatype implements Editable
 {
   private static final LongIntegerHashMap<SonglistEntry> songNumber = new LongIntegerHashMap<SonglistEntry>();
   private TextListPanel list;
@@ -40,7 +41,7 @@ public final class Song2daBitmap extends Datatype implements Editable, Readable
     try {
       PlainTextResource songlist = new PlainTextResource(
               ResourceFactory.getInstance().getResourceEntry("SONGLIST.2DA"));
-      StringTokenizer st = new StringTokenizer(songlist.getText(), "\n");
+      StringTokenizer st = new StringTokenizer(songlist.getText(), "\r\n");
       if (st.hasMoreTokens())
         st.nextToken();
       if (st.hasMoreTokens())
@@ -72,12 +73,22 @@ public final class Song2daBitmap extends Datatype implements Editable, Readable
 
   public Song2daBitmap(byte buffer[], int offset, int length)
   {
-    this(buffer, offset, length, "Song");
+    this(null, buffer, offset, length);
+  }
+
+  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length)
+  {
+    this(parent, buffer, offset, length, "Song");
   }
 
   public Song2daBitmap(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     if (songNumber.size() == 0)
       parseSonglist();
 
@@ -166,21 +177,23 @@ public final class Song2daBitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
-        value = (long)DynamicArray.getByte(buffer, offset);
+        value = DynamicArray.getUnsignedByte(buffer, offset);
         break;
       case 2:
-        value = (long)DynamicArray.getShort(buffer, offset);
+        value = DynamicArray.getUnsignedShort(buffer, offset);
         break;
       case 4:
-        value = DynamicArray.getInt(buffer, offset);
+        value = DynamicArray.getUnsignedInt(buffer, offset);
         break;
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

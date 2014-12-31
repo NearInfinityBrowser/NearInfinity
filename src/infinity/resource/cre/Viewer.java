@@ -396,7 +396,7 @@ public final class Viewer extends JPanel
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       AbstractStruct struct = (AbstractStruct)value;
-      label.setText(struct.getName() + " (" + (struct.getRowCount() - 2) + ')');
+      label.setText(struct.getName() + " (" + (struct.getFieldCount() - 2) + ')');
       return label;
     }
   }

@@ -89,7 +89,7 @@ public final class ResourceTreeModel implements TreeModel
   public void addDirectory(ResourceTreeFolder parentFolder, File directory)
   {
     File files[] = directory.listFiles();
-    if (files.length == 0)
+    if (files == null || files.length == 0)
       return;
 
     ResourceTreeFolder folder = getFolder(parentFolder, directory.getName());

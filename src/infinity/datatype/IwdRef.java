@@ -10,6 +10,7 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
@@ -34,7 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class IwdRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
+public final class IwdRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
   private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
@@ -43,7 +44,12 @@ public final class IwdRef extends Datatype implements Editable, Readable, Action
 
   public IwdRef(byte buffer[], int offset, String name, String idsfile)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name, idsfile);
+  }
+
+  public IwdRef(StructEntry parent, byte buffer[], int offset, String name, String idsfile)
+  {
+    super(parent, offset, 4, name);
     idsmap = IdsMapCache.get(idsfile).getMap();
     read(buffer, offset);
   }
@@ -176,9 +182,11 @@ public final class IwdRef extends Datatype implements Editable, Readable, Action
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     value = DynamicArray.getUnsignedInt(buffer, offset);
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

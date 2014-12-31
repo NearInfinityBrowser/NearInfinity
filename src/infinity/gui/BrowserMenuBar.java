@@ -62,7 +62,6 @@ import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
@@ -78,16 +77,24 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.35.0-snapshot-20141017";
+  public static final String VERSION = "v1.35.0-snapshot-20141217";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
-  public static final int LOOKFEEL_JAVA = 0, LOOKFEEL_WINDOWS = 1, LOOKFEEL_MOTIF = 2, LOOKFEEL_PLASTICXP = 3;
+  public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
+      new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
   public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
+
+  // Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac)
+  private static final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
   private static BrowserMenuBar menuBar;
+
   private final EditMenu editMenu;
   private final FileMenu fileMenu;
   private final GameMenu gameMenu;
@@ -110,7 +117,7 @@ public final class BrowserMenuBar extends JMenuBar
     if (icon != null)
       item.setIcon(icon);
     if (shortKey != -1)
-      item.setAccelerator(KeyStroke.getKeyStroke(shortKey, ActionEvent.CTRL_MASK));
+      item.setAccelerator(KeyStroke.getKeyStroke(shortKey, CTRL_MASK));
     if (listener != null)
       item.addActionListener(listener);
     return item;
@@ -149,6 +156,11 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean showStrrefs()
   {
     return optionsMenu.optionShowStrrefs.isSelected();
+  }
+
+  public boolean getHexColorMapEnabled()
+  {
+    return optionsMenu.optionShowHexColored.isSelected();
   }
 
   public boolean cacheOverride()
@@ -277,7 +289,7 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.getDefaultStructView();
   }
 
-  public int getLookAndFeel()
+  public LookAndFeelInfo getLookAndFeel()
   {
     return optionsMenu.getLookAndFeel();
   }
@@ -1006,7 +1018,7 @@ public final class BrowserMenuBar extends JMenuBar
       toolClipBoard.addActionListener(this);
       add(toolClipBoard);
       toolConsole = new JCheckBoxMenuItem("Show Debug Console", Icons.getIcon("Properties16.gif"));
-      toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.CTRL_MASK));
+      toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK));
       toolConsole.addActionListener(this);
       add(toolConsole);
 
@@ -1209,9 +1221,10 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
+    private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
-    private static final String OPTION_LOOKANDFEEL              = "LookAndFeel";
+    private static final String OPTION_LOOKANDFEELCLASS         = "LookAndFeelClass";
     private static final String OPTION_VIEWOREDITSHOWN          = "ViewOrEditShown";
     private static final String OPTION_FONT                     = "Font";
     private static final String OPTION_TLKCHARSET               = "TLKCharsetType";
@@ -1238,8 +1251,9 @@ public final class BrowserMenuBar extends JMenuBar
     // For debugging purposes only
     private static String DEBUGCOLORSCHEME = "";
 
+    private final List<DataRadioButtonMenuItem> lookAndFeel = new ArrayList<DataRadioButtonMenuItem>();
+
     private final JRadioButtonMenuItem showOverrides[] = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem lookAndFeel[] = new JRadioButtonMenuItem[4];
     private final JRadioButtonMenuItem showResRef[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
@@ -1259,7 +1273,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride;
     private JCheckBoxMenuItem optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride;
-    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs;
+    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionShowHexColored;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
 
@@ -1281,27 +1295,30 @@ public final class BrowserMenuBar extends JMenuBar
           new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
       optionIgnoreReadErrors =
-      new JCheckBoxMenuItem("Ignore Read Errors", prefs.getBoolean(OPTION_IGNOREREADERRORS, false));
+          new JCheckBoxMenuItem("Ignore Read Errors", prefs.getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
       optionShowOffset =
-      new JCheckBoxMenuItem("Show Hex Offsets", prefs.getBoolean(OPTION_SHOWOFFSETS, false));
+          new JCheckBoxMenuItem("Show Hex Offsets", prefs.getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
       optionAutocheckBCS =
-      new JCheckBoxMenuItem("Autocheck BCS", prefs.getBoolean(OPTION_AUTOCHECK_BCS, true));
+          new JCheckBoxMenuItem("Autocheck BCS", prefs.getBoolean(OPTION_AUTOCHECK_BCS, true));
       add(optionAutocheckBCS);
       optionCacheOverride =
-      new JCheckBoxMenuItem("Autocheck for Overrides", prefs.getBoolean(OPTION_CACHEOVERRIDE, false));
+          new JCheckBoxMenuItem("Autocheck for Overrides", prefs.getBoolean(OPTION_CACHEOVERRIDE, false));
       optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
                                          "to discover new override files added while NI is open");
       add(optionCacheOverride);
       optionCheckScriptNames =
-      new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
+          new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
       optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
                                             "but many features involving script names will be disabled.");
       add(optionCheckScriptNames);
       optionShowStrrefs =
-      new JCheckBoxMenuItem("Show Strrefs in View tabs", prefs.getBoolean(OPTION_SHOWSTRREFS, false));
+          new JCheckBoxMenuItem("Show Strrefs in View tabs", prefs.getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
+      optionShowHexColored =
+          new JCheckBoxMenuItem("Show colored blocks in Raw tabs", prefs.getBoolean(OPTION_SHOWHEXCOLORED, true));
+      add(optionShowHexColored);
 
       addSeparator();
 
@@ -1443,13 +1460,13 @@ public final class BrowserMenuBar extends JMenuBar
       add(showresrefmenu);
       int selectedresref = prefs.getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
       showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
-      showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, CTRL_MASK));
       showResRef[RESREF_REF_NAME] =
       new JRadioButtonMenuItem("Filename (Name)", selectedresref == RESREF_REF_NAME);
-      showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, CTRL_MASK));
       showResRef[RESREF_NAME_REF] =
       new JRadioButtonMenuItem("Name (Filename)", selectedresref == RESREF_NAME_REF);
-      showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, ActionEvent.CTRL_MASK));
+      showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, CTRL_MASK));
       bg = new ButtonGroup();
       for (int i = RESREF_ONLY; i <= RESREF_NAME_REF; i++) {
         showresrefmenu.add(showResRef[i]);
@@ -1493,23 +1510,32 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->Look and Feel
       JMenu lookandfeelmenu = new JMenu("Look and Feel");
       add(lookandfeelmenu);
-      int selectedfeel = prefs.getInt(OPTION_LOOKANDFEEL, LOOKFEEL_JAVA);
-      lookAndFeel[LOOKFEEL_JAVA] = new JRadioButtonMenuItem("Java", selectedfeel == LOOKFEEL_JAVA);
-      lookAndFeel[LOOKFEEL_WINDOWS] = new JRadioButtonMenuItem("Native", selectedfeel == LOOKFEEL_WINDOWS);
-      lookAndFeel[LOOKFEEL_MOTIF] = new JRadioButtonMenuItem("Motif", selectedfeel == LOOKFEEL_MOTIF);
-      try {
-        Class.forName("com.jgoodies.plaf.plastic.PlasticLookAndFeel");
-        lookAndFeel[LOOKFEEL_PLASTICXP] =
-        new JRadioButtonMenuItem("Plastic XP", selectedfeel == LOOKFEEL_PLASTICXP);
-      } catch (ClassNotFoundException e) {
-        if (selectedfeel == LOOKFEEL_PLASTICXP)
-          lookAndFeel[LOOKFEEL_JAVA].setSelected(true);
-      }
+      final String selectedLF = prefs.get(OPTION_LOOKANDFEELCLASS, DEFAULT_LOOKFEEL.getClassName());
+      LookAndFeelInfo[] info = UIManager.getInstalledLookAndFeels();
       bg = new ButtonGroup();
+      if (info != null && info.length > 0) {
+        // dynamically create a list of supported look&feel themes
+        DataRadioButtonMenuItem dbmi;
+        for (int i = 0; i < info.length; i++) {
+          dbmi = new DataRadioButtonMenuItem(info[i].getName(),
+                                             selectedLF.equalsIgnoreCase(info[i].getClassName()),
+                                             info[i]);
+          lookAndFeel.add(dbmi);
+          bg.add(dbmi);
+        }
+      } else {
+        // fallback solution: adding default look&feel theme
+        DataRadioButtonMenuItem dbmi;
+        dbmi = new DataRadioButtonMenuItem(DEFAULT_LOOKFEEL.getName(), true, DEFAULT_LOOKFEEL);
+        lookAndFeel.add(dbmi);
+        bg.add(dbmi);
+      }
+      if (bg.getSelection() == null) {
+        lookAndFeel.get(0).setSelected(true);
+      }
       for (final JRadioButtonMenuItem lf : lookAndFeel) {
         if (lf != null) {
           lookandfeelmenu.add(lf);
-          bg.add(lf);
           lf.setActionCommand("ChangeLook");
           lf.addActionListener(browser);
         }
@@ -1628,8 +1654,10 @@ public final class BrowserMenuBar extends JMenuBar
     {
       bgCharsetButtons = new ButtonGroup();
       JMenu menu = new JMenu("TLK Charset");
-      DataRadioButtonMenuItem dmi = new DataRadioButtonMenuItem("Autodetect Charset", (Object)DefaultCharset);
-      dmi.setToolTipText("Attempts to determine the correct character encoding automatically. May not work reliably for non-english games.");
+      DataRadioButtonMenuItem dmi =
+          new DataRadioButtonMenuItem("Autodetect Charset", false, DefaultCharset);
+      dmi.setToolTipText("Attempts to determine the correct character encoding automatically. " +
+                         "May not work reliably for non-english games.");
       dmi.addActionListener(this);
       bgCharsetButtons.add(dmi);
       menu.add(dmi);
@@ -1638,7 +1666,7 @@ public final class BrowserMenuBar extends JMenuBar
       for (int i = 0; i < CharsetsUsed.size(); i++) {
         String[] info = CharsetsUsed.get(i);
         if (info != null && info.length > 2) {
-          dmi = new DataRadioButtonMenuItem(info[0], (Object)info[1]);
+          dmi = new DataRadioButtonMenuItem(info[0], false, info[1]);
           StringBuilder sb = new StringBuilder();
           sb.append(info[2]);
           Charset cs = Charset.forName(info[1]);
@@ -1685,7 +1713,7 @@ public final class BrowserMenuBar extends JMenuBar
 
           boolean official = !(name.startsWith("x-") || name.startsWith("X-"));
           String desc = official ? name : String.format("%1$s (unofficial)", name.substring(2));
-          dmi = new DataRadioButtonMenuItem(desc, (Object)name);
+          dmi = new DataRadioButtonMenuItem(desc, false, name);
           Charset cs = Charset.forName(name);
           if (cs != null && !cs.aliases().isEmpty()) {
             StringBuilder sb = new StringBuilder("Charset aliases: ");
@@ -1732,9 +1760,9 @@ public final class BrowserMenuBar extends JMenuBar
         while (buttonSet.hasMoreElements()) {
           AbstractButton b = buttonSet.nextElement();
           if (b instanceof DataRadioButtonMenuItem) {
-            String data = (String)((DataRadioButtonMenuItem)b).getData();
-            if (data != null) {
-              if (charset.equalsIgnoreCase(data)) {
+            Object data = ((DataRadioButtonMenuItem)b).getData();
+            if (data instanceof String) {
+              if (charset.equalsIgnoreCase((String)data)) {
                 return (DataRadioButtonMenuItem)b;
               }
             }
@@ -1754,7 +1782,7 @@ public final class BrowserMenuBar extends JMenuBar
           if (b instanceof DataRadioButtonMenuItem) {
             DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)b;
             if (dmi.isSelected()) {
-              return (dmi.hasData() ? (String)dmi.getData() : DefaultCharset);
+              return (dmi.getData() != null) ? (String)dmi.getData() : DefaultCharset;
             }
           }
         }
@@ -1810,9 +1838,10 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
       prefs.putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
+      prefs.putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
       prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
-      prefs.putInt(OPTION_LOOKANDFEEL, getLookAndFeel());
+      prefs.put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
       prefs.putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
       prefs.putInt(OPTION_FONT, selectedFont);
@@ -1979,13 +2008,14 @@ public final class BrowserMenuBar extends JMenuBar
       return OVERRIDE_SPLIT;
     }
 
-    public int getLookAndFeel()
+    public LookAndFeelInfo getLookAndFeel()
     {
-      for (int i = 0; i < lookAndFeel.length; i++) {
-        if (lookAndFeel[i] != null && lookAndFeel[i].isSelected())
-          return i;
+      for (int i = 0; i < lookAndFeel.size(); i++) {
+        if (lookAndFeel.get(i) != null && lookAndFeel.get(i).isSelected()) {
+          return (LookAndFeelInfo)lookAndFeel.get(i).getData();
+        }
       }
-      return LOOKFEEL_JAVA;
+      return DEFAULT_LOOKFEEL;
     }
 
     public int getDefaultStructView()
@@ -2055,7 +2085,7 @@ public final class BrowserMenuBar extends JMenuBar
   private static final class HelpMenu extends JMenu implements ActionListener
   {
     private final JMenuItem helpAbout, helpLicense, helpBsdLicense,
-                            helpJOrbisLicense, helpFifeLicense;
+                            helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense;
 
     private HelpMenu()
     {
@@ -2084,6 +2114,10 @@ public final class BrowserMenuBar extends JMenuBar
       helpFifeLicense =
           makeMenuItem("Fifesoft License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpFifeLicense);
+
+      helpJHexViewLicense =
+          makeMenuItem("JHexView License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+      miscLicenses.add(helpJHexViewLicense);
     }
 
     @Override
@@ -2099,6 +2133,8 @@ public final class BrowserMenuBar extends JMenuBar
           displayLicense("infinity/JOrbis.License.txt", "LGPL License");
       } else if (event.getSource() == helpFifeLicense) {
         displayLicense("infinity/RSyntaxTextArea.License.txt", "BSD License");
+      } else if (event.getSource() == helpJHexViewLicense) {
+        displayLicense("infinity/JHexView.License.txt", "GPL License");
       }
     }
 
@@ -2114,8 +2150,8 @@ public final class BrowserMenuBar extends JMenuBar
 
       // NearInfinity copyright message
       final String[] copyNearInfinityText = new String[]{
-          "This program is free and may be distributed according",
-          "to the terms of the GNU Lesser General Public License."
+          "This program is free and may be distributed according to the terms of ",
+          "the GNU Lesser General Public License."
       };
 
       // List of contributors (ordered chronologically)
@@ -2127,6 +2163,9 @@ public final class BrowserMenuBar extends JMenuBar
           "Fredrik Lindgren (aka Wisp)",
           "Argent77",
       };
+      final String[] contributorsMisc = new String[]{
+          "Near Infinity logo/icon by Cuv and Troodon80",
+      };
 
       // Third-party copyright messages
       final String[] copyThirdPartyText = new String[]{
@@ -2134,16 +2173,17 @@ public final class BrowserMenuBar extends JMenuBar
           "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
           "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
+          "JHexView by Sebastian Porst - GNU General Public License.",
       };
 
       // Fixed elements
       JLabel version = new JLabel(versionText);
-      JLabel githubLink = new JLabel(githubHTML, JLabel.CENTER);
+      JLabel githubLink = new JLabel(githubHTML, JLabel.LEADING);
       githubLink.addMouseListener(new UrlBrowser(githubPage));
       githubLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.CENTER);
-      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.CENTER);
-      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.CENTER);
+      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.LEADING);
+      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.LEADING);
+      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.LEADING);
       hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
       hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       final Font defaultfont = version.getFont();
@@ -2181,66 +2221,89 @@ public final class BrowserMenuBar extends JMenuBar
       gbl.setConstraints(hauglidLink, gbc);
       panel.add(hauglidLink);
 
-      // Additional contributors to NearInfinity
+      // Adding code contributors
       gbc.insets = new Insets(9, 6, 0, 6);
-      if (contributorsText.length > 0) {
-        // trying to limit line width to a certain maximum
-        FontMetrics fm = getFontMetrics(font);
-        double maxWidth = fm.getStringBounds(hauglidCopyrightText, getGraphics()).getWidth() * 1.5;
+      // trying to limit line width to a certain maximum
+      FontMetrics fm = getFontMetrics(font);
+      double maxWidth = fm.getStringBounds(hauglidCopyrightText, getGraphics()).getWidth() * 1.75;
 
-        // adding title
-        JLabel label = new JLabel("Additional Contributors:", SwingConstants.CENTER);
-        label.setFont(smallFont.deriveFont(12.0f));
-        gbl.setConstraints(label, gbc);
-        panel.add(label);
-        gbc.insets.top = 2;
+      // adding title
+      JLabel label = new JLabel("Additional Contributors:", SwingConstants.LEADING);
+      label.setFont(smallFont.deriveFont(12.0f));
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+      gbc.insets.top = 1;
 
-        // adding names
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < contributorsText.length; i++) {
-          if (i > 0) {
+      // adding names
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < contributorsText.length; i++) {
+        if (i > 0) {
+          if (i+1 == contributorsText.length) {
+            sb.append(" and ");
+          } else {
             sb.append(", ");
           }
-          String s = sb.toString() + contributorsText[i];
-          if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
-            label = new JLabel(sb.toString(), SwingConstants.CENTER);
-            label.setFont(smallFont);
-            gbl.setConstraints(label, gbc);
-            panel.add(label);
-            gbc.insets.top = 0;
-            sb = new StringBuilder();
-          }
-          sb.append(contributorsText[i]);
         }
-        label = new JLabel(sb.toString(), SwingConstants.CENTER);
+        String s = sb.toString() + contributorsText[i];
+        if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
+          label = new JLabel(sb.toString(), SwingConstants.LEADING);
+          label.setFont(smallFont);
+          gbl.setConstraints(label, gbc);
+          panel.add(label);
+          gbc.insets.top = 0;
+          sb = new StringBuilder();
+        }
+        sb.append(contributorsText[i]);
+      }
+      label = new JLabel(sb.toString(), SwingConstants.LEADING);
+      label.setFont(smallFont);
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+
+      // Adding misc. contributors
+      gbc.insets.top = 4;
+      for (int i = 0; i < contributorsMisc.length; i++) {
+        label = new JLabel(contributorsMisc[i], SwingConstants.LEADING);
         label.setFont(smallFont);
         gbl.setConstraints(label, gbc);
         panel.add(label);
+        gbc.insets.top = 0;
       }
 
       // NearInfinity copyright message
-      gbc.insets.top = 9;
+      gbc.insets.top = 12;
+      label = new JLabel("Near Infinity license:");
+      label.setFont(smallFont.deriveFont(12.0f));
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+      gbc.insets.top = 1;
+
       for (int i = 0; i < copyNearInfinityText.length; i++) {
-        JLabel label = new JLabel(copyNearInfinityText[i], SwingConstants.CENTER);
+        label = new JLabel(copyNearInfinityText[i], SwingConstants.LEADING);
         label.setFont(smallFont);
         gbl.setConstraints(label, gbc);
         panel.add(label);
         gbc.insets.top = 0;
       }
 
-      // Third-party copyright mesages
-      gbc.insets.top = 9;
+      // Third-party copyright messages
+      gbc.insets.top = 12;
+      label = new JLabel("Additional licenses:");
+      label.setFont(smallFont.deriveFont(12.0f));
+      gbl.setConstraints(label, gbc);
+      panel.add(label);
+      gbc.insets.top = 1;
+
       for (int i = 0; i < copyThirdPartyText.length; i++) {
-        JLabel label = new JLabel(copyThirdPartyText[i], SwingConstants.CENTER);
+        label = new JLabel(copyThirdPartyText[i], SwingConstants.LEADING);
         label.setFont(smallFont);
         gbl.setConstraints(label, gbc);
         panel.add(label);
         gbc.insets.top = 0;
       }
 
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                    panel, "About Near Infinity",
-                                    JOptionPane.PLAIN_MESSAGE);
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "About Near Infinity",
+                                    JOptionPane.INFORMATION_MESSAGE, Icons.getIcon("App128.png"));
     }
 
     private void displayLicense(String classPath, String title)
@@ -2249,7 +2312,7 @@ public final class BrowserMenuBar extends JMenuBar
       JTextPane tphelp = new JTextPane();
       tphelp.setFont(new Font("Monospaced", Font.PLAIN, 12));
       tphelp.setEditable(false);
-      tphelp.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      tphelp.setMargin(new Insets(3, 3, 3, 3));
       panel.add(new JScrollPane(tphelp), BorderLayout.CENTER);
       panel.setPreferredSize(new Dimension(640, 480));
 
@@ -2261,33 +2324,6 @@ public final class BrowserMenuBar extends JMenuBar
 
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, title,
                                     JOptionPane.PLAIN_MESSAGE);
-    }
-  }
-
-  // JRadioButtonMenuItem with associated data object
-  private static class DataRadioButtonMenuItem extends JRadioButtonMenuItem
-  {
-    private Object data;
-
-    public DataRadioButtonMenuItem(String text, Object data)
-    {
-      super(text);
-      this.data = data;
-    }
-
-    public void setData(Object data)
-    {
-      this.data = data;
-    }
-
-    public Object getData()
-    {
-      return data;
-    }
-
-    public boolean hasData()
-    {
-      return data != null;
     }
   }
 }

@@ -219,14 +219,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     if (bPlay != null) {
       bPlay.setEnabled(b);
     }
-    JButton bFind = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.FindReferences);
-    if (bFind != null) {
-      bFind.setEnabled(b);
-    }
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu);
-    if (bpmExport != null) {
-      bpmExport.setEnabled(b);
-    }
+    miConvert.setEnabled(b);
   }
 
   private synchronized void setClosed(boolean b)

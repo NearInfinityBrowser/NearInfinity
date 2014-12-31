@@ -9,21 +9,22 @@ import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Unknown extends Datatype implements Editable, Readable
+public class Unknown extends Datatype implements Editable
 {
   private static final String UNKNOWN = "Unknown";
   InfinityTextArea textArea;
@@ -31,12 +32,22 @@ public class Unknown extends Datatype implements Editable, Readable
 
   public Unknown(byte[] buffer, int offset, int length)
   {
-    this(buffer, offset, length, UNKNOWN);
+    this(null, buffer, offset, length, UNKNOWN);
+  }
+
+  public Unknown(StructEntry parent, byte[] buffer, int offset, int length)
+  {
+    this(parent, buffer, offset, length, UNKNOWN);
   }
 
   public Unknown(byte[] buffer, int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public Unknown(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
   }
 
@@ -57,7 +68,7 @@ public class Unknown extends Datatype implements Editable, Readable
         textArea.setWrapStyleWord(true);
         textArea.setLineWrap(true);
         textArea.setEOLMarkersVisible(false);
-        textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        textArea.setMargin(new Insets(3, 3, 3, 3));
       }
       String s = toString();
       textArea.setText(s.substring(0, s.length() - 2));
@@ -142,9 +153,11 @@ public class Unknown extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     data = Arrays.copyOfRange(buffer, offset, offset + getSize());
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

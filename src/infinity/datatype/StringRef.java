@@ -13,6 +13,7 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.StringReferenceSearcher;
 import infinity.util.DynamicArray;
@@ -29,14 +30,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public final class StringRef extends Datatype implements Editable, Readable, ActionListener
+public final class StringRef extends Datatype implements Editable, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
   private InfinityTextArea taRefText;
@@ -45,13 +45,23 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
 
   public StringRef(String name, int value)
   {
-    super(0, 8, name); // OK?
+    this(null, name, value);
+  }
+
+  public StringRef(StructEntry parent, String name, int value)
+  {
+    super(parent, 0, 8, name); // OK?
     this.value = value;
   }
 
   public StringRef(byte buffer[], int offset, String name)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name);
+  }
+
+  public StringRef(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    super(parent, offset, 4, name);
     read(buffer, offset);
   }
 
@@ -106,7 +116,7 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
       taRefText.setWrapStyleWord(true);
-      taRefText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      taRefText.setMargin(new Insets(3, 3, 3, 3));
       bPlay = new JButton("Sound", Icons.getIcon("Volume16.gif"));
       bPlay.setToolTipText("Opens associated sound");
       bPlay.addActionListener(this);
@@ -210,9 +220,11 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     value = DynamicArray.getInt(buffer, offset);
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

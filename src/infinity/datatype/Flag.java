@@ -6,6 +6,7 @@ package infinity.datatype;
 
 import infinity.gui.StructViewer;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
@@ -23,7 +24,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class Flag extends Datatype implements Editable, Readable, ActionListener
+public class Flag extends Datatype implements Editable, ActionListener
 {
   String nodesc;
   String[] table;
@@ -34,13 +35,23 @@ public class Flag extends Datatype implements Editable, Readable, ActionListener
 
   Flag(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  Flag(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
   }
 
   public Flag(byte buffer[], int offset, int length, String name, String[] stable)
   {
-    this(buffer, offset, length, name);
+    this(null, buffer, offset, length, name, stable);
+  }
+
+  public Flag(StructEntry parent, byte buffer[], int offset, int length, String name, String[] stable)
+  {
+    this(parent, buffer, offset, length, name);
     nodesc = stable[0];
     table = new String[8 * length];
     for (int i = 1; i < stable.length; i++)
@@ -115,7 +126,7 @@ public class Flag extends Datatype implements Editable, Readable, ActionListener
     panel.add(bPanel, BorderLayout.SOUTH);
 
     panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
+    panel.setPreferredSize(DIM_WIDE);
 
     return panel;
   }
@@ -151,21 +162,23 @@ public class Flag extends Datatype implements Editable, Readable, ActionListener
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
-        value = (long)DynamicArray.getByte(buffer, offset);
+        value = DynamicArray.getUnsignedByte(buffer, offset);
         break;
       case 2:
-        value = (long)DynamicArray.getShort(buffer, offset);
+        value = DynamicArray.getUnsignedShort(buffer, offset);
         break;
       case 4:
-        value = (long)DynamicArray.getInt(buffer, offset);
+        value = DynamicArray.getUnsignedInt(buffer, offset);
         break;
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

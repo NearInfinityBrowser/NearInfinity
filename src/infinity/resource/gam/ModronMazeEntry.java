@@ -21,17 +21,17 @@ public final class ModronMazeEntry extends AbstractStruct
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Override"));
-    list.add(new Bitmap(buffer, offset + 4, 4, "Accessible", s_noyes));
-    list.add(new Bitmap(buffer, offset + 8, 4, "Is valid", s_noyes));
-    list.add(new Bitmap(buffer, offset + 12, 4, "Is trapped", s_noyes));
-    list.add(new Bitmap(buffer, offset + 16, 4, "Trap type",
+    addField(new DecNumber(buffer, offset, 4, "Override"));
+    addField(new Bitmap(buffer, offset + 4, 4, "Accessible", s_noyes));
+    addField(new Bitmap(buffer, offset + 8, 4, "Is valid", s_noyes));
+    addField(new Bitmap(buffer, offset + 12, 4, "Is trapped", s_noyes));
+    addField(new Bitmap(buffer, offset + 16, 4, "Trap type",
                         new String[]{"TrapA", "TrapB", "TrapC"}));
-    list.add(new Flag(buffer, offset + 20, 2, "Walls",
+    addField(new Flag(buffer, offset + 20, 2, "Walls",
                       new String[]{"None", "East", "West", "North", "South"}));
-    list.add(new Bitmap(buffer, offset + 22, 4, "Visited", s_noyes));
+    addField(new Bitmap(buffer, offset + 22, 4, "Visited", s_noyes));
     return offset + 26;
   }
 }

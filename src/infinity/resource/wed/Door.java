@@ -67,8 +67,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
   public void readVertices(byte buffer[], int offset) throws Exception
   {
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
       if (o instanceof Polygon)
         ((Polygon)o).readVertices(buffer, offset);
     }
@@ -77,58 +77,67 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   public void updatePolygonsOffset(int offset)
   {
     int polyOffset = Integer.MAX_VALUE;
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Polygon)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Polygon) {
         polyOffset = Math.min(polyOffset, ((Polygon)o).getOffset());
+      }
     }
-    if (polyOffset != Integer.MAX_VALUE)
+    if (polyOffset != Integer.MAX_VALUE) {
       offset = polyOffset;
+    }
     ((SectionOffset)getAttribute("Polygons open offset")).setValue(offset);
-    for (int i = 0; i < list.size(); i++)
-      if (list.get(i) instanceof OpenPolygon)
+    for (int i = 0; i < getFieldCount(); i++) {
+      if (getField(i) instanceof OpenPolygon) {
         offset += 18;
+      }
+    }
     ((SectionOffset)getAttribute("Polygons closed offset")).setValue(offset);
-    for (int i = 0; i < list.size(); i++)
-      if (list.get(i) instanceof ClosedPolygon)
+    for (int i = 0; i < getFieldCount(); i++) {
+      if (getField(i) instanceof ClosedPolygon) {
         offset += 18;
+      }
+    }
 //    return offset;
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 8, "Name"));
-    list.add(new Bitmap(buffer, offset + 8, 2, "Is door?", s_yesno));
+    addField(new TextString(buffer, offset, 8, "Name"));
+    addField(new Bitmap(buffer, offset + 8, 2, "Is door?", s_yesno));
     DecNumber indexTileCell = new DecNumber(buffer, offset + 10, 2, "Tilemap lookup index");
-    list.add(indexTileCell);
+    addField(indexTileCell);
     SectionCount countTileCell = new SectionCount(buffer, offset + 12, 2, "# tilemap indexes",
                                                   RemovableDecNumber.class);
-    list.add(countTileCell);
+    addField(countTileCell);
     SectionCount countOpen = new SectionCount(buffer, offset + 14, 2, "# polygons open", OpenPolygon.class);
-    list.add(countOpen);
+    addField(countOpen);
     SectionCount countClosed = new SectionCount(buffer, offset + 16, 2, "# polygons closed",
                                                 ClosedPolygon.class);
-    list.add(countClosed);
+    addField(countClosed);
     SectionOffset offsetOpen = new SectionOffset(buffer, offset + 18, "Polygons open offset",
                                                  OpenPolygon.class);
-    list.add(offsetOpen);
+    addField(offsetOpen);
     SectionOffset offsetClosed = new SectionOffset(buffer, offset + 22, "Polygons closed offset",
                                                    ClosedPolygon.class);
-    list.add(offsetClosed);
+    addField(offsetClosed);
 
-    for (int i = 0; i < countOpen.getValue(); i++)
-      list.add(new OpenPolygon(this, buffer, offsetOpen.getValue() + 18 * i, i));
+    for (int i = 0; i < countOpen.getValue(); i++) {
+      addField(new OpenPolygon(this, buffer, offsetOpen.getValue() + 18 * i, i));
+    }
 
-    for (int i = 0; i < countClosed.getValue(); i++)
-      list.add(new ClosedPolygon(this, buffer, offsetClosed.getValue() + 18 * i, i));
+    for (int i = 0; i < countClosed.getValue(); i++) {
+      addField(new ClosedPolygon(this, buffer, offsetClosed.getValue() + 18 * i, i));
+    }
 
     if (getSuperStruct() != null) {
       HexNumber offsetTileCell = (HexNumber)getSuperStruct().getAttribute("Door tilemap lookup offset");
-      for (int i = 0; i < countTileCell.getValue(); i++)
-        list.add(new RemovableDecNumber(buffer, offsetTileCell.getValue() +
+      for (int i = 0; i < countTileCell.getValue(); i++) {
+        addField(new RemovableDecNumber(buffer, offsetTileCell.getValue() +
                                                 2 * (indexTileCell.getValue() + i), 2,
                                         "Tilemap index " + i));
+      }
     }
     return offset + 26;
   }

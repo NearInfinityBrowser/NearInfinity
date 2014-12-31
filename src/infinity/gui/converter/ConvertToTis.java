@@ -755,7 +755,7 @@ public class ConvertToTis extends ChildFrame
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
       }
-      fc.setSelectedFile(new File(fileName));
+      fc.setSelectedFile(new FileNI(fileName));
       int ret = fc.showSaveDialog(this);
       while (ret == JFileChooser.APPROVE_OPTION) {
         currentDir = fc.getSelectedFile().getParent();

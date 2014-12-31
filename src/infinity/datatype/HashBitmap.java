@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
 
@@ -26,16 +27,37 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class HashBitmap extends Datatype implements Editable, Readable
+public class HashBitmap extends Datatype implements Editable
 {
   private final LongIntegerHashMap<String> idsmap;
+  private final boolean sortByName;
   private TextListPanel list;
   private long value;
 
-  public HashBitmap(byte buffer[], int offset, int length, String name, LongIntegerHashMap<String> idsmap)
+  public HashBitmap(byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name, idsmap, true);
+  }
+
+  public HashBitmap(byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+  {
+    this(null, buffer, offset, length, name, idsmap, sortByName);
+  }
+
+  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap)
+  {
+    this(parent, buffer, offset, length, name, idsmap, true);
+  }
+
+  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+  {
+    super(parent, offset, length, name);
     this.idsmap = new LongIntegerHashMap<String>(idsmap);
+    this.sortByName = sortByName;
 
     read(buffer, offset);
   }
@@ -52,7 +74,7 @@ public class HashBitmap extends Datatype implements Editable, Readable
         if (idsmap.containsKey(id))
           items.add(idsmap.get(id).toString() + " - " + id);
       }
-      list = new TextListPanel(items);
+      list = new TextListPanel(items, sortByName);
       list.addMouseListener(new MouseAdapter()
       {
         @Override
@@ -127,7 +149,7 @@ public class HashBitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -142,6 +164,8 @@ public class HashBitmap extends Datatype implements Editable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------
@@ -158,6 +182,20 @@ public class HashBitmap extends Datatype implements Editable, Readable
   public long getValue()
   {
     return value;
+  }
+
+  public long[] getKeys()
+  {
+    return idsmap.keys();
+  }
+
+  public String getSymbol(long index)
+  {
+    if (idsmap.containsKey(index)) {
+      return idsmap.get(index).toString();
+    } else {
+      return null;
+    }
   }
 }
 

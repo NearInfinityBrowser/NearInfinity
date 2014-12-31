@@ -5,12 +5,18 @@
 package infinity.datatype;
 
 import infinity.resource.AddRemovable;
+import infinity.resource.StructEntry;
 
 public final class RemovableDecNumber extends DecNumber implements AddRemovable
 {
   public RemovableDecNumber(byte buffer[], int offset, int length, String name)
   {
-    super(buffer, offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public RemovableDecNumber(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, buffer, offset, length, name);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

@@ -8,8 +8,10 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
+import infinity.resource.ResourceFactory;
 
 public final class Item extends AbstractStruct implements AddRemovable
 {
@@ -37,14 +39,18 @@ public final class Item extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Item", "ITM"));
-    list.add(new Unknown(buffer, offset + 8, 2));
-    list.add(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
-    list.add(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
-    list.add(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
-    list.add(new Flag(buffer, offset + 16, 4, "Flags", s_itemflag));
+    addField(new ResourceRef(buffer, offset, "Item", "ITM"));
+    if (ResourceFactory.isEnhancedEdition()) {
+      addField(new UnsignDecNumber(buffer, offset + 8, 2, "Duration"));
+    } else {
+      addField(new Unknown(buffer, offset + 8, 2));
+    }
+    addField(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
+    addField(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
+    addField(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
+    addField(new Flag(buffer, offset + 16, 4, "Flags", s_itemflag));
     return offset + 20;
   }
 }

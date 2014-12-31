@@ -14,6 +14,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.spl.SplResource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class Effect2 extends AbstractStruct implements AddRemovable
@@ -91,15 +92,19 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
     EffectType type = new EffectType(buffer, offset + 8, 4);
-    list.add(type);
+    addField(type);
+    List<StructEntry> list = new ArrayList<StructEntry>();
     offset = type.readAttributes(buffer, offset + 12, list);
+    addToList(getList().size() - 1, list);
 
+    list.clear();
     offset = readCommon(list, buffer, offset);
+    addToList(getList().size() - 1, list);
 
     return offset;
   }
