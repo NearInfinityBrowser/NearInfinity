@@ -5,9 +5,9 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
-import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Editable;
+import infinity.datatype.Flag;
 import infinity.datatype.InlineEditable;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.Unknown;
@@ -71,8 +71,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
                                                               ChangeListener, ItemListener
 {
-  private static final String s_msgtype[] = {"No message data", "", "Ambient message", "Standard message", "", "",
-                                             "", "Message with tags"};
+  private static final String s_flags[] = { "None", "Has text", "Has sound", "Has tokens" };
   private static String signature, version;
   private static int entry_size = 26; // V1
   private final ButtonPopupMenu bfind;
@@ -675,7 +674,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       try {
         if (getFieldCount() == 0) {
           if (version.equals("V1  ")) {
-            addField(new Bitmap(data, 0, 2, "Entry type", s_msgtype));
+            addField(new Flag(data, 0, 2, "Flags", s_flags));
             addField(new ResourceRef(data, 2, "Associated sound", "WAV"));
             addField(new DecNumber(data, 10, 4, "Volume variance"));
             addField(new DecNumber(data, 14, 4, "Pitch variance"));
