@@ -626,7 +626,7 @@ public final class ResourceFactory
     for (final String extraDir : games[currentGame].extraDirs) {
       for (final File root: rootDirs) {
         File directory = FileNI.getFile(root, extraDir);
-        if (directory.exists())
+        if (directory.isDirectory())
           treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), directory);
       }
     }
