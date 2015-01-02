@@ -610,7 +610,7 @@ public final class BrowserMenuBar extends JMenuBar
     };
 
     private final JMenu newFileMenu;
-    private final JMenuItem fileOpenNew, fileExport, fileAddCopy, fileRename, fileDelete;
+    private final JMenuItem fileOpenNew, fileExport, fileAddCopy, fileRename, fileDelete, fileRestore;
 
     private FileMenu()
     {
@@ -636,6 +636,9 @@ public final class BrowserMenuBar extends JMenuBar
       fileDelete = makeMenuItem("Delete", KeyEvent.VK_D, Icons.getIcon("Delete16.gif"), -1, this);
       fileDelete.setEnabled(false);
       add(fileDelete);
+      fileRestore = makeMenuItem("Restore backup", KeyEvent.VK_B, Icons.getIcon("Undo16.gif"), -1, this);
+      fileRestore.setEnabled(false);
+      add(fileRestore);
     }
 
     private void gameLoaded()
@@ -672,35 +675,17 @@ public final class BrowserMenuBar extends JMenuBar
         ResourceFactory.getInstance().saveCopyOfResource(
                 NearInfinity.getInstance().getResourceTree().getSelected());
       else if (event.getSource() == fileRename) {
-        FileResourceEntry entry = (FileResourceEntry)NearInfinity.getInstance().getResourceTree().getSelected();
-        String filename = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
-                                                      "Rename " + entry.toString(),
-                                                      JOptionPane.QUESTION_MESSAGE);
-        if (filename == null)
-          return;
-        if (!filename.toUpperCase().endsWith(entry.getExtension()))
-          filename = filename + '.' + entry.getExtension();
-        if (new FileNI(entry.getActualFile().getParentFile(), filename).exists()) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-          return;
+        if (NearInfinity.getInstance().getResourceTree().getSelected() instanceof FileResourceEntry) {
+          ResourceTree.renameResource((FileResourceEntry)NearInfinity.getInstance().getResourceTree().getSelected());
         }
-        entry.renameFile(filename);
-        ResourceFactory.getInstance().getResources().resourceEntryChanged(entry);
       }
       else if (event.getSource() == fileDelete) {
-        FileResourceEntry entry = (FileResourceEntry)NearInfinity.getInstance().getResourceTree().getSelected();
-        String options[] = {"Delete", "Cancel"};
-        if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), "Are you sure you want to delete " +
-                                                                     entry +
-                                                                     '?',
-                                         "Delete file", JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-          return;
-        NearInfinity.getInstance().removeViewable();
-        ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
-        entry.deleteFile();
-      } else {
+        ResourceTree.deleteResource(NearInfinity.getInstance().getResourceTree().getSelected());
+      }
+      else if (event.getSource() == fileRestore) {
+        ResourceTree.restoreResource(NearInfinity.getInstance().getResourceTree().getSelected());
+      }
+      else {
         for (final ResInfo res : RESOURCE) {
           if (event.getActionCommand().equals(res.label)) {
             StructureFactory.getInstance().newResource(res.resId, NearInfinity.getInstance());
@@ -715,7 +700,8 @@ public final class BrowserMenuBar extends JMenuBar
       fileExport.setEnabled(entry != null);
       fileAddCopy.setEnabled(entry != null);
       fileRename.setEnabled(entry instanceof FileResourceEntry);
-      fileDelete.setEnabled(entry instanceof FileResourceEntry);
+      fileDelete.setEnabled((entry != null && entry.hasOverride()) || entry instanceof FileResourceEntry);
+      fileRestore.setEnabled(ResourceTree.isBackupAvailable(entry));
     }
 
     private void resourceShown(Resource res)
