@@ -475,7 +475,9 @@ public final class CreResource extends AbstractStruct
     updateOffsets(datatype, datatype.getSize());
     if (datatype instanceof SpellMemorization)
       updateMemorizedSpells();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -485,7 +487,9 @@ public final class CreResource extends AbstractStruct
     if (datatype instanceof MemorizedSpells)
       updateMemorizedSpells();
     super.datatypeAddedInChild(child, datatype);
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -494,7 +498,9 @@ public final class CreResource extends AbstractStruct
     updateOffsets(datatype, -datatype.getSize());
     if (datatype instanceof SpellMemorization)
       updateMemorizedSpells();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -504,7 +510,9 @@ public final class CreResource extends AbstractStruct
     if (datatype instanceof MemorizedSpells)
       updateMemorizedSpells();
     super.datatypeRemovedInChild(child, datatype);
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override

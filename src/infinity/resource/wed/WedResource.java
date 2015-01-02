@@ -103,7 +103,9 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -124,14 +126,18 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -152,7 +158,9 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override

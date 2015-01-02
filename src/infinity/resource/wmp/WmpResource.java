@@ -123,27 +123,35 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeAddedInChild(child, datatype);
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeRemovedInChild(child, datatype);
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 }
 

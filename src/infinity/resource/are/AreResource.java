@@ -258,7 +258,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Container)
       updateItems();
     updateActorCREOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -283,7 +285,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     updateActorCREOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -301,7 +305,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Container)
       updateItems();
     updateActorCREOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -326,7 +332,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     updateActorCREOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override

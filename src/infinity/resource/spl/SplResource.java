@@ -203,7 +203,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -218,7 +220,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           ((Ability)se).incEffectsIndex(1);
       }
     }
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -242,7 +246,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -257,7 +263,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           ((Ability)se).incEffectsIndex(-1);
       }
     }
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override

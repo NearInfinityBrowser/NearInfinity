@@ -133,28 +133,36 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateOffsets();
-    hexViewer.dataModified();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
