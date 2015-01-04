@@ -7,12 +7,15 @@ package infinity.util;
 import infinity.NearInfinity;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
+import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.Writeable;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.cre.CreResource;
+import infinity.resource.graphics.BamDecoder;
+import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.MosDecoder;
@@ -35,7 +38,6 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
@@ -53,6 +55,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -82,9 +85,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbConvertCRE = new JCheckBox("Convert CHR=>CRE", false);
   private final JCheckBox cbDecompress = new JCheckBox("Decompress BAM/MOS", false);
   private final JCheckBox cbConvertToPNG = new JCheckBox("Export MOS/PVRZ/TIS as PNG", false);
+  private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExecutableMVE = new JCheckBox("Make movies executable", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
   private final JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+  private final JComboBox cbExtractFramesBAMFormat = new JComboBox(new String[]{"PNG", "BMP"});
   private final JList listTypes = new JList(TYPES);
   private final JTextField tfDirectory = new JTextField(20);
   private final byte[] buffer = new byte[65536];
@@ -107,6 +112,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     bExport.setMnemonic('e');
     bCancel.setMnemonic('d');
     cbConvertToPNG.setToolTipText("Caution: Selecting both MOS and TIS may overwrite or skip some files!");
+    cbExtractFramesBAM.setToolTipText("Note: Frames of each BAM resource are exported into separate subfolders.");
 
     JPanel leftPanel = new JPanel(new BorderLayout());
     leftPanel.add(new JLabel("File types to export:"), BorderLayout.NORTH);
@@ -117,16 +123,43 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     topRightPanel.add(tfDirectory, BorderLayout.CENTER);
     topRightPanel.add(bDirectory, BorderLayout.EAST);
 
-    JPanel bottomRightPanel = new JPanel(new GridLayout(0, 1));
-    bottomRightPanel.add(new JLabel("Options:"));
-    bottomRightPanel.add(cbConvertWAV);
-    bottomRightPanel.add(cbConvertCRE);
-    bottomRightPanel.add(cbDecompile);
-    bottomRightPanel.add(cbDecrypt);
-    bottomRightPanel.add(cbDecompress);
-    bottomRightPanel.add(cbConvertToPNG);
-    bottomRightPanel.add(cbExecutableMVE);
-    bottomRightPanel.add(cbOverwrite);
+    GridBagConstraints gbc = new GridBagConstraints();
+    JPanel bottomRightPanel = new JPanel(new GridBagLayout());
+
+    JPanel pBamFrames = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    pBamFrames.add(cbExtractFramesBAM);
+    pBamFrames.add(cbExtractFramesBAMFormat);
+
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(new JLabel("Options:"), gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbConvertWAV, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbConvertCRE, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbDecompile, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbDecrypt, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbDecompress, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 6, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbConvertToPNG, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 7, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(pBamFrames, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 8, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbExecutableMVE, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 9, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbOverwrite, gbc);
 
     JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     bottomPanel.add(bExport);
@@ -134,7 +167,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
     JPanel pane = (JPanel)getContentPane();
     GridBagLayout gbl = new GridBagLayout();
-    GridBagConstraints gbc = new GridBagConstraints();
+//    GridBagConstraints gbc = new GridBagConstraints();
+    gbc = new GridBagConstraints();
     pane.setLayout(gbl);
 
     gbc.weightx = 0.0;
@@ -163,6 +197,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     pane.add(bottomPanel);
 
     pack();
+    setMinimumSize(getPreferredSize());
     Center.center(this, NearInfinity.getInstance().getBounds());
     setVisible(true);
   }
@@ -393,6 +428,38 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
+  private void extractBamFrames(ResourceEntry entry, File output) throws Exception
+  {
+    String format = (cbExtractFramesBAMFormat.getSelectedIndex() == 0) ? "png" : "bmp";
+    String filePath = output.getParent();
+    String fileName = output.getName();
+    int extIdx = fileName.lastIndexOf('.');
+    String fileBase = (extIdx >= 0) ? fileName.substring(0, extIdx) : fileName;
+    String fileExt = "." + format;
+
+    // creating subfolder for frames
+    File dir = new FileNI(filePath, fileBase);
+    if (!dir.exists()) {
+      if (!dir.mkdir()) {
+        String msg = String.format("Error creating folder \"%1$s\". Skipping file \"%2$s\".",
+                                   fileBase, fileName);
+        System.err.println(msg);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+    } else if (!dir.isDirectory()) {
+      String msg = String.format("Folder \"%1$s\" can not be created. Skipping file \"%2$s\".",
+                                 fileBase, fileName);
+      System.err.println(msg);
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    filePath = dir.getPath();
+
+    BamDecoder decoder = BamDecoder.loadBam(entry);
+    BamResource.exportFrames(decoder, filePath, fileBase, fileExt, format, true);
+  }
+
   private void chrToCre(ResourceEntry entry, File output) throws Exception
   {
     output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "CRE"));
@@ -480,6 +547,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       else if (entry.getExtension().equalsIgnoreCase("TIS") && cbConvertToPNG.isSelected()) {
         tisToPng(entry, output);
+      }
+      else if (entry.getExtension().equalsIgnoreCase("BAM") && cbExtractFramesBAM.isSelected()) {
+        extractBamFrames(entry, output);
       }
       else if ((entry.getExtension().equalsIgnoreCase("BAM") ||
                 entry.getExtension().equalsIgnoreCase("MOS")) && cbDecompress.isSelected()) {
