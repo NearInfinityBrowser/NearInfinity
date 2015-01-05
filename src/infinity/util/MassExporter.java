@@ -242,17 +242,23 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   @Override
   public void run()
   {
+    final String fmtProgress = "Processing resource %1$d/%2$d";
     java.util.List<ResourceEntry> selectedFiles = new ArrayList<ResourceEntry>(1000);
-    for (final Object newVar : selectedTypes)
+    for (final Object newVar : selectedTypes) {
       selectedFiles.addAll(ResourceFactory.getInstance().getResources((String)newVar));
-    ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...", null,
+    }
+    ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
+                                                   String.format(fmtProgress, 999999, 999999),
                                                    0, selectedFiles.size());
     progress.setMillisToDecideToPopup(0);
     progress.setMillisToPopup(0);
-    for (int i = 0; i < selectedFiles.size(); i++) {
+    for (int i = 0, count = selectedFiles.size(); i < count; i++) {
       ResourceEntry resourceEntry = selectedFiles.get(i);
       export(resourceEntry);
       progress.setProgress(i);
+      if (i % 10 == 0) {
+        progress.setNote(String.format(fmtProgress, i, count));
+      }
       if (progress.isCanceled()) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted");
         return;
