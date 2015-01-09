@@ -153,7 +153,7 @@ public final class IOHandler implements Writeable
       else {
         cdata = new byte[udata.length * 2];
         uncomprLength.setValue(udata.length);
-        Deflater deflater = new Deflater(Deflater.BEST_SPEED);
+        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
         deflater.setInput(udata);
         deflater.finish();
         int clength = deflater.deflate(cdata);
