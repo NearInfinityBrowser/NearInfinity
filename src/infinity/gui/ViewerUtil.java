@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -126,7 +127,7 @@ public final class ViewerUtil
         e.printStackTrace();
       }
     }
-    return new JLabel("No " + iconRef.getName().toLowerCase(), JLabel.CENTER);
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
   public static JComponent makeBamPanel(ResourceRef iconRef, int animNr, int frameNr)
@@ -145,7 +146,7 @@ public final class ViewerUtil
         e.printStackTrace();
       }
     }
-    return new JLabel("No " + iconRef.getName().toLowerCase(), JLabel.CENTER);
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
   public static JComponent makeCheckLabel(StructEntry entry, String yes)
@@ -194,7 +195,7 @@ public final class ViewerUtil
         return label;
       }
     }
-    return new JLabel("No " + imageRef.getName().toLowerCase(), JLabel.CENTER);
+    return new JLabel("No " + imageRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
   public static JPanel makeListPanel(String title, AbstractStruct struct,

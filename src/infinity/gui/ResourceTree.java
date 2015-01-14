@@ -28,6 +28,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.Stack;
 
 import javax.swing.JButton;
@@ -239,7 +240,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                                   JOptionPane.QUESTION_MESSAGE);
     if (filename == null)
       return;
-    if (!filename.toUpperCase().endsWith(entry.getExtension()))
+    if (!filename.toUpperCase(Locale.ENGLISH).endsWith(entry.getExtension()))
       filename = filename + '.' + entry.getExtension();
     if (new FileNI(entry.getActualFile().getParentFile(), filename).exists()) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
@@ -402,7 +403,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     @Override
     public void keyTyped(KeyEvent event)
     {
-      currentkey += new Character(event.getKeyChar()).toString().toUpperCase();
+      currentkey += new Character(event.getKeyChar()).toString().toUpperCase(Locale.ENGLISH);
       if (timer.isRunning())
         timer.restart();
       else
@@ -413,7 +414,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       for (int i = startrow; i < tree.getRowCount(); i++) {
         TreePath path = tree.getPathForRow(i);
         if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-            path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
+            path.getLastPathComponent().toString().toUpperCase(Locale.ENGLISH).startsWith(currentkey)) {
           showresource = false;
           tree.scrollPathToVisible(path);
           tree.addSelectionPath(path);
@@ -424,7 +425,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         for (int i = 0; i < startrow; i++) {
           TreePath path = tree.getPathForRow(i);
           if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-              path.getLastPathComponent().toString().toUpperCase().startsWith(currentkey)) {
+              path.getLastPathComponent().toString().toUpperCase(Locale.ENGLISH).startsWith(currentkey)) {
             showresource = false;
             tree.scrollPathToVisible(path);
             tree.addSelectionPath(path);

@@ -14,6 +14,7 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
@@ -1139,7 +1140,7 @@ public class TilesetRenderer extends RenderCanvas
     {
       ResourceEntry entry = null;
       if (wed != null && ovl != null) {
-        String tisName = ((ResourceRef)ovl.getAttribute("Tileset")).getResourceName().toUpperCase();
+        String tisName = ((ResourceRef)ovl.getAttribute("Tileset")).getResourceName().toUpperCase(Locale.ENGLISH);
         if (tisName == null || "None".equalsIgnoreCase(tisName)) {
           tisName = "";
         }
@@ -1147,7 +1148,7 @@ public class TilesetRenderer extends RenderCanvas
           // Special: BG1 has a weird way to select extended night tilesets
           if (ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
               ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC) {
-            String wedName = wed.getResourceEntry().getResourceName().toUpperCase();
+            String wedName = wed.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH);
             if (wedName.lastIndexOf('.') > 0) {
               wedName = wedName.substring(0, wedName.lastIndexOf('.'));
             }

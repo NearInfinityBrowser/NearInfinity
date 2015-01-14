@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -202,10 +203,10 @@ public final class FileLookup
     boolean retVal = true;
     try {
       // checking case-sensitivity
-      File tmpFile = File.createTempFile("Ni_Abc", ".tmp");
+      File tmpFile = File.createTempFile("Ni_AbC", ".tmp");
       try {
-        File tmpUpper = new File(tmpFile.getPath().toUpperCase());
-        File tmpLower = new File(tmpFile.getPath().toLowerCase());
+        File tmpUpper = new File(tmpFile.getParent(), tmpFile.getName().toUpperCase(Locale.ENGLISH));
+        File tmpLower = new File(tmpFile.getParent(), tmpFile.getName().toLowerCase(Locale.ENGLISH));
         retVal = !(tmpUpper.isFile() && tmpLower.isFile());
 
         // Checking for FHS compatibility
@@ -314,7 +315,7 @@ public final class FileLookup
           sb.append('/');
         }
         if (isToLowered()) {
-          sb.append(srcNode.getName().toLowerCase());
+          sb.append(srcNode.getName().toLowerCase(Locale.ENGLISH));
         } else {
           sb.append(srcNode.getName());
         }
@@ -324,7 +325,7 @@ public final class FileLookup
           while (iter.hasNext()) {
             sb.append('/');
             if (isToLowered()) {
-              sb.append(iter.next().getName().toLowerCase());
+              sb.append(iter.next().getName().toLowerCase(Locale.ENGLISH));
             } else {
               sb.append(iter.next().getName());
             }

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -2561,7 +2562,7 @@ public class AreaViewer extends ChildFrame
     public void reloadMiniMaps()
     {
       if (are != null) {
-        String mapName = are.getName().toUpperCase();
+        String mapName = are.getName().toUpperCase(Locale.ENGLISH);
         if (mapName.lastIndexOf('.') >= 0) {
           mapName = mapName.substring(0, mapName.lastIndexOf('.'));
         }

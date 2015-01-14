@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -229,7 +230,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         String filePath = fc.getSelectedFile().getParent();
         String fileName = fc.getSelectedFile().getName();
         String fileExt = null;
-        String format = ((FileNameExtensionFilter)fc.getFileFilter()).getExtensions()[0].toLowerCase();
+        String format = ((FileNameExtensionFilter)fc.getFileFilter()).getExtensions()[0].toLowerCase(Locale.ENGLISH);
         int extIdx = fileName.lastIndexOf('.');
         if (extIdx > 0) {
           fileExt = fileName.substring(extIdx);

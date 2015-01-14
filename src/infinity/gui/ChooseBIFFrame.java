@@ -18,6 +18,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -184,7 +185,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
     else if (event.getSource() == bok || event.getSource() == tfbifname) {
       if (rbcreate.isSelected()) {
         // Check if name exists
-        String name = tfbifname.getText().toLowerCase();
+        String name = tfbifname.getText().toLowerCase(Locale.ENGLISH);
         if (name.equals("") || name.indexOf("\\") != -1 || name.indexOf("/") != -1) {
           JOptionPane.showMessageDialog(this, "Illegal BIFF name", "Error", JOptionPane.ERROR_MESSAGE);
           return;

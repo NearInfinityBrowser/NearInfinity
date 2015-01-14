@@ -44,6 +44,7 @@ import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
@@ -1469,7 +1470,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     {
       if (resName != null && !resName.isEmpty()) {
         return ignoreResourceSet.contains(String.format("%1$s:%2$d:%3$d",
-                                                        resName.toUpperCase(), cycleIdx, frameIdx));
+                                                        resName.toUpperCase(Locale.ENGLISH), cycleIdx, frameIdx));
       } else {
         return true;
       }
@@ -1708,7 +1709,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private static boolean isResourceIgnored(String resName)
     {
       if (resName != null && !resName.isEmpty()) {
-        return ignoreResourceSet.contains(resName.toUpperCase());
+        return ignoreResourceSet.contains(resName.toUpperCase(Locale.ENGLISH));
       } else {
         return true;
       }

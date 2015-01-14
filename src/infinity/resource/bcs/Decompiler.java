@@ -13,6 +13,7 @@ import infinity.util.IdsMapEntry;
 import infinity.util.StringResource;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -269,7 +270,7 @@ public final class Decompiler
     if (pIndex != -1 && pIndex != p.length() - 1) {
 //      if (nr < 0)
 //        nr += 4294967296L;
-      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase() + ".IDS");
+      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS");
       IdsMapEntry entry = map.getValue(nr);
       if (entry != null)
         code.append(entry.getString());

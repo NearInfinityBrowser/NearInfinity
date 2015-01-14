@@ -15,6 +15,7 @@ import java.awt.Window;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.util.EnumMap;
+import java.util.Locale;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -87,7 +88,7 @@ public final class StructureFactory
     JFileChooser fc = new JFileChooser(savedir);
     String title = "Create new " + resExt.get(type) + " resource";
     fc.setDialogTitle(title);
-    fc.setFileFilter(new FileNameExtensionFilter(resExt.get(type) + " files", resExt.get(type).toLowerCase()));
+    fc.setFileFilter(new FileNameExtensionFilter(resExt.get(type) + " files", resExt.get(type).toLowerCase(Locale.ENGLISH)));
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {

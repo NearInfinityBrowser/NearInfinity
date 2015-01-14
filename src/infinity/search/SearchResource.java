@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -6349,7 +6350,7 @@ public class SearchResource extends ChildFrame
       int newLen = maxLength - getLength();
       if (newLen > 0) {
         String s = (str.length() <= newLen) ? str : str.substring(0, newLen);
-        super.insertString(off, upperCase ? s.toUpperCase() : s, a);
+        super.insertString(off, upperCase ? s.toUpperCase(Locale.ENGLISH) : s, a);
       }
     }
   }
@@ -6728,8 +6729,8 @@ public class SearchResource extends ChildFrame
     private boolean compareItem(Object item, String pattern)
     {
       if (item != null && pattern != null && !pattern.isEmpty()) {
-        pattern = pattern.toUpperCase();
-        String name = item.toString().toUpperCase();
+        pattern = pattern.toUpperCase(Locale.ENGLISH);
+        String name = item.toString().toUpperCase(Locale.ENGLISH);
         String id;
 
         Object curItem = item;
@@ -6757,7 +6758,7 @@ public class SearchResource extends ChildFrame
         } else if (curItem instanceof TextBitmap) {
           id = ((TextBitmap)curItem).getIdsName();
         } else {
-          id = curItem.toString().toUpperCase();
+          id = curItem.toString().toUpperCase(Locale.ENGLISH);
         }
 
         if (name.startsWith(pattern) || id.startsWith(pattern)) {

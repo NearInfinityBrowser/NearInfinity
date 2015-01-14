@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -234,7 +235,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     } else {
       int i = -1;
       for (int j = 0; j < type.length && i == -1; j++) {
-        i = entry.toString().indexOf('.' + type[j].toUpperCase());
+        i = entry.toString().indexOf('.' + type[j].toUpperCase(Locale.ENGLISH));
         if (i != -1) {
           resname = entry.toString().substring(0, i);
           curtype = type[j];
@@ -299,9 +300,9 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
         }
       }
       if (max < this.buffer.length) {
-        resname = new String(this.buffer, 0, max).toUpperCase();
+        resname = new String(this.buffer, 0, max).toUpperCase(Locale.ENGLISH);
       } else {
-        resname = new String(this.buffer).toUpperCase();
+        resname = new String(this.buffer).toUpperCase(Locale.ENGLISH);
       }
 
       if (resname.equalsIgnoreCase(NONE))

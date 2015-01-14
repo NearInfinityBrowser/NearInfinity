@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -193,7 +194,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     for (int i = 1; i < linenr; i++)
       startpos = s.indexOf("\n", startpos + 1);
     if (startpos == -1) return;
-    int wordpos = s.toUpperCase().indexOf(text.toUpperCase(), startpos);
+    int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
     if (wordpos != -1)
       editor.select(wordpos, wordpos + text.length());
     else

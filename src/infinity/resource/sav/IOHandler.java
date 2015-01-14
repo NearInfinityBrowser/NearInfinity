@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -182,7 +183,7 @@ public final class IOHandler implements Writeable
     @Override
     public String getExtension()
     {
-      return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase();
+      return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
     }
 
     @Override
@@ -200,7 +201,7 @@ public final class IOHandler implements Writeable
     @Override
     public int[] getResourceInfo(boolean ignoreoverride) throws Exception
     {
-      if (filename.toUpperCase().endsWith(".TIS")) {
+      if (filename.toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
         try {
           byte data[] = decompress();
           if (!new String(data, 0, 4).equalsIgnoreCase("TIS ")) {

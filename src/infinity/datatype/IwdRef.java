@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -213,9 +214,9 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
   {
     if (ref != null && !ref.isEmpty()) {
       if (ref.lastIndexOf('.') > 0) {
-        ref = ref.substring(0, ref.lastIndexOf(',')).toUpperCase();
+        ref = ref.substring(0, ref.lastIndexOf(',')).toUpperCase(Locale.ENGLISH);
       } else {
-        ref = ref.toUpperCase();
+        ref = ref.toUpperCase(Locale.ENGLISH);
       }
       if (idsmap.containsValue(ref)) {
         long[] keys = idsmap.keys();

@@ -35,6 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Stack;
 
 import javax.swing.BorderFactory;
@@ -125,13 +126,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           ItemBase item = (ItemBase)node.getUserObject();
           boolean isExtern = (!item.getDialogName().equals(dlg.getResourceEntry().getResourceName()));
           if (isExtern) {
-            ViewFrame vf = mapViewer.get(item.getDialogName().toUpperCase());
+            ViewFrame vf = mapViewer.get(item.getDialogName().toUpperCase(Locale.ENGLISH));
             // reuseing external dialog window if possible
             if (vf != null && vf.isVisible()) {
               vf.toFront();
             } else {
               vf = new ViewFrame(this, item.getDialog());
-              mapViewer.put(item.getDialogName().toUpperCase(), vf);
+              mapViewer.put(item.getDialogName().toUpperCase(Locale.ENGLISH), vf);
             }
           }
 
@@ -1438,7 +1439,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private HashMap<Integer, StateItem> getStateTable(String dlgName)
     {
       if (dlgName != null) {
-        return mapState.get(dlgName.toUpperCase());
+        return mapState.get(dlgName.toUpperCase(Locale.ENGLISH));
       } else {
         return null;
       }
@@ -1448,7 +1449,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private void setStateTable(String dlgName, HashMap<Integer, StateItem> map)
     {
       if (dlgName != null) {
-        mapState.put(dlgName.toUpperCase(), map);
+        mapState.put(dlgName.toUpperCase(Locale.ENGLISH), map);
       }
     }
 
@@ -1456,7 +1457,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private boolean containsStateTable(String dlgName)
     {
       if (dlgName != null) {
-        return mapState.containsKey(dlgName.toUpperCase());
+        return mapState.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
       } else {
         return false;
       }
@@ -1466,7 +1467,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private HashMap<Integer, TransitionItem> getTransitionTable(String dlgName)
     {
       if (dlgName != null) {
-        return mapTransition.get(dlgName.toUpperCase());
+        return mapTransition.get(dlgName.toUpperCase(Locale.ENGLISH));
       } else {
         return null;
       }
@@ -1476,7 +1477,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private void setTransitionTable(String dlgName, HashMap<Integer, TransitionItem> map)
     {
       if (dlgName != null) {
-        mapTransition.put(dlgName.toUpperCase(), map);
+        mapTransition.put(dlgName.toUpperCase(Locale.ENGLISH), map);
       }
     }
 
@@ -1484,7 +1485,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private boolean containsTransitionTable(String dlgName)
     {
       if (dlgName != null) {
-        return mapTransition.containsKey(dlgName.toUpperCase());
+        return mapTransition.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
       } else {
         return false;
       }

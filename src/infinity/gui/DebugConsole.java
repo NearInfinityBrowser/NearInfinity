@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Stack;
 
@@ -241,7 +242,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase());
+          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating cut/paste...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);
@@ -304,7 +305,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase());
+          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Reading files...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);
@@ -367,7 +368,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase());
+          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating writeField...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);

@@ -56,6 +56,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -183,7 +184,7 @@ public final class CreResource extends AbstractStruct
         // Apparently script name is the only thing that matters
   //        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
         else {
-          scriptName = scriptName.toLowerCase().replaceAll(" ", "");
+          scriptName = scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
           if (scriptNames.containsKey(scriptName)) {
             Set<ResourceEntry> entries = scriptNames.get(scriptName);
             entries.add(entry);

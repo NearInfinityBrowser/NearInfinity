@@ -46,6 +46,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
@@ -113,7 +114,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       @Override
       public boolean accept(File pathname)
       {
-        return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".key");
+        return pathname.isDirectory() || pathname.getName().toLowerCase(Locale.ENGLISH).endsWith(".key");
       }
 
       @Override

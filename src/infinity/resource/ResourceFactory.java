@@ -69,6 +69,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -642,7 +643,7 @@ public final class ResourceFactory
         File overrideFiles[] = overrideDir.listFiles();
         for (final File overrideFile : overrideFiles) {
           if (!overrideFile.isDirectory()) {
-            String filename = overrideFile.getName().toUpperCase();
+            String filename = overrideFile.getName().toUpperCase(Locale.ENGLISH);
             ResourceEntry entry = getResourceEntry(filename);
             if (entry == null) {
               FileResourceEntry fileEntry = new FileResourceEntry(overrideFile, true);
@@ -694,7 +695,7 @@ public final class ResourceFactory
     } while (filename == null);
 
     // creating override folder in game directory if it doesn't exist
-    File outdir = FileNI.getFile(getRootDir(), OVERRIDEFOLDER.toLowerCase());
+    File outdir = FileNI.getFile(getRootDir(), OVERRIDEFOLDER.toLowerCase(Locale.ENGLISH));
     if (!outdir.exists()) {
       outdir.mkdir();
     }

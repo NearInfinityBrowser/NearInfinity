@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -318,7 +319,7 @@ public class QuickSearch extends JPanel implements Runnable
 
           // processing new keyword
           if (keyword != null) {
-            keyword = keyword.toUpperCase();
+            keyword = keyword.toUpperCase(Locale.ENGLISH);
             MapTree<Character, List<ResourceEntry>> node = resourceTree;
             for (int i = 0, size = keyword.length(); i < size; i++) {
               MapTree<Character, List<ResourceEntry>> newNode = node.getChild(Character.valueOf(keyword.charAt(i)));

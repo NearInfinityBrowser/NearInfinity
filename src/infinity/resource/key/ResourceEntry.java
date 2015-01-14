@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -34,7 +35,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   static int[] getLocalFileInfo(File file)
   {
-    if (file.getName().toUpperCase().endsWith(".TIS")) {
+    if (file.getName().toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
       try {
         InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
         byte data[] = FileReaderNI.readBytes(is, 24);
@@ -151,7 +152,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
    */
   public boolean isVisible()
   {
-    return !getResourceName().toUpperCase().endsWith(".BAK");
+    return !getResourceName().toUpperCase(Locale.ENGLISH).endsWith(".BAK");
   }
 
   protected abstract File getActualFile(boolean ignoreoverride);

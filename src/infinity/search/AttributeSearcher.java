@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -62,7 +63,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
     String filename = struct.getResourceEntry().toString();
     files =
     ResourceFactory.getInstance().getResources(
-            filename.substring(filename.lastIndexOf(".") + 1).toUpperCase());
+            filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH));
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
     inputFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);

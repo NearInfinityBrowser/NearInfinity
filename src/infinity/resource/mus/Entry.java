@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 public class Entry
@@ -79,7 +80,7 @@ public class Entry
   {
     String key = "";
     if (name != null) {
-      name = name.toUpperCase();
+      name = name.toUpperCase(Locale.ENGLISH);
       key = (dir != null) ? dir + File.separator + name : File.separator + name;
     }
     return key;
@@ -180,7 +181,7 @@ public class Entry
       fileDir = "";
       acmFile = new FileNI(entry.getActualFile().getParentFile(), fileName + ".acm");
     }
-    if ((!acmFile.exists() || !acmFile.isFile()) && fileName.toUpperCase().startsWith("MX")) {
+    if ((!acmFile.exists() || !acmFile.isFile()) && fileName.toUpperCase(Locale.ENGLISH).startsWith("MX")) {
       fileDir = fileName.substring(0, 6) + File.separatorChar;
       acmFile = new FileNI(entry.getActualFile().getParentFile(), fileDir +
                            fileName + ".acm");
