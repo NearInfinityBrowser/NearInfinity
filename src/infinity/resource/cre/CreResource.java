@@ -603,7 +603,9 @@ public final class CreResource extends AbstractStruct
         addField(new TextString(buffer, offset + 388, 32, "Voice set"));
         addField(new Unknown(buffer, offset + 420, 128));
       }
-      else if (version.toString().equalsIgnoreCase("V1.0") || version.toString().equalsIgnoreCase("V2.0")) {
+      else if (version.toString().equalsIgnoreCase("V1.0") ||
+               version.toString().equalsIgnoreCase("V2.0") ||
+               version.toString().equalsIgnoreCase("V2.1")) {
         addField(new IdsBitmap(buffer, offset + 48, 2, "Quick weapon slot 1", "SLOTS.IDS"));
         addField(new IdsBitmap(buffer, offset + 50, 2, "Quick weapon slot 2", "SLOTS.IDS"));
         addField(new IdsBitmap(buffer, offset + 52, 2, "Quick weapon slot 3", "SLOTS.IDS"));
