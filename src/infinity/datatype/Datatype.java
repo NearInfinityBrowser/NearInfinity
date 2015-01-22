@@ -10,17 +10,27 @@ import infinity.util.io.FileWriterNI;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Vector;
 
 public abstract class Datatype implements StructEntry
 {
+  protected static final Dimension DIM_WIDE = new Dimension(800, 100);
   protected static final Dimension DIM_BROAD = new Dimension(650, 100);
   protected static final Dimension DIM_MEDIUM = new Dimension(400, 100);
   private final int length;
   private String name;
   private int offset;
+  private StructEntry parent;
 
   protected Datatype(int offset, int length, String name)
   {
+    this(null, offset, length, name);
+  }
+
+  protected Datatype(StructEntry parent, int offset, int length, String name)
+  {
+    this.parent = parent;
     this.offset = offset;
     this.length = length;
     this.name = name;
@@ -53,6 +63,12 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
+  public StructEntry getParent()
+  {
+    return parent;
+  }
+
+  @Override
   public String getName()
   {
     return name;
@@ -71,9 +87,31 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
+  public List<StructEntry> getStructChain()
+  {
+    List<StructEntry> list = new Vector<StructEntry>();
+    StructEntry e = this;
+    while (e != null) {
+      list.add(0, e);
+      e = e.getParent();
+      if (list.contains(e)) {
+        // avoid infinite loops
+        break;
+      }
+    }
+    return list;
+  }
+
+  @Override
   public void setOffset(int newoffset)
   {
     offset = newoffset;
+  }
+
+  @Override
+  public void setParent(StructEntry parent)
+  {
+    this.parent = parent;
   }
 
 // --------------------- End Interface StructEntry ---------------------

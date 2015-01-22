@@ -298,7 +298,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
   private void checkDialog(DlgResource dialog)
   {
-    List<StructEntry> flatList = dialog.getFlatList();
+    List<StructEntry> flatList = dialog.getList();
     for (int i = 0; i < flatList.size(); i++) {
       if (flatList.get(i) instanceof ResourceRef) {
         ResourceRef ref = (ResourceRef)flatList.get(i);

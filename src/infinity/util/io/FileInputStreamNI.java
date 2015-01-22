@@ -19,7 +19,7 @@ public class FileInputStreamNI extends FileInputStream
 
   public FileInputStreamNI(File file) throws FileNotFoundException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public FileInputStreamNI(FileDescriptor fdObj)

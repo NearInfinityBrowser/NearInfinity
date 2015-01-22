@@ -41,6 +41,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.SortedMap;
 
 import javax.swing.BorderFactory;
@@ -316,7 +317,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           for (final File newVar : f)
             files.add(newVar);
         }
-        else if (file.toString().toUpperCase().endsWith("BAF")) {
+        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BAF")) {
           SortedMap<Integer, String> errors = compileFile(file);
           if (errors == null)
             failed++;
@@ -342,8 +343,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           for (final File newVar : f)
             files.add(newVar);
         }
-        else if (file.toString().toUpperCase().endsWith("BCS") ||
-                 file.toString().toUpperCase().endsWith("BS")) {
+        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BCS") ||
+                 file.toString().toUpperCase(Locale.ENGLISH).endsWith("BS")) {
           if (decompileFile(file))
             ok++;
           else

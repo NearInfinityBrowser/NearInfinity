@@ -18,6 +18,7 @@ import infinity.util.IdsMapEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -164,14 +165,14 @@ public final class Compiler
 
   public boolean hasScriptName(String scriptName) {
     if (scriptNamesValid &&
-        scriptNamesCre.containsKey(scriptName.toLowerCase().replaceAll(" ", ""))) {
+        scriptNamesCre.containsKey(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""))) {
       return true;
     }
     return false;
   }
 
   public Set<ResourceEntry> getResForScriptName(String scriptName) {
-    return scriptNamesCre.get(scriptName.toLowerCase().replaceAll(" ", ""));
+    return scriptNamesCre.get(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""));
   }
 
   public String compile(String source)
@@ -262,7 +263,7 @@ public final class Compiler
 
   private void checkObjectString(String definition, String value)
   {
-    String name = value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "");
+    String name = value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
     if (scriptNamesValid) {
         if (name.equals("") || !(scriptNamesCre.containsKey(name) || scriptNamesAre.contains(name)))
           warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
@@ -296,19 +297,19 @@ public final class Compiler
             function.equalsIgnoreCase("NumDead(") ||
             function.equalsIgnoreCase("NumDeadGT(") ||
             function.equalsIgnoreCase("NumDeadLT(")) {
-          if (!scriptNamesCre.containsKey(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+          if (!scriptNamesCre.containsKey(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
               IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
             warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
         }
         else if (function.equalsIgnoreCase("SetCorpseEnabled(")) {
-          if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+          if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
               IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
             warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
         }
       }
     }
     else if (function.equalsIgnoreCase("AttachTransitionToDoor(") && scriptNamesValid) {
-        if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+        if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
             IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
           warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
     }
@@ -325,7 +326,7 @@ public final class Compiler
     else {                                                          // Resource checks
       String resourceTypes[] = new String[0];
       if (definition.equalsIgnoreCase("S:DialogFile*"))
-        resourceTypes = new String[] {".DLG", ".VEF", ".VVC"};
+        resourceTypes = new String[] {".DLG", ".VEF", ".VVC", ".BAM"};
       else if (definition.equalsIgnoreCase("S:CutScene*") ||
                definition.equalsIgnoreCase("S:ScriptFile*") ||
                definition.equalsIgnoreCase("S:Script*"))
@@ -342,7 +343,7 @@ public final class Compiler
       else if (definition.equalsIgnoreCase("S:TextList*"))
         resourceTypes = new String[]{".2DA"};
       else if (definition.equalsIgnoreCase("S:Effect*"))
-        resourceTypes = new String[]{".BAM", ".VEF", ".VVC"};
+        resourceTypes = new String[]{".VEF", ".VVC", ".BAM"};
       else if (definition.equalsIgnoreCase("S:Parchment*"))
         resourceTypes = new String[]{".MOS"};
       else if (definition.equalsIgnoreCase("S:Spell*") ||
@@ -563,7 +564,7 @@ public final class Compiler
       errors.put(new Integer(linenr), error);
       return "Error - " + error;
     }
-    IdsMap idsmap = IdsMapCache.get(definition.substring(i + 1).toUpperCase() + ".IDS");
+    IdsMap idsmap = IdsMapCache.get(definition.substring(i + 1).toUpperCase(Locale.ENGLISH) + ".IDS");
     String code = idsmap.lookupID(value);
     if (code != null)
       return code;
@@ -656,7 +657,7 @@ public final class Compiler
                 try {
                   temp.append(Long.parseLong(objType)).append(' ');
                 } catch (NumberFormatException e) {
-                  String error = objType + " not found in " + idsMap.toString().toUpperCase();
+                  String error = objType + " not found in " + idsMap.toString().toUpperCase(Locale.ENGLISH);
                   errors.put(new Integer(linenr), error);
                   return "Error - " + error;
                 }

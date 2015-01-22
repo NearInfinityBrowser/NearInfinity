@@ -5,9 +5,9 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
-import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Editable;
+import infinity.datatype.Flag;
 import infinity.datatype.InlineEditable;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.Unknown;
@@ -31,6 +31,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -70,8 +71,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
                                                               ChangeListener, ItemListener
 {
-  private static final String s_msgtype[] = {"No message data", "", "Ambient message", "Standard message", "", "",
-                                             "", "Message with tags"};
+  private static final String s_flags[] = { "None", "Has text", "Has sound", "Has token" };
   private static String signature, version;
   private static int entry_size = 26; // V1
   private final ButtonPopupMenu bfind;
@@ -116,7 +116,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
     table.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    tatext.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    tatext.setMargin(new Insets(3, 3, 3, 3));
     tatext.setLineWrap(true);
     tatext.setWrapStyleWord(true);
     ifindattribute.setEnabled(false);
@@ -654,7 +654,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     }
 
     @Override
-    protected int read(byte buffer[], int offset) throws Exception
+    public int read(byte buffer[], int offset) throws Exception
     {
       if (version.equals("V1  ")) {
         data = Arrays.copyOfRange(buffer, offset, offset + 18);
@@ -672,12 +672,12 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     public void fillList()
     {
       try {
-        if (getRowCount() == 0) {
+        if (getFieldCount() == 0) {
           if (version.equals("V1  ")) {
-            list.add(new Bitmap(data, 0, 2, "Entry type", s_msgtype));
-            list.add(new ResourceRef(data, 2, "Associated sound", "WAV"));
-            list.add(new DecNumber(data, 10, 4, "Volume variance"));
-            list.add(new DecNumber(data, 14, 4, "Pitch variance"));
+            addField(new Flag(data, 0, 2, "Flags", s_flags));
+            addField(new ResourceRef(data, 2, "Associated sound", "WAV"));
+            addField(new DecNumber(data, 10, 4, "Volume variance"));
+            addField(new DecNumber(data, 14, 4, "Pitch variance"));
           } else {
             throw new Exception("Unsupported or invalid dialog.tlk version");
           }
@@ -707,7 +707,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
       // Update must be called first
       if (version.equals("V1  ")) {
-        if (getRowCount() == 0)
+        if (getFieldCount() == 0)
           os.write(data);
         else
           super.write(os);
@@ -715,19 +715,19 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
         FileWriterNI.writeInt(os, dlength);
       }
       else if (version.equals("V3.0")) {
-        if (getRowCount() == 0) {
+        if (getFieldCount() == 0) {
           os.write(data, 0, 28);
           FileWriterNI.writeInt(os, doffset);
           FileWriterNI.writeInt(os, dlength);
           os.write(data, 36, 4);
         }
         else {
-          getStructEntryAt(0).write(os);
-          getStructEntryAt(1).write(os);
-          getStructEntryAt(2).write(os);
+          getField(0).write(os);
+          getField(1).write(os);
+          getField(2).write(os);
           FileWriterNI.writeInt(os, doffset);
           FileWriterNI.writeInt(os, dlength);
-          getStructEntryAt(3).write(os);
+          getField(3).write(os);
         }
       }
     }
@@ -765,7 +765,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       else
         entry = added_entries.get(index - entries.length);
       entry.fillList();
-      return entry.getValueAt(selectedrow, 1).toString();
+      return entry.getField(selectedrow).toString();
     }
 
     @Override

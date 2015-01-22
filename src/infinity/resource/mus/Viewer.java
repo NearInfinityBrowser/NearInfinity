@@ -145,7 +145,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener
       stopPlay();
       bPlay.setEnabled(false);
       list.setEnabled(false);
-      StringTokenizer tokenizer = new StringTokenizer(mus.getText(), "\n");
+      StringTokenizer tokenizer = new StringTokenizer(mus.getText(), "\r\n");
       String dir = tokenizer.nextToken().trim();
       listModel.clear();
       entryList.clear();

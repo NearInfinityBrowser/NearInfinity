@@ -8,6 +8,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public final class IdsMapCache
@@ -16,7 +17,7 @@ public final class IdsMapCache
 
   public static void cacheInvalid(ResourceEntry entry)
   {
-    common.remove(entry.toString().toUpperCase());
+    common.remove(entry.toString().toUpperCase(Locale.ENGLISH));
   }
 
   public static void clearCache()

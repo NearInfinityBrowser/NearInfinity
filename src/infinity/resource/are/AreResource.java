@@ -14,6 +14,8 @@ import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -21,11 +23,13 @@ import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
+import infinity.resource.are.viewer.AreaViewer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
 import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
 
+import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
@@ -52,6 +56,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
                                                   "Cannot save", "Can rest with permission"};
   public static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
   public static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
+
+  private HexViewer hexViewer;
+  private AreaViewer areaViewer;
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
   {
@@ -127,6 +134,21 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
+//--------------------- Begin Interface Closeable ---------------------
+
+ @Override
+ public void close() throws Exception
+ {
+   super.close();
+   if (areaViewer != null) {
+     areaViewer.close();
+     areaViewer.dispose();
+     areaViewer = null;
+   }
+ }
+
+//--------------------- End Interface Closeable ---------------------
+
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
   @Override
@@ -160,27 +182,46 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int getViewerTabCount()
   {
-    return 1;
+    return 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    return StructViewer.TAB_VIEW;
+    switch (index) {
+      case 0:
+        return StructViewer.TAB_VIEW;
+      case 1:
+        return StructViewer.TAB_RAW;
+    }
+    return null;
   }
 
   @Override
   public JComponent getViewerTab(int index)
   {
-    JScrollPane scroll = new JScrollPane(new Viewer(this));
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    return scroll;
+    switch (index) {
+      case 0: // view tab
+      {
+        JScrollPane scroll = new JScrollPane(new Viewer(this));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        return scroll;
+      }
+      case 1: // raw tab
+      {
+        if (hexViewer == null) {
+          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
+      }
+    }
+    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return true;
+    return (index == 0);
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------
@@ -197,6 +238,12 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface Writeable ---------------------
 
   @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
@@ -211,6 +258,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Container)
       updateItems();
     updateActorCREOffsets();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -235,6 +285,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     updateActorCREOffsets();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -252,6 +305,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Container)
       updateItems();
     updateActorCREOffsets();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
@@ -276,249 +332,255 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     updateActorCREOffsets();
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
-    list.add(version);
-    list.add(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
-    list.add(new DecNumber(buffer, offset + 16, 4, "Last saved"));
+    addField(version);
+    addField(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
+    addField(new DecNumber(buffer, offset + 16, 4, "Last saved"));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
     } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
-      list.add(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
+      addField(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
     } else if (ResourceFactory.isEnhancedEdition()) {
-      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype_ee));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype_ee));
     } else {
-      list.add(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
     }
-    list.add(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
-    list.add(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
-    list.add(new ResourceRef(buffer, offset + 36, "Area east", "ARE"));
-    list.add(new Flag(buffer, offset + 44, 4, "Edge flags east", s_edge));
-    list.add(new ResourceRef(buffer, offset + 48, "Area south", "ARE"));
-    list.add(new Flag(buffer, offset + 56, 4, "Edge flags south", s_edge));
-    list.add(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
-    list.add(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
-      list.add(new Flag(buffer, offset + 72, 2, "Location", s_flag_torment));
-    else
-      list.add(new Flag(buffer, offset + 72, 2, "Location", s_flag));
-    list.add(new DecNumber(buffer, offset + 74, 2, "Rain probability"));
-    list.add(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
-    list.add(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
-    list.add(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
-    list.add(new DecNumber(buffer, offset + 82, 2, "Wind speed"));
+    addField(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
+    addField(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
+    addField(new ResourceRef(buffer, offset + 36, "Area east", "ARE"));
+    addField(new Flag(buffer, offset + 44, 4, "Edge flags east", s_edge));
+    addField(new ResourceRef(buffer, offset + 48, "Area south", "ARE"));
+    addField(new Flag(buffer, offset + 56, 4, "Edge flags south", s_edge));
+    addField(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
+    addField(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
+    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      addField(new Flag(buffer, offset + 72, 2, "Location", s_flag_torment));
+    } else {
+      addField(new Flag(buffer, offset + 72, 2, "Location", s_flag));
+    }
+    addField(new DecNumber(buffer, offset + 74, 2, "Rain probability"));
+    addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
+    addField(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
+    addField(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
+    addField(new DecNumber(buffer, offset + 82, 2, "Wind speed"));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      list.add(new DecNumber(buffer, offset + 84, 1, "Area difficulty 2"));
-      list.add(new DecNumber(buffer, offset + 85, 1, "Area difficulty 3"));
-      list.add(new Unknown(buffer, offset + 86, 14));
+      addField(new DecNumber(buffer, offset + 84, 1, "Area difficulty 2"));
+      addField(new DecNumber(buffer, offset + 85, 1, "Area difficulty 3"));
+      addField(new Unknown(buffer, offset + 86, 14));
       offset += 16;
     }
     SectionOffset offset_actors = new SectionOffset(buffer, offset + 84, "Actors offset",
                                                     Actor.class);
-    list.add(offset_actors);
+    addField(offset_actors);
     SectionCount count_actors = new SectionCount(buffer, offset + 88, 2, "# actors",
                                                  Actor.class);
-    list.add(count_actors);
+    addField(count_actors);
     SectionCount count_itepoints = new SectionCount(buffer, offset + 90, 2, "# triggers",
                                                     ITEPoint.class);
-    list.add(count_itepoints);
+    addField(count_itepoints);
     SectionOffset offset_itepoints = new SectionOffset(buffer, offset + 92,
                                                        "Triggers offset",
                                                        ITEPoint.class);
-    list.add(offset_itepoints);
+    addField(offset_itepoints);
     SectionOffset offset_spoints = new SectionOffset(buffer, offset + 96, "Spawn points offset",
                                                      SpawnPoint.class);
-    list.add(offset_spoints);
+    addField(offset_spoints);
     SectionCount count_spoints = new SectionCount(buffer, offset + 100, 4, "# spawn points",
                                                   SpawnPoint.class);
-    list.add(count_spoints);
+    addField(count_spoints);
     SectionOffset offset_entrances = new SectionOffset(buffer, offset + 104, "Entrances offset",
                                                        Entrance.class);
-    list.add(offset_entrances);
+    addField(offset_entrances);
     SectionCount count_entrances = new SectionCount(buffer, offset + 108, 4, "# entrances",
                                                     Entrance.class);
-    list.add(count_entrances);
+    addField(count_entrances);
     SectionOffset offset_containers = new SectionOffset(buffer, offset + 112, "Containers offset",
                                                         Container.class);
-    list.add(offset_containers);
+    addField(offset_containers);
     SectionCount count_containers = new SectionCount(buffer, offset + 116, 2, "# containers",
                                                      Container.class);
-    list.add(count_containers);
+    addField(count_containers);
     DecNumber count_items = new DecNumber(buffer, offset + 118, 2, "# items");
-    list.add(count_items);
+    addField(count_items);
     HexNumber offset_items = new HexNumber(buffer, offset + 120, 4, "Items offset");
-    list.add(offset_items);
+    addField(offset_items);
     HexNumber offset_vertices = new HexNumber(buffer, offset + 124, 4, "Vertices offset");
-    list.add(offset_vertices);
+    addField(offset_vertices);
     DecNumber count_vertices = new DecNumber(buffer, offset + 128, 2, "# vertices");
-    list.add(count_vertices);
+    addField(count_vertices);
     SectionCount count_ambients = new SectionCount(buffer, offset + 130, 2, "# ambients",
                                                    Ambient.class);
-    list.add(count_ambients);
+    addField(count_ambients);
     SectionOffset offset_ambients = new SectionOffset(buffer, offset + 132, "Ambients offset",
                                                       Ambient.class);
-    list.add(offset_ambients);
+    addField(offset_ambients);
     SectionOffset offset_variables = new SectionOffset(buffer, offset + 136, "Variables offset",
                                                        Variable.class);
-    list.add(offset_variables);
+    addField(offset_variables);
     SectionCount count_variables = new SectionCount(buffer, offset + 140, 2, "# variables",
                                                     Variable.class);
-    list.add(count_variables);
-    list.add(new HexNumber(buffer, offset + 142, 2, "# object flags"));
-    list.add(new HexNumber(buffer, offset + 144, 4, "Object flags offset"));
-    list.add(new ResourceRef(buffer, offset + 148, "Area script", "BCS"));
+    addField(count_variables);
+    addField(new HexNumber(buffer, offset + 142, 2, "# object flags"));
+    addField(new HexNumber(buffer, offset + 144, 4, "Object flags offset"));
+    addField(new ResourceRef(buffer, offset + 148, "Area script", "BCS"));
     SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, "Explored bitmap size",
                                                         Unknown.class);
-    list.add(size_exploredbitmap);
+    addField(size_exploredbitmap);
     SectionOffset offset_exploredbitmap = new SectionOffset(buffer, offset + 160, "Explored bitmap offset",
                                                             Unknown.class);
-    list.add(offset_exploredbitmap);
+    addField(offset_exploredbitmap);
     SectionCount count_doors = new SectionCount(buffer, offset + 164, 4, "# doors",
                                                 Door.class);
-    list.add(count_doors);
+    addField(count_doors);
     SectionOffset offset_doors = new SectionOffset(buffer, offset + 168, "Doors offset",
                                                    Door.class);
-    list.add(offset_doors);
+    addField(offset_doors);
     SectionCount count_animations = new SectionCount(buffer, offset + 172, 4, "# animations",
                                                      Animation.class);
-    list.add(count_animations);
+    addField(count_animations);
     SectionOffset offset_animations = new SectionOffset(buffer, offset + 176, "Animations offset",
                                                         Animation.class);
-    list.add(offset_animations);
+    addField(offset_animations);
     SectionCount count_tiledobjects = new SectionCount(buffer, offset + 180, 4, "# tiled objects",
                                                        TiledObject.class);
-    list.add(count_tiledobjects);
+    addField(count_tiledobjects);
     SectionOffset offset_tiledobjects = new SectionOffset(buffer, offset + 184, "Tiled objects offset",
                                                           TiledObject.class);
-    list.add(offset_tiledobjects);
+    addField(offset_tiledobjects);
     SectionOffset offset_songs = new SectionOffset(buffer, offset + 188, "Songs offset",
                                                    Song.class);
-    list.add(offset_songs);
+    addField(offset_songs);
     SectionOffset offset_rest = new SectionOffset(buffer, offset + 192, "Rest encounters offset",
                                                   RestSpawn.class);
-    list.add(offset_rest);
+    addField(offset_rest);
 
     SectionOffset offset_automapnote = null, offset_protrap = null;
     SectionCount count_automapnote = null, count_protrap = null;
     if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
-      list.add(new Unknown(buffer, offset + 196, 4));
+      addField(new Unknown(buffer, offset + 196, 4));
       offset_automapnote = new SectionOffset(buffer, offset + 200, "Automap notes offset",
                                              AutomapNotePST.class);
-      list.add(offset_automapnote);
+      addField(offset_automapnote);
       count_automapnote = new SectionCount(buffer, offset + 204, 4, "# automap notes",
                                            AutomapNotePST.class);
-      list.add(count_automapnote);
-      list.add(new Unknown(buffer, offset + 208, 76));
+      addField(count_automapnote);
+      addField(new Unknown(buffer, offset + 208, 76));
     }
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
              ResourceFactory.isEnhancedEdition()) {
       offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
                                              AutomapNote.class);
-      list.add(offset_automapnote);
+      addField(offset_automapnote);
       count_automapnote = new SectionCount(buffer, offset + 200, 4, "# automap notes",
                                            AutomapNote.class);
-      list.add(count_automapnote);
+      addField(count_automapnote);
       offset_protrap = new SectionOffset(buffer, offset + 204, "Projectile traps offset",
                                          ProTrap.class);
-      list.add(offset_protrap);
+      addField(offset_protrap);
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
-      list.add(count_protrap);
+      addField(count_protrap);
       final String movieExt = (ResourceFactory.isEnhancedEdition()) ? "WBM" : "MVE";
-      list.add(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
-      list.add(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
-      list.add(new Unknown(buffer, offset + 228, 56));
+      addField(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
+      addField(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
+      addField(new Unknown(buffer, offset + 228, 56));
     }
     else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
       offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
                                              AutomapNote.class);
-      list.add(offset_automapnote);
+      addField(offset_automapnote);
       count_automapnote = new SectionCount(buffer, offset + 200, 4, "# automap notes",
                                            AutomapNote.class);
-      list.add(count_automapnote);
-      list.add(new Unknown(buffer, offset + 204, 80));
+      addField(count_automapnote);
+      addField(new Unknown(buffer, offset + 204, 80));
     }
-    else
-      list.add(new Unknown(buffer, offset + 196, 88));
+    else {
+      addField(new Unknown(buffer, offset + 196, 88));
+    }
 
     offset = offset_actors.getValue();
     for (int i = 0; i < count_actors.getValue(); i++) {
       Actor actor = new Actor(this, buffer, offset, i);
       offset = actor.getEndOffset();
-      list.add(actor);
+      addField(actor);
     }
 
     offset = offset_itepoints.getValue();
     for (int i = 0; i < count_itepoints.getValue(); i++) {
       ITEPoint ite = new ITEPoint(this, buffer, offset, i);
       offset = ite.getEndOffset();
-      list.add(ite);
+      addField(ite);
     }
 
     offset = offset_spoints.getValue();
     for (int i = 0; i < count_spoints.getValue(); i++) {
       SpawnPoint sp = new SpawnPoint(this, buffer, offset, i);
       offset = sp.getEndOffset();
-      list.add(sp);
+      addField(sp);
     }
 
     offset = offset_entrances.getValue();
     for (int i = 0; i < count_entrances.getValue(); i++) {
       Entrance ent = new Entrance(this, buffer, offset, i);
       offset = ent.getEndOffset();
-      list.add(ent);
+      addField(ent);
     }
 
     offset = offset_containers.getValue();
     for (int i = 0; i < count_containers.getValue(); i++) {
       Container con = new Container(this, buffer, offset, i);
       offset = con.getEndOffset();
-      list.add(con);
+      addField(con);
     }
 
     offset = offset_ambients.getValue();
     for (int i = 0; i < count_ambients.getValue(); i++) {
       Ambient ambi = new Ambient(this, buffer, offset, i);
       offset = ambi.getEndOffset();
-      list.add(ambi);
+      addField(ambi);
     }
 
     offset = offset_variables.getValue();
     for (int i = 0; i < count_variables.getValue(); i++) {
       Variable var = new Variable(this, buffer, offset, i);
       offset = var.getEndOffset();
-      list.add(var);
+      addField(var);
     }
 
     offset = offset_exploredbitmap.getValue();
-    if (size_exploredbitmap.getValue() > 0)
-      list.add(new Unknown(buffer, offset, size_exploredbitmap.getValue(), "Explored bitmap"));
+    if (size_exploredbitmap.getValue() > 0) {
+      addField(new Unknown(buffer, offset, size_exploredbitmap.getValue(), "Explored bitmap"));
+    }
 
     offset = offset_doors.getValue();
     for (int i = 0; i < count_doors.getValue(); i++) {
       Door door = new Door(this, buffer, offset, i);
       offset = door.getEndOffset();
-      list.add(door);
+      addField(door);
     }
 
     offset = offset_animations.getValue();
     for (int i = 0; i < count_animations.getValue(); i++) {
       Animation anim = new Animation(this, buffer, offset, i);
       offset = anim.getEndOffset();
-      list.add(anim);
+      addField(anim);
     }
 
     offset = offset_tiledobjects.getValue();
     for (int i = 0; i < count_tiledobjects.getValue(); i++) {
       TiledObject tile = new TiledObject(this, buffer, offset, i);
       offset = tile.getEndOffset();
-      list.add(tile);
+      addField(tile);
     }
 
     if (offset_automapnote != null) { // Torment, BG2
@@ -527,14 +589,14 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         for (int i = 0; i < count_automapnote.getValue(); i++) {
           AutomapNotePST note = new AutomapNotePST(this, buffer, offset, i);
           offset = note.getEndOffset();
-          list.add(note);
+          addField(note);
         }
       }
       else {
         for (int i = 0; i < count_automapnote.getValue(); i++) {
           AutomapNote note = new AutomapNote(this, buffer, offset, i);
           offset = note.getEndOffset();
-          list.add(note);
+          addField(note);
         }
       }
     }
@@ -544,44 +606,48 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       for (int i = 0; i < count_protrap.getValue(); i++) {
         ProTrap trap = new ProTrap(this, buffer, offset, i);
         offset = trap.getEndOffset();
-        list.add(trap);
+        addField(trap);
       }
     }
 
     offset = offset_items.getValue();
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
       if (o instanceof Container)
         ((Container)o).readItems(buffer, offset);
     }
 
     offset = offset_vertices.getValue();
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
       if (o instanceof HasVertices)
         ((HasVertices)o).readVertices(buffer, offset);
     }
 
-    if (offset_songs.getValue() > 0)
-      list.add(new Song(this, buffer, offset_songs.getValue()));
-    if (offset_rest.getValue() > 0)
-      list.add(new RestSpawn(this, buffer, offset_rest.getValue()));
+    if (offset_songs.getValue() > 0) {
+      addField(new Song(this, buffer, offset_songs.getValue()));
+    }
+    if (offset_rest.getValue() > 0) {
+      addField(new RestSpawn(this, buffer, offset_rest.getValue()));
+    }
 
     int endoffset = offset;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
-      if (entry.getOffset() + entry.getSize() > endoffset)
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
+      if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
+      }
     }
     return endoffset;
   }
 
   private void updateActorCREOffsets()
   {
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Actor)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Actor) {
         ((Actor)o).updateCREOffset();
+      }
     }
   }
 
@@ -590,8 +656,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     // Assumes items offset is correct
     int offset = ((HexNumber)getAttribute("Items offset")).getValue();
     int count = 0;
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
       if (o instanceof Container) {
         Container container = (Container)o;
         int itemNum = container.updateItems(offset, count);
@@ -607,8 +673,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     // Assumes vertices offset is correct
     int offset = ((HexNumber)getAttribute("Vertices offset")).getValue();
     int count = 0;
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
       if (o instanceof HasVertices) {
         HasVertices vert = (HasVertices)o;
         int vertNum = vert.updateVertices(offset, count);
@@ -619,6 +685,19 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     ((DecNumber)getAttribute("# vertices")).setValue(count);
   }
 
+  /** Displays the area viewer for this ARE resource. */
+  AreaViewer showAreaViewer(Component parent)
+  {
+    if (areaViewer == null) {
+      areaViewer = new AreaViewer(parent, this);
+    } else if (!areaViewer.isVisible()) {
+      areaViewer.setVisible(true);
+      areaViewer.toFront();
+    } else {
+      areaViewer.toFront();
+    }
+    return areaViewer;
+  }
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.
@@ -630,7 +709,6 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         Actor[] actors;
         Animation[] animations;
         Item[][] items;
-//        Item[] items;
         boolean retVal = true;
         String key;
         Object o;

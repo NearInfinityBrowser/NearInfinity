@@ -28,14 +28,14 @@ public class StrRefEntry extends AbstractStruct
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
-    list.add(new StringRef(buffer, offset, "Overridden strref"));
-    list.add(new Unknown(buffer, offset + 4, 4));
-    list.add(new Unknown(buffer, offset + 8, 4));
-    list.add(new Unknown(buffer, offset + 12, 4));
-    list.add(new ResourceRef(buffer, offset + 16, "Associated sound", "WAV"));
-    list.add(new HexNumber(buffer, offset + 24, 4, "TOT string offset"));
+    addField(new StringRef(buffer, offset, "Overridden strref"));
+    addField(new Unknown(buffer, offset + 4, 4));
+    addField(new Unknown(buffer, offset + 8, 4));
+    addField(new Unknown(buffer, offset + 12, 4));
+    addField(new ResourceRef(buffer, offset + 16, "Associated sound", "WAV"));
+    addField(new HexNumber(buffer, offset + 24, 4, "TOT string offset"));
     return offset + 28;
   }
 }

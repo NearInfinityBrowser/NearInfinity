@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.InflaterInputStream;
 
@@ -88,7 +89,7 @@ public class PvrDecoder
       throw new NullPointerException();
     }
     try {
-      String key = entry.getResourceName().toUpperCase();
+      String key = entry.getResourceName().toUpperCase(Locale.ENGLISH);
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -112,7 +113,7 @@ public class PvrDecoder
       throw new NullPointerException();
     }
     try {
-      String key = fileName.toUpperCase();
+      String key = fileName.toUpperCase(Locale.ENGLISH);
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -133,7 +134,7 @@ public class PvrDecoder
   public static PvrDecoder loadPvr(File file)
   {
     try {
-      String key = file.getName().toUpperCase();
+      String key = file.getName().toUpperCase(Locale.ENGLISH);
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;

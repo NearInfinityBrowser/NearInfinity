@@ -40,8 +40,8 @@ public final class Wallgroup extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset)
   {
-    list.add(new DecNumber(buffer, offset, 2, "Polygon index"));
-    list.add(new DecNumber(buffer, offset + 2, 2, "# polygons"));
+    addField(new DecNumber(buffer, offset, 2, "Polygon index"));
+    addField(new DecNumber(buffer, offset + 2, 2, "# polygons"));
     return offset + 4;
   }
 }

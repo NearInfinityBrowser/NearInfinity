@@ -14,6 +14,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 
 public final class FileResourceEntry extends ResourceEntry
 {
@@ -34,7 +35,7 @@ public final class FileResourceEntry extends ResourceEntry
   @Override
   public String toString()
   {
-    return file.getName().toUpperCase();
+    return file.getName().toUpperCase(Locale.ENGLISH);
   }
 
   public void deleteFile()
@@ -51,7 +52,7 @@ public final class FileResourceEntry extends ResourceEntry
   @Override
   public String getExtension()
   {
-    return file.getName().substring(file.getName().lastIndexOf(".") + 1).toUpperCase();
+    return file.getName().substring(file.getName().lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
   }
 
   @Override

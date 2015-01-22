@@ -18,7 +18,7 @@ import infinity.resource.are.ProTrap;
  */
 public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
 {
-  private static final String AvailableFmt = "%1$d projectile trap%2$s available";
+  private static final String AvailableFmt = "Projectile traps: %1$d";
 
   public LayerProTrap(AreResource are, AreaViewer viewer)
   {
@@ -40,7 +40,7 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, ProTrap.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectProTrap obj = new LayerObjectProTrap(are, (ProTrap)listStruct.get(i));
             setListeners(obj);
             list.add(obj);
@@ -57,6 +57,6 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

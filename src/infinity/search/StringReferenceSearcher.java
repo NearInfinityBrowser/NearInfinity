@@ -53,8 +53,8 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
   {
-    for (int i = 0; i < dialog.getRowCount(); i++) {
-      StructEntry o = dialog.getStructEntryAt(i);
+    for (int i = 0; i < dialog.getFieldCount(); i++) {
+      StructEntry o = dialog.getField(i);
       if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue)
         addHit(entry, entry.getSearchString(), o);
       else if (o instanceof AbstractCode) {
@@ -84,8 +84,8 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSavStruct(ResourceEntry entry, ResourceEntry saventry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue)
         addHit(entry, saventry.toString(), o);
       else if (o instanceof AbstractStruct)
@@ -115,8 +115,8 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue)
         addHit(entry, entry.getSearchString(), o);
       else if (o instanceof AbstractStruct)

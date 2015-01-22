@@ -472,8 +472,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     staTriList.clear();
     transTriList.clear();
     actionList.clear();
-    for (int i = 0; i < dlg.getRowCount(); i++) {
-      StructEntry entry = dlg.getStructEntryAt(i);
+    for (int i = 0; i < dlg.getFieldCount(); i++) {
+      StructEntry entry = dlg.getField(i);
       if (entry instanceof State)
         stateList.add((State)entry);
       else if (entry instanceof Transition)
@@ -551,7 +551,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
       }
-      textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      textArea.setMargin(new Insets(3, 3, 3, 3));
       textArea.setFont(BrowserMenuBar.getInstance().getScriptFont());
       InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
       if (!useHighlighting) {

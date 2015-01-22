@@ -20,7 +20,7 @@ import infinity.resource.are.AutomapNotePST;
  */
 public class LayerAutomap extends BasicLayer<LayerObject>
 {
-  private static final String AvailableFmt = "%1$d automap note%2$s available";
+  private static final String AvailableFmt = "Automap notes: %1$d";
 
   public LayerAutomap(AreResource are, AreaViewer viewer)
   {
@@ -51,14 +51,14 @@ public class LayerAutomap extends BasicLayer<LayerObject>
           int count = sc.getValue();
           if (isTorment()) {
             List<StructEntry> listStruct = getStructures(ofs, count, AutomapNotePST.class);
-            for (int i = 0; i < listStruct.size(); i++) {
+            for (int i = 0, size = listStruct.size(); i < size; i++) {
               LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, (AutomapNotePST)listStruct.get(i));
               setListeners(obj);
               list.add(obj);
             }
           } else {
             List<StructEntry> listStruct = getStructures(ofs, count, AutomapNote.class);
-            for (int i = 0; i < listStruct.size(); i++) {
+            for (int i = 0, size = listStruct.size(); i < size; i++) {
               LayerObjectAutomap obj = new LayerObjectAutomap(are, (AutomapNote)listStruct.get(i));
               setListeners(obj);
               list.add(obj);
@@ -76,6 +76,6 @@ public class LayerAutomap extends BasicLayer<LayerObject>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

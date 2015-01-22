@@ -415,7 +415,6 @@ public class ButtonPanel extends JPanel
   // Recreates the button panel from the available components
   private void updateButtonBar()
   {
-    invalidate();
     removeAll();
 
     setLayout(new FlowLayout(FlowLayout.CENTER, gapSize, DefaultGapSize));
@@ -423,8 +422,7 @@ public class ButtonPanel extends JPanel
       add(listControls.get(i).getComponent());
     }
 
-    validate();
-    repaint();
+    revalidate();
   }
 
   // Returns the list index of the specified component, returns -1 if not found.

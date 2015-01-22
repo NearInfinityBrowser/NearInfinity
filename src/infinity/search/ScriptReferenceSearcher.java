@@ -14,6 +14,7 @@ import infinity.resource.are.Door;
 import infinity.resource.are.ITEPoint;
 import infinity.resource.bcs.BcsResource;
 import infinity.resource.cre.CreResource;
+import infinity.resource.dlg.AbstractCode;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.Component;
@@ -27,7 +28,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   public ScriptReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE"}, parent);
+    super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG"}, parent);
     this.targetResRef = targetEntry.getResourceName().substring(0,
                           targetEntry.getResourceName().indexOf('.'));
     this.cutscene = Pattern.compile("StartCutScene(\""
@@ -51,23 +52,31 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
         ResourceRef ref = (ResourceRef)o;
-        if (struct instanceof CreResource)
+        if (struct instanceof CreResource) {
           addHit(entry, entry.getSearchString(), ref);
-        else if (struct instanceof Actor)
-          addHit(entry, struct.getStructEntryAt(20).toString(), ref);
-        else
+        } else if (struct instanceof Actor) {
+          addHit(entry, struct.getField(20).toString(), ref);
+        } else {
           addHit(entry, null, ref);
+        }
       }
       else if (o instanceof Actor ||
                o instanceof Container ||
                o instanceof Door ||
-               o instanceof ITEPoint)
+               o instanceof ITEPoint) {
         searchStruct(entry, (AbstractStruct)o);
+      }
+      else if (o instanceof AbstractCode) {
+        String text = o.toString();
+        if (cutscene.matcher(text).find()) {
+          addHit(entry, o.getName(), o);
+        }
+      }
     }
   }
 }

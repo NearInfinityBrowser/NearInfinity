@@ -1269,10 +1269,10 @@ public class PseudoBamDecoder extends BamDecoder
         }
       }
 
-      if (pvrzPageIndex + gridList.size() > 10000) {
+      if (pvrzPageIndex + gridList.size() > 100000) {
         throw new Exception(String.format("The number of required PVRZ files exceeds the max. index of 99999.\n" +
                                           "Please choose a PVRZ start index smaller or equal to %1$d.",
-                                          10000 - gridList.size()));
+                                          100000 - gridList.size()));
       }
       return true;
     }

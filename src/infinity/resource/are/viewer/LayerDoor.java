@@ -18,7 +18,7 @@ import infinity.resource.are.Door;
  */
 public class LayerDoor extends BasicLayer<LayerObjectDoor>
 {
-  private static final String AvailableFmt = "%1$d door%2$s available";
+  private static final String AvailableFmt = "Doors: %1$d";
 
   private boolean doorClosed;
 
@@ -43,7 +43,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, Door.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectDoor obj = new LayerObjectDoor(are, (Door)listStruct.get(i));
             setListeners(obj);
             list.add(obj);
@@ -60,7 +60,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 
   @Override
@@ -69,7 +69,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
     setVisibilityState(visible);
     List<LayerObjectDoor> list = getLayerObjects();
     if (list != null) {
-      for (int i = 0; i < list.size(); i++) {
+      for (int i = 0, size = list.size(); i < size; i++) {
         LayerObjectDoor obj = list.get(i);
         obj.getLayerItem(ViewerConstants.DOOR_OPEN).setVisible(isLayerVisible() && !doorClosed);
         obj.getLayerItem(ViewerConstants.DOOR_CLOSED).setVisible(isLayerVisible() && doorClosed);

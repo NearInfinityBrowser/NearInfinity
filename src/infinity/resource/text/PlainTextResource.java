@@ -22,6 +22,7 @@ import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.BorderLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -32,9 +33,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -188,7 +189,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     for (int i = 1; i < linenr; i++)
       startpos = s.indexOf("\n", startpos + 1);
     if (startpos == -1) return;
-    int wordpos = s.toUpperCase().indexOf(text.toUpperCase(), startpos);
+    int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
     if (wordpos != -1)
       editor.select(wordpos, wordpos + text.length());
     else
@@ -209,11 +210,12 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     setSyntaxHighlightingEnabled(editor, pane);
     editor.addCaretListener(container.getStatusBar());
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    editor.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
     editor.getDocument().addDocumentListener(this);
-    if (entry.toString().toUpperCase().endsWith(".BIO") || entry.toString().toUpperCase().endsWith(".RES")) {
+    if (entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".BIO") ||
+        entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".RES")) {
       editor.setLineWrap(true);
       editor.setWrapStyleWord(true);
     }
@@ -262,7 +264,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     st = new StringTokenizer(header);
     List<String> strings = new ArrayList<String>();
     while (st.hasMoreTokens())
-      strings.add(st.nextToken().toUpperCase());
+      strings.add(st.nextToken().toUpperCase(Locale.ENGLISH));
     return strings;
   }
 

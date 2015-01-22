@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -126,7 +127,7 @@ public final class ViewerUtil
         e.printStackTrace();
       }
     }
-    return new JLabel("No " + iconRef.getName().toLowerCase(), JLabel.CENTER);
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
   public static JComponent makeBamPanel(ResourceRef iconRef, int animNr, int frameNr)
@@ -145,7 +146,7 @@ public final class ViewerUtil
         e.printStackTrace();
       }
     }
-    return new JLabel("No " + iconRef.getName().toLowerCase(), JLabel.CENTER);
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
   public static JComponent makeCheckLabel(StructEntry entry, String yes)
@@ -194,7 +195,7 @@ public final class ViewerUtil
         return label;
       }
     }
-    return new JLabel("No " + imageRef.getName().toLowerCase(), JLabel.CENTER);
+    return new JLabel("No " + imageRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
   public static JPanel makeListPanel(String title, AbstractStruct struct,
@@ -233,7 +234,7 @@ public final class ViewerUtil
     ta.setWrapStyleWord(true);
     InfinityScrollPane scroll = new InfinityScrollPane(ta, true);
     scroll.setLineNumbersEnabled(false);
-    ta.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    ta.setMargin(new Insets(3, 3, 3, 3));
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
     panel.add(scroll, BorderLayout.CENTER);
@@ -291,8 +292,8 @@ public final class ViewerUtil
       if (renderer != null)
         list.setCellRenderer(renderer);
       if (attrName == null) {
-        for (int i = 0; i < struct.getRowCount(); i++) {
-          StructEntry o = struct.getStructEntryAt(i);
+        for (int i = 0; i < struct.getFieldCount(); i++) {
+          StructEntry o = struct.getField(i);
           if (o.getClass() == listClass)
             listModel.addElement(o);
         }
@@ -301,8 +302,8 @@ public final class ViewerUtil
         if (renderer == null)
           list.setCellRenderer(new StructListRenderer(attrName));
         List<AbstractStruct> templist = new ArrayList<AbstractStruct>();
-        for (int i = 0; i < struct.getRowCount(); i++) {
-          StructEntry o = struct.getStructEntryAt(i);
+        for (int i = 0; i < struct.getFieldCount(); i++) {
+          StructEntry o = struct.getField(i);
           if (o.getClass() == listClass)
             templist.add((AbstractStruct)o);
         }
@@ -385,9 +386,10 @@ public final class ViewerUtil
       }
       else if (event.getType() == TableModelEvent.INSERT) {
         for (int i = event.getFirstRow(); i <= event.getLastRow(); i++) {
-          if (i >= struct.getRowCount())
+          if (i >= struct.getFieldCount()) {
             break;
-          Object o = struct.getStructEntryAt(i);
+          }
+          Object o = struct.getField(i);
           if (o.getClass() == listClass) {
             listModel.addElement(o);    // Not sorted properly after this...
             if (!bOpen.isEnabled() && listModel.get(0) instanceof Viewable) {

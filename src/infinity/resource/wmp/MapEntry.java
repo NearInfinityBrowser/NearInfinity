@@ -52,31 +52,31 @@ final class MapEntry extends AbstractStruct implements HasViewerTabs
 // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Map", "MOS"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "Width"));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Height"));
-    list.add(new DecNumber(buffer, offset + 16, 4, "Map ID"));
-    list.add(new StringRef(buffer, offset + 20, "Name"));
-    list.add(new DecNumber(buffer, offset + 24, 4, "Center location: X"));
-    list.add(new DecNumber(buffer, offset + 28, 4, "Center location: Y"));
+    addField(new ResourceRef(buffer, offset, "Map", "MOS"));
+    addField(new DecNumber(buffer, offset + 8, 4, "Width"));
+    addField(new DecNumber(buffer, offset + 12, 4, "Height"));
+    addField(new DecNumber(buffer, offset + 16, 4, "Map ID"));
+    addField(new StringRef(buffer, offset + 20, "Name"));
+    addField(new DecNumber(buffer, offset + 24, 4, "Center location: X"));
+    addField(new DecNumber(buffer, offset + 28, 4, "Center location: Y"));
     SectionCount area_count = new SectionCount(buffer, offset + 32, 4, "# areas", AreaEntry.class);
-    list.add(area_count);
+    addField(area_count);
     SectionOffset area_offset = new SectionOffset(buffer, offset + 36, "Areas offset", AreaEntry.class);
-    list.add(area_offset);
+    addField(area_offset);
     SectionOffset link_offset = new SectionOffset(buffer, offset + 40, "Area links offset", AreaLink.class);
-    list.add(link_offset);
+    addField(link_offset);
     SectionCount link_count = new SectionCount(buffer, offset + 44, 4, "# area links", AreaLink.class);
-    list.add(link_count);
-    list.add(new ResourceRef(buffer, offset + 48, "Map icons", "BAM"));
-    list.add(new Unknown(buffer, offset + 56, 128));
+    addField(link_count);
+    addField(new ResourceRef(buffer, offset + 48, "Map icons", "BAM"));
+    addField(new Unknown(buffer, offset + 56, 128));
 
     int curOfs = area_offset.getValue();
     for (int i = 0; i < area_count.getValue(); i++) {
       AreaEntry areaEntry = new AreaEntry(this, buffer, curOfs, i);
       curOfs = areaEntry.getEndOffset();
-      list.add(areaEntry);
+      addField(areaEntry);
       areaEntry.readLinks(buffer, link_offset);
     }
 

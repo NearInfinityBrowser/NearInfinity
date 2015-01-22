@@ -11,7 +11,9 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.DynamicArray;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
@@ -28,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -35,7 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public class ResourceRef extends Datatype implements Editable, Readable, ActionListener, ListSelectionListener
+public class ResourceRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
   private static final String NONE = "None";
   private final String type[];
@@ -43,28 +46,49 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
   String resname;
   private JButton bView;
   private TextListPanel list;
-  private boolean wasNull;
   private byte buffer[];
   private final Comparator<Object> ignorecaseextcomparator = new IgnoreCaseExtComparator<Object>();
 
   public ResourceRef(byte h_buffer[], int offset, String name, String type)
   {
-    this(h_buffer, offset, 8, name, type);
+    this(null, h_buffer, offset, 8, name, type);
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, String type)
+  {
+    this(parent, h_buffer, offset, 8, name, type);
   }
 
   public ResourceRef(byte h_buffer[], int offset, int length, String name, String type)
   {
-    this(h_buffer, offset, length, name, new String[]{type});
+    this(null, h_buffer, offset, length, name, new String[]{type});
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, int length, String name,
+                     String type)
+  {
+    this(parent, h_buffer, offset, length, name, new String[]{type});
   }
 
   public ResourceRef(byte h_buffer[], int offset, String name, String[] type)
   {
-    this(h_buffer, offset, 8, name, type);
+    this(null, h_buffer, offset, 8, name, type);
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, String[] type)
+  {
+    this(parent, h_buffer, offset, 8, name, type);
   }
 
   public ResourceRef(byte h_buffer[], int offset, int length, String name, String[] type)
   {
-    super(offset, length, name);
+    this(null, h_buffer, offset, length, name, type);
+  }
+
+  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, int length, String name,
+                     String[] type)
+  {
+    super(parent, offset, length, name);
     if (type == null || type.length == 0)
       this.type = new String[]{""};
     else
@@ -211,7 +235,7 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
     } else {
       int i = -1;
       for (int j = 0; j < type.length && i == -1; j++) {
-        i = entry.toString().indexOf('.' + type[j].toUpperCase());
+        i = entry.toString().indexOf('.' + type[j].toUpperCase(Locale.ENGLISH));
         if (i != -1) {
           resname = entry.toString().substring(0, i);
           curtype = type[j];
@@ -244,14 +268,16 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (resname.equals(NONE)) {
-      if (wasNull)
+    if (resname.equalsIgnoreCase(NONE)) {
+      String s = DynamicArray.getString(buffer, 0, buffer.length);
+      if (s.equalsIgnoreCase(NONE)) {
         FileWriterNI.writeBytes(os, buffer);
-      else
-        FileWriterNI.writeBytes(os, new byte[getSize()]);
-    }
-    else
+      } else {
+        FileWriterNI.writeBytes(os, (byte)0, buffer.length);
+      }
+    } else {
       FileWriterNI.writeString(os, resname, getSize());
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -259,14 +285,12 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     this.buffer = Arrays.copyOfRange(buffer, offset, offset + getSize());
-    if (this.buffer[0] == 0x00 ||
-        this.buffer[0] == 0x4e && this.buffer[1] == 0x6f &&
-        this.buffer[2] == 0x6e && this.buffer[3] == 0x65 && this.buffer[4] == 0x00) {
+    String s = new String(this.buffer);
+    if (this.buffer[0] == 0x00 || s.equalsIgnoreCase(NONE)) {
       resname = NONE;
-      wasNull = true;
     } else {
       int max = this.buffer.length;
       for (int i = 0; i < this.buffer.length; i++) {
@@ -275,12 +299,15 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
           break;
         }
       }
-      if (max != this.buffer.length)
-        this.buffer = Arrays.copyOfRange(this.buffer, 0, max);
-      resname = new String(this.buffer).toUpperCase();
+      if (max < this.buffer.length) {
+        resname = new String(this.buffer, 0, max).toUpperCase(Locale.ENGLISH);
+      } else {
+        resname = new String(this.buffer).toUpperCase(Locale.ENGLISH);
+      }
+
+      if (resname.equalsIgnoreCase(NONE))
+        resname = NONE;
     }
-    if (resname.equalsIgnoreCase(NONE))
-      resname = NONE;
 
     // determine the correct file extension
     if (!resname.equals(NONE)) {
@@ -291,6 +318,8 @@ public class ResourceRef extends Datatype implements Editable, Readable, ActionL
         }
       }
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

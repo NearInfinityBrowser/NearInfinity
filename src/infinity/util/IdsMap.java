@@ -10,6 +10,7 @@ import infinity.resource.text.PlainTextResource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -27,7 +28,7 @@ public final class IdsMap
     this.entry = entry;
     StringTokenizer st;
     try {
-      st = new StringTokenizer(new PlainTextResource(entry).getText(), "\n");
+      st = new StringTokenizer(new PlainTextResource(entry).getText(), "\r\n");
     } catch (Exception e) {
       e.printStackTrace();
       return;
@@ -49,12 +50,12 @@ public final class IdsMap
         stringEntryMap = new HashMap<String, IdsMapEntry>();
         for (final Object newVar : idEntryMap.values()) {
           IdsMapEntry idsEntry = (IdsMapEntry)newVar;
-          stringEntryMap.put(idsEntry.getString().toUpperCase(), idsEntry);
+          stringEntryMap.put(idsEntry.getString().toUpperCase(Locale.ENGLISH), idsEntry);
         }
         for (int i = 0; i < overflow.size(); i++) {
           IdsMapEntry idsEntry = overflow.get(i);
-          if (!stringEntryMap.containsKey(idsEntry.getString().toUpperCase()))
-            stringEntryMap.put(idsEntry.getString().toUpperCase(), idsEntry);
+          if (!stringEntryMap.containsKey(idsEntry.getString().toUpperCase(Locale.ENGLISH)))
+            stringEntryMap.put(idsEntry.getString().toUpperCase(Locale.ENGLISH), idsEntry);
         }
       }
     }
@@ -124,7 +125,7 @@ public final class IdsMap
     if (entry.length() == 0 || entry.equals("0"))
       return null;
     if (stringEntryMap != null) {
-      IdsMapEntry idsEntry = stringEntryMap.get(entry.toUpperCase());
+      IdsMapEntry idsEntry = stringEntryMap.get(entry.toUpperCase(Locale.ENGLISH));
       if (idsEntry != null)
         return idsEntry;
     }

@@ -31,6 +31,7 @@ import infinity.util.StringResource;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the
@@ -556,7 +557,7 @@ public class SearchOptions
             if (caseSensitive) {
               return s2.contains(s1);
             } else {
-              return s2.toLowerCase().contains(s1.toLowerCase());
+              return s2.toLowerCase(Locale.ENGLISH).contains(s1.toLowerCase(Locale.ENGLISH));
             }
           }
         }
@@ -664,7 +665,7 @@ public class SearchOptions
               StructEntry entry = structList.get(i);
               if (entry != null) {
                 String name = entry.getName();
-                if (name.toUpperCase().contains(fieldName.toUpperCase())) {
+                if (name.toUpperCase(Locale.ENGLISH).contains(fieldName.toUpperCase(Locale.ENGLISH))) {
                   // field name matches
                   if (value instanceof String) {
                     bRet |= matchResourceRef(entry, value, false) || matchString(entry, value, false, false);

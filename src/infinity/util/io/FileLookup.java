@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public final class FileLookup
 {
-  private static FileLookup instance = null;
+  private static final FileLookup instance = new FileLookup();
 
   private final boolean isCaseSensitive;
 
@@ -31,11 +32,29 @@ public final class FileLookup
   /** Returns the current FileLookup instance. */
   public static FileLookup getInstance()
   {
-    if (instance == null) {
-      // lazy construction
-      instance = new FileLookup();
-    }
     return instance;
+  }
+
+  /**
+   * Convenience method of {@link #queryFilePath(File)}.
+   * Encapsulates and returns the resulting path string in a file object.
+   */
+  public File queryFile(File file)
+  {
+    if (file instanceof FileNI) {
+      return file;
+    } else {
+      return new File(queryFilePath(file));
+    }
+  }
+
+  /**
+   * Convenience method of {@link #queryFilePath(String)}.
+   * Encapsulates and returns the resulting path string in a file object.
+   */
+  public File queryFile(String fileName)
+  {
+    return new File(queryFilePath(fileName));
   }
 
   /**
@@ -48,12 +67,10 @@ public final class FileLookup
    */
   public String queryFilePath(File file)
   {
-    if (file != null) {
-      if (file instanceof FileNI) {
-        return file.getPath();
-      } else {
-        return queryFilePath(file.getPath());
-      }
+    if (file instanceof FileNI) {
+      return file.getPath();
+    } else if (file != null) {
+      return queryFilePath(file.getPath());
     } else {
       return null;
     }
@@ -186,10 +203,10 @@ public final class FileLookup
     boolean retVal = true;
     try {
       // checking case-sensitivity
-      File tmpFile = File.createTempFile("Ni_Abc", ".tmp");
+      File tmpFile = File.createTempFile("Ni_AbC", ".tmp");
       try {
-        File tmpUpper = new File(tmpFile.getPath().toUpperCase());
-        File tmpLower = new File(tmpFile.getPath().toLowerCase());
+        File tmpUpper = new File(tmpFile.getParent(), tmpFile.getName().toUpperCase(Locale.ENGLISH));
+        File tmpLower = new File(tmpFile.getParent(), tmpFile.getName().toLowerCase(Locale.ENGLISH));
         retVal = !(tmpUpper.isFile() && tmpLower.isFile());
 
         // Checking for FHS compatibility
@@ -298,7 +315,7 @@ public final class FileLookup
           sb.append('/');
         }
         if (isToLowered()) {
-          sb.append(srcNode.getName().toLowerCase());
+          sb.append(srcNode.getName().toLowerCase(Locale.ENGLISH));
         } else {
           sb.append(srcNode.getName());
         }
@@ -308,7 +325,7 @@ public final class FileLookup
           while (iter.hasNext()) {
             sb.append('/');
             if (isToLowered()) {
-              sb.append(iter.next().getName().toLowerCase());
+              sb.append(iter.next().getName().toLowerCase(Locale.ENGLISH));
             } else {
               sb.append(iter.next().getName());
             }

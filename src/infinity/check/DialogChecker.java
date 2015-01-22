@@ -118,7 +118,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
           } else {
             pw.println("Number of warnings: " + table.getRowCount());
           }
-          for (int i = 0; i < errorTable.getRowCount(); i++) {
+          for (int i = 0; i < table.getRowCount(); i++) {
             pw.println(table.getTableItemAt(i).toString());
           }
           pw.close();
@@ -199,8 +199,8 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       ResourceEntry entry = dlgFiles.get(i);
       try {
         DlgResource dialog = new DlgResource(entry);
-        for (int j = 0; j < dialog.getRowCount(); j++) {
-          StructEntry o = dialog.getStructEntryAt(j);
+        for (int j = 0; j < dialog.getFieldCount(); j++) {
+          StructEntry o = dialog.getField(j);
           if (o instanceof AbstractCode) {
             AbstractCode dialogCode = (AbstractCode)o;
             Compiler.getInstance().compileDialogCode(dialogCode.toString(), dialogCode instanceof Action);

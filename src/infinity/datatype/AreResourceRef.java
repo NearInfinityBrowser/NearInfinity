@@ -5,6 +5,7 @@
 package infinity.datatype;
 
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.are.AreResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
@@ -20,7 +21,12 @@ public final class AreResourceRef extends ResourceRef
 
   public AreResourceRef(byte h_buffer[], int offset, String name, AreResource are)
   {
-    super(h_buffer, offset, name, "WAV");
+    this(null, h_buffer, offset, name, are);
+  }
+
+  public AreResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, AreResource are)
+  {
+    super(parent, h_buffer, offset, name, "WAV");
     ResourceEntry res = ResourceFactory.getInstance().getResourceEntry(
             ((ResourceRef)are.getAttribute("WED resource")).getResourceName());
     String wedBIFF = "_dummy";

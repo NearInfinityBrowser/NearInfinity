@@ -48,13 +48,13 @@ public class WavcBuffer extends AcmBuffer
     int acmOfs = DynamicArray.getInt(buffer, 16);
     if (acmOfs < 0x1c || acmOfs + csize > buffer.length - offset)
       throw new Exception("Invalid WAVC header data");
-    short numChannels = DynamicArray.getShort(buffer, offset + 20);
+    int numChannels = DynamicArray.getUnsignedShort(buffer, offset + 20);
     if (numChannels < 1 || numChannels > 2)
       throw new Exception("Unsupported number of audio channels: " + numChannels);
-    short bitsPerSample = DynamicArray.getShort(buffer, offset + 22);
+    int bitsPerSample = DynamicArray.getUnsignedShort(buffer, offset + 22);
     if (bitsPerSample < 8 || bitsPerSample > 32)
       throw new Exception("Unsupported bits/sample: " + bitsPerSample);
-    short sampleRate = DynamicArray.getShort(buffer, offset + 24);
+    int sampleRate = DynamicArray.getUnsignedShort(buffer, offset + 24);
     if (sampleRate < 4096 || sampleRate > 192000)
       throw new Exception("Unsupported sample rate: " + sampleRate);
 

@@ -28,6 +28,7 @@ import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -39,6 +40,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -372,7 +374,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
             @Override
             public boolean accept(File pathname)
             {
-              return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".baf");
+              return pathname.isDirectory() || pathname.getName().toLowerCase(Locale.ENGLISH).endsWith(".baf");
             }
 
             @Override
@@ -448,7 +450,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     if (startpos == -1) return;
     int wordpos = -1;
     if (highlightText != null)
-      wordpos = s.toUpperCase().indexOf(highlightText.toUpperCase(), startpos);
+      wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(highlightText.toUpperCase(Locale.ENGLISH), startpos);
     if (wordpos != -1)
       sourceText.select(wordpos, wordpos + highlightText.length());
     else
@@ -467,7 +469,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     sourceText = new ScriptTextArea();
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    sourceText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
     sourceText.getDocument().addDocumentListener(this);
     InfinityScrollPane scrollDecompiled = new InfinityScrollPane(sourceText, true);
@@ -492,7 +494,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
     codeText = new InfinityTextArea(text, true);
     codeText.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    codeText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    codeText.setMargin(new Insets(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);
     codeText.getDocument().addDocumentListener(this);

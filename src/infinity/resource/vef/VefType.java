@@ -21,7 +21,12 @@ public final class VefType extends Bitmap
 
   public VefType(byte buffer[], int offset, int length)
   {
-    super(buffer, offset, length, "Resource type", s_restype);
+    this(null, buffer, offset, length);
+  }
+
+  public VefType(StructEntry parent, byte buffer[], int offset, int length)
+  {
+    super(parent, buffer, offset, length, "Resource type", s_restype);
   }
 
   // --------------------- Begin Interface Editable ---------------------

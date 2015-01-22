@@ -8,6 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.graphics.BmpResource;
 import infinity.util.DynamicArray;
 
@@ -31,7 +32,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public final class ColorValue extends Datatype implements Editable, Readable, ChangeListener, ActionListener
+public final class ColorValue extends Datatype implements Editable, ChangeListener, ActionListener
 {
   private static BufferedImage image;
   private JLabel colors[], infolabel;
@@ -77,7 +78,12 @@ public final class ColorValue extends Datatype implements Editable, Readable, Ch
 
   public ColorValue(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public ColorValue(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
   }
 
@@ -220,14 +226,14 @@ public final class ColorValue extends Datatype implements Editable, Readable, Ch
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
-        number = (int)DynamicArray.getByte(buffer, offset);
+        number = (int)DynamicArray.getUnsignedByte(buffer, offset);
         break;
       case 2:
-        number = (int)DynamicArray.getShort(buffer, offset);
+        number = (int)DynamicArray.getUnsignedShort(buffer, offset);
         break;
       case 4:
         number = DynamicArray.getInt(buffer, offset);
@@ -235,8 +241,8 @@ public final class ColorValue extends Datatype implements Editable, Readable, Ch
       default:
         throw new IllegalArgumentException();
     }
-    if (number < 0)
-      number += 256;
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

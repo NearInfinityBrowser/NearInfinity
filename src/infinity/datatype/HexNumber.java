@@ -4,11 +4,18 @@
 
 package infinity.datatype;
 
+import infinity.resource.StructEntry;
+
 public class HexNumber extends DecNumber
 {
   public HexNumber(byte buffer[], int offset, int length, String desc)
   {
-    super(buffer, offset, length, desc);
+    this(null, buffer, offset, length, desc);
+  }
+
+  public HexNumber(StructEntry parent, byte buffer[], int offset, int length, String desc)
+  {
+    super(parent, buffer, offset, length, desc);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------

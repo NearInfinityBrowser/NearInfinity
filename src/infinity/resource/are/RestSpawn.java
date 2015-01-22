@@ -20,23 +20,25 @@ public final class RestSpawn extends AbstractStruct // implements AddRemovable
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 32, "Name"));
-    for (int i = 0; i < 10; i++)
-      list.add(new StringRef(buffer, offset + 32 + i * 4, "Creature " + (i + 1) + " string"));
-    for (int i = 0; i < 10; i++)
-      list.add(new SpawnResourceRef(buffer, offset + 72 + i * 8, "Creature " + (i + 1)));
-    list.add(new DecNumber(buffer, offset + 152, 2, "# creatures"));
-    list.add(new DecNumber(buffer, offset + 154, 2, "Encounter difficulty"));
-    list.add(new DecNumber(buffer, offset + 156, 4, "Creature duration"));
-    list.add(new DecNumber(buffer, offset + 160, 2, "Creature wander distance"));
-    list.add(new DecNumber(buffer, offset + 162, 2, "Creature follow distance"));
-    list.add(new DecNumber(buffer, offset + 164, 2, "Maximum spawned creatures"));
-    list.add(new Bitmap(buffer, offset + 166, 2, "Is active?", new String[]{"No", "Yes"}));
-    list.add(new DecNumber(buffer, offset + 168, 2, "Probability (day)"));
-    list.add(new DecNumber(buffer, offset + 170, 2, "Probability (night)"));
-    list.add(new Unknown(buffer, offset + 172, 56));
+    addField(new TextString(buffer, offset, 32, "Name"));
+    for (int i = 0; i < 10; i++) {
+      addField(new StringRef(buffer, offset + 32 + i * 4, "Creature " + (i + 1) + " string"));
+    }
+    for (int i = 0; i < 10; i++) {
+      addField(new SpawnResourceRef(buffer, offset + 72 + i * 8, "Creature " + (i + 1)));
+    }
+    addField(new DecNumber(buffer, offset + 152, 2, "# creatures"));
+    addField(new DecNumber(buffer, offset + 154, 2, "Encounter difficulty"));
+    addField(new DecNumber(buffer, offset + 156, 4, "Creature duration"));
+    addField(new DecNumber(buffer, offset + 160, 2, "Creature wander distance"));
+    addField(new DecNumber(buffer, offset + 162, 2, "Creature follow distance"));
+    addField(new DecNumber(buffer, offset + 164, 2, "Maximum spawned creatures"));
+    addField(new Bitmap(buffer, offset + 166, 2, "Is active?", new String[]{"No", "Yes"}));
+    addField(new DecNumber(buffer, offset + 168, 2, "Probability (day)"));
+    addField(new DecNumber(buffer, offset + 170, 2, "Probability (night)"));
+    addField(new Unknown(buffer, offset + 172, 56));
     return offset + 228;
   }
 }

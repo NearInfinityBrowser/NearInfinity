@@ -25,11 +25,12 @@ public class PrintStreamNI extends PrintStream
 
   public PrintStreamNI(File file) throws FileNotFoundException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public PrintStreamNI(OutputStream out, boolean autoFlush)
   {
+    // No wrapper needed
     super(out, autoFlush);
   }
 
@@ -40,11 +41,12 @@ public class PrintStreamNI extends PrintStream
 
   public PrintStreamNI(File file, String csn) throws FileNotFoundException, UnsupportedEncodingException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)), csn);
+    super(FileLookup.getInstance().queryFile(file), csn);
   }
 
   public PrintStreamNI(OutputStream out, boolean autoFlush, String encoding) throws UnsupportedEncodingException
   {
+    // No wrapper needed
     super(out, autoFlush, encoding);
   }
 

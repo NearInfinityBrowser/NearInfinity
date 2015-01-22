@@ -18,7 +18,7 @@ import infinity.resource.are.SpawnPoint;
  */
 public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
 {
-  private static final String AvailableFmt = "%1$d spawn point%2$s available";
+  private static final String AvailableFmt = "Spawn points: %1$d";
 
   public LayerSpawnPoint(AreResource are, AreaViewer viewer)
   {
@@ -40,7 +40,7 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, SpawnPoint.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectSpawnPoint obj = new LayerObjectSpawnPoint(are, (SpawnPoint)listStruct.get(i));
             setListeners(obj);
             list.add(obj);
@@ -57,6 +57,6 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

@@ -5,8 +5,12 @@
 package infinity;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
 import infinity.gui.InfinityTextArea;
+import infinity.gui.PopupWindowEvent;
+import infinity.gui.PopupWindowListener;
+import infinity.gui.QuickSearch;
 import infinity.gui.ResourceTree;
 import infinity.gui.StatusBar;
 import infinity.gui.WindowBlocker;
@@ -27,7 +31,11 @@ import infinity.util.io.FileLookup;
 import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,17 +44,23 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileFilter;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
@@ -79,6 +93,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
   private Viewable viewable;
+  private ButtonPopupWindow bpwQuickSearch;
 
 
   public static boolean isDebug()
@@ -99,7 +114,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       @Override
       public boolean accept(File pathname)
       {
-        return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".key");
+        return pathname.isDirectory() || pathname.getName().toLowerCase(Locale.ENGLISH).endsWith(".key");
       }
 
       @Override
@@ -121,6 +136,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public static NearInfinity getInstance()
   {
     return browser;
+  }
+
+  /** Returns the NearInfinity version. */
+  public static String getVersion()
+  {
+    return BrowserMenuBar.VERSION;
   }
 
   private static boolean reloadFactory(boolean refreshonly)
@@ -175,7 +196,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     super("Near Infinity");
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setIconImage(Icons.getIcon("Application16.gif").getImage());
+    setAppIcon();
     Preferences prefs = Preferences.userNodeForPackage(getClass());
 
     BrowserMenuBar menuBar = new BrowserMenuBar(this);
@@ -208,20 +229,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
     });
     try {
-      switch (menuBar.getLookAndFeel()) {
-        case BrowserMenuBar.LOOKFEEL_JAVA:
-          UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-          break;
-        case BrowserMenuBar.LOOKFEEL_WINDOWS:
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-          break;
-        case BrowserMenuBar.LOOKFEEL_MOTIF:
-          UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-          break;
-        case BrowserMenuBar.LOOKFEEL_PLASTICXP:
-          UIManager.setLookAndFeel("com.jgoodies.plaf.plastic.PlasticXPLookAndFeel");
-          break;
-      }
+      LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
+      UIManager.setLookAndFeel(info.getClassName());
       SwingUtilities.updateComponentTreeUI(this);
     } catch (Exception e) {
       e.printStackTrace();
@@ -239,9 +248,81 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tree = new ResourceTree(treemodel);
     tree.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
+    JToolBar toolBar = new JToolBar("Navigation", JToolBar.HORIZONTAL);
+    JButton b;
+    toolBar.setRollover(true);
+    toolBar.setFloatable(false);
+    b = new JButton(Icons.getIcon("Expand16.png"));
+    b.addActionListener(this);
+    b.setActionCommand("Expand");
+    b.setToolTipText("Expand selected node");
+    b.setMargin(new Insets(4, 4, 4, 4));
+    toolBar.add(b);
+    b = new JButton(Icons.getIcon("Collapse16.png"));
+    b.addActionListener(this);
+    b.setActionCommand("Collapse");
+    b.setToolTipText("Collapse selected node");
+    b.setMargin(new Insets(4, 4, 4, 4));
+    toolBar.add(b);
+    toolBar.addSeparator(new Dimension(8, 24));
+    b = new JButton(Icons.getIcon("ExpandAll24.png"));
+    b.addActionListener(this);
+    b.setActionCommand("ExpandAll");
+    b.setToolTipText("Expand all");
+    b.setMargin(new Insets(0, 0, 0, 0));
+    toolBar.add(b);
+    b = new JButton(Icons.getIcon("CollapseAll24.png"));
+    b.addActionListener(this);
+    b.setActionCommand("CollapseAll");
+    b.setToolTipText("Collapse all");
+    b.setMargin(new Insets(0, 0, 0, 0));
+    toolBar.add(b);
+    toolBar.addSeparator(new Dimension(8, 24));
+    bpwQuickSearch = new ButtonPopupWindow(Icons.getIcon("Magnify16.png"));
+    bpwQuickSearch.setToolTipText("Find resource");
+    bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
+    toolBar.add(bpwQuickSearch);
+    bpwQuickSearch.addPopupWindowListener(new PopupWindowListener() {
+
+      @Override
+      public void popupWindowWillBecomeVisible(PopupWindowEvent event)
+      {
+        // XXX: Working around a visual glitch in QuickSearch's JComboBox popup list
+        //      by creating new QuickSearch instances on activation
+        bpwQuickSearch.setContent(new QuickSearch(bpwQuickSearch, tree));
+
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run()
+          {
+            Component c = bpwQuickSearch.getContent();
+            if (c != null) {
+              c.requestFocusInWindow();
+            }
+          }
+        });
+      }
+
+      @Override
+      public void popupWindowWillBecomeInvisible(PopupWindowEvent event)
+      {
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run()
+          {
+            bpwQuickSearch.setContent(null);
+            tree.requestFocusInWindow();
+          }
+        });
+      }
+    });
+
+    JPanel leftPanel = new JPanel(new BorderLayout());
+    leftPanel.add(tree, BorderLayout.CENTER);
+    leftPanel.add(toolBar, BorderLayout.NORTH);
+
     containerpanel = new JPanel(new BorderLayout());
-    containerpanel.setBackground(UIManager.getColor("desktop"));
-    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tree, containerpanel);
+    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
     spSplitter.setBorder(BorderFactory.createEmptyBorder());
     spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
     Container pane = getContentPane();
@@ -255,6 +336,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
     setVisible(true);
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
+
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run()
+      {
+        tree.requestFocusInWindow();
+      }
+    });
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -288,11 +377,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       blocker.setBlocked(false);
     }
     else if (event.getActionCommand().equals("Exit")) {
-      if (removeViewable()) {
-        ChildFrame.closeWindows();
-        storePreferences();
-        System.exit(0);
-      }
+      quit();
     }
     else if (event.getActionCommand().equals("Refresh")) {
       blocker.setBlocked(true);
@@ -313,20 +398,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
     else if (event.getActionCommand().equals("ChangeLook")) {
       try {
-        switch (BrowserMenuBar.getInstance().getLookAndFeel()) {
-          case BrowserMenuBar.LOOKFEEL_JAVA:
-            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-            break;
-          case BrowserMenuBar.LOOKFEEL_WINDOWS:
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            break;
-          case BrowserMenuBar.LOOKFEEL_MOTIF:
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-            break;
-          case BrowserMenuBar.LOOKFEEL_PLASTICXP:
-            UIManager.setLookAndFeel("com.jgoodies.plaf.plastic.PlasticXPLookAndFeel");
-            break;
-        }
+        LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
+        UIManager.setLookAndFeel(info.getClassName());
         SwingUtilities.updateComponentTreeUI(this);
         ChildFrame.updateWindowGUIs();
         tree.reloadRenderer();
@@ -335,6 +408,42 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
                                             "to completely change look and feel.");
       } catch (Exception e) {
         e.printStackTrace();
+      }
+    }
+    else if (event.getActionCommand().equals("Collapse")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.collapseSelected();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
+    }
+    else if (event.getActionCommand().equals("Expand")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.expandSelected();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
+    }
+    else if (event.getActionCommand().equals("CollapseAll")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.collapseAll();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
+    }
+    else if (event.getActionCommand().equals("ExpandAll")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.expandAll();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
       }
     }
   }
@@ -447,6 +556,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tree.select(resourceEntry);
   }
 
+  public void quit()
+  {
+    if (removeViewable()) {
+      ChildFrame.closeWindows();
+      storePreferences();
+      System.exit(0);
+    }
+  }
+
   private void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
@@ -458,6 +576,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, ResourceFactory.getRootDir().toString());
     BrowserMenuBar.getInstance().storePreferences();
+  }
+
+  private void setAppIcon()
+  {
+    List<Image> list = new ArrayList<Image>();
+    for (int i = 4; i < 8; i++) {
+      list.add(Icons.getImage(String.format("App%1$d.png", 1 << i)));
+    }
+    setIconImages(list);
   }
 
 // -------------------------- INNER CLASSES --------------------------

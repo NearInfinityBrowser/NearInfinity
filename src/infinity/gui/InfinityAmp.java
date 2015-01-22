@@ -262,7 +262,7 @@ public void run()
  private void playMus(ResourceEntry musEntry)
  {
    try {
-     StringTokenizer tokenizer = new StringTokenizer(new String(musEntry.getResourceData()), "\n");
+     StringTokenizer tokenizer = new StringTokenizer(new String(musEntry.getResourceData()), "\r\n");
      String dir = tokenizer.nextToken().trim();
      int count = Integer.valueOf(tokenizer.nextToken().trim()).intValue();
      entryList.clear();

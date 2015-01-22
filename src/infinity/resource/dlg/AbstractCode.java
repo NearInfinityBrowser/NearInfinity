@@ -23,6 +23,7 @@ import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -32,7 +33,6 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.SortedMap;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -49,10 +49,10 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   private static final ButtonPanel.Control CtrlErrors   = ButtonPanel.Control.Custom3;
   private static final ButtonPanel.Control CtrlWarnings = ButtonPanel.Control.Custom4;
 
-  private final DecNumber len;
-  private final DecNumber off;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
+  private DecNumber len;
+  private DecNumber off;
   private ScriptTextArea textArea;
   private SortedMap<Integer, String> errors, warnings;
   private String text;
@@ -66,8 +66,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   AbstractCode(byte buffer[], int offset, String nane)
   {
     super(offset, 8, nane);
-    off = new DecNumber(buffer, offset, 4, "Offset");
-    len = new DecNumber(buffer, offset + 4, 4, "Length");
+    read(buffer, offset);
     text = new String(buffer, off.getValue(), len.getValue());
   }
 
@@ -144,7 +143,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   public JComponent edit(ActionListener container)
   {
     textArea = new ScriptTextArea();
-    textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    textArea.setMargin(new Insets(3, 3, 3, 3));
     String convertedText = text;
     int index = convertedText.indexOf((int)'\r');
     while (index != -1) {
@@ -281,6 +280,18 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- End Interface Writeable ---------------------
 
+// --------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    off = new DecNumber(buffer, offset, 4, "Offset");
+    len = new DecNumber(buffer, offset + 4, 4, "Length");
+    return offset + getSize();
+  }
+
+// --------------------- End Interface Readable ---------------------
+
   @Override
   public String toString()
   {
@@ -303,6 +314,11 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   public int getTextLength()
   {
     return len.getValue();
+  }
+
+  public int getTextOffset()
+  {
+    return off.getValue();
   }
 
   public int updateOffset(int offs)

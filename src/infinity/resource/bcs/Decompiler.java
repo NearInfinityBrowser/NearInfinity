@@ -13,6 +13,7 @@ import infinity.util.IdsMapEntry;
 import infinity.util.StringResource;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -269,7 +270,7 @@ public final class Decompiler
     if (pIndex != -1 && pIndex != p.length() - 1) {
 //      if (nr < 0)
 //        nr += 4294967296L;
-      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase() + ".IDS");
+      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS");
       IdsMapEntry entry = map.getValue(nr);
       if (entry != null)
         code.append(entry.getString());
@@ -661,7 +662,7 @@ public final class Decompiler
       return null;
     ResourceEntry entry = null;
     if (definition.equalsIgnoreCase("S:DialogFile*"))
-      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:CutScene*") || definition.equalsIgnoreCase("S:ScriptFile*")
              || definition.equalsIgnoreCase("S:Script*"))
       entry = decompileStringCheck(value, new String[]{".BCS"});
@@ -673,7 +674,7 @@ public final class Decompiler
     else if (definition.equalsIgnoreCase("S:TextList*"))
       entry = decompileStringCheck(value, new String[]{".2DA"});
     else if (definition.equalsIgnoreCase("S:Effect*"))
-      entry = decompileStringCheck(value, new String[]{".BAM", ".VEF", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".VEF", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:Parchment*"))
       entry = decompileStringCheck(value, new String[]{".MOS"});
     else if (definition.equalsIgnoreCase("S:Spell*") || definition.equalsIgnoreCase("S:Res*"))

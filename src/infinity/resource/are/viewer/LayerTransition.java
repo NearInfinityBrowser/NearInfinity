@@ -16,7 +16,7 @@ import infinity.resource.are.AreResource;
  */
 public class LayerTransition extends BasicLayer<LayerObjectTransition>
 {
-  private static final String AvailableFmt = "%1$d map transition%2$s available";
+  private static final String AvailableFmt = "Map transitions: %1$d";
 
   public LayerTransition(AreResource are, AreaViewer viewer)
   {
@@ -59,6 +59,6 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

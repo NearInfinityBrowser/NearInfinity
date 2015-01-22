@@ -9,10 +9,12 @@ import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,7 +23,6 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.EnumMap;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -31,7 +32,7 @@ import javax.swing.text.BadLocationException;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rtextarea.RTextArea;
 
-public final class TextEdit extends Datatype implements Editable, Readable
+public final class TextEdit extends Datatype implements Editable
 {
   public static enum EOLType {
     UNIX, WINDOWS
@@ -52,7 +53,12 @@ public final class TextEdit extends Datatype implements Editable, Readable
 
   public TextEdit(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public TextEdit(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     read(buffer, offset);
     this.eolType = EOLType.UNIX;
     this.charsetName = Charset.defaultCharset().name();
@@ -71,7 +77,7 @@ public final class TextEdit extends Datatype implements Editable, Readable
       textArea.setHighlightCurrentLine(editable);
       textArea.setWrapStyleWord(true);
       textArea.setLineWrap(true);
-      textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      textArea.setMargin(new Insets(3, 3, 3, 3));
       textArea.setDocument(new FixedDocument(textArea, bytes.length));
       textArea.setEditable(editable);
     }
@@ -133,9 +139,11 @@ public final class TextEdit extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     bytes = Arrays.copyOfRange(buffer, offset, offset + getSize());
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

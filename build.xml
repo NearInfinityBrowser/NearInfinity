@@ -7,16 +7,20 @@
   <property name="lib.path.abs" location="${lib.path.rel}"/>
   <property name="jorbis.file" value="${lib.path.rel}/jorbis/jorbis.jar"/>
   <property name="rsyntaxtextarea.file" value="${lib.path.rel}/rsyntaxtextarea/rsyntaxtextarea.jar"/>
+  <property name="jhexview.file" value="${lib.path.rel}/jhexview/jhexview.jar"/>
 
   <target name="binary">
     <mkdir dir="${build.path}"/>
 
     <javac srcdir="${src.path}"
            destdir="${build.path}"
+           source="1.6"
+           target="1.6"
            includeantruntime="false"
+           deprecation="false"
            debug="false"
            debuglevel="lines,vars,source"
-           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}">
+           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}">
       <!--<compilerarg value="-Xlint:unchecked"/>-->
     </javac>
 

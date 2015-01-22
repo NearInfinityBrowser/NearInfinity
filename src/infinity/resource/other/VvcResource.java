@@ -4,19 +4,25 @@
 
 package infinity.resource.other;
 
+import javax.swing.JComponent;
+
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
 
-public final class VvcResource extends AbstractStruct implements Resource
+public final class VvcResource extends AbstractStruct implements Resource, HasViewerTabs
 {
   public static final String s_transparency[] = {"No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
                                                  "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
@@ -29,53 +35,91 @@ public final class VvcResource extends AbstractStruct implements Resource
   public static final String s_face[] = {"Use current", "Face target", "Follow target", "Follow path", "Lock orientation"};
   public static final String s_noyes[] = {"No", "Yes"};
 
+  private HexViewer hexViewer;
+
   public VvcResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
-    list.add(new ResourceRef(buffer, offset + 8, "Animation", "BAM"));
-    list.add(new ResourceRef(buffer, offset + 16, "Shadow", "BAM"));
-    list.add(new Flag(buffer, offset + 24, 2, "Drawing", s_transparency));
-    list.add(new Flag(buffer, offset + 26, 2, "Color adjustment", s_tint));
-    list.add(new Unknown(buffer, offset + 28, 4));
-    list.add(new Flag(buffer, offset + 32, 4, "Sequencing", s_seq));
-    list.add(new Unknown(buffer, offset + 36, 4));
-    list.add(new DecNumber(buffer, offset + 40, 4, "Position: X"));
-    list.add(new DecNumber(buffer, offset + 44, 4, "Position: Y"));
-    list.add(new Bitmap(buffer, offset + 48, 4, "Draw oriented", s_noyes));
-    list.add(new DecNumber(buffer, offset + 52, 4, "Frame rate"));
-    list.add(new DecNumber(buffer, offset + 56, 4, "# orientations"));
-    list.add(new DecNumber(buffer, offset + 60, 4, "Primary orientation"));
-    list.add(new Flag(buffer, offset + 64, 4, "Travel orientation", s_face));
-    list.add(new ResourceRef(buffer, offset + 68, "Palette", "BMP"));
-//    list.add(new Unknown(buffer, offset + 72, 4));
-    list.add(new DecNumber(buffer, offset + 76, 4, "Position: Z"));
-    list.add(new DecNumber(buffer, offset + 80, 4, "Light spot width"));
-    list.add(new DecNumber(buffer, offset + 84, 4, "Light spot height"));
-    list.add(new DecNumber(buffer, offset + 88, 4, "Light spot brightness"));
-    list.add(new DecNumber(buffer, offset + 92, 4, "Duration (frames)"));
-    list.add(new ResourceRef(buffer, offset + 96, "Resource", "VVC"));
-//    list.add(new Unknown(buffer, offset + 100, 4));
-    list.add(new DecNumber(buffer, offset + 104, 4, "First animation number"));
-    list.add(new DecNumber(buffer, offset + 108, 4, "Second animation number"));
-    list.add(new DecNumber(buffer, offset + 112, 4, "Current animation number"));
-    list.add(new Bitmap(buffer, offset + 116, 4, "Continuous playback", s_noyes));
-    list.add(new ResourceRef(buffer, offset + 120, "Starting sound", "WAV"));
-    list.add(new ResourceRef(buffer, offset + 128, "Duration sound", "WAV"));
-    list.add(new ResourceRef(buffer, offset + 136, "Alpha mask", "BAM"));
-//    list.add(new Unknown(buffer, offset + 136, 4));
-    list.add(new DecNumber(buffer, offset + 144, 4, "Third animation number"));
-    list.add(new ResourceRef(buffer, offset + 148, "Ending sound", "WAV"));
-    list.add(new Unknown(buffer, offset + 156, 336));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new ResourceRef(buffer, offset + 8, "Animation", "BAM"));
+    addField(new ResourceRef(buffer, offset + 16, "Shadow", "BAM"));
+    addField(new Flag(buffer, offset + 24, 2, "Drawing", s_transparency));
+    addField(new Flag(buffer, offset + 26, 2, "Color adjustment", s_tint));
+    addField(new Unknown(buffer, offset + 28, 4));
+    addField(new Flag(buffer, offset + 32, 4, "Sequencing", s_seq));
+    addField(new Unknown(buffer, offset + 36, 4));
+    addField(new DecNumber(buffer, offset + 40, 4, "Position: X"));
+    addField(new DecNumber(buffer, offset + 44, 4, "Position: Y"));
+    addField(new Bitmap(buffer, offset + 48, 4, "Draw oriented", s_noyes));
+    addField(new DecNumber(buffer, offset + 52, 4, "Frame rate"));
+    addField(new DecNumber(buffer, offset + 56, 4, "# orientations"));
+    addField(new DecNumber(buffer, offset + 60, 4, "Primary orientation"));
+    addField(new Flag(buffer, offset + 64, 4, "Travel orientation", s_face));
+    addField(new ResourceRef(buffer, offset + 68, "Palette", "BMP"));
+//    addField(new Unknown(buffer, offset + 72, 4));
+    addField(new DecNumber(buffer, offset + 76, 4, "Position: Z"));
+    addField(new DecNumber(buffer, offset + 80, 4, "Light spot width"));
+    addField(new DecNumber(buffer, offset + 84, 4, "Light spot height"));
+    addField(new DecNumber(buffer, offset + 88, 4, "Light spot brightness"));
+    addField(new DecNumber(buffer, offset + 92, 4, "Duration (frames)"));
+    addField(new ResourceRef(buffer, offset + 96, "Resource", "VVC"));
+//    addField(new Unknown(buffer, offset + 100, 4));
+    addField(new DecNumber(buffer, offset + 104, 4, "First animation number"));
+    addField(new DecNumber(buffer, offset + 108, 4, "Second animation number"));
+    addField(new DecNumber(buffer, offset + 112, 4, "Current animation number"));
+    addField(new Bitmap(buffer, offset + 116, 4, "Continuous playback", s_noyes));
+    addField(new ResourceRef(buffer, offset + 120, "Starting sound", "WAV"));
+    addField(new ResourceRef(buffer, offset + 128, "Duration sound", "WAV"));
+    addField(new ResourceRef(buffer, offset + 136, "Alpha mask", "BAM"));
+//    addField(new Unknown(buffer, offset + 136, 4));
+    addField(new DecNumber(buffer, offset + 144, 4, "Third animation number"));
+    addField(new ResourceRef(buffer, offset + 148, "Ending sound", "WAV"));
+    addField(new Unknown(buffer, offset + 156, 336));
     return offset + 492;
   }
 
+//--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.

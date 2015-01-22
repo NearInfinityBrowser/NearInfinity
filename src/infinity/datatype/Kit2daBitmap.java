@@ -9,6 +9,7 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.text.PlainTextResource;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
@@ -30,7 +31,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public final class Kit2daBitmap extends Datatype implements Editable, Readable
+public final class Kit2daBitmap extends Datatype implements Editable
 {
   private static final LongIntegerHashMap<KitlistEntry> kitsNumber = new LongIntegerHashMap<KitlistEntry>();
   private static final LongIntegerHashMap<KitlistEntry> kitsUnusable = new LongIntegerHashMap<KitlistEntry>();
@@ -43,7 +44,7 @@ public final class Kit2daBitmap extends Datatype implements Editable, Readable
     try {
       PlainTextResource kitlist = new PlainTextResource(
               ResourceFactory.getInstance().getResourceEntry("KITLIST.2DA"));
-      StringTokenizer st = new StringTokenizer(kitlist.getText(), "\n");
+      StringTokenizer st = new StringTokenizer(kitlist.getText(), "\r\n");
       if (st.hasMoreTokens())
         st.nextToken();
       if (st.hasMoreTokens())
@@ -89,12 +90,22 @@ public final class Kit2daBitmap extends Datatype implements Editable, Readable
 
   public Kit2daBitmap(byte buffer[], int offset)
   {
-    this(buffer, offset, true);
+    this(null, buffer, offset, true);
+  }
+
+  public Kit2daBitmap(StructEntry parent, byte buffer[], int offset)
+  {
+    this(parent, buffer, offset, true);
   }
 
   public Kit2daBitmap(byte buffer[], int offset, boolean useUnusable)
   {
-    super(offset, 4, "Kit");
+    this(null, buffer, offset, useUnusable);
+  }
+
+  public Kit2daBitmap(StructEntry parent, byte buffer[], int offset, boolean useUnusable)
+  {
+    super(parent, offset, 4, "Kit");
     this.useUnusable = useUnusable;
     if (kitsNumber.size() == 0)
       parseKitlist();
@@ -195,7 +206,7 @@ public final class Kit2daBitmap extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     if (buffer[offset + 3] == 0x40) {
       this.useUnusable = false;
@@ -206,6 +217,8 @@ public final class Kit2daBitmap extends Datatype implements Editable, Readable
           0x10000 * DynamicArray.getUnsignedShort(buffer, offset));
       value &= 0xffffffff;
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

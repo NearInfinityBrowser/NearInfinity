@@ -19,6 +19,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.HashMap;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -43,7 +44,7 @@ public final class Viewer extends JPanel
   public static String getSymbolicName(ResourceEntry entry, boolean formatted)
   {
     if (entry != null) {
-      String resName = entry.getResourceName().toUpperCase();
+      String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
       int idx = resName.lastIndexOf('.');
       String ext = (idx >= 0) ? resName.substring(idx+1) : "";
       String name = (idx >= 0) ? resName.substring(0, idx) : resName;

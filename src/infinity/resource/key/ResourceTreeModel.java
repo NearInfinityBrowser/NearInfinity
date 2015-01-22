@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.swing.event.TreeModelEvent;
@@ -89,7 +90,7 @@ public final class ResourceTreeModel implements TreeModel
   public void addDirectory(ResourceTreeFolder parentFolder, File directory)
   {
     File files[] = directory.listFiles();
-    if (files.length == 0)
+    if (files == null || files.length == 0)
       return;
 
     ResourceTreeFolder folder = getFolder(parentFolder, directory.getName());
@@ -117,7 +118,7 @@ public final class ResourceTreeModel implements TreeModel
     }
     folder.addResourceEntry(entry);
     if (entry.isVisible()) {
-      entries.put(entry.getResourceName().toUpperCase(), entry);
+      entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
     }
   }
 
@@ -175,7 +176,7 @@ public final class ResourceTreeModel implements TreeModel
   public ResourceEntry getResourceEntry(String entryname)
   {
     if (entryname != null) {
-      return entries.get(entryname.toUpperCase());
+      return entries.get(entryname.toUpperCase(Locale.ENGLISH));
     } else {
       return null;
     }
@@ -195,7 +196,7 @@ public final class ResourceTreeModel implements TreeModel
     TreeModelEvent event = new TreeModelEvent(this, path, new int[]{getIndexOfChild(parent, entry)},
                                               new Object[]{entry});
     parent.removeResourceEntry(entry);
-    entries.remove(entry.toString().toUpperCase());
+    entries.remove(entry.toString().toUpperCase(Locale.ENGLISH));
     if (parent.getChildCount() == 0) {
       root.removeFolder(parent);
       folders.remove(parent.folderName());
