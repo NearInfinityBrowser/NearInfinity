@@ -18,6 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -36,45 +37,53 @@ public final class BmpResource implements Resource, ActionListener
   public BmpResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    byte[] data = entry.getResourceData();
-    new String(data, 0, 2); // Signature
-    DynamicArray.getInt(data, 2); // Size
-    DynamicArray.getInt(data, 6); // Reserved
-    int rasteroff = DynamicArray.getInt(data, 10);
+    try {
+      image = ImageIO.read(entry.getResourceDataAsStream());
+    } catch (Exception e) {
+      image = null;
+    }
+    if (image == null) {
+      byte[] data = entry.getResourceData();
+      new String(data, 0, 2); // Signature
+      DynamicArray.getInt(data, 2); // Size
+      DynamicArray.getInt(data, 6); // Reserved
+      int rasteroff = DynamicArray.getInt(data, 10);
 
-    DynamicArray.getInt(data, 14); // Headersize
-    int width = DynamicArray.getInt(data, 18);
-    int height = DynamicArray.getInt(data, 22);
-    DynamicArray.getShort(data, 26); // Planes
-    int bitcount = (int)DynamicArray.getShort(data, 28);
-    int compression = DynamicArray.getInt(data, 30);
-    if ((compression == 0 || compression == 3) && bitcount <= 32) {
-      DynamicArray.getInt(data, 34); // Comprsize
-      DynamicArray.getInt(data, 38); // Xpixprm
-      DynamicArray.getInt(data, 42); // Ypixprm
-      int colsUsed = DynamicArray.getInt(data, 46); // Colorsused
-      DynamicArray.getInt(data, 50); // Colorsimp
+      DynamicArray.getInt(data, 14); // Headersize
+      int width = DynamicArray.getInt(data, 18);
+      int height = DynamicArray.getInt(data, 22);
+      DynamicArray.getShort(data, 26); // Planes
+      int bitcount = (int)DynamicArray.getShort(data, 28);
+      int compression = DynamicArray.getInt(data, 30);
+      if ((compression == 0 || compression == 3) && bitcount <= 32) {
+        DynamicArray.getInt(data, 34); // Comprsize
+        DynamicArray.getInt(data, 38); // Xpixprm
+        DynamicArray.getInt(data, 42); // Ypixprm
+        int colsUsed = DynamicArray.getInt(data, 46); // Colorsused
+        DynamicArray.getInt(data, 50); // Colorsimp
 
-      if (bitcount <= 8) {
-        if (colsUsed == 0)
-          colsUsed = 1 << bitcount;
-        int palSize = 4 * colsUsed;
-        palette = new Palette(data, rasteroff - palSize, palSize);
+        if (bitcount <= 8) {
+          if (colsUsed == 0)
+            colsUsed = 1 << bitcount;
+          int palSize = 4 * colsUsed;
+          palette = new Palette(data, rasteroff - palSize, palSize);
+        }
+
+        int bytesprline = bitcount * width / 8;
+        int padded = 4 - bytesprline % 4;
+        if (padded == 4)
+          padded = 0;
+
+        image = ColorConvert.createCompatibleImage(width, height, bitcount >= 32);
+        int offset = rasteroff;
+        for (int y = height - 1; y >= 0; y--) {
+          setPixels(data, offset, bitcount, bytesprline, y, palette);
+          offset += bytesprline + padded;
+        }
+      } else {
+        throw new Exception(String.format("%1$s: Unsupported BMP format", entry.getResourceName()));
       }
-
-      int bytesprline = bitcount * width / 8;
-      int padded = 4 - bytesprline % 4;
-      if (padded == 4)
-        padded = 0;
-
-      image = ColorConvert.createCompatibleImage(width, height, bitcount >= 32);
-      int offset = rasteroff;
-      for (int y = height - 1; y >= 0; y--) {
-        setPixels(data, offset, bitcount, bytesprline, y, palette);
-        offset += bytesprline + padded;
-      }
-    } else
-      throw new Exception("Unsupported BMP format");
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
