@@ -113,7 +113,7 @@ public final class BmpResource implements Resource, ActionListener
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);;
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
     panel = new JPanel();

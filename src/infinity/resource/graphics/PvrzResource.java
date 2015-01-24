@@ -13,6 +13,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
+import infinity.search.ReferenceSearcher;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -48,7 +50,10 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == miExport) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+      new ReferenceSearcher(entry, new String[]{"BAM", "MOS", "TIS"}, panel.getTopLevelAncestor());
+    }
+    else if (event.getSource() == miExport) {
       // export as original PVRZ
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miPNG) {
@@ -102,12 +107,17 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
+    JButton btn = ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences));
+    btn.addActionListener(this);
+    btn.setEnabled(ResourceFactory.isEnhancedEdition());
+
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
     miPNG = new JMenuItem("as PNG");
     miPNG.addActionListener(this);
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
     bpmExport.setMenuItems(new JMenuItem[]{miExport, miPNG});
+
     rcImage = new RenderCanvas();
     rcImage.setHorizontalAlignment(SwingConstants.CENTER);
     rcImage.setVerticalAlignment(SwingConstants.CENTER);

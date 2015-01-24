@@ -685,4 +685,19 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     // Disadvantage: does not take extra tiles into account
     return (int)(Math.sqrt(tileCount)*1.18);
   }
+
+  /** Returns whether the specified PVRZ index can be found in the current TIS resource. */
+  public boolean containsPvrzReference(int index)
+  {
+    boolean retVal = false;
+    if (index >= 0 && index <= 99) {
+      if (decoder instanceof TisV2Decoder) {
+        TisV2Decoder tisv2 = (TisV2Decoder)decoder;
+        for (int i = 0, count = tisv2.getTileCount(); i < count && !retVal; i++) {
+          retVal = (tisv2.getPvrzPage(i) == index);
+        }
+      }
+    }
+    return retVal;
+  }
 }

@@ -166,5 +166,10 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   }
 
   abstract void search(ResourceEntry entry, Resource resource);
+
+  ResourceEntry getTargetEntry()
+  {
+    return targetEntry;
+  }
 }
 

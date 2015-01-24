@@ -37,6 +37,7 @@ import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -1022,5 +1023,53 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     };
     workerConvert.addPropertyChangeListener(this);
     workerConvert.execute();
+  }
+
+  /** Returns whether the specified PVRZ index can be found in the current BAM resource. */
+  public boolean containsPvrzReference(int index)
+  {
+    boolean retVal = false;
+    if (index >= 0 && index <= 99999) {
+      try {
+        InputStream is = entry.getResourceDataAsStream();
+        if (is != null) {
+          try {
+            // parsing resource header
+            byte[] sig = new byte[8];
+            byte[] buf = new byte[24];
+            long len;
+            long curOfs = 0;
+            if ((len = is.read(sig)) != sig.length) throw new Exception();
+            if (!"BAM V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+            curOfs += len;
+            if ((len = is.read(buf)) != buf.length) throw new Exception();
+            curOfs += len;
+            int numBlocks = DynamicArray.getInt(buf, 8);
+            int ofsBlocks = DynamicArray.getInt(buf, 20);
+            curOfs = ofsBlocks - curOfs;
+            if (curOfs > 0) {
+              do {
+                len = is.skip(curOfs);
+                if (len <= 0) throw new Exception();
+                curOfs -= len;
+              } while (curOfs > 0);
+            }
+
+            // parsing blocks
+            buf = new byte[28];
+            for (int i = 0; i < numBlocks && !retVal; i++) {
+              if (is.read(buf) != buf.length) throw new Exception();
+              int curIndex = DynamicArray.getInt(buf, 0);
+              retVal = (curIndex == index);
+            }
+          } finally {
+            is.close();
+            is = null;
+          }
+        }
+      } catch (Exception e) {
+      }
+    }
+    return retVal;
   }
 }
