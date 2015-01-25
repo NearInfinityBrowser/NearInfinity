@@ -290,16 +290,19 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   static void restoreResource(ResourceEntry entry)
   {
     if (entry != null) {
-      String[] options = { "Restore", "Cancel" };
-      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(),
-                                       "Are you sure you want to restore " + entry + " with a previous version?",
-                                       "Restore backup", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+      final String[] options = { "Restore", "Cancel" };
+      final String msgBackup = "Are you sure you want to restore " + entry + " with a previous version?";
+      final String msgBiffed = "Are you sure you want to restore the biffed version of " + entry + "?";
+      File bakFile = getBackupFile(entry);
+      boolean isBackedUp = (bakFile != null && (bakFile.getName().toLowerCase(Locale.ENGLISH).endsWith(".bak")));
+      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), isBackedUp ?
+                                       msgBackup : msgBiffed, "Restore backup",
+                                       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                                        null, options, options[0]) == JOptionPane.YES_OPTION) {
         NearInfinity.getInstance().removeViewable();
-        File curFile = getCurrentFile(entry);
-        File bakFile = getBackupFile(entry);
         if (bakFile != null && (bakFile.getName().toLowerCase(Locale.ENGLISH).endsWith(".bak"))) {
           // .bak available -> restore .bak version
+          File curFile = getCurrentFile(entry);
           File tmpFile = getTempFile(curFile);
           if (curFile != null && curFile.isFile() && bakFile != null && bakFile.isFile()) {
             if (curFile.renameTo(tmpFile)) {
