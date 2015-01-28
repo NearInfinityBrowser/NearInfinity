@@ -14,6 +14,7 @@ import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
+import infinity.resource.ResourceFactory;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -148,7 +149,11 @@ final class Control extends AbstractStruct // implements AddRemovable
         addField(new DecNumber(buffer, offset + 50, 2, "Caret position: X"));
         addField(new DecNumber(buffer, offset + 52, 2, "Caret position: Y"));
         addField(new DecNumber(buffer, offset + 54, 4, "Text field ID"));
-        addField(new ResourceRef(buffer, offset + 58, "Font", "BAM"));
+        if (ResourceFactory.isEnhancedEdition()) {
+          addField(new ResourceRef(buffer, offset + 58, "Font", new String[]{"FNT", "BAM"}));
+        } else {
+          addField(new ResourceRef(buffer, offset + 58, "Font", "BAM"));
+        }
         addField(new Unknown(buffer, offset + 66, 2));
         addField(new TextString(buffer, offset + 68, 32, "Initial text"));
         addField(new DecNumber(buffer, offset + 100, 2, "Field length"));
@@ -156,8 +161,13 @@ final class Control extends AbstractStruct // implements AddRemovable
         offset += 106;
         break;
       case 5: // Text area
-        addField(new ResourceRef(buffer, offset + 14, "Font (main text)", "BAM"));
-        addField(new ResourceRef(buffer, offset + 22, "Font (initials)", "BAM"));
+        if (ResourceFactory.isEnhancedEdition()) {
+          addField(new ResourceRef(buffer, offset + 14, "Font (main text)", new String[]{"FNT", "BAM"}));
+          addField(new ResourceRef(buffer, offset + 22, "Font (initials)", new String[]{"FNT", "BAM"}));
+        } else {
+          addField(new ResourceRef(buffer, offset + 14, "Font (main text)", "BAM"));
+          addField(new ResourceRef(buffer, offset + 22, "Font (initials)", "BAM"));
+        }
         addField(new ColorPicker(buffer, offset + 30, "Color 1", ColorPicker.Format.RGBX));
         addField(new ColorPicker(buffer, offset + 34, "Color 2", ColorPicker.Format.RGBX));
         addField(new ColorPicker(buffer, offset + 38, "Color 3", ColorPicker.Format.RGBX));
@@ -166,7 +176,11 @@ final class Control extends AbstractStruct // implements AddRemovable
         break;
       case 6: // Label
         addField(new StringRef(buffer, offset + 14, "Initial text"));
-        addField(new ResourceRef(buffer, offset + 18, "Font", "BAM"));
+        if (ResourceFactory.isEnhancedEdition()) {
+          addField(new ResourceRef(buffer, offset + 18, "Font", new String[]{"FNT", "BAM"}));
+        } else {
+          addField(new ResourceRef(buffer, offset + 18, "Font", "BAM"));
+        }
         addField(new ColorPicker(buffer, offset + 26, "Color 1", ColorPicker.Format.RGBX));
         addField(new ColorPicker(buffer, offset + 30, "Color 2", ColorPicker.Format.RGBX));
         addField(new Flag(buffer, offset + 34, 2, "Text flags", s_label));

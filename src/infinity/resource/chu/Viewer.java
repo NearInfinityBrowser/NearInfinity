@@ -1661,6 +1661,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               String text = ((TextString)getResource().getAttribute("Initial text")).toString();
               if (!text.isEmpty()) {
                 resName = ((ResourceRef)getResource().getAttribute("Font")).getResourceName();
+                resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
                 if (bam != null) {
                   int maxLen = ((DecNumber)getResource().getAttribute("Field length")).getValue();
@@ -1812,6 +1813,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               String text = StringResource.getStringRef(((StringRef)getResource().getAttribute("Initial text")).getValue());
               if (text != null) {
                 String resName = ((ResourceRef)getResource().getAttribute("Font")).getResourceName();
+                resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
                 if (bam != null) {
                   Flag flags = (Flag)getResource().getAttribute("Text flags");
