@@ -98,10 +98,11 @@ public final class ResourceFactory
   {
     String bgdirs[] = {"Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
                        "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave"};
-    String bgeeDirs[] = {"BPSave", "Characters", "Movies", "MPSave", "MPBPSave", "Music", "Portraits",
-                         "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave"};
-    String iwdeeDirs[] = {"Characters", "Movies", "MPSave", "Music", "Portraits", "Save",
-                          "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave"};
+    String bgeeDirs[] = {"BPSave", "Characters", "Fonts", "Movies", "MPSave",
+                         "MPBPSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot",
+                         "Scripts", "Temp", "TempSave"};
+    String iwdeeDirs[] = {"Characters", "Fonts", "Movies", "MPSave", "Music", "Portraits",
+                          "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave"};
 
     games = new GameConfig[18];
     games[ID_UNKNOWNGAME] = new GameConfig("Unknown game", "baldur.ini", bgdirs);
