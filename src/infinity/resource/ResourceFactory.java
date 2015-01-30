@@ -78,10 +78,14 @@ import javax.swing.filechooser.FileSystemView;
 public final class ResourceFactory
 {
   public static final String OVERRIDEFOLDER = "Override";
+
+  // supported game IDs
   public static final int ID_UNKNOWNGAME = 0, ID_BG1 = 1, ID_BG1TOTSC = 2, ID_TORMENT = 3, ID_ICEWIND = 4;
-  public static final int ID_ICEWINDHOW = 5, ID_ICEWINDHOWTOT = 6, ID_BG2 = 7, ID_BG2TOB = 8, ID_NWN = 9;
-  public static final int ID_ICEWIND2 = 10, ID_KOTOR = 11, ID_TUTU = 12, ID_DEMO = 13, ID_KOTOR2 = 14;
-  public static final int ID_BGEE = 15, ID_BG2EE = 16, ID_IWDEE = 17;
+  public static final int ID_ICEWINDHOW = 5, ID_ICEWINDHOWTOT = 6, ID_BG2 = 7, ID_BG2TOB = 8;
+  public static final int ID_ICEWIND2 = 10, ID_BGEE = 15, ID_BG2EE = 16, ID_IWDEE = 17;
+  // not used anymore
+  private static final int ID_NWN = 9, ID_KOTOR = 11, ID_TUTU = 12, ID_DEMO = 13, ID_KOTOR2 = 14;
+
   private static File rootDir, langRoot, userRoot;
   private static File[] rootDirs;
   private static final GameConfig[] games;
