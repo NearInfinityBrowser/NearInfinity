@@ -173,6 +173,7 @@ public final class BrowserMenuBar extends JMenuBar
     gameMenu.gameLoaded(oldGame, oldFile);
     fileMenu.gameLoaded();
     editMenu.gameLoaded();
+    searchMenu.gameLoaded();
     optionsMenu.gameLoaded();
   }
 
@@ -795,8 +796,9 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class SearchMenu extends JMenu implements ActionListener
   {
-    private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS"};
+    private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS", "INI"};
     private final JMenuItem searchString, searchFile, searchResource;
+    private final JMenu textSearchMenu;
 
     private SearchMenu()
     {
@@ -815,7 +817,7 @@ public final class BrowserMenuBar extends JMenuBar
           Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.ALT_MASK));
       add(searchResource);
 
-      JMenu textSearchMenu = new JMenu("Text Search");
+      textSearchMenu = new JMenu("Text Search");
       textSearchMenu.setIcon(Icons.getIcon("Edit16.gif"));
       for (final String type : TEXTSEARCH) {
         JMenuItem textSearch = new JMenuItem(type);
@@ -824,6 +826,26 @@ public final class BrowserMenuBar extends JMenuBar
         textSearchMenu.add(textSearch);
       }
       add(textSearchMenu);
+    }
+
+    private void gameLoaded()
+    {
+      // Enable INI search only if the game is supporting it
+      for (int i = 0, count = textSearchMenu.getMenuComponentCount(); i < count; i++) {
+        if (textSearchMenu.getMenuComponent(i) instanceof JMenuItem) {
+          JMenuItem mi = (JMenuItem)textSearchMenu.getMenuComponent(i);
+          if ("INI".equals(mi.getText())) {
+            int id = ResourceFactory.getGameID();
+            if (id == ResourceFactory.ID_TORMENT    || id == ResourceFactory.ID_ICEWIND ||
+                id == ResourceFactory.ID_ICEWINDHOW || id == ResourceFactory.ID_ICEWINDHOWTOT ||
+                id == ResourceFactory.ID_IWDEE      || id == ResourceFactory.ID_ICEWIND2) {
+              mi.setEnabled(true);
+            } else {
+              mi.setEnabled(false);
+            }
+          }
+        }
+      }
     }
 
     @Override
