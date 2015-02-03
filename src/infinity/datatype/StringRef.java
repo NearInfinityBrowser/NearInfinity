@@ -237,7 +237,12 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
   public String toString(boolean extended)
   {
-    return StringResource.getStringRef(value, extended);
+    return toString(extended, false);
+  }
+
+  public String toString(boolean extended, boolean asPrefix)
+  {
+    return StringResource.getStringRef(value, extended, asPrefix);
   }
 
   public int getValue()

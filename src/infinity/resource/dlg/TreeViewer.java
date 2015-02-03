@@ -718,10 +718,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private static abstract class ItemBase
   {
      private final DlgResource dlg;
+     private final boolean showStrrefs;
 
      public ItemBase(DlgResource dlg)
      {
        this.dlg = dlg;
+       this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
      }
 
      /** Returns the dialog resource object. */
@@ -742,6 +744,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
      /** Returns the icon associated with the item type. */
      public abstract Icon getIcon();
+
+     /** Returns whether to show the Strref value next to the string. */
+     protected boolean showStrrefs() { return showStrrefs; }
   }
 
   // Meta class for identifying root node
@@ -884,7 +889,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     public String toString()
     {
       if (state != null) {
-        String text = StringResource.getStringRef(state.getResponse().getValue());
+        String text = StringResource.getStringRef(state.getResponse().getValue(), showStrrefs(), true);
         if (text.length() > MAX_LENGTH) {
           text = text.substring(0, MAX_LENGTH) + "...";
         }
@@ -934,7 +939,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (trans != null) {
         if (trans.getFlag().isFlagSet(0)) {
           // Transition contains text
-          String text = StringResource.getStringRef(trans.getAssociatedText().getValue());
+          String text = StringResource.getStringRef(trans.getAssociatedText().getValue(), showStrrefs(), true);
           if (text.length() > MAX_LENGTH) {
             text = text.substring(0, MAX_LENGTH) + "...";
           }
