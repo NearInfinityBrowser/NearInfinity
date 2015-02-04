@@ -283,6 +283,15 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
                                 StringResource.getStringRef(state.getResponse().getValue(),
                                                             showStrrefs));
 
+      // updating state WAV Res
+      String responseText = StringResource.getResource(state.getResponse().getValue());
+      if (responseText != null) {
+        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
+        dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText);
+      } else {
+        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, false);
+      }
+
       // updating state triggers
       if (state.getTriggerIndex() >= 0) {
         dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
@@ -1503,7 +1512,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   {
     /** Identifies the respective controls for displaying information. */
     private enum Type {
-      STATE, STATE_TEXT, STATE_TRIGGER,
+      STATE, STATE_TEXT, STATE_WAV, STATE_TRIGGER,
       RESPONSE, RESPONSE_FLAGS, RESPONSE_TEXT, RESPONSE_JOURNAL, RESPONSE_TRIGGER, RESPONSE_ACTION
     }
 
@@ -1512,9 +1521,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private static final String CARD_RESPONSE = "Response";
 
     private final CardLayout cardLayout;
-    private final JPanel pMainPanel, pState, pResponse, pStateText, pStateTrigger, pResponseFlags,
+    private final JPanel pMainPanel, pState, pResponse, pStateText, pStateWAV, pStateTrigger, pResponseFlags,
                          pResponseText, pResponseJournal, pResponseTrigger, pResponseAction;
-    private final JTextArea taStateText, taStateTrigger;
+    private final JTextArea taStateText, taStateWAV, taStateTrigger;
     private final JTextArea taResponseText, taResponseJournal, taResponseTrigger, taResponseAction;
     private final JTextField tfResponseFlags;
 
@@ -1545,6 +1554,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pStateText.setBorder(createTitledBorder("Associated text", Font.BOLD, false));
       pStateText.add(taStateText, BorderLayout.CENTER);
 
+      taStateWAV = createReadOnlyTextArea();
+      taStateWAV.setMargin(new Insets(0, 4, 0, 4));
+      pStateWAV = new JPanel(new BorderLayout());
+      pStateWAV.setBorder(createTitledBorder("Sound Resource", Font.BOLD, false));
+      pStateWAV.add(taStateWAV, BorderLayout.CENTER);
+
       taStateTrigger = createReadOnlyTextArea();
       taStateTrigger.setFont(BrowserMenuBar.getInstance().getScriptFont());
       taStateTrigger.setMargin(new Insets(0, 4, 0, 4));
@@ -1557,8 +1572,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pState.add(pStateText, gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                               GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+      pState.add(pStateWAV, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
       pState.add(pStateTrigger, gbc);
-      gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+      gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       pState.add(new JPanel(), gbc);
 
@@ -1662,6 +1680,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (text == null) text = "";
       switch (type) {
         case STATE_TEXT:        taStateText.setText(text); break;
+        case STATE_WAV:         taStateWAV.setText(text); break;
         case STATE_TRIGGER:     taStateTrigger.setText(text); break;
         case RESPONSE_FLAGS:    tfResponseFlags.setText(text); break;
         case RESPONSE_TEXT:     taResponseText.setText(text); break;
@@ -1680,6 +1699,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         case STATE:             return pState;
         case RESPONSE:          return pResponse;
         case STATE_TEXT:        return pStateText;
+        case STATE_WAV:         return pStateWAV;
         case STATE_TRIGGER:     return pStateTrigger;
         case RESPONSE_FLAGS:    return pResponseFlags;
         case RESPONSE_TEXT:     return pResponseText;
@@ -1697,6 +1717,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         if (cardName.equals(CARD_STATE)) {
           updateControlText(Type.STATE_TEXT, "");
           showControl(Type.STATE_TEXT, false);
+          updateControlText(Type.STATE_WAV, "");
+          showControl(Type.STATE_WAV, false);
           updateControlText(Type.STATE_TRIGGER, "");
           showControl(Type.STATE_TRIGGER, false);
         } else if (cardName.equals(CARD_RESPONSE)) {
