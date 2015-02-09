@@ -64,7 +64,6 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     STRREF_ITEM.get(3).add(new StrrefItem(19428, "Biography of a rogue"));
     STRREF_ITEM.get(3).add(new StrrefItem(27863, "Biography of a sorcerer"));
     STRREF_ITEM.get(3).add(new StrrefItem(19430, "Biography of a wizard"));
-    // TODO: check if needed!
     // initializing IWDEE items
     STRREF_ITEM.add(new Vector<StrrefItem>());
     STRREF_ITEM.get(4).add(new StrrefItem(-1,    "User-defined biography"));
@@ -76,6 +75,9 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     STRREF_ITEM.get(4).add(new StrrefItem(19430, "Biography of a mage"));
     STRREF_ITEM.get(4).add(new StrrefItem(19428, "Biography of a thief"));
     STRREF_ITEM.get(4).add(new StrrefItem(19425, "Biography of a bard"));
+    STRREF_ITEM.get(4).add(new StrrefItem(40284, "Biography of a sorcerer"));
+    STRREF_ITEM.get(4).add(new StrrefItem(40273, "Biography of a monk"));
+    STRREF_ITEM.get(4).add(new StrrefItem(40276, "Biography of a barbarian"));
   }
 
   private JComboBox cbStrref;
@@ -207,7 +209,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
       case ResourceFactory.ID_ICEWIND2:
         gameId = 3;
         break;
-      case ResourceFactory.ID_IWDEE:    // TODO: check if needed!
+      case ResourceFactory.ID_IWDEE:
         gameId = 4;
         break;
       default:
