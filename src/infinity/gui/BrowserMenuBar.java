@@ -313,6 +313,11 @@ public final class BrowserMenuBar extends JMenuBar
     return OptionsMenu.FONTS[0];
   }
 
+  public String getSelectedCharset()
+  {
+    return optionsMenu.charsetName(optionsMenu.getSelectedButtonData());
+  }
+
   public boolean backupOnSave()
   {
     return optionsMenu.optionBackupOnSave.isSelected();

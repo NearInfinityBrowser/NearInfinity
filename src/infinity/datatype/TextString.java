@@ -50,7 +50,7 @@ public final class TextString extends Datatype implements InlineEditable
   public void write(OutputStream os) throws IOException
   {
     if (text != null) {
-      byte[] buf = text.getBytes(Charset.forName("ISO-8859-1"));
+      byte[] buf = text.getBytes(Charset.forName("windows-1252"));
       int len = Math.min(buf.length, bytes.length);
       System.arraycopy(buf, 0, bytes, 0, len);
       if (len < bytes.length) {
