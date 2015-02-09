@@ -9,6 +9,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
+import infinity.search.ReferenceSearcher;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -37,7 +38,9 @@ public final class WbmResource implements Resource, ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry,panel.getTopLevelAncestor());
     }
   }
@@ -59,6 +62,7 @@ public final class WbmResource implements Resource, ActionListener
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
     JLabel l = new JLabel("Playback not supported.", SwingConstants.CENTER);

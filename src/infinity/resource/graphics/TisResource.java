@@ -18,6 +18,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
+import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 
@@ -48,6 +49,7 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -98,7 +100,9 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == miExport) {
+    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FindReferences)) {
+      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+    } else if (event.getSource() == miExport) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportLegacyTis) {
       blocker = new WindowBlocker(rpc);
@@ -441,6 +445,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
     bpmExport.setMenuItems(mi);
 

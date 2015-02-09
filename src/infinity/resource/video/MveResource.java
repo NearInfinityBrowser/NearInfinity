@@ -13,6 +13,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
+import infinity.search.ReferenceSearcher;
 import infinity.util.MassExporter;
 import infinity.util.io.FileNI;
 
@@ -82,7 +83,9 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (miExport == event.getSource()) {
+    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FindReferences)) {
+      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+    } else if (miExport == event.getSource()) {
       ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
     } else if (miExportExecutable == event.getSource()) {
       JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
@@ -268,6 +271,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     buttonPanel.addControl(bPlay, CtrlPlay);
     buttonPanel.addControl(bPause, CtrlPause);
     buttonPanel.addControl(bStop, CtrlStop);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
     buttonPanel.addControl(optionsPanel);
 
