@@ -369,6 +369,22 @@ public final class Profile
   }
 
   /**
+   * Converts the string representation of a game type into a {@link Game} enum type.
+   * Falls back to <code>Game.Unknown</code> on error.
+   */
+  public static Game gameFromString(String gameName)
+  {
+    if (gameName != null && !gameName.isEmpty()) {
+      try {
+        return Enum.valueOf(Game.class, gameName);
+      } catch (IllegalArgumentException e) {
+        System.err.println("Unknown game type \"" + gameName + "\" specified. Falling back to \"Unknown\".");
+      }
+    }
+    return Game.Unknown;
+  }
+
+  /**
    * Initializes properties of a new game.
    * @param keyFile Full path to the chitin.key of the opened game.
    * @return <code>true</code> if the game has been initialized successfully, <code>false</code> otherwise.

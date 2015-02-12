@@ -412,7 +412,7 @@ public final class BrowserMenuBar extends JMenuBar
       add(recentGames);
 
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
-        Profile.Game game = Profile.Game.valueOf(prefs.get(LASTGAME_IDS[i], Profile.Game.Unknown.toString()));
+        Profile.Game game = Profile.gameFromString(prefs.get(LASTGAME_IDS[i], Profile.Game.Unknown.toString()));
         String gamepath = prefs.get(LASTGAME_PATH[i], null);
         if (game != Profile.Game.Unknown && gamepath != null && new FileNI(gamepath).exists()) {
           lastGameID.add(game);
