@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
@@ -562,10 +563,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
-    prefs.putInt(WINDOW_SIZEX, (int)getSize().getWidth());
-    prefs.putInt(WINDOW_SIZEY, (int)getSize().getHeight());
-    prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
-    prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
+    // preserve non-maximized size and position of the window if possible
+    if ((getExtendedState() & Frame.MAXIMIZED_HORIZ) == 0) {
+      prefs.putInt(WINDOW_SIZEX, (int)getSize().getWidth());
+      prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
+    }
+    if ((getExtendedState() & Frame.MAXIMIZED_VERT) == 0) {
+      prefs.putInt(WINDOW_SIZEY, (int)getSize().getHeight());
+      prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
+    }
     prefs.putInt(WINDOW_STATE, getExtendedState());
     prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, Profile.getGameRoot().toString());
