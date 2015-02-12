@@ -6,7 +6,7 @@ package infinity.gui.converter;
 
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.ViewerUtil;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
@@ -166,7 +166,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     if (event.getSource() == miPathSet) {
       String path = tfPath.getText();
       if (path.isEmpty()) {
-        path = ResourceFactory.getRootDir().toString();
+        path = Profile.getGameRoot().toString();
       }
       File rootPath = ConvertToBam.getOpenPathName(this, "Select initial directory", path);
       if (rootPath != null) {

@@ -10,6 +10,7 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -169,7 +170,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     } else if (event.getSource() == cbTransparency) {
       setTransparencyEnabled(cbTransparency.isSelected());
     } else if (event.getSource() == miExport) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportBAM) {
       if (decoder != null) {
         if (decoder.getType() == BamDecoder.Type.BAMV2) {
@@ -183,7 +184,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           // decompress existing BAMC V1 and save as BAM V1
           try {
             byte data[] = Compressor.decompress(entry.getResourceData());
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
+            ResourceFactory.exportResource(entry, data, entry.toString(),
                                                          panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
@@ -203,15 +204,14 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           // compress existing BAM V1 and save as BAMC V1
           try {
             byte data[] = Compressor.compress(entry.getResourceData(), "BAMC", "V1  ");
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
           }
         }
       }
     } else if (event.getSource() == miExportFramesPNG) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
@@ -271,8 +271,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         }
         if (bamData != null) {
           if (bamData.length > 0) {
-            ResourceFactory.getInstance().exportResource(entry, bamData, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, bamData, entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
@@ -325,8 +324,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       if (decoder.getType() == BamDecoder.Type.BAMC) {
         miExportBAM = new JMenuItem("decompressed");
         miExportBAM.addActionListener(this);
-      } else if (decoder.getType() == BamDecoder.Type.BAMV1 &&
-                 ResourceFactory.getGameID() != ResourceFactory.ID_TORMENT) {
+      } else if (decoder.getType() == BamDecoder.Type.BAMV1 && Profile.getEngine() == Profile.Engine.PST) {
         miExportBAMC = new JMenuItem("compressed");
         miExportBAMC.addActionListener(this);
       } else if (decoder.getType() == BamDecoder.Type.BAMV2) {

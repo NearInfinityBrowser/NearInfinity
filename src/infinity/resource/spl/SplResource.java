@@ -283,7 +283,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 //    addField(new HashBitmap(buffer, offset + 32, 2, "Priest type", m_priesttype));     // 0x20
     addField(new Bitmap(buffer, offset + 34, 2, "Casting animation", s_anim));  // 0x22
     addField(new Unknown(buffer, offset + 36, 1));                                    // 0x23
-    if (ResourceFactory.getInstance().resourceExists("SCHOOL.IDS")) {
+    if (ResourceFactory.resourceExists("SCHOOL.IDS")) {
       addField(new IdsBitmap(buffer, offset + 37, 1, "Primary type (school)", "SCHOOL.IDS")); // 0x25
     } else {
       addField(new Bitmap(buffer, offset + 37, 1, "Primary type (school)", s_school)); // 0x25

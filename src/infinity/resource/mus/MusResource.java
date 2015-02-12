@@ -11,6 +11,7 @@ import infinity.gui.InfinityScrollPane;
 import infinity.gui.InfinityTextArea;
 import infinity.gui.WindowBlocker;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.ViewableContainer;
@@ -73,13 +74,13 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   public void actionPerformed(ActionEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
-      if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
         setDocumentModified(false);
       }
       viewer.loadMusResource(this);
     }
     else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
 
@@ -96,8 +97,8 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       File output;
       if (entry instanceof BIFFResourceEntry) {
         output =
-            FileNI.getFile(ResourceFactory.getRootDirs(),
-                 ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
+            FileNI.getFile(Profile.getRootFolders(),
+                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
       } else {
         output = entry.getActualFile();
       }
@@ -106,7 +107,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0) {
-        ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
+        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
       } else if (result != 1) {
         throw new Exception("Save aborted");
       }
@@ -151,7 +152,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
         String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources(type);
+        List<ResourceEntry> files = ResourceFactory.getResources(type);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();

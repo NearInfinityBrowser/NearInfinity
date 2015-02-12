@@ -90,6 +90,7 @@ import infinity.gui.layeritem.LayerItemEvent;
 import infinity.gui.layeritem.LayerItemListener;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.AreResource;
@@ -164,14 +165,14 @@ public class AreaViewer extends ChildFrame
   {
     if (are != null) {
       ResourceRef wedRef = (ResourceRef)are.getAttribute("WED resource");
-      ResourceEntry wedEntry = ResourceFactory.getInstance().getResourceEntry(wedRef.getResourceName());
+      ResourceEntry wedEntry = ResourceFactory.getResourceEntry(wedRef.getResourceName());
       if (wedEntry != null) {
         try {
           WedResource wedFile = new WedResource(wedEntry);
           int ofs = ((SectionOffset)wedFile.getAttribute("Overlays offset")).getValue();
           Overlay overlay = (Overlay)wedFile.getAttribute(ofs, false);
           ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
-          ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
+          ResourceEntry tisEntry = ResourceFactory.getResourceEntry(tisRef.getResourceName());
           if (tisEntry != null)
             return true;
         } catch (Exception e) {
@@ -2467,8 +2468,8 @@ public class AreaViewer extends ChildFrame
         if (wed[dayNight].hasStructChanged()) {
           File output;
           if (wed[dayNight].getResourceEntry() instanceof BIFFResourceEntry) {
-            output = FileNI.getFile(ResourceFactory.getRootDir(),
-                                    ResourceFactory.OVERRIDEFOLDER + File.separatorChar +
+            output = FileNI.getFile(Profile.getRootFolders(),
+                                    Profile.getOverrideFolderName() + File.separatorChar +
                                     wed[dayNight].getResourceEntry().toString());
           } else {
             output = wed[dayNight].getResourceEntry().getActualFile();
@@ -2480,7 +2481,7 @@ public class AreaViewer extends ChildFrame
                                                     optionType, JOptionPane.WARNING_MESSAGE, null,
                                                     options[optionIndex], options[optionIndex][0]);
           if (result == 0) {
-            ResourceFactory.getInstance().saveResource((Resource)wed[dayNight], parent);
+            ResourceFactory.saveResource((Resource)wed[dayNight], parent);
           }
           if (result != 2) {
             wed[dayNight].setStructChanged(false);
@@ -2515,7 +2516,7 @@ public class AreaViewer extends ChildFrame
           if (dayNight == ViewerConstants.AREA_DAY) {
             if (!wedName.isEmpty()) {
               try {
-                wed[ViewerConstants.AREA_DAY] = new WedResource(ResourceFactory.getInstance().getResourceEntry(wedName));
+                wed[ViewerConstants.AREA_DAY] = new WedResource(ResourceFactory.getResourceEntry(wedName));
               } catch (Exception e) {
                 wed[ViewerConstants.AREA_DAY] = null;
               }
@@ -2535,7 +2536,7 @@ public class AreaViewer extends ChildFrame
               if (pos > 0) {
                 String wedNameNight = wedName.substring(0, pos) + "N" + wedName.substring(pos);
                 try {
-                  wed[ViewerConstants.AREA_NIGHT] = new WedResource(ResourceFactory.getInstance().getResourceEntry(wedNameNight));
+                  wed[ViewerConstants.AREA_NIGHT] = new WedResource(ResourceFactory.getResourceEntry(wedNameNight));
                 } catch (Exception e) {
                   wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
                 }
@@ -2570,7 +2571,7 @@ public class AreaViewer extends ChildFrame
         // loading search map
         String name = mapName + "SR.BMP";
         try {
-          mapSearch = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+          mapSearch = new BmpResource(ResourceFactory.getResourceEntry(name));
         } catch (Exception e) {
           mapSearch = null;
         }
@@ -2578,7 +2579,7 @@ public class AreaViewer extends ChildFrame
         // loading height map
         name = mapName + "HT.BMP";
         try {
-          mapHeight = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+          mapHeight = new BmpResource(ResourceFactory.getResourceEntry(name));
         } catch (Exception e) {
           mapHeight = null;
         }
@@ -2586,14 +2587,14 @@ public class AreaViewer extends ChildFrame
         // loading light map(s)
         name = mapName + "LM.BMP";
         try {
-          mapLight[0] = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+          mapLight[0] = new BmpResource(ResourceFactory.getResourceEntry(name));
         } catch (Exception e) {
           mapLight[0] = null;
         }
         if (hasExtendedNight()) {
           name = mapName + "LN.BMP";
           try {
-            mapLight[1] = new BmpResource(ResourceFactory.getInstance().getResourceEntry(name));
+            mapLight[1] = new BmpResource(ResourceFactory.getResourceEntry(name));
           } catch (Exception e) {
             mapLight[1] = mapLight[0];
           }
@@ -2651,7 +2652,7 @@ public class AreaViewer extends ChildFrame
         // fetching important flags
         Flag flags = (Flag)are.getAttribute("Location");
         if (flags != null) {
-          if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+          if (Profile.getEngine() == Profile.Engine.PST) {
             hasDayNight = flags.isFlagSet(10);
             hasExtendedNight = false;
           } else {

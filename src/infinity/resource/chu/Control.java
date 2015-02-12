@@ -14,7 +14,7 @@ import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -149,7 +149,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         addField(new DecNumber(buffer, offset + 50, 2, "Caret position: X"));
         addField(new DecNumber(buffer, offset + 52, 2, "Caret position: Y"));
         addField(new DecNumber(buffer, offset + 54, 4, "Text field ID"));
-        if (ResourceFactory.isEnhancedEdition()) {
+        if (Profile.isEnhancedEdition()) {
           addField(new ResourceRef(buffer, offset + 58, "Font", new String[]{"FNT", "BAM"}));
         } else {
           addField(new ResourceRef(buffer, offset + 58, "Font", "BAM"));
@@ -161,7 +161,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         offset += 106;
         break;
       case 5: // Text area
-        if (ResourceFactory.isEnhancedEdition()) {
+        if (Profile.isEnhancedEdition()) {
           addField(new ResourceRef(buffer, offset + 14, "Font (main text)", new String[]{"FNT", "BAM"}));
           addField(new ResourceRef(buffer, offset + 22, "Font (initials)", new String[]{"FNT", "BAM"}));
         } else {
@@ -176,7 +176,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         break;
       case 6: // Label
         addField(new StringRef(buffer, offset + 14, "Initial text"));
-        if (ResourceFactory.isEnhancedEdition()) {
+        if (Profile.isEnhancedEdition()) {
           addField(new ResourceRef(buffer, offset + 18, "Font", new String[]{"FNT", "BAM"}));
         } else {
           addField(new ResourceRef(buffer, offset + 18, "Font", "BAM"));

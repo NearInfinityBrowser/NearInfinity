@@ -13,6 +13,7 @@ import infinity.gui.ScriptTextArea;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.ViewableContainer;
@@ -233,7 +234,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
           return;
         }
       }
-      if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
         bSave.setEnabled(false);
         sourceChanged = false;
         codeChanged = false;
@@ -259,15 +260,15 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
         if (bpDecompile.getControlByType(CtrlErrors).isEnabled()) {
           throw new Exception("Save aborted");
         }
-        ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
+        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
       } else if (result == 2 || result == JOptionPane.CLOSED_OPTION)
         throw new Exception("Save aborted");
     } else if (codeChanged) {
       File output;
       if (entry instanceof BIFFResourceEntry) {
         output =
-            FileNI.getFile(ResourceFactory.getRootDirs(),
-                 ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
+            FileNI.getFile(Profile.getRootFolders(),
+                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
       } else {
         output = entry.getActualFile();
       }
@@ -276,7 +277,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0) {
-        ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
+        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
       } else if (result != 1) {
         throw new Exception("Save aborted");
       }
@@ -344,8 +345,8 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources("BCS");
-        files.addAll(ResourceFactory.getInstance().getResources("BS"));
+        List<ResourceEntry> files = ResourceFactory.getResources("BCS");
+        files.addAll(ResourceFactory.getResources("BS"));
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>(1);
@@ -361,13 +362,13 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       if (index != -1) {
         name = name.substring(0, index);
       }
-      ResourceEntry resEntry = ResourceFactory.getInstance().getResourceEntry(name);
+      ResourceEntry resEntry = ResourceFactory.getResourceEntry(name);
       new ViewFrame(panel.getTopLevelAncestor(), ResourceFactory.getResource(resEntry));
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu) == event.getSource()) {
       ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
       if (bpmExport.getSelectedItem() == iexportsource) {
         if (chooser == null) {
-          chooser = new JFileChooser(ResourceFactory.getRootDir());
+          chooser = new JFileChooser(Profile.getGameRoot());
           chooser.setDialogTitle("Export source");
           chooser.setFileFilter(new FileFilter()
           {
@@ -401,7 +402,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
           }
         }
       } else if (bpmExport.getSelectedItem() == iexportscript) {
-        ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+        ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       }
     } else if (bpCompiled.getControlByType(CtrlErrors) == event.getSource()) {
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)event.getSource();

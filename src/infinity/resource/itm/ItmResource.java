@@ -23,6 +23,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -374,7 +375,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       } else {
         addField(new Flag(buffer, 30, 4, "Unusable by", s_usability));
       }
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag_1pp, s_anim_1pp));
       }
       else {
@@ -384,7 +385,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     addField(new DecNumber(buffer, 36, 2, "Minimum level"));
     addField(new DecNumber(buffer, 38, 2, "Minimum strength"));
 //    addField(new Unknown(buffer, 39, 1));
-    if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
+    if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
       addField(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
       addField(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
@@ -394,7 +395,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       addField(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
       addField(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
       addField(new DecNumber(buffer, 48, 1, "Minimum constitution"));
-      if (ResourceFactory.getInstance().resourceExists("PROFTYPE.IDS")) {
+      if (ResourceFactory.resourceExists("PROFTYPE.IDS")) {
         addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "PROFTYPE.IDS"));
       } else {
         addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
@@ -425,7 +426,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     if (version.toString().equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
     } else {
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         addField(new ResourceRef(buffer, 88, "Description image", new String[]{"BAM", "BMP"}));
       } else {
         addField(new ResourceRef(buffer, 88, "Description image", "BAM"));

@@ -10,6 +10,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Closeable;
 import infinity.resource.HasAddRemovable;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -150,7 +151,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     if (event.getSource() == bclearconsole)
       NearInfinity.getConsoleText().setText("");
     else if (event.getSource() == bsaveconsole) {
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Save console");
       chooser.setSelectedFile(new FileNI("nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -165,7 +166,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Near Infinity Debug Log");
           pw.println(BrowserMenuBar.VERSION);
-          pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));
+          pw.println((String)Profile.getProperty(Profile.GET_GAME_TITLE));
           pw.println();
           pw.println(NearInfinity.getConsoleText().getText());
           pw.println();
@@ -219,7 +220,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
         WindowBlocker blocker = new WindowBlocker(console);
         blocker.setBlocked(true);
         if (filetype.equals("*")) {
-          ResourceTreeModel treeModel = ResourceFactory.getInstance().getResources();
+          ResourceTreeModel treeModel = ResourceFactory.getResources();
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating cut/paste...", null, 0,
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
@@ -242,7 +243,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase(Locale.ENGLISH));
+          List<ResourceEntry> resources = ResourceFactory.getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating cut/paste...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);
@@ -275,7 +276,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
         WindowBlocker blocker = new WindowBlocker(console);
         blocker.setBlocked(true);
         if (filetype.equals("*")) {
-          ResourceTreeModel treeModel = ResourceFactory.getInstance().getResources();
+          ResourceTreeModel treeModel = ResourceFactory.getResources();
           ProgressMonitor progress = new ProgressMonitor(console, "Reading files...", null, 0,
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
@@ -305,7 +306,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase(Locale.ENGLISH));
+          List<ResourceEntry> resources = ResourceFactory.getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Reading files...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);
@@ -345,7 +346,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
         WindowBlocker blocker = new WindowBlocker(console);
         blocker.setBlocked(true);
         if (filetype.equals("*")) {
-          ResourceTreeModel treeModel = ResourceFactory.getInstance().getResources();
+          ResourceTreeModel treeModel = ResourceFactory.getResources();
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating writeField...", null, 0,
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
@@ -368,7 +369,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase(Locale.ENGLISH));
+          List<ResourceEntry> resources = ResourceFactory.getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating writeField...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);

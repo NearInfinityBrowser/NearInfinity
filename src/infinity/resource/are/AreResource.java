@@ -20,8 +20,8 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.are.viewer.AreaViewer;
 import infinity.resource.key.ResourceEntry;
@@ -67,10 +67,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       offset = 16;
 
     // Actors
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+    if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2)
       addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 84),
                      (int)DynamicArray.getShort(buffer, offset + 88), 272);
 
@@ -154,24 +151,23 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+    if (Profile.getEngine() == Profile.Engine.PST) {
       return new AddRemovable[]{new Actor(), new ITEPoint(), new SpawnPoint(),
                                 new Entrance(), new Container(), new Ambient(),
                                 new Variable(), new Door(), new Animation(),
                                 new TiledObject(), new AutomapNotePST()};
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.isEnhancedEdition())
+    } else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       return new AddRemovable[]{new Actor(), new ITEPoint(), new SpawnPoint(),
                                 new Entrance(), new Container(), new Ambient(),
                                 new Variable(), new Door(), new Animation(),
                                 new TiledObject(), new AutomapNote(),
                                 new ProTrap()};
-    else
+    } else {
       return new AddRemovable[]{new Actor(), new ITEPoint(), new SpawnPoint(),
                                 new Entrance(), new Container(), new Ambient(),
                                 new Variable(), new Door(), new Animation(),
                                 new TiledObject()};
+    }
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -347,9 +343,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new DecNumber(buffer, offset + 16, 4, "Last saved"));
     if (version.toString().equalsIgnoreCase("V9.1")) {
       addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
-    } else if (ResourceFactory.isEnhancedEdition()) {
+    } else if (Profile.isEnhancedEdition()) {
       addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype_ee));
     } else {
       addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
@@ -362,7 +358,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new Flag(buffer, offset + 56, 4, "Edge flags south", s_edge));
     addField(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
     addField(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Flag(buffer, offset + 72, 2, "Location", s_flag_torment));
     } else {
       addField(new Flag(buffer, offset + 72, 2, "Location", s_flag));
@@ -465,7 +461,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     SectionOffset offset_automapnote = null, offset_protrap = null;
     SectionCount count_automapnote = null, count_protrap = null;
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Unknown(buffer, offset + 196, 4));
       offset_automapnote = new SectionOffset(buffer, offset + 200, "Automap notes offset",
                                              AutomapNotePST.class);
@@ -475,9 +471,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       addField(count_automapnote);
       addField(new Unknown(buffer, offset + 208, 76));
     }
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.isEnhancedEdition()) {
+    else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
                                              AutomapNote.class);
       addField(offset_automapnote);
@@ -490,12 +484,12 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
       addField(count_protrap);
-      final String movieExt = (ResourceFactory.isEnhancedEdition()) ? "WBM" : "MVE";
+      final String movieExt = (Profile.isEnhancedEdition()) ? "WBM" : "MVE";
       addField(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
       addField(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
       addField(new Unknown(buffer, offset + 228, 56));
     }
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    else if (Profile.getEngine() == Profile.Engine.IWD2) {
       offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
                                              AutomapNote.class);
       addField(offset_automapnote);
@@ -585,7 +579,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     if (offset_automapnote != null) { // Torment, BG2
       offset = offset_automapnote.getValue();
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      if (Profile.getEngine() == Profile.Engine.PST) {
         for (int i = 0; i < count_automapnote.getValue(); i++) {
           AutomapNotePST note = new AutomapNotePST(this, buffer, offset, i);
           offset = note.getEndOffset();

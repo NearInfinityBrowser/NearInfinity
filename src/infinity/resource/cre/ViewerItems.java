@@ -80,7 +80,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
           ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
           if (ref != null) {
             Resource res = ResourceFactory.getResource(
-                    ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                    ResourceFactory.getResourceEntry(ref.getResourceName()));
             new ViewFrame(getTopLevelAncestor(), res);
           }
         }
@@ -106,7 +106,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
       ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 1);
       if (ref != null) {
         Resource res = ResourceFactory.getResource(
-                ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                ResourceFactory.getResourceEntry(ref.getResourceName()));
         new ViewFrame(getTopLevelAncestor(), res);
       }
     }

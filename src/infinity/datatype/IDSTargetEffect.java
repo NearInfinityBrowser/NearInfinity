@@ -8,7 +8,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
@@ -40,7 +40,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
   private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
                                                 "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
-                                                "ALIGN.IDS", ""};
+                                                "ALIGNMEN.IDS", ""};
   private final String[] sIDS;
 
   private LongIntegerHashMap<IdsMapEntry> idsMap;
@@ -108,12 +108,10 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     super(parent, offset, size, (name != null) ? name : DEFAULT_NAME);
     sIDS = sIDS_default;
     sIDS[2] = secondIDS;
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       sIDS[9] = "KIT.IDS";
     }
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-      sIDS[8] = "ALIGNMNT.IDS";
-    }
+    sIDS[8] = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
     read(buffer, offset);
   }
 

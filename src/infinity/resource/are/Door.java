@@ -16,7 +16,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.ClosedVertex;
 import infinity.resource.vertex.ClosedVertexImpeded;
@@ -157,7 +157,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   {
     addField(new TextString(buffer, offset, 32, "Name"));
     addField(new TextString(buffer, offset + 32, 8, "Door ID"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new Flag(buffer, offset + 40, 4, "Flags", s_flag_iwd2));
     } else {
       addField(new Flag(buffer, offset + 40, 4, "Flags", s_flag));

@@ -4,7 +4,7 @@
 
 package infinity.util;
 
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.util.io.FileReaderNI;
 import infinity.util.io.RandomAccessFileNI;
 
@@ -177,7 +177,7 @@ public final class StringResource
       file.seek((long)0x0C);
     maxnr = FileReaderNI.readInt(file);
     startindex = FileReaderNI.readInt(file);
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       usedCharset = utf8Charset;
     }
   }

@@ -21,8 +21,8 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
@@ -128,9 +128,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     addField(new TextString(buffer, offset, 4, "Signature"));
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
     addField(version);
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.isEnhancedEdition()) {
+    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type_bg2));
       addField(new StringRef(buffer, offset + 12, "Name"));
       addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
@@ -314,12 +312,11 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
         DecNumber ofs = (DecNumber)sto.getAttribute("Items for sale offset");
         DecNumber cnt = (DecNumber)sto.getAttribute("# items for sale");
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
-          boolean isPST = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
           String itemLabel = SearchOptions.getResourceName(SearchOptions.STO_Item_Item1);
           items = new ResourceRef[cnt.getValue()];
           for (int i = 0; i < cnt.getValue(); i++) {
             String itemStruct = String.format(SearchOptions.getResourceName(SearchOptions.STO_Item), i);
-            if (isPST) {
+            if (Profile.getEngine() == Profile.Engine.PST) {
               ItemSale11 item = (ItemSale11)sto.getAttribute(itemStruct);
               if (item != null) {
                 items[i] = (ResourceRef)item.getAttribute(itemLabel);

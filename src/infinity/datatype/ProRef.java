@@ -127,7 +127,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
     for (final long id : keys) {
       if (id > 0L) {
         String resourcename = idsmap.get(id).getString() + ".PRO";
-        ResourceEntry resourceEntry = ResourceFactory.getInstance().getResourceEntry(resourcename);
+        ResourceEntry resourceEntry = ResourceFactory.getResourceEntry(resourcename);
         if (resourceEntry == null) {
           System.err.println("Could not find " + resourcename + " (key = " + id + ")");
         } else {
@@ -262,8 +262,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   public String toString()
   {
     if (value > 1L && idsmap.containsKey(value - 1L)) {
-      return ResourceFactory.getInstance().getResourceEntry(idsmap.get(value - 1).getString()
-                                                            + ".PRO") + " (" + value + ')';
+      return ResourceFactory.getResourceEntry(idsmap.get(value - 1).getString() + ".PRO") + " (" + value + ')';
     } else if (value == 1L) {
       return NONE + " (" + value + ')';
     } else if (value == 0L) {
@@ -282,8 +281,7 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
   {
     if (!idsmap.containsKey(value - (long)1))
       return null;
-    return ResourceFactory.getInstance().getResourceEntry(
-            ((IdsMapEntry)idsmap.get(value - 1)).getString() + ".PRO");
+    return ResourceFactory.getResourceEntry(((IdsMapEntry)idsmap.get(value - 1)).getString() + ".PRO");
   }
 
   public int getIdsMapEntryCount()

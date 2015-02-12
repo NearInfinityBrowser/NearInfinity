@@ -25,8 +25,8 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
@@ -165,8 +165,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
-    final String[] s_types = ResourceFactory.isEnhancedEdition() ? new String[]{"VVC", "BAM"} :
-                                                                   new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
+                                                         : new String[]{"VEF", "VVC", "BAM"};
 
     addField(new TextString(buffer, offset, 4, "Signature"));
     addField(new TextString(buffer, offset + 4, 4, "Version"));
@@ -180,7 +180,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 32, "Source animation", s_types));
     addField(new Bitmap(buffer, offset + 40, 2, "Particle color", s_color));
     addField(new Unknown(buffer, offset + 42, 2));
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       addField(new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx));
       addField(new StringRef(buffer, offset + 48, "String"));
       addField(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));

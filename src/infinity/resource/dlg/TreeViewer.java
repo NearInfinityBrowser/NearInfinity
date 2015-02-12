@@ -1371,9 +1371,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           if (!map.keySet().isEmpty()) {
             return map.get(map.keySet().iterator().next()).getDialog();
           }
-        } else if (ResourceFactory.getInstance().resourceExists(dlgName)) {
+        } else if (ResourceFactory.resourceExists(dlgName)) {
           try {
-            return new DlgResource(ResourceFactory.getInstance().getResourceEntry(dlgName));
+            return new DlgResource(ResourceFactory.getResourceEntry(dlgName));
           } catch (Exception e) {
             e.printStackTrace();
           }

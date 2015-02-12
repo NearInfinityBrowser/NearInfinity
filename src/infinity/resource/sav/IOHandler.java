@@ -6,7 +6,7 @@ package infinity.resource.sav;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.TextString;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.Writeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
@@ -112,8 +112,7 @@ public final class IOHandler implements Writeable
   private File createTempFolder()
   {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
-      File f = new FileNI(ResourceFactory.getUserRoot(),
-                          String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
+      File f = new FileNI(Profile.getHomeRoot(), String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
       if (!f.exists()) {
         return f;
       }

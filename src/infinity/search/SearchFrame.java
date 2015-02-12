@@ -118,7 +118,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
         if (event.getClickCount() == 2) {
           String selected = (String)list.getSelectedValue();
           String resname = selected.substring(0, selected.indexOf(" - "));
-          ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resname);
+          ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
           NearInfinity.getInstance().showResourceEntry(entry);
         }
       }
@@ -226,15 +226,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     else if (event.getSource() == bopen) {
       String selected = (String)list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resname);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
       NearInfinity.getInstance().showResourceEntry(entry);
     }
     else if (event.getSource() == bopennew) {
       String selected = (String)list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
-      new ViewFrame(this,
-                    ResourceFactory.getResource(
-                            ResourceFactory.getInstance().getResourceEntry(resname)));
+      new ViewFrame(this, ResourceFactory.getResource(ResourceFactory.getResourceEntry(resname)));
     }
     else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
@@ -293,7 +291,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     else if (rbsto.isSelected())
       selectedtype = "STO";
 
-    List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(selectedtype);
+    List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
     String expr = tfield.getText().toLowerCase(Locale.ENGLISH);
     List<String> found = new ArrayList<String>();
     cards.show(bpanel, "Progress");

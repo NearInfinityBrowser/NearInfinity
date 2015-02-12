@@ -168,7 +168,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     if (entry == null)
       tree.clearSelection();
     else if (entry != shownresource) {
-      TreePath tp = ResourceFactory.getInstance().getResources().getPathToNode(entry);
+      TreePath tp = ResourceFactory.getResources().getPathToNode(entry);
       tree.scrollPathToVisible(tp);
       tree.addSelectionPath(tp);
     }
@@ -248,7 +248,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       return;
     }
     entry.renameFile(filename);
-    ResourceFactory.getInstance().getResources().resourceEntryChanged(entry);
+    ResourceFactory.getResources().resourceEntryChanged(entry);
   }
 
   /** Attempts to delete the specified resource if it exists as a file in the game path. */
@@ -263,7 +263,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                        JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return;
       NearInfinity.getInstance().removeViewable();
-      ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
+      ResourceFactory.getResources().removeResourceEntry(entry);
       File bakFile = getBackupFile(entry);
       if (bakFile != null) {
         bakFile.delete();
@@ -590,10 +590,10 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           new ViewFrame(NearInfinity.getInstance(), res);
       }
       else if (event.getSource() == mi_export) {
-        ResourceFactory.getInstance().exportResource(node, NearInfinity.getInstance());
+        ResourceFactory.exportResource(node, NearInfinity.getInstance());
       }
       else if (event.getSource() == mi_addcopy) {
-        ResourceFactory.getInstance().saveCopyOfResource(node);
+        ResourceFactory.saveCopyOfResource(node);
       }
       else if (event.getSource() == mi_rename) {
         if (tree.getLastSelectedPathComponent() instanceof FileResourceEntry) {

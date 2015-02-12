@@ -68,7 +68,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
     hitFrame = new ReferenceHitFrame(targetEntry, parent);
     if (filetypes.length == 1) {
       files = new ArrayList<ResourceEntry>();
-      files.addAll(ResourceFactory.getInstance().getResources(filetypes[0]));
+      files.addAll(ResourceFactory.getResources(filetypes[0]));
       if (files.size() > 0)
         new Thread(this).start();
     }
@@ -149,7 +149,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
       lastSelected = new boolean[filetypes.length];
       for (int i = 0; i < filetypes.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getInstance().getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(filetypes[i]));
         lastSelected[i] = boxes[i].isSelected();
       }
       if (files.size() > 0)

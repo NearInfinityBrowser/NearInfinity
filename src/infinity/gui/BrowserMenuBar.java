@@ -21,6 +21,7 @@ import infinity.gui.converter.ConvertToMos;
 import infinity.gui.converter.ConvertToPvrz;
 import infinity.gui.converter.ConvertToTis;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructureFactory;
@@ -54,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -123,15 +125,15 @@ public final class BrowserMenuBar extends JMenuBar
     return item;
   }
 
-  public BrowserMenuBar(NearInfinity browser)
+  public BrowserMenuBar()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
-    gameMenu = new GameMenu(prefs, browser);
+    gameMenu = new GameMenu(prefs);
     fileMenu = new FileMenu();
     editMenu = new EditMenu();
     searchMenu = new SearchMenu();
     toolsMenu = new ToolsMenu();
-    optionsMenu = new OptionsMenu(prefs, browser);
+    optionsMenu = new OptionsMenu(prefs);
     helpMenu = new HelpMenu();
     add(gameMenu);
     add(fileMenu);
@@ -168,7 +170,7 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionCacheOverride.isSelected();
   }
 
-  public void gameLoaded(int oldGame, String oldFile)
+  public void gameLoaded(Profile.Game oldGame, String oldFile)
   {
     gameMenu.gameLoaded(oldGame, oldFile);
     fileMenu.gameLoaded();
@@ -378,24 +380,28 @@ public final class BrowserMenuBar extends JMenuBar
        "LastGamePath6", "LastGamePath7", "LastGamePath8", "LastGamePath9", "LastGamePath10"};
     private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK, gameRecentClear;
     private final JMenuItem gameLastGame[] = new JMenuItem[LASTGAME_IDS.length];
-    private final List<Integer> lastGameID = new ArrayList<Integer>();
+    private final List<Profile.Game> lastGameID = new ArrayList<Profile.Game>();
     private final List<String> lastGamePath = new ArrayList<String>();
 
-    private GameMenu(Preferences prefs, NearInfinity browser)
+    private GameMenu(Preferences prefs)
     {
       super("Game");
       setMnemonic(KeyEvent.VK_G);
 
-      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.getIcon("Open16.gif"), KeyEvent.VK_I, this);
+      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.getIcon("Open16.gif"),
+                                  KeyEvent.VK_I, this);
       add(gameOpenFile);
-      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.getIcon("Open16.gif"), KeyEvent.VK_O, browser);
+      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.getIcon("Open16.gif"),
+                                  KeyEvent.VK_O, NearInfinity.getInstance());
       gameOpenGame.setActionCommand("Open");
       add(gameOpenGame);
-      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.getIcon("Refresh16.gif"), -1, browser);
+      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.getIcon("Refresh16.gif"),
+                                 -1, NearInfinity.getInstance());
       gameRefresh.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
       gameRefresh.setActionCommand("Refresh");
       add(gameRefresh);
-      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon("Release16.gif"), -1, this);
+      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon("Release16.gif"),
+                                  -1, this);
       add(gameCloseTLK);
 
       addSeparator();
@@ -406,16 +412,18 @@ public final class BrowserMenuBar extends JMenuBar
       add(recentGames);
 
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
-        int gameid = prefs.getInt(LASTGAME_IDS[i], -1);
+        Profile.Game game = Profile.Game.valueOf(prefs.get(LASTGAME_IDS[i], Profile.Game.Unknown.toString()));
         String gamepath = prefs.get(LASTGAME_PATH[i], null);
-        if (gameid != -1 && gamepath != null && new FileNI(gamepath).exists()) {
-          lastGameID.add(new Integer(gameid));
+        if (game != Profile.Game.Unknown && gamepath != null && new FileNI(gamepath).exists()) {
+          lastGameID.add(game);
           lastGamePath.add(gamepath);
         }
       }
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         if (i < lastGameID.size()) {
-          String label = String.format("%1$d  %2$s", i+1, ResourceFactory.getGameName(lastGameID.get(i).intValue()));
+          String label = String.format("%1$d  %2$s", i+1,
+                                       (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE,
+                                                                   lastGameID.get(i)));
           String toolTip = lastGamePath.get(i);
           gameLastGame[i] = new JMenuItem(label);
           gameLastGame[i].setToolTipText(toolTip);
@@ -436,12 +444,13 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
-      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.getIcon("Exit16.gif"), KeyEvent.VK_Q, browser);
+      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.getIcon("Exit16.gif"), KeyEvent.VK_Q,
+                              NearInfinity.getInstance());
       gameExit.setActionCommand("Exit");
       add(gameExit);
     }
 
-    private void gameLoaded(int oldGame, String oldFile)
+    private void gameLoaded(Profile.Game oldGame, String oldFile)
     {
       int newIndex = -1;
       for (int i = 0; i < lastGamePath.size(); i++)
@@ -451,26 +460,26 @@ public final class BrowserMenuBar extends JMenuBar
         lastGameID.remove(newIndex);
         lastGamePath.remove(newIndex);
       }
-      if (oldGame != -1) {
+      if (oldGame != Profile.Game.Unknown) {
         int oldIndex = -1;
         for (int i = 0; i < lastGamePath.size(); i++)
-          if (oldFile.equalsIgnoreCase(lastGamePath.get(i)))
+          if (oldFile.equalsIgnoreCase(lastGamePath.get(i))) {
             oldIndex = i;
+          }
         if (oldIndex != -1) {
           lastGameID.remove(oldIndex);
           lastGamePath.remove(oldIndex);
         }
-        lastGameID.add(0, new Integer(oldGame));
+        lastGameID.add(0, oldGame);
         lastGamePath.add(0, oldFile);
       }
       while (lastGameID.size() > LASTGAME_IDS.length) {
         lastGamePath.remove(lastGameID.size() - 1);
         lastGameID.remove(lastGameID.size() - 1);
       }
-      if (newIndex != 1 || oldGame != -1) {
+      if (newIndex != 1 || oldGame != Profile.Game.Unknown) {
         for (int i = 0; i < lastGameID.size(); i++) {
-          gameLastGame[i].setText(
-                  i + 1 + " " + ResourceFactory.getGameName(lastGameID.get(i).intValue()));
+          gameLastGame[i].setText(String.format("%1$d %2$s", i+1, (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, lastGameID.get(i))));
           gameLastGame[i].setToolTipText(lastGamePath.get(i));
           gameLastGame[i].setEnabled(true);
         }
@@ -485,7 +494,7 @@ public final class BrowserMenuBar extends JMenuBar
     {
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         if (i < lastGameID.size()) {
-          prefs.putInt(LASTGAME_IDS[i], lastGameID.get(i).intValue());
+          prefs.put(LASTGAME_IDS[i], lastGameID.get(i).toString());
           prefs.put(LASTGAME_PATH[i], lastGamePath.get(i));
         } else {
           prefs.remove(LASTGAME_IDS[i]);
@@ -541,27 +550,27 @@ public final class BrowserMenuBar extends JMenuBar
     private static final class ResInfo {
       public final String label;
       public final StructureFactory.ResType resId;
-      private int supportedGames;
+      private final EnumSet<Profile.Game> supportedGames = EnumSet.noneOf(Profile.Game.class);
 
       public ResInfo(StructureFactory.ResType id, String text) {
-        this(id, text, new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC, ResourceFactory.ID_TORMENT,
-                                 ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
-                                 ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2,
-                                 ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                                 ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE});
+        this(id, text, new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC, Profile.Game.PST,
+                                          Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                          Profile.Game.IWD2, Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                          Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE});
       }
 
-      public ResInfo(StructureFactory.ResType id, String text, int[] games) {
+      public ResInfo(StructureFactory.ResType id, String text, Profile.Game[] games) {
         resId = id;
         label = text;
-        supportedGames = 0;
         if (games != null)
-          for (final int g : games)
-            supportedGames |= 1 << g;
+          for (final Profile.Game g : games) {
+            supportedGames.add(g);
+          }
       }
 
-      public boolean gameSupported(int game) {
-        return (game >= 0 && game < 32 && (supportedGames & (1 << game)) != 0);
+      public boolean gameSupported(Profile.Game game)
+      {
+        return supportedGames.contains(game);
       }
     }
 
@@ -571,47 +580,44 @@ public final class BrowserMenuBar extends JMenuBar
       new ResInfo(StructureFactory.ResType.RES_BAF, "BAF"),
       new ResInfo(StructureFactory.ResType.RES_BCS, "BCS"),
       new ResInfo(StructureFactory.ResType.RES_BIO, "BIO",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_CHR, "CHR",
-                  new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
-                            ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_ICEWIND,
-                            ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT,
-                            ResourceFactory.ID_IWDEE,
-                            ResourceFactory.ID_ICEWIND2, ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE,
-                            ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC,
+                                     Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                     Profile.Game.IWD2, Profile.Game.BG1EE, Profile.Game.BG2EE,
+                                     Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_CRE, "CRE"),
       new ResInfo(StructureFactory.ResType.RES_EFF, "EFF",
-                  new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
-                            ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC,
+                                     Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_IDS, "IDS"),
       new ResInfo(StructureFactory.ResType.RES_ITM, "ITM"),
       new ResInfo(StructureFactory.ResType.RES_INI, "INI",
-                  new int[]{ResourceFactory.ID_TORMENT, ResourceFactory.ID_ICEWIND,
-                            ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT,
-                            ResourceFactory.ID_ICEWIND2}),
+                  new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD, Profile.Game.IWDHoW,
+                                     Profile.Game.IWDHowToTLM, Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_PRO, "PRO",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_RES, "RES",
-                  new int[]{ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
-                            ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2}),
+                  new Profile.Game[]{Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                     Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_SPL, "SPL"),
       new ResInfo(StructureFactory.ResType.RES_SRC, "SRC",
-                  new int[]{ResourceFactory.ID_TORMENT, ResourceFactory.ID_ICEWIND2}),
+                  new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_STO, "STO"),
       new ResInfo(StructureFactory.ResType.RES_VEF, "VEF",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_VVC, "VVC",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_WED, "WED"),
       new ResInfo(StructureFactory.ResType.RES_WFX, "WFX",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_WMAP, "WMAP"),
     };
 
@@ -653,7 +659,7 @@ public final class BrowserMenuBar extends JMenuBar
         newFileMenu.removeAll();
 
         for (final ResInfo res : RESOURCE) {
-          if (res.gameSupported(ResourceFactory.getGameID())) {
+          if (res.gameSupported(Profile.getGame())) {
             JMenuItem newFile = new JMenuItem(res.label);
             newFile.addActionListener(this);
             newFile.setActionCommand(res.label);
@@ -673,25 +679,20 @@ public final class BrowserMenuBar extends JMenuBar
                 NearInfinity.getInstance().getResourceTree().getSelected());
         if (res != null)
           new ViewFrame(NearInfinity.getInstance(), res);
-      }
-      else if (event.getSource() == fileExport)
-        ResourceFactory.getInstance().exportResource(
-                NearInfinity.getInstance().getResourceTree().getSelected(), NearInfinity.getInstance());
-      else if (event.getSource() == fileAddCopy)
-        ResourceFactory.getInstance().saveCopyOfResource(
-                NearInfinity.getInstance().getResourceTree().getSelected());
-      else if (event.getSource() == fileRename) {
+      } else if (event.getSource() == fileExport) {
+        ResourceFactory.exportResource(NearInfinity.getInstance().getResourceTree().getSelected(),
+                                       NearInfinity.getInstance());
+      } else if (event.getSource() == fileAddCopy) {
+        ResourceFactory.saveCopyOfResource(NearInfinity.getInstance().getResourceTree().getSelected());
+      } else if (event.getSource() == fileRename) {
         if (NearInfinity.getInstance().getResourceTree().getSelected() instanceof FileResourceEntry) {
           ResourceTree.renameResource((FileResourceEntry)NearInfinity.getInstance().getResourceTree().getSelected());
         }
-      }
-      else if (event.getSource() == fileDelete) {
+      } else if (event.getSource() == fileDelete) {
         ResourceTree.deleteResource(NearInfinity.getInstance().getResourceTree().getSelected());
-      }
-      else if (event.getSource() == fileRestore) {
+      } else if (event.getSource() == fileRestore) {
         ResourceTree.restoreResource(NearInfinity.getInstance().getResourceTree().getSelected());
-      }
-      else {
+      } else {
         for (final ResInfo res : RESOURCE) {
           if (event.getActionCommand().equals(res.label)) {
             StructureFactory.getInstance().newResource(res.resId, NearInfinity.getInstance());
@@ -742,8 +743,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      editString2.setEnabled(new FileNI(ResourceFactory.getTLKRoot(), "dialogF.tlk").exists());
-      editVarVar.setEnabled(FileNI.getFile(ResourceFactory.getRootDirs(), "VAR.VAR").exists());
+      editString2.setEnabled(Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE) != null);
+      editVarVar.setEnabled(FileNI.getFile(Profile.getRootFolders(), "VAR.VAR").isFile());
       if (editString2.isEnabled())
         editString2.setToolTipText("");
       else
@@ -772,7 +773,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = new FileNI(ResourceFactory.getTLKRoot(), "dialogF.tlk");
+        File file = (File)Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE);
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
@@ -788,7 +789,7 @@ public final class BrowserMenuBar extends JMenuBar
         new ViewFrame(NearInfinity.getInstance(),
                       ResourceFactory.getResource(
                               new FileResourceEntry(
-                                  FileNI.getFile(ResourceFactory.getRootDirs(), "VAR.VAR"))));
+                                  FileNI.getFile(Profile.getRootFolders(), "VAR.VAR"))));
       }
       else if (event.getSource() == editBIFF)
         new BIFFEditor();
@@ -840,10 +841,7 @@ public final class BrowserMenuBar extends JMenuBar
         if (textSearchMenu.getMenuComponent(i) instanceof JMenuItem) {
           JMenuItem mi = (JMenuItem)textSearchMenu.getMenuComponent(i);
           if ("INI".equals(mi.getText())) {
-            int id = ResourceFactory.getGameID();
-            if (id == ResourceFactory.ID_TORMENT    || id == ResourceFactory.ID_ICEWIND ||
-                id == ResourceFactory.ID_ICEWINDHOW || id == ResourceFactory.ID_ICEWINDHOWTOT ||
-                id == ResourceFactory.ID_IWDEE      || id == ResourceFactory.ID_ICEWIND2) {
+            if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_INI)) {
               mi.setEnabled(true);
             } else {
               mi.setEnabled(false);
@@ -878,12 +876,13 @@ public final class BrowserMenuBar extends JMenuBar
       else {
         for (final String type : TEXTSEARCH) {
           if (event.getActionCommand().equals(type)) {
-            if (event.getActionCommand().equals("DLG"))
-              new DialogSearcher(ResourceFactory.getInstance().getResources(type),
+            if (event.getActionCommand().equals("DLG")) {
+              new DialogSearcher(ResourceFactory.getResources(type),
                                  getTopLevelAncestor());
-            else
-              new TextResourceSearcher(ResourceFactory.getInstance().getResources(type),
+            } else {
+              new TextResourceSearcher(ResourceFactory.getResources(type),
                                        getTopLevelAncestor());
+            }
             return;
           }
         }
@@ -1293,7 +1292,7 @@ public final class BrowserMenuBar extends JMenuBar
     // Stores available languages in BG(2)EE
     private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<JRadioButtonMenuItem, String>();
 
-    private OptionsMenu(Preferences prefs, NearInfinity browser)
+    private OptionsMenu(Preferences prefs)
     {
       super("Options");
       setMnemonic(KeyEvent.VK_O);
@@ -1503,7 +1502,7 @@ public final class BrowserMenuBar extends JMenuBar
         overridesubmenu.add(showOverrides[i]);
         bg.add(showOverrides[i]);
         showOverrides[i].setActionCommand("Refresh");
-        showOverrides[i].addActionListener(browser);
+        showOverrides[i].addActionListener(NearInfinity.getInstance());
       }
 
       // Options->Default Structure Display
@@ -1550,7 +1549,7 @@ public final class BrowserMenuBar extends JMenuBar
         if (lf != null) {
           lookandfeelmenu.add(lf);
           lf.setActionCommand("ChangeLook");
-          lf.addActionListener(browser);
+          lf.addActionListener(NearInfinity.getInstance());
         }
       }
 
@@ -1607,8 +1606,8 @@ public final class BrowserMenuBar extends JMenuBar
                                     "Autodetect language from baldur.ini. Defaults to english if not available.", bg, true);
       mLanguageMenu.add(rbmi);
 
-      if (ResourceFactory.isEnhancedEdition()) {
-        File langFile = new FileNI(ResourceFactory.getRootDir(), "lang");
+      if (Profile.isEnhancedEdition()) {
+        File langFile = new FileNI(Profile.getGameRoot(), "lang");
         if (langFile.isDirectory()) {
           File[] langFileList = langFile.listFiles();
           for (int i = 0; i < langFileList.length; i++) {
@@ -1808,7 +1807,7 @@ public final class BrowserMenuBar extends JMenuBar
     {
       // TODO: detect specific localizations
       if (DefaultCharset.equalsIgnoreCase(charset)) {
-        if (ResourceFactory.isEnhancedEdition()) {
+        if (Profile.isEnhancedEdition()) {
           return "UTF-8";
         } else {
           return "windows-1252";
@@ -2059,7 +2058,7 @@ public final class BrowserMenuBar extends JMenuBar
             file = null;
           }
         }
-        String rootPath = (file != null) ? file.getParent() : ResourceFactory.getRootDir().toString();
+        String rootPath = (file != null) ? file.getParent() : Profile.getGameRoot().toString();
         JFileChooser fc = new JFileChooser(rootPath);
         if (file != null) {
           fc.setSelectedFile(file);

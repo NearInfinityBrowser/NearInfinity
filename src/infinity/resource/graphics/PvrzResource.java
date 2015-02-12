@@ -9,6 +9,7 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -55,15 +56,15 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     }
     else if (event.getSource() == miExport) {
       // export as original PVRZ
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miPNG) {
       try {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         String fileName = entry.toString().replace(".PVRZ", ".PNG");
         BufferedImage image = getImage();
         if (ImageIO.write(image, "png", os)) {
-          ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
-                                                       fileName, panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, os.toByteArray(),
+                                         fileName, panel.getTopLevelAncestor());
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
@@ -109,7 +110,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   {
     JButton btn = ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences));
     btn.addActionListener(this);
-    btn.setEnabled(ResourceFactory.isEnhancedEdition());
+    btn.setEnabled(Profile.isEnhancedEdition());
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);

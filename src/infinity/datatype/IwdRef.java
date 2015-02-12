@@ -82,7 +82,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
     List<SplRefEntry> items = new ArrayList<SplRefEntry>(keys.length);
     for (long id : keys) {
       String resourcename = idsmap.get(id).getString() + ".SPL";
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourcename);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(resourcename);
       if (entry != null)
         items.add(new SplRefEntry(id, entry));
     }
@@ -197,7 +197,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
   {
     if (idsmap.containsKey(value)) {
       String resourcename = idsmap.get(value).getString() + ".SPL";
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourcename);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(resourcename);
       if (entry == null)
         return "None (" + value + ')';
       return entry.toString() + " (" + entry.getSearchString() + ')';

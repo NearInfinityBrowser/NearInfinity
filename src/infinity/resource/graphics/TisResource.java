@@ -103,7 +103,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FindReferences)) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportLegacyTis) {
       blocker = new WindowBlocker(rpc);
       blocker.setBlocked(true);
@@ -248,8 +248,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         }
         if (tisData != null) {
           if (tisData.length > 0) {
-            ResourceFactory.getInstance().exportResource(entry, tisData, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, tisData, entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled.", "Information",
@@ -283,8 +282,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         if (pngData != null) {
           if (pngData.length > 0) {
             String fileName = entry.toString().replace(".TIS", ".PNG");
-            ResourceFactory.getInstance().exportResource(entry, pngData, fileName,
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, pngData, fileName, panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled.", "Information",
@@ -662,7 +660,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         ResourceEntry wedEntry = null;
         while (tisNameBase.length() >= 6) {
           String wedFileName = tisNameBase + ".WED";
-          wedEntry = ResourceFactory.getInstance().getResourceEntry(wedFileName);
+          wedEntry = ResourceFactory.getResourceEntry(wedFileName);
           if (wedEntry != null)
             break;
           else
@@ -672,7 +670,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           WedResource wedResource = new WedResource(wedEntry);
           Overlay overlay = (Overlay)wedResource.getAttribute("Overlay 0");
           ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
-          ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
+          ResourceEntry tisEntry = ResourceFactory.getResourceEntry(tisRef.getResourceName());
           if (tisEntry != null) {
             String tisName = tisEntry.getResourceName();
             if (tisName.lastIndexOf('.') > 0)

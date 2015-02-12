@@ -125,7 +125,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     List<List<ResourceEntry>> resourceList = new ArrayList<List<ResourceEntry>>(type.length);
     int entrynum = 0;
     for (int i = 0; i < type.length; i++) {
-      resourceList.add(ResourceFactory.getInstance().getResources(type[i]));
+      resourceList.add(ResourceFactory.getResources(type[i]));
       entrynum += resourceList.get(i).size();
     }
 
@@ -153,7 +153,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
     ResourceEntry entry = null;
     for (int i = 0; i < type.length && entry == null; i++) {
-      entry = ResourceFactory.getInstance().getResourceEntry(resname + '.' + type[i]);
+      entry = ResourceFactory.getResourceEntry(resname + '.' + type[i]);
       if (entry != null) {
         for (int j = 0; j < values.size(); j++) {
           Object o = values.get(j);
@@ -312,7 +312,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     // determine the correct file extension
     if (!resname.equals(NONE)) {
       for (int i = 0; i < this.type.length; i++) {
-        if (null != ResourceFactory.getInstance().getResourceEntry(resname + "." + this.type[i])) {
+        if (null != ResourceFactory.getResourceEntry(resname + "." + this.type[i])) {
           curtype = this.type[i];
           break;
         }
@@ -350,7 +350,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getSearchName()
   {
-    ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(getResourceName());
+    ResourceEntry entry = ResourceFactory.getResourceEntry(getResourceName());
     if (entry != null)
       return entry.getSearchString();
     return null;

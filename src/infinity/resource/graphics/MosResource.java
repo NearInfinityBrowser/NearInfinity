@@ -9,6 +9,7 @@ import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -89,7 +90,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportMOSV1) {
       if (mosType == MosDecoder.Type.MOSV2) {
         // create new MOS V1 from scratch
@@ -102,8 +103,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
           try {
             byte[] data = entry.getResourceData();
             data = Compressor.decompress(data);
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
@@ -123,8 +123,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         try {
           byte[] data = entry.getResourceData();
           data = Compressor.compress(data, "MOSC", "V1  ");
-          ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                       panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
         } catch (Exception e) {
           e.printStackTrace();
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
@@ -146,8 +145,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
           WindowBlocker.blockWindow(false);
         }
         if (bRet) {
-          ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
-                                                       fileName, panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, os.toByteArray(), fileName, panel.getTopLevelAncestor());
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
@@ -188,8 +186,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         }
         if (mosData != null) {
           if (mosData.length > 0) {
-            ResourceFactory.getInstance().exportResource(entry, mosData, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, mosData, entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
@@ -246,9 +243,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         miExportMOSV1 = new JMenuItem("decompressed");
         miExportMOSV1.addActionListener(this);
       } else {
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-            ResourceFactory.isEnhancedEdition()) {
+        if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
           miExportMOSC = new JMenuItem("compressed");
           miExportMOSC.addActionListener(this);
         }

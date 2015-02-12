@@ -82,7 +82,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         else if (sOffset.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
           if (amount > 0 &&
               !(sOffset.getSection() == datatype.getClass() ||
-                ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 &&
+                Profile.getEngine() == Profile.Engine.IWD2 &&
                 superStruct instanceof CreResource)) {
             sOffset.incValue(amount);
 //            if (DEBUG_MESSAGES)
@@ -162,8 +162,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-            FileNI.getFile(ResourceFactory.getRootDirs(),
-                 ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
+            FileNI.getFile(Profile.getRootFolders(),
+                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
       String options[] = {"Save changes", "Discard changes", "Cancel"};
@@ -171,7 +171,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0)
-        ResourceFactory.getInstance().saveResource((Resource)this, viewer.getTopLevelAncestor());
+        ResourceFactory.saveResource((Resource)this, viewer.getTopLevelAncestor());
       else if (result != 1)
         throw new Exception("Save aborted");
     }

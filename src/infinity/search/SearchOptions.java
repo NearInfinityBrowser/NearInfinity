@@ -36,7 +36,6 @@ import java.util.Locale;
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the
  * resource-specific search methods.
- * @author argent77
  */
 public class SearchOptions
 {
@@ -502,7 +501,7 @@ public class SearchOptions
 
         // special case: "NONE"
         if ((s1.isEmpty() || "NONE".equalsIgnoreCase(s1)) &&
-            (s2.isEmpty() || "NONE".equalsIgnoreCase(s2) || ResourceFactory.getInstance().getResourceEntry(s2) == null)) {
+            (s2.isEmpty() || "NONE".equalsIgnoreCase(s2) || ResourceFactory.getResourceEntry(s2) == null)) {
           return true;
         }
 

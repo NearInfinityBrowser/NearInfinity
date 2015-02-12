@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.BIFFArchive;
 import infinity.resource.key.BIFFEntry;
@@ -176,11 +177,9 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
       cbbifname.setEnabled(false);
       tfbifname.setEnabled(true);
       rbbiff.setEnabled(true);
-      int gameid = ResourceFactory.getGameID();
-      rbbif.setEnabled(gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
-                       gameid == ResourceFactory.ID_ICEWINDHOWTOT || gameid == ResourceFactory.ID_IWDEE);
-      rbbifc.setEnabled(gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-                        ResourceFactory.isEnhancedEdition());
+
+      rbbif.setEnabled((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIF));
+      rbbifc.setEnabled((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIFC));
     }
     else if (event.getSource() == bok || event.getSource() == tfbifname) {
       if (rbcreate.isSelected()) {

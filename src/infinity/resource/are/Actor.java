@@ -17,7 +17,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 
@@ -145,7 +145,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
 //    else
 //      addField(new Bitmap(buffer, offset + 40, 4, "Is visible?", s_noyes));
     addField(new Bitmap(buffer, offset + 44, 2, "Is spawned?", s_noyes));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new Unknown(buffer, offset + 46, 1));
       addField(new Flag(buffer, offset + 47, 1, "Difficulty", s_diff));
     }
@@ -162,7 +162,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     addField(new DecNumber(buffer, offset + 68, 4, "# times talked to"));
     addField(new ResourceRef(buffer, offset + 72, "Dialogue", "DLG"));
     addField(new ResourceRef(buffer, offset + 80, "Override script", "BCS"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new ResourceRef(buffer, offset + 88, "Special 3 script", "BCS"));
       addField(new ResourceRef(buffer, offset + 96, "Special 2 script", "BCS"));
       addField(new ResourceRef(buffer, offset + 104, "Combat script", "BCS"));
@@ -185,7 +185,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     HexNumber creOffset = new HexNumber(buffer, offset + 136, 4, "CRE structure offset");
     addField(creOffset);
     addField(new DecNumber(buffer, offset + 140, 4, "CRE structure size"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new ResourceRef(buffer, offset + 144, "Special 1 script", "BCS"));
       addField(new Unknown(buffer, offset + 152, 120));
     }

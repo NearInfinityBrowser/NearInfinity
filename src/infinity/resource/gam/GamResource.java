@@ -20,8 +20,8 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+    if (Profile.getEngine() == Profile.Engine.PST)
       return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
         new NonPartyNPC()};
     else
@@ -172,7 +172,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     TextString version = new TextString(buffer, offset + 4, 4, "Version");
     addField(version);
     addField(new DecNumber(buffer, offset + 8, 4, "Game time (game seconds)"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 12, 2, "Selected formation", s_torment));
     } else {
       addField(new Bitmap(buffer, offset + 12, 2, "Selected formation", s_formation));
@@ -222,8 +222,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionOffset offLocation = null, offRubikon = null, offBestiary = null, offPocket = null;
     SectionCount numKillVariable = null, numIWD2 = null, numIWD = null, numLocation = null, numPocket = null;
 
-    int gameid = ResourceFactory.getGameID();
-    if (gameid == ResourceFactory.ID_BG1 || gameid == ResourceFactory.ID_BG1TOTSC) { // V1.1
+    if (Profile.getEngine() == Profile.Engine.BG1) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
@@ -232,8 +231,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(new DecNumber(buffer, offset + 100, 4, "Save version"));
       addField(new Unknown(buffer, offset + 104, 76));
     }
-    else if (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
-        gameid == ResourceFactory.ID_ICEWINDHOWTOT) { // V1.1
+    else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
@@ -246,7 +244,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(offIWD);
       addField(new Unknown(buffer, offset + 108, 72));
     }
-    else if (gameid == ResourceFactory.ID_TORMENT) { // V1.1
+    else if (Profile.getEngine() == Profile.Engine.PST) { // V1.1
       offRubikon = new SectionOffset(buffer, offset + 84, "Modron maze offset", Unknown.class);
       addField(offRubikon);
       addField(new DecNumber(buffer, offset + 88, 4, "Reputation"));
@@ -260,8 +258,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(new ResourceRef(buffer, offset + 112, "Current area?", "ARE"));
       addField(new Unknown(buffer, offset + 120, 64));
     }
-    else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.isEnhancedEdition()) { // V2.0
+    else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
@@ -280,11 +277,11 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(offPocket);
       numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
       addField(numPocket);
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         addField(new DecNumber(buffer, offset + 128, 4, "Zoom level"));
         addField(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
         addField(new ResourceRef(buffer, offset + 140, "Worldmap", "WMP"));
-        if (gameid == ResourceFactory.ID_IWDEE) {
+        if (Profile.getGame() == Profile.Game.IWDEE) {
           addField(new Unknown(buffer, offset + 148, 8));
           addField(new Bitmap(buffer, offset + 156, 4, "Familiar owner",
                               new String[]{"Party member 0", "Party member 1", "Party member 2",
@@ -297,7 +294,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         addField(new Unknown(buffer, offset + 128, 52));
       }
     }
-    else if (gameid == ResourceFactory.ID_ICEWIND2) { // V2.2 (V1.1 & V2.0 in BIFF)
+    else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
       addField(new Unknown(buffer, offset + 84, 4));
       addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
