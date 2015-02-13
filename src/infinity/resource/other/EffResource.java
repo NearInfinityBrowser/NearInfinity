@@ -109,9 +109,9 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
             StructEntry struct;
             if (SearchOptions.isResourceByOffset(key)) {
               int ofs = SearchOptions.getResourceIndex(key);
-              struct = eff.getAttribute(ofs);
+              struct = eff.getAttribute(ofs, false);
             } else {
-              struct = eff.getAttribute(SearchOptions.getResourceName(key));
+              struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
             }
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
@@ -122,7 +122,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
         if (retVal) {
           key = SearchOptions.EFF_SaveType;
           o = searchOptions.getOption(key);
-          StructEntry struct = eff.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchFlags(struct, o);
         }
 
@@ -135,9 +135,9 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
             StructEntry struct;
             if (SearchOptions.isResourceByOffset(key)) {
               int ofs = SearchOptions.getResourceIndex(key);
-              struct = eff.getAttribute(ofs);
+              struct = eff.getAttribute(ofs, false);
             } else {
-              struct = eff.getAttribute(SearchOptions.getResourceName(key));
+              struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
             }
             retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
           } else {

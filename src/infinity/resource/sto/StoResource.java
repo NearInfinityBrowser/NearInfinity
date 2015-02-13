@@ -309,24 +309,24 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparations
-        DecNumber ofs = (DecNumber)sto.getAttribute("Items for sale offset");
-        DecNumber cnt = (DecNumber)sto.getAttribute("# items for sale");
+        DecNumber ofs = (DecNumber)sto.getAttribute("Items for sale offset", false);
+        DecNumber cnt = (DecNumber)sto.getAttribute("# items for sale", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           String itemLabel = SearchOptions.getResourceName(SearchOptions.STO_Item_Item1);
           items = new ResourceRef[cnt.getValue()];
           for (int i = 0; i < cnt.getValue(); i++) {
             String itemStruct = String.format(SearchOptions.getResourceName(SearchOptions.STO_Item), i);
             if (Profile.getEngine() == Profile.Engine.PST) {
-              ItemSale11 item = (ItemSale11)sto.getAttribute(itemStruct);
+              ItemSale11 item = (ItemSale11)sto.getAttribute(itemStruct, false);
               if (item != null) {
-                items[i] = (ResourceRef)item.getAttribute(itemLabel);
+                items[i] = (ResourceRef)item.getAttribute(itemLabel, false);
               } else {
                 items[i] = null;
               }
             } else {
-              ItemSale item = (ItemSale)sto.getAttribute(itemStruct);
+              ItemSale item = (ItemSale)sto.getAttribute(itemStruct, false);
               if (item != null) {
-                items[i] = (ResourceRef)item.getAttribute(itemLabel);
+                items[i] = (ResourceRef)item.getAttribute(itemLabel, false);
               } else {
                 items[i] = null;
               }
@@ -336,13 +336,13 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
           items = new ResourceRef[0];
         }
 
-        ofs = (DecNumber)sto.getAttribute("Items purchased offset");
-        cnt = (DecNumber)sto.getAttribute("# items purchased");
+        ofs = (DecNumber)sto.getAttribute("Items purchased offset", false);
+        cnt = (DecNumber)sto.getAttribute("# items purchased", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           purchases = new Bitmap[cnt.getValue()];
           for (int i = 0; i < cnt.getValue(); i++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.STO_Purchased), i);
-            purchases[i] = (Bitmap)sto.getAttribute(label);
+            purchases[i] = (Bitmap)sto.getAttribute(label, false);
           }
         } else {
           purchases = new Bitmap[0];
@@ -351,14 +351,14 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
         if (retVal) {
           key = SearchOptions.STO_Name;
           o = searchOptions.getOption(key);
-          StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
         }
 
         if (retVal) {
           key = SearchOptions.STO_Type;
           o = searchOptions.getOption(key);
-          StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchNumber(struct, o);
         }
 
@@ -386,7 +386,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
@@ -400,7 +400,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;

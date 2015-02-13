@@ -708,42 +708,42 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)are.getAttribute("Actors offset");
-        DecNumber cnt = (DecNumber)are.getAttribute("# actors");
+        DecNumber ofs = (DecNumber)are.getAttribute("Actors offset", false);
+        DecNumber cnt = (DecNumber)are.getAttribute("# actors", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           actors = new Actor[cnt.getValue()];
           for (int idx = 0; idx < actors.length; idx++) {
-            actors[idx] = (Actor)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Actor), idx));
+            actors[idx] = (Actor)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Actor), idx), false);
           }
         } else {
           actors = new Actor[0];
         }
 
-        ofs = (DecNumber)are.getAttribute("Animations offset");
-        cnt = (DecNumber)are.getAttribute("# animations");
+        ofs = (DecNumber)are.getAttribute("Animations offset", false);
+        cnt = (DecNumber)are.getAttribute("# animations", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           animations = new Animation[cnt.getValue()];
           for (int idx = 0; idx < animations.length; idx++) {
-            animations[idx] = (Animation)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Animation), idx));
+            animations[idx] = (Animation)are.getAttribute(String.format(SearchOptions.getResourceName(SearchOptions.ARE_Animation), idx), false);
           }
         } else {
           animations = new Animation[0];
         }
 
-        ofs = (DecNumber)are.getAttribute("Containers offset");
-        cnt = (DecNumber)are.getAttribute("# containers");
+        ofs = (DecNumber)are.getAttribute("Containers offset", false);
+        cnt = (DecNumber)are.getAttribute("# containers", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new Item[cnt.getValue()][];
           for (int i = 0; i < cnt.getValue(); i++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container), i);
-            Container container = (Container)are.getAttribute(label);
+            Container container = (Container)are.getAttribute(label, false);
             if (container != null) {
-              DecNumber cnt2 = (DecNumber)container.getAttribute("# items");
+              DecNumber cnt2 = (DecNumber)container.getAttribute("# items", false);
               if (cnt2 != null && cnt2.getValue() > 0) {
                 items[i] = new Item[cnt2.getValue()];
                 for (int j = 0; j < cnt2.getValue(); j++) {
                   label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container_Item), j);
-                  items[i][j] = (Item)container.getAttribute(label);
+                  items[i][j] = (Item)container.getAttribute(label, false);
                 }
               } else {
                 items[i] = new Item[0];
@@ -764,7 +764,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
@@ -774,7 +774,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         if (retVal) {
           key = SearchOptions.ARE_AreaScript;
           o = searchOptions.getOption(key);
-          StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
         }
 
@@ -784,7 +784,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
           boolean found = false;
           for (int idx = 0; idx < actors.length; idx++) {
             if (actors[idx] != null) {
-              StructEntry struct = actors[idx].getAttribute(SearchOptions.getResourceName(key));
+              StructEntry struct = actors[idx].getAttribute(SearchOptions.getResourceName(key), false);
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
           }
@@ -797,7 +797,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
           boolean found = false;
           for (int idx = 0; idx < animations.length; idx++) {
             if (animations[idx] != null) {
-              StructEntry struct = animations[idx].getAttribute(SearchOptions.getResourceName(key));
+              StructEntry struct = animations[idx].getAttribute(SearchOptions.getResourceName(key), false);
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
           }
@@ -811,7 +811,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
           for (int idx = 0; idx < items.length; idx++) {
             for (int idx2 = 0; idx2 < items[idx].length; idx2++) {
               if (items[idx][idx2] != null) {
-                StructEntry struct = items[idx][idx2].getAttribute(SearchOptions.getResourceName(key));
+                StructEntry struct = items[idx][idx2].getAttribute(SearchOptions.getResourceName(key), false);
                 found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
               }
               if (found) {

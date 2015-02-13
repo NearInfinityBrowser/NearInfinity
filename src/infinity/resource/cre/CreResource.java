@@ -1650,25 +1650,25 @@ public final class CreResource extends AbstractStruct
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)cre.getAttribute("Effects offset");
-        DecNumber cnt = (DecNumber)cre.getAttribute("# effects");
+        DecNumber ofs = (DecNumber)cre.getAttribute("Effects offset", false);
+        DecNumber cnt = (DecNumber)cre.getAttribute("# effects", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Effect), idx);
-            effects[idx] = (AbstractStruct)cre.getAttribute(label);
+            effects[idx] = (AbstractStruct)cre.getAttribute(label, false);
           }
         } else {
           effects = new AbstractStruct[0];
         }
 
-        ofs = (DecNumber)cre.getAttribute("Items offset");
-        cnt = (DecNumber)cre.getAttribute("# items");
+        ofs = (DecNumber)cre.getAttribute("Items offset", false);
+        cnt = (DecNumber)cre.getAttribute("# items", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Item), idx);
-            items[idx] = (AbstractStruct)cre.getAttribute(label);
+            items[idx] = (AbstractStruct)cre.getAttribute(label, false);
           }
         } else {
           items = new AbstractStruct[0];
@@ -1690,11 +1690,11 @@ public final class CreResource extends AbstractStruct
           for (int i = 0; i < spellTypes.length; i++) {
             for (int j = 1; j < 10; j++) {
               String label = String.format(spellTypes[i], j);
-              AbstractStruct struct1 = (AbstractStruct)cre.getAttribute(label);
+              AbstractStruct struct1 = (AbstractStruct)cre.getAttribute(label, false);
               if (struct1 != null) {
-                AbstractStruct struct2 = (AbstractStruct)struct1.getAttribute(spellTypesStruct);
+                AbstractStruct struct2 = (AbstractStruct)struct1.getAttribute(spellTypesStruct, false);
                 if (struct2 != null) {
-                  Datatype struct3 = (Datatype)struct2.getAttribute(spellTypesRef);
+                  Datatype struct3 = (Datatype)struct2.getAttribute(spellTypesRef, false);
                   if (struct3 != null) {
                     listSpells.add(struct3);
                   }
@@ -1707,15 +1707,15 @@ public final class CreResource extends AbstractStruct
             spells[i] = listSpells.get(i);
           }
         } else {
-          ofs = (DecNumber)cre.getAttribute("Known spells offset");
-          cnt = (DecNumber)cre.getAttribute("# known spells");
+          ofs = (DecNumber)cre.getAttribute("Known spells offset", false);
+          cnt = (DecNumber)cre.getAttribute("# known spells", false);
           if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
             spells = new Datatype[cnt.getValue()];
             final String spellLabel = SearchOptions.getResourceName(SearchOptions.CRE_Spell_Spell1);
             for (int idx = 0; idx < cnt.getValue(); idx++) {
               String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Spell), idx);
-              AbstractStruct struct = (AbstractStruct)cre.getAttribute(label);
-              spells[idx] = (Datatype)struct.getAttribute(spellLabel);
+              AbstractStruct struct = (AbstractStruct)cre.getAttribute(label, false);
+              spells[idx] = (Datatype)struct.getAttribute(spellLabel, false);
             }
           } else {
             spells = new Datatype[0];
@@ -1728,7 +1728,7 @@ public final class CreResource extends AbstractStruct
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
           } else {
             break;
@@ -1751,7 +1751,7 @@ public final class CreResource extends AbstractStruct
             key = keyList[idx];
             o = searchOptions.getOption(key);
             for (int idx2 = 0; idx2 < scriptFields.length; idx2++) {
-              StructEntry struct = cre.getAttribute(scriptFields[idx2]);
+              StructEntry struct = cre.getAttribute(scriptFields[idx2], false);
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
             retVal &= found;
@@ -1765,7 +1765,7 @@ public final class CreResource extends AbstractStruct
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
@@ -1788,7 +1788,7 @@ public final class CreResource extends AbstractStruct
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
@@ -1805,7 +1805,7 @@ public final class CreResource extends AbstractStruct
             for (int idx2 = 0; idx2 < effects.length; idx2++) {
               if (!found) {
                 if (effects[idx2] != null) {
-                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
@@ -1828,7 +1828,7 @@ public final class CreResource extends AbstractStruct
             for (int idx2 = 0; idx2 < items.length; idx2++) {
               if (!found) {
                 if (items[idx2] != null) {
-                  StructEntry struct = items[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  StructEntry struct = items[idx2].getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
                 }
               } else {

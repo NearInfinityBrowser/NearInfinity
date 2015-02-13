@@ -259,8 +259,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     if (entry != null && searchOptions != null) {
       try {
         ProResource pro = new ProResource(entry);
-        ProSingleType single = (ProSingleType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_SingleTarget));
-        ProAreaType area = (ProAreaType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_AreaOfEffect));
+        ProSingleType single = (ProSingleType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_SingleTarget), false);
+        ProAreaType area = (ProAreaType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_AreaOfEffect), false);
         boolean retVal = true;
         String key;
         Object o;
@@ -274,7 +274,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
             key = keyList[idx];
             o = searchOptions.getOption(key);
             if (structList[idx] != null) {
-              StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key));
+              StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key), false);
               retVal &= SearchOptions.Utils.matchNumber(struct, o);
             } else {
               retVal &= (o == null);
@@ -292,7 +292,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
             key = keyList[idx];
             o = searchOptions.getOption(key);
             if (structList[idx] != null) {
-              StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key));
+              StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key), false);
               retVal &= SearchOptions.Utils.matchFlags(struct, o);
             } else {
               retVal &= (o == null);
@@ -306,7 +306,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
           key = SearchOptions.PRO_Animation;
           o = searchOptions.getOption(key);
           if (single != null) {
-            StructEntry struct = single.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = single.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
           } else {
             retVal &= (o == null);
