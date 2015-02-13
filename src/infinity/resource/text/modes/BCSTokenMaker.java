@@ -138,7 +138,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("STATS.IDS");     idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");
       idsFile.add("WEATHER.IDS");
       if (Profile.isEnhancedEdition()) {
-        idsFile.add("DIR.IDS");     idsFile.add("SONGLIST.IDS");
+        idsFile.add("BUTTON.IDS");    idsFile.add("DIR.IDS");       idsFile.add("EXTSTATE.IDS");
+        idsFile.add("ITEMFLAG.IDS");  idsFile.add("SPLSTATE.IDS");  idsFile.add("STATMOD.IDS");
+        idsFile.add("SONGLIST.IDS");
       }
     }
     for (int i = 0; i < idsFile.size(); i++) {
