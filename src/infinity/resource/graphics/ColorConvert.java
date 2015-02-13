@@ -67,11 +67,15 @@ public class ColorConvert
    */
   public static BufferedImage createCompatibleImage(int width, int height, int transparency)
   {
-    // obtain the current system's graphical settings
-    final GraphicsConfiguration gfxConfig =
-        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+    if (transparency == Transparency.TRANSLUCENT) {
+      return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    } else {
+      // obtain the current system's graphical settings
+      final GraphicsConfiguration gfxConfig =
+          GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
-    return gfxConfig.createCompatibleImage(width, height, transparency);
+      return gfxConfig.createCompatibleImage(width, height, transparency);
+    }
   }
 
   /**
