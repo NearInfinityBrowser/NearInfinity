@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -291,6 +292,35 @@ public final class ResourceFactory
     }
   }
 
+  /**
+   * Returns a list of available game language directories for the current game in Enhanced Edition games.
+   * Returns an empty list otherwise.
+   */
+  public static List<File> getAvailableLanguages()
+  {
+    List<File> list = new ArrayList<File>();
+
+    if (Profile.isEnhancedEdition()) {
+      File langDir = (File)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_BASE);
+      if (langDir.isDirectory()) {
+        File[] langDirList = langDir.listFiles(new FileFilter() {
+          @Override
+          public boolean accept(File pathname)
+          {
+            // accept only folder names in language code format containing a dialog.tlk file
+            return (pathname != null && pathname.isDirectory() &&
+                    pathname.getName().matches("[a-z]{2}_[A-Z]{2}") &&
+                    (new FileNI(pathname, (String)Profile.getProperty(Profile.GET_GLOBAL_DIALOG_NAME))).isFile());
+          }
+        });
+        for (final File lang: langDirList) {
+          list.add(lang);
+        }
+      }
+    }
+    return list;
+  }
+
   /** Attempts to find the home folder of an Enhanced Edition game. */
   static File getHomeRoot()
   {
@@ -395,16 +425,15 @@ public final class ResourceFactory
   }
 
   // Returns the currently used language of an Enhanced Edition game.
-  static String fetchLanguage(File iniRoot)
+  static String fetchLanguage(File iniFile)
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
 
-    if (Profile.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition() && iniFile != null && iniFile.isFile()) {
       String lang = BrowserMenuBar.getInstance().getSelectedGameLanguage();
 
       if (lang == null || lang.isEmpty()) {
         // Attempt to autodetect game language
-        File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
         if (iniFile != null && iniFile.isFile()) {
           try {
             BufferedReader br = new BufferedReader(new FileReaderNI(iniFile));

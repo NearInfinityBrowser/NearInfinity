@@ -1587,7 +1587,6 @@ public final class BrowserMenuBar extends JMenuBar
     private void resetGameLanguage()
     {
       final String autodetect = "Autodetect";
-      final String tlkFileName = "dialog.tlk";
 
       for (JRadioButtonMenuItem r: gameLanguage.keySet()) {
         r.removeActionListener(this);
@@ -1603,34 +1602,28 @@ public final class BrowserMenuBar extends JMenuBar
 
       // adding "Autodetect" for all available game ids
       rbmi = createLanguageMenuItem("", autodetect,
-                                    "Autodetect language from baldur.ini. Defaults to english if not available.", bg, true);
+                                    "Autodetect language from baldur.ini. " +
+                                        "Defaults to english if not available.", bg, true);
       mLanguageMenu.add(rbmi);
 
       if (Profile.isEnhancedEdition()) {
-        File langFile = new FileNI(Profile.getGameRoot(), "lang");
-        if (langFile.isDirectory()) {
-          File[] langFileList = langFile.listFiles();
-          for (int i = 0; i < langFileList.length; i++) {
-            if (langFileList[i].isDirectory()) {
-              if ((new FileNI(langFileList[i], tlkFileName)).isFile()) {
-                String[] langCode = langFileList[i].getName().split("_");
-                if (langCode.length >= 2) {
-                  Locale locale = new Locale(langCode[0], langCode[1]);
-                  rbmi = createLanguageMenuItem(langFileList[i].getName(),
-                                                String.format("%1$s (%2$s)",
-                                                              locale.getDisplayLanguage(),
-                                                              langFileList[i].getName()),
-                                                null, bg,
-                                                selectedCode.equalsIgnoreCase(langFileList[i].getName()));
-                  mLanguageMenu.add(rbmi);
-                } else {
-                  rbmi = createLanguageMenuItem(langFileList[i].getName(), langFileList[i].getName(),
-                                                null, bg,
-                                                selectedCode.equalsIgnoreCase(langFileList[i].getName()));
-                  mLanguageMenu.add(rbmi);
-                }
-              }
-            }
+        List<File> languages = ResourceFactory.getAvailableLanguages();
+        for (File dir: languages) {
+          String[] langCode = dir.getName().split("_");
+          if (langCode.length >= 2) {
+            Locale locale = new Locale(langCode[0], langCode[1]);
+            rbmi = createLanguageMenuItem(dir.getName(),
+                                          String.format("%1$s (%2$s)",
+                                                        locale.getDisplayLanguage(),
+                                                        dir.getName()),
+                                          null, bg,
+                                          selectedCode.equalsIgnoreCase(dir.getName()));
+            mLanguageMenu.add(rbmi);
+          } else {
+            rbmi = createLanguageMenuItem(dir.getName(), dir.getName(),
+                                          null, bg,
+                                          selectedCode.equalsIgnoreCase(dir.getName()));
+            mLanguageMenu.add(rbmi);
           }
         }
       } else {
