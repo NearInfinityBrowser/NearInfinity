@@ -90,15 +90,15 @@ public final class Transition extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new Flag(buffer, offset, 4, "Flags", s_flag));
-    list.add(new StringRef(buffer, offset + 4, "Associated text"));
-    list.add(new StringRef(buffer, offset + 8, "Journal entry"));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Trigger index"));
-    list.add(new DecNumber(buffer, offset + 16, 4, "Action index"));
-    list.add(new ResourceRef(buffer, offset + 20, "Next dialogue", "DLG"));
-    list.add(new DecNumber(buffer, offset + 28, 4, "Next dialogue state"));
+    addField(new Flag(buffer, offset, 4, "Flags", s_flag));
+    addField(new StringRef(buffer, offset + 4, "Associated text"));
+    addField(new StringRef(buffer, offset + 8, "Journal entry"));
+    addField(new DecNumber(buffer, offset + 12, 4, "Trigger index"));
+    addField(new DecNumber(buffer, offset + 16, 4, "Action index"));
+    addField(new ResourceRef(buffer, offset + 20, "Next dialogue", "DLG"));
+    addField(new DecNumber(buffer, offset + 28, 4, "Next dialogue state"));
     return offset + 32;
   }
 }

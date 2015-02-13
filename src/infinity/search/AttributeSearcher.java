@@ -23,7 +23,9 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -60,8 +62,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
       struct = struct.getSuperStruct();
     String filename = struct.getResourceEntry().toString();
     files =
-    ResourceFactory.getInstance().getResources(
-            filename.substring(filename.lastIndexOf(".") + 1).toUpperCase());
+    ResourceFactory.getResources(filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH));
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
     inputFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
@@ -212,10 +213,28 @@ public final class AttributeSearcher implements Runnable, ActionListener
               hit = !hit;
             if (hit) {
               AbstractStruct superStruct = resource.getSuperStruct(searchEntry);
-              if (superStruct instanceof Resource || superStruct == null)
+              if (superStruct instanceof Resource || superStruct == null) {
                 resultFrame.addHit(entry, entry.getSearchString(), searchEntry);
-              else
-                resultFrame.addHit(entry, superStruct.getName(), searchEntry);
+              } else {
+                // creating a path of structures
+                List<String> list = new ArrayList<String>();
+                while (superStruct != null) {
+                  if (superStruct.getSuperStruct() != null) {
+                    list.add(0, superStruct.getName());
+                  }
+                  superStruct = superStruct.getSuperStruct();
+                }
+                list.add(0, entry.getSearchString());
+
+                StringBuilder sb = new StringBuilder();
+                for (int k = 0; k < list.size(); k++) {
+                  if (k > 0) {
+                    sb.append(" -> ");
+                  }
+                  sb.append(list.get(k));
+                }
+                resultFrame.addHit(entry, sb.toString(), searchEntry);
+              }
             }
           }
         }

@@ -5,6 +5,7 @@
 package infinity.resource.bcs;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMap;
@@ -13,6 +14,7 @@ import infinity.util.IdsMapEntry;
 import infinity.util.StringResource;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -269,7 +271,7 @@ public final class Decompiler
     if (pIndex != -1 && pIndex != p.length() - 1) {
 //      if (nr < 0)
 //        nr += 4294967296L;
-      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase() + ".IDS");
+      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS");
       IdsMapEntry entry = map.getValue(nr);
       if (entry != null)
         code.append(entry.getString());
@@ -469,8 +471,8 @@ public final class Decompiler
   private static ResourceEntry decompileStringCheck(String value, String[] fileTypes)
   {
     for (final String fileType : fileTypes)
-      if (ResourceFactory.getInstance().resourceExists(value + fileType))
-        return ResourceFactory.getInstance().getResourceEntry(value + fileType);
+      if (ResourceFactory.resourceExists(value + fileType))
+        return ResourceFactory.getResourceEntry(value + fileType);
     return null;
   }
 
@@ -639,7 +641,7 @@ public final class Decompiler
       return new String[] {".2DA"};
     }
     else if (function.equalsIgnoreCase("StartMovie")) {
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         return new String[] {".WBM", ".MVE"};
       } else {
         return new String[] {".MVE"};
@@ -661,7 +663,7 @@ public final class Decompiler
       return null;
     ResourceEntry entry = null;
     if (definition.equalsIgnoreCase("S:DialogFile*"))
-      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:CutScene*") || definition.equalsIgnoreCase("S:ScriptFile*")
              || definition.equalsIgnoreCase("S:Script*"))
       entry = decompileStringCheck(value, new String[]{".BCS"});
@@ -673,7 +675,7 @@ public final class Decompiler
     else if (definition.equalsIgnoreCase("S:TextList*"))
       entry = decompileStringCheck(value, new String[]{".2DA"});
     else if (definition.equalsIgnoreCase("S:Effect*"))
-      entry = decompileStringCheck(value, new String[]{".BAM", ".VEF", ".VVC"});
+      entry = decompileStringCheck(value, new String[]{".VEF", ".VVC", ".BAM"});
     else if (definition.equalsIgnoreCase("S:Parchment*"))
       entry = decompileStringCheck(value, new String[]{".MOS"});
     else if (definition.equalsIgnoreCase("S:Spell*") || definition.equalsIgnoreCase("S:Res*"))
@@ -769,7 +771,7 @@ public final class Decompiler
     if (string1.length() > 9
         && (Compiler.isPossibleNamespace(string1.substring(0, 7) + '\"')
 //        && (!string1.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.getInstance().resourceExists(string1.substring(1, 7) + ".ARE"))) {
+            || ResourceFactory.resourceExists(string1.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string1.substring(7);
       newStrings[index++] = string1.substring(0, 7) + '\"';
     }
@@ -779,7 +781,7 @@ public final class Decompiler
     if (string2.length() > 9
         && (Compiler.isPossibleNamespace(string2.substring(0, 7) + '\"')
 //        && (!string2.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.getInstance().resourceExists(string2.substring(1, 7) + ".ARE"))) {
+            || ResourceFactory.resourceExists(string2.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string2.substring(7);
       newStrings[index++] = string2.substring(0, 7) + '\"';
     }

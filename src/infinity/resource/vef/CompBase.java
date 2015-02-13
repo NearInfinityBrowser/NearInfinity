@@ -4,11 +4,15 @@
 
 package infinity.resource.vef;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
+import infinity.resource.StructEntry;
 
 class CompBase extends AbstractStruct implements AddRemovable
 {
@@ -35,16 +39,20 @@ class CompBase extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Ticks until start"));
-    list.add(new Unknown(buffer, offset + 4, 4));
-    list.add(new DecNumber(buffer, offset + 8, 4, "Ticks until loop"));
+    addField(new DecNumber(buffer, offset, 4, "Ticks until start"));
+    addField(new Unknown(buffer, offset + 4, 4));
+    addField(new DecNumber(buffer, offset + 8, 4, "Ticks until loop"));
     VefType type = new VefType(buffer, offset + 12, 4);
-    list.add(type);
+    addField(type);
+
+    List<StructEntry> list = new ArrayList<StructEntry>();
     offset = type.readAttributes(buffer, offset + 16, list);
-    list.add(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_bool));
-    list.add(new Unknown(buffer, offset + 4, 196));
+    addToList(getList().size() - 1, list);
+
+    addField(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_bool));
+    addField(new Unknown(buffer, offset + 4, 196));
     offset += 200;
     return offset;
   }

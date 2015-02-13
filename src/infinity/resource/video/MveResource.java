@@ -9,10 +9,12 @@ import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
+import infinity.search.ReferenceSearcher;
 import infinity.util.MassExporter;
 import infinity.util.io.FileNI;
 
@@ -82,10 +84,12 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (miExport == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FindReferences)) {
+      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+    } else if (miExport == event.getSource()) {
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (miExportExecutable == event.getSource()) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Export MVE as Windows Executable");
       String name = entry.getResourceName();
       if (name.lastIndexOf('.') > 0) {
@@ -268,6 +272,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     buttonPanel.addControl(bPlay, CtrlPlay);
     buttonPanel.addControl(bPause, CtrlPause);
     buttonPanel.addControl(bStop, CtrlStop);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
     buttonPanel.addControl(optionsPanel);
 

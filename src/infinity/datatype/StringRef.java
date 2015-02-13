@@ -13,6 +13,7 @@ import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.StringReferenceSearcher;
 import infinity.util.DynamicArray;
@@ -29,14 +30,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public final class StringRef extends Datatype implements Editable, Readable, ActionListener
+public final class StringRef extends Datatype implements Editable, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
   private InfinityTextArea taRefText;
@@ -45,13 +45,23 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
 
   public StringRef(String name, int value)
   {
-    super(0, 8, name); // OK?
+    this(null, name, value);
+  }
+
+  public StringRef(StructEntry parent, String name, int value)
+  {
+    super(parent, 0, 8, name); // OK?
     this.value = value;
   }
 
   public StringRef(byte buffer[], int offset, String name)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name);
+  }
+
+  public StringRef(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    super(parent, offset, 4, name);
     read(buffer, offset);
   }
 
@@ -63,7 +73,7 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
     if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
       taRefText.setText(StringResource.getStringRef(Integer.parseInt(tfRefNr.getText())));
       String resname = StringResource.getResource(Integer.parseInt(tfRefNr.getText()));
-      bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+      bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     }
     else if (event.getSource() == bEdit) {
       StringEditor editor = null;
@@ -82,8 +92,7 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
     }
     else if (event.getSource() == bPlay) {
       int newvalue = Integer.parseInt(tfRefNr.getText());
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(
-              StringResource.getResource(newvalue) + ".WAV");
+      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getResource(newvalue) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch)
@@ -106,7 +115,7 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
       taRefText.setWrapStyleWord(true);
-      taRefText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      taRefText.setMargin(new Insets(3, 3, 3, 3));
       bPlay = new JButton("Sound", Icons.getIcon("Volume16.gif"));
       bPlay.setToolTipText("Opens associated sound");
       bPlay.addActionListener(this);
@@ -119,7 +128,7 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
       bSearch.setMnemonic('f');
     }
     String resname = StringResource.getResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     taRefText.setText(StringResource.getStringRef(value));
     taRefText.setCaretPosition(0);
     InfinityScrollPane scroll = new InfinityScrollPane(taRefText, true);
@@ -210,9 +219,11 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     value = DynamicArray.getInt(buffer, offset);
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------
@@ -225,7 +236,12 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
 
   public String toString(boolean extended)
   {
-    return StringResource.getStringRef(value, extended);
+    return toString(extended, false);
+  }
+
+  public String toString(boolean extended, boolean asPrefix)
+  {
+    return StringResource.getStringRef(value, extended, asPrefix);
   }
 
   public int getValue()
@@ -239,7 +255,7 @@ public final class StringRef extends Datatype implements Editable, Readable, Act
     taRefText.setText(StringResource.getStringRef(value));
     tfRefNr.setText(String.valueOf(value));
     String resname = StringResource.getResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
   }
 }
 

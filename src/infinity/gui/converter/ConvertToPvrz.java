@@ -7,7 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
@@ -54,7 +54,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class ConvertToPvrz extends ChildFrame implements ActionListener, PropertyChangeListener
 {
-  private static String currentDir = ResourceFactory.getRootDir().toString();
+  private static String currentDir = Profile.getGameRoot().toString();
 
   private JList lInputList;
   private DefaultListModel lInputModel;

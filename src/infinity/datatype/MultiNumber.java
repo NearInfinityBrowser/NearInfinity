@@ -9,6 +9,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 
 import java.awt.Color;
@@ -32,7 +33,7 @@ import javax.swing.table.AbstractTableModel;
  * A Number object consisting of multiple values of a given number of bits.
  * @author argent77
  */
-public class MultiNumber extends Datatype implements Editable, Readable
+public class MultiNumber extends Datatype implements Editable
 {
   private int value;
   private ValueTableModel mValues;
@@ -49,6 +50,23 @@ public class MultiNumber extends Datatype implements Editable, Readable
    * @param valueNames List of individual field names for each contained value.
    */
   public MultiNumber(byte[] buffer, int offset, int length, String name,
+                     int numBits, int numValues, String[] valueNames)
+  {
+    this(null, buffer, offset, length, name, numBits, numValues, valueNames);
+  }
+
+  /**
+   * Constructs a Number object consisting of multiple values of a given number of bits.
+   * @param parent A parent structure containing to this datatype object.
+   * @param buffer The buffer containing resource data for this type.
+   * @param offset Resource offset
+   * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
+   * @param name Field name
+   * @param numBits Number of bits for each value being part of the Number object.
+   * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
+   * @param valueNames List of individual field names for each contained value.
+   */
+  public MultiNumber(StructEntry parent, byte[] buffer, int offset, int length, String name,
                      int numBits, int numValues, String[] valueNames)
   {
     super(offset, length, name);
@@ -129,7 +147,7 @@ public class MultiNumber extends Datatype implements Editable, Readable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     switch (getSize()) {
       case 1:
@@ -147,6 +165,8 @@ public class MultiNumber extends Datatype implements Editable, Readable
       default:
         throw new IllegalArgumentException();
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

@@ -13,6 +13,9 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -22,9 +25,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.ComboBoxEditor;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -43,15 +49,24 @@ import javax.swing.JToggleButton;
 import javax.swing.ProgressMonitor;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultFormatter;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 
 import infinity.NearInfinity;
+import infinity.datatype.Bitmap;
+import infinity.datatype.HashBitmap;
 import infinity.datatype.IdsBitmap;
+import infinity.datatype.IwdRef;
+import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.KitIdsBitmap;
 import infinity.datatype.ProRef;
+import infinity.datatype.Song2daBitmap;
+import infinity.datatype.TextBitmap;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewFrame;
@@ -60,6 +75,7 @@ import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractAbility;
 import infinity.resource.EffectFactory;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
@@ -75,6 +91,7 @@ import infinity.resource.pro.ProSingleType;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
 import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 import infinity.util.Pair;
 import infinity.util.io.FileNI;
 
@@ -204,7 +221,7 @@ public class SearchResource extends ChildFrame
     String type = getCurrentResourceType();
     if (!type.isEmpty()) {
       // initializations
-      List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(type);
+      List<ResourceEntry> resources = ResourceFactory.getResources(type);
       Vector<NamedResourceEntry> found = new Vector<NamedResourceEntry>();
       bSearch.setEnabled(false);
       pbProgress.setMinimum(0);
@@ -268,20 +285,9 @@ public class SearchResource extends ChildFrame
       setIconImage(Icons.getIcon("Find16.gif").getImage());
       GridBagConstraints c = new GridBagConstraints();
 
-      boolean effSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-                              ResourceFactory.isEnhancedEdition());
-      boolean proSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.isEnhancedEdition());
-      boolean vvcSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.isEnhancedEdition());
+      boolean effSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_EFF);
+      boolean proSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_PRO);
+      boolean vvcSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_VVC);
       int resTypeCount = 5;
       if (effSupported) resTypeCount++;
       if (proSupported) resTypeCount++;
@@ -748,7 +754,7 @@ public class SearchResource extends ChildFrame
 
       cbScript = Utils.createNamedResourceComboBox(new String[]{"BCS"}, false);
 
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM", "PVRZ", "WBM"}, false);
       } else {
         cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM"}, false);
@@ -760,22 +766,16 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       String[] areType;
-      switch (ResourceFactory.getGameID()) {
-        case ResourceFactory.ID_BGEE:
-        case ResourceFactory.ID_BG2EE:
-        case ResourceFactory.ID_IWDEE:    // TODO: confirm!
-          areType = AreResource.s_atype_ee;
-          break;
-        case ResourceFactory.ID_TORMENT:
-          areType = AreResource.s_atype_torment;
-          break;
-        case ResourceFactory.ID_ICEWIND2:
-          areType = AreResource.s_atype_iwd2;
-          break;
-        default:
-          areType = AreResource.s_atype;
+      if (Profile.getEngine() == Profile.Engine.EE) {
+        areType = AreResource.s_atype_ee;
+      } else if (Profile.getEngine() == Profile.Engine.PST) {
+        areType = AreResource.s_atype_torment;
+      } else if (Profile.getEngine() == Profile.Engine.IWD2) {
+        areType = AreResource.s_atype_iwd2;
+      } else {
+        areType = AreResource.s_atype;
       }
-      String[] areFlags = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) ?
+      String[] areFlags = (Profile.getEngine() == Profile.Engine.PST) ?
                           AreResource.s_flag_torment : AreResource.s_flag;
       pType = new FlagsPanel(4, areType);
       bpwType = new ButtonPopupWindow(setOptionsText, pType);
@@ -964,7 +964,7 @@ public class SearchResource extends ChildFrame
               break;
             case ID_Level:
             {
-              if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+              if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
                 if (pLevelIWD2.isActive(CreLevelIWD2Panel.LEVEL_TOTAL)) {
                   retVal.setOption(SearchOptions.CRE_IWD2LevelTotal,
                                    pLevelIWD2.getOptionLevel(CreLevelIWD2Panel.LEVEL_TOTAL));
@@ -1044,7 +1044,7 @@ public class SearchResource extends ChildFrame
                                  new Integer(pType.getOptionType(CreTypePanel.TYPE_ALIGNMENT)));
               }
               if (pType.isActive(CreTypePanel.TYPE_GENDER)) {
-                if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+                if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
                   retVal.setOption(SearchOptions.CRE_Sex,
                                    new Integer(pType.getOptionType(CreTypePanel.TYPE_GENDER)));
                 } else {
@@ -1225,7 +1225,7 @@ public class SearchResource extends ChildFrame
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
       pType = new CreTypePanel();
       bpwTypes = new ButtonPopupWindow(setOptionsText, pType);
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
         pLevelIWD2 = new CreLevelIWD2Panel();
         bpwLevel = new ButtonPopupWindow(setOptionsText, pLevelIWD2);
       } else {
@@ -1236,8 +1236,8 @@ public class SearchResource extends ChildFrame
       pScripts = new CreScriptsPanel(3);
       bpwScripts = new ButtonPopupWindow(setOptionsText, pScripts);
 
-      cbAnimation = new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0,0,0,0}, 0, 4,
-                                                                         "Animation", "ANIMATE.IDS")));
+      cbAnimation = new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0,0,0,0}, 0, 4,
+                                                                            "Animation", "ANIMATE.IDS")));
       cbAnimation.setPrototypeDisplayValue(Utils.ProtoTypeString);
 
       pGameSpecific = new CreGameSpecificPanel();
@@ -1567,8 +1567,8 @@ public class SearchResource extends ChildFrame
       pTiming = new TimingModePanel();
       bpwTiming = new ButtonPopupWindow(setOptionsText, pTiming);
 
-      String[] saveType = (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) ?
-          EffectFactory.s_savetype2 : EffectFactory.s_savetype;
+      String[] saveType = (Profile.getEngine() == Profile.Engine.IWD2) ?
+                          EffectFactory.s_savetype2 : EffectFactory.s_savetype;
       pSaveType = new FlagsPanel(4, saveType);
       bpwSaveType = new ButtonPopupWindow(setOptionsText, pSaveType);
 
@@ -1975,10 +1975,10 @@ public class SearchResource extends ChildFrame
 
       String[] sFlags;
       String[] sCat;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
         sFlags = ItmResource.s_flags11;
         sCat = ItmResource.s_categories11;
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) {
         sFlags = ItmResource.s_flags;
         sCat = ItmResource.s_categories;
       } else {
@@ -1993,17 +1993,16 @@ public class SearchResource extends ChildFrame
       bpwUsability = new ButtonPopupWindow(setOptionsText, pUsability);
 
       ObjectString[] osAppearance = null;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
         osAppearance = ObjectString.createString(ItmResource.s_anim11, ItmResource.s_tag11);
-      } else if (ResourceFactory.isEnhancedEdition()) {
+      } else if (Profile.isEnhancedEdition()) {
         osAppearance = ObjectString.createString(ItmResource.s_anim_1pp, ItmResource.s_tag_1pp);
       } else {
         osAppearance = ObjectString.createString(ItmResource.s_anim, ItmResource.s_tag);
       }
-      cbAppearance = new JComboBox(osAppearance);
-      cbAppearance.setEditable(true);
+      cbAppearance = new AutoComboBox(osAppearance);
 
-      cbCategory = new JComboBox(IndexedString.createArray(sCat, 0, 0));
+      cbCategory = new AutoComboBox(IndexedString.createArray(sCat, 0, 0));
 
       pStats = new ItmStatsPanel();
       bpwStats = new ButtonPopupWindow(setOptionsText, pStats);
@@ -2322,8 +2321,8 @@ public class SearchResource extends ChildFrame
       cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM"}, false);
       cbAnimation.setPrototypeDisplayValue(Utils.ProtoTypeString);
 
-      cbType = new JComboBox(IndexedString.createArray(new String[]{"No BAM", "Single target",
-                                                                    "Area of effect"}, 0, 1));
+      cbType = new AutoComboBox(IndexedString.createArray(new String[]{"No BAM", "Single target",
+                                                                       "Area of effect"}, 0, 1));
 
       long[] keys = ProAreaType.s_proj.keys();
       Object[] values = ProAreaType.s_proj.values().toArray();
@@ -2335,7 +2334,7 @@ public class SearchResource extends ChildFrame
       for (int i = 0; i < values.length; i++) {
         strings[i] = (String)values[i];
       }
-      cbExplosionEffect = new JComboBox(ObjectString.createString(strings, objects));
+      cbExplosionEffect = new AutoComboBox(ObjectString.createString(strings, objects));
 
       pBehavior = new FlagsPanel(4, ProResource.s_behave);
       bpwBehavior = new ButtonPopupWindow(setOptionsText, pBehavior);
@@ -2711,15 +2710,15 @@ public class SearchResource extends ChildFrame
       pFlags = new FlagsPanel(4, SplResource.s_spellflag);
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
 
-      cbSpellType = new JComboBox(IndexedString.createArray(SplResource.s_spelltype, 0, 0));
+      cbSpellType = new AutoComboBox(IndexedString.createArray(SplResource.s_spelltype, 0, 0));
 
       pExclusion = new FlagsPanel(4, SplResource.s_exclude);
       bpwExclusion = new ButtonPopupWindow(setOptionsText, pExclusion);
 
-      cbCastingAnim = new JComboBox(IndexedString.createArray(SplResource.s_anim, 0, 0));
+      cbCastingAnim = new AutoComboBox(IndexedString.createArray(SplResource.s_anim, 0, 0));
 
       ObjectString[] prim;
-      if (ResourceFactory.getInstance().resourceExists("SCHOOL.IDS")) {
+      if (ResourceFactory.resourceExists("SCHOOL.IDS")) {
         IdsBitmap ids = new IdsBitmap(new byte[]{0}, 0, 1, "", "SCHOOL.IDS");
         prim = new ObjectString[ids.getIdsMapEntryCount()];
         for (int i = 0; i < prim.length; i++) {
@@ -2732,9 +2731,9 @@ public class SearchResource extends ChildFrame
           prim[i] = new ObjectString(SplResource.s_school[i], new Integer(i));
         }
       }
-      cbPrimary = new JComboBox(prim);
+      cbPrimary = new AutoComboBox(prim);
 
-      cbSecondary = new JComboBox(IndexedString.createArray(SplResource.s_category, 0, 0));
+      cbSecondary = new AutoComboBox(IndexedString.createArray(SplResource.s_category, 0, 0));
 
       pAbility = new SplAbilityPanel();
       bpwAbility = new ButtonPopupWindow(setOptionsText, pAbility);
@@ -3106,14 +3105,12 @@ public class SearchResource extends ChildFrame
       tfName = Utils.defaultWidth(new JTextField());
 
       StorageString[] types;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.isEnhancedEdition()) {
+      if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
         types = IndexedString.createArray(StoResource.s_type_bg2, 0, 0);
       } else {
         types = IndexedString.createArray(StoResource.s_type9, 0, 0);
       }
-      cbType = new JComboBox(types);
+      cbType = new AutoComboBox(types);
 
       pFlags = new FlagsPanel(4, StoResource.s_flag_bg2);
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
@@ -3667,10 +3664,10 @@ public class SearchResource extends ChildFrame
       return Utils.getRangeValues(cbLabel[id].isSelected(), sEffects[id]);
     }
 
-    public int getOptionEffectCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionEffectCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -3861,10 +3858,10 @@ public class SearchResource extends ChildFrame
       return null;
     }
 
-    public int getOptionFilterCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionFilterCount()
+//    {
+//      return entryCount;
+//    }
 
     private JPanel createFilterPanel(int entry, int type)
     {
@@ -4110,7 +4107,7 @@ public class SearchResource extends ChildFrame
         cbTiming[i].addActionListener(this);
       }
 
-      cbMode = Utils.defaultWidth(new JComboBox(IndexedString.createArray(EffectFactory.s_duration, 0, 0)), 130);
+      cbMode = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(EffectFactory.m_duration)), 130);
       sDuration[0] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 0, 1);
       sDuration[1] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 3600, 1);
 
@@ -4438,14 +4435,11 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean hasKit = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                        ResourceFactory.isEnhancedEdition() ||
-                        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
+      boolean hasKit = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
-        if (i == TYPE_GENDER && ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+        if (i == TYPE_GENDER && Profile.getEngine() == Profile.Engine.IWD2) {
           cbLabel[i] = new JCheckBox(label[TYPE_SEX]);
         } else {
           cbLabel[i] = new JCheckBox(label[i]);
@@ -4456,37 +4450,30 @@ public class SearchResource extends ChildFrame
 
       final int defaultSize = 160;
       cbType[TYPE_GENERAL] = Utils.defaultWidth(
-          new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "General", "GENERAL.IDS"))),
+          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "General", "GENERAL.IDS"))),
           defaultSize);
-      cbType[TYPE_GENERAL].setEditable(true);
       cbType[TYPE_CLASS] = Utils.defaultWidth(
-          new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Class", "CLASS.IDS"))),
+          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Class", "CLASS.IDS"))),
           defaultSize);
-      cbType[TYPE_CLASS].setEditable(true);
       cbType[TYPE_SPECIFICS] = Utils.defaultWidth(
-          new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Specifics", "SPECIFIC.IDS"))),
+          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Specifics", "SPECIFIC.IDS"))),
           defaultSize);
-      cbType[TYPE_SPECIFICS].setEditable(true);
-      String idsFile = (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) ? "ALIGNMNT.IDS" : "ALIGNMEN.IDS";
+      String idsFile = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
       cbType[TYPE_ALIGNMENT] = Utils.defaultWidth(
-          new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Alignment", idsFile))),
+          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Alignment", idsFile))),
           defaultSize);
-      cbType[TYPE_ALIGNMENT].setEditable(true);
       cbType[TYPE_GENDER] = Utils.defaultWidth(
-          new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Gender", "GENDER.IDS"))),
+          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Gender", "GENDER.IDS"))),
           defaultSize);
-      cbType[TYPE_GENDER].setEditable(true);
       cbType[TYPE_RACE] = Utils.defaultWidth(
-          new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Race", "RACE.IDS"))),
+          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Race", "RACE.IDS"))),
           defaultSize);
-      cbType[TYPE_RACE].setEditable(true);
       cbType[TYPE_ALLEGIANCE] = Utils.defaultWidth(
-          new JComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "EA.IDS"))),
+          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "EA.IDS"))),
           defaultSize);
-      cbType[TYPE_ALLEGIANCE].setEditable(true);
 
       StorageString[] kitList;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      if (Profile.getEngine() == Profile.Engine.IWD2) {
         IdsMapEntry[] ids = Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "KIT.IDS"));
         kitList = new StorageString[ids.length];
         for (int i = 0; i < kitList.length; i++) {
@@ -4502,8 +4489,7 @@ public class SearchResource extends ChildFrame
       } else {
         kitList = new StorageString[]{};
       }
-      cbType[TYPE_KIT] = Utils.defaultWidth(new JComboBox(kitList), defaultSize);
-      cbType[TYPE_KIT].setEditable(true);
+      cbType[TYPE_KIT] = Utils.defaultWidth(new AutoComboBox(kitList), defaultSize);
       cbType[TYPE_KIT].setEnabled(hasKit);
 
       // placing components
@@ -4552,8 +4538,8 @@ public class SearchResource extends ChildFrame
 
     public static boolean isGameSpecificEnabled()
     {
-      return (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+      return (Profile.getEngine() == Profile.Engine.IWD2 ||
+              Profile.getEngine() == Profile.Engine.PST);
     }
 
     public CreGameSpecificPanel()
@@ -4606,8 +4592,8 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean isIWD2 = (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
-      boolean isBoth = isIWD2 || (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+      boolean isIWD2 = (Profile.getEngine() == Profile.Engine.IWD2);
+      boolean isBoth = isIWD2 || (Profile.getEngine() == Profile.Engine.PST);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -4720,10 +4706,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbItems[id].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionItemCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionItemCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -4828,10 +4814,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbSpells[id].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionSpellCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionSpellCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -4937,10 +4923,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbScripts[id].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionScriptCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionScriptCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -5053,9 +5039,7 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean kitsSupported = (ResourceFactory.getGameID() != ResourceFactory.ID_TORMENT &&
-                               ResourceFactory.getGameID() != ResourceFactory.ID_ICEWIND2);
-//      boolean kitsSupported = ResourceFactory.getInstance().resourceExists("KIT.IDS");
+      boolean kitsSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -5067,9 +5051,9 @@ public class SearchResource extends ChildFrame
       }
 
       String[] sUnusable;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
         sUnusable = ItmResource.s_usability11;
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) {
         sUnusable = ItmResource.s_usability20;
       } else {
         sUnusable = ItmResource.s_usability;
@@ -5488,29 +5472,27 @@ public class SearchResource extends ChildFrame
         cbItems[i].addActionListener(this);
       }
 
-      cbType = Utils.defaultWidth(new JComboBox(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
-      cbTarget = Utils.defaultWidth(new JComboBox(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
-      cbLauncher = Utils.defaultWidth(new JComboBox(IndexedString.createArray(infinity.resource.itm.Ability.s_launcher, 0, 0)));
-      cbDamageType = Utils.defaultWidth(new JComboBox(IndexedString.createArray(infinity.resource.AbstractAbility.s_dmgtype, 0, 0)));
+      cbType = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
+      cbTarget = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
+      cbLauncher = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(infinity.resource.itm.Ability.s_launcher, 0, 0)));
+      cbDamageType = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(infinity.resource.AbstractAbility.s_dmgtype, 0, 0)));
 
       StorageString[] pro;
-      if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+      if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
         pro = new IndexedString[proRef.getIdsMapEntryCount()];
         for (int i = 0; i < pro.length; i++) {
           pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
         }
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 0, 0);
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if (Profile.getEngine() == Profile.Engine.IWD ||
+                 Profile.getEngine() == Profile.Engine.IWD2) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_iwd, 0, 0);
       } else {
         pro = IndexedString.createArray(AbstractAbility.s_projectile, 0, 0);
       }
-      cbProjectile = Utils.defaultWidth(new JComboBox(pro));
+      cbProjectile = Utils.defaultWidth(new AutoComboBox(pro));
 
       bpwFlags = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, flagsPanel));
 
@@ -5800,28 +5782,26 @@ public class SearchResource extends ChildFrame
         cbSpells[i].addActionListener(this);
       }
 
-      cbType = Utils.defaultWidth(new JComboBox(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
-      cbLocation = Utils.defaultWidth(new JComboBox(IndexedString.createArray(infinity.resource.spl.Ability.s_abilityuse, 0, 0)));
-      cbTarget = Utils.defaultWidth(new JComboBox(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
+      cbType = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
+      cbLocation = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(infinity.resource.spl.Ability.s_abilityuse, 0, 0)));
+      cbTarget = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
 
       StorageString[] pro;
-      if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+      if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
         pro = new IndexedString[proRef.getIdsMapEntryCount()];
         for (int i = 0; i < pro.length; i++) {
           pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
         }
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 1, 0);
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if (Profile.getEngine() == Profile.Engine.IWD ||
+                 Profile.getEngine() == Profile.Engine.IWD2) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_iwd, 1, 0);
       } else {
         pro = IndexedString.createArray(AbstractAbility.s_projectile, 1, 0);
       }
-      cbProjectile = Utils.defaultWidth(new JComboBox(pro));
+      cbProjectile = Utils.defaultWidth(new AutoComboBox(pro));
 
       sRange[0] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, -32768, 32767, 0, 1);
       sRange[1] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, -32768, 32767, 32767, 1);
@@ -5976,10 +5956,10 @@ public class SearchResource extends ChildFrame
       return 0;
     }
 
-    public int getOptionPurchasedCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionPurchasedCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -5987,9 +5967,9 @@ public class SearchResource extends ChildFrame
         cbLabel[i] = new JCheckBox(String.format("Category %1$d:", i+1));
         cbLabel[i].addActionListener(this);
 
-        String[] cat = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) ?
-            ItmResource.s_categories11 : ItmResource.s_categories;
-        cbCategory[i] = new JComboBox(IndexedString.createArray(cat, 0, 0));
+        String[] cat = ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V11)) ?
+                       ItmResource.s_categories11 : ItmResource.s_categories;
+        cbCategory[i] = new AutoComboBox(IndexedString.createArray(cat, 0, 0));
       }
 
       // placing components
@@ -6086,10 +6066,10 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbItems[index].getSelectedItem()).getResourceEntry());
     }
 
-    public int getOptionItemCount()
-    {
-      return entryCount;
-    }
+//    public int getOptionItemCount()
+//    {
+//      return entryCount;
+//    }
 
     private void init()
     {
@@ -6146,7 +6126,7 @@ public class SearchResource extends ChildFrame
     private String s;
     private int index;
 
-    // automatically create string/index pairs
+    // automatically create string/index pairs from string array
     public static IndexedString[] createArray(String[] strings, int startIndex, int ofsIndex)
     {
       IndexedString[] retVal = null;
@@ -6159,6 +6139,22 @@ public class SearchResource extends ChildFrame
         retVal = new IndexedString[0];
       }
 
+      return retVal;
+    }
+
+    // automatically create string/index pairs from HashBitmap source
+    public static IndexedString[] createArray(LongIntegerHashMap<String> map)
+    {
+      IndexedString[] retVal = null;
+      if (map != null) {
+        long[] keys = map.keys();
+        retVal = new IndexedString[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+          retVal[i] = new IndexedString(map.get(keys[i]), (int)keys[i]);
+        }
+      } else {
+        retVal = new IndexedString[0];
+      }
       return retVal;
     }
 
@@ -6249,10 +6245,10 @@ public class SearchResource extends ChildFrame
       return entry;
     }
 
-    public String getResourceName()
-    {
-      return (resName != null) ? resName : "";
-    }
+//    public String getResourceName()
+//    {
+//      return (resName != null) ? resName : "";
+//    }
 
     @Override
     public String toString()
@@ -6305,17 +6301,17 @@ public class SearchResource extends ChildFrame
       this.upperCase = upperCase;
     }
 
-    /** Returns max. number of characters of content allowed for the document. */
-    public int getMaxLength()
-    {
-      return maxLength;
-    }
+//    /** Returns max. number of characters of content allowed for the document. */
+//    public int getMaxLength()
+//    {
+//      return maxLength;
+//    }
 
-    /** Returns whether the document converts all characters into uppercase versions */
-    public boolean isUpperCase()
-    {
-      return upperCase;
-    }
+//    /** Returns whether the document converts all characters into uppercase versions */
+//    public boolean isUpperCase()
+//    {
+//      return upperCase;
+//    }
 
     @Override
     public void insertString(int off, String str, AttributeSet a) throws BadLocationException
@@ -6327,7 +6323,7 @@ public class SearchResource extends ChildFrame
       int newLen = maxLength - getLength();
       if (newLen > 0) {
         String s = (str.length() <= newLen) ? str : str.substring(0, newLen);
-        super.insertString(off, upperCase ? s.toUpperCase() : s, a);
+        super.insertString(off, upperCase ? s.toUpperCase(Locale.ENGLISH) : s, a);
       }
     }
   }
@@ -6354,7 +6350,7 @@ public class SearchResource extends ChildFrame
       list.add(nre);
       if (extensions != null) {
         for (int i = 0; i < extensions.length; i++) {
-          List<ResourceEntry> entries = ResourceFactory.getInstance().getResources(extensions[i]);
+          List<ResourceEntry> entries = ResourceFactory.getResources(extensions[i]);
           if (entries != null) {
             for (int j = 0; j < entries.size(); j++) {
               list.add(new NamedResourceEntry(entries.get(j)));
@@ -6414,16 +6410,16 @@ public class SearchResource extends ChildFrame
     }
 
     // Returns whether auto update has been enabled
-    private static boolean setSpinnerAutoUpdate(JSpinner spinner)
-    {
-      if (spinner != null) {
-        JFormattedTextField ftf = (JFormattedTextField)spinner.getEditor().getComponent(0);
-        if (ftf != null) {
-          return ((DefaultFormatter)ftf.getFormatter()).getCommitsOnValidEdit();
-        }
-      }
-      return false;
-    }
+//    private static boolean setSpinnerAutoUpdate(JSpinner spinner)
+//    {
+//      if (spinner != null) {
+//        JFormattedTextField ftf = (JFormattedTextField)spinner.getEditor().getComponent(0);
+//        if (ftf != null) {
+//          return ((DefaultFormatter)ftf.getFormatter()).getCommitsOnValidEdit();
+//        }
+//      }
+//      return false;
+//    }
 
     // creates a "min" to "max" panel
     public static JPanel createNumberRangePanel(JSpinner min, JSpinner max)
@@ -6537,6 +6533,250 @@ public class SearchResource extends ChildFrame
         return new Pair<Integer>((Integer)spinner[0].getValue(), (Integer)spinner[1].getValue());
       }
       return new Pair<Integer>(0, 0);
+    }
+  }
+
+  // Adds "auto-select item" feature to JComboBox
+  public static class AutoComboBox extends JComboBox
+  {
+    public AutoComboBox()
+    {
+      super();
+      init();
+    }
+
+    public AutoComboBox(ComboBoxModel aModel)
+    {
+      super(aModel);
+      init();
+    }
+
+    public AutoComboBox(Object[] items)
+    {
+      super(items);
+      init();
+    }
+
+    public AutoComboBox(Vector<?> items)
+    {
+      super(items);
+      init();
+    }
+
+    private void init()
+    {
+      setEditable(true);
+      new AutoDocument(this);
+    }
+  }
+
+  // Implements the auto-selection of items for AutoComboBox
+  private static class AutoDocument extends PlainDocument
+  {
+    private final FocusListener editorFocusListener;
+    private final JComboBox comboBox;
+
+    private ComboBoxModel model;
+    private JTextComponent editor;
+    private boolean selecting = false;
+
+    public AutoDocument(final JComboBox comboBox)
+    {
+      this.comboBox = comboBox;
+      this.model = this.comboBox.getModel();
+
+      this.comboBox.addPropertyChangeListener(new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt)
+        {
+          if (evt.getPropertyName().equals("editor")) { configureEditor((ComboBoxEditor)evt.getNewValue()); }
+          if (evt.getPropertyName().equals("model")) { model = (ComboBoxModel)evt.getNewValue(); }
+        }
+      });
+
+      this.comboBox.addPopupMenuListener(new PopupMenuListener() {
+        @Override
+        public void popupMenuWillBecomeVisible(PopupMenuEvent e)
+        {
+          try {
+            Object item = lookupItem(getText(0, getLength()));
+            if (item != null) {
+              setSelectedItem(item);
+            }
+          } catch (BadLocationException ble) {
+            ble.printStackTrace();
+          }
+        }
+
+        @Override
+        public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+
+        @Override
+        public void popupMenuCanceled(PopupMenuEvent e) {}
+      });
+
+      editorFocusListener = new FocusAdapter() {
+        @Override
+        public void focusGained(FocusEvent e)
+        {
+          highlightCompletedText(0);
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {}
+      };
+
+      configureEditor(comboBox.getEditor());
+
+      // handle initially selected object
+      Object selected = comboBox.getSelectedItem();
+      if (selected != null) { setText(selected.toString()); }
+      highlightCompletedText(0);
+    }
+
+    @Override
+    public void remove(int offs, int len) throws BadLocationException
+    {
+      // process only when not selecting an item
+      if (!selecting) {
+        super.remove(offs, len);
+      }
+    }
+
+    @Override
+    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException
+    {
+      // process only when not selecting an item
+      if (!selecting) {
+        // insert the string into the document
+        super.insertString(offs, str, a);
+
+        if (comboBox.isPopupVisible()) {
+          // get the resulting string
+          String content = getText(0, getLength());
+          // lookup a matching item
+          Object item = lookupItem(content);
+          // select the item (or deselect if null)
+          if (item != model.getSelectedItem()) {
+            setSelectedItem(item);
+          }
+          updateCursor();
+        }
+      }
+    }
+
+    private void configureEditor(ComboBoxEditor newEditor)
+    {
+      if (editor != null) {
+        editor.removeFocusListener(editorFocusListener);
+      }
+
+      if (newEditor != null) {
+        editor = (JTextComponent)newEditor.getEditorComponent();
+        editor.addFocusListener(editorFocusListener);
+        editor.setDocument(this);
+      }
+    }
+
+    // Attempts to find a matching item from the list
+    private Object lookupItem(String pattern)
+    {
+      if (pattern != null && !pattern.isEmpty()) {
+        Object curItem = model.getSelectedItem();
+
+        if (compareItem(curItem, pattern)) {
+          return curItem;
+        } else {
+          for (int i = 0, max = model.getSize(); i < max; i++) {
+            curItem = model.getElementAt(i);
+            if (compareItem(curItem, pattern)) {
+              return curItem;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    // Compares the item with the pattern, returns true if a (partial) match has been found
+    private boolean compareItem(Object item, String pattern)
+    {
+      if (item != null && pattern != null && !pattern.isEmpty()) {
+        pattern = pattern.toUpperCase(Locale.ENGLISH);
+        String name = item.toString().toUpperCase(Locale.ENGLISH);
+        String id;
+
+        Object curItem = item;
+        if (curItem instanceof StorageString) {    // actual data might be wrapped
+          curItem = ((StorageString)curItem).getObject();
+        }
+
+        // Check against specific datatypes for more accurate results
+        if (curItem instanceof IdsMapEntry) {
+          id = Long.toString(((IdsMapEntry)curItem).getID());
+        } else if (curItem instanceof Bitmap) {
+          id = Integer.toString(((Bitmap)curItem).getValue());
+        } else if (curItem instanceof HashBitmap) {
+          id = Long.toString(((HashBitmap)curItem).getValue());
+        } else if (curItem instanceof IdsBitmap) {
+          id = Long.toString(((HashBitmap)curItem).getValue());
+        } else if (curItem instanceof IwdRef) {
+          id = Long.toString(((IwdRef)curItem).getValue());
+        } else if (curItem instanceof Kit2daBitmap) {
+          id = Long.toString(((Kit2daBitmap)curItem).getValue());
+        } else if (curItem instanceof ProRef) {
+          id = Long.toString(((ProRef)curItem).getValue());
+        } else if (curItem instanceof Song2daBitmap) {
+          id = Long.toString(((Song2daBitmap)curItem).getValue());
+        } else if (curItem instanceof TextBitmap) {
+          id = ((TextBitmap)curItem).getIdsName();
+        } else {
+          id = curItem.toString().toUpperCase(Locale.ENGLISH);
+        }
+
+        if (name.startsWith(pattern) || id.startsWith(pattern)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // sets the editor text to the given string
+    private void setText(String text)
+    {
+      try {
+        // remove all text and insert the completed string
+        super.remove(0, getLength());
+        super.insertString(0, text, null);
+      } catch (BadLocationException e) {
+        e.printStackTrace();
+      }
+    }
+
+    // highlights the editor text, starting at the given offset
+    private void highlightCompletedText(int start)
+    {
+      editor.setCaretPosition(getLength());
+      editor.moveCaretPosition(start);
+    }
+
+    // selects the specified item without triggering certain events
+    private void setSelectedItem(Object item)
+    {
+      selecting = true;
+      try {
+        model.setSelectedItem(item);
+      } finally {
+        selecting = false;
+      }
+    }
+
+    // prevent certain GUI themes to select the whole text automatically
+    private void updateCursor()
+    {
+      int offs = editor.getCaretPosition();
+      editor.setSelectionStart(offs);
+      editor.setSelectionEnd(offs);
     }
   }
 }

@@ -18,8 +18,7 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
 {
   public WavReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "ITM", "PRO",
-                                    "SPL", "STO", "VEF", "VVC", "WED", "WMP"}, parent);
+    super(targetEntry, AbstractReferenceSearcher.FILE_TYPES, parent);
   }
 
   @Override
@@ -30,8 +29,8 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
         addHit(entry, entry.getSearchString(), o);

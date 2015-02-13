@@ -10,14 +10,16 @@ import java.io.File;
 
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
 import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextEdit;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.AutomapNote;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -128,28 +130,28 @@ public class LayerObjectAutomap extends LayerObject
             if (srcStrref > 0) {
               String path = getParentStructure().getResourceEntry().getActualFile().toString();
               path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
-              if (ResourceFactory.isEnhancedEdition()) {
+              if (Profile.isEnhancedEdition()) {
                 // processing new TOH structure
                 File tohFile = new FileNI(path, "DEFAULT.TOH");
                 if (tohFile.exists()) {
                   FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                   TohResource toh = new TohResource(tohEntry);
+                  SectionOffset so = (SectionOffset)toh.getAttribute("Strref entries offset");
                   SectionCount sc = (SectionCount)toh.getAttribute("# strref entries");
-                  if (sc != null && sc.getValue() > 0) {
-                    for (int i = 0; i < sc.getValue(); i++) {
-                      StrRefEntry2 strref = (StrRefEntry2)toh.getAttribute("StrRef entry " + i);
+                  if (so != null && sc != null && sc.getValue() > 0) {
+                    for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
+                      StrRefEntry2 strref = (StrRefEntry2)toh.getAttribute(curOfs, false);
                       if (strref != null) {
                         int v = ((StringRef)strref.getAttribute("Overridden strref")).getValue();
                         if (v == srcStrref) {
-                          StringEntry2 se = (StringEntry2)toh.getAttribute("String entry " + i);
+                          int sofs = ((HexNumber)strref.getAttribute("Relative override string offset")).getValue();
+                          StringEntry2 se = (StringEntry2)toh.getAttribute(so.getValue() + sofs, false);
                           if (se != null) {
-                            TextEdit te = (TextEdit)se.getAttribute("Override string");
-                            if (te != null) {
-                              msg = te.toString();
-                            }
+                            msg = ((TextEdit)se.getAttribute("Override string")).toString();
                           }
                           break;
                         }
+                        curOfs += strref.getSize();
                       }
                     }
                   }
@@ -164,25 +166,20 @@ public class LayerObjectAutomap extends LayerObject
                   TohResource toh = new TohResource(tohEntry);
                   TotResource tot = new TotResource(totEntry);
                   SectionCount sc = (SectionCount)toh.getAttribute("# strref entries");
-                  int totIndex = -1;
                   if (sc != null && sc.getValue() > 0) {
-                    for (int i = 0; i < sc.getValue(); i++) {
-                      StrRefEntry strref = (StrRefEntry)toh.getAttribute("StrRef entry " + i);
+                    for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
+                      StrRefEntry strref = (StrRefEntry)toh.getAttribute(curOfs, false);
                       if (strref != null) {
                         int v = ((StringRef)strref.getAttribute("Overridden strref")).getValue();
                         if (v == srcStrref) {
-                          totIndex = i;
+                          int sofs = ((HexNumber)strref.getAttribute("TOT string offset")).getValue();
+                          StringEntry se = (StringEntry)tot.getAttribute(sofs, false);
+                          if (se != null) {
+                            msg = ((TextEdit)se.getAttribute("String data")).toString();
+                          }
                           break;
                         }
-                      }
-                    }
-                    if (totIndex > 0) {
-                      StringEntry se = (StringEntry)tot.getAttribute("String entry " + totIndex);
-                      if (se != null) {
-                        TextEdit te = (TextEdit)se.getAttribute("String data");
-                        if (te != null) {
-                          msg = te.toString();
-                        }
+                        curOfs += strref.getSize();
                       }
                     }
                   }

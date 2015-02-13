@@ -5,6 +5,7 @@
 package infinity.util;
 
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 
 
 /**
@@ -332,6 +333,44 @@ public class DynamicArray
       return new String(buffer, offset, length);
     }
     return new String();
+  }
+
+  /**
+   * Writes a text string into the specified buffer.
+   * @param buffer The buffer to write the value to.
+   * @param offset Buffer offset.
+   * @param length The max. length of the string to write.
+   * @param s The (null-terminated) text string to write.
+   * @return true if successfull, false otherwise.
+   */
+  public static boolean putString(byte[] buffer, int offset, int length, String s)
+  {
+    return putString(buffer, offset, length, s, null);
+  }
+
+  /**
+   * Writes a text string into the specified buffer, using the specified charset for conversion.
+   * @param buffer The buffer to write the value to.
+   * @param offset Buffer offset.
+   * @param length The max. length of the string to write.
+   * @param s The (null-terminated) text string to write.
+   * @param cs The charset used to convert characters into bytes.
+   * @return true if successfull, false otherwise.
+   */
+  public static boolean putString(byte[] buffer, int offset, int length, String s, Charset cs)
+  {
+    if (buffer != null && offset >= 0 && length >= 0 && offset+length <= buffer.length && s != null) {
+      if (cs == null) cs = Charset.forName("windows-1252"); // TODO: Using "US-ASCII" instead?
+      byte[] buf = s.getBytes(cs);
+      int len = Math.min(buffer.length - offset, buf.length);
+      System.arraycopy(buf, 0, buffer, offset, len);
+      if (offset+len < buffer.length) {
+        buffer[offset+len] = 0; // writing string termination byte
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**

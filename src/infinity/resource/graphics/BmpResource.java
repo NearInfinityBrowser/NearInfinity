@@ -18,6 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -37,7 +38,10 @@ public final class BmpResource implements Resource, ActionListener
   {
     this.entry = entry;
     byte[] data = entry.getResourceData();
-    new String(data, 0, 2); // Signature
+    // Checking signature
+    if (!"BM".equals(new String(data, 0, 2))) {
+      throw new Exception("Invalid BMP resource");
+    }
     DynamicArray.getInt(data, 2); // Size
     DynamicArray.getInt(data, 6); // Reserved
     int rasteroff = DynamicArray.getInt(data, 10);
@@ -73,8 +77,14 @@ public final class BmpResource implements Resource, ActionListener
         setPixels(data, offset, bitcount, bytesprline, y, palette);
         offset += bytesprline + padded;
       }
-    } else
-      throw new Exception("Unsupported BMP format");
+    } else {
+      try {
+        image = ImageIO.read(entry.getResourceDataAsStream());
+      } catch (Exception e) {
+        image = null;
+        throw new Exception("Unsupported BMP format");
+      }
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -85,7 +95,7 @@ public final class BmpResource implements Resource, ActionListener
     if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
 
@@ -113,7 +123,7 @@ public final class BmpResource implements Resource, ActionListener
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);;
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
 
     panel = new JPanel();

@@ -63,7 +63,7 @@ public final class PltResource implements Resource, ActionListener
     if (buttonPanel.getControlByType(CtrlColorList) == event.getSource()) {
       rcCanvas.setImage(getImage());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
 
@@ -89,7 +89,7 @@ public final class PltResource implements Resource, ActionListener
     if (externalResource == null) {
       JComboBox cbColorBMP = new JComboBox();
       cbColorBMP.addItem("None");
-      List<ResourceEntry> bmps = ResourceFactory.getInstance().getResources("BMP");
+      List<ResourceEntry> bmps = ResourceFactory.getResources("BMP");
       for (int i = 0; i < bmps.size(); i++) {
         Object o = bmps.get(i);
         if (o.toString().startsWith("PLT"))

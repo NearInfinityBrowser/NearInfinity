@@ -52,7 +52,7 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
     setIconImage(Icons.getIcon("Refresh16.gif").getImage());
     hitFrame = new ReferenceHitFrame("Illegal ResourceRefs", NearInfinity.getInstance());
 
-    ResourceEntry spawnRef = ResourceFactory.getInstance().getResourceEntry("SPAWNGRP.2DA");
+    ResourceEntry spawnRef = ResourceFactory.getResourceEntry("SPAWNGRP.2DA");
     if (spawnRef != null) {
       PlainTextResource spawn = (PlainTextResource)ResourceFactory.getResource(spawnRef);
       extraValues = spawn.extract2DAHeaders();
@@ -109,7 +109,7 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
       files = new ArrayList<ResourceEntry>();
       for (int i = 0; i < filetypes.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getInstance().getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(filetypes[i]));
       }
       if (files.size() > 0)
         new Thread(this).start();
@@ -170,9 +170,9 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
           ;
         else if (extraValues != null && extraValues.contains(ref.getResName()))
           ;
-        else if (!ResourceFactory.getInstance().resourceExists(resourceName))
+        else if (!ResourceFactory.resourceExists(resourceName))
           hitFrame.addHit(entry, entry.getSearchString(), ref);
-        else if (!ref.isLegalEntry(ResourceFactory.getInstance().getResourceEntry(resourceName))) {
+        else if (!ref.isLegalEntry(ResourceFactory.getResourceEntry(resourceName))) {
           hitFrame.addHit(entry, entry.getSearchString(), ref);
         }
       }
@@ -183,9 +183,9 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
           ;
         else if (struct instanceof CreResource && resourceName.substring(0, 3).equalsIgnoreCase("rnd"))
           ;
-        else if (!ResourceFactory.getInstance().resourceExists(resourceName))
+        else if (!ResourceFactory.resourceExists(resourceName))
           hitFrame.addHit(entry, entry.getSearchString(), ref);
-        else if (!ref.isLegalEntry(ResourceFactory.getInstance().getResourceEntry(resourceName)))
+        else if (!ref.isLegalEntry(ResourceFactory.getResourceEntry(resourceName)))
           hitFrame.addHit(entry, entry.getSearchString(), ref);
       }
     }

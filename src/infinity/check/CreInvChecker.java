@@ -16,6 +16,7 @@ import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -87,7 +88,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
         ((AbstractStruct)resource).getViewer().selectEntry(((Item)table.getValueAt(row, 2)).getName());
       }
     } else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Save search result");
       fc.setSelectedFile(new FileNI("result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
@@ -139,8 +140,8 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> creFiles = ResourceFactory.getInstance().getResources("CRE");
-    creFiles.addAll(ResourceFactory.getInstance().getResources("CHR"));
+    List<ResourceEntry> creFiles = ResourceFactory.getResources("CRE");
+    creFiles.addAll(ResourceFactory.getResources("CHR"));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Checking inventories...", null, 0, creFiles.size());
 
@@ -233,8 +234,8 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     HexNumber slots_offset = (HexNumber)cre.getAttribute("Item slots offset");
     items.clear();
     slots.clear();
-    for (int i = 0; i < cre.getRowCount(); i++) {
-      StructEntry entry = cre.getStructEntryAt(i);
+    for (int i = 0; i < cre.getFieldCount(); i++) {
+      StructEntry entry = cre.getField(i);
       if (entry instanceof Item)
         items.add(entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&

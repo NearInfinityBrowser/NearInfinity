@@ -36,16 +36,16 @@ public final class TiledObject extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new TextString(buffer, offset + 32, 8, "Tile ID"));
-    list.add(new Flag(buffer, offset + 40, 4, "Tile flags", s_flag));
-    list.add(new DecNumber(buffer, offset + 44, 4, "First vertex index (primary)"));
-    list.add(new DecNumber(buffer, offset + 48, 2, "# vertices (primary)"));
-    list.add(new DecNumber(buffer, offset + 50, 2, "# vertices (secondary)"));
-    list.add(new DecNumber(buffer, offset + 52, 4, "First vertex index (secondary)"));
-    list.add(new Unknown(buffer, offset + 60, 48));
+    addField(new TextString(buffer, offset, 32, "Name"));
+    addField(new TextString(buffer, offset + 32, 8, "Tile ID"));
+    addField(new Flag(buffer, offset + 40, 4, "Tile flags", s_flag));
+    addField(new DecNumber(buffer, offset + 44, 4, "First vertex index (primary)"));
+    addField(new DecNumber(buffer, offset + 48, 2, "# vertices (primary)"));
+    addField(new DecNumber(buffer, offset + 50, 2, "# vertices (secondary)"));
+    addField(new DecNumber(buffer, offset + 52, 4, "First vertex index (secondary)"));
+    addField(new Unknown(buffer, offset + 60, 48));
     return offset + 108;
   }
 }

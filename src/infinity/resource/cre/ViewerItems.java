@@ -46,8 +46,8 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     super(new BorderLayout(0, 3));
     List<Item> items = new ArrayList<Item>();
     HexNumber slots_offset = (HexNumber)cre.getAttribute("Item slots offset");
-    for (int i = 0; i < cre.getRowCount(); i++) {
-      StructEntry entry = cre.getStructEntryAt(i);
+    for (int i = 0; i < cre.getFieldCount(); i++) {
+      StructEntry entry = cre.getField(i);
       if (entry instanceof Item)
         items.add((Item)entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
@@ -80,7 +80,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
           ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
           if (ref != null) {
             Resource res = ResourceFactory.getResource(
-                    ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                    ResourceFactory.getResourceEntry(ref.getResourceName()));
             new ViewFrame(getTopLevelAncestor(), res);
           }
         }
@@ -106,7 +106,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
       ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 1);
       if (ref != null) {
         Resource res = ResourceFactory.getResource(
-                ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                ResourceFactory.getResourceEntry(ref.getResourceName()));
         new ViewFrame(getTopLevelAncestor(), res);
       }
     }
@@ -136,11 +136,11 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
   {
     if (event.getType() == TableModelEvent.UPDATE) {
       CreResource cre = (CreResource)event.getSource();
-      Object changed = cre.getStructEntryAt(event.getFirstRow());
+      Object changed = cre.getField(event.getFirstRow());
       if (slots.contains(changed)) {
         List<Item> items = new ArrayList<Item>();
-        for (int i = 0; i < cre.getRowCount(); i++) {
-          StructEntry entry = cre.getStructEntryAt(i);
+        for (int i = 0; i < cre.getFieldCount(); i++) {
+          StructEntry entry = cre.getField(i);
           if (entry instanceof Item)
             items.add((Item)entry);
         }

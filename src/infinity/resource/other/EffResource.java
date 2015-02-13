@@ -4,38 +4,89 @@
 
 package infinity.resource.other;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JComponent;
+
 import infinity.datatype.EffectType;
 import infinity.datatype.TextString;
+import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Effect2;
+import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
 
-public final class EffResource extends AbstractStruct implements Resource
+public final class EffResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  private HexViewer hexViewer;
+
   public EffResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
-    list.add(new TextString(buffer, offset + 8, 4, "Signature 2"));
-    list.add(new TextString(buffer, offset + 12, 4, "Version 2"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset + 8, 4, "Signature 2"));
+    addField(new TextString(buffer, offset + 12, 4, "Version 2"));
     EffectType type = new EffectType(buffer, offset + 16, 4);
-    list.add(type);
+    addField(type);
+    List<StructEntry> list = new ArrayList<StructEntry>();
     offset = type.readAttributes(buffer, offset + 20, list);
+    addToList(getList().size() - 1, list);
 
+    list.clear();
     Effect2.readCommon(list, buffer, offset);
+    addToList(getList().size() - 1, list);
 
     return offset + 216;
   }
 
+//--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.
@@ -58,9 +109,9 @@ public final class EffResource extends AbstractStruct implements Resource
             StructEntry struct;
             if (SearchOptions.isResourceByOffset(key)) {
               int ofs = SearchOptions.getResourceIndex(key);
-              struct = eff.getAttribute(ofs);
+              struct = eff.getAttribute(ofs, false);
             } else {
-              struct = eff.getAttribute(SearchOptions.getResourceName(key));
+              struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
             }
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
@@ -71,7 +122,7 @@ public final class EffResource extends AbstractStruct implements Resource
         if (retVal) {
           key = SearchOptions.EFF_SaveType;
           o = searchOptions.getOption(key);
-          StructEntry struct = eff.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchFlags(struct, o);
         }
 
@@ -84,9 +135,9 @@ public final class EffResource extends AbstractStruct implements Resource
             StructEntry struct;
             if (SearchOptions.isResourceByOffset(key)) {
               int ofs = SearchOptions.getResourceIndex(key);
-              struct = eff.getAttribute(ofs);
+              struct = eff.getAttribute(ofs, false);
             } else {
-              struct = eff.getAttribute(SearchOptions.getResourceName(key));
+              struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
             }
             retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
           } else {
@@ -112,5 +163,6 @@ public final class EffResource extends AbstractStruct implements Resource
     }
     return false;
   }
+
 }
 

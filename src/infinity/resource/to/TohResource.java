@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.SectionCount;
@@ -16,19 +17,60 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
-public final class TohResource extends AbstractStruct implements Resource
+public final class TohResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  private HexViewer hexViewer;
+
   public TohResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
+
+//--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      BasicColorMap colorMap = new BasicColorMap(this, false);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, StrRefEntry.class);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.GREEN, StrRefEntry2.class);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.RED, StringEntry.class);
+      colorMap.setColoredEntry(BasicColorMap.Coloring.CYAN, StringEntry2.class);
+      hexViewer = new HexViewer(this, colorMap);
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   public void close() throws Exception
@@ -37,26 +79,25 @@ public final class TohResource extends AbstractStruct implements Resource
   }
 
   @Override
-  protected int read(byte[] buffer, int offset) throws Exception
+  public int read(byte[] buffer, int offset) throws Exception
   {
     int startOffset = offset;
-    boolean isEnhanced = (ResourceFactory.isEnhancedEdition()) &&
-                         (DynamicArray.getInt(buffer, offset + 4) == 2);
-    list.add(new TextString(buffer, offset, 4, "Signature"));
+    boolean isEnhanced = Profile.isEnhancedEdition() && (DynamicArray.getInt(buffer, offset + 4) == 2);
+    addField(new TextString(buffer, offset, 4, "Signature"));
     if (isEnhanced) {
-      list.add(new DecNumber(buffer, offset + 4, 4, "Version"));
+      addField(new DecNumber(buffer, offset + 4, 4, "Version"));
     } else {
-      list.add(new TextString(buffer, offset + 4, 4, "Version"));
+      addField(new TextString(buffer, offset + 4, 4, "Version"));
     }
-    list.add(new Unknown(buffer, offset + 8, 4));
+    addField(new Unknown(buffer, offset + 8, 4));
     SectionCount scStrref = new SectionCount(buffer, offset + 12, 4, "# strref entries", StrRefEntry.class);
-    list.add(scStrref);
+    addField(scStrref);
     SectionOffset soStrref = null;
     if (isEnhanced) {
       soStrref = new SectionOffset(buffer, offset + 16, "Strref entries offset", StrRefEntry.class);
-      list.add(soStrref);
+      addField(soStrref);
     } else {
-      list.add(new Unknown(buffer, offset + 16, 4));
+      addField(new Unknown(buffer, offset + 16, 4));
     }
 
     List<Integer> ofsList = null;
@@ -73,25 +114,25 @@ public final class TohResource extends AbstractStruct implements Resource
         // adding strref entries structure
         StrRefEntry2 entry = new StrRefEntry2(this, buffer, offset, i);
         offset = entry.getEndOffset();
-        list.add(entry);
+        addField(entry);
       } else {
         StrRefEntry entry = new StrRefEntry(this, buffer, offset, i);
         offset = entry.getEndOffset();
-        list.add(entry);
+        addField(entry);
       }
     }
 
     if (isEnhanced) {
       for (int i = 0; i < scStrref.getValue(); i++) {
         StringEntry2 entry = new StringEntry2(this, buffer, startOffset + ofsList.get(i), i);
-        list.add(entry);
+        addField(entry);
         offset += entry.getEndOffset();
       }
     }
 
     int endoffset = offset;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }
@@ -101,6 +142,8 @@ public final class TohResource extends AbstractStruct implements Resource
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
+    viewer.addTabChangeListener(hexViewer);
+
     // disabling 'Save' button
     JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.Save);
     if (bSave != null) {

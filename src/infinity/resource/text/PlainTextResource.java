@@ -10,6 +10,7 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.InfinityScrollPane;
 import infinity.gui.InfinityTextArea;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.ViewableContainer;
@@ -22,6 +23,7 @@ import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.BorderLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -32,9 +34,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -71,10 +73,10 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void actionPerformed(ActionEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
-      if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor()))
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()))
         resourceChanged = false;
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TrimSpaces) == event.getSource()) {
       StringBuffer newText = new StringBuffer(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
@@ -98,8 +100,8 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-            FileNI.getFile(ResourceFactory.getRootDirs(),
-                 ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
+            FileNI.getFile(Profile.getRootFolders(),
+                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
       String options[] = {"Save changes", "Discard changes", "Cancel"};
@@ -107,7 +109,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0)
-        ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
+        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
       else if (result != 1)
         throw new Exception("Save aborted");
     }
@@ -148,7 +150,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     if (event.getSource() == bpmFind) {
       if (bpmFind.getSelectedItem() == ifindall) {
         String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources(type);
+        List<ResourceEntry> files = ResourceFactory.getResources(type);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
@@ -188,7 +190,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     for (int i = 1; i < linenr; i++)
       startpos = s.indexOf("\n", startpos + 1);
     if (startpos == -1) return;
-    int wordpos = s.toUpperCase().indexOf(text.toUpperCase(), startpos);
+    int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
     if (wordpos != -1)
       editor.select(wordpos, wordpos + text.length());
     else
@@ -209,11 +211,12 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     setSyntaxHighlightingEnabled(editor, pane);
     editor.addCaretListener(container.getStatusBar());
     editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    editor.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
     editor.getDocument().addDocumentListener(this);
-    if (entry.toString().toUpperCase().endsWith(".BIO") || entry.toString().toUpperCase().endsWith(".RES")) {
+    if (entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".BIO") ||
+        entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".RES")) {
       editor.setLineWrap(true);
       editor.setWrapStyleWord(true);
     }
@@ -262,7 +265,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     st = new StringTokenizer(header);
     List<String> strings = new ArrayList<String>();
     while (st.hasMoreTokens())
-      strings.add(st.nextToken().toUpperCase());
+      strings.add(st.nextToken().toUpperCase(Locale.ENGLISH));
     return strings;
   }
 

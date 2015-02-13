@@ -13,6 +13,7 @@ import infinity.gui.TableItem;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -124,7 +125,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       setVisible(false);
       for (int i = 0; i < filetypes.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getInstance().getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(filetypes[i]));
       }
       if (files.size() > 0)
         new Thread(this).start();
@@ -151,7 +152,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Save result");
       chooser.setSelectedFile(new FileNI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {

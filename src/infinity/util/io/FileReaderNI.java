@@ -31,7 +31,7 @@ public class FileReaderNI extends FileReader
 
   public FileReaderNI(File file) throws FileNotFoundException
   {
-    super(new File(FileLookup.getInstance().queryFilePath(file)));
+    super(FileLookup.getInstance().queryFile(file));
   }
 
   public FileReaderNI(FileDescriptor fd)
@@ -215,7 +215,7 @@ public class FileReaderNI extends FileReader
 
   public static String readString(RandomAccessFile ranfile, int length) throws IOException
   {
-    return readString(ranfile, length, Charset.forName("ISO-8859-1"));
+    return readString(ranfile, length, Charset.forName("windows-1252"));
   }
 
   public static String readString(RandomAccessFile ranfile, int length, Charset charset) throws IOException

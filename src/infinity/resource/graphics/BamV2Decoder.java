@@ -207,7 +207,7 @@ public class BamV2Decoder extends BamDecoder
   {
     try {
       String name = String.format("MOS%1$04d.PVRZ", page);
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(name);
       if (entry != null) {
         return PvrDecoder.loadPvr(entry);
       }

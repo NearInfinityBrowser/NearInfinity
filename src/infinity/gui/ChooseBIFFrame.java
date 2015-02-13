@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.BIFFArchive;
 import infinity.resource.key.BIFFEntry;
@@ -18,6 +19,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -175,16 +177,14 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
       cbbifname.setEnabled(false);
       tfbifname.setEnabled(true);
       rbbiff.setEnabled(true);
-      int gameid = ResourceFactory.getGameID();
-      rbbif.setEnabled(gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
-                       gameid == ResourceFactory.ID_ICEWINDHOWTOT || gameid == ResourceFactory.ID_IWDEE);
-      rbbifc.setEnabled(gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-                        ResourceFactory.isEnhancedEdition());
+
+      rbbif.setEnabled((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIF));
+      rbbifc.setEnabled((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIFC));
     }
     else if (event.getSource() == bok || event.getSource() == tfbifname) {
       if (rbcreate.isSelected()) {
         // Check if name exists
-        String name = tfbifname.getText().toLowerCase();
+        String name = tfbifname.getText().toLowerCase(Locale.ENGLISH);
         if (name.equals("") || name.indexOf("\\") != -1 || name.indexOf("/") != -1) {
           JOptionPane.showMessageDialog(this, "Illegal BIFF name", "Error", JOptionPane.ERROR_MESSAGE);
           return;

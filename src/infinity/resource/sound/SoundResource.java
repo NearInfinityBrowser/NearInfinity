@@ -84,13 +84,13 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     if (buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu) == event.getSource()) {
       ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
       if (bpmExport.getSelectedItem() == miExport) {
-        ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+        ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       } else if (bpmExport.getSelectedItem() == miConvert) {
         String fileName = entry.toString();
         if (fileName.lastIndexOf('.') > 0)
           fileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".WAV";
-        ResourceFactory.getInstance().exportResource(entry, audioBuffer.getAudioData(),
-                                                     fileName, panel.getTopLevelAncestor());
+        ResourceFactory.exportResource(entry, audioBuffer.getAudioData(), fileName,
+                                       panel.getTopLevelAncestor());
       }
     }
   }
@@ -219,14 +219,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     if (bPlay != null) {
       bPlay.setEnabled(b);
     }
-    JButton bFind = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.FindReferences);
-    if (bFind != null) {
-      bFind.setEnabled(b);
-    }
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu);
-    if (bpmExport != null) {
-      bpmExport.setEnabled(b);
-    }
+    miConvert.setEnabled(b);
   }
 
   private synchronized void setClosed(boolean b)

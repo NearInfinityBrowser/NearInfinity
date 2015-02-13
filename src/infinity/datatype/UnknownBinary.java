@@ -5,12 +5,18 @@
 package infinity.datatype;
 
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 
 public final class UnknownBinary extends Unknown
 {
   public UnknownBinary(byte[] buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public UnknownBinary(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  {
+    super(parent, buffer, offset, length, name);
   }
 
 // --------------------- Begin Interface Editable ---------------------

@@ -18,6 +18,7 @@ import infinity.gui.layeritem.BasicAnimationProvider;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
@@ -197,8 +198,8 @@ public class LayerObjectAnimation extends LayerObject
       boolean isActive = true, isBlended = false, isMirrored = false, isSelfIlluminated = false;
       try {
         // PST seems to ignore a couple of animation settings
-        boolean isTorment = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
-        boolean isEE = (ResourceFactory.isEnhancedEdition());
+        boolean isTorment = (Profile.getEngine() == Profile.Engine.PST);
+        boolean isEE = Profile.isEnhancedEdition();
 
         location.x = ((DecNumber)anim.getAttribute("Location: X")).getValue();
         location.y = ((DecNumber)anim.getAttribute("Location: Y")).getValue();
@@ -300,7 +301,7 @@ public class LayerObjectAnimation extends LayerObject
           keyAnim = String.format("%1$s", animFile);
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
-            ResourceEntry bamEntry = ResourceFactory.getInstance().getResourceEntry(animFile);
+            ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
             bam = BamDecoder.loadBam(bamEntry);
             SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
@@ -370,7 +371,7 @@ public class LayerObjectAnimation extends LayerObject
   {
     int[] retVal = null;
     if (bmpFile != null && !bmpFile.isEmpty()) {
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(bmpFile);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(bmpFile);
       if (entry == null) {
         entry = new FileResourceEntry(new FileNI(bmpFile));
       }

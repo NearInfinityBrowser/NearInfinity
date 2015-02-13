@@ -8,7 +8,8 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
+import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
@@ -32,11 +33,14 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public final class IDSTargetEffect extends Datatype implements Editable, Readable, ListSelectionListener
+public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
 {
+  /** The default field name of this datatype. */
+  public static final String DEFAULT_NAME = "IDS target";
+
   private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
                                                 "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
-                                                "ALIGN.IDS", ""};
+                                                "ALIGNMEN.IDS", ""};
   private final String[] sIDS;
 
   private LongIntegerHashMap<IdsMapEntry> idsMap;
@@ -45,26 +49,80 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
 
   public IDSTargetEffect(byte buffer[], int offset)
   {
-    this(buffer, offset, "EA.IDS");
+    this(null, buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
   }
 
-  public IDSTargetEffect(byte buffer[], int offset, String secondIDS)
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset)
   {
-    super(offset, 8, "IDS target");
+    this(parent, buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size)
+  {
+    this(null, buffer, offset, size, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size)
+  {
+    this(parent, buffer, offset, size, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name)
+  {
+    this(null, buffer, offset, 8, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    this(parent, buffer, offset, 8, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name)
+  {
+    this(null, buffer, offset, size, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size, String name)
+  {
+    this(parent, buffer, offset, size, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name, String secondIDS)
+  {
+    this(null, buffer, offset, 8, name, secondIDS);
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, String name, String secondIDS)
+  {
+    this(parent, buffer, offset, 8, name, secondIDS);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name, String secondIDS)
+  {
+    this(null, buffer, offset, size, name, secondIDS);
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size, String name,
+                         String secondIDS)
+  {
+    super(parent, offset, size, (name != null) ? name : DEFAULT_NAME);
     sIDS = sIDS_default;
     sIDS[2] = secondIDS;
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       sIDS[9] = "KIT.IDS";
     }
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-      sIDS[8] = "ALIGNMNT.IDS";
-    }
+    sIDS[8] = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
     read(buffer, offset);
   }
 
   public IDSTargetEffect(byte buffer[], int offset, String name, String[] ids)
   {
-    super(offset, 8, name);
+    this(buffer, offset, 8, name, ids);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name, String[] ids)
+  {
+    super(offset, size, (name != null) ? name : DEFAULT_NAME);
     if (ids != null) {
       sIDS = ids;
     } else {
@@ -209,10 +267,14 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
     while (!svalue.equals(getString(fSelected)))
       fSelected++;
 
-    if (idsFile < sIDS.length && !sIDS[fSelected].equals(""))
+    if (idsFile < sIDS.length && !sIDS[fSelected].equals("")) {
       idsMap = IdsMapCache.get(sIDS[fSelected]).getMap();
-    else
+      if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[fSelected].equalsIgnoreCase("EA.IDS")) {
+        idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+      }
+    } else {
       idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    }
 
     long[] keys = idsMap.keys();
     List<Object> items = new ArrayList<Object>(keys.length);
@@ -244,8 +306,20 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
   @Override
   public void write(OutputStream os) throws IOException
   {
-    FileWriterNI.writeInt(os, (int)idsValue);
-    FileWriterNI.writeInt(os, (int)idsFile);
+    switch (getSize()) {
+      case 2:
+        FileWriterNI.writeByte(os, (byte)idsValue);
+        FileWriterNI.writeByte(os, (byte)idsFile);
+        break;
+      case 4:
+        FileWriterNI.writeShort(os, (short)idsValue);
+        FileWriterNI.writeShort(os, (short)idsFile);
+        break;
+      case 8:
+        FileWriterNI.writeInt(os, (int)idsValue);
+        FileWriterNI.writeInt(os, (int)idsFile);
+        break;
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -253,15 +327,48 @@ public final class IDSTargetEffect extends Datatype implements Editable, Readabl
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
-    idsValue = DynamicArray.getUnsignedInt(buffer, offset);
-    idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
-    if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
-      idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
-    } else {
-      idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    switch (getSize()) {
+      case 2:
+        idsValue = DynamicArray.getUnsignedByte(buffer, offset);
+        idsFile = DynamicArray.getUnsignedByte(buffer, offset + 1);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
+      case 4:
+        idsValue = DynamicArray.getUnsignedShort(buffer, offset);
+        idsFile = DynamicArray.getUnsignedShort(buffer, offset + 2);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
+      case 8:
+        idsValue = DynamicArray.getUnsignedInt(buffer, offset);
+        idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
     }
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

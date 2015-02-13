@@ -237,7 +237,7 @@ public abstract class LayerObject
       int idx = 0, cnt = 0;
       coords = new Point[count];
       List<StructEntry> list = superStruct.getList();
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0, size = list.size(); i < size; i++) {
           if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
             if (idx >= index) {
               Vertex vertex = (Vertex)list.get(i);

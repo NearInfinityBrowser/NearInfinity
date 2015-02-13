@@ -15,6 +15,7 @@ import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -149,7 +150,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Save search result");
       fc.setSelectedFile(new FileNI("result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
@@ -203,7 +204,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
     blocker.setBlocked(true);
     List<ResourceEntry> files = new ArrayList<ResourceEntry>();
     for (final String fileType : FILETYPES)
-      files.addAll(ResourceFactory.getInstance().getResources(fileType));
+      files.addAll(ResourceFactory.getResources(fileType));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Searching...", null, 0, files.size());
 
@@ -212,7 +213,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
     table = new SortableTable(Arrays.asList(new String[]{"File", "Name"}),
                               colClasses, Arrays.asList(new Integer[]{200, 200}));
 
-    checkList.addAll(ResourceFactory.getInstance().getResources(checkType));
+    checkList.addAll(ResourceFactory.getResources(checkType));
     long startTime = System.currentTimeMillis();
     for (int i = 0; i < files.size(); i++) {
       ResourceEntry entry = files.get(i);
@@ -298,7 +299,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
   private void checkDialog(DlgResource dialog)
   {
-    List<StructEntry> flatList = dialog.getFlatList();
+    List<StructEntry> flatList = dialog.getList();
     for (int i = 0; i < flatList.size(); i++) {
       if (flatList.get(i) instanceof ResourceRef) {
         ResourceRef ref = (ResourceRef)flatList.get(i);

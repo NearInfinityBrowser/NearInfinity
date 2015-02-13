@@ -189,7 +189,7 @@ public class TisV2Decoder extends TisDecoder
   {
     try {
       String name = String.format("%1$s%2$02d.PVRZ", pvrzNameBase, page);
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(name);
       if (entry != null) {
         return PvrDecoder.loadPvr(entry);
       }

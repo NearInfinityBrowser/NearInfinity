@@ -99,7 +99,7 @@ public final class IDSRefChecker extends ChildFrame implements ActionListener, R
       files = new ArrayList<ResourceEntry>();
       for (int i = 0; i < filetypes.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getInstance().getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(filetypes[i]));
       }
       if (files.size() > 0)
         new Thread(this).start();

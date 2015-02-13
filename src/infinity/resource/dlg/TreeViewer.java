@@ -9,6 +9,7 @@ import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.LinkButton;
 import infinity.gui.ViewFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
@@ -35,6 +36,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Stack;
 
 import javax.swing.BorderFactory;
@@ -125,13 +127,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           ItemBase item = (ItemBase)node.getUserObject();
           boolean isExtern = (!item.getDialogName().equals(dlg.getResourceEntry().getResourceName()));
           if (isExtern) {
-            ViewFrame vf = mapViewer.get(item.getDialogName());
+            ViewFrame vf = mapViewer.get(item.getDialogName().toUpperCase(Locale.ENGLISH));
             // reuseing external dialog window if possible
             if (vf != null && vf.isVisible()) {
               vf.toFront();
             } else {
               vf = new ViewFrame(this, item.getDialog());
-              mapViewer.put(item.getDialogName(), vf);
+              mapViewer.put(item.getDialogName().toUpperCase(Locale.ENGLISH), vf);
             }
           }
 
@@ -281,6 +283,15 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT,
                                 StringResource.getStringRef(state.getResponse().getValue(),
                                                             showStrrefs));
+
+      // updating state WAV Res
+      String responseText = StringResource.getResource(state.getResponse().getValue());
+      if (responseText != null) {
+        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
+        dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");
+      } else {
+        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, false);
+      }
 
       // updating state triggers
       if (state.getTriggerIndex() >= 0) {
@@ -717,10 +728,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private static abstract class ItemBase
   {
      private final DlgResource dlg;
+     private final boolean showStrrefs;
 
      public ItemBase(DlgResource dlg)
      {
        this.dlg = dlg;
+       this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
      }
 
      /** Returns the dialog resource object. */
@@ -741,6 +754,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
      /** Returns the icon associated with the item type. */
      public abstract Icon getIcon();
+
+     /** Returns whether to show the Strref value next to the string. */
+     protected boolean showStrrefs() { return showStrrefs; }
   }
 
   // Meta class for identifying root node
@@ -883,7 +899,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     public String toString()
     {
       if (state != null) {
-        String text = StringResource.getStringRef(state.getResponse().getValue());
+        String text = StringResource.getStringRef(state.getResponse().getValue(), showStrrefs(), true);
         if (text.length() > MAX_LENGTH) {
           text = text.substring(0, MAX_LENGTH) + "...";
         }
@@ -933,7 +949,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (trans != null) {
         if (trans.getFlag().isFlagSet(0)) {
           // Transition contains text
-          String text = StringResource.getStringRef(trans.getAssociatedText().getValue());
+          String text = StringResource.getStringRef(trans.getAssociatedText().getValue(), showStrrefs(), true);
           if (text.length() > MAX_LENGTH) {
             text = text.substring(0, MAX_LENGTH) + "...";
           }
@@ -1128,7 +1144,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (state != null) {
         int stateIdx = state.getNumber();
-        HashMap<Integer, StateItem> map = mapState.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
         if (map != null) {
           Iterator<Integer> iter = map.keySet().iterator();
           while (iter.hasNext()) {
@@ -1147,7 +1163,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (trans != null) {
         int transIdx = trans.getNumber();
-        HashMap<Integer, TransitionItem> map = mapTransition.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
         if (map != null) {
           Iterator<Integer> iter = map.keySet().iterator();
           while (iter.hasNext()) {
@@ -1291,10 +1307,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (state != null) {
         DlgResource dlg = state.getDialog();
-        HashMap<Integer, StateItem> map = mapState.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
         if (map == null) {
           map = new HashMap<Integer, StateItem>();
-          mapState.put(dlg.getResourceEntry().getResourceName(), map);
+          setStateTable(dlg.getResourceEntry().getResourceName(), map);
         }
 
         if (!map.containsKey(Integer.valueOf(state.getState().getNumber()))) {
@@ -1315,10 +1331,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (trans != null) {
         DlgResource dlg = trans.getDialog();
-        HashMap<Integer, TransitionItem> map = mapTransition.get(dlg.getResourceEntry().getResourceName());
+        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
         if (map == null) {
           map = new HashMap<Integer, TransitionItem>();
-          mapTransition.put(dlg.getResourceEntry().getResourceName(), map);
+          setTransitionTable(dlg.getResourceEntry().getResourceName(), map);
         }
 
         if (!map.containsKey(Integer.valueOf(trans.getTransition().getNumber()))) {
@@ -1345,19 +1361,19 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private DlgResource getDialogResource(String dlgName)
     {
       if (dlgName != null) {
-        if (mapState.containsKey(dlgName)) {
-          HashMap<Integer, StateItem> map = mapState.get(dlgName);
+        if (containsStateTable(dlgName)) {
+          HashMap<Integer, StateItem> map = getStateTable(dlgName);
           if (!map.keySet().isEmpty()) {
             return map.get(map.keySet().iterator().next()).getDialog();
           }
-        } else if (mapTransition.containsKey(dlgName)) {
-          HashMap<Integer, TransitionItem> map = mapTransition.get(dlgName);
+        } else if (containsTransitionTable(dlgName)) {
+          HashMap<Integer, TransitionItem> map = getTransitionTable(dlgName);
           if (!map.keySet().isEmpty()) {
             return map.get(map.keySet().iterator().next()).getDialog();
           }
-        } else if (ResourceFactory.getInstance().resourceExists(dlgName)) {
+        } else if (ResourceFactory.resourceExists(dlgName)) {
           try {
-            return new DlgResource(ResourceFactory.getInstance().getResourceEntry(dlgName));
+            return new DlgResource(ResourceFactory.getResourceEntry(dlgName));
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -1390,7 +1406,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         int count = state.getState().getTransCount();
         while (parent.getChildCount() < count) {
           int transIdx = state.getState().getFirstTrans() + parent.getChildCount();
-          TransitionItem child = mapTransition.get(dlgName).get(Integer.valueOf(transIdx));
+          TransitionItem child = getTransitionTable(dlgName).get(Integer.valueOf(transIdx));
           boolean allowChildren = !child.getTransition().getFlag().isFlagSet(3);
           DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, allowChildren);
           parent.add(nodeChild);
@@ -1410,7 +1426,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           if (!dlgRef.isEmpty()) {
             String dlgName = dlgRef.getResourceName();
             int stateIdx = trans.getTransition().getNextDialogState();
-            StateItem child = mapState.get(dlgName).get(Integer.valueOf(stateIdx));
+            StateItem child = getStateTable(dlgName).get(Integer.valueOf(stateIdx));
             DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
             parent.add(nodeChild);
           }
@@ -1433,6 +1449,62 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
       return parent;
     }
+
+    // Returns the state table of the specified dialog resource
+    private HashMap<Integer, StateItem> getStateTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapState.get(dlgName.toUpperCase(Locale.ENGLISH));
+      } else {
+        return null;
+      }
+    }
+
+    // Adds or replaces a dialog resource entry with its associated state table
+    private void setStateTable(String dlgName, HashMap<Integer, StateItem> map)
+    {
+      if (dlgName != null) {
+        mapState.put(dlgName.toUpperCase(Locale.ENGLISH), map);
+      }
+    }
+
+    // Returns whether the specified dialog resource has been mapped
+    private boolean containsStateTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapState.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
+      } else {
+        return false;
+      }
+    }
+
+    // Returns the transition table of the specified dialog resource
+    private HashMap<Integer, TransitionItem> getTransitionTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapTransition.get(dlgName.toUpperCase(Locale.ENGLISH));
+      } else {
+        return null;
+      }
+    }
+
+    // Adds or replaces a dialog resource entry with its associated transition table
+    private void setTransitionTable(String dlgName, HashMap<Integer, TransitionItem> map)
+    {
+      if (dlgName != null) {
+        mapTransition.put(dlgName.toUpperCase(Locale.ENGLISH), map);
+      }
+    }
+
+    // Returns whether the specified dialog resource has been mapped
+    private boolean containsTransitionTable(String dlgName)
+    {
+      if (dlgName != null) {
+        return mapTransition.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
+      } else {
+        return false;
+      }
+    }
   }
 
 
@@ -1441,7 +1513,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   {
     /** Identifies the respective controls for displaying information. */
     private enum Type {
-      STATE, STATE_TEXT, STATE_TRIGGER,
+      STATE, STATE_TEXT, STATE_WAV, STATE_TRIGGER,
       RESPONSE, RESPONSE_FLAGS, RESPONSE_TEXT, RESPONSE_JOURNAL, RESPONSE_TRIGGER, RESPONSE_ACTION
     }
 
@@ -1450,9 +1522,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private static final String CARD_RESPONSE = "Response";
 
     private final CardLayout cardLayout;
-    private final JPanel pMainPanel, pState, pResponse, pStateText, pStateTrigger, pResponseFlags,
-                         pResponseText, pResponseJournal, pResponseTrigger, pResponseAction;
+    private final JPanel pMainPanel, pState, pResponse, pStateText, pStateWAV, pStateTrigger,
+                         pResponseFlags, pResponseText, pResponseJournal, pResponseTrigger,
+                         pResponseAction;
     private final JTextArea taStateText, taStateTrigger;
+    private final LinkButton lbStateWAV;
     private final JTextArea taResponseText, taResponseJournal, taResponseTrigger, taResponseAction;
     private final JTextField tfResponseFlags;
 
@@ -1483,6 +1557,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pStateText.setBorder(createTitledBorder("Associated text", Font.BOLD, false));
       pStateText.add(taStateText, BorderLayout.CENTER);
 
+      lbStateWAV = new LinkButton(null);
+      pStateWAV = new JPanel(new GridBagLayout());
+      pStateWAV.setBorder(createTitledBorder("Sound Resource", Font.BOLD, false));
+      gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
+      pStateWAV.add(lbStateWAV, gbc);
+
       taStateTrigger = createReadOnlyTextArea();
       taStateTrigger.setFont(BrowserMenuBar.getInstance().getScriptFont());
       taStateTrigger.setMargin(new Insets(0, 4, 0, 4));
@@ -1495,8 +1576,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pState.add(pStateText, gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                               GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+      pState.add(pStateWAV, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
       pState.add(pStateTrigger, gbc);
-      gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+      gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                               GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
       pState.add(new JPanel(), gbc);
 
@@ -1600,6 +1684,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (text == null) text = "";
       switch (type) {
         case STATE_TEXT:        taStateText.setText(text); break;
+        case STATE_WAV:         lbStateWAV.setResource(text); break;
         case STATE_TRIGGER:     taStateTrigger.setText(text); break;
         case RESPONSE_FLAGS:    tfResponseFlags.setText(text); break;
         case RESPONSE_TEXT:     taResponseText.setText(text); break;
@@ -1618,6 +1703,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         case STATE:             return pState;
         case RESPONSE:          return pResponse;
         case STATE_TEXT:        return pStateText;
+        case STATE_WAV:         return pStateWAV;
         case STATE_TRIGGER:     return pStateTrigger;
         case RESPONSE_FLAGS:    return pResponseFlags;
         case RESPONSE_TEXT:     return pResponseText;
@@ -1635,6 +1721,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         if (cardName.equals(CARD_STATE)) {
           updateControlText(Type.STATE_TEXT, "");
           showControl(Type.STATE_TEXT, false);
+          updateControlText(Type.STATE_WAV, "");
+          showControl(Type.STATE_WAV, false);
           updateControlText(Type.STATE_TRIGGER, "");
           showControl(Type.STATE_TRIGGER, false);
         } else if (cardName.equals(CARD_RESPONSE)) {

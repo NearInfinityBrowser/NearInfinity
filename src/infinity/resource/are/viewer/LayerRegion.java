@@ -18,7 +18,7 @@ import infinity.resource.are.ITEPoint;
  */
 public class LayerRegion extends BasicLayer<LayerObjectRegion>
 {
-  private static final String AvailableFmt = "%1$d region%2$s available";
+  private static final String AvailableFmt = "Regions: %1$d";
 
   public LayerRegion(AreResource are, AreaViewer viewer)
   {
@@ -40,7 +40,7 @@ public class LayerRegion extends BasicLayer<LayerObjectRegion>
           int ofs = so.getValue();
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, ITEPoint.class);
-          for (int i = 0; i < listStruct.size(); i++) {
+          for (int i = 0, size = listStruct.size(); i < size; i++) {
             LayerObjectRegion obj = new LayerObjectRegion(are, (ITEPoint)listStruct.get(i));
             setListeners(obj);
             list.add(obj);
@@ -57,6 +57,6 @@ public class LayerRegion extends BasicLayer<LayerObjectRegion>
   public String getAvailability()
   {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt, (cnt == 1) ? "" : "s");
+    return String.format(AvailableFmt, cnt);
   }
 }

@@ -13,6 +13,7 @@ import infinity.gui.TableItem;
 import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.BcsResource;
@@ -84,7 +85,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Save search result");
       fc.setSelectedFile(new FileNI("result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
@@ -136,8 +137,8 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> bcsFiles = ResourceFactory.getInstance().getResources("BCS");
-    bcsFiles.addAll(ResourceFactory.getInstance().getResources("BS"));
+    List<ResourceEntry> bcsFiles = ResourceFactory.getResources("BCS");
+    bcsFiles.addAll(ResourceFactory.getResources("BS"));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Checking...", null, 0, bcsFiles.size());
 

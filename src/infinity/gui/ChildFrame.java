@@ -32,6 +32,7 @@ public class ChildFrame extends JFrame
 
   public static void closeWindow(Class<ChildFrame> frameClass)
   {
+    WindowEvent event = new WindowEvent(NearInfinity.getInstance(), WindowEvent.WINDOW_CLOSING);
     for (Iterator<ChildFrame> i = windows.iterator(); i.hasNext();) {
       ChildFrame frame = i.next();
       if (frame.getClass() == frameClass) {
@@ -39,6 +40,13 @@ public class ChildFrame extends JFrame
         try {
           frame.windowClosing(true);
           frame.setVisible(false);
+          WindowListener listeners[] = frame.getWindowListeners();
+          for (final WindowListener listener : listeners) {
+            listener.windowClosing(event);
+          }
+          if (frame instanceof Closeable) {
+            frame.close();
+          }
           frame.dispose();
         } catch (Exception e) {
           e.printStackTrace();
@@ -58,11 +66,13 @@ public class ChildFrame extends JFrame
         frame.windowClosing(true);
         frame.setVisible(false);
         WindowListener listeners[] = frame.getWindowListeners();
-        for (final WindowListener listener : listeners)
+        for (final WindowListener listener : listeners) {
           listener.windowClosing(event);
-        frame.dispose();
-        if (frame instanceof Closeable)
+        }
+        if (frame instanceof Closeable) {
           frame.close();
+        }
+        frame.dispose();
       } catch (Exception e) {
         e.printStackTrace();
       }

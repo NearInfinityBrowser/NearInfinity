@@ -321,10 +321,11 @@ public abstract class AbstractAbility extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
-    for (int i = 0; i < list.size(); i++) {
-      Writeable w = list.get(i);
-      if (w instanceof Effect)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Writeable w = getField(i);
+      if (w instanceof Effect) {
         return;
+      }
       w.write(os);
     }
   }
@@ -357,7 +358,7 @@ public abstract class AbstractAbility extends AbstractStruct
     for (int i = 0; i < effect_count; i++) {
       Effect eff = new Effect(this, buffer, off, i);
       off = eff.getEndOffset();
-      list.add(eff);
+      addField(eff);
     }
     return off;
   }
@@ -369,10 +370,11 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public void writeEffects(OutputStream os) throws IOException
   {
-    for (int i = 0; i < list.size(); i++) {
-      Writeable w = list.get(i);
-      if (w instanceof Effect)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Writeable w = getField(i);
+      if (w instanceof Effect) {
         w.write(os);
+      }
     }
   }
 }

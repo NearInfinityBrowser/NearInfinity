@@ -30,6 +30,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -117,7 +118,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
         if (event.getClickCount() == 2) {
           String selected = (String)list.getSelectedValue();
           String resname = selected.substring(0, selected.indexOf(" - "));
-          ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resname);
+          ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
           NearInfinity.getInstance().showResourceEntry(entry);
         }
       }
@@ -225,15 +226,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     else if (event.getSource() == bopen) {
       String selected = (String)list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resname);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
       NearInfinity.getInstance().showResourceEntry(entry);
     }
     else if (event.getSource() == bopennew) {
       String selected = (String)list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
-      new ViewFrame(this,
-                    ResourceFactory.getResource(
-                            ResourceFactory.getInstance().getResourceEntry(resname)));
+      new ViewFrame(this, ResourceFactory.getResource(ResourceFactory.getResourceEntry(resname)));
     }
     else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
@@ -292,15 +291,15 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     else if (rbsto.isSelected())
       selectedtype = "STO";
 
-    List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(selectedtype);
-    String expr = tfield.getText().toLowerCase();
+    List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
+    String expr = tfield.getText().toLowerCase(Locale.ENGLISH);
     List<String> found = new ArrayList<String>();
     cards.show(bpanel, "Progress");
     progress.setMaximum(resources.size());
     for (int i = 0; i < resources.size(); i++) {
       ResourceEntry entry = resources.get(i);
       String string = entry.getSearchString();
-      if (string != null && string.toLowerCase().indexOf(expr) != -1)
+      if (string != null && string.toLowerCase(Locale.ENGLISH).indexOf(expr) != -1)
         found.add(entry.toString() + " - " + string);
       progress.setValue(i + 1);
     }

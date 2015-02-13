@@ -62,7 +62,7 @@ public final class InfinityAmp extends ChildFrame
   {
     super("InfinityAmp");
     setIconImage(Icons.getIcon("Volume16.gif").getImage());
-    List<ResourceEntry> files = ResourceFactory.getInstance().getResources("MUS");
+    List<ResourceEntry> files = ResourceFactory.getResources("MUS");
     for (int i = 0; i < files.size(); i++) {
       allMusModel.addElement(files.get(i));
     }
@@ -262,7 +262,7 @@ public void run()
  private void playMus(ResourceEntry musEntry)
  {
    try {
-     StringTokenizer tokenizer = new StringTokenizer(new String(musEntry.getResourceData()), "\n");
+     StringTokenizer tokenizer = new StringTokenizer(new String(musEntry.getResourceData()), "\r\n");
      String dir = tokenizer.nextToken().trim();
      int count = Integer.valueOf(tokenizer.nextToken().trim()).intValue();
      entryList.clear();

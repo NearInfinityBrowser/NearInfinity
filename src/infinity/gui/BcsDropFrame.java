@@ -6,6 +6,7 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
@@ -41,6 +42,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.SortedMap;
 
 import javax.swing.BorderFactory;
@@ -63,7 +65,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private final JButton bOpen = new JButton("Open selected", Icons.getIcon("Open16.gif"));
   private final JButton bSelectDir = new JButton(Icons.getIcon("Open16.gif"));
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
-  private final JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+  private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
   private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", JLabel.CENTER);
   private final JLabel decompZone = new JLabel("Decompiler drop zone (BCS/BS)", JLabel.CENTER);
   private final JLabel statusMsg = new JLabel(" Drag and drop files or folders into the zones");
@@ -316,7 +318,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           for (final File newVar : f)
             files.add(newVar);
         }
-        else if (file.toString().toUpperCase().endsWith("BAF")) {
+        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BAF")) {
           SortedMap<Integer, String> errors = compileFile(file);
           if (errors == null)
             failed++;
@@ -342,8 +344,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           for (final File newVar : f)
             files.add(newVar);
         }
-        else if (file.toString().toUpperCase().endsWith("BCS") ||
-                 file.toString().toUpperCase().endsWith("BS")) {
+        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BCS") ||
+                 file.toString().toUpperCase(Locale.ENGLISH).endsWith("BS")) {
           if (decompileFile(file))
             ok++;
           else

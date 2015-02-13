@@ -14,6 +14,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.spl.SplResource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class Effect2 extends AbstractStruct implements AddRemovable
@@ -28,7 +29,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 
   public static int readCommon(List<StructEntry> list, byte[] buffer, int offset)
   {
-    if (ResourceFactory.getInstance().resourceExists("SCHOOL.IDS"))
+    if (ResourceFactory.resourceExists("SCHOOL.IDS"))
       list.add(new IdsBitmap(buffer, offset, 4, "Primary type (school)", "SCHOOL.IDS"));
     else
       list.add(new Bitmap(buffer, offset, 4, "Primary type (school)", SplResource.s_school));
@@ -56,7 +57,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
       list.add(new ResourceRef(buffer, offset + 72, "Parent resource", "SPL"));
       list.add(new Flag(buffer, offset + 80, 4, "Resource flags", s_splflag));
     }
-    if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
+    if (ResourceFactory.resourceExists("PROJECTL.IDS"))
       list.add(new IdsBitmap(buffer, offset + 84, 4, "Impact projectile", "PROJECTL.IDS"));
     else
       list.add(new DecNumber(buffer, offset + 84, 4, "Impact projectile"));
@@ -91,15 +92,19 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
     EffectType type = new EffectType(buffer, offset + 8, 4);
-    list.add(type);
+    addField(type);
+    List<StructEntry> list = new ArrayList<StructEntry>();
     offset = type.readAttributes(buffer, offset + 12, list);
+    addToList(getList().size() - 1, list);
 
+    list.clear();
     offset = readCommon(list, buffer, offset);
+    addToList(getList().size() - 1, list);
 
     return offset;
   }

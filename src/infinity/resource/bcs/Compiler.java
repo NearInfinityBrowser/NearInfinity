@@ -7,6 +7,7 @@ package infinity.resource.bcs;
 import infinity.NearInfinity;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.StatusBar;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.are.AreResource;
 import infinity.resource.cre.CreResource;
@@ -18,6 +19,7 @@ import infinity.util.IdsMapEntry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -57,7 +59,7 @@ public final class Compiler
          Character.isDigit(string.charAt(4)) &&
          Character.isDigit(string.charAt(5)) &&
          Character.isDigit(string.charAt(6)) ||
-         ResourceFactory.getInstance().resourceExists(string.substring(1, 7) + ".ARE")))
+         ResourceFactory.resourceExists(string.substring(1, 7) + ".ARE")))
       return true;
     return false;
   }
@@ -69,7 +71,7 @@ public final class Compiler
 
   private Compiler()
   {
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+    if (Profile.getEngine() == Profile.Engine.PST)
       itype = new IdsMap[]{
         IdsMapCache.get("EA.IDS"),
         IdsMapCache.get("FACTION.IDS"),
@@ -81,7 +83,7 @@ public final class Compiler
         IdsMapCache.get("GENDER.IDS"),
         IdsMapCache.get("ALIGN.IDS")
       };
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+    else if (Profile.getEngine() == Profile.Engine.IWD2)
       itype = new IdsMap[]{
         IdsMapCache.get("EA.IDS"),
         IdsMapCache.get("GENERAL.IDS"),
@@ -123,7 +125,7 @@ public final class Compiler
         scriptNamesCre.clear();
         scriptNamesAre.clear();
 
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources("CRE");
+        List<ResourceEntry> files = ResourceFactory.getResources("CRE");
         for (int i = 0; i < files.size(); i++) {
           ResourceEntry resourceEntry = files.get(i);
           try {
@@ -133,7 +135,7 @@ public final class Compiler
 
         }
 
-        files = ResourceFactory.getInstance().getResources("ARE");
+        files = ResourceFactory.getResources("ARE");
         for (int i = 0; i < files.size(); i++) {
           ResourceEntry resourceEntry = files.get(i);
           try {
@@ -164,14 +166,14 @@ public final class Compiler
 
   public boolean hasScriptName(String scriptName) {
     if (scriptNamesValid &&
-        scriptNamesCre.containsKey(scriptName.toLowerCase().replaceAll(" ", ""))) {
+        scriptNamesCre.containsKey(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""))) {
       return true;
     }
     return false;
   }
 
   public Set<ResourceEntry> getResForScriptName(String scriptName) {
-    return scriptNamesCre.get(scriptName.toLowerCase().replaceAll(" ", ""));
+    return scriptNamesCre.get(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""));
   }
 
   public String compile(String source)
@@ -212,11 +214,8 @@ public final class Compiler
     linenr = 0;
     errors.clear();
     warnings.clear();
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.PST ||
+        Profile.getEngine() == Profile.Engine.IWD2) {
       StringTokenizer st = new StringTokenizer(source, ")");
       while (st.hasMoreTokens()) {
         String line = st.nextToken().trim() + ')';
@@ -262,7 +261,7 @@ public final class Compiler
 
   private void checkObjectString(String definition, String value)
   {
-    String name = value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "");
+    String name = value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
     if (scriptNamesValid) {
         if (name.equals("") || !(scriptNamesCre.containsKey(name) || scriptNamesAre.contains(name)))
           warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
@@ -296,19 +295,19 @@ public final class Compiler
             function.equalsIgnoreCase("NumDead(") ||
             function.equalsIgnoreCase("NumDeadGT(") ||
             function.equalsIgnoreCase("NumDeadLT(")) {
-          if (!scriptNamesCre.containsKey(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+          if (!scriptNamesCre.containsKey(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
               IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
             warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
         }
         else if (function.equalsIgnoreCase("SetCorpseEnabled(")) {
-          if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+          if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
               IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
             warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
         }
       }
     }
     else if (function.equalsIgnoreCase("AttachTransitionToDoor(") && scriptNamesValid) {
-        if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase().replaceAll(" ", "")) &&
+        if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
             IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
           warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
     }
@@ -325,7 +324,7 @@ public final class Compiler
     else {                                                          // Resource checks
       String resourceTypes[] = new String[0];
       if (definition.equalsIgnoreCase("S:DialogFile*"))
-        resourceTypes = new String[] {".DLG", ".VEF", ".VVC"};
+        resourceTypes = new String[] {".DLG", ".VEF", ".VVC", ".BAM"};
       else if (definition.equalsIgnoreCase("S:CutScene*") ||
                definition.equalsIgnoreCase("S:ScriptFile*") ||
                definition.equalsIgnoreCase("S:Script*"))
@@ -342,7 +341,7 @@ public final class Compiler
       else if (definition.equalsIgnoreCase("S:TextList*"))
         resourceTypes = new String[]{".2DA"};
       else if (definition.equalsIgnoreCase("S:Effect*"))
-        resourceTypes = new String[]{".BAM", ".VEF", ".VVC"};
+        resourceTypes = new String[]{".VEF", ".VVC", ".BAM"};
       else if (definition.equalsIgnoreCase("S:Parchment*"))
         resourceTypes = new String[]{".MOS"};
       else if (definition.equalsIgnoreCase("S:Spell*") ||
@@ -369,7 +368,7 @@ public final class Compiler
 
       if (resourceTypes.length > 0) {
         for (final String resourceType : resourceTypes)
-          if (ResourceFactory.getInstance().resourceExists(value.substring(1, value.length() - 1) + resourceType))
+          if (ResourceFactory.resourceExists(value.substring(1, value.length() - 1) + resourceType))
             return;
         warnings.put(new Integer(linenr), "Resource not found: " + definition + " - " + value);
       }
@@ -563,7 +562,7 @@ public final class Compiler
       errors.put(new Integer(linenr), error);
       return "Error - " + error;
     }
-    IdsMap idsmap = IdsMapCache.get(definition.substring(i + 1).toUpperCase() + ".IDS");
+    IdsMap idsmap = IdsMapCache.get(definition.substring(i + 1).toUpperCase(Locale.ENGLISH) + ".IDS");
     String code = idsmap.lookupID(value);
     if (code != null)
       return code;
@@ -656,7 +655,7 @@ public final class Compiler
                 try {
                   temp.append(Long.parseLong(objType)).append(' ');
                 } catch (NumberFormatException e) {
-                  String error = objType + " not found in " + idsMap.toString().toUpperCase();
+                  String error = objType + " not found in " + idsMap.toString().toUpperCase(Locale.ENGLISH);
                   errors.put(new Integer(linenr), error);
                   return "Error - " + error;
                 }
@@ -669,12 +668,9 @@ public final class Compiler
             else
               temp.append("0 ");
           }
-          if (possiblecoord && (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ||
-                                ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-                                ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-                                ResourceFactory.getGameID() ==
-                                ResourceFactory.ID_ICEWINDHOWTOT ||
-                                ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)) {
+          if (possiblecoord && (Profile.getEngine() == Profile.Engine.PST ||
+                                Profile.getEngine() == Profile.Engine.IWD ||
+                                Profile.getEngine() == Profile.Engine.IWD2)) {
             if (code.toString().equals("OB\n")) {
               if (itype.length == 7)
                 code.append("0 0 0 0 0 0 0 ");
@@ -685,7 +681,7 @@ public final class Compiler
             }
             coord = '[' + value + ']';
           }
-          else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+          else if (Profile.getEngine() == Profile.Engine.IWD2) {
             int space = temp.lastIndexOf(" ");
             space = temp.substring(0, space).lastIndexOf(" ");
             space = temp.substring(0, space).lastIndexOf(" ");
@@ -699,19 +695,19 @@ public final class Compiler
         if (index != -1)
           value = rest.substring(index);
       }
-      for (int i = firstIdentifier; i >= 0; i--)
+      for (int i = firstIdentifier; i >= 0; i--) {
         code.append(identifiers[i]).append(' ');
-      for (int i = firstIdentifier + 1; i < identifiers.length; i++)
+      }
+      for (int i = firstIdentifier + 1; i < identifiers.length; i++) {
         code.append(identifiers[i]).append(' ');
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT)
+      }
+      if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD) {
         code.append(coord).append(" \"\"OB");
-      else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+      } else if (Profile.getEngine() == Profile.Engine.IWD2) {
         code.append(coord).append(" \"\"").append(iwd2).append("OB");
-      else
+      } else {
         code.append("\"\"OB");
+      }
     }
 
     else if (value.length() > 0 && value.charAt(0) == '"') { // String
@@ -720,25 +716,26 @@ public final class Compiler
         errors.put(new Integer(linenr), error);
         return "Error - " + error;
       }
-      if (itype.length == 7)
+      if (itype.length == 7) {
         code.append("0 0 0 0 0 0 0 ");
-      else if (itype.length == 9)
+      } else if (itype.length == 9) {
         code.append("0 0 0 0 0 0 0 0 0 ");
-      else if (itype.length == 10)
+      } else if (itype.length == 10) {
         code.append("0 0 0 0 0 0 0 0 ");
-      for (int i = firstIdentifier; i >= 0; i--)
+      }
+      for (int i = firstIdentifier; i >= 0; i--) {
         code.append(identifiers[i]).append(' ');
-      for (int i = firstIdentifier + 1; i < identifiers.length; i++)
+      }
+      for (int i = firstIdentifier + 1; i < identifiers.length; i++) {
         code.append(identifiers[i]).append(' ');
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT)
+      }
+      if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD) {
         code.append("[-1.-1.-1.-1] ").append(value).append("OB");
-      else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+      } else if (Profile.getEngine() == Profile.Engine.IWD2) {
         code.append("[-1.-1.-1.-1] ").append(value).append(" 0 0 OB");
-      else
+      } else {
         code.append(value).append("OB");
+      }
       checkObjectString(definition, value);
     }
 
@@ -753,31 +750,31 @@ public final class Compiler
       if (value.endsWith("]")) {
         coord = value.substring(value.indexOf((int)'['));
         value = value.substring(0, value.indexOf((int)'['));
-      }
-      else
+      } else {
         coord = "[-1.-1.-1.-1]";
+      }
       IdsMapEntry idsEntry = IdsMapCache.get("OBJECT.IDS").lookup(value);
-      if (idsEntry == null)
+      if (idsEntry == null) {
         identifiers[++firstIdentifier] = (long)0;
-      else
+      } else {
         identifiers[++firstIdentifier] = idsEntry.getID();
+      }
       if (coord.equals("[-1.-1.-1.-1]") && idsEntry == null && !value.equals("")) {
         String error = "Unknown symbol - " + value;
         errors.put(new Integer(linenr), error);
         return "Error - " + error;
       }
-      for (int i = firstIdentifier; i >= 0; i--)
+      for (int i = firstIdentifier; i >= 0; i--) {
         code.append(identifiers[i]).append(' ');
-      for (int i = firstIdentifier + 1; i < identifiers.length; i++)
+      }
+      for (int i = firstIdentifier + 1; i < identifiers.length; i++) {
         code.append(identifiers[i]).append(' ');
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT)
+      }
+      if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD) {
         code.append("[-1.-1.-1.-1] \"\"OB");
-      else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)
+      } else if (Profile.getEngine() == Profile.Engine.IWD2) {
         code.append(coord).append(" \"\" 0 0 OB");
-      else {
+      } else {
         code.append("\"\"OB");
         if (!coord.equals("[-1.-1.-1.-1]")) {
           String error = "Missing parenthesis?";
@@ -959,8 +956,9 @@ public final class Compiler
     code.append(flag).append(' ');
     code.append(integers[1]).append(' ');
     code.append(integers[2]).append(' ');
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT)
+    if (Profile.getEngine() == Profile.Engine.PST) {
       code.append(point).append(' ');
+    }
     code.append(strings[0]).append(' ');
     code.append(strings[1]).append(' ');
     code.append(object).append('\n');

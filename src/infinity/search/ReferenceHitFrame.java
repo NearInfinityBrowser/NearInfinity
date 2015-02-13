@@ -13,6 +13,7 @@ import infinity.gui.TableItem;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -152,7 +153,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Save result");
       chooser.setSelectedFile(new FileNI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -247,18 +248,26 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     @Override
     public Object getObjectAt(int columnIndex)
     {
-      if (columnIndex == 0)
-        return entry;
-      if (columnIndex == 1) {
-        if (name == null && entry instanceof FileResourceEntry)
-          return entry.getActualFile().getParent();
-        if (name == null)
-          return "";
-        return name;
+      switch (columnIndex) {
+        case 0:
+          return entry;
+        case 1:
+          if (name != null) {
+            return name;
+          } else {
+            if (entry instanceof FileResourceEntry) {
+              return entry.getActualFile().getParent();
+            } else {
+              return "";
+            }
+          }
+        default:
+          if (ref != null) {
+            return ref.getName() + '=' + ref;
+          } else {
+            return null;
+          }
       }
-      if (ref != null)
-        return ref.getName() + '=' + ref;
-      return null;
     }
 
     public StructEntry getStructEntry()

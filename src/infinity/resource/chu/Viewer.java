@@ -14,6 +14,7 @@ import infinity.datatype.TextString;
 import infinity.gui.RenderCanvas;
 import infinity.gui.StructViewer;
 import infinity.gui.ViewerUtil;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.BamDecoder;
 import infinity.resource.graphics.BamDecoder.FrameEntry;
@@ -44,6 +45,7 @@ import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
@@ -178,6 +180,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         controlsList.setSelectedIndex(0);
 
         // updating main window
+        p.repaint();
         setPreview(p.getImage());
       }
     } else if (e.getSource() == controlsList) {
@@ -964,7 +967,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
           if (getResource().hasBackgroundImage()) {
             if (bg == null) {
               String resName = getResource().getBackgroundImage();
-              MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getInstance().getResourceEntry(resName));
+              MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
               if (mos != null) {
                 if (mos instanceof MosV1Decoder) {
                   ((MosV1Decoder)mos).setTransparencyEnabled(true);
@@ -1252,7 +1255,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
         // postprocessing text
         // Dirty hack: the correct information is most likely stored in the FNT resource directly
-        if ((ResourceFactory.isEnhancedEdition() || trueColor == false) &&
+        if ((Profile.isEnhancedEdition() || trueColor == false) &&
             ctrl instanceof BamV1Control) {
           int[] palette = ((BamV1Control)ctrl).getPalette();
           // Hack: determining whether palette contains alpha values
@@ -1438,7 +1441,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                 frameIdx = ((DecNumber)getResource().getAttribute("Frame number: Disabled")).getValue();
               }
               if (!isResourceIgnored(resName, cycleIdx, frameIdx)) {
-                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
+                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   BamControl bamCtrl = bam.createControl();
                   bamCtrl.setMode(BamControl.Mode.Individual);
@@ -1468,7 +1471,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     {
       if (resName != null && !resName.isEmpty()) {
         return ignoreResourceSet.contains(String.format("%1$s:%2$d:%3$d",
-                                                        resName.toUpperCase(), cycleIdx, frameIdx));
+                                                        resName.toUpperCase(Locale.ENGLISH), cycleIdx, frameIdx));
       } else {
         return true;
       }
@@ -1532,7 +1535,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             // 2. drawing control
             // 2.1. drawing background image
             String resName = ((ResourceRef)getResource().getAttribute("Background image")).getResourceName();
-            MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getInstance().getResourceEntry(resName));
+            MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
             if (mos != null) {
               if (mos instanceof MosV1Decoder) {
                 ((MosV1Decoder)mos).setTransparencyEnabled(true);
@@ -1543,7 +1546,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             // 2.2. drawing control elements
             if (isVisible()) {
               resName = ((ResourceRef)getResource().getAttribute("Slider knob")).getResourceName();
-              BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
+              BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
                 BamControl bamCtrl = bam.createControl();
                 bamCtrl.setMode(BamControl.Mode.Individual);
@@ -1642,7 +1645,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             // 2.1. drawing background image (is it actually used?)
             String resName = ((ResourceRef)getResource().getAttribute("Background 1")).getResourceName();
             if (!isResourceIgnored(resName)) {
-              MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getInstance().getResourceEntry(resName));
+              MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
               if (mos != null) {
                 if (mos instanceof MosV1Decoder) {
                   ((MosV1Decoder)mos).setTransparencyEnabled(true);
@@ -1659,7 +1662,8 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               String text = ((TextString)getResource().getAttribute("Initial text")).toString();
               if (!text.isEmpty()) {
                 resName = ((ResourceRef)getResource().getAttribute("Font")).getResourceName();
-                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
+                resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
+                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   int maxLen = ((DecNumber)getResource().getAttribute("Field length")).getValue();
                   if (text.length() > maxLen) text = text.substring(0, maxLen);
@@ -1676,7 +1680,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               // 2.3. drawing caret
               if (isCaretEnabled()) {
                 resName = ((ResourceRef)getResource().getAttribute("Caret")).getResourceName();
-                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
+                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   BamControl bamCtrl = bam.createControl();
                   bamCtrl.setMode(BamControl.Mode.Individual);
@@ -1707,7 +1711,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private static boolean isResourceIgnored(String resName)
     {
       if (resName != null && !resName.isEmpty()) {
-        return ignoreResourceSet.contains(resName.toUpperCase());
+        return ignoreResourceSet.contains(resName.toUpperCase(Locale.ENGLISH));
       } else {
         return true;
       }
@@ -1810,7 +1814,8 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               String text = StringResource.getStringRef(((StringRef)getResource().getAttribute("Initial text")).getValue());
               if (text != null) {
                 String resName = ((ResourceRef)getResource().getAttribute("Font")).getResourceName();
-                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
+                resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
+                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   Flag flags = (Flag)getResource().getAttribute("Text flags");
                   Color col = null;
@@ -1914,7 +1919,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             // 2. drawing control
             if (isVisible()) {
               String resName = ((ResourceRef)getResource().getAttribute("Graphics")).getResourceName();
-              BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getInstance().getResourceEntry(resName));
+              BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
                 int cycleIdx = ((DecNumber)getResource().getAttribute("Animation number")).getValue();
                 int frameTroughIdx = ((DecNumber)getResource().getAttribute("Frame number: Trough")).getValue();

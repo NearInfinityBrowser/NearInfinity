@@ -7,7 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
@@ -66,7 +66,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ConvertToTis extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener
 {
-  private static String currentDir = ResourceFactory.getRootDir().toString();
+  private static String currentDir = Profile.getGameRoot().toString();
 
   private String inFileName;
   private JSlider sTileNum;
@@ -741,7 +741,7 @@ public class ConvertToTis extends ChildFrame
         }
       }
     } else if (event.getSource() == bOutput) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Specify output filename");
       fc.setDialogType(JFileChooser.SAVE_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -755,7 +755,7 @@ public class ConvertToTis extends ChildFrame
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
       }
-      fc.setSelectedFile(new File(fileName));
+      fc.setSelectedFile(new FileNI(fileName));
       int ret = fc.showSaveDialog(this);
       while (ret == JFileChooser.APPROVE_OPTION) {
         currentDir = fc.getSelectedFile().getParent();

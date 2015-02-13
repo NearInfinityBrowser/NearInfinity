@@ -8,6 +8,7 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public final class IdsMapCache
@@ -16,7 +17,7 @@ public final class IdsMapCache
 
   public static void cacheInvalid(ResourceEntry entry)
   {
-    common.remove(entry.toString().toUpperCase());
+    common.remove(entry.toString().toUpperCase(Locale.ENGLISH));
   }
 
   public static void clearCache()
@@ -28,9 +29,9 @@ public final class IdsMapCache
   {
     IdsMap map = common.get(name);
     if (map == null) {
-      ResourceEntry resEntry = ResourceFactory.getInstance().getResourceEntry(name);
+      ResourceEntry resEntry = ResourceFactory.getResourceEntry(name);
       if (resEntry == null && name.equalsIgnoreCase("ATTSTYLE.IDS"))
-        resEntry = ResourceFactory.getInstance().getResourceEntry("ATTSTYL.IDS");
+        resEntry = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
       if (resEntry == null)
         System.err.println("Could not find " + name);
       else {

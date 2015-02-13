@@ -7,6 +7,7 @@ package infinity.resource.text.modes;
 import java.util.ArrayList;
 import java.util.List;
 
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.util.IdsMap;
 import infinity.util.IdsMapCache;
@@ -66,8 +67,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
     // symbolic names
     List<String> idsFile = new ArrayList<String>();
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC) {
+    if (Profile.getEngine() == Profile.Engine.BG1) {
       idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");  idsFile.add("ANIMATE.IDS");
       idsFile.add("ASTYLES.IDS");   idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");
       idsFile.add("DAMAGES.IDS");   idsFile.add("EA.IDS");        idsFile.add("GENDER.IDS");
@@ -77,9 +77,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("SLOTS.IDS");     idsFile.add("SOUNDOFF.IDS");  idsFile.add("SPECIFIC.IDS");
       idsFile.add("SPELL.IDS");     idsFile.add("STATE.IDS");     idsFile.add("STATS.IDS");
       idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-               ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-               ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD) {
       idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");  idsFile.add("ANIMATE.IDS");
       idsFile.add("ASTYLES.IDS");   idsFile.add("BITMODE.IDS");   idsFile.add("BOOLEAN.IDS");
       idsFile.add("CLASS.IDS");     idsFile.add("DAMAGES.IDS");   idsFile.add("DIR.IDS");
@@ -92,7 +90,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("SPECIFIC.IDS");  idsFile.add("SPELL.IDS");     idsFile.add("SPLSTATE.IDS");
       idsFile.add("STATE.IDS");     idsFile.add("STATMOD.IDS");   idsFile.add("STATS.IDS");
       idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD2) {
       idsFile.add("ALIGNMNT.IDS");  idsFile.add("ANIMATE.IDS");   idsFile.add("AREADIFF.IDS");
       idsFile.add("AREAFLAG.IDS");  idsFile.add("ATTSTYL.IDS");   idsFile.add("BARDSONG.IDS");
       idsFile.add("BITMODE.IDS");   idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");
@@ -110,7 +108,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("SPLSTATE.IDS");  idsFile.add("STATE.IDS");     idsFile.add("STATMOD.IDS");
       idsFile.add("STATS.IDS");     idsFile.add("SUBRACE.IDS");   idsFile.add("TEAMBIT.IDS");
       idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
       idsFile.add("AITIME.IDS");    idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");
       idsFile.add("ANIMSTAT.IDS");  idsFile.add("ASTYLES.IDS");   idsFile.add("BITS.IDS");
       idsFile.add("BONES.IDS");     idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");
@@ -139,13 +137,15 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("SPECIFIC.IDS");  idsFile.add("SPELL.IDS");     idsFile.add("STATE.IDS");
       idsFile.add("STATS.IDS");     idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");
       idsFile.add("WEATHER.IDS");
-      if (ResourceFactory.isEnhancedEdition()) {
-        idsFile.add("DIR.IDS");     idsFile.add("SONGLIST.IDS");
+      if (Profile.isEnhancedEdition()) {
+        idsFile.add("BUTTON.IDS");    idsFile.add("DIR.IDS");       idsFile.add("EXTSTATE.IDS");
+        idsFile.add("ITEMFLAG.IDS");  idsFile.add("SPLSTATE.IDS");  idsFile.add("STATMOD.IDS");
+        idsFile.add("SONGLIST.IDS");
       }
     }
     for (int i = 0; i < idsFile.size(); i++) {
       int type = ("SPELL.IDS".equalsIgnoreCase(idsFile.get(i))) ? TOKEN_SYMBOL_SPELL : TOKEN_SYMBOL;
-      if (ResourceFactory.getInstance().resourceExists(idsFile.get(i))) {
+      if (ResourceFactory.resourceExists(idsFile.get(i))) {
         map = IdsMapCache.get(idsFile.get(i));
         if (map != null) {
           entries = map.getAllValues();

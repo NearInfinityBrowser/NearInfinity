@@ -4,8 +4,10 @@
 
 package infinity.resource.sav;
 
+import infinity.NearInfinity;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ViewFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.Resource;
@@ -73,26 +75,40 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
   {
     if (buttonPanel.getControlByType(CtrlCompress) == event.getSource()) {
       try {
-        handler.compress(entries);
-        ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-        buttonPanel.getControlByType(CtrlDecompress).setEnabled(true);
-        filelist.setEnabled(false);
-        buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
-        buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
-        buttonPanel.getControlByType(CtrlCompress).setEnabled(false);
+        WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
+        try {
+          block.setBlocked(true);
+          handler.compress(entries);
+          ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+          buttonPanel.getControlByType(CtrlDecompress).setEnabled(true);
+          filelist.setEnabled(false);
+          buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
+          buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
+          buttonPanel.getControlByType(CtrlCompress).setEnabled(false);
+        } finally {
+          block.setBlocked(false);
+          block = null;
+        }
       } catch (Exception e) {
         JOptionPane.showMessageDialog(panel, "Error compressing file", "Error", JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
       }
     } else if (buttonPanel.getControlByType(CtrlDecompress) == event.getSource()) {
       try {
-        entries = handler.decompress();
-        buttonPanel.getControlByType(CtrlCompress).setEnabled(true);
-        filelist.setEnabled(true);
-        buttonPanel.getControlByType(CtrlEdit).setEnabled(true);
-        buttonPanel.getControlByType(CtrlDelete).setEnabled(true);
-        buttonPanel.getControlByType(CtrlDecompress).setEnabled(false);
-        filelist.setSelectedIndex(0);
+        WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
+        try {
+          block.setBlocked(true);
+          entries = handler.decompress();
+          buttonPanel.getControlByType(CtrlCompress).setEnabled(true);
+          filelist.setEnabled(true);
+          buttonPanel.getControlByType(CtrlEdit).setEnabled(true);
+          buttonPanel.getControlByType(CtrlDelete).setEnabled(true);
+          buttonPanel.getControlByType(CtrlDecompress).setEnabled(false);
+          filelist.setSelectedIndex(0);
+        } finally {
+          block.setBlocked(false);
+          block = null;
+        }
       } catch (Exception e) {
         JOptionPane.showMessageDialog(panel, "Error decompressing file", "Error", JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
@@ -102,7 +118,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
       Resource res = ResourceFactory.getResource(fileentry);
       new ViewFrame(panel.getTopLevelAncestor(), res);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(CtrlDelete) == event.getSource()) {
       int index = filelist.getSelectedIndex();
       ResourceEntry resourceentry = (ResourceEntry)entries.get(index);

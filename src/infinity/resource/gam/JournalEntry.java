@@ -12,7 +12,7 @@ import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.util.LongIntegerHashMap;
 
 final class JournalEntry extends AbstractStruct implements AddRemovable
@@ -48,21 +48,19 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new StringRef(buffer, offset, "Text"));
-    list.add(new DecNumber(buffer, offset + 4, 4, "Time (ticks)"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.isEnhancedEdition()) {
-      list.add(new UnsignDecNumber(buffer, offset + 8, 1, "Chapter"));
-      list.add(new Unknown(buffer, offset + 9, 1));
-      list.add(new Flag(buffer, offset + 10, 1, "Section", s_section));
-      list.add(new HashBitmap(buffer, offset + 11, 1, "Text source", chapter));
+    addField(new StringRef(buffer, offset, "Text"));
+    addField(new DecNumber(buffer, offset + 4, 4, "Time (ticks)"));
+    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
+      addField(new UnsignDecNumber(buffer, offset + 8, 1, "Chapter"));
+      addField(new Unknown(buffer, offset + 9, 1));
+      addField(new Flag(buffer, offset + 10, 1, "Section", s_section));
+      addField(new HashBitmap(buffer, offset + 11, 1, "Text source", chapter));
     }
     else {
-      list.add(new DecNumber(buffer, offset + 8, 2, "Chapter"));
-      list.add(new Unknown(buffer, offset + 10, 2));
+      addField(new DecNumber(buffer, offset + 8, 2, "Chapter"));
+      addField(new Unknown(buffer, offset + 10, 2));
     }
     return offset + 12;
   }

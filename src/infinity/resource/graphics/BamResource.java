@@ -10,6 +10,7 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -37,9 +38,11 @@ import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -167,7 +170,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     } else if (event.getSource() == cbTransparency) {
       setTransparencyEnabled(cbTransparency.isSelected());
     } else if (event.getSource() == miExport) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportBAM) {
       if (decoder != null) {
         if (decoder.getType() == BamDecoder.Type.BAMV2) {
@@ -181,7 +184,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           // decompress existing BAMC V1 and save as BAM V1
           try {
             byte data[] = Compressor.decompress(entry.getResourceData());
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
+            ResourceFactory.exportResource(entry, data, entry.toString(),
                                                          panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
@@ -201,15 +204,14 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           // compress existing BAM V1 and save as BAMC V1
           try {
             byte data[] = Compressor.compress(entry.getResourceData(), "BAMC", "V1  ");
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
           }
         }
       }
     } else if (event.getSource() == miExportFramesPNG) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
@@ -229,7 +231,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         String filePath = fc.getSelectedFile().getParent();
         String fileName = fc.getSelectedFile().getName();
         String fileExt = null;
-        String format = ((FileNameExtensionFilter)fc.getFileFilter()).getExtensions()[0].toLowerCase();
+        String format = ((FileNameExtensionFilter)fc.getFileFilter()).getExtensions()[0].toLowerCase(Locale.ENGLISH);
         int extIdx = fileName.lastIndexOf('.');
         if (extIdx > 0) {
           fileExt = fileName.substring(extIdx);
@@ -269,8 +271,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         }
         if (bamData != null) {
           if (bamData.length > 0) {
-            ResourceFactory.getInstance().exportResource(entry, bamData, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, bamData, entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
@@ -310,7 +311,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     }
 
     Dimension dim = (decoder != null) ? bamControl.getSharedDimension() : new Dimension(1, 1);
-    rcDisplay = new RenderCanvas(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
+    rcDisplay = new RenderCanvas(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
 
@@ -323,8 +324,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       if (decoder.getType() == BamDecoder.Type.BAMC) {
         miExportBAM = new JMenuItem("decompressed");
         miExportBAM.addActionListener(this);
-      } else if (decoder.getType() == BamDecoder.Type.BAMV1 &&
-                 ResourceFactory.getGameID() != ResourceFactory.ID_TORMENT) {
+      } else if (decoder.getType() == BamDecoder.Type.BAMV1 && Profile.getEngine() == Profile.Engine.PST) {
         miExportBAMC = new JMenuItem("compressed");
         miExportBAMC.addActionListener(this);
       } else if (decoder.getType() == BamDecoder.Type.BAMV2) {
@@ -502,7 +502,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
   {
     if (decoder != null && viewerInitialized()) {
       Dimension dim = bamControl.getSharedDimension();
-      rcDisplay.setImage(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
+      rcDisplay.setImage(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
       updateCanvas();
     }
   }
@@ -580,9 +580,23 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     }
   }
 
-  // Exports frames as graphics, specified by "format"
-  private void exportFrames(String filePath, String fileBase, String fileExt, String format)
+  /**
+   * Exports each frame of the BamDecoder data.
+   * @param decoder Contains the BAM graphics data to export.
+   * @param filePath The target path without filename.
+   * @param fileBase The filename without path and extension.
+   * @param fileExt The file extension
+   * @param format The format (currently supported: BMP and PNG).
+   * @param enableTransparency Specifies whether to consider transparent pixels.
+   * @return A status message describing the result of the operation (can be null).
+   */
+  public static String exportFrames(BamDecoder decoder, String filePath, String fileBase,
+                                     String fileExt, String format, boolean enableTransparency)
   {
+    if (decoder == null) {
+      return null;
+    }
+
     if (filePath == null)
       filePath = ".";
     if (format == null || format.isEmpty() ||
@@ -591,22 +605,20 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     }
 
     int max = 0, counter = 0, failCounter = 0;
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     try {
-      blocker.setBlocked(true);
       if (decoder != null) {
         BamDecoder.BamControl control = decoder.createControl();
         control.setMode(BamDecoder.BamControl.Mode.Individual);
         // using selected transparency mode for BAM v1 frames
         if (control instanceof BamV1Decoder.BamV1Control) {
-          ((BamV1Decoder.BamV1Control)control).setTransparencyEnabled(cbTransparency.isSelected());
+          ((BamV1Decoder.BamV1Control)control).setTransparencyEnabled(enableTransparency);
         }
         max = decoder.frameCount();
         for (int i = 0; i < decoder.frameCount(); i++) {
           String fileIndex = String.format("%1$05d", i);
           BufferedImage image = null;
           try {
-            image = prepareFrameImage(i);
+            image = prepareFrameImage(decoder, i);
           } catch (Exception e) {
           }
           if (image != null) {
@@ -628,7 +640,6 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       }
     } catch (Throwable t) {
     }
-    blocker.setBlocked(false);
 
     // displaying results
     String msg = null;
@@ -638,23 +649,23 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       msg = String.format("%2$d/%1$d frame(s) exported.\n%3$d/%1$d frame(s) skipped.",
                           max, counter, failCounter);
     }
-    JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), msg, "Information",
-                                  JOptionPane.INFORMATION_MESSAGE);
+    return msg;
   }
 
   // Returns a BufferedImage object in the most appropriate format for the current BAM resource
-  private BufferedImage prepareFrameImage(int frameIdx)
+  private static BufferedImage prepareFrameImage(BamDecoder decoder, int frameIdx)
   {
     BufferedImage image = null;
 
-    if (frameIdx >= 0 && frameIdx < decoder.frameCount()) {
+    if (decoder != null && frameIdx >= 0 && frameIdx < decoder.frameCount()) {
       if (decoder instanceof BamV1Decoder) {
         // preparing palette
         BamV1Decoder decoderV1 = (BamV1Decoder)decoder;
         BamV1Decoder.BamV1Control control = decoderV1.createControl();
         int[] palette = control.getPalette();
         int transIndex = control.getTransparencyIndex();
-        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, false, transIndex, DataBuffer.TYPE_BYTE);
+        boolean hasAlpha = control.isAlphaEnabled();
+        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, hasAlpha, transIndex, DataBuffer.TYPE_BYTE);
         image = new BufferedImage(decoder.getFrameInfo(frameIdx).getWidth(),
                                   decoder.getFrameInfo(frameIdx).getHeight(),
                                   BufferedImage.TYPE_BYTE_INDEXED, cm);
@@ -666,6 +677,24 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     }
 
     return image;
+  }
+
+  // Exports frames as graphics, specified by "format"
+  private void exportFrames(String filePath, String fileBase, String fileExt, String format)
+  {
+    String msg = null;
+    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    try {
+      blocker.setBlocked(true);
+      msg = exportFrames(decoder, filePath, fileBase, fileExt, format, cbTransparency.isSelected());
+    } finally {
+      blocker.setBlocked(false);
+      blocker = null;
+    }
+    if (msg != null) {
+      JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), msg, "Information",
+                                    JOptionPane.INFORMATION_MESSAGE);
+    }
   }
 
   // Checks current BAM (V2 only) for compatibility and shows an appropriate warning or error message
@@ -992,5 +1021,53 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     };
     workerConvert.addPropertyChangeListener(this);
     workerConvert.execute();
+  }
+
+  /** Returns whether the specified PVRZ index can be found in the current BAM resource. */
+  public boolean containsPvrzReference(int index)
+  {
+    boolean retVal = false;
+    if (index >= 0 && index <= 99999) {
+      try {
+        InputStream is = entry.getResourceDataAsStream();
+        if (is != null) {
+          try {
+            // parsing resource header
+            byte[] sig = new byte[8];
+            byte[] buf = new byte[24];
+            long len;
+            long curOfs = 0;
+            if ((len = is.read(sig)) != sig.length) throw new Exception();
+            if (!"BAM V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+            curOfs += len;
+            if ((len = is.read(buf)) != buf.length) throw new Exception();
+            curOfs += len;
+            int numBlocks = DynamicArray.getInt(buf, 8);
+            int ofsBlocks = DynamicArray.getInt(buf, 20);
+            curOfs = ofsBlocks - curOfs;
+            if (curOfs > 0) {
+              do {
+                len = is.skip(curOfs);
+                if (len <= 0) throw new Exception();
+                curOfs -= len;
+              } while (curOfs > 0);
+            }
+
+            // parsing blocks
+            buf = new byte[28];
+            for (int i = 0; i < numBlocks && !retVal; i++) {
+              if (is.read(buf) != buf.length) throw new Exception();
+              int curIndex = DynamicArray.getInt(buf, 0);
+              retVal = (curIndex == index);
+            }
+          } finally {
+            is.close();
+            is = null;
+          }
+        }
+      } catch (Exception e) {
+      }
+    }
+    return retVal;
   }
 }

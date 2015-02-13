@@ -6,7 +6,7 @@ package infinity.resource.sav;
 
 import infinity.datatype.DecNumber;
 import infinity.datatype.TextString;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.Writeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -111,8 +112,7 @@ public final class IOHandler implements Writeable
   private File createTempFolder()
   {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
-      File f = new FileNI(ResourceFactory.getUserRoot(),
-                          String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
+      File f = new FileNI(Profile.getHomeRoot(), String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
       if (!f.exists()) {
         return f;
       }
@@ -153,7 +153,7 @@ public final class IOHandler implements Writeable
       else {
         cdata = new byte[udata.length * 2];
         uncomprLength.setValue(udata.length);
-        Deflater deflater = new Deflater(Deflater.BEST_SPEED);
+        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
         deflater.setInput(udata);
         deflater.finish();
         int clength = deflater.deflate(cdata);
@@ -182,7 +182,7 @@ public final class IOHandler implements Writeable
     @Override
     public String getExtension()
     {
-      return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase();
+      return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
     }
 
     @Override
@@ -200,7 +200,7 @@ public final class IOHandler implements Writeable
     @Override
     public int[] getResourceInfo(boolean ignoreoverride) throws Exception
     {
-      if (filename.toUpperCase().endsWith(".TIS")) {
+      if (filename.toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
         try {
           byte data[] = decompress();
           if (!new String(data, 0, 4).equalsIgnoreCase("TIS ")) {

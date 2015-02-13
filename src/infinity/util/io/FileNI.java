@@ -6,6 +6,7 @@ package infinity.util.io;
 
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 
 /**
  * Overrides java.io.File to support case sensitive file systems.
@@ -102,42 +103,30 @@ public class FileNI extends File
    * @return An abstract pathname representation.
    * @throws NullPointerException if parentList or the resulting pathname are empty
    */
-  public static File getFile(String[] parentList, String child)
+  public static File getFile(List<?> parentList, String child)
   {
-    File file = null;
     if (parentList != null) {
-      for (final String parent: parentList) {
-        File tmp = new FileNI(parent, child);
-        if (tmp.exists()) {
-          file = tmp;
-          break;
-        }
-      }
+      return getFile(parentList.toArray(), child);
+    } else {
+      return null;
     }
-    if (file == null) {
-      if (parentList != null && parentList.length > 0) {
-        file = new FileNI(parentList[parentList.length - 1], child);
-      } else
-        throw new NullPointerException("Empty parent list");
-    }
-    return file;
   }
 
   /**
-   * Creates an abstract pathname from the first existing full pathname consisting of an entry from parentList and
+   * Returns an abstract pathname from the first existing full pathname consisting of an entry from parentList and
    * child. If no existing pathname can been found, then the last parentList entry will be used to create an abstract
    * pathname.
-   * @param parentList List of potential abstract pathnames to use.
+   * @param parentList Array of potential pathnames to use.
    * @param child The child pathname string.
    * @return An abstract pathname representation.
    * @throws NullPointerException if parentList or the resulting pathname are empty
    */
-  public static File getFile(File[] parentList, String child)
+  public static File getFile(Object[] parentList, String child)
   {
     File file = null;
     if (parentList != null) {
-      for (final File f: parentList) {
-        File tmp = new FileNI(f, child);
+      for (final Object parent: parentList) {
+        File tmp = new FileNI(parent.toString(), child);
         if (tmp.exists()) {
           file = tmp;
           break;
@@ -146,7 +135,7 @@ public class FileNI extends File
     }
     if (file == null) {
       if (parentList != null && parentList.length > 0) {
-        file = new FileNI(parentList[parentList.length - 1], child);
+        file = new FileNI(parentList[parentList.length - 1].toString(), child);
       } else
         throw new NullPointerException("Empty parent list");
     }

@@ -12,6 +12,7 @@ import infinity.gui.InfinityTextArea;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.ViewableContainer;
@@ -26,6 +27,7 @@ import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
 
 import java.awt.BorderLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -36,6 +38,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -181,20 +184,20 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         if (result != 0)
           return;
       }
-      if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
         bSave.setEnabled(false);
         sourceChanged = false;
       }
     } else if (buttonPanel.getControlByType(CtrlSaveScript) == event.getSource()) {
       if (chooser == null) {
-        chooser = new JFileChooser(ResourceFactory.getRootDir());
+        chooser = new JFileChooser(Profile.getGameRoot());
         chooser.setDialogTitle("Save source code");
         chooser.setFileFilter(new javax.swing.filechooser.FileFilter()
         {
           @Override
           public boolean accept(File pathname)
           {
-            return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".bcs");
+            return pathname.isDirectory() || pathname.getName().toLowerCase(Locale.ENGLISH).endsWith(".bcs");
           }
 
           @Override
@@ -205,7 +208,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         });
       }
       chooser.setSelectedFile(
-              new File(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BCS"));
+              new FileNI(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BCS"));
       int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
       if (returnval == JFileChooser.APPROVE_OPTION) {
         try {
@@ -221,7 +224,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         }
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
 
@@ -237,8 +240,8 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-            FileNI.getFile(ResourceFactory.getRootDirs(),
-                 ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
+            FileNI.getFile(Profile.getRootFolders(),
+                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
       String options[] = {"Save changes", "Discard changes", "Cancel"};
@@ -246,7 +249,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0)
-        ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
+        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
       else if (result != 1)
         throw new Exception("Save aborted");
     }
@@ -307,7 +310,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
-        java.util.List<ResourceEntry> files = ResourceFactory.getInstance().getResources("BAF");
+        java.util.List<ResourceEntry> files = ResourceFactory.getResources("BAF");
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         java.util.List<ResourceEntry> files = new ArrayList<ResourceEntry>(1);
@@ -322,7 +325,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       if (index != -1) {
         name = name.substring(0, index);
       }
-      ResourceEntry resEntry = ResourceFactory.getInstance().getResourceEntry(name);
+      ResourceEntry resEntry = ResourceFactory.getResourceEntry(name);
       new ViewFrame(panel.getTopLevelAncestor(), ResourceFactory.getResource(resEntry));
     } else if (bpSource.getControlByType(CtrlErrors) == event.getSource()) {
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)event.getSource();
@@ -369,7 +372,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     if (startpos == -1) return;
     int wordpos = -1;
     if (highlightText != null)
-      wordpos = s.toUpperCase().indexOf(highlightText.toUpperCase(), startpos);
+      wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(highlightText.toUpperCase(Locale.ENGLISH), startpos);
     if (wordpos != -1)
       sourceText.select(wordpos, wordpos + highlightText.length());
     else
@@ -390,7 +393,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourceText.applyExtendedSettings(InfinityTextArea.Language.BCS, null);
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    sourceText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
     sourceText.getDocument().addDocumentListener(this);
     InfinityScrollPane scrollSource = new InfinityScrollPane(sourceText, true);
@@ -415,7 +418,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
 
     codeText = new InfinityTextArea(true);
     codeText.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    codeText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    codeText.setMargin(new Insets(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);
     codeText.getDocument().addDocumentListener(this);

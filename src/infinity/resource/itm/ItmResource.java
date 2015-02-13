@@ -16,11 +16,14 @@ import infinity.datatype.TextBitmap;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -65,8 +68,9 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Earrings", "Tattoos", "Lenses", "Teeth"};
   public static final String[] s_flags =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
-           "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed", "Conversable", "", "", "", "",
-           "", "", "", "", "", "", "", "", "Ex: undispellable", "Ex: toggle critical hits"};
+           "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed",
+           "Conversable", "", "EE: Forbid off-hand weapon", "", "", "", "", "", "", "", "", "", "",
+           "EE: Undispellable", "EE: Toggle critical hits"};
   public static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
@@ -161,6 +165,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Sling", "Spear", "Short sword", "War hammer", "Wings?", "Feathered wings"
           };
 
+  private HexViewer hexViewer;
+
   public static String getSearchString(byte buffer[])
   {
 //    return new StringRef(buffer, 12, "").toString();
@@ -191,27 +197,46 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int getViewerTabCount()
   {
-    return 1;
+    return 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    return StructViewer.TAB_VIEW;
+    switch (index) {
+      case 0:
+        return StructViewer.TAB_VIEW;
+      case 1:
+        return StructViewer.TAB_RAW;
+    }
+    return null;
   }
 
   @Override
   public JComponent getViewerTab(int index)
   {
-    JScrollPane scroll = new JScrollPane(new Viewer(this));
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    return scroll;
+    switch (index) {
+      case 0:
+      {
+        JScrollPane scroll = new JScrollPane(new Viewer(this));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        return scroll;
+      }
+      case 1:
+      {
+        if (hexViewer == null) {
+          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
+      }
+    }
+    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return true;
+    return (index == 0);
   }
 
 // --------------------- End Interface HasViewerTabs ---------------------
@@ -223,8 +248,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
       if (o instanceof Ability) {
         Ability a = (Ability)o;
         a.writeEffects(os);
@@ -235,25 +260,34 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 // --------------------- End Interface Writeable ---------------------
 
   @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
-      for (int i = 0; i < list.size(); i++) {
-        Object o = list.get(i);
+      for (int i = 0; i < getFieldCount(); i++) {
+        Object o = getField(i);
         if (o instanceof Ability)
           ((Ability)o).incEffectsIndex(1);
       }
     }
     else if (datatype instanceof Ability) {
       int effect_count = ((SectionCount)getAttribute("# global effects")).getValue();
-      for (int i = 0; i < list.size(); i++) {
-        Object o = list.get(i);
+      for (int i = 0; i < getFieldCount(); i++) {
+        Object o = getField(i);
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
           ability.setEffectsIndex(effect_count);
           effect_count += ability.getEffectsCount();
         }
       }
+    }
+    if (hexViewer != null) {
+      hexViewer.dataModified();
     }
   }
 
@@ -263,11 +297,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     super.datatypeAddedInChild(child, datatype);
     if (child instanceof Ability && datatype instanceof Effect) {
       int index = getIndexOf(child) + 1;
-      while (index < getRowCount()) {
-        StructEntry se = getStructEntryAt(index++);
+      while (index < getFieldCount()) {
+        StructEntry se = getField(index++);
         if (se instanceof Ability)
           ((Ability)se).incEffectsIndex(1);
       }
+    }
+    if (hexViewer != null) {
+      hexViewer.dataModified();
     }
   }
 
@@ -275,22 +312,25 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
-      for (int i = 0; i < list.size(); i++) {
-        Object o = list.get(i);
+      for (int i = 0; i < getFieldCount(); i++) {
+        Object o = getField(i);
         if (o instanceof Ability)
           ((Ability)o).incEffectsIndex(-1);
       }
     }
     else if (datatype instanceof Ability) {
       int effect_count = ((SectionCount)getAttribute("# global effects")).getValue();
-      for (int i = 0; i < list.size(); i++) {
-        Object o = list.get(i);
+      for (int i = 0; i < getFieldCount(); i++) {
+        Object o = getField(i);
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
           ability.setEffectsIndex(effect_count);
           effect_count += ability.getEffectsCount();
         }
       }
+    }
+    if (hexViewer != null) {
+      hexViewer.dataModified();
     }
   }
 
@@ -300,118 +340,121 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     super.datatypeRemovedInChild(child, datatype);
     if (child instanceof Ability && datatype instanceof Effect) {
       int index = getIndexOf(child) + 1;
-      while (index < getRowCount()) {
-        StructEntry se = getStructEntryAt(index++);
+      while (index < getFieldCount()) {
+        StructEntry se = getField(index++);
         if (se instanceof Ability)
           ((Ability)se).incEffectsIndex(-1);
       }
     }
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, 0, 4, "Signature"));
+    addField(new TextString(buffer, 0, 4, "Signature"));
     TextString version = new TextString(buffer, 4, 4, "Version");
-    list.add(version);
-    list.add(new StringRef(buffer, 8, "General name"));
-    list.add(new StringRef(buffer, 12, "Identified name"));
+    addField(version);
+    addField(new StringRef(buffer, 8, "General name"));
+    addField(new StringRef(buffer, 12, "Identified name"));
     if (version.toString().equalsIgnoreCase("V1.1")) {
-      list.add(new ResourceRef(buffer, 16, "Drop sound", "WAV"));
-      list.add(new Flag(buffer, 24, 4, "Flags", s_flags11));
-      list.add(new Bitmap(buffer, 28, 2, "Category", s_categories11));
-      list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability11));
-      list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag11, s_anim11));
-//      list.add(new Bitmap(buffer, 36, 1, "Disable paper doll?", new String[]{"No", "Yes"}));
-//      list.add(new Unknown(buffer, 37, 15));
+      addField(new ResourceRef(buffer, 16, "Drop sound", "WAV"));
+      addField(new Flag(buffer, 24, 4, "Flags", s_flags11));
+      addField(new Bitmap(buffer, 28, 2, "Category", s_categories11));
+      addField(new Flag(buffer, 30, 4, "Unusable by", s_usability11));
+      addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag11, s_anim11));
     }
     else {
-      list.add(new ResourceRef(buffer, 16, "Used up item", "ITM"));
-      list.add(new Flag(buffer, 24, 4, "Flags", s_flags));
-      list.add(new Bitmap(buffer, 28, 2, "Category", s_categories));
-      if (version.toString().equalsIgnoreCase("V2.0"))
-        list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability20));
-      else
-        list.add(new Flag(buffer, 30, 4, "Unusable by", s_usability));
-      if (ResourceFactory.isEnhancedEdition()) {
-        list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag_1pp, s_anim_1pp));
+      addField(new ResourceRef(buffer, 16, "Used up item", "ITM"));
+      addField(new Flag(buffer, 24, 4, "Flags", s_flags));
+      addField(new Bitmap(buffer, 28, 2, "Category", s_categories));
+      if (version.toString().equalsIgnoreCase("V2.0")) {
+        addField(new Flag(buffer, 30, 4, "Unusable by", s_usability20));
+      } else {
+        addField(new Flag(buffer, 30, 4, "Unusable by", s_usability));
+      }
+      if (Profile.isEnhancedEdition()) {
+        addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag_1pp, s_anim_1pp));
       }
       else {
-        list.add(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag, s_anim));
+        addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag, s_anim));
       }
     }
-    list.add(new DecNumber(buffer, 36, 2, "Minimum level"));
-    list.add(new DecNumber(buffer, 38, 2, "Minimum strength"));
-//    list.add(new Unknown(buffer, 39, 1));
-    if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
-      list.add(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
-      list.add(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
-      list.add(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
-      list.add(new Flag(buffer, 43, 1, "Unusable by (2/4)", s_kituse2));
-      list.add(new DecNumber(buffer, 44, 1, "Minimum dexterity"));
-      list.add(new Flag(buffer, 45, 1, "Unusable by (3/4)", s_kituse3));
-      list.add(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
-      list.add(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
-      list.add(new DecNumber(buffer, 48, 1, "Minimum constitution"));
-      if (ResourceFactory.getInstance().resourceExists("PROFTYPE.IDS"))
-        list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "PROFTYPE.IDS"));
-      else
-        list.add(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
+    addField(new DecNumber(buffer, 36, 2, "Minimum level"));
+    addField(new DecNumber(buffer, 38, 2, "Minimum strength"));
+//    addField(new Unknown(buffer, 39, 1));
+    if (ResourceFactory.resourceExists("KIT.IDS")) {
+      addField(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
+      addField(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
+      addField(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
+      addField(new Flag(buffer, 43, 1, "Unusable by (2/4)", s_kituse2));
+      addField(new DecNumber(buffer, 44, 1, "Minimum dexterity"));
+      addField(new Flag(buffer, 45, 1, "Unusable by (3/4)", s_kituse3));
+      addField(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
+      addField(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
+      addField(new DecNumber(buffer, 48, 1, "Minimum constitution"));
+      if (ResourceFactory.resourceExists("PROFTYPE.IDS")) {
+        addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "PROFTYPE.IDS"));
+      } else {
+        addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
+      }
     }
     else {
-      list.add(new DecNumber(buffer, 40, 2, "Minimum strength bonus"));
-      list.add(new DecNumber(buffer, 42, 2, "Minimum intelligence"));
-      list.add(new DecNumber(buffer, 44, 2, "Minimum dexterity"));
-      list.add(new DecNumber(buffer, 46, 2, "Minimum wisdom"));
-      list.add(new DecNumber(buffer, 48, 2, "Minimum constitution"));
-//      list.add(new Unknown(buffer, 41, 1));
-//      list.add(new Unknown(buffer, 43, 1));
-//      list.add(new Unknown(buffer, 45, 1));
-//      list.add(new Unknown(buffer, 47, 1));
-//      list.add(new Unknown(buffer, 49, 1));
+      addField(new DecNumber(buffer, 40, 2, "Minimum strength bonus"));
+      addField(new DecNumber(buffer, 42, 2, "Minimum intelligence"));
+      addField(new DecNumber(buffer, 44, 2, "Minimum dexterity"));
+      addField(new DecNumber(buffer, 46, 2, "Minimum wisdom"));
+      addField(new DecNumber(buffer, 48, 2, "Minimum constitution"));
+//      addField(new Unknown(buffer, 41, 1));
+//      addField(new Unknown(buffer, 43, 1));
+//      addField(new Unknown(buffer, 45, 1));
+//      addField(new Unknown(buffer, 47, 1));
+//      addField(new Unknown(buffer, 49, 1));
     }
-    list.add(new DecNumber(buffer, 50, 2, "Minimum charisma"));
-//    list.add(new Unknown(buffer, 51, 1));
-    list.add(new DecNumber(buffer, 52, 4, "Price"));
-    list.add(new DecNumber(buffer, 56, 2, "Maximum in stack"));
-    list.add(new ResourceRef(buffer, 58, "Icon", "BAM"));
-    list.add(new DecNumber(buffer, 66, 2, "Lore to identify"));
-    list.add(new ResourceRef(buffer, 68, "Ground icon", "BAM"));
-    list.add(new DecNumber(buffer, 76, 4, "Weight"));
-    list.add(new StringRef(buffer, 80, "General description"));
-    list.add(new StringRef(buffer, 84, "Identified description"));
+    addField(new DecNumber(buffer, 50, 2, "Minimum charisma"));
+//    addField(new Unknown(buffer, 51, 1));
+    addField(new DecNumber(buffer, 52, 4, "Price"));
+    addField(new DecNumber(buffer, 56, 2, "Maximum in stack"));
+    addField(new ResourceRef(buffer, 58, "Icon", "BAM"));
+    addField(new DecNumber(buffer, 66, 2, "Lore to identify"));
+    addField(new ResourceRef(buffer, 68, "Ground icon", "BAM"));
+    addField(new DecNumber(buffer, 76, 4, "Weight"));
+    addField(new StringRef(buffer, 80, "General description"));
+    addField(new StringRef(buffer, 84, "Identified description"));
     if (version.toString().equalsIgnoreCase("V1.1")) {
-      list.add(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
+      addField(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
     } else {
-      if (ResourceFactory.isEnhancedEdition()) {
-        list.add(new ResourceRef(buffer, 88, "Description image", new String[]{"BAM", "BMP"}));
+      if (Profile.isEnhancedEdition()) {
+        addField(new ResourceRef(buffer, 88, "Description image", new String[]{"BAM", "BMP"}));
       } else {
-        list.add(new ResourceRef(buffer, 88, "Description image", "BAM"));
+        addField(new ResourceRef(buffer, 88, "Description image", "BAM"));
       }
     }
-    list.add(new DecNumber(buffer, 96, 4, "Enchantment"));
+    addField(new DecNumber(buffer, 96, 4, "Enchantment"));
     SectionOffset abil_offset = new SectionOffset(buffer, 100, "Abilities offset",
                                                   Ability.class);
-    list.add(abil_offset);
+    addField(abil_offset);
     SectionCount abil_count = new SectionCount(buffer, 104, 2, "# abilities",
                                                Ability.class);
-    list.add(abil_count);
+    addField(abil_count);
     SectionOffset global_offset = new SectionOffset(buffer, 106, "Effects offset",
                                                     Effect.class);
-    list.add(global_offset);
-    list.add(new DecNumber(buffer, 110, 2, "First effect index"));
+    addField(global_offset);
+    addField(new DecNumber(buffer, 110, 2, "First effect index"));
     SectionCount global_count = new SectionCount(buffer, 112, 2, "# global effects",
                                                  Effect.class);
-    list.add(global_count);
+    addField(global_count);
 
     if (version.toString().equalsIgnoreCase("V1.1")) {
-      list.add(new ResourceRef(buffer, 114, "Dialogue", "DLG"));
-      list.add(new StringRef(buffer, 122, "Speaker name"));
-      list.add(new IdsBitmap(buffer, 126, 2, "Weapon color", "CLOWNCLR.IDS"));
-      list.add(new Unknown(buffer, 128, 26));
+      addField(new ResourceRef(buffer, 114, "Dialogue", "DLG"));
+      addField(new StringRef(buffer, 122, "Speaker name"));
+      addField(new IdsBitmap(buffer, 126, 2, "Weapon color", "CLOWNCLR.IDS"));
+      addField(new Unknown(buffer, 128, 26));
     }
     else if (version.toString().equalsIgnoreCase("V2.0")) {
-      list.add(new Unknown(buffer, 114, 16));
+      addField(new Unknown(buffer, 114, 16));
     }
 
     offset = abil_offset.getValue();
@@ -419,14 +462,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     for (int i = 0; i < abilities.length; i++) {
       abilities[i] = new Ability(this, buffer, offset, i);
       offset = abilities[i].getEndOffset();
-      list.add(abilities[i]);
+      addField(abilities[i]);
     }
 
     int offset2 = global_offset.getValue();
     for (int i = 0; i < global_count.getValue(); i++) {
       Effect eff = new Effect(this, buffer, offset2, i);
       offset2 = eff.getEndOffset();
-      list.add(eff);
+      addField(eff);
     }
 
     for (final Ability ability : abilities)
@@ -451,25 +494,25 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)itm.getAttribute("Effects offset");
-        DecNumber cnt = (DecNumber)itm.getAttribute("# global effects");
+        DecNumber ofs = (DecNumber)itm.getAttribute("Effects offset", false);
+        DecNumber cnt = (DecNumber)itm.getAttribute("# global effects", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.ITM_Effect), idx);
-            effects[idx] = (Effect)itm.getAttribute(label);
+            effects[idx] = (Effect)itm.getAttribute(label, false);
           }
         } else {
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)itm.getAttribute("Abilities offset");
-        cnt = (DecNumber)itm.getAttribute("# abilities");
+        ofs = (DecNumber)itm.getAttribute("Abilities offset", false);
+        cnt = (DecNumber)itm.getAttribute("# abilities", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.ITM_Ability), idx);
-            abilities[idx] = (Ability)itm.getAttribute(label);
+            abilities[idx] = (Ability)itm.getAttribute(label, false);
           }
         } else {
           abilities = new Ability[0];
@@ -478,12 +521,12 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute("# effects");
+            cnt = (DecNumber)abilities[idx].getAttribute("# effects", false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {
                 String label = String.format(SearchOptions.getResourceName(SearchOptions.ITM_Ability_Effect), idx2);
-                abilityEffects[idx][idx2] = (Effect)abilities[idx].getAttribute(label);
+                abilityEffects[idx][idx2] = (Effect)abilities[idx].getAttribute(label, false);
               }
             } else {
               abilityEffects[idx] = new Effect[0];
@@ -497,14 +540,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         if (retVal) {
           key = SearchOptions.ITM_Name;
           o = searchOptions.getOption(key);
-          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
         }
 
         if (retVal) {
           key = SearchOptions.ITM_Appearance;
           o = searchOptions.getOption(key);
-          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchString(struct, o, true, true);
         }
 
@@ -515,7 +558,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
@@ -532,7 +575,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
@@ -549,7 +592,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
             for (int idx2 = 0; idx2 < effects.length; idx2++) {
               if (!found) {
                 if (effects[idx2] != null) {
-                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
@@ -593,14 +636,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
               for (int j = 0; j < 10; j++) {
                 key = keyList[j];
                 o = abilityOption.getOption(key);
-                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key));
+                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key), false);
                 abilityMatches[i][j] = SearchOptions.Utils.matchNumber(struct, o);
               }
 
               {
                 key = keyList[10];
                 o = abilityOption.getOption(key);
-                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key));
+                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key), false);
                 abilityMatches[i][10] = SearchOptions.Utils.matchFlags(struct, o);
               }
 
@@ -609,7 +652,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
                 o = abilityOption.getOption(key);
                 for (int k = 0; k < abilityEffects[i].length; k++) {
                   if (abilityEffects[i][k] != null) {
-                    StructEntry struct = abilityEffects[i][k].getAttribute(SearchOptions.getResourceName(key));
+                    StructEntry struct = abilityEffects[i][k].getAttribute(SearchOptions.getResourceName(key), false);
                     abilityMatches[i][j] |= SearchOptions.Utils.matchNumber(struct, o);
                   }
                 }

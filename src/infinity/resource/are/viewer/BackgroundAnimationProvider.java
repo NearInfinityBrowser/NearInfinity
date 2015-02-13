@@ -427,7 +427,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
         int[] frameIndices = null;
         if (isMultiPart()) {
           frameIndices = new int[control.cycleCount()];
-          for (int i = 0; i < control.cycleCount(); i++) {
+          for (int i = 0, cCount = control.cycleCount(); i < cCount; i++) {
             frameIndices[i] = control.cycleGetFrameIndexAbsolute(i, control.cycleGetFrameIndex());
           }
         } else {

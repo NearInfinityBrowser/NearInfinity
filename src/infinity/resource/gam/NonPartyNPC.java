@@ -5,20 +5,18 @@
 package infinity.resource.gam;
 
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 
 final class NonPartyNPC extends PartyNPC
 {
   NonPartyNPC() throws Exception
   {
     super(null, "Non-party character",
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.isEnhancedEdition() ? new byte[352] :
-          ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? new byte[360] :
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ? new byte[832] : new byte[384],
+          (Profile.getEngine() == Profile.Engine.BG1 ||
+          Profile.getEngine() == Profile.Engine.BG2 ||
+          Profile.isEnhancedEdition()) ? new byte[352] :
+          (Profile.getEngine() == Profile.Engine.PST) ? new byte[360] :
+          (Profile.getEngine() == Profile.Engine.IWD2) ? new byte[832] : new byte[384],
           0);
   }
 

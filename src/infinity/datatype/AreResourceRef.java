@@ -4,7 +4,9 @@
 
 package infinity.datatype;
 
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.are.AreResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
@@ -20,26 +22,30 @@ public final class AreResourceRef extends ResourceRef
 
   public AreResourceRef(byte h_buffer[], int offset, String name, AreResource are)
   {
-    super(h_buffer, offset, name, "WAV");
-    ResourceEntry res = ResourceFactory.getInstance().getResourceEntry(
+    this(null, h_buffer, offset, name, are);
+  }
+
+  public AreResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, AreResource are)
+  {
+    super(parent, h_buffer, offset, name, "WAV");
+    ResourceEntry res = ResourceFactory.getResourceEntry(
             ((ResourceRef)are.getAttribute("WED resource")).getResourceName());
     String wedBIFF = "_dummy";
     if (res instanceof BIFFResourceEntry)
       wedBIFF = ((BIFFResourceEntry)res).getBIFFEntry().toString();
-    int gameID = ResourceFactory.getGameID();
-    if (gameID == ResourceFactory.ID_BG1 || gameID == ResourceFactory.ID_BG1TOTSC)
+    if (Profile.getEngine() == Profile.Engine.BG1) {
       legalBIFs = new String[]{wedBIFF, "data/sfxsound.bif", "data/cresound.bif"};
-    else if (gameID == ResourceFactory.ID_BG2 || gameID == ResourceFactory.ID_BG2TOB)
+    } else if (Profile.getEngine() == Profile.Engine.BG2) {
       legalBIFs = new String[]{wedBIFF, "data/ambsound.bif", "data/25ambsnd.bif", "data/sfxsound.bif"};
-    else if (gameID == ResourceFactory.ID_ICEWIND || gameID == ResourceFactory.ID_ICEWINDHOW ||
-             gameID == ResourceFactory.ID_ICEWINDHOWTOT)
+    } else if (Profile.getEngine() == Profile.Engine.IWD) {
       legalBIFs = new String[]{wedBIFF, "data/sndgen.bif", "data/esfxamb.bif"};
-    else if (gameID == ResourceFactory.ID_ICEWIND2)
+    } else if (Profile.getEngine() == Profile.Engine.IWD2) {
       legalBIFs = new String[]{wedBIFF, "data/sndsfx.bif"};
-    else if (gameID == ResourceFactory.ID_TORMENT)
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
       legalBIFs = new String[]{wedBIFF, "sound.bif"};
-    else
+    } else {
       legalBIFs = new String[]{wedBIFF};
+    }
 //    ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(getResourceName());
 //    if (!isLegalEntry(entry)) {
 //      System.out.println("Illegal: " + entry + " from " + entry.getActualFile());

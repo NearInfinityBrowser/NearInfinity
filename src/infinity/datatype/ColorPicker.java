@@ -5,6 +5,7 @@ import infinity.gui.StructViewer;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 import infinity.resource.graphics.ColorConvert;
 import infinity.util.DynamicArray;
 
@@ -34,14 +35,18 @@ import javax.swing.JTextField;
 
 
 /** Implements a RGB color picker control. */
-public class ColorPicker extends Datatype implements Editable, Readable, MouseListener, FocusListener
+public class ColorPicker extends Datatype implements Editable, MouseListener, FocusListener
 {
   /** Supported color formats. */
   public enum Format {
     /** Byte order: {unused, red, green, blue} */
     XRGB,
     /** Byte order: {red, green, blue, unused} */
-    RGBX
+    RGBX,
+    /** Byte order: {blue, green red, unused} */
+    BGRX,
+    /** Byte order: {unused blue, green red} */
+    XBGR,
   }
 
   private final int shiftRed, shiftGreen, shiftBlue;
@@ -54,15 +59,28 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
   /** Initializing color picker with the most commonly used color format <code>Format.XRGB</code>. */
   public ColorPicker(byte[] buffer, int offset, String name)
   {
-    this(buffer, offset, name, Format.XRGB);
+    this(null, buffer, offset, name, Format.XRGB);
+  }
+
+  /** Initializing color picker with the most commonly used color format <code>Format.XRGB</code>. */
+  public ColorPicker(StructEntry parent, byte[] buffer, int offset, String name)
+  {
+    this(parent, buffer, offset, name, Format.XRGB);
   }
 
   public ColorPicker(byte[] buffer, int offset, String name, Format fmt)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name, fmt);
+  }
+
+  public ColorPicker(StructEntry parent, byte[] buffer, int offset, String name, Format fmt)
+  {
+    super(parent, offset, 4, name);
     switch (fmt) {
       case RGBX: shiftRed = 0; shiftGreen = 8; shiftBlue = 16; break;
       case XRGB: shiftRed = 8; shiftGreen = 16; shiftBlue = 24; break;
+      case BGRX: shiftRed = 16; shiftGreen = 8; shiftBlue = 0; break;
+      case XBGR: shiftRed = 24; shiftGreen = 16; shiftBlue = 8; break;
       default: shiftRed = shiftGreen = shiftBlue = 0; break;
     }
     read(buffer, offset);
@@ -269,7 +287,7 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public void read(byte[] buffer, int offset)
+  public int read(byte[] buffer, int offset)
   {
     value = DynamicArray.getInt(buffer, offset);
     tmpRed = getRed(value);
@@ -280,6 +298,8 @@ public class ColorPicker extends Datatype implements Editable, Readable, MouseLi
     tmpHue = (int)Math.round(hsb[0]*360.0f);
     tmpSat = (int)Math.round(hsb[1]*100.0f);
     tmpBri = (int)Math.round(hsb[2]*100.0f);
+
+    return offset + getSize();
   }
 
 //--------------------- End Interface Readable ---------------------

@@ -5,12 +5,18 @@
 package infinity.datatype;
 
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 
 public final class UnknownDecimal extends Unknown
 {
   public UnknownDecimal(byte[] buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public UnknownDecimal(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  {
+    super(parent, buffer, offset, length, name);
   }
 
 // --------------------- Begin Interface Editable ---------------------

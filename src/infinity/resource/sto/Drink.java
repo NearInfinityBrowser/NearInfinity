@@ -33,12 +33,12 @@ final class Drink extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new Unknown(buffer, offset, 8));
-    list.add(new StringRef(buffer, offset + 8, "Drink name"));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Price"));
-    list.add(new DecNumber(buffer, offset + 16, 4, "Rumor rate"));
+    addField(new Unknown(buffer, offset, 8));
+    addField(new StringRef(buffer, offset + 8, "Drink name"));
+    addField(new DecNumber(buffer, offset + 12, 4, "Price"));
+    addField(new DecNumber(buffer, offset + 16, 4, "Rumor rate"));
     return offset + 20;
   }
 }

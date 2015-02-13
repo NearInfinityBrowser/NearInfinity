@@ -17,7 +17,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
@@ -103,8 +103,9 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     int firstVertex = ((DecNumber)getAttribute("First vertex index")).getValue();
     int numVertices = ((DecNumber)getAttribute("# vertices")).getValue();
     offset += firstVertex << 2;
-    for (int i = 0; i < numVertices; i++)
-      list.add(new Vertex(this, buffer, offset + 4 * i, i));
+    for (int i = 0; i < numVertices; i++) {
+      addField(new Vertex(this, buffer, offset + 4 * i, i));
+    }
   }
 
   @Override
@@ -112,8 +113,8 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     ((DecNumber)getAttribute("First vertex index")).setValue(number);
     int count = 0;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((Vertex)entry).realignStructOffsets();
@@ -151,8 +152,9 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     int firstIndex = ((DecNumber)getAttribute("First item index")).getValue();
     int numItems = ((DecNumber)getAttribute("# items")).getValue();
     offset += firstIndex * 20;
-    for (int i = 0; i < numItems; i++)
-      list.add(new Item(this, buffer, offset + 20 * i, i));
+    for (int i = 0; i < numItems; i++) {
+      addField(new Item(this, buffer, offset + 20 * i, i));
+    }
 //    return offset + numItems * 20;
   }
 
@@ -160,8 +162,8 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     ((DecNumber)getAttribute("First item index")).setValue(number);
     int count = 0;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry instanceof Item) {
         entry.setOffset(offset);
         ((Item)entry).realignStructOffsets();
@@ -174,41 +176,41 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   }
 
   @Override
-  protected int read(byte buffer[], int offset) throws Exception
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new DecNumber(buffer, offset + 32, 2, "Location: X"));
-    list.add(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
-    list.add(new Bitmap(buffer, offset + 36, 2, "Type", s_type));
-    list.add(new DecNumber(buffer, offset + 38, 2, "Lock difficulty"));
-    if (ResourceFactory.isEnhancedEdition()) {
-      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag_ee));
+    addField(new TextString(buffer, offset, 32, "Name"));
+    addField(new DecNumber(buffer, offset + 32, 2, "Location: X"));
+    addField(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
+    addField(new Bitmap(buffer, offset + 36, 2, "Type", s_type));
+    addField(new DecNumber(buffer, offset + 38, 2, "Lock difficulty"));
+    if (Profile.isEnhancedEdition()) {
+      addField(new Flag(buffer, offset + 40, 4, "Flags", s_flag_ee));
     } else {
-      list.add(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
+      addField(new Flag(buffer, offset + 40, 4, "Flags", s_flag));
     }
-    list.add(new DecNumber(buffer, offset + 44, 2, "Trap detection difficulty"));
-    list.add(new DecNumber(buffer, offset + 46, 2, "Trap removal difficulty"));
-    list.add(new Bitmap(buffer, offset + 48, 2, "Is trapped?", s_yesno));
-    list.add(new Bitmap(buffer, offset + 50, 2, "Is trap detected?", s_yesno));
-    list.add(new DecNumber(buffer, offset + 52, 2, "Launch point: X"));
-    list.add(new DecNumber(buffer, offset + 54, 2, "Launch point: Y"));
-    list.add(new DecNumber(buffer, offset + 56, 2, "Bounding box: Left"));
-    list.add(new DecNumber(buffer, offset + 58, 2, "Bounding box: Top"));
-    list.add(new DecNumber(buffer, offset + 60, 2, "Bounding box: Right"));
-    list.add(new DecNumber(buffer, offset + 62, 2, "Bounding box: Bottom"));
-    list.add(new DecNumber(buffer, offset + 64, 4, "First item index"));
-    list.add(new DecNumber(buffer, offset + 68, 4, "# items"));
-    list.add(new ResourceRef(buffer, offset + 72, "Trap script", "BCS"));
-    list.add(new DecNumber(buffer, offset + 80, 4, "First vertex index"));
-    list.add(new DecNumber(buffer, offset + 84, 2, "# vertices"));
-    list.add(new DecNumber(buffer, offset + 86, 2, "Activation range"));
-    list.add(new TextString(buffer, offset + 88, 32, "Owner name"));
-//    list.add(new ResourceRef(buffer, offset + 88, "Creature?", "CRE"));
-//    list.add(new Unknown(buffer, offset + 96, 24));
-    list.add(new ResourceRef(buffer, offset + 120, "Key", "ITM"));
-    list.add(new Unknown(buffer, offset + 128, 4));
-    list.add(new StringRef(buffer, offset + 132, "Lockpick string"));
-    list.add(new Unknown(buffer, offset + 136, 56));
+    addField(new DecNumber(buffer, offset + 44, 2, "Trap detection difficulty"));
+    addField(new DecNumber(buffer, offset + 46, 2, "Trap removal difficulty"));
+    addField(new Bitmap(buffer, offset + 48, 2, "Is trapped?", s_yesno));
+    addField(new Bitmap(buffer, offset + 50, 2, "Is trap detected?", s_yesno));
+    addField(new DecNumber(buffer, offset + 52, 2, "Launch point: X"));
+    addField(new DecNumber(buffer, offset + 54, 2, "Launch point: Y"));
+    addField(new DecNumber(buffer, offset + 56, 2, "Bounding box: Left"));
+    addField(new DecNumber(buffer, offset + 58, 2, "Bounding box: Top"));
+    addField(new DecNumber(buffer, offset + 60, 2, "Bounding box: Right"));
+    addField(new DecNumber(buffer, offset + 62, 2, "Bounding box: Bottom"));
+    addField(new DecNumber(buffer, offset + 64, 4, "First item index"));
+    addField(new DecNumber(buffer, offset + 68, 4, "# items"));
+    addField(new ResourceRef(buffer, offset + 72, "Trap script", "BCS"));
+    addField(new DecNumber(buffer, offset + 80, 4, "First vertex index"));
+    addField(new DecNumber(buffer, offset + 84, 2, "# vertices"));
+    addField(new DecNumber(buffer, offset + 86, 2, "Activation range"));
+    addField(new TextString(buffer, offset + 88, 32, "Owner name"));
+//    addField(new ResourceRef(buffer, offset + 88, "Creature?", "CRE"));
+//    addField(new Unknown(buffer, offset + 96, 24));
+    addField(new ResourceRef(buffer, offset + 120, "Key", "ITM"));
+    addField(new Unknown(buffer, offset + 128, 4));
+    addField(new StringRef(buffer, offset + 132, "Lockpick string"));
+    addField(new Unknown(buffer, offset + 136, 56));
     return offset + 192;
   }
 }

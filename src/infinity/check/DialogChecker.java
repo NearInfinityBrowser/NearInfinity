@@ -14,6 +14,7 @@ import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -97,7 +98,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Save result");
       fc.setSelectedFile(new FileNI("result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
@@ -118,7 +119,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
           } else {
             pw.println("Number of warnings: " + table.getRowCount());
           }
-          for (int i = 0; i < errorTable.getRowCount(); i++) {
+          for (int i = 0; i < table.getRowCount(); i++) {
             pw.println(table.getTableItemAt(i).toString());
           }
           pw.close();
@@ -173,7 +174,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> dlgFiles = ResourceFactory.getInstance().getResources("DLG");
+    List<ResourceEntry> dlgFiles = ResourceFactory.getResources("DLG");
     if (checkOnlyOverride) {
       for (Iterator<ResourceEntry> i = dlgFiles.iterator(); i.hasNext();) {
         ResourceEntry resourceEntry = i.next();
@@ -199,8 +200,8 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       ResourceEntry entry = dlgFiles.get(i);
       try {
         DlgResource dialog = new DlgResource(entry);
-        for (int j = 0; j < dialog.getRowCount(); j++) {
-          StructEntry o = dialog.getStructEntryAt(j);
+        for (int j = 0; j < dialog.getFieldCount(); j++) {
+          StructEntry o = dialog.getField(j);
           if (o instanceof AbstractCode) {
             AbstractCode dialogCode = (AbstractCode)o;
             Compiler.getInstance().compileDialogCode(dialogCode.toString(), dialogCode instanceof Action);

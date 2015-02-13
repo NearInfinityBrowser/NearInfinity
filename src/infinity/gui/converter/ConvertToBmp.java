@@ -3,7 +3,7 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileOutputStreamNI;
@@ -54,7 +54,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ConvertToBmp extends ChildFrame
     implements ActionListener, FocusListener, PropertyChangeListener
 {
-  private static String currentPath = ResourceFactory.getRootDir().toString();
+  private static String currentPath = Profile.getGameRoot().toString();
 
   private DefaultListModel modelInputFiles;
   private JList listInputFiles;
