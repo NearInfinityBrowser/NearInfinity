@@ -19,8 +19,10 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 import javax.swing.JButton;
@@ -139,15 +141,23 @@ public final class TextResourceSearcher implements Runnable, ActionListener
       ResourceEntry entry = files.get(i);
       TextResource resource = (TextResource)ResourceFactory.getResource(entry);
       if (resource != null) {
-        int linenr = 0;
-        StringTokenizer tokenizer = new StringTokenizer(resource.getText(), "\n", true);
-        while (tokenizer.hasMoreTokens()) {
-          linenr++;
-          String token = tokenizer.nextToken();
-          if (token.equals("\n") && tokenizer.hasMoreTokens())
-            token = tokenizer.nextToken();
-          if (regPattern.matcher(token).matches())
-            resultFrame.addHit(entry, token, linenr);
+        BufferedReader br = new BufferedReader(new StringReader(resource.getText()));
+        try {
+          try {
+            String line;
+            int linenr = 0;
+            while ((line = br.readLine()) != null) {
+              linenr++;
+              if (regPattern.matcher(line).matches()) {
+                resultFrame.addHit(entry, line, linenr);
+              }
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          br.close();
+        } catch (IOException e) {
+          e.printStackTrace();
         }
       }
       progress.setProgress(i + 1);

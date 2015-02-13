@@ -55,7 +55,7 @@ final class ViewerSpells extends JPanel implements ActionListener
           ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
           if (ref != null) {
             Resource res = ResourceFactory.getResource(
-                    ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                    ResourceFactory.getResourceEntry(ref.getResourceName()));
             new ViewFrame(getTopLevelAncestor(), res);
           }
         }
@@ -78,7 +78,7 @@ final class ViewerSpells extends JPanel implements ActionListener
       ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
       if (ref != null) {
         Resource res = ResourceFactory.getResource(
-                ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                ResourceFactory.getResourceEntry(ref.getResourceName()));
         new ViewFrame(getTopLevelAncestor(), res);
       }
     }

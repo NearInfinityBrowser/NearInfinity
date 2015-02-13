@@ -255,7 +255,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           newstate = currenttransition.getNextDialogState();
         } else {
           DlgResource newdlg = (DlgResource)ResourceFactory.getResource(
-              ResourceFactory.getInstance().getResourceEntry(next_dlg.toString()));
+              ResourceFactory.getResourceEntry(next_dlg.toString()));
           showExternState(newdlg, currenttransition.getNextDialogState(), false);
         }
       }
@@ -281,7 +281,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources("DLG");
+        List<ResourceEntry> files = ResourceFactory.getResources("DLG");
         new DialogSearcher(files, getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
@@ -669,7 +669,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         if (text != null) {
           String resourceName = StringResource.getResource(text.getValue()) + ".WAV";
           if (resourceName != null) {
-            ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourceName);
+            ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName);
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
           }
         }

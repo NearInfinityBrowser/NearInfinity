@@ -62,8 +62,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
       struct = struct.getSuperStruct();
     String filename = struct.getResourceEntry().toString();
     files =
-    ResourceFactory.getInstance().getResources(
-            filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH));
+    ResourceFactory.getResources(filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH));
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
     inputFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);

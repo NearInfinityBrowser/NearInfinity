@@ -10,6 +10,7 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -37,6 +38,7 @@ import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -168,7 +170,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     } else if (event.getSource() == cbTransparency) {
       setTransparencyEnabled(cbTransparency.isSelected());
     } else if (event.getSource() == miExport) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportBAM) {
       if (decoder != null) {
         if (decoder.getType() == BamDecoder.Type.BAMV2) {
@@ -182,7 +184,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           // decompress existing BAMC V1 and save as BAM V1
           try {
             byte data[] = Compressor.decompress(entry.getResourceData());
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
+            ResourceFactory.exportResource(entry, data, entry.toString(),
                                                          panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
@@ -202,15 +204,14 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           // compress existing BAM V1 and save as BAMC V1
           try {
             byte data[] = Compressor.compress(entry.getResourceData(), "BAMC", "V1  ");
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
           }
         }
       }
     } else if (event.getSource() == miExportFramesPNG) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
@@ -270,8 +271,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         }
         if (bamData != null) {
           if (bamData.length > 0) {
-            ResourceFactory.getInstance().exportResource(entry, bamData, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, bamData, entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
@@ -324,8 +324,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       if (decoder.getType() == BamDecoder.Type.BAMC) {
         miExportBAM = new JMenuItem("decompressed");
         miExportBAM.addActionListener(this);
-      } else if (decoder.getType() == BamDecoder.Type.BAMV1 &&
-                 ResourceFactory.getGameID() != ResourceFactory.ID_TORMENT) {
+      } else if (decoder.getType() == BamDecoder.Type.BAMV1 && Profile.getEngine() == Profile.Engine.PST) {
         miExportBAMC = new JMenuItem("compressed");
         miExportBAMC.addActionListener(this);
       } else if (decoder.getType() == BamDecoder.Type.BAMV2) {
@@ -1022,5 +1021,53 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     };
     workerConvert.addPropertyChangeListener(this);
     workerConvert.execute();
+  }
+
+  /** Returns whether the specified PVRZ index can be found in the current BAM resource. */
+  public boolean containsPvrzReference(int index)
+  {
+    boolean retVal = false;
+    if (index >= 0 && index <= 99999) {
+      try {
+        InputStream is = entry.getResourceDataAsStream();
+        if (is != null) {
+          try {
+            // parsing resource header
+            byte[] sig = new byte[8];
+            byte[] buf = new byte[24];
+            long len;
+            long curOfs = 0;
+            if ((len = is.read(sig)) != sig.length) throw new Exception();
+            if (!"BAM V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+            curOfs += len;
+            if ((len = is.read(buf)) != buf.length) throw new Exception();
+            curOfs += len;
+            int numBlocks = DynamicArray.getInt(buf, 8);
+            int ofsBlocks = DynamicArray.getInt(buf, 20);
+            curOfs = ofsBlocks - curOfs;
+            if (curOfs > 0) {
+              do {
+                len = is.skip(curOfs);
+                if (len <= 0) throw new Exception();
+                curOfs -= len;
+              } while (curOfs > 0);
+            }
+
+            // parsing blocks
+            buf = new byte[28];
+            for (int i = 0; i < numBlocks && !retVal; i++) {
+              if (is.read(buf) != buf.length) throw new Exception();
+              int curIndex = DynamicArray.getInt(buf, 0);
+              retVal = (curIndex == index);
+            }
+          } finally {
+            is.close();
+            is = null;
+          }
+        }
+      } catch (Exception e) {
+      }
+    }
+    return retVal;
   }
 }

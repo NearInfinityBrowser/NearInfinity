@@ -146,7 +146,7 @@ public class FileWriterNI extends FileWriter
 
   public static void writeString(OutputStream os, String s, int length) throws IOException
   {
-    writeString(os, s, length, Charset.forName("ISO-8859-1")); // TODO: reevalute the need for hardcoded charset
+    writeString(os, s, length, Charset.forName("windows-1252")); // TODO: reevalute the need for hardcoded charset
   }
 
   public static void writeString(OutputStream os, String s, int minLength, Charset charset) throws IOException

@@ -75,6 +75,7 @@ import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractAbility;
 import infinity.resource.EffectFactory;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
@@ -220,7 +221,7 @@ public class SearchResource extends ChildFrame
     String type = getCurrentResourceType();
     if (!type.isEmpty()) {
       // initializations
-      List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(type);
+      List<ResourceEntry> resources = ResourceFactory.getResources(type);
       Vector<NamedResourceEntry> found = new Vector<NamedResourceEntry>();
       bSearch.setEnabled(false);
       pbProgress.setMinimum(0);
@@ -284,20 +285,9 @@ public class SearchResource extends ChildFrame
       setIconImage(Icons.getIcon("Find16.gif").getImage());
       GridBagConstraints c = new GridBagConstraints();
 
-      boolean effSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-                              ResourceFactory.isEnhancedEdition());
-      boolean proSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.isEnhancedEdition());
-      boolean vvcSupported = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                              ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                              ResourceFactory.isEnhancedEdition());
+      boolean effSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_EFF);
+      boolean proSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_PRO);
+      boolean vvcSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_VVC);
       int resTypeCount = 5;
       if (effSupported) resTypeCount++;
       if (proSupported) resTypeCount++;
@@ -764,7 +754,7 @@ public class SearchResource extends ChildFrame
 
       cbScript = Utils.createNamedResourceComboBox(new String[]{"BCS"}, false);
 
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM", "PVRZ", "WBM"}, false);
       } else {
         cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM"}, false);
@@ -776,22 +766,16 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       String[] areType;
-      switch (ResourceFactory.getGameID()) {
-        case ResourceFactory.ID_BGEE:
-        case ResourceFactory.ID_BG2EE:
-        case ResourceFactory.ID_IWDEE:
-          areType = AreResource.s_atype_ee;
-          break;
-        case ResourceFactory.ID_TORMENT:
-          areType = AreResource.s_atype_torment;
-          break;
-        case ResourceFactory.ID_ICEWIND2:
-          areType = AreResource.s_atype_iwd2;
-          break;
-        default:
-          areType = AreResource.s_atype;
+      if (Profile.getEngine() == Profile.Engine.EE) {
+        areType = AreResource.s_atype_ee;
+      } else if (Profile.getEngine() == Profile.Engine.PST) {
+        areType = AreResource.s_atype_torment;
+      } else if (Profile.getEngine() == Profile.Engine.IWD2) {
+        areType = AreResource.s_atype_iwd2;
+      } else {
+        areType = AreResource.s_atype;
       }
-      String[] areFlags = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) ?
+      String[] areFlags = (Profile.getEngine() == Profile.Engine.PST) ?
                           AreResource.s_flag_torment : AreResource.s_flag;
       pType = new FlagsPanel(4, areType);
       bpwType = new ButtonPopupWindow(setOptionsText, pType);
@@ -980,7 +964,7 @@ public class SearchResource extends ChildFrame
               break;
             case ID_Level:
             {
-              if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+              if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
                 if (pLevelIWD2.isActive(CreLevelIWD2Panel.LEVEL_TOTAL)) {
                   retVal.setOption(SearchOptions.CRE_IWD2LevelTotal,
                                    pLevelIWD2.getOptionLevel(CreLevelIWD2Panel.LEVEL_TOTAL));
@@ -1060,7 +1044,7 @@ public class SearchResource extends ChildFrame
                                  new Integer(pType.getOptionType(CreTypePanel.TYPE_ALIGNMENT)));
               }
               if (pType.isActive(CreTypePanel.TYPE_GENDER)) {
-                if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+                if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
                   retVal.setOption(SearchOptions.CRE_Sex,
                                    new Integer(pType.getOptionType(CreTypePanel.TYPE_GENDER)));
                 } else {
@@ -1241,7 +1225,7 @@ public class SearchResource extends ChildFrame
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
       pType = new CreTypePanel();
       bpwTypes = new ButtonPopupWindow(setOptionsText, pType);
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
         pLevelIWD2 = new CreLevelIWD2Panel();
         bpwLevel = new ButtonPopupWindow(setOptionsText, pLevelIWD2);
       } else {
@@ -1583,8 +1567,8 @@ public class SearchResource extends ChildFrame
       pTiming = new TimingModePanel();
       bpwTiming = new ButtonPopupWindow(setOptionsText, pTiming);
 
-      String[] saveType = (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) ?
-          EffectFactory.s_savetype2 : EffectFactory.s_savetype;
+      String[] saveType = (Profile.getEngine() == Profile.Engine.IWD2) ?
+                          EffectFactory.s_savetype2 : EffectFactory.s_savetype;
       pSaveType = new FlagsPanel(4, saveType);
       bpwSaveType = new ButtonPopupWindow(setOptionsText, pSaveType);
 
@@ -1991,10 +1975,10 @@ public class SearchResource extends ChildFrame
 
       String[] sFlags;
       String[] sCat;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
         sFlags = ItmResource.s_flags11;
         sCat = ItmResource.s_categories11;
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) {
         sFlags = ItmResource.s_flags;
         sCat = ItmResource.s_categories;
       } else {
@@ -2009,9 +1993,9 @@ public class SearchResource extends ChildFrame
       bpwUsability = new ButtonPopupWindow(setOptionsText, pUsability);
 
       ObjectString[] osAppearance = null;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
         osAppearance = ObjectString.createString(ItmResource.s_anim11, ItmResource.s_tag11);
-      } else if (ResourceFactory.isEnhancedEdition()) {
+      } else if (Profile.isEnhancedEdition()) {
         osAppearance = ObjectString.createString(ItmResource.s_anim_1pp, ItmResource.s_tag_1pp);
       } else {
         osAppearance = ObjectString.createString(ItmResource.s_anim, ItmResource.s_tag);
@@ -2734,7 +2718,7 @@ public class SearchResource extends ChildFrame
       cbCastingAnim = new AutoComboBox(IndexedString.createArray(SplResource.s_anim, 0, 0));
 
       ObjectString[] prim;
-      if (ResourceFactory.getInstance().resourceExists("SCHOOL.IDS")) {
+      if (ResourceFactory.resourceExists("SCHOOL.IDS")) {
         IdsBitmap ids = new IdsBitmap(new byte[]{0}, 0, 1, "", "SCHOOL.IDS");
         prim = new ObjectString[ids.getIdsMapEntryCount()];
         for (int i = 0; i < prim.length; i++) {
@@ -3121,9 +3105,7 @@ public class SearchResource extends ChildFrame
       tfName = Utils.defaultWidth(new JTextField());
 
       StorageString[] types;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.isEnhancedEdition()) {
+      if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
         types = IndexedString.createArray(StoResource.s_type_bg2, 0, 0);
       } else {
         types = IndexedString.createArray(StoResource.s_type9, 0, 0);
@@ -4453,14 +4435,11 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean hasKit = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                        ResourceFactory.isEnhancedEdition() ||
-                        ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
+      boolean hasKit = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
-        if (i == TYPE_GENDER && ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+        if (i == TYPE_GENDER && Profile.getEngine() == Profile.Engine.IWD2) {
           cbLabel[i] = new JCheckBox(label[TYPE_SEX]);
         } else {
           cbLabel[i] = new JCheckBox(label[i]);
@@ -4479,7 +4458,7 @@ public class SearchResource extends ChildFrame
       cbType[TYPE_SPECIFICS] = Utils.defaultWidth(
           new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Specifics", "SPECIFIC.IDS"))),
           defaultSize);
-      String idsFile = (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) ? "ALIGNMNT.IDS" : "ALIGNMEN.IDS";
+      String idsFile = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
       cbType[TYPE_ALIGNMENT] = Utils.defaultWidth(
           new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Alignment", idsFile))),
           defaultSize);
@@ -4494,7 +4473,7 @@ public class SearchResource extends ChildFrame
           defaultSize);
 
       StorageString[] kitList;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      if (Profile.getEngine() == Profile.Engine.IWD2) {
         IdsMapEntry[] ids = Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "KIT.IDS"));
         kitList = new StorageString[ids.length];
         for (int i = 0; i < kitList.length; i++) {
@@ -4559,8 +4538,8 @@ public class SearchResource extends ChildFrame
 
     public static boolean isGameSpecificEnabled()
     {
-      return (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+      return (Profile.getEngine() == Profile.Engine.IWD2 ||
+              Profile.getEngine() == Profile.Engine.PST);
     }
 
     public CreGameSpecificPanel()
@@ -4613,8 +4592,8 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean isIWD2 = (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2);
-      boolean isBoth = isIWD2 || (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+      boolean isIWD2 = (Profile.getEngine() == Profile.Engine.IWD2);
+      boolean isBoth = isIWD2 || (Profile.getEngine() == Profile.Engine.PST);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -5060,9 +5039,7 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean kitsSupported = (ResourceFactory.getGameID() != ResourceFactory.ID_TORMENT &&
-                               ResourceFactory.getGameID() != ResourceFactory.ID_ICEWIND2);
-//      boolean kitsSupported = ResourceFactory.getInstance().resourceExists("KIT.IDS");
+      boolean kitsSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -5074,9 +5051,9 @@ public class SearchResource extends ChildFrame
       }
 
       String[] sUnusable;
-      if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
         sUnusable = ItmResource.s_usability11;
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) {
         sUnusable = ItmResource.s_usability20;
       } else {
         sUnusable = ItmResource.s_usability;
@@ -5501,18 +5478,16 @@ public class SearchResource extends ChildFrame
       cbDamageType = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(infinity.resource.AbstractAbility.s_dmgtype, 0, 0)));
 
       StorageString[] pro;
-      if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+      if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
         pro = new IndexedString[proRef.getIdsMapEntryCount()];
         for (int i = 0; i < pro.length; i++) {
           pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
         }
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 0, 0);
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if (Profile.getEngine() == Profile.Engine.IWD ||
+                 Profile.getEngine() == Profile.Engine.IWD2) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_iwd, 0, 0);
       } else {
         pro = IndexedString.createArray(AbstractAbility.s_projectile, 0, 0);
@@ -5812,18 +5787,16 @@ public class SearchResource extends ChildFrame
       cbTarget = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
 
       StorageString[] pro;
-      if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+      if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
         pro = new IndexedString[proRef.getIdsMapEntryCount()];
         for (int i = 0; i < pro.length; i++) {
           pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
         }
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+      } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 1, 0);
-      } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+      } else if (Profile.getEngine() == Profile.Engine.IWD ||
+                 Profile.getEngine() == Profile.Engine.IWD2) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_iwd, 1, 0);
       } else {
         pro = IndexedString.createArray(AbstractAbility.s_projectile, 1, 0);
@@ -5994,8 +5967,8 @@ public class SearchResource extends ChildFrame
         cbLabel[i] = new JCheckBox(String.format("Category %1$d:", i+1));
         cbLabel[i].addActionListener(this);
 
-        String[] cat = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) ?
-            ItmResource.s_categories11 : ItmResource.s_categories;
+        String[] cat = ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V11)) ?
+                       ItmResource.s_categories11 : ItmResource.s_categories;
         cbCategory[i] = new AutoComboBox(IndexedString.createArray(cat, 0, 0));
       }
 
@@ -6377,7 +6350,7 @@ public class SearchResource extends ChildFrame
       list.add(nre);
       if (extensions != null) {
         for (int i = 0; i < extensions.length; i++) {
-          List<ResourceEntry> entries = ResourceFactory.getInstance().getResources(extensions[i]);
+          List<ResourceEntry> entries = ResourceFactory.getResources(extensions[i]);
           if (entries != null) {
             for (int j = 0; j < entries.size(); j++) {
               list.add(new NamedResourceEntry(entries.get(j)));

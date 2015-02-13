@@ -13,7 +13,7 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.Unknown;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
 import infinity.search.StringReferenceSearcher;
@@ -495,7 +495,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       bsave.setEnabled(false);
       breread.setEnabled(false);
       badd.setEnabled(false);
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Export " + stringfile.getName());
       chooser.setSelectedFile(new FileNI("dialog.txt"));
       int returnval = chooser.showSaveDialog(editor);

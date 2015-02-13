@@ -20,31 +20,64 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
-final class LinkButton extends JLabel implements MouseListener, ActionListener
+final public class LinkButton extends JLabel implements MouseListener, ActionListener
 {
   private final List<ActionListener> listeners = new ArrayList<ActionListener>();
   private ResourceEntry entry;
 
-  LinkButton(ResourceRef resourceRef)
+  public LinkButton(ResourceRef resourceRef)
   {
-    this(resourceRef.toString());
-    entry = ResourceFactory.getInstance().getResourceEntry(resourceRef.getResourceName());
+    super();
     setHorizontalAlignment(SwingConstants.LEFT);
-    addActionListener(this);
-    if (entry == null) {
-      setText(resourceRef.toString());
-      setEnabled(false);
-      setToolTipText("Resource not found");
-      setCursor(null);
-      removeMouseListener(this);
+    setResource(resourceRef);
+  }
+
+  /** Creates a link from the specified resource reference. */
+  public void setResource(ResourceRef resourceRef)
+  {
+    if (resourceRef != null) {
+      setResource(resourceRef.toString());
+    } else {
+      setResource("");
     }
   }
 
-  private LinkButton(String buttonText)
+  /** Attempts to create a link from the specified resource name. */
+  public void setResource(String resourceName)
   {
-    super("<html><a href=" + buttonText + '>' + buttonText + "</a></html");
-    addMouseListener(this);
-    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    removeActionListener(this);
+    entry = ResourceFactory.getResourceEntry(resourceName);
+    if (entry != null) {
+      addActionListener(this);
+      setLink(entry.toString(), entry.getResourceName(), true);
+      setEnabled(true);
+      setToolTipText(null);
+    } else {
+      setLink(resourceName, null, false);
+      setEnabled(false);
+      setToolTipText("Resource not found");
+    }
+  }
+
+  // Sets link or label text, depending on arguments
+  private void setLink(String text, String resource, boolean asLink)
+  {
+    removeMouseListener(this);
+    setCursor(null);
+
+    if (text == null) {
+      text = resource;
+    }
+
+    if (!asLink) {
+      setText(text);
+    } else if (resource != null && !resource.isEmpty()) {
+      setText("<html><a href=" + resource + '>' + text + "</a></html");
+      addMouseListener(this);
+      setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    } else {
+      setText("");
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------

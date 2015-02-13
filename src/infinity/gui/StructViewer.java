@@ -394,11 +394,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         AddRemovable selected = (AddRemovable)table.getModel().getValueAt(row, 1);
         struct.removeDatatype(selected, true);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
-        if (ResourceFactory.getInstance().saveResource((Resource)struct, getTopLevelAncestor())) {
+        if (ResourceFactory.saveResource((Resource)struct, getTopLevelAncestor())) {
           struct.setStructChanged(false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-        ResourceFactory.getInstance().exportResource(struct.getResourceEntry(), getTopLevelAncestor());
+        ResourceFactory.exportResource(struct.getResourceEntry(), getTopLevelAncestor());
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Print) == event.getSource()) {
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setPrintable(table);

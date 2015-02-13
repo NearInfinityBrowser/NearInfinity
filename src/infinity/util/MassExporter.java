@@ -9,6 +9,7 @@ import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.Writeable;
@@ -88,7 +89,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExecutableMVE = new JCheckBox("Make movies executable", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
-  private final JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+  private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
   private final JComboBox cbExtractFramesBAMFormat = new JComboBox(new String[]{"PNG", "BMP"});
   private final JList listTypes = new JList(TYPES);
   private final JTextField tfDirectory = new JTextField(20);
@@ -245,7 +246,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     final String fmtProgress = "Processing resource %1$d/%2$d";
     java.util.List<ResourceEntry> selectedFiles = new ArrayList<ResourceEntry>(1000);
     for (final Object newVar : selectedTypes) {
-      selectedFiles.addAll(ResourceFactory.getInstance().getResources((String)newVar));
+      selectedFiles.addAll(ResourceFactory.getResources((String)newVar));
     }
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
                                                    String.format(fmtProgress, 999999, 999999),
@@ -532,12 +533,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
            entry.getExtension().equalsIgnoreCase("PWK") ||
            entry.getExtension().equalsIgnoreCase("NSS") ||
            entry.getExtension().equalsIgnoreCase("TXT") ||
-           ((entry.getExtension().equalsIgnoreCase("GLSL") ||
-             entry.getExtension().equalsIgnoreCase("GUI") ||
-             entry.getExtension().equalsIgnoreCase("SQL")) &&
-               ResourceFactory.isEnhancedEdition()) ||
+           (Profile.isEnhancedEdition() &&
+               (entry.getExtension().equalsIgnoreCase("GLSL") ||
+                entry.getExtension().equalsIgnoreCase("GUI") ||
+                entry.getExtension().equalsIgnoreCase("SQL"))) ||
            (entry.getExtension().equalsIgnoreCase("SRC") &&
-               ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2)) &&
+               Profile.getEngine() == Profile.Engine.IWD2)) &&
           cbDecrypt.isSelected()) {
         exportText(entry, output);
       }

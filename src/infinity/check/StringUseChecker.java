@@ -14,6 +14,7 @@ import infinity.gui.TableItem;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -100,7 +101,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
     blocker.setBlocked(true);
     List<ResourceEntry> files = new ArrayList<ResourceEntry>();
     for (final String fileType : FILETYPES)
-      files.addAll(ResourceFactory.getInstance().getResources(fileType));
+      files.addAll(ResourceFactory.getResources(fileType));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Searching...", null, 0, files.size());
 
@@ -183,7 +184,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() == save) {
-      JFileChooser c = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser c = new JFileChooser(Profile.getGameRoot());
       c.setDialogTitle("Save result");
       if (c.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
         File output = c.getSelectedFile();

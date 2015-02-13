@@ -46,37 +46,7 @@ public final class Keyfile
   private List<BIFFEntry> biffEntries;
   private String signature, version;
 
-//  public static void main(String args[]) throws Exception
-//  {
-//    // Compare two keyfiles
-//    Keyfile key1 = new Keyfile(new File(args[0]), ResourceFactory.ID_BG2TOB);
-//    Keyfile key2 = new Keyfile(new File(args[1]), ResourceFactory.ID_BG2TOB);
-//    ResourceTreeModel model1 = new ResourceTreeModel();
-//    ResourceTreeModel model2 = new ResourceTreeModel();
-//    key1.addBIFFResourceEntries(model1);
-//    key2.addBIFFResourceEntries(model2);
-//    model1.sort();
-//    model2.sort();
-//    List<BIFFResourceEntry> entries1 = model1.getBIFFResourceEntries();
-//    List<BIFFResourceEntry> entries2 = model2.getBIFFResourceEntries();
-//    if (!key1.equals(key2))
-//      System.out.println(key1 + " differs from " + key2);
-//    for (int i = 0; i < key1.biffEntries.size(); i++) {
-//      BIFFEntry entry1 = key1.biffEntries.get(i);
-//      BIFFEntry entry2 = key2.biffEntries.get(i);
-//      if (!entry1.equals(entry2))
-//        System.out.println(entry1 + " differs from " + entry2);
-//    }
-//    for (int i = 0; i < entries1.size(); i++) {
-//      ResourceEntry entry1 = entries1.get(i);
-//      ResourceEntry entry2 = entries2.get(i);
-//      if (!entry1.equals(entry2))
-//        System.out.println(entry1 + " differs from " + entry2);
-//    }
-//    System.exit(0);
-//  }
-
-  public Keyfile(File keyfile, int currentGame)
+  public Keyfile(File keyfile)
   {
     this.keyfile = keyfile;
     resourceicons.clear();
@@ -222,7 +192,7 @@ public final class Keyfile
     Set<BIFFEntry> toRemove = new HashSet<BIFFEntry>(biffEntries);
     // Determine BIFFs with no files in them
     List<BIFFResourceEntry> resourceEntries =
-            ResourceFactory.getInstance().getResources().getBIFFResourceEntries();
+            ResourceFactory.getResources().getBIFFResourceEntries();
     for (int i = 0; i < resourceEntries.size(); i++) {
       BIFFResourceEntry entry = resourceEntries.get(i);
       toRemove.remove(entry.getBIFFEntry());
@@ -317,8 +287,7 @@ public final class Keyfile
       offset += biffEntries.get(i).updateOffset(offset);
     int resoff = offset;
 
-    List<BIFFResourceEntry> resourceentries =
-            ResourceFactory.getInstance().getResources().getBIFFResourceEntries();
+    List<BIFFResourceEntry> resourceentries = ResourceFactory.getResources().getBIFFResourceEntries();
 
     FileWriterNI.writeString(os, signature, 4);
     FileWriterNI.writeString(os, version, 4);
@@ -342,7 +311,7 @@ public final class Keyfile
     System.out.println("Removing " + entry);
     int index = biffEntries.indexOf(entry);
     // Remove bogus BIFFResourceEntries
-    ResourceTreeModel resources = ResourceFactory.getInstance().getResources();
+    ResourceTreeModel resources = ResourceFactory.getResources();
     for (final BIFFResourceEntry resourceEntry : resources.getBIFFResourceEntries()) {
       if (resourceEntry.getBIFFEntry() == entry)
         resources.removeResourceEntry(resourceEntry);

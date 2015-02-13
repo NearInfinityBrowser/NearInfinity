@@ -18,6 +18,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
 import infinity.resource.wed.WedResource;
+import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 
@@ -48,6 +49,7 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -98,8 +100,10 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == miExport) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FindReferences)) {
+      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+    } else if (event.getSource() == miExport) {
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportLegacyTis) {
       blocker = new WindowBlocker(rpc);
       blocker.setBlocked(true);
@@ -244,8 +248,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         }
         if (tisData != null) {
           if (tisData.length > 0) {
-            ResourceFactory.getInstance().exportResource(entry, tisData, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, tisData, entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled.", "Information",
@@ -279,8 +282,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         if (pngData != null) {
           if (pngData.length > 0) {
             String fileName = entry.toString().replace(".TIS", ".PNG");
-            ResourceFactory.getInstance().exportResource(entry, pngData, fileName,
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, pngData, fileName, panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled.", "Information",
@@ -441,6 +443,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
     bpmExport.setMenuItems(mi);
 
@@ -657,7 +660,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         ResourceEntry wedEntry = null;
         while (tisNameBase.length() >= 6) {
           String wedFileName = tisNameBase + ".WED";
-          wedEntry = ResourceFactory.getInstance().getResourceEntry(wedFileName);
+          wedEntry = ResourceFactory.getResourceEntry(wedFileName);
           if (wedEntry != null)
             break;
           else
@@ -667,7 +670,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           WedResource wedResource = new WedResource(wedEntry);
           Overlay overlay = (Overlay)wedResource.getAttribute("Overlay 0");
           ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
-          ResourceEntry tisEntry = ResourceFactory.getInstance().getResourceEntry(tisRef.getResourceName());
+          ResourceEntry tisEntry = ResourceFactory.getResourceEntry(tisRef.getResourceName());
           if (tisEntry != null) {
             String tisName = tisEntry.getResourceName();
             if (tisName.lastIndexOf('.') > 0)
@@ -684,5 +687,20 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     // If WED is not available: approximate the most commonly used aspect ratio found in TIS files
     // Disadvantage: does not take extra tiles into account
     return (int)(Math.sqrt(tileCount)*1.18);
+  }
+
+  /** Returns whether the specified PVRZ index can be found in the current TIS resource. */
+  public boolean containsPvrzReference(int index)
+  {
+    boolean retVal = false;
+    if (index >= 0 && index <= 99) {
+      if (decoder instanceof TisV2Decoder) {
+        TisV2Decoder tisv2 = (TisV2Decoder)decoder;
+        for (int i = 0, count = tisv2.getTileCount(); i < count && !retVal; i++) {
+          retVal = (tisv2.getPvrzPage(i) == index);
+        }
+      }
+    }
+    return retVal;
   }
 }

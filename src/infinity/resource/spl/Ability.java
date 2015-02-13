@@ -18,6 +18,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 
 import javax.swing.JComponent;
@@ -90,7 +91,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset, 1, "Type", s_type));
       addField(new Bitmap(buffer, offset + 1, 1, "Hostility", s_hostility));
     } else {
@@ -112,14 +113,11 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new DecNumber(buffer, offset + 32, 2, "First effect index"));
     addField(new DecNumber(buffer, offset + 34, 2, "# charges"));
     addField(new Unknown(buffer, offset + 36, 2));
-    if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+    if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
       addField(new ProRef(buffer, offset + 38, "Projectile"));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 38, 2, "Projectile", s_proj_pst));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new Bitmap(buffer, offset + 38, 2, "Projectile", s_proj_iwd));
     } else {
       addField(new Bitmap(buffer, offset + 38, 2, "Projectile", s_projectile));

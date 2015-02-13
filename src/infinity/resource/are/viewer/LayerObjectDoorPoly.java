@@ -18,6 +18,7 @@ import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 import infinity.resource.wed.Door;
@@ -71,7 +72,12 @@ public class LayerObjectDoorPoly extends LayerObject
   @Override
   public AbstractLayerItem getLayerItem(int type)
   {
-    type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
+    if (Profile.getEngine() == Profile.Engine.PST) {
+      // open/closed states are inverted for PST
+      type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN;
+    } else {
+      type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
+    }
     if (type == ViewerConstants.DOOR_OPEN) {
       return (openCount > 0) ? items[0] : null;
     } else {

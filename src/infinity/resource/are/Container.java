@@ -17,7 +17,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
@@ -183,7 +183,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     addField(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
     addField(new Bitmap(buffer, offset + 36, 2, "Type", s_type));
     addField(new DecNumber(buffer, offset + 38, 2, "Lock difficulty"));
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       addField(new Flag(buffer, offset + 40, 4, "Flags", s_flag_ee));
     } else {
       addField(new Flag(buffer, offset + 40, 4, "Flags", s_flag));

@@ -29,9 +29,9 @@ public final class IdsMapCache
   {
     IdsMap map = common.get(name);
     if (map == null) {
-      ResourceEntry resEntry = ResourceFactory.getInstance().getResourceEntry(name);
+      ResourceEntry resEntry = ResourceFactory.getResourceEntry(name);
       if (resEntry == null && name.equalsIgnoreCase("ATTSTYLE.IDS"))
-        resEntry = ResourceFactory.getInstance().getResourceEntry("ATTSTYL.IDS");
+        resEntry = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
       if (resEntry == null)
         System.err.println("Could not find " + name);
       else {

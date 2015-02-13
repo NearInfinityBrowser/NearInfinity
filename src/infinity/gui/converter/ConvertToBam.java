@@ -82,7 +82,7 @@ import infinity.gui.RenderCanvas;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.graphics.BamDecoder;
 import infinity.resource.graphics.BamV1Decoder;
 import infinity.resource.graphics.ColorConvert;
@@ -850,7 +850,7 @@ public class ConvertToBam extends ChildFrame
 
     currentPath = BamOptionsDialog.getPath();
     if (currentPath.isEmpty()) {
-      currentPath = ResourceFactory.getRootDir().toString();
+      currentPath = Profile.getGameRoot().toString();
     }
 
     // initializing frame image lists

@@ -67,10 +67,10 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
   private static void initImage()
   {
     try {
-      if (ResourceFactory.getInstance().resourceExists("RANGES12.BMP"))
-        image = new BmpResource(ResourceFactory.getInstance().getResourceEntry("RANGES12.BMP")).getImage();
+      if (ResourceFactory.resourceExists("RANGES12.BMP"))
+        image = new BmpResource(ResourceFactory.getResourceEntry("RANGES12.BMP")).getImage();
       else
-        image = new BmpResource(ResourceFactory.getInstance().getResourceEntry("MPALETTE.BMP")).getImage();
+        image = new BmpResource(ResourceFactory.getResourceEntry("MPALETTE.BMP")).getImage();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -267,7 +267,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
       }
       colors[i].repaint();
     }
-    if (shownnumber > 199 && ResourceFactory.getInstance().resourceExists("RANDCOLR.2DA"))
+    if (shownnumber > 199 && ResourceFactory.resourceExists("RANDCOLR.2DA"))
       infolabel.setText("Color drawn from RANDCOLR.2DA");
     else
       infolabel.setText("");

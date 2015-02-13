@@ -114,7 +114,7 @@ public final class ViewerUtil
 
   public static JLabel makeBamPanel(ResourceRef iconRef, int frameNr)
   {
-    ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
+    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
         BamResource iconBam = new BamResource(iconEntry);
@@ -132,7 +132,7 @@ public final class ViewerUtil
 
   public static JComponent makeBamPanel(ResourceRef iconRef, int animNr, int frameNr)
   {
-    ResourceEntry iconEntry = ResourceFactory.getInstance().getResourceEntry(iconRef.getResourceName());
+    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
         BamResource iconBam = new BamResource(iconEntry);
@@ -180,7 +180,7 @@ public final class ViewerUtil
 
   public static JLabel makeImagePanel(ResourceRef imageRef)
   {
-    ResourceEntry imageEntry = ResourceFactory.getInstance().getResourceEntry(imageRef.getResourceName());
+    ResourceEntry imageEntry = ResourceFactory.getResourceEntry(imageRef.getResourceName());
     if (imageEntry != null) {
       Resource resource = ResourceFactory.getResource(imageEntry);
       if (resource != null) {

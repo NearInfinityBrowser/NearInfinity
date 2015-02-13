@@ -37,7 +37,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     super("IDS Browser");
     setIconImage(Icons.getIcon("History16.gif").getImage());
 
-    idsfiles = new JComboBox(ResourceFactory.getInstance().getResources("IDS").toArray());
+    idsfiles = new JComboBox(ResourceFactory.getResources("IDS").toArray());
     idsfiles.setEditable(false);
     idsfiles.setSelectedIndex(0);
     idsfiles.addActionListener(this);

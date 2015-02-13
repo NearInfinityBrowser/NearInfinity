@@ -29,7 +29,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 
   public static int readCommon(List<StructEntry> list, byte[] buffer, int offset)
   {
-    if (ResourceFactory.getInstance().resourceExists("SCHOOL.IDS"))
+    if (ResourceFactory.resourceExists("SCHOOL.IDS"))
       list.add(new IdsBitmap(buffer, offset, 4, "Primary type (school)", "SCHOOL.IDS"));
     else
       list.add(new Bitmap(buffer, offset, 4, "Primary type (school)", SplResource.s_school));
@@ -57,7 +57,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
       list.add(new ResourceRef(buffer, offset + 72, "Parent resource", "SPL"));
       list.add(new Flag(buffer, offset + 80, 4, "Resource flags", s_splflag));
     }
-    if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS"))
+    if (ResourceFactory.resourceExists("PROJECTL.IDS"))
       list.add(new IdsBitmap(buffer, offset + 84, 4, "Impact projectile", "PROJECTL.IDS"));
     else
       list.add(new DecNumber(buffer, offset + 84, 4, "Impact projectile"));

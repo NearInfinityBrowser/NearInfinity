@@ -13,7 +13,7 @@ import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.List;
 
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
 
@@ -224,7 +224,7 @@ public class BamV1Decoder extends BamDecoder
 
         // initializing palette
         bamPalette = new int[256];
-        int alphaMask = ResourceFactory.isEnhancedEdition() ? 0 : 0xff000000;
+        int alphaMask = Profile.isEnhancedEdition() ? 0 : 0xff000000;
         boolean alphaUsed = false;  // determines whether alpha is actually used
         for (int i = 0; i < 256; i++) {
           bamPalette[i] = alphaMask | DynamicArray.getInt(bamData, ofsPalette + 4*i);
@@ -442,7 +442,7 @@ public class BamV1Decoder extends BamDecoder
     /** Returns whether the palette makes use of alpha transparency. */
     public boolean isAlphaEnabled()
     {
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         for (int i = 0; i < currentPalette.length; i++) {
           int mask = currentPalette[i] & 0xff000000;
           if (mask != 0 && mask != 0xff000000) {
@@ -666,7 +666,7 @@ public class BamV1Decoder extends BamDecoder
       boolean isNormalMode = (getTransparencyMode() == TransparencyMode.Normal);
       int idx = 0;
       int transIndex = -1;
-      int alphaMask = ResourceFactory.isEnhancedEdition() ? 0 : 0xff000000;
+      int alphaMask = Profile.isEnhancedEdition() ? 0 : 0xff000000;
       boolean alphaUsed = false;  // determines whether alpha is actually used
       if (externalPalette != null) {
         // filling palette entries from external palette, as much as possible

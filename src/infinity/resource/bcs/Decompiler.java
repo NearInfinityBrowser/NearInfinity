@@ -5,6 +5,7 @@
 package infinity.resource.bcs;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMap;
@@ -470,8 +471,8 @@ public final class Decompiler
   private static ResourceEntry decompileStringCheck(String value, String[] fileTypes)
   {
     for (final String fileType : fileTypes)
-      if (ResourceFactory.getInstance().resourceExists(value + fileType))
-        return ResourceFactory.getInstance().getResourceEntry(value + fileType);
+      if (ResourceFactory.resourceExists(value + fileType))
+        return ResourceFactory.getResourceEntry(value + fileType);
     return null;
   }
 
@@ -640,7 +641,7 @@ public final class Decompiler
       return new String[] {".2DA"};
     }
     else if (function.equalsIgnoreCase("StartMovie")) {
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         return new String[] {".WBM", ".MVE"};
       } else {
         return new String[] {".MVE"};
@@ -770,7 +771,7 @@ public final class Decompiler
     if (string1.length() > 9
         && (Compiler.isPossibleNamespace(string1.substring(0, 7) + '\"')
 //        && (!string1.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.getInstance().resourceExists(string1.substring(1, 7) + ".ARE"))) {
+            || ResourceFactory.resourceExists(string1.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string1.substring(7);
       newStrings[index++] = string1.substring(0, 7) + '\"';
     }
@@ -780,7 +781,7 @@ public final class Decompiler
     if (string2.length() > 9
         && (Compiler.isPossibleNamespace(string2.substring(0, 7) + '\"')
 //        && (!string2.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.getInstance().resourceExists(string2.substring(1, 7) + ".ARE"))) {
+            || ResourceFactory.resourceExists(string2.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string2.substring(7);
       newStrings[index++] = string2.substring(0, 7) + '\"';
     }

@@ -30,10 +30,10 @@ public class Summon2daBitmap extends HashBitmap
   {
     LongIntegerHashMap<String> map = new LongIntegerHashMap<String>();
 
-    if (ResourceFactory.getInstance().resourceExists(TableName)) {
+    if (ResourceFactory.resourceExists(TableName)) {
       try {
         PlainTextResource smtables =
-            new PlainTextResource(ResourceFactory.getInstance().getResourceEntry(TableName));
+            new PlainTextResource(ResourceFactory.getResourceEntry(TableName));
         StringTokenizer stLine = new StringTokenizer(smtables.getText(), "\r\n");
 
         // skipping header

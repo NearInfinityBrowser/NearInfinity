@@ -96,7 +96,7 @@ public final class Viewer extends JPanel
         if (SpellPrefix.containsKey(Integer.valueOf(type))) {
           String prefix = SpellPrefix.get(Integer.valueOf(type));
           String nameBase = String.format("%1$s%2$03d", prefix, code);
-          if (ResourceFactory.getInstance().resourceExists(nameBase + ".SPL")) {
+          if (ResourceFactory.resourceExists(nameBase + ".SPL")) {
             return extension ? nameBase + ".SPL" : nameBase;
           }
         }

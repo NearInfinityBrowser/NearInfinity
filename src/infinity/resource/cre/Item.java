@@ -11,7 +11,7 @@ import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 
 public final class Item extends AbstractStruct implements AddRemovable
 {
@@ -42,7 +42,7 @@ public final class Item extends AbstractStruct implements AddRemovable
   public int read(byte buffer[], int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, "Item", "ITM"));
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       addField(new UnsignDecNumber(buffer, offset + 8, 2, "Duration"));
     } else {
       addField(new Unknown(buffer, offset + 8, 2));

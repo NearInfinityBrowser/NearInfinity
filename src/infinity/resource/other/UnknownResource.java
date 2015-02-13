@@ -45,7 +45,7 @@ public final class UnknownResource implements Resource, ActionListener
   public void actionPerformed(ActionEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
 

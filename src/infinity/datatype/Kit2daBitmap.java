@@ -43,7 +43,7 @@ public final class Kit2daBitmap extends Datatype implements Editable
   {
     try {
       PlainTextResource kitlist = new PlainTextResource(
-              ResourceFactory.getInstance().getResourceEntry("KITLIST.2DA"));
+              ResourceFactory.getResourceEntry("KITLIST.2DA"));
       StringTokenizer st = new StringTokenizer(kitlist.getText(), "\r\n");
       if (st.hasMoreTokens())
         st.nextToken();

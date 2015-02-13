@@ -21,6 +21,7 @@ import infinity.gui.converter.ConvertToMos;
 import infinity.gui.converter.ConvertToPvrz;
 import infinity.gui.converter.ConvertToTis;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructureFactory;
@@ -54,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -83,7 +85,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.35.0-snapshot-20150104";
+  public static final String VERSION = "v1.36-20150213";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -92,6 +94,9 @@ public final class BrowserMenuBar extends JMenuBar
 
   // Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac)
   private static final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+  // Name of the child node in the GUI preferences path
+  private static final String PREFS_PROFILES_NODE = "Profiles";
 
   private static BrowserMenuBar menuBar;
 
@@ -102,6 +107,7 @@ public final class BrowserMenuBar extends JMenuBar
   private final SearchMenu searchMenu;
   private final ToolsMenu toolsMenu;
   private final HelpMenu helpMenu;
+  private final Preferences prefsGui, prefsProfiles;
 
   public static BrowserMenuBar getInstance()
   {
@@ -123,15 +129,37 @@ public final class BrowserMenuBar extends JMenuBar
     return item;
   }
 
-  public BrowserMenuBar(NearInfinity browser)
+  // Returns the main Preferences instance
+  private static Preferences getPrefs()
   {
-    Preferences prefs = Preferences.userNodeForPackage(getClass());
-    gameMenu = new GameMenu(prefs, browser);
+    if (getInstance() != null) {
+      return getInstance().prefsGui;
+    } else {
+      return null;
+    }
+  }
+
+  // Returns the Preferences instance for profile-specific settings
+  private static Preferences getPrefsProfiles()
+  {
+    if (getInstance() != null) {
+      return getInstance().prefsProfiles;
+    } else {
+      return null;
+    }
+  }
+
+  public BrowserMenuBar()
+  {
+    menuBar = this;
+    prefsGui = Preferences.userNodeForPackage(getClass());
+    prefsProfiles = prefsGui.node(PREFS_PROFILES_NODE);
+    gameMenu = new GameMenu();
     fileMenu = new FileMenu();
     editMenu = new EditMenu();
     searchMenu = new SearchMenu();
     toolsMenu = new ToolsMenu();
-    optionsMenu = new OptionsMenu(prefs, browser);
+    optionsMenu = new OptionsMenu();
     helpMenu = new HelpMenu();
     add(gameMenu);
     add(fileMenu);
@@ -140,7 +168,6 @@ public final class BrowserMenuBar extends JMenuBar
     add(toolsMenu);
     add(optionsMenu);
     add(helpMenu);
-    menuBar = this;
   }
 
   public boolean autocheckBCS()
@@ -168,11 +195,12 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionCacheOverride.isSelected();
   }
 
-  public void gameLoaded(int oldGame, String oldFile)
+  public void gameLoaded(Profile.Game oldGame, String oldFile)
   {
     gameMenu.gameLoaded(oldGame, oldFile);
     fileMenu.gameLoaded();
     editMenu.gameLoaded();
+    searchMenu.gameLoaded();
     optionsMenu.gameLoaded();
   }
 
@@ -312,6 +340,11 @@ public final class BrowserMenuBar extends JMenuBar
     return OptionsMenu.FONTS[0];
   }
 
+  public String getSelectedCharset()
+  {
+    return optionsMenu.charsetName(optionsMenu.getSelectedButtonData());
+  }
+
   public boolean backupOnSave()
   {
     return optionsMenu.optionBackupOnSave.isSelected();
@@ -351,9 +384,8 @@ public final class BrowserMenuBar extends JMenuBar
 
   public void storePreferences()
   {
-    Preferences prefs = Preferences.userNodeForPackage(getClass());
-    optionsMenu.storePreferences(prefs);
-    gameMenu.storePreferences(prefs);
+    optionsMenu.storePreferences();
+    gameMenu.storePreferences();
   }
 
 
@@ -372,24 +404,28 @@ public final class BrowserMenuBar extends JMenuBar
        "LastGamePath6", "LastGamePath7", "LastGamePath8", "LastGamePath9", "LastGamePath10"};
     private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK, gameRecentClear;
     private final JMenuItem gameLastGame[] = new JMenuItem[LASTGAME_IDS.length];
-    private final List<Integer> lastGameID = new ArrayList<Integer>();
+    private final List<Profile.Game> lastGameID = new ArrayList<Profile.Game>();
     private final List<String> lastGamePath = new ArrayList<String>();
 
-    private GameMenu(Preferences prefs, NearInfinity browser)
+    private GameMenu()
     {
       super("Game");
       setMnemonic(KeyEvent.VK_G);
 
-      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.getIcon("Open16.gif"), KeyEvent.VK_I, this);
+      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.getIcon("Open16.gif"),
+                                  KeyEvent.VK_I, this);
       add(gameOpenFile);
-      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.getIcon("Open16.gif"), KeyEvent.VK_O, browser);
+      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.getIcon("Open16.gif"),
+                                  KeyEvent.VK_O, NearInfinity.getInstance());
       gameOpenGame.setActionCommand("Open");
       add(gameOpenGame);
-      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.getIcon("Refresh16.gif"), -1, browser);
+      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.getIcon("Refresh16.gif"),
+                                 -1, NearInfinity.getInstance());
       gameRefresh.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
       gameRefresh.setActionCommand("Refresh");
       add(gameRefresh);
-      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon("Release16.gif"), -1, this);
+      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon("Release16.gif"),
+                                  -1, this);
       add(gameCloseTLK);
 
       addSeparator();
@@ -400,16 +436,18 @@ public final class BrowserMenuBar extends JMenuBar
       add(recentGames);
 
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
-        int gameid = prefs.getInt(LASTGAME_IDS[i], -1);
-        String gamepath = prefs.get(LASTGAME_PATH[i], null);
-        if (gameid != -1 && gamepath != null && new FileNI(gamepath).exists()) {
-          lastGameID.add(new Integer(gameid));
+        Profile.Game game = Profile.gameFromString(getPrefsProfiles().get(LASTGAME_IDS[i], Profile.Game.Unknown.toString()));
+        String gamepath = getPrefsProfiles().get(LASTGAME_PATH[i], null);
+        if (game != Profile.Game.Unknown && gamepath != null && new FileNI(gamepath).exists()) {
+          lastGameID.add(game);
           lastGamePath.add(gamepath);
         }
       }
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         if (i < lastGameID.size()) {
-          String label = String.format("%1$d  %2$s", i+1, ResourceFactory.getGameName(lastGameID.get(i).intValue()));
+          String label = String.format("%1$d  %2$s", i+1,
+                                       (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE,
+                                                                   lastGameID.get(i)));
           String toolTip = lastGamePath.get(i);
           gameLastGame[i] = new JMenuItem(label);
           gameLastGame[i].setToolTipText(toolTip);
@@ -430,12 +468,13 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
-      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.getIcon("Exit16.gif"), KeyEvent.VK_Q, browser);
+      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.getIcon("Exit16.gif"), KeyEvent.VK_Q,
+                              NearInfinity.getInstance());
       gameExit.setActionCommand("Exit");
       add(gameExit);
     }
 
-    private void gameLoaded(int oldGame, String oldFile)
+    private void gameLoaded(Profile.Game oldGame, String oldFile)
     {
       int newIndex = -1;
       for (int i = 0; i < lastGamePath.size(); i++)
@@ -445,26 +484,26 @@ public final class BrowserMenuBar extends JMenuBar
         lastGameID.remove(newIndex);
         lastGamePath.remove(newIndex);
       }
-      if (oldGame != -1) {
+      if (oldGame != Profile.Game.Unknown) {
         int oldIndex = -1;
         for (int i = 0; i < lastGamePath.size(); i++)
-          if (oldFile.equalsIgnoreCase(lastGamePath.get(i)))
+          if (oldFile.equalsIgnoreCase(lastGamePath.get(i))) {
             oldIndex = i;
+          }
         if (oldIndex != -1) {
           lastGameID.remove(oldIndex);
           lastGamePath.remove(oldIndex);
         }
-        lastGameID.add(0, new Integer(oldGame));
+        lastGameID.add(0, oldGame);
         lastGamePath.add(0, oldFile);
       }
       while (lastGameID.size() > LASTGAME_IDS.length) {
         lastGamePath.remove(lastGameID.size() - 1);
         lastGameID.remove(lastGameID.size() - 1);
       }
-      if (newIndex != 1 || oldGame != -1) {
+      if (newIndex != 1 || oldGame != Profile.Game.Unknown) {
         for (int i = 0; i < lastGameID.size(); i++) {
-          gameLastGame[i].setText(
-                  i + 1 + " " + ResourceFactory.getGameName(lastGameID.get(i).intValue()));
+          gameLastGame[i].setText(String.format("%1$d %2$s", i+1, (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, lastGameID.get(i))));
           gameLastGame[i].setToolTipText(lastGamePath.get(i));
           gameLastGame[i].setEnabled(true);
         }
@@ -475,15 +514,15 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    private void storePreferences(Preferences prefs)
+    private void storePreferences()
     {
       for (int i = 0; i < LASTGAME_IDS.length; i++) {
         if (i < lastGameID.size()) {
-          prefs.putInt(LASTGAME_IDS[i], lastGameID.get(i).intValue());
-          prefs.put(LASTGAME_PATH[i], lastGamePath.get(i));
+          getPrefsProfiles().put(LASTGAME_IDS[i], lastGameID.get(i).toString());
+          getPrefsProfiles().put(LASTGAME_PATH[i], lastGamePath.get(i));
         } else {
-          prefs.remove(LASTGAME_IDS[i]);
-          prefs.remove(LASTGAME_PATH[i]);
+          getPrefsProfiles().remove(LASTGAME_IDS[i]);
+          getPrefsProfiles().remove(LASTGAME_PATH[i]);
         }
       }
     }
@@ -535,27 +574,27 @@ public final class BrowserMenuBar extends JMenuBar
     private static final class ResInfo {
       public final String label;
       public final StructureFactory.ResType resId;
-      private int supportedGames;
+      private final EnumSet<Profile.Game> supportedGames = EnumSet.noneOf(Profile.Game.class);
 
       public ResInfo(StructureFactory.ResType id, String text) {
-        this(id, text, new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC, ResourceFactory.ID_TORMENT,
-                                 ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
-                                 ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2,
-                                 ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                                 ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE});
+        this(id, text, new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC, Profile.Game.PST,
+                                          Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                          Profile.Game.IWD2, Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                          Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE});
       }
 
-      public ResInfo(StructureFactory.ResType id, String text, int[] games) {
+      public ResInfo(StructureFactory.ResType id, String text, Profile.Game[] games) {
         resId = id;
         label = text;
-        supportedGames = 0;
         if (games != null)
-          for (final int g : games)
-            supportedGames |= 1 << g;
+          for (final Profile.Game g : games) {
+            supportedGames.add(g);
+          }
       }
 
-      public boolean gameSupported(int game) {
-        return (game >= 0 && game < 32 && (supportedGames & (1 << game)) != 0);
+      public boolean gameSupported(Profile.Game game)
+      {
+        return supportedGames.contains(game);
       }
     }
 
@@ -565,47 +604,44 @@ public final class BrowserMenuBar extends JMenuBar
       new ResInfo(StructureFactory.ResType.RES_BAF, "BAF"),
       new ResInfo(StructureFactory.ResType.RES_BCS, "BCS"),
       new ResInfo(StructureFactory.ResType.RES_BIO, "BIO",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_CHR, "CHR",
-                  new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
-                            ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_ICEWIND,
-                            ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT,
-                            ResourceFactory.ID_IWDEE,
-                            ResourceFactory.ID_ICEWIND2, ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE,
-                            ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC,
+                                     Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                     Profile.Game.IWD2, Profile.Game.BG1EE, Profile.Game.BG2EE,
+                                     Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_CRE, "CRE"),
       new ResInfo(StructureFactory.ResType.RES_EFF, "EFF",
-                  new int[]{ResourceFactory.ID_BG1, ResourceFactory.ID_BG1TOTSC,
-                            ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC,
+                                     Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_IDS, "IDS"),
       new ResInfo(StructureFactory.ResType.RES_ITM, "ITM"),
       new ResInfo(StructureFactory.ResType.RES_INI, "INI",
-                  new int[]{ResourceFactory.ID_TORMENT, ResourceFactory.ID_ICEWIND,
-                            ResourceFactory.ID_ICEWINDHOW, ResourceFactory.ID_ICEWINDHOWTOT,
-                            ResourceFactory.ID_ICEWIND2}),
+                  new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD, Profile.Game.IWDHoW,
+                                     Profile.Game.IWDHowToTLM, Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_PRO, "PRO",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_RES, "RES",
-                  new int[]{ResourceFactory.ID_ICEWIND, ResourceFactory.ID_ICEWINDHOW,
-                            ResourceFactory.ID_ICEWINDHOWTOT, ResourceFactory.ID_ICEWIND2}),
+                  new Profile.Game[]{Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                     Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_SPL, "SPL"),
       new ResInfo(StructureFactory.ResType.RES_SRC, "SRC",
-                  new int[]{ResourceFactory.ID_TORMENT, ResourceFactory.ID_ICEWIND2}),
+                  new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_STO, "STO"),
       new ResInfo(StructureFactory.ResType.RES_VEF, "VEF",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_VVC, "VVC",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_WED, "WED"),
       new ResInfo(StructureFactory.ResType.RES_WFX, "WFX",
-                  new int[]{ResourceFactory.ID_BG2, ResourceFactory.ID_BG2TOB,
-                            ResourceFactory.ID_BGEE, ResourceFactory.ID_BG2EE, ResourceFactory.ID_IWDEE}),
+                  new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
+                                     Profile.Game.BG1EE, Profile.Game.BG2EE, Profile.Game.IWDEE}),
       new ResInfo(StructureFactory.ResType.RES_WMAP, "WMAP"),
     };
 
@@ -647,7 +683,7 @@ public final class BrowserMenuBar extends JMenuBar
         newFileMenu.removeAll();
 
         for (final ResInfo res : RESOURCE) {
-          if (res.gameSupported(ResourceFactory.getGameID())) {
+          if (res.gameSupported(Profile.getGame())) {
             JMenuItem newFile = new JMenuItem(res.label);
             newFile.addActionListener(this);
             newFile.setActionCommand(res.label);
@@ -667,25 +703,20 @@ public final class BrowserMenuBar extends JMenuBar
                 NearInfinity.getInstance().getResourceTree().getSelected());
         if (res != null)
           new ViewFrame(NearInfinity.getInstance(), res);
-      }
-      else if (event.getSource() == fileExport)
-        ResourceFactory.getInstance().exportResource(
-                NearInfinity.getInstance().getResourceTree().getSelected(), NearInfinity.getInstance());
-      else if (event.getSource() == fileAddCopy)
-        ResourceFactory.getInstance().saveCopyOfResource(
-                NearInfinity.getInstance().getResourceTree().getSelected());
-      else if (event.getSource() == fileRename) {
+      } else if (event.getSource() == fileExport) {
+        ResourceFactory.exportResource(NearInfinity.getInstance().getResourceTree().getSelected(),
+                                       NearInfinity.getInstance());
+      } else if (event.getSource() == fileAddCopy) {
+        ResourceFactory.saveCopyOfResource(NearInfinity.getInstance().getResourceTree().getSelected());
+      } else if (event.getSource() == fileRename) {
         if (NearInfinity.getInstance().getResourceTree().getSelected() instanceof FileResourceEntry) {
           ResourceTree.renameResource((FileResourceEntry)NearInfinity.getInstance().getResourceTree().getSelected());
         }
-      }
-      else if (event.getSource() == fileDelete) {
+      } else if (event.getSource() == fileDelete) {
         ResourceTree.deleteResource(NearInfinity.getInstance().getResourceTree().getSelected());
-      }
-      else if (event.getSource() == fileRestore) {
+      } else if (event.getSource() == fileRestore) {
         ResourceTree.restoreResource(NearInfinity.getInstance().getResourceTree().getSelected());
-      }
-      else {
+      } else {
         for (final ResInfo res : RESOURCE) {
           if (event.getActionCommand().equals(res.label)) {
             StructureFactory.getInstance().newResource(res.resId, NearInfinity.getInstance());
@@ -736,8 +767,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      editString2.setEnabled(new FileNI(ResourceFactory.getTLKRoot(), "dialogF.tlk").exists());
-      editVarVar.setEnabled(FileNI.getFile(ResourceFactory.getRootDirs(), "VAR.VAR").exists());
+      editString2.setEnabled(Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE) != null);
+      editVarVar.setEnabled(FileNI.getFile(Profile.getRootFolders(), "VAR.VAR").isFile());
       if (editString2.isEnabled())
         editString2.setToolTipText("");
       else
@@ -766,7 +797,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = new FileNI(ResourceFactory.getTLKRoot(), "dialogF.tlk");
+        File file = (File)Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE);
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
@@ -782,7 +813,7 @@ public final class BrowserMenuBar extends JMenuBar
         new ViewFrame(NearInfinity.getInstance(),
                       ResourceFactory.getResource(
                               new FileResourceEntry(
-                                  FileNI.getFile(ResourceFactory.getRootDirs(), "VAR.VAR"))));
+                                  FileNI.getFile(Profile.getRootFolders(), "VAR.VAR"))));
       }
       else if (event.getSource() == editBIFF)
         new BIFFEditor();
@@ -795,8 +826,9 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class SearchMenu extends JMenu implements ActionListener
   {
-    private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS"};
+    private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS", "INI"};
     private final JMenuItem searchString, searchFile, searchResource;
+    private final JMenu textSearchMenu;
 
     private SearchMenu()
     {
@@ -815,7 +847,7 @@ public final class BrowserMenuBar extends JMenuBar
           Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.ALT_MASK));
       add(searchResource);
 
-      JMenu textSearchMenu = new JMenu("Text Search");
+      textSearchMenu = new JMenu("Text Search");
       textSearchMenu.setIcon(Icons.getIcon("Edit16.gif"));
       for (final String type : TEXTSEARCH) {
         JMenuItem textSearch = new JMenuItem(type);
@@ -824,6 +856,23 @@ public final class BrowserMenuBar extends JMenuBar
         textSearchMenu.add(textSearch);
       }
       add(textSearchMenu);
+    }
+
+    private void gameLoaded()
+    {
+      // Enable INI search only if the game is supporting it
+      for (int i = 0, count = textSearchMenu.getMenuComponentCount(); i < count; i++) {
+        if (textSearchMenu.getMenuComponent(i) instanceof JMenuItem) {
+          JMenuItem mi = (JMenuItem)textSearchMenu.getMenuComponent(i);
+          if ("INI".equals(mi.getText())) {
+            if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_INI)) {
+              mi.setEnabled(true);
+            } else {
+              mi.setEnabled(false);
+            }
+          }
+        }
+      }
     }
 
     @Override
@@ -851,12 +900,13 @@ public final class BrowserMenuBar extends JMenuBar
       else {
         for (final String type : TEXTSEARCH) {
           if (event.getActionCommand().equals(type)) {
-            if (event.getActionCommand().equals("DLG"))
-              new DialogSearcher(ResourceFactory.getInstance().getResources(type),
+            if (event.getActionCommand().equals("DLG")) {
+              new DialogSearcher(ResourceFactory.getResources(type),
                                  getTopLevelAncestor());
-            else
-              new TextResourceSearcher(ResourceFactory.getInstance().getResources(type),
+            } else {
+              new TextResourceSearcher(ResourceFactory.getResources(type),
                                        getTopLevelAncestor());
+            }
             return;
           }
         }
@@ -1266,44 +1316,44 @@ public final class BrowserMenuBar extends JMenuBar
     // Stores available languages in BG(2)EE
     private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<JRadioButtonMenuItem, String>();
 
-    private OptionsMenu(Preferences prefs, NearInfinity browser)
+    private OptionsMenu()
     {
       super("Options");
       setMnemonic(KeyEvent.VK_O);
 
       // Options
       optionBackupOnSave =
-          new JCheckBoxMenuItem("Backup on save", prefs.getBoolean(OPTION_BACKUPONSAVE, false));
+          new JCheckBoxMenuItem("Backup on save", getPrefs().getBoolean(OPTION_BACKUPONSAVE, false));
       optionBackupOnSave.setToolTipText("Enable this option to automatically create a backup " +
                                         "of the resource you want to save.");
       add(optionBackupOnSave);
       optionIgnoreOverride =
-          new JCheckBoxMenuItem("Ignore Overrides", prefs.getBoolean(OPTION_IGNOREOVERRIDE, false));
+          new JCheckBoxMenuItem("Ignore Overrides", getPrefs().getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
       optionIgnoreReadErrors =
-          new JCheckBoxMenuItem("Ignore Read Errors", prefs.getBoolean(OPTION_IGNOREREADERRORS, false));
+          new JCheckBoxMenuItem("Ignore Read Errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
       optionShowOffset =
-          new JCheckBoxMenuItem("Show Hex Offsets", prefs.getBoolean(OPTION_SHOWOFFSETS, false));
+          new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
       optionAutocheckBCS =
-          new JCheckBoxMenuItem("Autocheck BCS", prefs.getBoolean(OPTION_AUTOCHECK_BCS, true));
+          new JCheckBoxMenuItem("Autocheck BCS", getPrefs().getBoolean(OPTION_AUTOCHECK_BCS, true));
       add(optionAutocheckBCS);
       optionCacheOverride =
-          new JCheckBoxMenuItem("Autocheck for Overrides", prefs.getBoolean(OPTION_CACHEOVERRIDE, false));
+          new JCheckBoxMenuItem("Autocheck for Overrides", getPrefs().getBoolean(OPTION_CACHEOVERRIDE, false));
       optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
                                          "to discover new override files added while NI is open");
       add(optionCacheOverride);
       optionCheckScriptNames =
-          new JCheckBoxMenuItem("Interactive script names", prefs.getBoolean(OPTION_CHECKSCRIPTNAMES, true));
+          new JCheckBoxMenuItem("Interactive script names", getPrefs().getBoolean(OPTION_CHECKSCRIPTNAMES, true));
       optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
                                             "but many features involving script names will be disabled.");
       add(optionCheckScriptNames);
       optionShowStrrefs =
-          new JCheckBoxMenuItem("Show Strrefs in View tabs", prefs.getBoolean(OPTION_SHOWSTRREFS, false));
+          new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
       optionShowHexColored =
-          new JCheckBoxMenuItem("Show colored blocks in Raw tabs", prefs.getBoolean(OPTION_SHOWHEXCOLORED, true));
+          new JCheckBoxMenuItem("Show colored blocks in Raw tabs", getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
 
       addSeparator();
@@ -1314,22 +1364,22 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->Text Editor->Show Symbols
       JMenu textSymbols = new JMenu("Show Symbols");
       textMenu.add(textSymbols);
-      optionTextShowWhiteSpace = new JCheckBoxMenuItem("Show Spaces and Tabs",
-                                                       prefs.getBoolean(OPTION_TEXT_SYMBOLWHITESPACE, false));
+      optionTextShowWhiteSpace =
+          new JCheckBoxMenuItem("Show Spaces and Tabs", getPrefs().getBoolean(OPTION_TEXT_SYMBOLWHITESPACE, false));
       textSymbols.add(optionTextShowWhiteSpace);
-      optionTextShowEOL = new JCheckBoxMenuItem("Show End of Line",
-                                                prefs.getBoolean(OPTION_TEXT_SYMBOLEOL, false));
+      optionTextShowEOL =
+          new JCheckBoxMenuItem("Show End of Line", getPrefs().getBoolean(OPTION_TEXT_SYMBOLEOL, false));
       textSymbols.add(optionTextShowEOL);
 
       // Options->Text Viewer/Editor->Tab Settings
       JMenu textTabs = new JMenu("Tab Settings");
       textMenu.add(textTabs);
-      optionTextTabEmulate = new JCheckBoxMenuItem("Emulate Tabs with Spaces",
-                                                   prefs.getBoolean(OPTION_TEXT_TABSEMULATED, false));
+      optionTextTabEmulate =
+          new JCheckBoxMenuItem("Emulate Tabs with Spaces", getPrefs().getBoolean(OPTION_TEXT_TABSEMULATED, false));
       textTabs.add(optionTextTabEmulate);
       textTabs.addSeparator();
       ButtonGroup bg = new ButtonGroup();
-      int selectedTextTabSize = prefs.getInt(OPTION_TEXT_TABSIZE, 1);
+      int selectedTextTabSize = getPrefs().getInt(OPTION_TEXT_TABSIZE, 1);
       selectTextTabSize[0] = new JRadioButtonMenuItem("Expand by 2 Spaces", selectedTextTabSize == 0);
       selectTextTabSize[1] = new JRadioButtonMenuItem("Expand by 4 Spaces", selectedTextTabSize == 1);
       selectTextTabSize[2] = new JRadioButtonMenuItem("Expand by 8 Spaces", selectedTextTabSize == 2);
@@ -1346,7 +1396,7 @@ public final class BrowserMenuBar extends JMenuBar
       JMenu textBCSIndent = new JMenu("BCS Indent");
       textBCS.add(textBCSIndent);
       bg = new ButtonGroup();
-      int selectedBCSIndent = prefs.getInt(OPTION_BCS_INDENT, 2);
+      int selectedBCSIndent = getPrefs().getInt(OPTION_BCS_INDENT, 2);
       if (selectedBCSIndent < 0 || selectedBCSIndent >= BCSINDENT.length) {
         selectedBCSIndent = 2;
       }
@@ -1358,7 +1408,7 @@ public final class BrowserMenuBar extends JMenuBar
       JMenu textBCSColors = new JMenu("Color Scheme");
       textBCS.add(textBCSColors);
       bg = new ButtonGroup();
-      int selectedBCSScheme = prefs.getInt(OPTION_BCS_COLORSCHEME, 5);
+      int selectedBCSScheme = getPrefs().getInt(OPTION_BCS_COLORSCHEME, 5);
       if (selectedBCSScheme < 0 || selectedBCSScheme >= BCSCOLORSCHEME.length) {
         selectedBCSScheme = 5;
       }
@@ -1369,14 +1419,14 @@ public final class BrowserMenuBar extends JMenuBar
         bg.add(selectBcsColorScheme[i]);
       }
       optionBCSEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting",
-                                                    prefs.getBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, true));
+                                                    getPrefs().getBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, true));
       textBCS.add(optionBCSEnableSyntax);
       optionBCSEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding",
-                                                         prefs.getBoolean(OPTION_BCS_CODEFOLDING, false));
+                                                         getPrefs().getBoolean(OPTION_BCS_CODEFOLDING, false));
       textBCS.add(optionBCSEnableCodeFolding);
       // TODO: add auto-complete support
 //      optionBCSEnableAutoComplete = new JCheckBoxMenuItem("Enable Auto-Completion",
-//                                                          prefs.getBoolean(OPTION_BCS_AUTOCOMPLETE, false));
+//                                                          getPrefs().getBoolean(OPTION_BCS_AUTOCOMPLETE, false));
 //      optionBCSEnableAutoComplete.setVisible(false);
 //      textBCS.add(optionBCSEnableAutoComplete);
 
@@ -1386,7 +1436,7 @@ public final class BrowserMenuBar extends JMenuBar
       JMenu textGLSLColors = new JMenu("Color Scheme for GLSL");
       textMisc.add(textGLSLColors);
       bg = new ButtonGroup();
-      int selectedGLSLScheme = prefs.getInt(OPTION_GLSL_COLORSCHEME, 0);
+      int selectedGLSLScheme = getPrefs().getInt(OPTION_GLSL_COLORSCHEME, 0);
       if (selectedGLSLScheme < 0 || selectedGLSLScheme >= COLORSCHEME.length) {
         selectedGLSLScheme = 0;
       }
@@ -1399,7 +1449,7 @@ public final class BrowserMenuBar extends JMenuBar
       JMenu textSQLColors = new JMenu("Color Scheme for SQL");
       textMisc.add(textSQLColors);
       bg = new ButtonGroup();
-      int selectedSQLScheme = prefs.getInt(OPTION_SQL_COLORSCHEME, 0);
+      int selectedSQLScheme = getPrefs().getInt(OPTION_SQL_COLORSCHEME, 0);
       if (selectedSQLScheme < 0 || selectedSQLScheme >= COLORSCHEME.length) {
         selectedSQLScheme = 0;
       }
@@ -1410,41 +1460,42 @@ public final class BrowserMenuBar extends JMenuBar
         bg.add(selectSqlColorScheme[i]);
       }
       optionGLSLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for GLSL",
-                                                     prefs.getBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, true));
+                                                     getPrefs().getBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionGLSLEnableSyntax);
       optionSQLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for SQL",
-                                                     prefs.getBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, true));
+                                                    getPrefs().getBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionSQLEnableSyntax);
       optionGLSLEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding for GLSL",
-                                                          prefs.getBoolean(OPTION_GLSL_CODEFOLDING, false));
+                                                          getPrefs().getBoolean(OPTION_GLSL_CODEFOLDING, false));
       textMisc.add(optionGLSLEnableCodeFolding);
 
       // Options->Text Editor (continued)
       optionTextHightlightCurrent = new JCheckBoxMenuItem("Show Highlighted Current Line",
-                                                          prefs.getBoolean(OPTION_TEXT_SHOWCURRENTLINE, true));
+                                                          getPrefs().getBoolean(OPTION_TEXT_SHOWCURRENTLINE, true));
       textMenu.add(optionTextHightlightCurrent);
       optionTextLineNumbers = new JCheckBoxMenuItem("Show Line Numbers",
-                                                    prefs.getBoolean(OPTION_TEXT_SHOWLINENUMBERS, true));
+                                                    getPrefs().getBoolean(OPTION_TEXT_SHOWLINENUMBERS, true));
       textMenu.add(optionTextLineNumbers);
 
       // Options->Text Editor->Debug: External color scheme
       if (NearInfinity.isDebug()) {
         JMenu textDebug = new JMenu("Debug: External color scheme");
         textMenu.add(textDebug);
-        optionTextDebugColorSchemeEnabled = new JCheckBoxMenuItem("Color scheme enabled",
-                                                                   prefs.getBoolean(OPTION_TEXT_DEBUG_ENABLECOLORSCHEME, true));
+        optionTextDebugColorSchemeEnabled =
+            new JCheckBoxMenuItem("Color scheme enabled",
+                                  getPrefs().getBoolean(OPTION_TEXT_DEBUG_ENABLECOLORSCHEME, true));
         textDebug.add(optionTextDebugColorSchemeEnabled);
         textDebug.addSeparator();
         optionTextDebugColorSchemeSelect = new JMenuItem("Select color scheme...");
         optionTextDebugColorSchemeSelect.addActionListener(this);
         textDebug.add(optionTextDebugColorSchemeSelect);
-        loadDebugColorScheme(prefs.get(OPTION_TEXT_DEBUG_COLORSCHEME, ""));
+        loadDebugColorScheme(getPrefs().get(OPTION_TEXT_DEBUG_COLORSCHEME, ""));
       }
 
       // Options->Show ResourceRefs As
       JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
       add(showresrefmenu);
-      int selectedresref = prefs.getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
+      int selectedresref = getPrefs().getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
       showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
       showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, CTRL_MASK));
       showResRef[RESREF_REF_NAME] =
@@ -1462,7 +1513,7 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->Show Override Files
       JMenu overridesubmenu = new JMenu("Show Override Files");
       add(overridesubmenu);
-      int selectedmode = prefs.getInt(OPTION_SHOWOVERRIDES, OVERRIDE_SPLIT);
+      int selectedmode = getPrefs().getInt(OPTION_SHOWOVERRIDES, OVERRIDE_SPLIT);
       showOverrides[OVERRIDE_IN_THREE] =
       new JRadioButtonMenuItem("In ??? Folders (CRE, SPL, ...)", selectedmode == OVERRIDE_IN_THREE);
       showOverrides[OVERRIDE_IN_OVERRIDE] =
@@ -1476,13 +1527,13 @@ public final class BrowserMenuBar extends JMenuBar
         overridesubmenu.add(showOverrides[i]);
         bg.add(showOverrides[i]);
         showOverrides[i].setActionCommand("Refresh");
-        showOverrides[i].addActionListener(browser);
+        showOverrides[i].addActionListener(NearInfinity.getInstance());
       }
 
       // Options->Default Structure Display
       JMenu vieworeditmenu = new JMenu("Default Structure Display");
       add(vieworeditmenu);
-      int selectedview = prefs.getInt(OPTION_VIEWOREDITSHOWN, DEFAULT_VIEW);
+      int selectedview = getPrefs().getInt(OPTION_VIEWOREDITSHOWN, DEFAULT_VIEW);
       viewOrEditShown[DEFAULT_VIEW] =
       new JRadioButtonMenuItem("View", selectedview == DEFAULT_VIEW);
       viewOrEditShown[DEFAULT_EDIT] =
@@ -1496,7 +1547,7 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->Look and Feel
       JMenu lookandfeelmenu = new JMenu("Look and Feel");
       add(lookandfeelmenu);
-      final String selectedLF = prefs.get(OPTION_LOOKANDFEELCLASS, DEFAULT_LOOKFEEL.getClassName());
+      final String selectedLF = getPrefs().get(OPTION_LOOKANDFEELCLASS, DEFAULT_LOOKFEEL.getClassName());
       LookAndFeelInfo[] info = UIManager.getInstalledLookAndFeels();
       bg = new ButtonGroup();
       if (info != null && info.length > 0) {
@@ -1523,7 +1574,7 @@ public final class BrowserMenuBar extends JMenuBar
         if (lf != null) {
           lookandfeelmenu.add(lf);
           lf.setActionCommand("ChangeLook");
-          lf.addActionListener(browser);
+          lf.addActionListener(NearInfinity.getInstance());
         }
       }
 
@@ -1531,7 +1582,7 @@ public final class BrowserMenuBar extends JMenuBar
       JMenu scriptmenu = new JMenu("Text Font");
       add(scriptmenu);
       bg = new ButtonGroup();
-      int selectedfont = prefs.getInt(OPTION_FONT, 0);
+      int selectedfont = getPrefs().getInt(OPTION_FONT, 0);
       for (int i = 0; i < FONTS.length; i++) {
         selectFont[i] =
         new JRadioButtonMenuItem(FONTS[i].getName() + ' ' + FONTS[i].getSize(), i == selectedfont);
@@ -1541,7 +1592,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
 
       // Options->TLK Charset
-      String charset = prefs.get(OPTION_TLKCHARSET, DefaultCharset);
+      String charset = getPrefs().get(OPTION_TLKCHARSET, DefaultCharset);
       if (!charsetAvailable(charset)) {
         System.err.println(String.format("Charset \"%1$s\" not available.", charset));
         charset = DefaultCharset;
@@ -1561,7 +1612,6 @@ public final class BrowserMenuBar extends JMenuBar
     private void resetGameLanguage()
     {
       final String autodetect = "Autodetect";
-      final String tlkFileName = "dialog.tlk";
 
       for (JRadioButtonMenuItem r: gameLanguage.keySet()) {
         r.removeActionListener(this);
@@ -1577,34 +1627,28 @@ public final class BrowserMenuBar extends JMenuBar
 
       // adding "Autodetect" for all available game ids
       rbmi = createLanguageMenuItem("", autodetect,
-                                    "Autodetect language from baldur.ini. Defaults to english if not available.", bg, true);
+                                    "Autodetect language from baldur.ini. " +
+                                        "Defaults to english if not available.", bg, true);
       mLanguageMenu.add(rbmi);
 
-      if (ResourceFactory.isEnhancedEdition()) {
-        File langFile = new FileNI(ResourceFactory.getRootDir(), "lang");
-        if (langFile.isDirectory()) {
-          File[] langFileList = langFile.listFiles();
-          for (int i = 0; i < langFileList.length; i++) {
-            if (langFileList[i].isDirectory()) {
-              if ((new FileNI(langFileList[i], tlkFileName)).isFile()) {
-                String[] langCode = langFileList[i].getName().split("_");
-                if (langCode.length >= 2) {
-                  Locale locale = new Locale(langCode[0], langCode[1]);
-                  rbmi = createLanguageMenuItem(langFileList[i].getName(),
-                                                String.format("%1$s (%2$s)",
-                                                              locale.getDisplayLanguage(),
-                                                              langFileList[i].getName()),
-                                                null, bg,
-                                                selectedCode.equalsIgnoreCase(langFileList[i].getName()));
-                  mLanguageMenu.add(rbmi);
-                } else {
-                  rbmi = createLanguageMenuItem(langFileList[i].getName(), langFileList[i].getName(),
-                                                null, bg,
-                                                selectedCode.equalsIgnoreCase(langFileList[i].getName()));
-                  mLanguageMenu.add(rbmi);
-                }
-              }
-            }
+      if (Profile.isEnhancedEdition()) {
+        List<File> languages = ResourceFactory.getAvailableLanguages();
+        for (File dir: languages) {
+          String[] langCode = dir.getName().split("_");
+          if (langCode.length >= 2) {
+            Locale locale = new Locale(langCode[0], langCode[1]);
+            rbmi = createLanguageMenuItem(dir.getName(),
+                                          String.format("%1$s (%2$s)",
+                                                        locale.getDisplayLanguage(),
+                                                        dir.getName()),
+                                          null, bg,
+                                          selectedCode.equalsIgnoreCase(dir.getName()));
+            mLanguageMenu.add(rbmi);
+          } else {
+            rbmi = createLanguageMenuItem(dir.getName(), dir.getName(),
+                                          null, bg,
+                                          selectedCode.equalsIgnoreCase(dir.getName()));
+            mLanguageMenu.add(rbmi);
           }
         }
       } else {
@@ -1781,7 +1825,7 @@ public final class BrowserMenuBar extends JMenuBar
     {
       // TODO: detect specific localizations
       if (DefaultCharset.equalsIgnoreCase(charset)) {
-        if (ResourceFactory.isEnhancedEdition()) {
+        if (Profile.isEnhancedEdition()) {
           return "UTF-8";
         } else {
           return "windows-1252";
@@ -1814,57 +1858,57 @@ public final class BrowserMenuBar extends JMenuBar
       resetGameLanguage();
     }
 
-    private void storePreferences(Preferences prefs)
+    private void storePreferences()
     {
-      prefs.putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
-      prefs.putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
-      prefs.putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
-      prefs.putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
-      prefs.putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
-      prefs.putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
-      prefs.putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
-      prefs.putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
-      prefs.putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
-      prefs.putInt(OPTION_SHOWRESREF, getResRefMode());
-      prefs.putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
-      prefs.put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
-      prefs.putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
+      getPrefs().putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
+      getPrefs().putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
+      getPrefs().putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
+      getPrefs().putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
+      getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
+      getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
+      getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
+      getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
+      getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
+      getPrefs().put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
+      getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
-      prefs.putInt(OPTION_FONT, selectedFont);
+      getPrefs().putInt(OPTION_FONT, selectedFont);
       int selectedIndent = getSelectedButtonIndex(selectBcsIndent, 0);
-      prefs.putInt(OPTION_BCS_INDENT, selectedIndent);
-      prefs.putBoolean(OPTION_TEXT_SHOWCURRENTLINE, optionTextHightlightCurrent.isSelected());
-      prefs.putBoolean(OPTION_TEXT_SHOWLINENUMBERS, optionTextLineNumbers.isSelected());
-      prefs.putBoolean(OPTION_TEXT_SYMBOLWHITESPACE, optionTextShowWhiteSpace.isSelected());
-      prefs.putBoolean(OPTION_TEXT_SYMBOLEOL, optionTextShowEOL.isSelected());
-      prefs.putBoolean(OPTION_TEXT_TABSEMULATED, optionTextTabEmulate.isSelected());
+      getPrefs().putInt(OPTION_BCS_INDENT, selectedIndent);
+      getPrefs().putBoolean(OPTION_TEXT_SHOWCURRENTLINE, optionTextHightlightCurrent.isSelected());
+      getPrefs().putBoolean(OPTION_TEXT_SHOWLINENUMBERS, optionTextLineNumbers.isSelected());
+      getPrefs().putBoolean(OPTION_TEXT_SYMBOLWHITESPACE, optionTextShowWhiteSpace.isSelected());
+      getPrefs().putBoolean(OPTION_TEXT_SYMBOLEOL, optionTextShowEOL.isSelected());
+      getPrefs().putBoolean(OPTION_TEXT_TABSEMULATED, optionTextTabEmulate.isSelected());
       int selectTabSize = getSelectedButtonIndex(selectTextTabSize, 1);
-      prefs.putInt(OPTION_TEXT_TABSIZE, selectTabSize);
+      getPrefs().putInt(OPTION_TEXT_TABSIZE, selectTabSize);
       int selectColorScheme = getSelectedButtonIndex(selectBcsColorScheme, 5);
-      prefs.putInt(OPTION_BCS_COLORSCHEME, selectColorScheme);
-      prefs.putBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, optionBCSEnableSyntax.isSelected());
-      prefs.putBoolean(OPTION_BCS_CODEFOLDING, optionBCSEnableCodeFolding.isSelected());
+      getPrefs().putInt(OPTION_BCS_COLORSCHEME, selectColorScheme);
+      getPrefs().putBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, optionBCSEnableSyntax.isSelected());
+      getPrefs().putBoolean(OPTION_BCS_CODEFOLDING, optionBCSEnableCodeFolding.isSelected());
 //      prefs.putBoolean(OPTION_BCS_AUTOCOMPLETE, optionBCSEnableAutoComplete.isSelected());
       selectColorScheme = getSelectedButtonIndex(selectGlslColorScheme, 0);
-      prefs.putInt(OPTION_GLSL_COLORSCHEME, selectColorScheme);
+      getPrefs().putInt(OPTION_GLSL_COLORSCHEME, selectColorScheme);
       selectColorScheme = getSelectedButtonIndex(selectSqlColorScheme, 0);
-      prefs.putInt(OPTION_SQL_COLORSCHEME, selectColorScheme);
-      prefs.putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
-      prefs.putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
-      prefs.putBoolean(OPTION_GLSL_CODEFOLDING, optionGLSLEnableCodeFolding.isSelected());
+      getPrefs().putInt(OPTION_SQL_COLORSCHEME, selectColorScheme);
+      getPrefs().putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
+      getPrefs().putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
+      getPrefs().putBoolean(OPTION_GLSL_CODEFOLDING, optionGLSLEnableCodeFolding.isSelected());
       if (NearInfinity.isDebug()) {
-        prefs.putBoolean(OPTION_TEXT_DEBUG_ENABLECOLORSCHEME,
-                         optionTextDebugColorSchemeEnabled.isSelected());
-        prefs.put(OPTION_TEXT_DEBUG_COLORSCHEME, DEBUGCOLORSCHEME);
+        getPrefs().putBoolean(OPTION_TEXT_DEBUG_ENABLECOLORSCHEME,
+                              optionTextDebugColorSchemeEnabled.isSelected());
+        getPrefs().put(OPTION_TEXT_DEBUG_COLORSCHEME, DEBUGCOLORSCHEME);
       }
 
       String charset = getSelectedButtonData();
-      prefs.put(OPTION_TLKCHARSET, charset);
+      getPrefs().put(OPTION_TLKCHARSET, charset);
 
       for (JRadioButtonMenuItem r: gameLanguage.keySet()) {
         if (r.isSelected() && r.isEnabled()) {
           String lang = gameLanguage.get(r);
-          prefs.put(OPTION_LANGUAGE_GAME, lang);
+          getPrefs().put(OPTION_LANGUAGE_GAME, lang);
           break;
         }
       }
@@ -2032,7 +2076,7 @@ public final class BrowserMenuBar extends JMenuBar
             file = null;
           }
         }
-        String rootPath = (file != null) ? file.getParent() : ResourceFactory.getRootDir().toString();
+        String rootPath = (file != null) ? file.getParent() : Profile.getGameRoot().toString();
         JFileChooser fc = new JFileChooser(rootPath);
         if (file != null) {
           fc.setSelectedFile(file);

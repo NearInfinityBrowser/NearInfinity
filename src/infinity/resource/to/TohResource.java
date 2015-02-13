@@ -21,8 +21,8 @@ import infinity.gui.hexview.BasicColorMap;
 import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
@@ -82,8 +82,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
   public int read(byte[] buffer, int offset) throws Exception
   {
     int startOffset = offset;
-    boolean isEnhanced = (ResourceFactory.isEnhancedEdition()) &&
-                         (DynamicArray.getInt(buffer, offset + 4) == 2);
+    boolean isEnhanced = Profile.isEnhancedEdition() && (DynamicArray.getInt(buffer, offset + 4) == 2);
     addField(new TextString(buffer, offset, 4, "Signature"));
     if (isEnhanced) {
       addField(new DecNumber(buffer, offset + 4, 4, "Version"));

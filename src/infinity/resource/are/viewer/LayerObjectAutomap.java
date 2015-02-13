@@ -19,7 +19,7 @@ import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.AutomapNote;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -130,7 +130,7 @@ public class LayerObjectAutomap extends LayerObject
             if (srcStrref > 0) {
               String path = getParentStructure().getResourceEntry().getActualFile().toString();
               path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
-              if (ResourceFactory.isEnhancedEdition()) {
+              if (Profile.isEnhancedEdition()) {
                 // processing new TOH structure
                 File tohFile = new FileNI(path, "DEFAULT.TOH");
                 if (tohFile.exists()) {

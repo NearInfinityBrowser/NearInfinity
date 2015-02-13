@@ -57,6 +57,7 @@ import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.dlg.AbstractCode;
@@ -280,7 +281,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       findPattern((int)getHexView().getCurrentOffset());
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_EXPORT)) {
-      ResourceFactory.getInstance().exportResource(getStruct().getResourceEntry(), getTopLevelAncestor());
+      ResourceFactory.exportResource(getStruct().getResourceEntry(), getTopLevelAncestor());
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_SAVE)) {
       // XXX: Ugly hack: mimicking ResourceFactory.saveResource()
@@ -288,9 +289,9 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       ResourceEntry entry = getStruct().getResourceEntry();
       File output;
       if (entry instanceof BIFFResourceEntry) {
-        output = FileNI.getFile(ResourceFactory.getRootDirs(),
-                                ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
-        File override = FileNI.getFile(ResourceFactory.getRootDirs(), ResourceFactory.OVERRIDEFOLDER);
+        output = FileNI.getFile(Profile.getRootFolders(),
+                                Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+        File override = FileNI.getFile(Profile.getRootFolders(), Profile.getOverrideFolderName());
         if (!override.exists()) {
           override.mkdir();
         }

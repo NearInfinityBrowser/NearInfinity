@@ -79,7 +79,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
         try {
           block.setBlocked(true);
           handler.compress(entries);
-          ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
+          ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
           buttonPanel.getControlByType(CtrlDecompress).setEnabled(true);
           filelist.setEnabled(false);
           buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
@@ -118,7 +118,7 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
       Resource res = ResourceFactory.getResource(fileentry);
       new ViewFrame(panel.getTopLevelAncestor(), res);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(CtrlDelete) == event.getSource()) {
       int index = filelist.getSelectedIndex();
       ResourceEntry resourceentry = (ResourceEntry)entries.get(index);

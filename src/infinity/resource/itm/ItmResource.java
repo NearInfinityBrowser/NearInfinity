@@ -23,6 +23,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -374,7 +375,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       } else {
         addField(new Flag(buffer, 30, 4, "Unusable by", s_usability));
       }
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag_1pp, s_anim_1pp));
       }
       else {
@@ -384,7 +385,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     addField(new DecNumber(buffer, 36, 2, "Minimum level"));
     addField(new DecNumber(buffer, 38, 2, "Minimum strength"));
 //    addField(new Unknown(buffer, 39, 1));
-    if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
+    if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
       addField(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
       addField(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
@@ -394,7 +395,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       addField(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
       addField(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
       addField(new DecNumber(buffer, 48, 1, "Minimum constitution"));
-      if (ResourceFactory.getInstance().resourceExists("PROFTYPE.IDS")) {
+      if (ResourceFactory.resourceExists("PROFTYPE.IDS")) {
         addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "PROFTYPE.IDS"));
       } else {
         addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
@@ -425,7 +426,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     if (version.toString().equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
     } else {
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         addField(new ResourceRef(buffer, 88, "Description image", new String[]{"BAM", "BMP"}));
       } else {
         addField(new ResourceRef(buffer, 88, "Description image", "BAM"));
@@ -493,25 +494,25 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)itm.getAttribute("Effects offset");
-        DecNumber cnt = (DecNumber)itm.getAttribute("# global effects");
+        DecNumber ofs = (DecNumber)itm.getAttribute("Effects offset", false);
+        DecNumber cnt = (DecNumber)itm.getAttribute("# global effects", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.ITM_Effect), idx);
-            effects[idx] = (Effect)itm.getAttribute(label);
+            effects[idx] = (Effect)itm.getAttribute(label, false);
           }
         } else {
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)itm.getAttribute("Abilities offset");
-        cnt = (DecNumber)itm.getAttribute("# abilities");
+        ofs = (DecNumber)itm.getAttribute("Abilities offset", false);
+        cnt = (DecNumber)itm.getAttribute("# abilities", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.ITM_Ability), idx);
-            abilities[idx] = (Ability)itm.getAttribute(label);
+            abilities[idx] = (Ability)itm.getAttribute(label, false);
           }
         } else {
           abilities = new Ability[0];
@@ -520,12 +521,12 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute("# effects");
+            cnt = (DecNumber)abilities[idx].getAttribute("# effects", false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {
                 String label = String.format(SearchOptions.getResourceName(SearchOptions.ITM_Ability_Effect), idx2);
-                abilityEffects[idx][idx2] = (Effect)abilities[idx].getAttribute(label);
+                abilityEffects[idx][idx2] = (Effect)abilities[idx].getAttribute(label, false);
               }
             } else {
               abilityEffects[idx] = new Effect[0];
@@ -539,14 +540,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         if (retVal) {
           key = SearchOptions.ITM_Name;
           o = searchOptions.getOption(key);
-          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
         }
 
         if (retVal) {
           key = SearchOptions.ITM_Appearance;
           o = searchOptions.getOption(key);
-          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchString(struct, o, true, true);
         }
 
@@ -557,7 +558,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
@@ -574,7 +575,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
@@ -591,7 +592,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
             for (int idx2 = 0; idx2 < effects.length; idx2++) {
               if (!found) {
                 if (effects[idx2] != null) {
-                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
@@ -635,14 +636,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
               for (int j = 0; j < 10; j++) {
                 key = keyList[j];
                 o = abilityOption.getOption(key);
-                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key));
+                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key), false);
                 abilityMatches[i][j] = SearchOptions.Utils.matchNumber(struct, o);
               }
 
               {
                 key = keyList[10];
                 o = abilityOption.getOption(key);
-                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key));
+                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key), false);
                 abilityMatches[i][10] = SearchOptions.Utils.matchFlags(struct, o);
               }
 
@@ -651,7 +652,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
                 o = abilityOption.getOption(key);
                 for (int k = 0; k < abilityEffects[i].length; k++) {
                   if (abilityEffects[i][k] != null) {
-                    StructEntry struct = abilityEffects[i][k].getAttribute(SearchOptions.getResourceName(key));
+                    StructEntry struct = abilityEffects[i][k].getAttribute(SearchOptions.getResourceName(key), false);
                     abilityMatches[i][j] |= SearchOptions.Utils.matchNumber(struct, o);
                   }
                 }
