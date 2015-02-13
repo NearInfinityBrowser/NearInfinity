@@ -4,49 +4,76 @@
 
 package infinity.datatype;
 
-import infinity.gui.*;
+import infinity.gui.ChildFrame;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.InfinityTextArea;
+import infinity.gui.StringEditor;
+import infinity.gui.StructViewer;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.StringReferenceSearcher;
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 public final class StringRef extends Datatype implements Editable, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
-  private JTextArea taRefText;
+  private InfinityTextArea taRefText;
   private JTextField tfRefNr;
   private int value;
 
   public StringRef(String name, int value)
   {
-    super(0, 8, name); // OK?
+    this(null, name, value);
+  }
+
+  public StringRef(StructEntry parent, String name, int value)
+  {
+    super(parent, 0, 8, name); // OK?
     this.value = value;
   }
 
   public StringRef(byte buffer[], int offset, String name)
   {
-    super(offset, 4, name);
-    value = Byteconvert.convertInt(buffer, offset);
+    this(null, buffer, offset, name);
+  }
+
+  public StringRef(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    super(parent, offset, 4, name);
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
       taRefText.setText(StringResource.getStringRef(Integer.parseInt(tfRefNr.getText())));
       String resname = StringResource.getResource(Integer.parseInt(tfRefNr.getText()));
-      bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+      bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     }
     else if (event.getSource() == bEdit) {
       StringEditor editor = null;
@@ -65,8 +92,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     }
     else if (event.getSource() == bPlay) {
       int newvalue = Integer.parseInt(tfRefNr.getText());
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(
-              StringResource.getResource(newvalue) + ".WAV");
+      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getResource(newvalue) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch)
@@ -78,16 +104,18 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     if (tfRefNr == null) {
       tfRefNr = new JTextField(8);
       tfRefNr.addActionListener(this);
-      taRefText = new JTextArea(1, 200);
+      taRefText = new InfinityTextArea(1, 200, true);
+      taRefText.setHighlightCurrentLine(false);
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
       taRefText.setWrapStyleWord(true);
-      taRefText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      taRefText.setMargin(new Insets(3, 3, 3, 3));
       bPlay = new JButton("Sound", Icons.getIcon("Volume16.gif"));
       bPlay.setToolTipText("Opens associated sound");
       bPlay.addActionListener(this);
@@ -100,15 +128,16 @@ public final class StringRef extends Datatype implements Editable, ActionListene
       bSearch.setMnemonic('f');
     }
     String resname = StringResource.getResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     taRefText.setText(StringResource.getStringRef(value));
     taRefText.setCaretPosition(0);
+    InfinityScrollPane scroll = new InfinityScrollPane(taRefText, true);
+    scroll.setLineNumbersEnabled(false);
     tfRefNr.setText(String.valueOf(value));
     tfRefNr.setMinimumSize(tfRefNr.getPreferredSize());
     JLabel label = new JLabel("StringRef: ");
     label.setLabelFor(tfRefNr);
     label.setDisplayedMnemonic('s');
-    JScrollPane scroll = new JScrollPane(taRefText);
     bPlay.setMargin(new Insets(1, 3, 1, 3));
     bEdit.setMargin(bPlay.getMargin());
     bSearch.setMargin(bPlay.getMargin());
@@ -158,10 +187,12 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     return panel;
   }
 
+  @Override
   public void select()
   {
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     int newvalue = Integer.parseInt(tfRefNr.getText());
@@ -177,6 +208,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeInt(os, value);
@@ -184,9 +216,32 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    value = DynamicArray.getInt(buffer, offset);
+
+    return offset + getSize();
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
-    return StringResource.getStringRef(value);
+    return toString(false);
+  }
+
+  public String toString(boolean extended)
+  {
+    return toString(extended, false);
+  }
+
+  public String toString(boolean extended, boolean asPrefix)
+  {
+    return StringResource.getStringRef(value, extended, asPrefix);
   }
 
   public int getValue()
@@ -200,7 +255,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     taRefText.setText(StringResource.getStringRef(value));
     tfRefNr.setText(String.valueOf(value));
     String resname = StringResource.getResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
   }
 }
 

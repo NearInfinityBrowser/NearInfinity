@@ -4,7 +4,12 @@
 
 package infinity.resource.sto;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -18,13 +23,14 @@ final class ItemSale11 extends AbstractStruct implements AddRemovable
     super(null, "Item for sale", new byte[88], 0);
   }
 
-  ItemSale11(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  ItemSale11(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Item for sale", buffer, offset);
+    super(superStruct, "Item for sale " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -32,19 +38,20 @@ final class ItemSale11 extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Item", "ITM"));
-    list.add(new Unknown(buffer, offset + 8, 2));
-    list.add(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
-    list.add(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
-    list.add(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
-    list.add(new Flag(buffer, offset + 16, 4, "Flags", s_itemflag));
-    list.add(new DecNumber(buffer, offset + 20, 4, "# in stock"));
-    list.add(new Bitmap(buffer, offset + 24, 4, "Infinite supply?", s_noyes));
-    list.add(new StringRef(buffer, offset + 28, "Sale trigger"));
-    list.add(new Unknown(buffer, offset + 32, 56));
-//    list.add(new Unknown(buffer, offset + 76, 12));
+    addField(new ResourceRef(buffer, offset, "Item", "ITM"));
+    addField(new Unknown(buffer, offset + 8, 2));
+    addField(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
+    addField(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
+    addField(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
+    addField(new Flag(buffer, offset + 16, 4, "Flags", s_itemflag));
+    addField(new DecNumber(buffer, offset + 20, 4, "# in stock"));
+    addField(new Bitmap(buffer, offset + 24, 4, "Infinite supply?", s_noyes));
+    addField(new StringRef(buffer, offset + 28, "Sale trigger"));
+    addField(new Unknown(buffer, offset + 32, 56));
+//    addField(new Unknown(buffer, offset + 76, 12));
     return offset + 88;
   }
 }

@@ -4,7 +4,9 @@
 
 package infinity.resource.sto;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.StringRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -15,13 +17,14 @@ final class Drink extends AbstractStruct implements AddRemovable
     super(null, "Drink", new byte[20], 0);
   }
 
-  Drink(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Drink(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Drink", buffer, offset);
+    super(superStruct, "Drink " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -29,12 +32,13 @@ final class Drink extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new Unknown(buffer, offset, 8));
-    list.add(new StringRef(buffer, offset + 8, "Drink name"));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Price"));
-    list.add(new DecNumber(buffer, offset + 16, 4, "Rumor rate"));
+    addField(new Unknown(buffer, offset, 8));
+    addField(new StringRef(buffer, offset + 8, "Drink name"));
+    addField(new DecNumber(buffer, offset + 12, 4, "Price"));
+    addField(new DecNumber(buffer, offset + 16, 4, "Rumor rate"));
     return offset + 20;
   }
 }

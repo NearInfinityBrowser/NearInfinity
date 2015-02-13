@@ -4,7 +4,7 @@
 
 package infinity.resource.graphics;
 
-import infinity.util.Byteconvert;
+import infinity.util.DynamicArray;
 
 final class Palette
 {
@@ -13,15 +13,15 @@ final class Palette
   public static int getColor(byte buffer[], int offset, byte index)
   {
     if (index < 0)
-      return Byteconvert.convertInt(buffer, offset + (256 + (int)index) * 4);
-    return Byteconvert.convertInt(buffer, offset + (int)index * 4);
+      return DynamicArray.getInt(buffer, offset + (256 + (int)index) * 4);
+    return DynamicArray.getInt(buffer, offset + (int)index * 4);
   }
 
   Palette(byte buffer[], int offset, int length)
   {
     colors = new int[length / 4];
     for (int i = 0; i < colors.length; i++)
-      colors[i] = Byteconvert.convertInt(buffer, offset + i * 4);
+      colors[i] = DynamicArray.getInt(buffer, offset + i * 4);
   }
 
   public int getColor(int index)
@@ -33,7 +33,7 @@ final class Palette
 
   public short[] getColorBytes(int index)
   {
-    byte bytes[] = Byteconvert.convertBack(getColor(index));
+    byte bytes[] = DynamicArray.convertInt(getColor(index));
     short shorts[] = new short[bytes.length];
     for (int i = 0; i < bytes.length; i++) {
       shorts[i] = (short)bytes[i];

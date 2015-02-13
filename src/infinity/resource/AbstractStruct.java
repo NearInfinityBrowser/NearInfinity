@@ -4,7 +4,11 @@
 
 package infinity.resource;
 
-import infinity.datatype.*;
+import infinity.datatype.Editable;
+import infinity.datatype.InlineEditable;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.Unknown;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.StructViewer;
 import infinity.resource.are.Actor;
@@ -13,38 +17,51 @@ import infinity.resource.dlg.AbstractCode;
 import infinity.resource.gam.GamResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
 
-import javax.swing.*;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.*;
-import java.io.*;
-import java.util.*;
+import java.awt.Component;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.table.AbstractTableModel;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
 {
-  private static final boolean CONSISTENCY_CHECK = false;
-  private static final boolean DEBUG_MESSAGES = false;
-  protected List<StructEntry> list;
+//  private static final boolean CONSISTENCY_CHECK = false;
+//  private static final boolean DEBUG_MESSAGES = false;
+  private List<StructEntry> list;
   private AbstractStruct superStruct;
-  private Map<Class, SectionCount> countmap;
-  private Map<Class, SectionOffset> offsetmap;
+  private Map<Class<? extends StructEntry>, SectionCount> countmap;
+  private Map<Class<? extends StructEntry>, SectionOffset> offsetmap;
   private ResourceEntry entry;
   private String name;
   private StructViewer viewer;
   private boolean structChanged;
   private int startoffset, endoffset, extraoffset;
+  private Collection<Component> viewerComponents = null;
 
   private static void adjustEntryOffsets(AbstractStruct superStruct, AbstractStruct modifiedStruct,
                                          AddRemovable datatype, int amount)
   {
-    for (int i = 0; i < superStruct.list.size(); i++) {
-      StructEntry structEntry = superStruct.list.get(i);
+    for (int i = 0; i < superStruct.getFieldCount(); i++) {
+      StructEntry structEntry = superStruct.getField(i);
       if (structEntry.getOffset() > datatype.getOffset() ||
           structEntry.getOffset() == datatype.getOffset() && structEntry != datatype &&
           structEntry != modifiedStruct) {
         structEntry.setOffset(structEntry.getOffset() + amount);
-        if (DEBUG_MESSAGES && superStruct.getSuperStruct() == null && structEntry instanceof AbstractStruct)
-          System.out.println("Adjusting " + structEntry.getName() + " by " + amount);
+//        if (DEBUG_MESSAGES && superStruct.getSuperStruct() == null && structEntry instanceof AbstractStruct)
+//          System.out.println("Adjusting " + structEntry.getName() + " by " + amount);
       }
       if (structEntry instanceof AbstractStruct)
         adjustEntryOffsets((AbstractStruct)structEntry, modifiedStruct, datatype, amount);
@@ -53,36 +70,38 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   private static void adjustSectionOffsets(AbstractStruct superStruct, AddRemovable datatype, int amount)
   {
-    for (int i = 0; i < superStruct.list.size(); i++) {
-      Object o = superStruct.list.get(i);
+    for (int i = 0; i < superStruct.getFieldCount(); i++) {
+      Object o = superStruct.getField(i);
       if (o instanceof SectionOffset) {
         SectionOffset sOffset = (SectionOffset)o;
         if (sOffset.getValue() + superStruct.getExtraOffset() > datatype.getOffset()) {
           sOffset.incValue(amount);
-          if (DEBUG_MESSAGES)
-            System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
+//          if (DEBUG_MESSAGES)
+//            System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
         }
         else if (sOffset.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
           if (amount > 0 &&
               !(sOffset.getSection() == datatype.getClass() ||
-                ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 &&
+                Profile.getEngine() == Profile.Engine.IWD2 &&
                 superStruct instanceof CreResource)) {
             sOffset.incValue(amount);
-            if (DEBUG_MESSAGES)
-              System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
+//            if (DEBUG_MESSAGES)
+//              System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
           }
         }
       }
     }
   }
 
-  private static void getStructsOfClass(AbstractStruct struct, Class cl, List<StructEntry> container)
+  private static void getStructsOfClass(AbstractStruct struct, Class<? extends StructEntry> cl,
+                                        List<StructEntry> container)
   {
-    for (int i = 0; i < struct.list.size(); i++) {
-      if (struct.list.get(i).getClass() == cl)
-        container.add(struct.list.get(i));
-      else if (struct.list.get(i) instanceof AbstractStruct)
-        getStructsOfClass((AbstractStruct)struct.list.get(i), cl, container);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      if (struct.getField(i).getClass() == cl) {
+        container.add(struct.getField(i));
+      } else if (struct.getField(i) instanceof AbstractStruct) {
+        getStructsOfClass((AbstractStruct)struct.getField(i), cl, container);
+      }
     }
   }
 
@@ -97,7 +116,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     name = entry.toString();
     byte buffer[] = entry.getResourceData();
     endoffset = read(buffer, 0);
-    if (this instanceof HasAddRemovable && list.size() > 0) {// Is this enough?
+    if (this instanceof HasAddRemovable && !list.isEmpty()) {// Is this enough?
       Collections.sort(list); // This way we can writeField out in the order in list - sorted by offset
       fixHoles(buffer);
       initAddStructMaps();
@@ -124,8 +143,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     this(superStruct, name, startoffset, listSize);
     endoffset = read(buffer, startoffset);
     if (this instanceof HasAddRemovable) {
-      if (!(this instanceof Actor))  // Is this enough?
+      if (!(this instanceof Actor)) {  // Is this enough?
         Collections.sort(list); // This way we can writeField out in the order in list - sorted by offset
+      }
       initAddStructMaps();
     }
   }
@@ -135,14 +155,15 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   // end - extends AbstractTableModel
 
   // begin - implements Closeable
+  @Override
   public void close() throws Exception
   {
     if (structChanged && viewer != null && this instanceof Resource && superStruct == null) {
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-        new File(ResourceFactory.getRootDir(),
-                 ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
+            FileNI.getFile(Profile.getRootFolders(),
+                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
       String options[] = {"Save changes", "Discard changes", "Cancel"};
@@ -150,8 +171,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0)
-        ResourceFactory.getInstance().saveResource((Resource)this, viewer.getTopLevelAncestor());
-      else if (result == 2)
+        ResourceFactory.saveResource((Resource)this, viewer.getTopLevelAncestor());
+      else if (result != 1)
         throw new Exception("Save aborted");
     }
     if (viewer != null)
@@ -164,6 +185,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- Begin Interface Comparable ---------------------
 
   // begin - implements StructEntry
+  @Override
   public int compareTo(StructEntry o)
   {
     return getOffset() - o.getOffset();
@@ -174,6 +196,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
 // --------------------- Begin Interface StructEntry ---------------------
 
+  @Override
   public Object clone() throws CloneNotSupportedException
   {
     AbstractStruct newstruct = (AbstractStruct)super.clone();
@@ -192,27 +215,54 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return newstruct;
   }
 
+  @Override
   public void copyNameAndOffset(StructEntry structEntry)
   {
     name = structEntry.getName();
     setOffset(structEntry.getOffset());
   }
 
+  @Override
   public String getName()
   {
     return name;
   }
 
+  @Override
   public int getOffset()
   {
     return startoffset;
   }
 
+  @Override
+  public StructEntry getParent()
+  {
+    return getSuperStruct();
+  }
+
+  @Override
   public int getSize()
   {
     return endoffset - startoffset;
   }
 
+  @Override
+  public List<StructEntry> getStructChain()
+  {
+    List<StructEntry> list = new Vector<StructEntry>();
+    StructEntry e = this;
+    while (e != null) {
+      list.add(0, e);
+      e = e.getParent();
+      if (list.contains(e)) {
+        // avoid infinite loops
+        break;
+      }
+    }
+    return list;
+  }
+
+  @Override
   public void setOffset(int newoffset)
   {
     if (extraoffset != 0)
@@ -222,17 +272,29 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     endoffset = newoffset + delta;
   }
 
+  @Override
+  public void setParent(StructEntry parent)
+  {
+    if (parent instanceof AbstractStruct) {
+      setSuperStruct((AbstractStruct)parent);
+    } else {
+      setSuperStruct(null);
+    }
+  }
+
 // --------------------- End Interface StructEntry ---------------------
 
 
 // --------------------- Begin Interface TableModel ---------------------
 
   // start - extends AbstractTableModel
+  @Override
   public int getRowCount()
   {
-    return list.size();
+    return getFieldCount();
   }
 
+  @Override
   public int getColumnCount()
   {
     if (BrowserMenuBar.getInstance().showOffsets())
@@ -240,15 +302,19 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return 2;
   }
 
+  @Override
   public Object getValueAt(int row, int column)
   {
-    if (list.get(row) instanceof StructEntry) {
-      StructEntry data = list.get(row);
-      if (column == 0)
-        return data.getName();
-      if (column == 1)
-        return data;
-      return Integer.toHexString(data.getOffset()) + " h";
+    if (getField(row) instanceof StructEntry) {
+      StructEntry data = getField(row);
+      switch (column) {
+        case 0:
+          return data.getName();
+        case 1:
+          return data;
+        case 2:
+          return Integer.toHexString(data.getOffset()) + " h";
+      }
     }
     return "Unknown datatype";
   }
@@ -261,10 +327,13 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   // end - implements Closeable
 
   // begin - implements Viewable
+  @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    if (viewer == null)
-      viewer = new StructViewer(this);
+    if (viewer == null) {
+      viewer = new StructViewer(this, viewerComponents);
+      viewerInitialized(viewer);
+    }
     return viewer;
   }
 
@@ -274,15 +343,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- Begin Interface Writeable ---------------------
 
   // begin - implements Writeable
+  @Override
   public void write(OutputStream os) throws IOException
   {
-    Collections.sort(list); // This way we can writeField out in the order in list - sorted by offset
-    for (int i = 0; i < list.size(); i++)
-      list.get(i).write(os);
+    Collections.sort(getList()); // This way we can writeField out in the order in list - sorted by offset
+    for (int i = 0; i < getFieldCount(); i++) {
+      getField(i).write(os);
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public String getColumnName(int columnIndex)
   {
     if (columnIndex == 0)
@@ -292,6 +364,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return "Offset";
   }
 
+  @Override
   public boolean isCellEditable(int row, int col)
   {
     if (col == 1) {
@@ -302,6 +375,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return false;
   }
 
+  @Override
   public void setValueAt(Object value, int row, int column)
   {
     Object o = getValueAt(row, column);
@@ -315,11 +389,12 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
+  @Override
   public String toString()
   {
     StringBuffer sb = new StringBuffer(80);
-    for (int i = 0; i < list.size() && sb.length() < 80; i++) { // < 80 to speed things up
-      StructEntry datatype = list.get(i);
+    for (int i = 0; i < getFieldCount() && sb.length() < 80; i++) { // < 80 to speed things up
+      StructEntry datatype = getField(i);
       sb.append(datatype.getName()).append(": ").append(datatype.toString()).append(',');
     }
     return sb.toString();
@@ -329,19 +404,21 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     int index = 0;
     // Find place to add
-    if (viewer != null && viewer.getSelectedEntry() != null
-        && viewer.getSelectedEntry().getClass() == addedEntry.getClass())
+    if (viewer != null && viewer.getSelectedEntry() != null &&
+        viewer.getSelectedEntry().getClass() == addedEntry.getClass()) {
       index = viewer.getSelectedRow();
-    else if (offsetmap.containsKey(addedEntry.getClass())) {
+    } else if (offsetmap.containsKey(addedEntry.getClass())) {
       int offset = offsetmap.get(addedEntry.getClass()).getValue() + extraoffset;
-      while (index < list.size() && list.get(index).getOffset() < offset)
+      while (index < getFieldCount() && getField(index).getOffset() < offset) {
         index++;
-      while (index < list.size() && addedEntry.getClass() == (list.get(index)).getClass())
+      }
+      while (index < getFieldCount() && addedEntry.getClass() == (getField(index)).getClass()) {
         index++;
+      }
       if (index == 0) {
         SectionOffset soffset = offsetmap.get(addedEntry.getClass());
         if (soffset.getValue() == 0) {
-          index = list.size();
+          index = getFieldCount();
           soffset.setValue(getSize());
         }
         else
@@ -349,8 +426,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                   "addDatatype: No suitable index found - " + getName() + " adding " + addedEntry.getName());
       }
     }
-    else
+    else {
       index = getAddedPosition();
+    }
 
     return addDatatype(addedEntry, index);
   }
@@ -362,30 +440,30 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       countmap.get(addedEntry.getClass()).incValue(1);
 
     // Set addedEntry offset
-    if (index > 0 && list.get(index - 1).getClass() == addedEntry.getClass()) {
-      StructEntry prev = list.get(index - 1);
+    if (index > 0 && getField(index - 1).getClass() == addedEntry.getClass()) {
+      StructEntry prev = getField(index - 1);
       addedEntry.setOffset(prev.getOffset() + prev.getSize());
     }
     else if (offsetmap.containsKey(addedEntry.getClass())) {
       addedEntry.setOffset(offsetmap.get(addedEntry.getClass()).getValue() + extraoffset);
     }
-    else if (index == 0 && list.size() > 0) {
-      StructEntry next = list.get(0);
+    else if (index == 0 && getFieldCount() > 0) {
+      StructEntry next = getField(0);
       addedEntry.setOffset(next.getOffset());
     }
     else {
       setAddRemovableOffset(addedEntry);
-      for (int i = 0; i < list.size(); i++) {
-        StructEntry structEntry = list.get(i);
+      for (int i = 0; i < getFieldCount(); i++) {
+        StructEntry structEntry = getField(i);
         if (structEntry.getOffset() == addedEntry.getOffset()) {
           index = i;
           break;
         }
       }
     }
-    if (DEBUG_MESSAGES)
-      System.out.println(
-              "Added " + addedEntry.getName() + " at " + Integer.toHexString(addedEntry.getOffset()));
+//    if (DEBUG_MESSAGES)
+//      System.out.println(
+//              "Added " + addedEntry.getName() + " at " + Integer.toHexString(addedEntry.getOffset()));
     if (addedEntry instanceof AbstractStruct) {
       AbstractStruct addedStruct = (AbstractStruct)addedEntry;
       addedStruct.realignStructOffsets();
@@ -404,41 +482,181 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     adjustEntryOffsets(topStruct, this, addedEntry, addedEntry.getSize());
     adjustSectionOffsets(topStruct, addedEntry, addedEntry.getSize());
 
-    list.add(index, addedEntry);
+    addField(addedEntry, index);
     datatypeAdded(addedEntry);
     if (superStruct != null)
       superStruct.datatypeAddedInChild(this, addedEntry);
     setStructChanged(true);
     fireTableRowsInserted(index, index);
-    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
-      topStruct.testStruct();
+//    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
+//      topStruct.testStruct();
     return index;
   }
 
-  public void addToList(StructEntry startFromEntry, List<StructEntry> toBeAdded)
+  /**
+   * Adds the specified entry as a new field to the current structure.
+   * @param entry The new field to add.
+   * @return The added field.
+   */
+  public StructEntry addField(StructEntry entry)
   {
-    list.addAll(1 + list.indexOf(startFromEntry), toBeAdded);
+    return addField(entry, getFieldCount());
   }
 
+  /**
+   * Inserts the specified entry as a new field at the given position to the current structure.
+   * @param entry The new field to add.
+   * @param index The desired position of the new field.
+   * @return The inserted field.
+   */
+  public StructEntry addField(StructEntry entry, int index)
+  {
+    if (entry != null) {
+      if (index < 0) index = 0; else if (index > list.size()) index = list.size();
+      entry.setParent(this);
+      list.add(index, entry);
+    }
+    return entry;
+  }
+
+  /** Adds list of entries to the AbstractStruct table after the specified index. */
+  public void addToList(int startIndex, List<StructEntry> toBeAdded)
+  {
+    if (toBeAdded != null) {
+      startIndex = Math.max(-1, Math.min(list.size() - 1, startIndex));
+      for (int i = 0; i < toBeAdded.size(); i++) {
+        addField(toBeAdded.get(i), startIndex+i+1);
+      }
+    }
+  }
+
+  /** Adds list of entries to the AbstractStruct table after the specified StructEntry object. */
+  public void addToList(StructEntry startFromEntry, List<StructEntry> toBeAdded)
+  {
+    if (toBeAdded != null) {
+      int startIndex = list.indexOf(startFromEntry) + 1;
+      for (int i = 0; i < toBeAdded.size(); i++) {
+        addField(toBeAdded.get(i), startIndex+i);
+      }
+    }
+  }
+
+  /**
+   * Removes all field entries from the list.
+   */
+  public void clearFields()
+  {
+    for (int i = 0; i < list.size(); i++) {
+      StructEntry e = list.remove(i);
+      e.setParent(null);
+    }
+  }
+
+  /**
+   * Returns the lowest-level structure located at the specified offset.
+   * @param offset The offset of the structure to find.
+   * @return The matching structure, or null if not found.
+   */
   public StructEntry getAttribute(int offset)
   {
-    List<StructEntry> flatList = getFlatList();
-    for (int i = 0; i < flatList.size(); i++) {
-      StructEntry structEntry = flatList.get(i);
-      if (offset >= structEntry.getOffset() && offset < structEntry.getOffset() + structEntry.getSize())
-        return structEntry;
+    return getAttribute(this, offset, StructEntry.class, true);
+  }
+
+  /**
+   * Returns the structure located at the specified offset.
+   * @param offset The offset of the structure to find.
+   * @param recursive If true, returns the lowest-level structure at the specified offset.
+   *                  If false, returns the first-level structure at the specified offset.
+   * @return The matching structure, or null if not found.
+   */
+  public StructEntry getAttribute(int offset, boolean recursive)
+  {
+    return getAttribute(this, offset, StructEntry.class, recursive);
+  }
+
+  /**
+   * Returns the lowest-level structure of the given type, located at the specified offset.
+   * @param offset The offset of the structure to find.
+   * @param type The type of structure to find.
+   * @return The matching structure, or null if not found.
+   */
+  public StructEntry getAttribute(int offset, Class<? extends StructEntry> type)
+  {
+    return getAttribute(this, offset, type, true);
+  }
+
+  /**
+   * Returns the structure of the given type, located at the specified offset.
+   * @param offset The offset of the structure to find.
+   * @param type The type of structure to find.
+   * @param recursive If true, returns the lowest-level structure at the specified offset.
+   *                  If false, returns the first-level structure at the specified offset.
+   * @return The matching structure, or null if not found.
+   */
+  public StructEntry getAttribute(int offset, Class<? extends StructEntry> type, boolean recursive)
+  {
+    return getAttribute(this, offset, type, recursive);
+  }
+
+  /**
+   * Returns the lowest-level structure, matching the given field name.
+   * @param ename The field name of the structure.
+   * @return The matching structure, or null if not found.
+   */
+  public StructEntry getAttribute(String ename)
+  {
+    return getAttribute(this, ename, true);
+  }
+
+  /**
+   * Returns the lowest-level structure, matching the given field name.
+   * @param ename The field name of the structure.
+   * @param recursive If true, returns the lowest-level structure matching the given name.
+   *                  If false, returns the first-level structure matching the given name.
+   * @return The matching structure, or null if not found.
+   */
+  public StructEntry getAttribute(String ename, boolean recursive)
+  {
+    return getAttribute(this, ename, recursive);
+  }
+
+  private StructEntry getAttribute(AbstractStruct parent, int offset, Class<? extends StructEntry> type,
+                                   boolean recursive)
+  {
+    if (parent == null) parent = this;
+    if (type == null) type = StructEntry.class;
+
+    for (int i = 0; i < parent.getFieldCount(); i++) {
+      StructEntry structEntry = parent.getField(i);
+      if (offset >= structEntry.getOffset() &&
+          offset < structEntry.getOffset() + structEntry.getSize()) {
+        if (recursive && structEntry instanceof AbstractStruct) {
+          return getAttribute((AbstractStruct)structEntry, offset, type, recursive);
+        } else if (type.isInstance(structEntry)) {
+          return structEntry;
+        }
+      }
     }
     return null;
   }
 
-  public StructEntry getAttribute(String ename)
+  private StructEntry getAttribute(AbstractStruct parent, String name, boolean recursive)
   {
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry structEntry = list.get(i);
-      if (structEntry.getName().equalsIgnoreCase(ename))
-        return structEntry;
+    if (name != null && !name.isEmpty()) {
+      if (parent == null) parent = this;
+
+      for (int i = 0; i < parent.getFieldCount(); i++) {
+        StructEntry structEntry = parent.getField(i);
+        if (structEntry.getName().equalsIgnoreCase(name)) {
+          return structEntry;
+        } else if (recursive && structEntry instanceof AbstractStruct) {
+          structEntry = getAttribute((AbstractStruct)structEntry, name, recursive);
+          if (structEntry != null) {
+            return structEntry;
+          }
+        }
+      }
     }
-    System.err.println("Could not find attribute " + ename + " in " + getName());
     return null;
   }
 
@@ -457,9 +675,28 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return list;
   }
 
+  /** Returns the number of fields in the current structure. */
+  public int getFieldCount()
+  {
+    return list.size();
+  }
+
+  /**
+   * Returns the StructEntry object at the specified index.
+   * @param index The index of the desired StructEntry object.
+   * @return The StructEntry object, or null if not available.
+   */
+  public StructEntry getField(int index)
+  {
+    if (index >= 0 && index < getFieldCount()) {
+      return list.get(index);
+    }
+    return null;
+  }
+
   public List<StructEntry> getFlatList()
   {
-    List<StructEntry> flatList = new ArrayList<StructEntry>(2 * list.size());
+    List<StructEntry> flatList = new ArrayList<StructEntry>(2 * getFieldCount());
     addFlatList(flatList);
     Collections.sort(flatList);
     return flatList;
@@ -473,11 +710,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public ResourceEntry getResourceEntry()
   {
     return entry;
-  }
-
-  public StructEntry getStructEntryAt(int index)
-  {
-    return list.get(index);
   }
 
   public AbstractStruct getSuperStruct()
@@ -498,6 +730,24 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       }
     }
     return null;
+  }
+
+  /**
+   * Returns whether any parent of the current AbstractStruct object is an instance of
+   * the specified class type.
+   */
+  public boolean isChildOf(Class<? extends AbstractStruct> struct)
+  {
+    if (struct != null) {
+      AbstractStruct parent = getSuperStruct();
+      while (parent != null) {
+        if (struct.isInstance(parent)) {
+          return true;
+        }
+        parent = parent.getSuperStruct();
+      }
+    }
+    return false;
   }
 
   // end - implements Viewable
@@ -561,8 +811,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     if (topStruct instanceof Resource)
       topStruct.endoffset -= removedEntry.getSize();
-    if (DEBUG_MESSAGES)
-      System.out.println("Removing: " + removedEntry.getName());
+//    if (DEBUG_MESSAGES)
+//      System.out.println("Removing: " + removedEntry.getName());
     adjustEntryOffsets(topStruct, this, removedEntry, -removedEntry.getSize());
     adjustSectionOffsets(topStruct, removedEntry, -removedEntry.getSize());
     datatypeRemoved(removedEntry);
@@ -570,8 +820,41 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       superStruct.datatypeRemovedInChild(this, removedEntry);
     fireTableRowsDeleted(index, index);
     setStructChanged(true);
-    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
-      topStruct.testStruct();
+//    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
+//      topStruct.testStruct();
+  }
+
+  /**
+   * Removes the specified entry from the current structure.
+   * @param entry The entry to remove.
+   * @return true if the current structure contained the given entry, false otherwise.
+   */
+  public boolean removeField(StructEntry entry)
+  {
+    if (entry != null) {
+      if (list.remove(entry)) {
+        entry.setParent(null);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Removes the entry at the specified index.
+   * @param index The index of the entry to remove.
+   * @return The removed entry if found, null otherwise.
+   */
+  public StructEntry removeField(int index)
+  {
+    if (index >= 0 && index < list.size()) {
+      StructEntry e = list.remove(index);
+      if (e != null) {
+        e.setParent(null);
+      }
+      return e;
+    }
+    return null;
   }
 
   public byte[] removeFromList(StructEntry startFromEntry, int numBytes) throws IOException
@@ -594,6 +877,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     list.set(index, structEntry);
     fireTableRowsUpdated(index, index);
+  }
+
+  public boolean hasStructChanged()
+  {
+    return structChanged;
   }
 
   public void setStructChanged(boolean changed)
@@ -684,6 +972,12 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return sb.toString();
   }
 
+  public void setExtraComponents(Collection<Component> list)
+  {
+    // List of components to be added to the bottom panel of the StructView component
+    viewerComponents = list;
+  }
+
   private void addFlatList(List<StructEntry> flatList)
   {
     for (int i = 0; i < list.size(); i++) {
@@ -695,6 +989,57 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       else
         flatList.add(o);
     }
+  }
+
+  public boolean hasViewTab()
+  {
+    return (viewer != null && viewer.hasViewTab());
+  }
+
+  public boolean isViewTabSelected()
+  {
+    return (viewer != null && viewer.isViewTabSelected());
+  }
+
+  public void selectViewTab()
+  {
+    if (viewer != null) {
+      viewer.selectViewTab();
+    }
+  }
+
+  public boolean isEditTabSelected()
+  {
+    return (viewer != null && viewer.isEditTabSelected());
+  }
+
+  public void selectEditTab()
+  {
+    if (viewer != null) {
+      viewer.selectEditTab();
+    }
+  }
+
+  public boolean hasRawTab()
+  {
+    return (viewer != null && viewer.hasRawTab());
+  }
+
+  public boolean isRawTabSelected()
+  {
+    return (viewer != null && viewer.isRawTabSelected());
+  }
+
+  public void selectRawTab()
+  {
+    if (viewer != null) {
+      viewer.selectRawTab();
+    }
+  }
+
+  // To be overriden by subclasses
+  protected void viewerInitialized(StructViewer viewer)
+  {
   }
 
   // To be overriden by subclasses
@@ -753,8 +1098,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   private void initAddStructMaps()
   {
-    countmap = new HashMap<Class, SectionCount>();
-    offsetmap = new HashMap<Class, SectionOffset>();
+    countmap = new HashMap<Class<? extends StructEntry>, SectionCount>();
+    offsetmap = new HashMap<Class<? extends StructEntry>, SectionOffset>();
     for (int i = 0; i < list.size(); i++) {
       Object o = list.get(i);
       if (o instanceof SectionOffset) {
@@ -794,6 +1139,19 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       flatList.get(i).write(os);
   }
 
-  protected abstract int read(byte buffer[], int startoffset) throws Exception;
+  /** Assign a new list of fields. Clears current list if argument is null. */
+  protected void setList(List<StructEntry> newList)
+  {
+    if (newList != null) {
+      list = newList;
+    } else {
+      list.clear();
+    }
+  }
+
+  protected void setSuperStruct(AbstractStruct struct)
+  {
+    this.superStruct = struct;
+  }
 }
 

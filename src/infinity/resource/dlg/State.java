@@ -11,6 +11,8 @@ import infinity.resource.AddRemovable;
 
 public final class State extends AbstractStruct implements AddRemovable
 {
+  public static final String FMT_NAME = "State %1$d";
+
   private int nr;
 
   State() throws Exception
@@ -20,7 +22,7 @@ public final class State extends AbstractStruct implements AddRemovable
 
   State(AbstractStruct superStruct, byte buffer[], int offset, int count) throws Exception
   {
-    super(superStruct, "State " + count, buffer, offset);
+    super(superStruct, String.format(FMT_NAME, count), buffer, offset);
     nr = count;
   }
 
@@ -51,6 +53,7 @@ public final class State extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -58,12 +61,13 @@ public final class State extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   public int read(byte buffer[], int offset)
   {
-    list.add(new StringRef(buffer, offset, "Response"));
-    list.add(new DecNumber(buffer, offset + 4, 4, "First response index"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "# responses"));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Trigger index"));
+    addField(new StringRef(buffer, offset, "Response"));
+    addField(new DecNumber(buffer, offset + 4, 4, "First response index"));
+    addField(new DecNumber(buffer, offset + 8, 4, "# responses"));
+    addField(new DecNumber(buffer, offset + 12, 4, "Trigger index"));
     return offset + 16;
   }
 }

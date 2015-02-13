@@ -4,38 +4,60 @@
 
 package infinity.datatype;
 
-import infinity.gui.*;
+import infinity.gui.StructViewer;
+import infinity.gui.TextListPanel;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
-import infinity.util.*;
+import infinity.util.DynamicArray;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class IwdRef extends Datatype implements Editable, ActionListener, ListSelectionListener
 {
-  private final LongIntegerHashMap idsmap;
+  private final LongIntegerHashMap<IdsMapEntry> idsmap;
   private JButton bView;
   private TextListPanel list;
   private long value;
 
   public IwdRef(byte buffer[], int offset, String name, String idsfile)
   {
-    super(offset, 4, name);
+    this(null, buffer, offset, name, idsfile);
+  }
+
+  public IwdRef(StructEntry parent, byte buffer[], int offset, String name, String idsfile)
+  {
+    super(parent, offset, 4, name);
     idsmap = IdsMapCache.get(idsfile).getMap();
-    value = Byteconvert.convertUnsignedInt(buffer, offset);
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
@@ -53,19 +75,21 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
-    long keys[] = idsmap.keys();
+    long[] keys = idsmap.keys();
     List<SplRefEntry> items = new ArrayList<SplRefEntry>(keys.length);
     for (long id : keys) {
-      String resourcename = ((IdsMapEntry)idsmap.get(id)).getString() + ".SPL";
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourcename);
+      String resourcename = idsmap.get(id).getString() + ".SPL";
+      ResourceEntry entry = ResourceFactory.getResourceEntry(resourcename);
       if (entry != null)
         items.add(new SplRefEntry(id, entry));
     }
     list = new TextListPanel(items);
     list.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2)
@@ -118,11 +142,13 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     SplRefEntry selected = (SplRefEntry)list.getSelectedValue();
@@ -135,6 +161,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent e)
   {
     bView.setEnabled(list.getSelectedValue() != null);
@@ -145,6 +172,7 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, value);
@@ -152,11 +180,24 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    value = DynamicArray.getUnsignedInt(buffer, offset);
+
+    return offset + getSize();
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     if (idsmap.containsKey(value)) {
-      String resourcename = ((IdsMapEntry)idsmap.get(value)).getString() + ".SPL";
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourcename);
+      String resourcename = idsmap.get(value).getString() + ".SPL";
+      ResourceEntry entry = ResourceFactory.getResourceEntry(resourcename);
       if (entry == null)
         return "None (" + value + ')';
       return entry.toString() + " (" + entry.getSearchString() + ')';
@@ -164,9 +205,52 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
     return "None (" + value + ')';
   }
 
+  public long getValue()
+  {
+    return value;
+  }
+
+  public long getValue(String ref)
+  {
+    if (ref != null && !ref.isEmpty()) {
+      if (ref.lastIndexOf('.') > 0) {
+        ref = ref.substring(0, ref.lastIndexOf(',')).toUpperCase(Locale.ENGLISH);
+      } else {
+        ref = ref.toUpperCase(Locale.ENGLISH);
+      }
+      if (idsmap.containsValue(ref)) {
+        long[] keys = idsmap.keys();
+        for (int i = 0; i < keys.length; i++) {
+          if (idsmap.get(keys[i]).equals(ref)) {
+            return keys[i];
+          }
+        }
+      }
+    }
+    return -1L;
+  }
+
+  public String getValueRef()
+  {
+    if (idsmap.containsKey(value)) {
+      return idsmap.get(value).getString() + ".SPL";
+    } else {
+      return "None";
+    }
+  }
+
+  public String getValueRef(long id)
+  {
+    if (idsmap.containsKey(id)) {
+      return idsmap.get(id).getString() + ".SPL";
+    } else {
+      return "None";
+    }
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class SplRefEntry implements Comparable
+  private static final class SplRefEntry implements Comparable<SplRefEntry>
   {
     private final long val;
     private final ResourceEntry splref;
@@ -177,12 +261,14 @@ public final class IwdRef extends Datatype implements Editable, ActionListener, 
       this.splref = splref;
     }
 
+    @Override
     public String toString()
     {
       return splref.toString() + " (" + splref.getSearchString() + ')';
     }
 
-    public int compareTo(Object o)
+    @Override
+    public int compareTo(SplRefEntry o)
     {
       return splref.toString().compareTo(o.toString());
     }

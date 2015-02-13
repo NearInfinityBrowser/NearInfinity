@@ -6,12 +6,12 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.modes.BCSTokenMaker;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -25,29 +25,52 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-public class ScriptTextArea extends JTextArea {
-  ScriptPopupMenu menu = new ScriptPopupMenu();
+import org.fife.ui.rsyntaxtextarea.Token;
+import org.fife.ui.rsyntaxtextarea.folding.Fold;
+
+public class ScriptTextArea extends InfinityTextArea
+{
+  private ScriptPopupMenu menu = new ScriptPopupMenu();
 
   public ScriptTextArea() {
-    super();
+    super(true);
+
+    Language lang;
+    if (BrowserMenuBar.getInstance() != null &&
+        BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+        lang = Language.BCS;
+    } else {
+      lang = Language.NONE;
+    }
+    applyExtendedSettings(lang, null);
+
     addMouseListener(new MouseAdapter() {
+      @Override
       public void mousePressed(MouseEvent ev) {
         handlePopup(ev);
       }
 
+      @Override
       public void mouseReleased(MouseEvent ev) {
         handlePopup(ev);
       }
     });
   }
 
+  @Override
+  public void setText(String text)
+  {
+    // prevent undo to remove the text
+    super.setText(text);
+    discardAllEdits();
+  }
+
   // try to paint an indicator below "crosslinks"
+  @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
     Rectangle rect = g.getClipBounds();
@@ -89,8 +112,8 @@ public class ScriptTextArea extends JTextArea {
           // convert into view coordinates
           rectStart = modelToView(pair[0]);
           rectEnd = modelToView(pair[1]);
-          g2d.drawLine(rectStart.x, rectStart.y + rectStart.height,
-                     rectEnd.x, rectEnd.y + rectEnd.height);
+          g2d.drawLine(rectStart.x, rectStart.y + rectStart.height - 1,
+                     rectEnd.x, rectEnd.y + rectEnd.height - 1);
         }
         g2d.setStroke(oldStroke);
       } catch (BadLocationException e) { }
@@ -100,24 +123,47 @@ public class ScriptTextArea extends JTextArea {
   // looks for "crosslinks" in script lines
   private int[][] findLinksInSection(int start, int end) throws BadLocationException {
     ArrayList<int[]> links = new ArrayList<int[]>();
-    String linetext = getText(start, end - start);
 
-    int posStartToken = -1;
-    for (int i = 0; i < linetext.length(); i++) {
-      if (linetext.charAt(i) == '"') {
-        if (posStartToken != -1) {
-          // found a "word", so check for possible crosslink
-          String token = linetext.substring(posStartToken + 1, i);
+    int startLine = getLineOfOffset(start);
+    int endLine = getLineOfOffset(end);
+    for (int i = startLine; i <= endLine; i++) {
+      // skipping folded lines
+      boolean folded = false;
+      for (int j = 0; j < getFoldManager().getFoldCount(); j++) {
+        Fold fold = getFoldManager().getFold(j);
+        if (fold.isCollapsed() && i >= fold.getStartLine() && i <= fold.getEndLine()) {
+          folded = true;
+          break;
+        }
+      }
+      if (folded) {
+        continue;
+      }
 
-          if (findResEntry(linetext, posStartToken + 1, token) != null) {
-            // add it to our list of crosslinks
-            links.add(new int[] { start + posStartToken + 1, start + i });
+      // looking for crosslinks
+      String lineText = getText().substring(getLineStartOffset(i), getLineEndOffset(i));
+      Token token = getTokenListForLine(i);
+      while (token != null && token.getType() != Token.NULL) {
+        if (token.getOffset() >= start && token.getOffset() + token.length() <= end) {
+          if (token.getType() == BCSTokenMaker.TOKEN_STRING && token.length() > 2) {
+            int ofsTokenFromLineStart = token.getOffset() - getLineStartOffset(i);
+            String text = token.getLexeme().substring(1, token.length() - 1);
+            if (findResEntry(lineText, ofsTokenFromLineStart + 1, text) != null) {
+              // add it to our list of crosslinks
+              links.add(new int[]{start + ofsTokenFromLineStart + 1,
+                                  start + ofsTokenFromLineStart + token.length() - 1});
+            }
+          } else if (token.getType() == BCSTokenMaker.TOKEN_SYMBOL_SPELL) {
+            int ofsTokenFromLineStart = token.getOffset() - getLineStartOffset(i);
+            String text = token.getLexeme();
+            if (findResEntry(lineText, ofsTokenFromLineStart + 1, text) != null) {
+              // add it to our list of crosslinks
+              links.add(new int[]{start + ofsTokenFromLineStart,
+                                  start + ofsTokenFromLineStart + token.length()});
+            }
           }
-          posStartToken = -1;
         }
-        else {
-          posStartToken = i;
-        }
+        token = token.getNextToken();
       }
     }
     return links.toArray(new int[0][0]);
@@ -239,47 +285,21 @@ public class ScriptTextArea extends JTextArea {
 
         // spell.ids
         if (definition.equalsIgnoreCase("I:Spell*Spell")) {
-          IdsMapEntry idsSpell = IdsMapCache.get("spell.ids").lookup(token);
-          if (idsSpell != null) {
-            String spellID = String.valueOf(idsSpell.getID());
-            int type = Character.digit(spellID.charAt(0), 10);
-            String splfile;
-            switch (type) {
-              case 1:
-                splfile = "SPPR";
-                break;
-
-              case 2:
-                splfile = "SPWI";
-                break;
-
-              case 3:
-                splfile = "SPIN";
-                break;
-
-              case 4:
-                splfile = "SPCL";
-                break;
-
-              default:
-                return null;
-            }
-            splfile += spellID.substring(1) + ".SPL";
-            if (ResourceFactory.getInstance().resourceExists(splfile)) {
-              return ResourceFactory.getInstance().getResourceEntry(splfile);
-            }
-
+          // retrieving spell resource specified by symbolic spell name
+          String resName = infinity.resource.spl.Viewer.getResourceName(token, true);
+          if (resName != null && !resName.isEmpty() &&
+              ResourceFactory.resourceExists(resName)) {
+            return ResourceFactory.getResourceEntry(resName);
+          } else {
+            return null;
           }
-
-          // found nothing, if this line is reached
-          return null;
         }
 
         // guessing
         String[] possibleExtensions = guessExtension(function, definition);
         for (final String ext : possibleExtensions) {
-          if (ResourceFactory.getInstance().resourceExists(token + ext)) {
-            return ResourceFactory.getInstance().getResourceEntry(token + ext);
+          if (ResourceFactory.resourceExists(token + ext)) {
+            return ResourceFactory.getResourceEntry(token + ext);
           }
         }
 
@@ -341,16 +361,16 @@ public class ScriptTextArea extends JTextArea {
     }
     // and now the ambiguous
     else if (definition.equalsIgnoreCase("S:Effect*")) {
-      return new String[] { ".BAM", ".VEF", ".VVC" };
+      return new String[] { ".VEF", ".VVC", ".BAM" };
     }
     else if (definition.equalsIgnoreCase("S:DialogFile*")) {
-      return new String[] { ".DLG", ".VEF", ".VVC" };
+      return new String[] { ".DLG", ".VEF", ".VVC", ".BAM" };
     }
     else if (definition.equalsIgnoreCase("S:Object*")) {
-      return new String[] { ".ITM", ".VEF", ".VVC", ".BAM" };
+      return Decompiler.getResRefType(function);
     }
     else if (definition.equalsIgnoreCase("S:NewObject*")) {
-      return new String[] { ".CRE", ".DLG", ".BCS", ".ITM" };
+      return Decompiler.getResRefType(function);
     }
     else if (definition.equalsIgnoreCase("S:ResRef*")) {
       return Decompiler.getResRefType(function);
@@ -358,6 +378,9 @@ public class ScriptTextArea extends JTextArea {
 
     return new String[] {};
   }
+
+
+//-------------------------- INNER CLASSES --------------------------
 
   private class ScriptPopupMenu extends JPopupMenu implements ActionListener {
     private ResourceEntry resourceEntry = null;
@@ -375,6 +398,7 @@ public class ScriptTextArea extends JTextArea {
     public void setResEntry(ResourceEntry resEntry) {
       this.resourceEntry = resEntry;
     }
+    @Override
     public void actionPerformed(ActionEvent ev) {
       if (ev.getSource() == mi_open) {
         NearInfinity.getInstance().showResourceEntry(resourceEntry);

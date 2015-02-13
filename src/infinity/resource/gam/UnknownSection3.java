@@ -14,9 +14,10 @@ final class UnknownSection3 extends AbstractStruct
     super(superStruct, "Unknown section", buffer, offset);
   }
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new Unknown(buffer, offset, 24));
+    addField(new Unknown(buffer, offset, 24));
     return offset + 24;
   }
 }

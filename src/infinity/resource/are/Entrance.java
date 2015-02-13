@@ -4,24 +4,28 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Entrance extends AbstractStruct implements AddRemovable
+public final class Entrance extends AbstractStruct implements AddRemovable
 {
   Entrance() throws Exception
   {
     super(null, "Entrance", new byte[104], 0);
   }
 
-  Entrance(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Entrance(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Entrance", buffer, offset);
+    super(superStruct, "Entrance " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -29,13 +33,14 @@ final class Entrance extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new DecNumber(buffer, offset + 32, 2, "Location: X"));
-    list.add(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
-    list.add(new Bitmap(buffer, offset + 36, 4, "Orientation", Actor.s_orientation));
-    list.add(new Unknown(buffer, offset + 40, 64));
+    addField(new TextString(buffer, offset, 32, "Name"));
+    addField(new DecNumber(buffer, offset + 32, 2, "Location: X"));
+    addField(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
+    addField(new Bitmap(buffer, offset + 36, 4, "Orientation", Actor.s_orientation));
+    addField(new Unknown(buffer, offset + 40, 64));
     return offset + 104;
   }
 }

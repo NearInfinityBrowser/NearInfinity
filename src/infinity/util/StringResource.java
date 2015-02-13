@@ -4,9 +4,17 @@
 
 package infinity.util;
 
-import javax.swing.*;
-import java.io.*;
+import infinity.resource.Profile;
+import infinity.util.io.FileReaderNI;
+import infinity.util.io.RandomAccessFileNI;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+
+import javax.swing.JOptionPane;
 
 public final class StringResource
 {
@@ -19,15 +27,18 @@ public final class StringResource
   private static Charset charset = cp1252Charset;
   private static Charset usedCharset = charset;
 
+  /** Returns the charset used to decode strings of the string resource. */
   public static Charset getCharset() {
     return charset;
   }
 
+  /** Specify the charset used to decode strings of the string resource. */
   public static void setCharset(String cs) {
     charset = Charset.forName(cs);
     usedCharset = charset;
   }
 
+  /** Explicitly closes the dialog.tlk file handle. */
   public static void close()
   {
     if (file == null) return;
@@ -39,16 +50,19 @@ public final class StringResource
     file = null;
   }
 
+  /** Returns the File instance of the dialog.tlk */
   public static File getFile()
   {
     return ffile;
   }
 
+  /** Returns the available number of strref entries in the dialog.tlk */
   public static int getMaxIndex()
   {
     return maxnr;
   }
 
+  /** Returns the resource name of the sound file associated with the specified strref entry. */
   public static String getResource(int index)
   {
     try {
@@ -77,7 +91,7 @@ public final class StringResource
         }
       }
       if (max != buffer.length)
-        buffer = ArrayUtil.getSubArray(buffer, 0, max);
+        buffer = Arrays.copyOfRange(buffer, 0, max);
       return new String(buffer);
     } catch (Exception e) {
       e.printStackTrace();
@@ -87,13 +101,41 @@ public final class StringResource
     return null;
   }
 
+  /** Returns the string of the specified sttref entry. */
   public static String getStringRef(int index)
   {
+    return getStringRef(index, false);
+  }
+
+  /** Returns the string of the specified sttref entry, optionally with an appended strref value. */
+  public static String getStringRef(int index, boolean extended)
+  {
+    return getStringRef(index, extended, false);
+  }
+
+  /**
+   * Returns the string of the specified sttrref entry. Optionally adds the specified
+   * Strref entry to the returned string.
+   * @param index The strref entry
+   * @param extended If <code>true</code> adds the specified strref entry to the resulting string.
+   * @param asPrefix Strref value is prepended (if <code>true</code>) or appended
+   *                 (if <code>false</code>) to the string. Ignored if "extended" is <code>false</code>.
+   * @return The string optionally including the strref entry.
+   */
+  public static String getStringRef(int index, boolean extended, boolean asPrefix)
+  {
+    final String fmtResult;
+    if (extended) {
+      fmtResult = asPrefix ? "(Strref: %2$d) %1$s" : "%1$s (Strref: %2$d)";
+    } else {
+      fmtResult = "%1$s";
+    }
+
+    int strref = index;
     try {
       if (file == null)
         open();
-      if (index >= maxnr || index < 0) return "No such index";
-//      if (index == 0xffffffff) return "none";
+      if (index >= maxnr || index < 0) return String.format(fmtResult, "No such index", strref);
       if (version.equalsIgnoreCase("V1  ")) {
         index *= 0x1A;
         file.seek((long)(0x12 + index + 0x12));
@@ -102,10 +144,10 @@ public final class StringResource
         index *= 0x28;
         file.seek((long)(0x14 + index + 0x1C));
       }
-      int offset = startindex + Filereader.readInt(file);
-      int length = Filereader.readInt(file);
+      int offset = startindex + FileReaderNI.readInt(file);
+      int length = FileReaderNI.readInt(file);
       file.seek((long)offset);
-      return Filereader.readString(file, length, usedCharset);
+      return String.format(fmtResult, FileReaderNI.readString(file, length, usedCharset), strref);
     } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
@@ -114,6 +156,7 @@ public final class StringResource
     return "Error";
   }
 
+  /** Specify a new dialog.tlk. */
   public static void init(File ffile)
   {
     close();
@@ -122,26 +165,19 @@ public final class StringResource
 
   private static void open() throws IOException
   {
-    file = new RandomAccessFile(ffile, "r");
+    file = new RandomAccessFileNI(ffile, "r");
     file.seek((long)0x00);
-    String signature = Filereader.readString(file, 4);
+    String signature = FileReaderNI.readString(file, 4);
     if (!signature.equalsIgnoreCase("TLK "))
       throw new IOException("Not valid TLK file");
-    version = Filereader.readString(file, 4);
+    version = FileReaderNI.readString(file, 4);
     if (version.equalsIgnoreCase("V1  "))
       file.seek((long)0x0A);
     else if (version.equalsIgnoreCase("V3.0"))
       file.seek((long)0x0C);
-    maxnr = Filereader.readInt(file);
-    startindex = Filereader.readInt(file);
-    /*
-     * This is a temporary and extremely hacky solution; a better
-     * solution would be to have a proper ID for BGEE and go by
-     * that (but I am too lazy to do that now). The issue is that
-     * BGEE uses UTF8 while the original editions use the
-     * windows-12** series.
-     */
-    if (new File(infinity.resource.ResourceFactory.getRootDir(), "/lang/en_us/dialog.tlk").exists()) {
+    maxnr = FileReaderNI.readInt(file);
+    startindex = FileReaderNI.readInt(file);
+    if (Profile.isEnhancedEdition()) {
       usedCharset = utf8Charset;
     }
   }

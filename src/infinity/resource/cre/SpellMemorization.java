@@ -4,8 +4,13 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.StructEntry;
 
 final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
@@ -23,6 +28,7 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -33,6 +39,7 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new MemorizedSpells()};
@@ -40,6 +47,7 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
 
 // --------------------- End Interface HasAddRemovable ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof MemorizedSpells) {
@@ -53,14 +61,15 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
     }
   }
 
+  @Override
   public int read(byte buffer[], int offset)
   {
-    list.add(new DecNumber(buffer, offset, 2, "Spell level"));
-    list.add(new DecNumber(buffer, offset + 2, 2, "# spells memorizable"));
-    list.add(new DecNumber(buffer, offset + 4, 2, "# currently memorizable"));
-    list.add(new Bitmap(buffer, offset + 6, 2, "Type", s_spelltype));
-    list.add(new DecNumber(buffer, offset + 8, 4, "Spell table index"));
-    list.add(new DecNumber(buffer, offset + 12, 4, "Spell count"));
+    addField(new DecNumber(buffer, offset, 2, "Spell level"));
+    addField(new DecNumber(buffer, offset + 2, 2, "# spells memorizable"));
+    addField(new DecNumber(buffer, offset + 4, 2, "# currently memorizable"));
+    addField(new Bitmap(buffer, offset + 6, 2, "Type", s_spelltype));
+    addField(new DecNumber(buffer, offset + 8, 4, "Spell table index"));
+    addField(new DecNumber(buffer, offset + 12, 4, "Spell count"));
     return offset + 16;
   }
 
@@ -68,16 +77,17 @@ final class SpellMemorization extends AbstractStruct implements AddRemovable, Ha
   {
     DecNumber firstSpell = (DecNumber)getAttribute("Spell table index");
     DecNumber numSpell = (DecNumber)getAttribute("Spell count");
-    for (int i = 0; i < numSpell.getValue(); i++)
-      list.add(new MemorizedSpells(this, buffer, offset + 12 * (firstSpell.getValue() + i)));
+    for (int i = 0; i < numSpell.getValue(); i++) {
+      addField(new MemorizedSpells(this, buffer, offset + 12 * (firstSpell.getValue() + i)));
+    }
   }
 
   public int updateSpells(int offset, int startIndex)
   {
     ((DecNumber)getAttribute("Spell table index")).setValue(startIndex);
     int count = 0;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry instanceof MemorizedSpells) {
         entry.setOffset(offset);
         ((AbstractStruct)entry).realignStructOffsets();

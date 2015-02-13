@@ -6,17 +6,43 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
-import infinity.resource.key.*;
-import infinity.util.Filewriter;
+import infinity.resource.key.BIFFEntry;
+import infinity.resource.key.BIFFResourceEntry;
+import infinity.resource.key.BIFFWriter;
+import infinity.resource.key.FileResourceEntry;
+import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileOutputStreamNI;
+import infinity.util.io.FileWriterNI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class BIFFEditor implements ActionListener, ListSelectionListener, Runnable
 {
@@ -37,17 +63,19 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
   public BIFFEditor()
   {
-    if (firstrun)
+    if (firstrun) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                     "Make sure you have a backup of " +
-                                    ResourceFactory.getKeyfile().toString(),
+                                    Profile.getChitinKey().toString(),
                                     "Warning", JOptionPane.WARNING_MESSAGE);
+    }
     firstrun = false;
     new ChooseBIFFrame(this);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bcancel)
@@ -87,6 +115,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (!event.getValueIsAdjusting()) {
@@ -100,6 +129,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -107,7 +137,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     blocker.setBlocked(true);
     // 1: Delete old entries from keyfile
     for (int i = 0; i < origbiflist.size(); i++)
-      ResourceFactory.getInstance().getResources().removeResourceEntry(origbiflist.get(i));
+      ResourceFactory.getResources().removeResourceEntry(origbiflist.get(i));
     progress.setProgress(1, true);
 
     try {
@@ -115,13 +145,13 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       List<ResourceEntry> overrideBif = overridetable.getValueList(BIFFEditorTable.TYPE_BIF);
       for (int i = 0; i < overrideBif.size(); i++) {
         ResourceEntry entry = overrideBif.get(i);
-        File file = new File(ResourceFactory.getRootDir(),
-                             ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
-        OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
-        Filewriter.writeBytes(os, entry.getResourceData(true));
+        File file = FileNI.getFile(Profile.getRootFolders(),
+                                   Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+        OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(file));
+        FileWriterNI.writeBytes(os, entry.getResourceData(true));
         os.close();
         FileResourceEntry fileEntry = new FileResourceEntry(file, true);
-        ResourceFactory.getInstance().getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
+        ResourceFactory.getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
       }
       progress.setProgress(2, true);
     } catch (Exception e) {
@@ -156,19 +186,19 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     // 4: Delete old files from override
     for (int i = 0; i < tobif.size(); i++)
-      new File(ResourceFactory.getRootDir(),
-               ResourceFactory.OVERRIDEFOLDER + File.separatorChar + tobif.get(i).toString()).delete();
+      FileNI.getFile(Profile.getRootFolders(),
+               Profile.getOverrideFolderName() + File.separatorChar + tobif.get(i).toString()).delete();
     progress.setProgress(4, true);
 
     // 5: Add new OverrideResourceEntries (ResourceEntries deleted from BIF)
     origbiflist.removeAll(biftable.getValueList(BIFFEditorTable.TYPE_BIF));
     origbiflist.removeAll(overridetable.getValueList(BIFFEditorTable.TYPE_BIF));
     for (int i = 0; i < origbiflist.size(); i++) {
-      File file = new File(ResourceFactory.getRootDir(),
-                           ResourceFactory.OVERRIDEFOLDER + File.separatorChar +
+      File file = FileNI.getFile(Profile.getRootFolders(),
+                           Profile.getOverrideFolderName() + File.separatorChar +
                            origbiflist.get(i).toString());
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
-      ResourceFactory.getInstance().getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
+      ResourceFactory.getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
     }
     progress.setProgress(5, true);
 
@@ -182,7 +212,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
                                     JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
     }
-    ResourceFactory.getInstance().getResources().sort();
+    ResourceFactory.getResources().sort();
     blocker.setBlocked(false);
   }
 
@@ -199,7 +229,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
 
-    for (final ResourceEntry entry : ResourceFactory.getInstance().getResources().getResourceEntries()) {
+    for (final ResourceEntry entry : ResourceFactory.getResources().getResourceEntries()) {
       if (entry instanceof FileResourceEntry && entry.hasOverride() && entry.toString().length() < 13 &&
           ResourceFactory.getKeyfile().getExtensionType(entry.getExtension()) != -1)
         overridetable.addEntry(entry, BIFFEditorTable.TYPE_NEW);
@@ -238,12 +268,12 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     List<String> formats = new ArrayList<String>();
     formats.add(s_bifformat[BIFF]);
-    int gameid = ResourceFactory.getGameID();
-    if (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
-        gameid == ResourceFactory.ID_ICEWINDHOWTOT)
+    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIF)) {
       formats.add(s_bifformat[BIF]);
-    else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB)
+    }
+    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIFC)) {
       formats.add(s_bifformat[BIFC]);
+    }
     cbformat = new JComboBox(formats.toArray());
     cbformat.addActionListener(this);
     if (format != BIFF)
@@ -357,6 +387,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       bok.setEnabled(level == boxes.length || !ok);
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == bok)

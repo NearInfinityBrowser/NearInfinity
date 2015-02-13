@@ -5,16 +5,47 @@
 package infinity.search;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Profile;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.TextResource;
+import infinity.resource.Viewable;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
@@ -32,9 +63,12 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     this.query = query;
     this.parent = parent;
     setIconImage(Icons.getIcon("History16.gif").getImage());
-    table = new SortableTable(new String[]{"File", "Text", "Line"},
-                              new Class[]{Object.class, Object.class, Integer.class},
-                              new int[]{100, 300, 50});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Text", "Line"}),
+                              colClasses, Arrays.asList(new Integer[]{100, 300, 50}));
+
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');
     bsave.setMnemonic('s');
@@ -60,6 +94,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     final ChildFrame frame = this;
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseReleased(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
@@ -82,6 +117,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bopen) {
@@ -112,20 +148,20 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Save search result");
-      chooser.setSelectedFile(new File("result.txt"));
+      chooser.setSelectedFile(new FileNI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Searched for: " + query);
           pw.println("Number of hits: " + table.getRowCount());
           for (int i = 0; i < table.getRowCount(); i++)
@@ -147,6 +183,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -155,6 +192,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- End Interface ListSelectionListener ---------------------
 
+  @Override
   public void setVisible(boolean b)
   {
     table.tableComplete();
@@ -185,6 +223,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
       this.linenr = new Integer(linenr);
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)
@@ -194,11 +233,11 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
       return linenr;
     }
 
+    @Override
     public String toString()
     {
-      StringBuffer buf = new StringBuffer("File: ");
-      buf.append(entry.toString()).append("  Text: ").append(line).append("  Line: ").append(linenr);
-      return buf.toString();
+      return String.format("File: %1$s  Text: %2$s  Line: %3$d",
+                           entry.toString(), line, linenr);
     }
   }
 }

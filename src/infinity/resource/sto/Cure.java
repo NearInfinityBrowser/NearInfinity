@@ -16,13 +16,14 @@ final class Cure extends AbstractStruct implements AddRemovable
     super(null, "Cure", new byte[12], 0);
   }
 
-  Cure(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Cure(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Cure", buffer, offset);
+    super(superStruct, "Cure " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -30,10 +31,11 @@ final class Cure extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "Price"));
+    addField(new ResourceRef(buffer, offset, "Spell", "SPL"));
+    addField(new DecNumber(buffer, offset + 8, 4, "Price"));
     return offset + 12;
   }
 }

@@ -1,28 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NearInfinity" default="binary">
-    <target name="binary">
-      <delete>
-        <fileset dir="." includes="**/*.class,NearInfinity.jar" />
-      </delete>
-      <javac srcdir="src/infinity" />
-      <jar destfile="NearInfinity.jar"
-           basedir="src"
-           includes="infinity/**/*"
-           excludes="**/.*,**/*.java">
-        <manifest>
-          <attribute name="Main-Class" value="infinity.NearInfinity" />
-        </manifest>
-      </jar>
-    </target>
-    <target name="source">
-      <zip destfile="NearInfinity.zip"
-           basedir="src"
-           includes="infinity/**/*"
-           excludes="**/.*,**/*.class" />
-    </target>
-    <target name="clean">
-        <delete>
-          <fileset dir="." includes="**/*.class,NearInfinity.jar" />
-        </delete>
-    </target>
+<project name="NearInfinity" default="binary" basedir=".">
+  <property name="jar.file" value="NearInfinity.jar"/>
+  <property name="build.path" location="build"/>
+  <property name="src.path" location="src"/>
+  <property name="lib.path.rel" value="lib"/>
+  <property name="lib.path.abs" location="${lib.path.rel}"/>
+  <property name="jorbis.file" value="${lib.path.rel}/jorbis/jorbis.jar"/>
+  <property name="rsyntaxtextarea.file" value="${lib.path.rel}/rsyntaxtextarea/rsyntaxtextarea.jar"/>
+  <property name="jhexview.file" value="${lib.path.rel}/jhexview/jhexview.jar"/>
+
+  <target name="binary">
+    <mkdir dir="${build.path}"/>
+
+    <javac srcdir="${src.path}"
+           destdir="${build.path}"
+           source="1.6"
+           target="1.6"
+           includeantruntime="false"
+           deprecation="false"
+           debug="false"
+           debuglevel="lines,vars,source"
+           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}">
+      <!--<compilerarg value="-Xlint:unchecked"/>-->
+    </javac>
+
+    <copy todir="${build.path}">
+      <fileset dir="${src.path}" excludes="**/*.java"/>
+    </copy>
+
+    <jar destfile="${jar.file}"
+         basedir="${build.path}"
+         includes="**/*">
+      <zipgroupfileset dir="${lib.path.abs}" includes="**/*.jar"/>
+      <manifest>
+        <attribute name="Main-Class" value="infinity.NearInfinity"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build.path}"/>
+    <delete file="${jar.file}"/>
+    <delete>
+      <fileset dir="${src.path}" includes="**/*.class"/>
+    </delete>
+  </target>
 </project>

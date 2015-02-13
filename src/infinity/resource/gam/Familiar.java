@@ -4,7 +4,10 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
 final class Familiar extends AbstractStruct
@@ -14,22 +17,28 @@ final class Familiar extends AbstractStruct
     super(superStruct, "Familiar info", buffer, offset);
   }
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Lawful good", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 8, "Lawful neutral", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 16, "Lawful evil", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 24, "Neutral good", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 32, "True neutral", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 40, "Neutral evil", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 48, "Chaotic good", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 56, "Chaotic neutral", "CRE"));
-    list.add(new ResourceRef(buffer, offset + 64, "Chaotic evil", "CRE"));
+    addField(new ResourceRef(buffer, offset, "Lawful good", "CRE"));
+    addField(new ResourceRef(buffer, offset + 8, "Lawful neutral", "CRE"));
+    addField(new ResourceRef(buffer, offset + 16, "Lawful evil", "CRE"));
+    addField(new ResourceRef(buffer, offset + 24, "Neutral good", "CRE"));
+    addField(new ResourceRef(buffer, offset + 32, "True neutral", "CRE"));
+    addField(new ResourceRef(buffer, offset + 40, "Neutral evil", "CRE"));
+    addField(new ResourceRef(buffer, offset + 48, "Chaotic good", "CRE"));
+    addField(new ResourceRef(buffer, offset + 56, "Chaotic neutral", "CRE"));
+    addField(new ResourceRef(buffer, offset + 64, "Chaotic evil", "CRE"));
     HexNumber offEOS = new HexNumber(buffer, offset + 72, 4, "End of structure offset");
-    list.add(offEOS);
+    addField(offEOS);
     offset += 76;
-    int unknownSize = offEOS.getValue() > buffer.length ? buffer.length - offset : offEOS.getValue() - offset;
-    list.add(new Unknown(buffer, offset, unknownSize));
+    int unknownOfs = offEOS.getValue();
+    if (unknownOfs < offset) {
+      // size of unknown block appears to be always 324 bytes in valid GAM files
+      unknownOfs = Math.min(offset + 324, buffer.length);
+    }
+    int unknownSize = unknownOfs > buffer.length ? buffer.length - offset : unknownOfs - offset;
+    addField(new Unknown(buffer, offset, unknownSize));
     offset += unknownSize;
     return offset;
   }

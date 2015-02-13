@@ -5,10 +5,16 @@
 package infinity.util;
 
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.text.PlainTextResource;
 
-import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
+
+import javax.swing.JOptionPane;
 
 public final class IdsMap
 {
@@ -17,12 +23,12 @@ public final class IdsMap
   private final ResourceEntry entry;
   private Map<String, IdsMapEntry> stringEntryMap;
 
-  IdsMap(ResourceEntry entry)
+  public IdsMap(ResourceEntry entry)
   {
     this.entry = entry;
     StringTokenizer st;
     try {
-      st = new StringTokenizer(new PlainTextResource(entry).getText(), "\n");
+      st = new StringTokenizer(new PlainTextResource(entry).getText(), "\r\n");
     } catch (Exception e) {
       e.printStackTrace();
       return;
@@ -44,12 +50,12 @@ public final class IdsMap
         stringEntryMap = new HashMap<String, IdsMapEntry>();
         for (final Object newVar : idEntryMap.values()) {
           IdsMapEntry idsEntry = (IdsMapEntry)newVar;
-          stringEntryMap.put(idsEntry.getString().toUpperCase(), idsEntry);
+          stringEntryMap.put(idsEntry.getString().toUpperCase(Locale.ENGLISH), idsEntry);
         }
         for (int i = 0; i < overflow.size(); i++) {
           IdsMapEntry idsEntry = overflow.get(i);
-          if (!stringEntryMap.containsKey(idsEntry.getString().toUpperCase()))
-            stringEntryMap.put(idsEntry.getString().toUpperCase(), idsEntry);
+          if (!stringEntryMap.containsKey(idsEntry.getString().toUpperCase(Locale.ENGLISH)))
+            stringEntryMap.put(idsEntry.getString().toUpperCase(Locale.ENGLISH), idsEntry);
         }
       }
     }
@@ -74,6 +80,7 @@ public final class IdsMap
     }
   }
 
+  @Override
   public String toString()
   {
     if (entry == null)
@@ -81,7 +88,7 @@ public final class IdsMap
     return entry.toString();
   }
 
-  public List getAllValues()
+  public List<IdsMapEntry> getAllValues()
   {
     List<IdsMapEntry> list = new ArrayList<IdsMapEntry>(idEntryMap.values());
     list.addAll(overflow);
@@ -118,7 +125,7 @@ public final class IdsMap
     if (entry.length() == 0 || entry.equals("0"))
       return null;
     if (stringEntryMap != null) {
-      IdsMapEntry idsEntry = stringEntryMap.get(entry.toUpperCase());
+      IdsMapEntry idsEntry = stringEntryMap.get(entry.toUpperCase(Locale.ENGLISH));
       if (idsEntry != null)
         return idsEntry;
     }

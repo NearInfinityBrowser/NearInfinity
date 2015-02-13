@@ -8,14 +8,14 @@ import infinity.datatype.DecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Wallgroup extends AbstractStruct implements AddRemovable
+public final class Wallgroup extends AbstractStruct implements AddRemovable
 {
-  Wallgroup() throws Exception
+  public Wallgroup() throws Exception
   {
     super(null, "Wall group", new byte[4], 0);
   }
 
-  Wallgroup(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public Wallgroup(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "Wall group " + nr, buffer, offset, 2);
   }
@@ -29,6 +29,7 @@ final class Wallgroup extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -36,10 +37,11 @@ final class Wallgroup extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   public int read(byte buffer[], int offset)
   {
-    list.add(new DecNumber(buffer, offset, 2, "Polygon index"));
-    list.add(new DecNumber(buffer, offset + 2, 2, "# polygons"));
+    addField(new DecNumber(buffer, offset, 2, "Polygon index"));
+    addField(new DecNumber(buffer, offset + 2, 2, "# polygons"));
     return offset + 4;
   }
 }

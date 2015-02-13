@@ -9,16 +9,26 @@ import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.resource.other.PlainTextResource;
-import infinity.util.*;
+import infinity.resource.StructEntry;
+import infinity.resource.text.PlainTextResource;
+import infinity.util.DynamicArray;
+import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 public final class Song2daBitmap extends Datatype implements Editable
 {
@@ -29,9 +39,8 @@ public final class Song2daBitmap extends Datatype implements Editable
   private static void parseSonglist()
   {
     try {
-      PlainTextResource songlist = new PlainTextResource(
-              ResourceFactory.getInstance().getResourceEntry("SONGLIST.2DA"));
-      StringTokenizer st = new StringTokenizer(songlist.getText(), "\n");
+      PlainTextResource songlist = new PlainTextResource(ResourceFactory.getResourceEntry("SONGLIST.2DA"));
+      StringTokenizer st = new StringTokenizer(songlist.getText(), "\r\n");
       if (st.hasMoreTokens())
         st.nextToken();
       if (st.hasMoreTokens())
@@ -44,8 +53,8 @@ public final class Song2daBitmap extends Datatype implements Editable
       e.printStackTrace();
     }
 
-    songNumber.put(0xFFFFFFFE, new SonglistEntry((long)-2, "Continue area music"));
-    songNumber.put(0xFFFFFFFF, new SonglistEntry((long)-1, "Continue outside music"));
+    songNumber.put(new Long(0xFFFFFFFE), new SonglistEntry((long)-2, "Continue area music"));
+    songNumber.put(new Long(0xFFFFFFFF), new SonglistEntry((long)-1, "Continue outside music"));
   }
 
   private static void parseSonglistLine(String s)
@@ -63,50 +72,44 @@ public final class Song2daBitmap extends Datatype implements Editable
 
   public Song2daBitmap(byte buffer[], int offset, int length)
   {
-    super(offset, length, "Song");
-    if (songNumber.size() == 0)
-      parseSonglist();
+    this(null, buffer, offset, length);
+  }
 
-    if (length == 4)
-      value = Byteconvert.convertInt(buffer, offset);
-    else if (length == 2)
-      value = (long)Byteconvert.convertShort(buffer, offset);
-    else if (length == 1)
-      value = (long)Byteconvert.convertByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length)
+  {
+    this(parent, buffer, offset, length, "Song");
   }
 
   public Song2daBitmap(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     if (songNumber.size() == 0)
       parseSonglist();
 
-    if (length == 4)
-      value = Byteconvert.convertInt(buffer, offset);
-    else if (length == 2)
-      value = (long)Byteconvert.convertShort(buffer, offset);
-    else if (length == 1)
-      value = (long)Byteconvert.convertByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
-    LongIntegerHashMap idsmap = songNumber;
+    LongIntegerHashMap<SonglistEntry> idsmap = songNumber;
     if (list == null) {
-      long keys[] = idsmap.keys();
+      long[] keys = idsmap.keys();
       List<SonglistEntry> items = new ArrayList<SonglistEntry>(keys.length);
       for (long id : keys) {
-        items.add((SonglistEntry)idsmap.get(id));
+        items.add(idsmap.get(id));
       }
       list = new TextListPanel(items);
       list.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -143,11 +146,13 @@ public final class Song2daBitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     SonglistEntry selected = (SonglistEntry)list.getSelectedValue();
@@ -160,6 +165,7 @@ public final class Song2daBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, value);
@@ -167,6 +173,31 @@ public final class Song2daBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        value = DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+
+    return offset + getSize();
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     Object o = songNumber.get(value);
@@ -174,6 +205,11 @@ public final class Song2daBitmap extends Datatype implements Editable
       return "Unknown - " + value;
     else
       return o.toString();
+  }
+
+  public long getValue()
+  {
+    return value;
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -189,6 +225,7 @@ public final class Song2daBitmap extends Datatype implements Editable
       this.name = name;
     }
 
+    @Override
     public String toString()
     {
       return name + " - " + number;

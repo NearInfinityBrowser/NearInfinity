@@ -4,11 +4,16 @@
 
 package infinity.util;
 
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.StructEntry;
 
-import javax.swing.event.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public final class StructClipboard
 {
@@ -18,7 +23,7 @@ public final class StructClipboard
   private static StructClipboard clip;
   private final List<ChangeListener> listeners = new ArrayList<ChangeListener>();
   private final List<StructEntry> contents = new ArrayList<StructEntry>();
-  private Class contentsClass;
+  private Class<? extends StructEntry> contentsClass;
   private boolean hasValues = true;
 
   public static StructClipboard getInstance()
@@ -28,13 +33,13 @@ public final class StructClipboard
     return clip;
   }
 
-  private static void pasteSubStructures(AbstractStruct targetStruct, List substructures)
+  private static void pasteSubStructures(AbstractStruct targetStruct, List<? extends StructEntry> substructures)
   {
     for (int i = 0; i < substructures.size(); i++) {
       AddRemovable pasteEntry = (AddRemovable)substructures.get(i);
       if (pasteEntry instanceof HasAddRemovable) {
         AbstractStruct pasteStruct = (AbstractStruct)pasteEntry;
-        List subsubstructures = pasteStruct.removeAllRemoveables();
+        List<AddRemovable> subsubstructures = pasteStruct.removeAllRemoveables();
         targetStruct.addDatatype(pasteEntry);
         pasteSubStructures(pasteStruct, subsubstructures);
       }
@@ -47,6 +52,7 @@ public final class StructClipboard
   {
   }
 
+  @Override
   public String toString()
   {
     StringBuffer sb = new StringBuffer();
@@ -75,7 +81,7 @@ public final class StructClipboard
     contentsClass = struct.getClass();
     try {
       for (int i = firstIndex; i <= lastIndex; i++) {
-        StructEntry entry = struct.getStructEntryAt(i);
+        StructEntry entry = struct.getField(i);
         contents.add((StructEntry)entry.clone());
       }
     } catch (CloneNotSupportedException e) {
@@ -92,7 +98,7 @@ public final class StructClipboard
     contentsClass = struct.getClass();
     try {
       for (int i = firstIndex; i <= lastIndex; i++) {
-        StructEntry entry = struct.getStructEntryAt(i);
+        StructEntry entry = struct.getField(i);
         contents.add((StructEntry)entry.clone());
       }
     } catch (CloneNotSupportedException e) {
@@ -107,7 +113,7 @@ public final class StructClipboard
     contentsClass = struct.getClass();
     try {
       for (int i = firstIndex; i <= lastIndex; i++) {
-        StructEntry entry = struct.getStructEntryAt(i);
+        StructEntry entry = struct.getField(i);
         contents.add((StructEntry)entry.clone());
       }
     } catch (CloneNotSupportedException e) {
@@ -115,7 +121,7 @@ public final class StructClipboard
     }
     hasValues = false;
     for (int i = firstIndex; i <= lastIndex; i++)
-      struct.removeDatatype((AddRemovable)struct.getStructEntryAt(firstIndex), true);
+      struct.removeDatatype((AddRemovable)struct.getField(firstIndex), true);
     fireStateChanged();
   }
 
@@ -138,8 +144,10 @@ public final class StructClipboard
       } catch (Exception e) {
         return CLIPBOARD_EMPTY;
       }
+      if (targetClasses == null)
+        targetClasses = new AddRemovable[0];
       for (int i = 0; i < contents.size(); i++) {
-        Class c = contents.get(i).getClass();
+        Class<? extends StructEntry> c = contents.get(i).getClass();
         boolean found = false;
         for (final AddRemovable targetClass : targetClasses) {
           if (targetClass != null && c.equals(targetClass.getClass()))
@@ -160,7 +168,7 @@ public final class StructClipboard
         AddRemovable pasteEntry = (AddRemovable)contents.get(i).clone();
         if (pasteEntry instanceof HasAddRemovable) {
           ((HasAddRemovable)pasteEntry).getAddRemovables();
-          List substructures = ((AbstractStruct)pasteEntry).removeAllRemoveables();
+          List<AddRemovable> substructures = ((AbstractStruct)pasteEntry).removeAllRemoveables();
           lastIndex = targetStruct.addDatatype(pasteEntry);
           pasteSubStructures((AbstractStruct)pasteEntry, substructures);
         }
@@ -176,7 +184,7 @@ public final class StructClipboard
   public int pasteValue(AbstractStruct struct, int index)
   {
     for (int i = 0; i < contents.size(); i++) {
-      StructEntry oldEntry = struct.getStructEntryAt(index + i);
+      StructEntry oldEntry = struct.getField(index + i);
       StructEntry newEntry = contents.get(i);
       if (oldEntry.getClass() != newEntry.getClass() ||
           oldEntry.getSize() != newEntry.getSize())
@@ -184,7 +192,7 @@ public final class StructClipboard
     }
     try {
       for (int i = 0; i < contents.size(); i++) {
-        StructEntry oldEntry = struct.getStructEntryAt(index + i);
+        StructEntry oldEntry = struct.getField(index + i);
         StructEntry newEntry = (StructEntry)contents.get(i).clone();
         newEntry.copyNameAndOffset(oldEntry);
         struct.setListEntry(index + i, newEntry);

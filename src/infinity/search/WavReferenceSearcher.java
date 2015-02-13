@@ -6,20 +6,22 @@ package infinity.search;
 
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.StringResource;
 
-import java.awt.*;
+import java.awt.Component;
 
 public final class WavReferenceSearcher extends AbstractReferenceSearcher
 {
   public WavReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "ITM", "PRO",
-                                    "SPL", "STO", "VEF", "VVC", "WED", "WMP"}, parent);
+    super(targetEntry, AbstractReferenceSearcher.FILE_TYPES, parent);
   }
 
+  @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
     searchStruct(entry, (AbstractStruct)resource);
@@ -27,8 +29,8 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry o = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
         addHit(entry, entry.getSearchString(), o);

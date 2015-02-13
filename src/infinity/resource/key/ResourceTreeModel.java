@@ -4,10 +4,19 @@
 
 package infinity.resource.key;
 
-import javax.swing.event.*;
-import javax.swing.tree.*;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 
 public final class ResourceTreeModel implements TreeModel
 {
@@ -22,11 +31,13 @@ public final class ResourceTreeModel implements TreeModel
 
 // --------------------- Begin Interface TreeModel ---------------------
 
+  @Override
   public Object getRoot()
   {
     return root;
   }
 
+  @Override
   public Object getChild(Object parent, int index)
   {
     if (parent instanceof ResourceTreeFolder)
@@ -34,6 +45,7 @@ public final class ResourceTreeModel implements TreeModel
     return null;
   }
 
+  @Override
   public int getChildCount(Object parent)
   {
     if (parent instanceof ResourceTreeFolder)
@@ -41,16 +53,19 @@ public final class ResourceTreeModel implements TreeModel
     return 0;
   }
 
+  @Override
   public boolean isLeaf(Object node)
   {
     return !(node instanceof ResourceTreeFolder);
   }
 
+  @Override
   public void valueForPathChanged(TreePath path, Object newvalue)
   {
     throw new IllegalArgumentException(); // Not allowed
   }
 
+  @Override
   public int getIndexOfChild(Object parent, Object child)
   {
     if (parent instanceof ResourceTreeFolder)
@@ -58,11 +73,13 @@ public final class ResourceTreeModel implements TreeModel
     return -1;
   }
 
+  @Override
   public void addTreeModelListener(TreeModelListener l)
   {
     treeModelListeners.add(l);
   }
 
+  @Override
   public void removeTreeModelListener(TreeModelListener l)
   {
     treeModelListeners.remove(l);
@@ -73,11 +90,16 @@ public final class ResourceTreeModel implements TreeModel
   public void addDirectory(ResourceTreeFolder parentFolder, File directory)
   {
     File files[] = directory.listFiles();
-    if (files.length == 0)
+    if (files == null || files.length == 0)
       return;
-    ResourceTreeFolder folder = new ResourceTreeFolder(parentFolder, directory.getName());
-    folders.put(directory.getName(), folder);
-    parentFolder.addFolder(folder);
+
+    ResourceTreeFolder folder = getFolder(parentFolder, directory.getName());
+    if (folder == null) {
+      folder = new ResourceTreeFolder(parentFolder, directory.getName());
+      folders.put(directory.getName(), folder);
+      parentFolder.addFolder(folder);
+    }
+
     for (final File file : files) {
       if (file.isDirectory())
         addDirectory(folder, file);
@@ -95,7 +117,9 @@ public final class ResourceTreeModel implements TreeModel
       root.addFolder(folder);
     }
     folder.addResourceEntry(entry);
-    entries.put(entry.getResourceName().toUpperCase(), entry);
+    if (entry.isVisible()) {
+      entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
+    }
   }
 
   public List<BIFFResourceEntry> getBIFFResourceEntries()
@@ -112,6 +136,20 @@ public final class ResourceTreeModel implements TreeModel
     return list;
   }
 
+  public ResourceTreeFolder getFolder(ResourceTreeFolder parentFolder, String name)
+  {
+    ResourceTreeFolder folder = null;
+    if (parentFolder != null) {
+      for (final ResourceTreeFolder rtf: parentFolder.getFolders()) {
+        if (rtf.folderName().equalsIgnoreCase(name)) {
+          folder = rtf;
+          break;
+        }
+      }
+    }
+    return folder;
+  }
+
   public ResourceTreeFolder getFolder(String text)
   {
     return folders.get(text);
@@ -119,7 +157,7 @@ public final class ResourceTreeModel implements TreeModel
 
   public TreePath getPathToNode(ResourceEntry entry)
   {
-    List path = new ArrayList(4);
+    List<Object> path = new ArrayList<Object>(4);
     path.add(entry);
     ResourceTreeFolder parent = folders.get(entry.getTreeFolder());
     while (parent != null) {
@@ -137,7 +175,11 @@ public final class ResourceTreeModel implements TreeModel
 
   public ResourceEntry getResourceEntry(String entryname)
   {
-    return entries.get(entryname.toUpperCase());
+    if (entryname != null) {
+      return entries.get(entryname.toUpperCase(Locale.ENGLISH));
+    } else {
+      return null;
+    }
   }
 
   public void removeResourceEntry(ResourceEntry entry)
@@ -154,10 +196,10 @@ public final class ResourceTreeModel implements TreeModel
     TreeModelEvent event = new TreeModelEvent(this, path, new int[]{getIndexOfChild(parent, entry)},
                                               new Object[]{entry});
     parent.removeResourceEntry(entry);
-    entries.remove(entry.toString().toUpperCase());
+    entries.remove(entry.toString().toUpperCase(Locale.ENGLISH));
     if (parent.getChildCount() == 0) {
       root.removeFolder(parent);
-      folders.remove(entry.getTreeFolder());
+      folders.remove(parent.folderName());
     }
     for (int i = 0; i < treeModelListeners.size(); i++)
       treeModelListeners.get(i).treeNodesRemoved(event);

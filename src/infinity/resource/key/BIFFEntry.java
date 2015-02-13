@@ -6,10 +6,12 @@ package infinity.resource.key;
 
 import infinity.resource.ResourceFactory;
 import infinity.resource.Writeable;
-import infinity.util.Byteconvert;
-import infinity.util.Filewriter;
+import infinity.util.DynamicArray;
+import infinity.util.io.FileWriterNI;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 {
@@ -37,9 +39,9 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
   BIFFEntry(int index, byte buffer[], int offset, boolean usesShortFormat)
   {
     this.index = index;
-    stringoffset = Byteconvert.convertInt(buffer, offset);
-    stringlength = Byteconvert.convertShort(buffer, offset + 4);
-    location = Byteconvert.convertShort(buffer, offset + 6);
+    stringoffset = DynamicArray.getInt(buffer, offset);
+    stringlength = DynamicArray.getShort(buffer, offset + 4);
+    location = DynamicArray.getShort(buffer, offset + 6);
     filename = new String(buffer, stringoffset, (int)stringlength - 1);
     if (filename.startsWith("\\"))
       filename = filename.substring(1);
@@ -49,10 +51,10 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
   BIFFEntry(int index, byte buffer[], int offset)
   {
     this.index = index;
-    filelength = Byteconvert.convertInt(buffer, offset);
-    stringoffset = Byteconvert.convertInt(buffer, offset + 4);
-    stringlength = Byteconvert.convertShort(buffer, offset + 8);
-    location = Byteconvert.convertShort(buffer, offset + 10);
+    filelength = DynamicArray.getInt(buffer, offset);
+    stringoffset = DynamicArray.getInt(buffer, offset + 4);
+    stringlength = DynamicArray.getShort(buffer, offset + 8);
+    location = DynamicArray.getShort(buffer, offset + 10);
     filename = new String(buffer, stringoffset, (int)stringlength - 1);
     if (filename.startsWith("\\"))
       filename = filename.substring(1);
@@ -61,6 +63,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
 // --------------------- Begin Interface Comparable ---------------------
 
+  @Override
   public int compareTo(BIFFEntry o)
   {
     return filename.compareTo(o.filename);
@@ -71,16 +74,18 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeInt(os, filelength);
-    Filewriter.writeInt(os, stringoffset);
-    Filewriter.writeShort(os, stringlength);
-    Filewriter.writeShort(os, location);
+    FileWriterNI.writeInt(os, filelength);
+    FileWriterNI.writeInt(os, stringoffset);
+    FileWriterNI.writeShort(os, stringlength);
+    FileWriterNI.writeShort(os, location);
   }
 
 // --------------------- End Interface Writeable ---------------------
 
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof BIFFEntry))
@@ -92,6 +97,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
            filename.equals(other.filename);
   }
 
+  @Override
   public String toString()
   {
     return filename;
@@ -99,10 +105,10 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
   public File getFile()
   {
-    File file = ResourceFactory.getInstance().getFile(filename);
+    File file = ResourceFactory.getFile(filename);
     if (file == null) {
       String bifFilename = filename.substring(0, filename.lastIndexOf((int)'.')) + ".cbf";
-      file = ResourceFactory.getInstance().getFile(bifFilename); // Icewind Dale
+      file = ResourceFactory.getFile(bifFilename); // Icewind Dale
     }
     return file;
   }
@@ -131,7 +137,7 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
   public void writeString(OutputStream os) throws IOException
   {
-    Filewriter.writeString(os, filename, (int)stringlength);
+    FileWriterNI.writeString(os, filename, (int)stringlength);
   }
 }
 

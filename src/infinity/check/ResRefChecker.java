@@ -10,17 +10,29 @@ import infinity.datatype.SpawnResourceRef;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
-import infinity.resource.other.PlainTextResource;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.PlainTextResource;
 import infinity.search.ReferenceHitFrame;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.ProgressMonitor;
 
 public final class ResRefChecker extends ChildFrame implements ActionListener, Runnable
 {
@@ -40,7 +52,7 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
     setIconImage(Icons.getIcon("Refresh16.gif").getImage());
     hitFrame = new ReferenceHitFrame("Illegal ResourceRefs", NearInfinity.getInstance());
 
-    ResourceEntry spawnRef = ResourceFactory.getInstance().getResourceEntry("SPAWNGRP.2DA");
+    ResourceEntry spawnRef = ResourceFactory.getResourceEntry("SPAWNGRP.2DA");
     if (spawnRef != null) {
       PlainTextResource spawn = (PlainTextResource)ResourceFactory.getResource(spawnRef);
       extraValues = spawn.extract2DAHeaders();
@@ -89,6 +101,7 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bstart) {
@@ -96,7 +109,7 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
       files = new ArrayList<ResourceEntry>();
       for (int i = 0; i < filetypes.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getInstance().getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(filetypes[i]));
       }
       if (files.size() > 0)
         new Thread(this).start();
@@ -114,6 +127,7 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...", null, 0,
@@ -152,26 +166,26 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
       if (o instanceof SpawnResourceRef) {
         SpawnResourceRef ref = (SpawnResourceRef)o;
         String resourceName = ref.getResourceName();
-        if (resourceName.length() > 5 && resourceName.substring(0, 5).equalsIgnoreCase("None."))
+        if (resourceName.equalsIgnoreCase("None"))
           ;
         else if (extraValues != null && extraValues.contains(ref.getResName()))
           ;
-        else if (!ResourceFactory.getInstance().resourceExists(resourceName))
+        else if (!ResourceFactory.resourceExists(resourceName))
           hitFrame.addHit(entry, entry.getSearchString(), ref);
-        else if (!ref.isLegalEntry(ResourceFactory.getInstance().getResourceEntry(resourceName))) {
+        else if (!ref.isLegalEntry(ResourceFactory.getResourceEntry(resourceName))) {
           hitFrame.addHit(entry, entry.getSearchString(), ref);
         }
       }
       else if (o instanceof ResourceRef) {
         ResourceRef ref = (ResourceRef)o;
         String resourceName = ref.getResourceName();
-        if (resourceName.length() > 5 && resourceName.substring(0, 5).equalsIgnoreCase("None."))
+        if (resourceName.equalsIgnoreCase("None"))
           ;
         else if (struct instanceof CreResource && resourceName.substring(0, 3).equalsIgnoreCase("rnd"))
           ;
-        else if (!ResourceFactory.getInstance().resourceExists(resourceName))
+        else if (!ResourceFactory.resourceExists(resourceName))
           hitFrame.addHit(entry, entry.getSearchString(), ref);
-        else if (!ref.isLegalEntry(ResourceFactory.getInstance().getResourceEntry(resourceName)))
+        else if (!ref.isLegalEntry(ResourceFactory.getResourceEntry(resourceName)))
           hitFrame.addHit(entry, entry.getSearchString(), ref);
       }
     }

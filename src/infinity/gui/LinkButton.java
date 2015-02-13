@@ -9,41 +9,80 @@ import infinity.datatype.ResourceRef;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Cursor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
-final class LinkButton extends JLabel implements MouseListener, ActionListener
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
+final public class LinkButton extends JLabel implements MouseListener, ActionListener
 {
   private final List<ActionListener> listeners = new ArrayList<ActionListener>();
   private ResourceEntry entry;
 
-  LinkButton(ResourceRef resourceRef)
+  public LinkButton(ResourceRef resourceRef)
   {
-    this(resourceRef.toString());
-    entry = ResourceFactory.getInstance().getResourceEntry(resourceRef.getResourceName());
+    super();
     setHorizontalAlignment(SwingConstants.LEFT);
-    addActionListener(this);
-    if (entry == null) {
-      setText(resourceRef.toString());
-      setEnabled(false);
-      setToolTipText("Resource not found");
-      setCursor(null);
-      removeMouseListener(this);
+    setResource(resourceRef);
+  }
+
+  /** Creates a link from the specified resource reference. */
+  public void setResource(ResourceRef resourceRef)
+  {
+    if (resourceRef != null) {
+      setResource(resourceRef.toString());
+    } else {
+      setResource("");
     }
   }
 
-  private LinkButton(String buttonText)
+  /** Attempts to create a link from the specified resource name. */
+  public void setResource(String resourceName)
   {
-    super("<html><a href=" + buttonText + '>' + buttonText + "</a></html");
-    addMouseListener(this);
-    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    removeActionListener(this);
+    entry = ResourceFactory.getResourceEntry(resourceName);
+    if (entry != null) {
+      addActionListener(this);
+      setLink(entry.toString(), entry.getResourceName(), true);
+      setEnabled(true);
+      setToolTipText(null);
+    } else {
+      setLink(resourceName, null, false);
+      setEnabled(false);
+      setToolTipText("Resource not found");
+    }
+  }
+
+  // Sets link or label text, depending on arguments
+  private void setLink(String text, String resource, boolean asLink)
+  {
+    removeMouseListener(this);
+    setCursor(null);
+
+    if (text == null) {
+      text = resource;
+    }
+
+    if (!asLink) {
+      setText(text);
+    } else if (resource != null && !resource.isEmpty()) {
+      setText("<html><a href=" + resource + '>' + text + "</a></html");
+      addMouseListener(this);
+      setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    } else {
+      setText("");
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent e)
   {
     String cmd = e.getActionCommand();
@@ -61,6 +100,7 @@ final class LinkButton extends JLabel implements MouseListener, ActionListener
 
 // --------------------- Begin Interface MouseListener ---------------------
 
+  @Override
   public void mouseClicked(MouseEvent e)
   {
     String cmd = "OPEN_NEW";
@@ -74,18 +114,22 @@ final class LinkButton extends JLabel implements MouseListener, ActionListener
       listeners.get(i).actionPerformed(event);
   }
 
+  @Override
   public void mousePressed(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseReleased(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseEntered(MouseEvent e)
   {
   }
 
+  @Override
   public void mouseExited(MouseEvent e)
   {
   }

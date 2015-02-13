@@ -6,17 +6,34 @@ package infinity.resource.are;
 
 import infinity.datatype.Flag;
 import infinity.gui.ViewerUtil;
+import infinity.icon.Icons;
+import infinity.resource.are.viewer.AreaViewer;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-final class Viewer extends JPanel
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
+final class Viewer extends JPanel implements ActionListener
 {
-  private static JPanel makeFieldPanel(AreResource are)
+  private static final String CMD_VIEWAREA = "ViewArea";
+
+  private final AreResource are;
+
+  private JPanel makeFieldPanel()
   {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
+    JPanel fieldBasePanel = new JPanel(new BorderLayout());
     JPanel fieldPanel = new JPanel(gbl);
+    fieldBasePanel.add(fieldPanel, BorderLayout.CENTER);
 
     gbc.insets = new Insets(3, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area north"), gbl, gbc, true);
@@ -30,13 +47,21 @@ final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Lightning probability"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area script"), gbl, gbc, true);
 
-    return fieldPanel;
+    JButton bView = new JButton("View Area", Icons.getIcon("Volume16.gif"));
+    bView.setActionCommand(CMD_VIEWAREA);
+    bView.addActionListener(this);
+    bView.setEnabled(AreaViewer.isValid(are));
+    fieldBasePanel.add(bView, BorderLayout.SOUTH);
+
+    return fieldBasePanel;
   }
 
   Viewer(AreResource are)
   {
+    this.are = are;
+
     JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)are.getAttribute("Location"), 1);
-    JPanel fieldPanel = makeFieldPanel(are);
+    JPanel fieldPanel = makeFieldPanel();
     JPanel actorPanel = ViewerUtil.makeListPanel("Actors", are, Actor.class, "Name");
     JPanel containerPanel = ViewerUtil.makeListPanel("Containers", are,
                                                      Container.class, "Name");
@@ -53,5 +78,17 @@ final class Viewer extends JPanel
     add(itePanel);
     setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
   }
+
+//--------------------- Begin Interface ActionListener ---------------------
+
+  @Override
+  public void actionPerformed(ActionEvent event)
+  {
+    if (event.getActionCommand().equals(CMD_VIEWAREA)) {
+      are.showAreaViewer(this);
+    }
+  }
+
+//--------------------- End Interface ActionListener ---------------------
 }
 

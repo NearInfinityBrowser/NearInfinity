@@ -6,18 +6,45 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
 import infinity.resource.Closeable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.Profile;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
+import infinity.resource.Writeable;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.util.StructClipboard;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.Stack;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.ProgressMonitor;
 
 final class DebugConsole extends ChildFrame implements ActionListener, ItemListener
 {
@@ -36,8 +63,8 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
       if (resource instanceof HasAddRemovable) {
         AbstractStruct struct = (AbstractStruct)resource;
         int firstIndex = 0;
-        for (int i = 0; i < struct.getRowCount(); i++) {
-          StructEntry structEntry = struct.getStructEntryAt(i);
+        for (int i = 0; i < struct.getFieldCount(); i++) {
+          StructEntry structEntry = struct.getField(i);
           if (firstIndex == 0 && structEntry instanceof AddRemovable)
             firstIndex = i;
           if (firstIndex > 0 && !(structEntry instanceof AddRemovable)) {
@@ -47,7 +74,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           }
         }
         if (firstIndex != 0)
-          StructClipboard.getInstance().cut(struct, firstIndex, struct.getRowCount() - 1);
+          StructClipboard.getInstance().cut(struct, firstIndex, struct.getFieldCount() - 1);
         if (StructClipboard.getInstance().getContentType(struct) != StructClipboard.CLIPBOARD_EMPTY) {
           StructClipboard.getInstance().paste(struct);
           StructClipboard.getInstance().clear();
@@ -97,7 +124,8 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     bsaveconsole.setMnemonic('s');
     bsaveconsole.addActionListener(this);
 
-    JTextArea taconsole = NearInfinity.getConsoleText();
+    InfinityTextArea taconsole = NearInfinity.getConsoleText();
+    taconsole.setHighlightCurrentLine(false);
     taconsole.setEditable(false);
     taconsole.setFont(BrowserMenuBar.getInstance().getScriptFont());
 
@@ -108,7 +136,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
 
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
-    pane.add(new JScrollPane(taconsole), BorderLayout.CENTER);
+    pane.add(new InfinityScrollPane(taconsole, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
 
     setSize(450, 450);
@@ -117,27 +145,28 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bclearconsole)
       NearInfinity.getConsoleText().setText("");
     else if (event.getSource() == bsaveconsole) {
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Save console");
-      chooser.setSelectedFile(new File("nidebuglog.txt"));
+      chooser.setSelectedFile(new FileNI("nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
         try {
-          PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Near Infinity Debug Log");
           pw.println(BrowserMenuBar.VERSION);
-          pw.println(ResourceFactory.getGameName(ResourceFactory.getGameID()));
+          pw.println((String)Profile.getProperty(Profile.GET_GAME_TITLE));
           pw.println();
           pw.println(NearInfinity.getConsoleText().getText());
           pw.println();
@@ -161,6 +190,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (event.getSource() == testPopup) {
@@ -180,6 +210,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     final DebugConsole console = this;
     (new Thread()
     {
+      @Override
       public void run()
       {
         String filetype = JOptionPane.showInputDialog(console, "Enter file type (*=all files)", "Cut/Paste test",
@@ -189,12 +220,12 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
         WindowBlocker blocker = new WindowBlocker(console);
         blocker.setBlocked(true);
         if (filetype.equals("*")) {
-          ResourceTreeModel treeModel = ResourceFactory.getInstance().getResources();
+          ResourceTreeModel treeModel = ResourceFactory.getResources();
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating cut/paste...", null, 0,
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
           int counter = 0;
-          Stack stack = new Stack();
+          Stack<Object> stack = new Stack<Object>();
           stack.push(treeModel.getRoot());
           while (!stack.empty()) {
             Object node = stack.pop();
@@ -212,7 +243,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase());
+          List<ResourceEntry> resources = ResourceFactory.getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating cut/paste...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);
@@ -235,6 +266,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     final DebugConsole console = this;
     (new Thread()
     {
+      @Override
       public void run()
       {
         String filetype = JOptionPane.showInputDialog(console, "Enter file type (*=all files)", "Read test",
@@ -244,12 +276,12 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
         WindowBlocker blocker = new WindowBlocker(console);
         blocker.setBlocked(true);
         if (filetype.equals("*")) {
-          ResourceTreeModel treeModel = ResourceFactory.getInstance().getResources();
+          ResourceTreeModel treeModel = ResourceFactory.getResources();
           ProgressMonitor progress = new ProgressMonitor(console, "Reading files...", null, 0,
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
           int counter = 0;
-          Stack stack = new Stack();
+          Stack<Object> stack = new Stack<Object>();
           stack.push(treeModel.getRoot());
           while (!stack.empty()) {
             Object node = stack.pop();
@@ -274,7 +306,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase());
+          List<ResourceEntry> resources = ResourceFactory.getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Reading files...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);
@@ -304,6 +336,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
     final DebugConsole console = this;
     (new Thread()
     {
+      @Override
       public void run()
       {
         String filetype = JOptionPane.showInputDialog(console, "Enter file type (*=all files)", "Write test",
@@ -313,12 +346,12 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
         WindowBlocker blocker = new WindowBlocker(console);
         blocker.setBlocked(true);
         if (filetype.equals("*")) {
-          ResourceTreeModel treeModel = ResourceFactory.getInstance().getResources();
+          ResourceTreeModel treeModel = ResourceFactory.getResources();
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating writeField...", null, 0,
                                                          treeModel.size());
           progress.setMillisToDecideToPopup(100);
           int counter = 0;
-          Stack stack = new Stack();
+          Stack<Object> stack = new Stack<Object>();
           stack.push(treeModel.getRoot());
           while (!stack.empty()) {
             Object node = stack.pop();
@@ -336,7 +369,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           progress.close();
         }
         else {
-          List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(filetype.toUpperCase());
+          List<ResourceEntry> resources = ResourceFactory.getResources(filetype.toUpperCase(Locale.ENGLISH));
           ProgressMonitor progress = new ProgressMonitor(console, "Simulating writeField...", null, 0,
                                                          resources.size());
           progress.setMillisToDecideToPopup(100);
@@ -414,46 +447,55 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
       this.data = data;
     }
 
+    @Override
     public String getExtension()
     {
       return copyOf.getExtension();
     }
 
+    @Override
     public String getTreeFolder()
     {
       return copyOf.getTreeFolder();
     }
 
+    @Override
     public int[] getResourceInfo(boolean ignoreoverride) throws Exception
     {
       throw new IllegalAccessError();
     }
 
+    @Override
     public byte[] getResourceData(boolean ignoreoverride) throws Exception
     {
       return data;
     }
 
+    @Override
     protected InputStream getResourceDataAsStream(boolean ignoreoverride) throws Exception
     {
       throw new IllegalAccessError();
     }
 
+    @Override
     protected File getActualFile(boolean ignoreoverride)
     {
       return null;
     }
 
+    @Override
     public String toString()
     {
       return copyOf.toString();
     }
 
+    @Override
     public String getResourceName()
     {
       return copyOf.getResourceName();
     }
 
+    @Override
     public boolean hasOverride()
     {
       return false;

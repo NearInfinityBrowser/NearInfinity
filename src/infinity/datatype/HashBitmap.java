@@ -8,52 +8,76 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.resource.StructEntry;
+import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
 public class HashBitmap extends Datatype implements Editable
 {
-  private final LongIntegerHashMap idsmap;
+  private final LongIntegerHashMap<String> idsmap;
+  private final boolean sortByName;
   private TextListPanel list;
   private long value;
 
-  public HashBitmap(byte buffer[], int offset, int length, String name, LongIntegerHashMap idsmap)
+  public HashBitmap(byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap)
   {
-    super(offset, length, name);
-    this.idsmap = new LongIntegerHashMap(idsmap);
+    this(null, buffer, offset, length, name, idsmap, true);
+  }
 
-    if (length == 4)
-      value = Byteconvert.convertUnsignedInt(buffer, offset);
-    else if (length == 2)
-      value = (long)Byteconvert.convertUnsignedShort(buffer, offset);
-    else if (length == 1)
-      value = (long)Byteconvert.convertUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+  public HashBitmap(byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+  {
+    this(null, buffer, offset, length, name, idsmap, sortByName);
+  }
+
+  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap)
+  {
+    this(parent, buffer, offset, length, name, idsmap, true);
+  }
+
+  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+  {
+    super(parent, offset, length, name);
+    this.idsmap = new LongIntegerHashMap<String>(idsmap);
+    this.sortByName = sortByName;
+
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
     if (list == null) {
-      long keys[] = idsmap.keys();
+      long[] keys = idsmap.keys();
       List<String> items = new ArrayList<String>(keys.length);
       for (long id : keys) {
         if (idsmap.containsKey(id))
           items.add(idsmap.get(id).toString() + " - " + id);
       }
-      list = new TextListPanel(items);
+      list = new TextListPanel(items, sortByName);
       list.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -61,7 +85,7 @@ public class HashBitmap extends Datatype implements Editable
         }
       });
     }
-    Object selected = idsmap.get(value);
+    String selected = idsmap.get(value);
     if (selected != null)
       list.setSelectedValue(selected.toString() + " - " + value, true);
 
@@ -90,11 +114,13 @@ public class HashBitmap extends Datatype implements Editable
     return panel;
   }
 
+  @Override
   public void select()
   {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String selected = list.getSelectedValue().toString();
@@ -112,6 +138,7 @@ public class HashBitmap extends Datatype implements Editable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, value);
@@ -119,6 +146,31 @@ public class HashBitmap extends Datatype implements Editable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        value = DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+
+    return offset + getSize();
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     Object o = idsmap.get(value);
@@ -130,6 +182,20 @@ public class HashBitmap extends Datatype implements Editable
   public long getValue()
   {
     return value;
+  }
+
+  public long[] getKeys()
+  {
+    return idsmap.keys();
+  }
+
+  public String getSymbol(long index)
+  {
+    if (idsmap.containsKey(index)) {
+      return idsmap.get(index).toString();
+    } else {
+      return null;
+    }
   }
 }
 

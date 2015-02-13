@@ -7,34 +7,62 @@ package infinity.resource.dlg;
 import infinity.NearInfinity;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.StringRef;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPanel;
+import infinity.gui.ButtonPopupMenu;
+import infinity.gui.InfinityScrollPane;
+import infinity.gui.ScriptTextArea;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.DialogSearcher;
 import infinity.util.StringResource;
 
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
 {
-  private final ButtonPopupMenu bfind;
+  private static final ButtonPanel.Control CtrlNextState      = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlPrevState      = ButtonPanel.Control.Custom2;
+  private static final ButtonPanel.Control CtrlNextTrans      = ButtonPanel.Control.Custom3;
+  private static final ButtonPanel.Control CtrlPrevTrans      = ButtonPanel.Control.Custom4;
+  private static final ButtonPanel.Control CtrlSelect         = ButtonPanel.Control.Custom5;
+  private static final ButtonPanel.Control CtrlUndo           = ButtonPanel.Control.Custom6;
+  private static final ButtonPanel.Control CtrlStateField     = ButtonPanel.Control.Custom7;
+  private static final ButtonPanel.Control CtrlResponseField  = ButtonPanel.Control.Custom8;
+
+  private final ButtonPanel buttonPanel = new ButtonPanel();
   private final DlgPanel stateTextPanel, stateTriggerPanel, transTextPanel, transTriggerPanel, transActionPanel;
   private final DlgResource dlg;
-  private final JButton bnextstate = new JButton(Icons.getIcon("Forward16.gif"));
-  private final JButton bprevstate = new JButton(Icons.getIcon("Back16.gif"));
-  private final JButton bnexttrans = new JButton(Icons.getIcon("Forward16.gif"));
-  private final JButton bprevtrans = new JButton(Icons.getIcon("Back16.gif"));
-  private final JButton bselect = new JButton("Select", Icons.getIcon("Redo16.gif"));
-  private final JButton bundo = new JButton("Undo", Icons.getIcon("Undo16.gif"));
   private final JMenuItem ifindall = new JMenuItem("in all DLG files");
   private final JMenuItem ifindthis = new JMenuItem("in this file only");
   private final JPanel outerpanel;
@@ -57,35 +85,48 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   Viewer(DlgResource dlg)
   {
     this.dlg = dlg;
-    bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindall, ifindthis});
-    bfind.addItemListener(this);
-    bfind.setIcon(Icons.getIcon("Find16.gif"));
+    this.dlg.addTableModelListener(this);
 
-    dlg.addTableModelListener(this);
-    bnextstate.setMargin(new Insets(bnextstate.getMargin().top, 0, bnextstate.getMargin().bottom, 0));
-    bprevstate.setMargin(bnextstate.getMargin());
-    bnexttrans.setMargin(bnextstate.getMargin());
-    bprevtrans.setMargin(bnextstate.getMargin());
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.FindMenu);
+    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
+    bpmFind.addItemListener(this);
+    bpmFind.addActionListener(this);
+
+    JButton bNextState = new JButton(Icons.getIcon("Forward16.gif"));
+    bNextState.setMargin(new Insets(bNextState.getMargin().top, 0, bNextState.getMargin().bottom, 0));
+    bNextState.addActionListener(this);
+
+    JButton bPrevState = new JButton(Icons.getIcon("Back16.gif"));
+    bPrevState.setMargin(bNextState.getMargin());
+    bPrevState.addActionListener(this);
+
+    JButton bNextTrans = new JButton(Icons.getIcon("Forward16.gif"));
+    bNextTrans.setMargin(bNextState.getMargin());
+    bNextTrans.addActionListener(this);
+
+    JButton bPrevTrans = new JButton(Icons.getIcon("Back16.gif"));
+    bPrevTrans.setMargin(bNextState.getMargin());
+    bPrevTrans.addActionListener(this);
+
+    JButton bSelect = new JButton("Select", Icons.getIcon("Redo16.gif"));
+    bSelect.addActionListener(this);
+
+    JButton bUndo = new JButton("Undo", Icons.getIcon("Undo16.gif"));
+    bUndo.addActionListener(this);
+
     int width = (int)tfState.getPreferredSize().getWidth();
-    int height = (int)bnextstate.getPreferredSize().getHeight();
+    int height = (int)bNextState.getPreferredSize().getHeight();
     tfState.setPreferredSize(new Dimension(width, height));
     tfResponse.setPreferredSize(new Dimension(width, height));
     tfState.setHorizontalAlignment(JTextField.CENTER);
     tfResponse.setHorizontalAlignment(JTextField.CENTER);
     tfState.addActionListener(this);
     tfResponse.addActionListener(this);
-    bnextstate.addActionListener(this);
-    bprevstate.addActionListener(this);
-    bnexttrans.addActionListener(this);
-    bprevtrans.addActionListener(this);
-    bselect.addActionListener(this);
-    bundo.addActionListener(this);
-    bfind.addActionListener(this);
     stateTextPanel = new DlgPanel("Text", true);
-    stateTriggerPanel = new DlgPanel("Trigger", false);
+    stateTriggerPanel = new DlgPanel("Trigger", false, true);
     transTextPanel = new DlgPanel("Text", true);
-    transTriggerPanel = new DlgPanel("Trigger", false);
-    transActionPanel = new DlgPanel("Action", false);
+    transTriggerPanel = new DlgPanel("Trigger", false, true);
+    transActionPanel = new DlgPanel("Action", false, true);
 
     JPanel statepanel = new JPanel();
     statepanel.setLayout(new GridLayout(2, 1, 6, 6));
@@ -108,23 +149,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     outerpanel.add(statepanel);
     outerpanel.add(transpanel);
 
-    JPanel bpanel = new JPanel();
-    bpanel.setLayout(new FlowLayout(FlowLayout.CENTER, 6, 6));
-    bpanel.add(new JLabel("State:"));
-    bpanel.add(tfState);
-    bpanel.add(bprevstate);
-    bpanel.add(bnextstate);
-    bpanel.add(new JLabel(" Response:"));
-    bpanel.add(tfResponse);
-    bpanel.add(bprevtrans);
-    bpanel.add(bnexttrans);
-    bpanel.add(bselect);
-    bpanel.add(bundo);
-    bpanel.add(bfind);
+    buttonPanel.addControl(new JLabel("State:"));
+    buttonPanel.addControl(tfState, CtrlStateField);
+    buttonPanel.addControl(bPrevState, CtrlPrevState);
+    buttonPanel.addControl(bNextState, CtrlNextState);
+    buttonPanel.addControl(new JLabel(" Response:"));
+    buttonPanel.addControl(tfResponse, CtrlResponseField);
+    buttonPanel.addControl(bPrevTrans, CtrlPrevTrans);
+    buttonPanel.addControl(bNextTrans, CtrlNextTrans);
+    buttonPanel.addControl(bSelect, CtrlSelect);
+    buttonPanel.addControl(bUndo, CtrlUndo);
+    buttonPanel.addControl(bpmFind, ButtonPanel.Control.FindMenu);
 
     setLayout(new BorderLayout());
     add(outerpanel, BorderLayout.CENTER);
-    add(bpanel, BorderLayout.SOUTH);
+    add(buttonPanel, BorderLayout.SOUTH);
     outerpanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
     updateViewerLists();
@@ -134,26 +173,28 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       showTransition(currentstate.getFirstTrans());
     }
     else {
-      bprevstate.setEnabled(false);
-      bnextstate.setEnabled(false);
-      bprevtrans.setEnabled(false);
-      bnexttrans.setEnabled(false);
-      bselect.setEnabled(false);
+      bPrevState.setEnabled(false);
+      bNextState.setEnabled(false);
+      bPrevTrans.setEnabled(false);
+      bNextTrans.setEnabled(false);
+      bSelect.setEnabled(false);
     }
-    bundo.setEnabled(false);
+    bUndo.setEnabled(false);
   }
 
   public void setUndoDlg(DlgResource dlg) {
     this.undoDlg = dlg;
-    bundo.setEnabled(true);
+    buttonPanel.getControlByType(CtrlUndo).setEnabled(true);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (!alive) return;
-    if (event.getSource() == bundo) {
+    if (buttonPanel.getControlByType(CtrlUndo) == event.getSource()) {
+      JButton bUndo = (JButton)event.getSource();
       if(lastStates.empty() && (undoDlg != null)) {
         showExternState(undoDlg, -1, true);
         return;
@@ -161,60 +202,60 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       State oldstate = lastStates.pop();
       Transition oldtrans = lastTransitions.pop();
       if (lastStates.empty() && (undoDlg == null)) {
-        bundo.setEnabled(false);
+        bUndo.setEnabled(false);
       }
       //bundo.setEnabled(lastStates.size() > 0);
-      if (oldstate != currentstate)
+      if (oldstate != currentstate) {
         showState(oldstate.getNumber());
-      if (oldtrans != currenttransition)
+      }
+      if (oldtrans != currenttransition) {
         showTransition(oldtrans.getNumber());
-    }
-    else {
+      }
+    } else {
       int newstate = currentstate.getNumber();
       int newtrans = currenttransition.getNumber();
-      if (event.getSource() == bnextstate)
+      if (buttonPanel.getControlByType(CtrlNextState) == event.getSource()) {
         newstate++;
-      else if (event.getSource() == bprevstate)
+      } else if (buttonPanel.getControlByType(CtrlPrevState) == event.getSource()) {
         newstate--;
-      else if (event.getSource() == bnexttrans)
+      } else if (buttonPanel.getControlByType(CtrlNextTrans) == event.getSource()) {
         newtrans++;
-      else if (event.getSource() == bprevtrans)
+      } else if (buttonPanel.getControlByType(CtrlPrevTrans) == event.getSource()) {
         newtrans--;
-      else if (event.getSource() == tfState) {
+      } else if (event.getSource() == tfState) {
         try {
           int number = Integer.parseInt(tfState.getText());
-          if (number > 0 && number <= stateList.size())
+          if (number > 0 && number <= stateList.size()) {
             newstate = number - 1;
-          else
+          } else {
             tfState.setText(String.valueOf(currentstate.getNumber() + 1));
+          }
         } catch (Exception e) {
           tfState.setText(String.valueOf(currentstate.getNumber() + 1));
         }
-      }
-      else if (event.getSource() == tfResponse) {
+      } else if (event.getSource() == tfResponse) {
         try {
           int number = Integer.parseInt(tfResponse.getText());
-          if (number > 0 && number <= currentstate.getTransCount())
+          if (number > 0 && number <= currentstate.getTransCount()) {
             newtrans = currentstate.getFirstTrans() + number - 1;
-          else
+          } else {
             tfResponse.setText(
                     String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans() + 1));
+          }
         } catch (Exception e) {
           tfResponse.setText(
                   String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans() + 1));
         }
-      }
-      else if (event.getSource() == bselect) {
+      } else if (buttonPanel.getControlByType(CtrlSelect) == event.getSource()) {
         ResourceRef next_dlg = currenttransition.getNextDialog();
         if (dlg.getResourceEntry().toString().equalsIgnoreCase(next_dlg.toString())) {
           lastStates.push(currentstate);
           lastTransitions.push(currenttransition);
-          bundo.setEnabled(true);
+          buttonPanel.getControlByType(CtrlUndo).setEnabled(true);
           newstate = currenttransition.getNextDialogState();
-        }
-        else {
+        } else {
           DlgResource newdlg = (DlgResource)ResourceFactory.getResource(
-              ResourceFactory.getInstance().getResourceEntry(next_dlg.toString()));
+              ResourceFactory.getResourceEntry(next_dlg.toString()));
           showExternState(newdlg, currenttransition.getNextDialogState(), false);
         }
       }
@@ -222,9 +263,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         if (newstate != currentstate.getNumber()) {
           showState(newstate);
           showTransition(stateList.get(newstate).getFirstTrans());
-        }
-        else if (newtrans != currenttransition.getNumber())
+        } else if (newtrans != currenttransition.getNumber()) {
           showTransition(newtrans);
+        }
       }
     }
   }
@@ -234,14 +275,15 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getSource() == bfind) {
-      if (bfind.getSelectedItem() == ifindall) {
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources("DLG");
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
+      ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
+      if (bpmFind.getSelectedItem() == ifindall) {
+        List<ResourceEntry> files = ResourceFactory.getResources("DLG");
         new DialogSearcher(files, getTopLevelAncestor());
-      }
-      else if (bfind.getSelectedItem() == ifindthis) {
+      } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
         files.add(dlg.getResourceEntry());
         new DialogSearcher(files, getTopLevelAncestor());
@@ -254,6 +296,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
 // --------------------- Begin Interface TableModelListener ---------------------
 
+  @Override
   public void tableChanged(TableModelEvent e)
   {
     updateViewerLists();
@@ -338,6 +381,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           stateNrToShow = state.getNumber();
           transNrToShow = state.getFirstTrans();
           found = true;
+          break;
         }
       }
       if (!found) {
@@ -345,6 +389,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           if (trans.getAssociatedText().getValue() == strref) {
             transNrToShow = trans.getNumber();
             stateNrToShow = findStateForTrans(transNrToShow);
+            break;
+          }
+          else if (trans.getJournalEntry().getValue() == strref) {
+            transNrToShow = trans.getNumber();
+            stateNrToShow = findStateForTrans(transNrToShow);
+            break;
           }
         }
       }
@@ -375,19 +425,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     stateTextPanel.display(currentstate, nr);
     tfState.setText(String.valueOf(nr + 1));
     outerpanel.repaint();
-    if (currentstate.getTriggerIndex() != 0xffffffff)
+    if (currentstate.getTriggerIndex() != 0xffffffff) {
       stateTriggerPanel.display(staTriList.get(currentstate.getTriggerIndex()),
                                 currentstate.getTriggerIndex());
-    else
+    } else {
       stateTriggerPanel.clearDisplay();
-    bprevstate.setEnabled(nr > 0);
-    bnextstate.setEnabled(nr + 1 < stateList.size());
+    }
+    buttonPanel.getControlByType(CtrlPrevState).setEnabled(nr > 0);
+    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr + 1 < stateList.size());
   }
 
   private void showTransition(int nr)
   {
-    if (currenttransition != null)
+    if (currenttransition != null) {
       currenttransition.removeTableModelListener(this);
+    }
     currenttransition = transList.get(nr);
     currenttransition.addTableModelListener(this);
     botrans.setTitle("Response " + (nr - currentstate.getFirstTrans() + 1) +
@@ -395,19 +447,22 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     tfResponse.setText(String.valueOf(nr - currentstate.getFirstTrans() + 1));
     outerpanel.repaint();
     transTextPanel.display(currenttransition, nr);
-    if (currenttransition.getFlag().isFlagSet(1))
+    if (currenttransition.getFlag().isFlagSet(1)) {
       transTriggerPanel.display(transTriList.get(currenttransition.getTriggerIndex()),
                                 currenttransition.getTriggerIndex());
-    else
+    } else {
       transTriggerPanel.clearDisplay();
-    if (currenttransition.getFlag().isFlagSet(2))
+    }
+    if (currenttransition.getFlag().isFlagSet(2)) {
       transActionPanel.display(actionList.get(currenttransition.getActionIndex()),
                                currenttransition.getActionIndex());
-    else
+    } else {
       transActionPanel.clearDisplay();
-    bselect.setEnabled(!currenttransition.getFlag().isFlagSet(3));
-    bprevtrans.setEnabled(nr > currentstate.getFirstTrans());
-    bnexttrans.setEnabled(nr - currentstate.getFirstTrans() + 1 < currentstate.getTransCount());
+    }
+    buttonPanel.getControlByType(CtrlSelect).setEnabled(!currenttransition.getFlag().isFlagSet(3));
+    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(nr > currentstate.getFirstTrans());
+    buttonPanel.getControlByType(CtrlNextTrans)
+      .setEnabled(nr - currentstate.getFirstTrans() + 1 < currentstate.getTransCount());
   }
 
   private void updateViewerLists()
@@ -417,8 +472,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     staTriList.clear();
     transTriList.clear();
     actionList.clear();
-    for (int i = 0; i < dlg.getRowCount(); i++) {
-      StructEntry entry = dlg.getStructEntryAt(i);
+    for (int i = 0; i < dlg.getFieldCount(); i++) {
+      StructEntry entry = dlg.getField(i);
       if (entry instanceof State)
         stateList.add((State)entry);
       else if (entry instanceof Transition)
@@ -441,7 +496,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     else
       NearInfinity.getInstance().setViewable(newdlg);
 
-    Viewer newdlg_viewer = (Viewer) newdlg.getDetailViewer();
+    Viewer newdlg_viewer = (Viewer)newdlg.getViewerTab(0);
     if (isUndo) {
       newdlg_viewer.alive = true;
       newdlg_viewer.repaint(); // only necessary when dlg is in extra window
@@ -472,6 +527,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     private DlgPanel(String title, boolean viewable)
     {
+      this(title, viewable, false);
+    }
+
+    private DlgPanel(String title, boolean viewable, boolean useHighlighting)
+    {
       this.title = title;
       bView.setMargin(new Insets(0, 0, 0, 0));
       bView.addActionListener(this);
@@ -482,14 +542,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bView.setToolTipText("View/Edit");
       bGoto.setToolTipText("Select attribute");
       bPlay.setToolTipText("Open associated sound");
+      if (!useHighlighting) {
+        textArea.applyExtendedSettings(null, null);
+      }
       textArea.setEditable(false);
+      textArea.setHighlightCurrentLine(false);
       if (viewable) {
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
       }
-      textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      textArea.setMargin(new Insets(3, 3, 3, 3));
       textArea.setFont(BrowserMenuBar.getInstance().getScriptFont());
-      JScrollPane scroll = new JScrollPane(textArea);
+      InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
+      if (!useHighlighting) {
+        scroll.setLineNumbersEnabled(false);
+      }
 
       GridBagLayout gbl = new GridBagLayout();
       GridBagConstraints gbc = new GridBagConstraints();
@@ -586,6 +653,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       structEntry = null;
     }
 
+    @Override
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == bView)
@@ -601,7 +669,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         if (text != null) {
           String resourceName = StringResource.getResource(text.getValue()) + ".WAV";
           if (resourceName != null) {
-            ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourceName);
+            ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName);
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
           }
         }

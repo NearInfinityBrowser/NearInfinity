@@ -5,26 +5,49 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
+import infinity.icon.Icons;
 import infinity.resource.Closeable;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 public class ChildFrame extends JFrame
 {
   private static final List<ChildFrame> windows = new ArrayList<ChildFrame>();
   private final boolean closeOnInvisible;
 
-  public static void closeWindow(Class frameClass)
+  public static void closeWindow(Class<ChildFrame> frameClass)
   {
+    WindowEvent event = new WindowEvent(NearInfinity.getInstance(), WindowEvent.WINDOW_CLOSING);
     for (Iterator<ChildFrame> i = windows.iterator(); i.hasNext();) {
       ChildFrame frame = i.next();
       if (frame.getClass() == frameClass) {
         i.remove();
         try {
-          frame.windowClosing();
+          frame.windowClosing(true);
           frame.setVisible(false);
+          WindowListener listeners[] = frame.getWindowListeners();
+          for (final WindowListener listener : listeners) {
+            listener.windowClosing(event);
+          }
+          if (frame instanceof Closeable) {
+            frame.close();
+          }
+          frame.dispose();
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -40,21 +63,23 @@ public class ChildFrame extends JFrame
     for (int i = 0; i < copy.size(); i++) {
       ChildFrame frame = copy.get(i);
       try {
-        frame.windowClosing();
+        frame.windowClosing(true);
         frame.setVisible(false);
         WindowListener listeners[] = frame.getWindowListeners();
-        for (final WindowListener listener : listeners)
+        for (final WindowListener listener : listeners) {
           listener.windowClosing(event);
-        frame.dispose();
-        if (frame instanceof Closeable)
+        }
+        if (frame instanceof Closeable) {
           frame.close();
+        }
+        frame.dispose();
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
   }
 
-  public static ChildFrame getFirstFrame(Class frameClass)
+  public static ChildFrame getFirstFrame(Class<? extends ChildFrame> frameClass)
   {
     for (int i = 0; i < windows.size(); i++) {
       ChildFrame frame = windows.get(i);
@@ -64,7 +89,7 @@ public class ChildFrame extends JFrame
     return null;
   }
 
-  public static List<ChildFrame> getFrames(Class frameClass)
+  public static List<ChildFrame> getFrames(Class<? extends ChildFrame> frameClass)
   {
     List<ChildFrame> frames = new ArrayList<ChildFrame>();
     for (int i = 0; i < windows.size(); i++) {
@@ -89,20 +114,24 @@ public class ChildFrame extends JFrame
   public ChildFrame(String title, boolean closeOnInvisible)
   {
     super(title);
+    setIconImage(Icons.getIcon("Application16.gif").getImage());
     this.closeOnInvisible = closeOnInvisible;
     windows.add(this);
     JPanel pane = new JPanel();
     setContentPane(pane);
     final ChildFrame frame = this;
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     pane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                                                             pane);
     pane.getActionMap().put(pane, new AbstractAction()
     {
+      @Override
       public void actionPerformed(ActionEvent e)
       {
         if (frame.closeOnInvisible) {
           try {
-            frame.windowClosing();
+            if (!frame.windowClosing(false))
+              return;
           } catch (Exception e2) {
             e2.printStackTrace();
             return;
@@ -114,15 +143,21 @@ public class ChildFrame extends JFrame
     });
     addWindowListener(new WindowAdapter()
     {
+      @Override
       public void windowClosing(WindowEvent e)
       {
         try {
-          frame.windowClosing();
+          if (!frame.windowClosing(false))
+            return;
         } catch (Exception e2) {
           throw new IllegalAccessError(); // ToDo: This is just too ugly
         }
-        if (frame.closeOnInvisible)
+        if (frame.closeOnInvisible) {
           windows.remove(frame);
+          frame.dispose();
+        } else {
+          frame.setVisible(false);
+        }
       }
     }
     );
@@ -134,8 +169,17 @@ public class ChildFrame extends JFrame
     windows.remove(this);
   }
 
-  protected void windowClosing() throws Exception
+  /**
+   * This method is called whenever the dialog is about to be closed and removed from memory.
+   * @param forced If <code>false</code>, the return value will be honored.
+   *               If <code>true</code>, the return value will be disregarded.
+   * @return If <code>true</code>, the closing procedure continues.
+   *         If <code>false</code>, the closing procedure will be cancelled.
+   * @throws Exception
+   */
+  protected boolean windowClosing(boolean forced) throws Exception
   {
+    return true;
   }
 }
 

@@ -7,8 +7,13 @@ package infinity.resource.sto;
 import infinity.datatype.Flag;
 import infinity.gui.ViewerUtil;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
 
 final class Viewer extends JPanel
 {

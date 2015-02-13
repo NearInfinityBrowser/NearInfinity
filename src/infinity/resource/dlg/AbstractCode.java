@@ -4,32 +4,55 @@
 
 package infinity.resource.dlg;
 
-import infinity.datatype.*;
+import infinity.datatype.Datatype;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Editable;
+import infinity.datatype.TextString;
 import infinity.gui.BrowserMenuBar;
+import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.InfinityScrollPane;
 import infinity.gui.ScriptTextArea;
 import infinity.gui.StructViewer;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
-import infinity.util.Filewriter;
+import infinity.util.io.FileWriterNI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
 import java.util.List;
+import java.util.SortedMap;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public abstract class AbstractCode extends Datatype implements Editable, AddRemovable, ActionListener,
                                                                DocumentListener, ItemListener
 {
-  private final DecNumber len;
-  private final DecNumber off;
-  private ButtonPopupMenu bError, bWarning;
-  private JButton bUpdate, bCheck;
+  private static final ButtonPanel.Control CtrlUpdate   = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlCheck    = ButtonPanel.Control.Custom2;
+  private static final ButtonPanel.Control CtrlErrors   = ButtonPanel.Control.Custom3;
+  private static final ButtonPanel.Control CtrlWarnings = ButtonPanel.Control.Custom4;
+
+  private final ButtonPanel buttonPanel = new ButtonPanel();
+
+  private DecNumber len;
+  private DecNumber off;
   private ScriptTextArea textArea;
   private SortedMap<Integer, String> errors, warnings;
   private String text;
@@ -43,16 +66,19 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
   AbstractCode(byte buffer[], int offset, String nane)
   {
     super(offset, 8, nane);
-    off = new DecNumber(buffer, offset, 4, "Offset");
-    len = new DecNumber(buffer, offset + 4, 4, "Length");
+    read(buffer, offset);
     text = new String(buffer, off.getValue(), len.getValue());
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bCheck) {
+    if (buttonPanel.getControlByType(CtrlCheck) == event.getSource()) {
+      JButton bCheck = (JButton)event.getSource();
+      ButtonPopupMenu bpmErrors = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlErrors);
+      ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlWarnings);
       Compiler.getInstance().compileDialogCode(textArea.getText(), this instanceof Action);
       errors = Compiler.getInstance().getErrors();
       warnings = Compiler.getInstance().getWarnings();
@@ -63,7 +89,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
           String error = errors.get(lineNr);
           errorItems[count++] = new JMenuItem(lineNr.toString() + ": " + error);
         }
-        bError.setMenuItems(errorItems);
+        bpmErrors.setMenuItems(errorItems);
       }
       if (warnings.size() > 0) {
         JMenuItem warningItems[] = new JMenuItem[warnings.size()];
@@ -72,12 +98,12 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
           String warning = warnings.get(lineNr);
           warningItems[count++] = new JMenuItem(lineNr.toString() + ": " + warning);
         }
-        bWarning.setMenuItems(warningItems);
+        bpmWarnings.setMenuItems(warningItems);
       }
-      bError.setEnabled(errors.size() > 0);
-      bWarning.setEnabled(warnings.size() > 0);
-      bError.setText("Errors (" + errors.size() + ")...");
-      bWarning.setText("Warnings (" + warnings.size() + ")...");
+      bpmErrors.setEnabled(errors.size() > 0);
+      bpmWarnings.setEnabled(warnings.size() > 0);
+      bpmErrors.setText("Errors (" + errors.size() + ")...");
+      bpmWarnings.setText("Warnings (" + warnings.size() + ")...");
       bCheck.setEnabled(false);
     }
   }
@@ -87,22 +113,25 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
+  @Override
   public void insertUpdate(DocumentEvent event)
   {
-    bUpdate.setEnabled(true);
-    bCheck.setEnabled(true);
+    buttonPanel.getControlByType(CtrlUpdate).setEnabled(true);
+    buttonPanel.getControlByType(CtrlCheck).setEnabled(true);
   }
 
+  @Override
   public void removeUpdate(DocumentEvent event)
   {
-    bUpdate.setEnabled(true);
-    bCheck.setEnabled(true);
+    buttonPanel.getControlByType(CtrlUpdate).setEnabled(true);
+    buttonPanel.getControlByType(CtrlCheck).setEnabled(true);
   }
 
+  @Override
   public void changedUpdate(DocumentEvent event)
   {
-    bUpdate.setEnabled(true);
-    bCheck.setEnabled(true);
+    buttonPanel.getControlByType(CtrlUpdate).setEnabled(true);
+    buttonPanel.getControlByType(CtrlCheck).setEnabled(true);
   }
 
 // --------------------- End Interface DocumentListener ---------------------
@@ -110,10 +139,11 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(ActionListener container)
   {
     textArea = new ScriptTextArea();
-    textArea.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    textArea.setMargin(new Insets(3, 3, 3, 3));
     String convertedText = text;
     int index = convertedText.indexOf((int)'\r');
     while (index != -1) {
@@ -124,27 +154,29 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     textArea.setCaretPosition(0);
     textArea.getDocument().addDocumentListener(this);
 
-    bUpdate = new JButton("Update", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update", Icons.getIcon("Refresh16.gif"));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bUpdate.setEnabled(false);
-    bCheck = new JButton("Compile Check", Icons.getIcon("Redo16.gif"));
-    bCheck.addActionListener(this);
-    bError = new ButtonPopupMenu("Errors (0)...", new JMenuItem[]{});
-    bError.setEnabled(false);
-    bWarning = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[]{});
-    bWarning.setEnabled(false);
-    bError.addItemListener(this);
-    bWarning.addItemListener(this);
-    bError.setIcon(Icons.getIcon("Up16.gif"));
-    bWarning.setIcon(Icons.getIcon("Up16.gif"));
-    JScrollPane scroll = new JScrollPane(textArea);
+    buttonPanel.addControl(bUpdate, CtrlUpdate);
 
-    JPanel bPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    bPanel.add(bUpdate);
-    bPanel.add(bCheck);
-    bPanel.add(bError);
-    bPanel.add(bWarning);
+    JButton bCheck = new JButton("Compile Check", Icons.getIcon("Redo16.gif"));
+    bCheck.addActionListener(this);
+    buttonPanel.addControl(bCheck, CtrlCheck);
+
+    ButtonPopupMenu bpmErrors = new ButtonPopupMenu("Errors (0)...", new JMenuItem[]{});
+    bpmErrors.setIcon(Icons.getIcon("Up16.gif"));
+    bpmErrors.addItemListener(this);
+    bpmErrors.setEnabled(false);
+    buttonPanel.addControl(bpmErrors, CtrlErrors);
+
+    ButtonPopupMenu bpmWarnings = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[]{});
+    bpmWarnings.setIcon(Icons.getIcon("Up16.gif"));
+    bpmWarnings.addItemListener(this);
+    bpmWarnings.setEnabled(false);
+    buttonPanel.addControl(bpmWarnings, CtrlWarnings);
+
+    InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -163,29 +195,34 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets.top = 3;
     gbc.insets.left = 0;
-    gbl.setConstraints(bPanel, gbc);
-    panel.add(bPanel);
+    gbl.setConstraints(buttonPanel, gbc);
+    panel.add(buttonPanel);
 
     panel.setMinimumSize(DIM_BROAD);
     panel.setPreferredSize(DIM_BROAD);
     return panel;
   }
 
+  @Override
   public void select()
   {
-    if (BrowserMenuBar.getInstance().autocheckBCS())
-      bCheck.doClick();
+    if (BrowserMenuBar.getInstance().autocheckBCS()) {
+      ((JButton)buttonPanel.getControlByType(CtrlCheck)).doClick();
+    }
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    JButton bCheck = (JButton)buttonPanel.getControlByType(CtrlCheck);
+    JButton bUpdate = (JButton)buttonPanel.getControlByType(CtrlUpdate);
     if (bCheck.isEnabled())
       bCheck.doClick();
     if (errors.size() > 0) {
       String options[] = {"Update", "Cancel"};
       if (JOptionPane.showOptionDialog(textArea.getTopLevelAncestor(), "Errors exist. Update anyway?", "Update value",
                                        JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return true;
     }
     text = textArea.getText();
@@ -203,6 +240,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -213,13 +251,16 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface ItemListener ---------------------
 
+  @Override
   public void itemStateChanged(ItemEvent event)
   {
+    ButtonPopupMenu bpmErrors = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlErrors);
+    ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlWarnings);
     String selected = "";
-    if (event.getSource() == bError)
-      selected = bError.getSelectedItem().getText();
-    else if (event.getSource() == bWarning)
-      selected = bWarning.getSelectedItem().getText();
+    if (event.getSource() == bpmErrors)
+      selected = bpmErrors.getSelectedItem().getText();
+    else if (event.getSource() == bpmWarnings)
+      selected = bpmWarnings.getSelectedItem().getText();
     int index = selected.indexOf(": ");
     int line = Integer.parseInt(selected.substring(0, index));
     highlightLine(line);
@@ -230,6 +271,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     off.write(os);
@@ -238,6 +280,19 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- End Interface Writeable ---------------------
 
+// --------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    off = new DecNumber(buffer, offset, 4, "Offset");
+    len = new DecNumber(buffer, offset + 4, 4, "Length");
+    return offset + getSize();
+  }
+
+// --------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     return text;
@@ -261,6 +316,11 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
     return len.getValue();
   }
 
+  public int getTextOffset()
+  {
+    return off.getValue();
+  }
+
   public int updateOffset(int offs)
   {
     off.setValue(offs);
@@ -270,7 +330,7 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
   public void writeString(OutputStream os) throws IOException
   {
-    Filewriter.writeString(os, text, len.getValue());
+    FileWriterNI.writeString(os, text, len.getValue());
   }
 
   private void highlightLine(int linenr)

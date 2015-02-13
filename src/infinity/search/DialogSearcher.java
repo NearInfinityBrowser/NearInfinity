@@ -8,20 +8,38 @@ import infinity.datatype.StringRef;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ProgressMonitor;
 
 public final class DialogSearcher implements Runnable, ActionListener
 {
@@ -94,6 +112,7 @@ public final class DialogSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bsearch || event.getSource() == tfinput) {
@@ -107,6 +126,7 @@ public final class DialogSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     String term = tfinput.getText();
@@ -169,8 +189,8 @@ public final class DialogSearcher implements Runnable, ActionListener
   private Map<StructEntry, StructEntry> makeSearchMap(AbstractStruct struct)
   {
     SortedMap<StructEntry, StructEntry> map = new TreeMap<StructEntry, StructEntry>();
-    for (int i = 0; i < struct.getRowCount(); i++) {
-      StructEntry entry = struct.getStructEntryAt(i);
+    for (int i = 0; i < struct.getFieldCount(); i++) {
+      StructEntry entry = struct.getField(i);
       if (entry instanceof AbstractStruct)
         map.putAll(makeSearchMap((AbstractStruct)entry));
       else if (cbsearchcode.isSelected() && entry instanceof AbstractCode)

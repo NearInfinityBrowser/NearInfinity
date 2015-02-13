@@ -10,7 +10,7 @@ import infinity.resource.dlg.DlgResource;
 import infinity.resource.dlg.Transition;
 import infinity.resource.key.ResourceEntry;
 
-import java.awt.*;
+import java.awt.Component;
 
 public final class DialogStateReferenceSearcher extends AbstractReferenceSearcher
 {
@@ -22,11 +22,12 @@ public final class DialogStateReferenceSearcher extends AbstractReferenceSearche
     targetStateNr = stateNr;
   }
 
+  @Override
   void search(ResourceEntry entry, Resource resource)
   {
     DlgResource dlg = (DlgResource)resource;
-    for (int i = 0; i < dlg.getRowCount(); i++) {
-      StructEntry structEntry = dlg.getStructEntryAt(i);
+    for (int i = 0; i < dlg.getFieldCount(); i++) {
+      StructEntry structEntry = dlg.getField(i);
       if (structEntry instanceof Transition) {
         Transition transition = (Transition)structEntry;
         if (transition.getNextDialog().getResourceName().equalsIgnoreCase(targetEntry.toString()) &&

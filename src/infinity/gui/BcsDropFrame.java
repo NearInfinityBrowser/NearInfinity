@@ -6,27 +6,66 @@ package infinity.gui;
 
 import infinity.NearInfinity;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.FileResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileReaderNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
   private final JButton bOpen = new JButton("Open selected", Icons.getIcon("Open16.gif"));
   private final JButton bSelectDir = new JButton(Icons.getIcon("Open16.gif"));
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
-  private final JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+  private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
   private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", JLabel.CENTER);
   private final JLabel decompZone = new JLabel("Decompiler drop zone (BCS/BS)", JLabel.CENTER);
   private final JLabel statusMsg = new JLabel(" Drag and drop files or folders into the zones");
@@ -47,12 +86,16 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     blocker = new WindowBlocker(this);
     compZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
     decompZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
-    table = new SortableTable(new String[]{"File", "Errors/Warnings", "Line"},
-                              new Class[]{Object.class, Object.class, Integer.class},
-                              new int[]{200, 400, 100});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Errors/Warnings", "Line"}),
+                              colClasses, Arrays.asList(new Integer[]{200, 400, 100}));
+
     table.getSelectionModel().addListSelectionListener(this);
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseReleased(MouseEvent e)
       {
         if (e.getClickCount() == 2) {
@@ -159,6 +202,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bOpen) {
@@ -185,6 +229,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bOpen.setEnabled(table.getSelectedRowCount() > 0);
@@ -195,7 +240,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private SortedMap<Integer, String> compileFile(File file)
   {
     try {
-      BufferedReader br = new BufferedReader(new FileReader(file));
+      BufferedReader br = new BufferedReader(new FileReaderNI(file));
       StringBuffer source = new StringBuffer();
       String line = br.readLine();
       while (line != null) {
@@ -217,10 +262,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           filename += ".BS";
         File output;
         if (rbOrigDir.isSelected())
-          output = new File(file.getParent(), filename);
+          output = new FileNI(file.getParent(), filename);
         else
-          output = new File(tfOtherDir.getText(), filename);
-        PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+          output = new FileNI(tfOtherDir.getText(), filename);
+        PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
         pw.print(compiled);
         pw.close();
       }
@@ -234,7 +279,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private boolean decompileFile(File file)
   {
     try {
-      BufferedReader br = new BufferedReader(new FileReader(file));
+      BufferedReader br = new BufferedReader(new FileReaderNI(file));
       StringBuffer code = new StringBuffer();
       String line = br.readLine();
       while (line != null) {
@@ -246,10 +291,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       filename = filename.substring(0, filename.lastIndexOf((int)'.')) + ".BAF";
       File output;
       if (rbOrigDir.isSelected())
-        output = new File(file.getParent(), filename);
+        output = new FileNI(file.getParent(), filename);
       else
-        output = new File(tfOtherDir.getText(), filename);
-      PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(output)));
+        output = new FileNI(tfOtherDir.getText(), filename);
+      PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
       pw.println(Decompiler.decompile(code.toString(), true));
       pw.close();
     } catch (IOException e) {
@@ -273,7 +318,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           for (final File newVar : f)
             files.add(newVar);
         }
-        else if (file.toString().toUpperCase().endsWith("BAF")) {
+        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BAF")) {
           SortedMap<Integer, String> errors = compileFile(file);
           if (errors == null)
             failed++;
@@ -299,8 +344,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           for (final File newVar : f)
             files.add(newVar);
         }
-        else if (file.toString().toUpperCase().endsWith("BCS") ||
-                 file.toString().toUpperCase().endsWith("BS")) {
+        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BCS") ||
+                 file.toString().toUpperCase(Locale.ENGLISH).endsWith("BS")) {
           if (decompileFile(file))
             ok++;
           else
@@ -319,29 +364,34 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private final class MyDropTargetListener implements DropTargetListener, Runnable
   {
     private final Component component;
-    private java.util.List files;
+    private java.util.List<File> files;
 
     private MyDropTargetListener(Component component)
     {
       this.component = component;
     }
 
+    @Override
     public void dragEnter(DropTargetDragEvent event)
     {
     }
 
+    @Override
     public void dragOver(DropTargetDragEvent event)
     {
     }
 
+    @Override
     public void dropActionChanged(DropTargetDragEvent event)
     {
     }
 
+    @Override
     public void dragExit(DropTargetEvent event)
     {
     }
 
+    @Override
     public void drop(DropTargetDropEvent event)
     {
       if (event.isLocalTransfer() || !event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
@@ -350,7 +400,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       }
       try {
         event.acceptDrop(DnDConstants.ACTION_COPY);
-        files = (java.util.List)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+        files = (java.util.List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
         e.printStackTrace();
         event.dropComplete(false);
@@ -360,6 +410,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       new Thread(this).start();
     }
 
+    @Override
     public void run()
     {
       filesDropped(component, new ArrayList<File>(files));
@@ -379,6 +430,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       this.error = error;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)

@@ -4,7 +4,10 @@
 
 package infinity.resource.gam;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.TextString;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -18,9 +21,9 @@ class Variable extends AbstractStruct implements AddRemovable
     super(null, "Variable", new byte[84], 0);
   }
 
-  Variable(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Variable(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Variable", buffer, offset);
+    super(superStruct, "Variable " + number, buffer, offset);
   }
 
   Variable(AbstractStruct superStruct, String s, byte b[], int o) throws Exception
@@ -30,6 +33,7 @@ class Variable extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -37,13 +41,14 @@ class Variable extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 32, "Name"));
-    list.add(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
-    list.add(new Unknown(buffer, offset + 34, 6));
-    list.add(new DecNumber(buffer, offset + 40, 4, "Value"));
-    list.add(new Unknown(buffer, offset + 44, 40));
+    addField(new TextString(buffer, offset, 32, "Name"));
+    addField(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
+    addField(new Unknown(buffer, offset + 34, 6));
+    addField(new DecNumber(buffer, offset + 40, 4, "Value"));
+    addField(new Unknown(buffer, offset + 44, 40));
     return offset + 84;
   }
 }

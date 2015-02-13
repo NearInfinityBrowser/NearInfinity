@@ -4,7 +4,7 @@
 
 package infinity.resource.are;
 
-interface HasVertices
+public interface HasVertices
 {
   void readVertices(byte buffer[], int offset) throws Exception;
 

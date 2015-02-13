@@ -5,17 +5,23 @@
 package infinity.datatype;
 
 import infinity.resource.AbstractStruct;
-import infinity.util.Byteconvert;
+import infinity.resource.StructEntry;
 
 public final class UnknownDecimal extends Unknown
 {
   public UnknownDecimal(byte[] buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public UnknownDecimal(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  {
+    super(parent, buffer, offset, length, name);
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim().replace('\n', ' ').replace('\r', ' ') + ' ';
@@ -44,17 +50,13 @@ public final class UnknownDecimal extends Unknown
 
 // --------------------- End Interface Editable ---------------------
 
+  @Override
   public String toString()
   {
     if (data != null && data.length > 0) {
       StringBuffer sb = new StringBuffer(4 * data.length);
-      for (int i = 0; i < data.length; i++) {
-        String text = String.valueOf((int)Byteconvert.convertUnsignedByte(data, i));
-        for (int j = 0; j < 3 - text.length(); j++)
-          sb.append('0');
-        if (text.length() > 3)
-          text = text.substring(text.length() - 3);
-        sb.append(text).append(' ');
+      for (final byte d : data) {
+        sb.append(String.format("%1$03d ", (int)d & 0xff));
       }
       sb.append(' ');
       return sb.toString();

@@ -8,15 +8,36 @@ import infinity.datatype.DecNumber;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.AbstractStruct;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.ProgressMonitor;
 
 public final class AttributeSearcher implements Runnable, ActionListener
 {
@@ -30,7 +51,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
   private final JRadioButton rbless = new JRadioButton("Less than");
   private final JRadioButton rbgreater = new JRadioButton("Greater than");
   private final JTextField tfinput = new JTextField("", 15);
-  private final List files;
+  private final List<ResourceEntry> files;
   private final StructEntry structEntry;
 
   public AttributeSearcher(AbstractStruct struct, StructEntry structEntry, Component parent)
@@ -41,8 +62,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
       struct = struct.getSuperStruct();
     String filename = struct.getResourceEntry().toString();
     files =
-    ResourceFactory.getInstance().getResources(
-            filename.substring(filename.lastIndexOf(".") + 1).toUpperCase());
+    ResourceFactory.getResources(filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH));
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
     inputFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
@@ -125,6 +145,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bsearch || event.getSource() == tfinput) {
@@ -142,6 +163,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     String title = structEntry.getName() + " - " + tfinput.getText();
@@ -175,7 +197,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
       ResourceEntry entry = (ResourceEntry)files.get(i);
       AbstractStruct resource = (AbstractStruct)ResourceFactory.getResource(entry);
       if (resource != null) {
-        List flatList = resource.getFlatList();
+        List<StructEntry> flatList = resource.getFlatList();
         for (int j = 0; j < flatList.size(); j++) {
           StructEntry searchEntry = (StructEntry)flatList.get(j);
           if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass() ||
@@ -191,10 +213,28 @@ public final class AttributeSearcher implements Runnable, ActionListener
               hit = !hit;
             if (hit) {
               AbstractStruct superStruct = resource.getSuperStruct(searchEntry);
-              if (superStruct instanceof Resource || superStruct == null)
+              if (superStruct instanceof Resource || superStruct == null) {
                 resultFrame.addHit(entry, entry.getSearchString(), searchEntry);
-              else
-                resultFrame.addHit(entry, superStruct.getName(), searchEntry);
+              } else {
+                // creating a path of structures
+                List<String> list = new ArrayList<String>();
+                while (superStruct != null) {
+                  if (superStruct.getSuperStruct() != null) {
+                    list.add(0, superStruct.getName());
+                  }
+                  superStruct = superStruct.getSuperStruct();
+                }
+                list.add(0, entry.getSearchString());
+
+                StringBuilder sb = new StringBuilder();
+                for (int k = 0; k < list.size(); k++) {
+                  if (k > 0) {
+                    sb.append(" -> ");
+                  }
+                  sb.append(list.get(k));
+                }
+                resultFrame.addHit(entry, sb.toString(), searchEntry);
+              }
             }
           }
         }

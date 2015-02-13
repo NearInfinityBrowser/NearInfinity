@@ -4,19 +4,31 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.HexNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.Unknown;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
-abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
+public abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
-  Polygon(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
+  public static final String[] s_flags = { "No flags set", "Shade wall", "Semi transparent",
+                                            "Hovering wall", "Cover animations", "Unknown",
+                                            "Unknown", "Unknown", "Is door" };
+
+  public Polygon(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
   {
     super(superStruct, name, buffer, offset, 8);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Vertex()};
@@ -27,6 +39,7 @@ abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRem
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -34,6 +47,7 @@ abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRem
 
 //--------------------- End Interface AddRemovable ---------------------
 
+  @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {
@@ -52,16 +66,17 @@ abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRem
   {
     DecNumber firstVertex = (DecNumber)getAttribute("Vertex index");
     DecNumber numVertices = (DecNumber)getAttribute("# vertices");
-    for (int i = 0; i < numVertices.getValue(); i++)
-      list.add(new Vertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
+    for (int i = 0; i < numVertices.getValue(); i++) {
+      addField(new Vertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
+    }
   }
 
   public int updateVertices(int offset, int startIndex)
   {
     ((DecNumber)getAttribute("Vertex index")).setValue(startIndex);
     int count = 0;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry entry = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      StructEntry entry = getField(i);
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((AbstractStruct)entry).realignStructOffsets();
@@ -73,16 +88,17 @@ abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRem
     return count;
   }
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new DecNumber(buffer, offset, 4, "Vertex index"));
-    list.add(new SectionCount(buffer, offset + 4, 4, "# vertices", Vertex.class));
-    list.add(new Unknown(buffer, offset + 8, 2));
-//    list.add(new Unknown(buffer, offset + 9, 1));
-    list.add(new DecNumber(buffer, offset + 10, 2, "Minimum coordinate: X"));
-    list.add(new DecNumber(buffer, offset + 12, 2, "Maximum coordinate: X"));
-    list.add(new DecNumber(buffer, offset + 14, 2, "Minimum coordinate: Y"));
-    list.add(new DecNumber(buffer, offset + 16, 2, "Maximum coordinate: Y"));
+    addField(new DecNumber(buffer, offset, 4, "Vertex index"));
+    addField(new SectionCount(buffer, offset + 4, 4, "# vertices", Vertex.class));
+    addField(new Flag(buffer, offset + 8, 1, "Polygon flags", s_flags));
+    addField(new Unknown(buffer, offset + 9, 1));
+    addField(new DecNumber(buffer, offset + 10, 2, "Minimum coordinate: X"));
+    addField(new DecNumber(buffer, offset + 12, 2, "Maximum coordinate: X"));
+    addField(new DecNumber(buffer, offset + 14, 2, "Minimum coordinate: Y"));
+    addField(new DecNumber(buffer, offset + 16, 2, "Maximum coordinate: Y"));
     return offset + 18;
   }
 }

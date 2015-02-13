@@ -10,8 +10,16 @@ import infinity.gui.ViewerUtil;
 import infinity.resource.Effect;
 import infinity.resource.StructEntry;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 final class ViewerAbility extends JPanel
 {

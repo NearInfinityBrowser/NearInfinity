@@ -4,24 +4,37 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.RemovableDecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasAddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.Resource;
+import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
+import infinity.util.ArrayUtil;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
-public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable
+import javax.swing.JComponent;
+
+public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  private static HexNumber findNextOffset(HexNumber offsets[], HexNumber offset)
-  {
-    for (int i = 0; i < offsets.length; i++)
-      if (offsets[i] == offset && i < offsets.length - 1)
-        return offsets[i + 1];
-    return null;
-  }
+  private HexViewer hexViewer;
 
   public WedResource(ResourceEntry entry) throws Exception
   {
@@ -30,6 +43,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
+  @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Door(), new WallPolygon(), new Wallgroup()};
@@ -40,6 +54,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -47,11 +62,53 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface HasViewerTabs ---------------------
+
+  @Override
+  public int getViewerTabCount()
+  {
+    return 1;
+  }
+
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+    }
+    return hexViewer;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+
+//--------------------- End Interface HasViewerTabs ---------------------
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
+  @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
+  @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateSectionOffsets(datatype, datatype.getSize());
@@ -60,8 +117,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     else if (datatype instanceof RemovableDecNumber && child instanceof Door) {
       Door childDoor = (Door)child;
       int childIndex = childDoor.getTilemapIndex().getValue();
-      for (int i = 0; i < list.size(); i++) {
-        Object o = list.get(i);
+      for (int i = 0; i < getFieldCount(); i++) {
+        Object o = getField(i);
         if (o instanceof Door && o != childDoor) {
           DecNumber tilemapIndex = ((Door)o).getTilemapIndex();
           if (tilemapIndex.getValue() >= childIndex)
@@ -69,13 +126,21 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
+  @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
+  @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     updateSectionOffsets(datatype, -datatype.getSize());
@@ -84,8 +149,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     else if (datatype instanceof RemovableDecNumber && child instanceof Door) {
       Door childDoor = (Door)child;
       int childIndex = childDoor.getTilemapIndex().getValue();
-      for (int i = 0; i < list.size(); i++) {
-        Object o = list.get(i);
+      for (int i = 0; i < getFieldCount(); i++) {
+        Object o = getField(i);
         if (o instanceof Door && o != childDoor) {
           DecNumber tilemapIndex = ((Door)o).getTilemapIndex();
           if (tilemapIndex.getValue() > childIndex)
@@ -93,56 +158,65 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
         }
       }
     }
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    int startOffset = offset;
+
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
     SectionCount countOverlays = new SectionCount(buffer, offset + 8, 4, "# overlays",
                                                   Overlay.class);
-    list.add(countOverlays);
+    addField(countOverlays);
     SectionCount countDoors = new SectionCount(buffer, offset + 12, 4, "# doors",
                                                Door.class);
-    list.add(countDoors);
+    addField(countDoors);
     SectionOffset offsetOverlays = new SectionOffset(buffer, offset + 16, "Overlays offset",
                                                      Overlay.class);
-    list.add(offsetOverlays);
+    addField(offsetOverlays);
     SectionOffset offsetHeader2 = new SectionOffset(buffer, offset + 20, "Second header offset", null);
-    list.add(offsetHeader2);
+    addField(offsetHeader2);
     SectionOffset offsetDoors = new SectionOffset(buffer, offset + 24, "Doors offset",
                                                   Door.class);
-    list.add(offsetDoors);
+    addField(offsetDoors);
     HexNumber offsetDoortile = new HexNumber(buffer, offset + 28, 4, "Door tilemap lookup offset");
-    list.add(offsetDoortile);
+    addField(offsetDoortile);
 
     offset = offsetOverlays.getValue();
     for (int i = 0; i < countOverlays.getValue(); i++) {
-      Overlay overlay = new Overlay(this, buffer, offset);
+      Overlay overlay = new Overlay(this, buffer, offset, i);
       offset = overlay.getEndOffset();
-      list.add(overlay);
+      addField(overlay);
     }
 
     offset = offsetHeader2.getValue();
     SectionCount countWallpolygons = new SectionCount(buffer, offset, 4, "# wall polygons",
                                                       WallPolygon.class);
-    list.add(countWallpolygons);
+    addField(countWallpolygons);
     SectionOffset offsetPolygons = new SectionOffset(buffer, offset + 4, "Wall polygons offset",
                                                      WallPolygon.class);
-    list.add(offsetPolygons);
+    addField(offsetPolygons);
     HexNumber offsetVertices = new HexNumber(buffer, offset + 8, 4, "Vertices offset");
-    list.add(offsetVertices);
+    addField(offsetVertices);
     SectionOffset offsetWallgroups = new SectionOffset(buffer, offset + 12, "Wall groups offset",
                                                        Wallgroup.class);
-    list.add(offsetWallgroups);
+    addField(offsetWallgroups);
     SectionOffset offsetPolytable = new SectionOffset(buffer, offset + 16, "Wall polygon lookup offset",
                                                       RemovableDecNumber.class);
-    list.add(offsetPolytable);
+    addField(offsetPolytable);
 
     HexNumber offsets[] = new HexNumber[]{offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile,
-                                          offsetPolygons, offsetWallgroups, offsetPolytable};
+                                          offsetPolygons, offsetWallgroups, offsetPolytable,
+                                          new HexNumber(DynamicArray.convertInt(buffer.length - startOffset),
+                                                        0, 4, "")};
     Arrays.sort(offsets, new Comparator<HexNumber>()
     {
+      @Override
       public int compare(HexNumber s1, HexNumber s2)
       {
         return s1.getValue() - s2.getValue();
@@ -151,22 +225,21 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetDoors.getValue();
     for (int i = 0; i < countDoors.getValue(); i++) {
-      Door door = new Door(this, buffer, offset);
+      Door door = new Door(this, buffer, offset, i);
       offset = door.getEndOffset();
       door.readVertices(buffer, offsetVertices.getValue());
-      list.add(door);
+      addField(door);
     }
 
     offset = offsetWallgroups.getValue();
     int countPolytable = 0;
-    int countWallgroups = (findNextOffset(offsets, offsetWallgroups).getValue() -
-                           offsetWallgroups.getValue()) /
-                          4;
+    int countWallgroups = (offsets[ArrayUtil.indexOf(offsets, offsetWallgroups) + 1].getValue() -
+                           offsetWallgroups.getValue()) / 4;
     for (int i = 0; i < countWallgroups; i++) {
       Wallgroup wall = new Wallgroup(this, buffer, offset, i);
       offset = wall.getEndOffset();
       countPolytable = Math.max(countPolytable, wall.getNextPolygonIndex());
-      list.add(wall);
+      addField(wall);
     }
 
     offset = offsetPolygons.getValue();
@@ -174,19 +247,21 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       Polygon poly = new WallPolygon(this, buffer, offset, i);
       offset = poly.getEndOffset();
       poly.readVertices(buffer, offsetVertices.getValue());
-      list.add(poly);
+      addField(poly);
     }
 
     offset = offsetPolytable.getValue();
-    for (int i = 0; i < countPolytable; i++)
-      list.add(new DecNumber(buffer, offset + i * 2, 2, "Wall polygon index " + i));
+    for (int i = 0; i < countPolytable; i++) {
+      addField(new DecNumber(buffer, offset + i * 2, 2, "Wall polygon index " + i));
+    }
 
     int endoffset = offset;
-    List flatList = getFlatList();
+    List<StructEntry> flatList = getFlatList();
     for (int i = 0; i < flatList.size(); i++) {
-      StructEntry entry = (StructEntry)flatList.get(i);
-      if (entry.getOffset() + entry.getSize() > endoffset)
+      StructEntry entry = flatList.get(i);
+      if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
+      }
     }
     return endoffset;
   }
@@ -195,28 +270,32 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   {
     if (!(datatype instanceof Vertex)) {
       HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
-      if (datatype.getOffset() <= offset_vertices.getValue())
+      if (datatype.getOffset() <= offset_vertices.getValue()) {
         offset_vertices.incValue(size);
+      }
     }
     if (!(datatype instanceof RemovableDecNumber)) {
       HexNumber offset_doortilemap = (HexNumber)getAttribute("Door tilemap lookup offset");
-      if (datatype.getOffset() <= offset_doortilemap.getValue())
+      if (datatype.getOffset() <= offset_doortilemap.getValue()) {
         offset_doortilemap.incValue(size);
+      }
     }
 
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Overlay)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Overlay) {
         ((Overlay)o).updateOffsets(datatype.getOffset(), size);
+      }
     }
 
     // Assumes polygon offset is correct
     int offset = ((SectionOffset)getAttribute("Wall polygons offset")).getValue();
     offset += ((SectionCount)getAttribute("# wall polygons")).getValue() * 18;
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof Door)
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
+      if (o instanceof Door) {
         ((Door)o).updatePolygonsOffset(offset);
+      }
     }
   }
 
@@ -225,8 +304,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     // Assumes vertices offset is correct
     int offset = ((HexNumber)getAttribute("Vertices offset")).getValue();
     int count = 0;
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
+    for (int i = 0; i < getFieldCount(); i++) {
+      Object o = getField(i);
       if (o instanceof Polygon) {
         Polygon polygon = (Polygon)o;
         int vertNum = polygon.updateVertices(offset, count);
@@ -235,8 +314,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       }
       else if (o instanceof Door) {
         Door door = (Door)o;
-        for (int j = 0; j < door.getRowCount(); j++) {
-          StructEntry q = door.getStructEntryAt(j);
+        for (int j = 0; j < door.getFieldCount(); j++) {
+          StructEntry q = door.getField(j);
           if (q instanceof Polygon) {
             Polygon polygon = (Polygon)q;
             int vertNum = polygon.updateVertices(offset, count);

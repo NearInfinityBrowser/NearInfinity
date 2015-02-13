@@ -8,45 +8,132 @@ import infinity.gui.StructViewer;
 import infinity.gui.TextListPanel;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
-import infinity.util.*;
+import infinity.resource.Profile;
+import infinity.resource.StructEntry;
+import infinity.util.DynamicArray;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
+import infinity.util.io.FileWriterNI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 public final class IDSTargetEffect extends Datatype implements Editable, ListSelectionListener
 {
-  private final String sIDS[] = new String[]
-  {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
-   "SPECIFIC.IDS", "GENDER.IDS", "ALIGN.IDS"};
+  /** The default field name of this datatype. */
+  public static final String DEFAULT_NAME = "IDS target";
+
+  private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
+                                                "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
+                                                "ALIGNMEN.IDS", ""};
+  private final String[] sIDS;
+
   private LongIntegerHashMap<IdsMapEntry> idsMap;
   private TextListPanel fileList, valueList;
   private long idsValue, idsFile;
 
   public IDSTargetEffect(byte buffer[], int offset)
   {
-    this(buffer, offset, "EA.IDS");
+    this(null, buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
   }
 
-  public IDSTargetEffect(byte buffer[], int offset, String secondIDS)
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset)
   {
-    super(offset, 8, "IDS target");
-    idsValue = Byteconvert.convertUnsignedInt(buffer, offset);
-    idsFile = Byteconvert.convertUnsignedInt(buffer, offset + 4);
+    this(parent, buffer, offset, 8, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size)
+  {
+    this(null, buffer, offset, size, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size)
+  {
+    this(parent, buffer, offset, size, DEFAULT_NAME, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name)
+  {
+    this(null, buffer, offset, 8, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, String name)
+  {
+    this(parent, buffer, offset, 8, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name)
+  {
+    this(null, buffer, offset, size, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size, String name)
+  {
+    this(parent, buffer, offset, size, name, "EA.IDS");
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name, String secondIDS)
+  {
+    this(null, buffer, offset, 8, name, secondIDS);
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, String name, String secondIDS)
+  {
+    this(parent, buffer, offset, 8, name, secondIDS);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name, String secondIDS)
+  {
+    this(null, buffer, offset, size, name, secondIDS);
+  }
+
+  public IDSTargetEffect(StructEntry parent, byte buffer[], int offset, int size, String name,
+                         String secondIDS)
+  {
+    super(parent, offset, size, (name != null) ? name : DEFAULT_NAME);
+    sIDS = sIDS_default;
     sIDS[2] = secondIDS;
-    if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals(""))
-      idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
-    else
-      idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    if (Profile.isEnhancedEdition()) {
+      sIDS[9] = "KIT.IDS";
+    }
+    sIDS[8] = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
+    read(buffer, offset);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, String name, String[] ids)
+  {
+    this(buffer, offset, 8, name, ids);
+  }
+
+  public IDSTargetEffect(byte buffer[], int offset, int size, String name, String[] ids)
+  {
+    super(offset, size, (name != null) ? name : DEFAULT_NAME);
+    if (ids != null) {
+      sIDS = ids;
+    } else {
+      sIDS = sIDS_default;
+    }
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public JComponent edit(final ActionListener container)
   {
     if (fileList == null) {
@@ -57,8 +144,8 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
         values.add(getString(i));
       fileList = new TextListPanel(values);
       fileList.addListSelectionListener(this);
-      long keys[] = idsMap.keys();
-      List items = new ArrayList(keys.length);
+      long[] keys = idsMap.keys();
+      List<Object> items = new ArrayList<Object>(keys.length);
       for (long id : keys) {
         Object value = idsMap.get(id);
         if (value instanceof IdsMapEntry)
@@ -69,6 +156,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
       valueList = new TextListPanel(items);
       valueList.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseClicked(MouseEvent event)
         {
           if (event.getClickCount() == 2)
@@ -118,12 +206,14 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     return panel;
   }
 
+  @Override
   public void select()
   {
     fileList.ensureIndexIsVisible(fileList.getSelectedIndex());
     valueList.ensureIndexIsVisible(valueList.getSelectedIndex());
   }
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String svalue = (String)fileList.getSelectedValue();
@@ -152,6 +242,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (event.getValueIsAdjusting())
@@ -176,13 +267,17 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     while (!svalue.equals(getString(fSelected)))
       fSelected++;
 
-    if (idsFile < sIDS.length && !sIDS[fSelected].equals(""))
+    if (idsFile < sIDS.length && !sIDS[fSelected].equals("")) {
       idsMap = IdsMapCache.get(sIDS[fSelected]).getMap();
-    else
+      if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[fSelected].equalsIgnoreCase("EA.IDS")) {
+        idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+      }
+    } else {
       idsMap = new LongIntegerHashMap<IdsMapEntry>();
+    }
 
-    long keys[] = idsMap.keys();
-    List items = new ArrayList(keys.length);
+    long[] keys = idsMap.keys();
+    List<Object> items = new ArrayList<Object>(keys.length);
     for (long id : keys) {
       Object value = idsMap.get(id);
       if (value instanceof IdsMapEntry)
@@ -208,14 +303,77 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
-    Filewriter.writeUnsignedInt(os, idsValue);
-    Filewriter.writeUnsignedInt(os, idsFile);
+    switch (getSize()) {
+      case 2:
+        FileWriterNI.writeByte(os, (byte)idsValue);
+        FileWriterNI.writeByte(os, (byte)idsFile);
+        break;
+      case 4:
+        FileWriterNI.writeShort(os, (short)idsValue);
+        FileWriterNI.writeShort(os, (short)idsFile);
+        break;
+      case 8:
+        FileWriterNI.writeInt(os, (int)idsValue);
+        FileWriterNI.writeInt(os, (int)idsFile);
+        break;
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 2:
+        idsValue = DynamicArray.getUnsignedByte(buffer, offset);
+        idsFile = DynamicArray.getUnsignedByte(buffer, offset + 1);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
+      case 4:
+        idsValue = DynamicArray.getUnsignedShort(buffer, offset);
+        idsFile = DynamicArray.getUnsignedShort(buffer, offset + 2);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
+      case 8:
+        idsValue = DynamicArray.getUnsignedInt(buffer, offset);
+        idsFile = DynamicArray.getUnsignedInt(buffer, offset + 4);
+        if (idsFile < sIDS.length && !sIDS[(int)idsFile].equals("")) {
+          idsMap = IdsMapCache.get(sIDS[(int)idsFile]).getMap();
+          if (!idsMap.containsKey(Long.valueOf(0L)) && sIDS[(int)idsFile].equalsIgnoreCase("EA.IDS")) {
+            idsMap.put(Long.valueOf(0L), new IdsMapEntry(0L, "ANYONE", null));
+          }
+        } else {
+          idsMap = new LongIntegerHashMap<IdsMapEntry>();
+        }
+        break;
+    }
+
+    return offset + getSize();
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     String idsFileStr = getString((int)idsFile) + " / ";

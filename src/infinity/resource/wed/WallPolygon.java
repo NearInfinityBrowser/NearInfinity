@@ -6,14 +6,14 @@ package infinity.resource.wed;
 
 import infinity.resource.AbstractStruct;
 
-final class WallPolygon extends Polygon
+public final class WallPolygon extends Polygon
 {
-  WallPolygon() throws Exception
+  public WallPolygon() throws Exception
   {
     super(null, "Wall polygon", new byte[18], 0);
   }
 
-  WallPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public WallPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
     super(superStruct, "Wall polygon " + nr, buffer, offset);
   }

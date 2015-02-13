@@ -4,7 +4,8 @@
 
 package infinity.datatype;
 
-import infinity.util.Byteconvert;
+import infinity.resource.StructEntry;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,20 +16,19 @@ public class DecNumber extends Datatype implements InlineEditable
 
   public DecNumber(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public DecNumber(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
     number = 0;
-    if (length == 4)
-      number = Byteconvert.convertInt(buffer, offset);
-    else if (length == 2)
-      number = (int)Byteconvert.convertShort(buffer, offset);
-    else if (length == 1)
-      number = (int)Byteconvert.convertByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     try {
@@ -48,6 +48,7 @@ public class DecNumber extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeInt(os, number);
@@ -55,6 +56,31 @@ public class DecNumber extends Datatype implements InlineEditable
 
 // --------------------- End Interface Writeable ---------------------
 
+// --------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        number = (int)DynamicArray.getByte(buffer, offset);
+        break;
+      case 2:
+        number = (int)DynamicArray.getShort(buffer, offset);
+        break;
+      case 4:
+        number = DynamicArray.getInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+
+    return offset + getSize();
+  }
+
+// --------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     return Integer.toString(number);

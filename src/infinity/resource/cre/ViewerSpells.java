@@ -9,15 +9,27 @@ import infinity.datatype.ResourceRef;
 import infinity.gui.ToolTipTableCellRenderer;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
-import infinity.resource.*;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
+import infinity.resource.StructEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 
 final class ViewerSpells extends JPanel implements ActionListener
 {
@@ -36,13 +48,14 @@ final class ViewerSpells extends JPanel implements ActionListener
     table.getColumnModel().getColumn(1).setMaxWidth(5);
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2 && table.getSelectedRowCount() == 1) {
           ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
           if (ref != null) {
             Resource res = ResourceFactory.getResource(
-                    ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                    ResourceFactory.getResourceEntry(ref.getResourceName()));
             new ViewFrame(getTopLevelAncestor(), res);
           }
         }
@@ -58,13 +71,14 @@ final class ViewerSpells extends JPanel implements ActionListener
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bOpen) {
       ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
       if (ref != null) {
         Resource res = ResourceFactory.getResource(
-                ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+                ResourceFactory.getResourceEntry(ref.getResourceName()));
         new ViewFrame(getTopLevelAncestor(), res);
       }
     }
@@ -90,13 +104,13 @@ final class ViewerSpells extends JPanel implements ActionListener
     private void updateTable()
     {
       list.clear();
-      for (int i = 0; i < cre.getRowCount(); i++) {
-        StructEntry o = cre.getStructEntryAt(i);
+      for (int i = 0; i < cre.getFieldCount(); i++) {
+        StructEntry o = cre.getField(i);
         if (o instanceof SpellMemorization) {
           SpellMemorization inf = (SpellMemorization)o;
           int lvl = ((DecNumber)inf.getAttribute("Spell level")).getValue();
-          for (int j = 0; j < inf.getRowCount(); j++) {
-            StructEntry p = inf.getStructEntryAt(j);
+          for (int j = 0; j < inf.getFieldCount(); j++) {
+            StructEntry p = inf.getField(j);
             if (p instanceof MemorizedSpells) {
               MemorizedSpells spell = (MemorizedSpells)p;
               addSpell(lvl, (ResourceRef)spell.getAttribute("Spell"));
@@ -119,17 +133,20 @@ final class ViewerSpells extends JPanel implements ActionListener
       list.add(entry);
     }
 
+    @Override
     public void tableChanged(TableModelEvent e)
     {
       updateTable();
       fireTableStructureChanged();
     }
 
+    @Override
     public int getRowCount()
     {
       return list.size();
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       MemSpellTableEntry entry = list.get(rowIndex);
@@ -141,11 +158,13 @@ final class ViewerSpells extends JPanel implements ActionListener
         return entry.spell;
     }
 
+    @Override
     public int getColumnCount()
     {
       return 3;
     }
 
+    @Override
     public String getColumnName(int column)
     {
       if (column == 0)

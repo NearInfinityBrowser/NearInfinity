@@ -4,7 +4,8 @@
 
 package infinity.datatype;
 
-import infinity.util.Byteconvert;
+import infinity.resource.StructEntry;
+import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,20 +16,19 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
   public UnsignDecNumber(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
-    number = (long)0;
-    if (length == 4)
-      number = Byteconvert.convertUnsignedInt(buffer, offset);
-    else if (length == 2)
-      number = (long)Byteconvert.convertUnsignedShort(buffer, offset);
-    else if (length == 1)
-      number = (long)Byteconvert.convertUnsignedByte(buffer, offset);
-    else
-      throw new IllegalArgumentException();
+    this(null, buffer, offset, length, name);
+  }
+
+  public UnsignDecNumber(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
+    number = 0;
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     try {
@@ -48,6 +48,7 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeLong(os, number);
@@ -55,6 +56,31 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    switch (getSize()) {
+      case 1:
+        number = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        break;
+      case 2:
+        number = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        break;
+      case 4:
+        number = DynamicArray.getUnsignedInt(buffer, offset);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+
+    return offset + getSize();
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     return Long.toString(number);

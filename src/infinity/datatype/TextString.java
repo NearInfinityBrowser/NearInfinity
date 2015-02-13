@@ -4,10 +4,13 @@
 
 package infinity.datatype;
 
-import infinity.util.*;
+import infinity.resource.StructEntry;
+import infinity.util.DynamicArray;
+import infinity.util.io.FileWriterNI;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 public final class TextString extends Datatype implements InlineEditable
 {
@@ -16,12 +19,19 @@ public final class TextString extends Datatype implements InlineEditable
 
   public TextString(byte buffer[], int offset, int length, String name)
   {
-    super(offset, length, name);
-    bytes = ArrayUtil.getSubArray(buffer, offset, length);
+    this(null, buffer, offset, length, name);
+  }
+
+  public TextString(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    super(parent, offset, length, name);
+    bytes = new byte[length];
+    read(buffer, offset);
   }
 
 // --------------------- Begin Interface InlineEditable ---------------------
 
+  @Override
   public boolean update(Object value)
   {
     String newstring = (String)value;
@@ -36,20 +46,40 @@ public final class TextString extends Datatype implements InlineEditable
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
-    if (text == null)
-      Filewriter.writeBytes(os, bytes);
-    else
-      Filewriter.writeString(os, text, getSize());
+    if (text != null) {
+      byte[] buf = text.getBytes(Charset.forName("windows-1252"));
+      int len = Math.min(buf.length, bytes.length);
+      System.arraycopy(buf, 0, bytes, 0, len);
+      if (len < bytes.length) {
+        bytes[len] = 0;
+      }
+    }
+    FileWriterNI.writeBytes(os, bytes);
   }
 
 // --------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(byte[] buffer, int offset)
+  {
+    System.arraycopy(buffer, offset, bytes, 0, getSize());
+    text = null;
+
+    return offset + getSize();
+  }
+
+//--------------------- End Interface Readable ---------------------
+
+  @Override
   public String toString()
   {
     if (text == null)
-      text = Byteconvert.convertString(bytes, 0, bytes.length);
+      text = DynamicArray.getString(bytes, 0, bytes.length);
     return text;
   }
 }

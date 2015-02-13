@@ -4,14 +4,18 @@
 
 package infinity.resource.wed;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.HexNumber;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
 public final class Overlay extends AbstractStruct // implements AddRemovable, HasAddRemovable
 {
-  public Overlay(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public Overlay(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Overlay", buffer, offset);
+    super(superStruct, "Overlay " + number, buffer, offset);
   }
 
   public void updateOffsets(int offset, int size)
@@ -25,19 +29,20 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
       offset_tilelookup.incValue(size);
   }
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
     DecNumber width = new DecNumber(buffer, offset, 2, "Width");
-    list.add(width);
+    addField(width);
     DecNumber height = new DecNumber(buffer, offset + 2, 2, "Height");
-    list.add(height);
+    addField(height);
     ResourceRef tileset = new ResourceRef(buffer, offset + 4, "Tileset", "TIS");
-    list.add(tileset);
-    list.add(new Unknown(buffer, offset + 12, 4));
+    addField(tileset);
+    addField(new Unknown(buffer, offset + 12, 4));
     SectionOffset offset_tilemap = new SectionOffset(buffer, offset + 16, "Tilemap offset", null);
-    list.add(offset_tilemap);
+    addField(offset_tilemap);
     SectionOffset offset_tilelookup = new SectionOffset(buffer, offset + 20, "Tilemap lookup offset", null);
-    list.add(offset_tilelookup);
+    addField(offset_tilelookup);
     int retoff = offset + 24;
 
     // readTilemap
@@ -49,13 +54,14 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
         Tilemap map = new Tilemap(this, buffer, offset, i);
         offset = map.getEndOffset();
         lookuptablesize += map.getTileCount();
-        list.add(map);
+        addField(map);
       }
     }
     // readLookuptable
     offset = offset_tilelookup.getValue();
-    for (int i = 0; i < lookuptablesize; i++)
-      list.add(new DecNumber(buffer, offset + i * 2, 2, "Tilemap index " + i));
+    for (int i = 0; i < lookuptablesize; i++) {
+      addField(new DecNumber(buffer, offset + i * 2, 2, "Tilemap index " + i));
+    }
     return retoff;
   }
 }

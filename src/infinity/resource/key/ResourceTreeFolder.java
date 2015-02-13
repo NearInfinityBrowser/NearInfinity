@@ -4,7 +4,9 @@
 
 package infinity.resource.key;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 {
@@ -21,6 +23,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
 // --------------------- Begin Interface Comparable ---------------------
 
+  @Override
   public int compareTo(ResourceTreeFolder o)
   {
     return folderName.compareToIgnoreCase(o.folderName);
@@ -28,9 +31,15 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
 // --------------------- End Interface Comparable ---------------------
 
+  @Override
   public String toString()
   {
     return folderName + " - " + getChildCount();
+  }
+
+  public String folderName()
+  {
+    return folderName;
   }
 
   public List<ResourceEntry> getResourceEntries()
@@ -53,56 +62,58 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     return list;
   }
 
-  void addFolder(ResourceTreeFolder folder)
+  public void addFolder(ResourceTreeFolder folder)
   {
     folders.add(folder);
   }
 
-  void addResourceEntry(ResourceEntry entry)
+  public void addResourceEntry(ResourceEntry entry)
   {
-    resourceEntries.add(entry);
+    if (entry.isVisible()) {
+      resourceEntries.add(entry);
+    }
   }
 
-  Object getChild(int index)
+  public Object getChild(int index)
   {
     if (index < folders.size())
       return folders.get(index);
     return resourceEntries.get(index - folders.size());
   }
 
-  int getChildCount()
+  public int getChildCount()
   {
     return folders.size() + resourceEntries.size();
   }
 
-  List<ResourceTreeFolder> getFolders()
+  public List<ResourceTreeFolder> getFolders()
   {
     return Collections.unmodifiableList(folders);
   }
 
-  int getIndexOfChild(Object node)
+  public int getIndexOfChild(Object node)
   {
     if (node instanceof ResourceTreeFolder)
       return folders.indexOf(node);
     return folders.size() + resourceEntries.indexOf(node);
   }
 
-  ResourceTreeFolder getParentFolder()
+  public ResourceTreeFolder getParentFolder()
   {
     return parentFolder;
   }
 
-  void removeFolder(ResourceTreeFolder folder)
+  public void removeFolder(ResourceTreeFolder folder)
   {
     folders.remove(folder);
   }
 
-  void removeResourceEntry(ResourceEntry entry)
+  public void removeResourceEntry(ResourceEntry entry)
   {
     resourceEntries.remove(entry);
   }
 
-  void sortChildren()
+  public void sortChildren()
   {
     Collections.sort(resourceEntries);
     Collections.sort(folders);

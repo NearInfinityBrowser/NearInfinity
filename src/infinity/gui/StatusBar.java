@@ -4,10 +4,17 @@
 
 package infinity.gui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.text.BadLocationException;
 
 public final class StatusBar extends JPanel implements CaretListener
 {
@@ -23,7 +30,7 @@ public final class StatusBar extends JPanel implements CaretListener
     cursorLabel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1),
                                                              BorderFactory.createLineBorder(
                                                                      UIManager.getColor("controlShadow"))));
-    cursorLabel.setPreferredSize(new Dimension(75, cursorLabel.getPreferredSize().height));
+    cursorLabel.setPreferredSize(new Dimension(120, cursorLabel.getPreferredSize().height));
     add(messageLabel, BorderLayout.CENTER);
     add(cursorLabel, BorderLayout.EAST);
     setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
@@ -31,6 +38,7 @@ public final class StatusBar extends JPanel implements CaretListener
 
 // --------------------- Begin Interface CaretListener ---------------------
 
+  @Override
   public void caretUpdate(CaretEvent event)
   {
     if (event.getSource() instanceof JTextArea) {
@@ -38,8 +46,8 @@ public final class StatusBar extends JPanel implements CaretListener
       int position = event.getDot();
       try {
         int linenr = source.getLineOfOffset(position);
-        cursorLabel.setText(' ' + String.valueOf(linenr + 1) + ':' +
-                            String.valueOf(1 + position - source.getLineStartOffset(linenr)));
+        cursorLabel.setText(String.format(" %1$d:%2$d", linenr + 1,
+                                          1 + position - source.getLineStartOffset(linenr)));
       } catch (BadLocationException e) {
         cursorLabel.setText("");
       }
@@ -47,6 +55,21 @@ public final class StatusBar extends JPanel implements CaretListener
   }
 
 // --------------------- End Interface CaretListener ---------------------
+
+  public void setCursorText(String text)
+  {
+    cursorLabel.setText(' ' + text);
+  }
+
+  public String getCursorText()
+  {
+    String text = cursorLabel.getText();
+    if (text.length() > 0) {
+      return text.substring(1);
+    } else {
+      return "";
+    }
+  }
 
   public void setMessage(String msg)
   {
@@ -58,7 +81,7 @@ public final class StatusBar extends JPanel implements CaretListener
   {
     String text = messageLabel.getText();
     if (text.length() > 0)
-      return messageLabel.getText().substring(1);
+      return text.substring(1);
     else
       return "";
   }

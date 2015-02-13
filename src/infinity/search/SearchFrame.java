@@ -5,19 +5,47 @@
 package infinity.search;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Viewable;
 import infinity.resource.bcs.BcsResource;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable
 {
@@ -84,18 +112,20 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     binsert.addActionListener(this);
     list.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
           String selected = (String)list.getSelectedValue();
           String resname = selected.substring(0, selected.indexOf(" - "));
-          ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resname);
+          ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
           NearInfinity.getInstance().showResourceEntry(entry);
         }
       }
     });
     addWindowListener(new WindowAdapter()
     {
+      @Override
       public void windowOpened(WindowEvent event)
       {
         tfield.requestFocus();
@@ -185,6 +215,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tfield || event.getSource() == bsearch) {
@@ -195,15 +226,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     else if (event.getSource() == bopen) {
       String selected = (String)list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resname);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
       NearInfinity.getInstance().showResourceEntry(entry);
     }
     else if (event.getSource() == bopennew) {
       String selected = (String)list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
-      new ViewFrame(this,
-                    ResourceFactory.getResource(
-                            ResourceFactory.getInstance().getResourceEntry(resname)));
+      new ViewFrame(this, ResourceFactory.getResource(ResourceFactory.getResourceEntry(resname)));
     }
     else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
@@ -223,6 +252,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -235,6 +265,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     list.setEnabled(false);
@@ -260,15 +291,15 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     else if (rbsto.isSelected())
       selectedtype = "STO";
 
-    List<ResourceEntry> resources = ResourceFactory.getInstance().getResources(selectedtype);
-    String expr = tfield.getText().toLowerCase();
+    List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
+    String expr = tfield.getText().toLowerCase(Locale.ENGLISH);
     List<String> found = new ArrayList<String>();
     cards.show(bpanel, "Progress");
     progress.setMaximum(resources.size());
     for (int i = 0; i < resources.size(); i++) {
       ResourceEntry entry = resources.get(i);
       String string = entry.getSearchString();
-      if (string != null && string.toLowerCase().indexOf(expr) != -1)
+      if (string != null && string.toLowerCase(Locale.ENGLISH).indexOf(expr) != -1)
         found.add(entry.toString() + " - " + string);
       progress.setValue(i + 1);
     }

@@ -4,7 +4,7 @@
 
 package infinity.resource;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 public interface Viewable
 {

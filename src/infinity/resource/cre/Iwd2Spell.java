@@ -4,7 +4,9 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.IwdRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -22,6 +24,7 @@ public final class Iwd2Spell extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -29,12 +32,13 @@ public final class Iwd2Spell extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new IwdRef(buffer, offset, "ResRef", "LISTSPLL.2DA"));
-    list.add(new DecNumber(buffer, offset + 4, 4, "# memorizable"));
-    list.add(new DecNumber(buffer, offset + 8, 4, "# remaining"));
-    list.add(new Unknown(buffer, offset + 12, 4));
+    addField(new IwdRef(buffer, offset, "ResRef", "LISTSPLL.2DA"));
+    addField(new DecNumber(buffer, offset + 4, 4, "# memorizable"));
+    addField(new DecNumber(buffer, offset + 8, 4, "# remaining"));
+    addField(new Unknown(buffer, offset + 12, 4));
     return offset + 16;
   }
 }

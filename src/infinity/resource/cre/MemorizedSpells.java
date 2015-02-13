@@ -4,7 +4,9 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -24,6 +26,7 @@ final class MemorizedSpells extends AbstractStruct implements AddRemovable
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -31,11 +34,12 @@ final class MemorizedSpells extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));
-    list.add(new Bitmap(buffer, offset + 8, 2, "Memorization", s_mem));
-    list.add(new Unknown(buffer, offset + 10, 2));
+    addField(new ResourceRef(buffer, offset, "Spell", "SPL"));
+    addField(new Bitmap(buffer, offset + 8, 2, "Memorization", s_mem));
+    addField(new Unknown(buffer, offset + 10, 2));
     return offset + 12;
   }
 }

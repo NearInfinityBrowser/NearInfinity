@@ -5,25 +5,54 @@
 package infinity.check;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class BCSIDSChecker implements Runnable, ActionListener, ListSelectionListener
 {
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew;
+  private JButton bopen, bopennew, bsave;
   private SortableTable table;
 
   public BCSIDSChecker()
@@ -33,6 +62,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bopen) {
@@ -54,6 +84,35 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
         bcsfile.highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
       }
     }
+    else if (event.getSource() == bsave) {
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      fc.setDialogTitle("Save search result");
+      fc.setSelectedFile(new FileNI("result.txt"));
+      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
+        File output = fc.getSelectedFile();
+        if (output.exists()) {
+          String options[] = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
+                                           "Save result", JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+            return;
+        }
+        try {
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
+          pw.println("Result of unknown IDS references in BCS & BS files");
+          pw.println("Number of hits: " + table.getRowCount());
+          for (int i = 0; i < table.getRowCount(); i++)
+            pw.println(table.getTableItemAt(i).toString());
+          pw.close();
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -61,6 +120,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     bopen.setEnabled(true);
@@ -72,17 +132,21 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> bcsFiles = ResourceFactory.getInstance().getResources("BCS");
-    bcsFiles.addAll(ResourceFactory.getInstance().getResources("BS"));
+    List<ResourceEntry> bcsFiles = ResourceFactory.getResources("BCS");
+    bcsFiles.addAll(ResourceFactory.getResources("BS"));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Checking...", null, 0, bcsFiles.size());
-    table = new SortableTable(new String[]{"File", "Error message", "Line"},
-                              new Class[]{Object.class, Object.class, Integer.class},
-                              new int[]{100, 300, 50});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+    table = new SortableTable(Arrays.asList(new String[]{"File", "Error message", "Line"}),
+                              colClasses, Arrays.asList(new Integer[]{100, 300, 50}));
+
     for (int i = 0; i < bcsFiles.size(); i++) {
       ResourceEntry entry = bcsFiles.get(i);
       BcsResource script;
@@ -109,14 +173,17 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
       bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
       bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
       JLabel count = new JLabel(table.getRowCount() + " hits(s) found", JLabel.CENTER);
       count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
       resultFrame.getRootPane().setDefaultButton(bopennew);
       JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       panel.add(bopen);
       panel.add(bopennew);
+      panel.add(bsave);
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
       JPanel pane = (JPanel)resultFrame.getContentPane();
@@ -130,6 +197,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       table.getSelectionModel().addListSelectionListener(this);
       table.addMouseListener(new MouseAdapter()
       {
+        @Override
         public void mouseReleased(MouseEvent event)
         {
           if (event.getClickCount() == 2) {
@@ -144,6 +212,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       });
       bopen.addActionListener(this);
       bopennew.addActionListener(this);
+      bsave.addActionListener(this);
       pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       resultFrame.pack();
       Center.center(resultFrame, NearInfinity.getInstance().getBounds());
@@ -184,6 +253,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       this.lineNr = lineNr;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)
@@ -191,6 +261,13 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       else if (columnIndex == 1)
         return error;
       return lineNr;
+    }
+
+    @Override
+    public String toString()
+    {
+      return String.format("File: %1$s  Error: %2$s  Line: %3$d",
+                           resourceEntry.toString(), error, lineNr);
     }
   }
 }

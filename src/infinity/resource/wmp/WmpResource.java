@@ -4,39 +4,91 @@
 
 package infinity.resource.wmp;
 
-import infinity.datatype.*;
-import infinity.resource.*;
+import infinity.datatype.DecNumber;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
+import infinity.gui.StructViewer;
+import infinity.gui.hexview.BasicColorMap;
+import infinity.gui.hexview.HexViewer;
+import infinity.resource.AbstractStruct;
+import infinity.resource.AddRemovable;
+import infinity.resource.HasViewerTabs;
+import infinity.resource.Resource;
 import infinity.resource.key.ResourceEntry;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public final class WmpResource extends AbstractStruct implements Resource, HasDetailViewer
+import javax.swing.JComponent;
+import javax.swing.JTabbedPane;
+
+public final class WmpResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  private HexViewer hexViewer;
+
   public WmpResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
 
-// --------------------- Begin Interface HasDetailViewer ---------------------
+// --------------------- Begin Interface HasViewerTabs ---------------------
 
-  public JComponent getDetailViewer()
+  @Override
+  public int getViewerTabCount()
   {
-    JTabbedPane tabbedPane = new JTabbedPane();
-    int count = ((DecNumber)getAttribute("# maps")).getValue();
-    for (int i = 0; i < count; i++) {
-      MapEntry entry = (MapEntry)getAttribute("Map " + i);
-      tabbedPane.addTab(entry.getName(), entry.getDetailViewer());
-    }
-    return tabbedPane;
+    return 2;
   }
 
-// --------------------- End Interface HasDetailViewer ---------------------
+  @Override
+  public String getViewerTabName(int index)
+  {
+    switch (index) {
+      case 0:
+        return StructViewer.TAB_VIEW;
+      case 1:
+        return StructViewer.TAB_RAW;
+    }
+    return null;
+  }
+
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    switch (index) {
+      case 0:
+      {
+        JTabbedPane tabbedPane = new JTabbedPane();
+        int count = ((DecNumber)getAttribute("# maps")).getValue();
+        for (int i = 0; i < count; i++) {
+          MapEntry entry = (MapEntry)getAttribute("Map " + i);
+          tabbedPane.addTab(entry.getName(), entry.getViewerTab(0));
+        }
+        return tabbedPane;
+      }
+      case 1:
+      {
+        if (hexViewer == null) {
+          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return (index == 0);
+  }
+
+// --------------------- End Interface HasViewerTabs ---------------------
 
 
 // --------------------- Begin Interface Writeable ---------------------
 
+  @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatList(os);
@@ -44,21 +96,62 @@ public final class WmpResource extends AbstractStruct implements Resource, HasDe
 
 // --------------------- End Interface Writeable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new TextString(buffer, offset, 4, "Signature"));
-    list.add(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, "Signature"));
+    addField(new TextString(buffer, offset + 4, 4, "Version"));
     SectionCount entry_count = new SectionCount(buffer, offset + 8, 4, "# maps", MapEntry.class);
-    list.add(entry_count);
+    addField(entry_count);
     SectionOffset entry_offset = new SectionOffset(buffer, offset + 12, "Maps offset", MapEntry.class);
-    list.add(entry_offset);
+    addField(entry_offset);
     offset = entry_offset.getValue();
     for (int i = 0; i < entry_count.getValue(); i++) {
       MapEntry entry = new MapEntry(this, buffer, offset, i);
       offset = entry.getEndOffset();
-      list.add(entry);
+      addField(entry);
     }
     return offset;
+  }
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer)
+  {
+    viewer.addTabChangeListener(hexViewer);
+  }
+
+  @Override
+  protected void datatypeAdded(AddRemovable datatype)
+  {
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
+  }
+
+  @Override
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
+  {
+    super.datatypeAddedInChild(child, datatype);
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
+  }
+
+  @Override
+  protected void datatypeRemoved(AddRemovable datatype)
+  {
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
+  }
+
+  @Override
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
+  {
+    super.datatypeRemovedInChild(child, datatype);
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
   }
 }
 

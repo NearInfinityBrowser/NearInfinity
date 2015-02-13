@@ -5,16 +5,23 @@
 package infinity.datatype;
 
 import infinity.resource.AbstractStruct;
+import infinity.resource.StructEntry;
 
 public final class UnknownBinary extends Unknown
 {
   public UnknownBinary(byte[] buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name);
+    this(null, buffer, offset, length, name);
+  }
+
+  public UnknownBinary(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  {
+    super(parent, buffer, offset, length, name);
   }
 
 // --------------------- Begin Interface Editable ---------------------
 
+  @Override
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim();
@@ -42,12 +49,13 @@ public final class UnknownBinary extends Unknown
 
 // --------------------- End Interface Editable ---------------------
 
+  @Override
   public String toString()
   {
     if (data != null && data.length > 0) {
       StringBuffer sb = new StringBuffer(9 * data.length + 1);
       for (final byte d : data) {
-        String text = Integer.toBinaryString((int)d);
+        String text = Integer.toBinaryString((int)d & 0xff);
         for (int j = 0; j < 8 - text.length(); j++)
           sb.append('0');
         if (text.length() > 8)

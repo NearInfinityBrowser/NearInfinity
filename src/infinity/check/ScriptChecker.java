@@ -5,25 +5,58 @@
 package infinity.check;
 
 import infinity.NearInfinity;
-import infinity.gui.*;
+import infinity.gui.BrowserMenuBar;
+import infinity.gui.Center;
+import infinity.gui.ChildFrame;
+import infinity.gui.SortableTable;
+import infinity.gui.TableItem;
+import infinity.gui.ViewFrame;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
-import infinity.resource.bcs.*;
+import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Compiler;
+import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import infinity.util.io.PrintWriterNI;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.SortedMap;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.ProgressMonitor;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public final class ScriptChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew;
+  private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
   private SortableTable errorTable, warningTable;
 
@@ -34,6 +67,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ActionListener ---------------------
 
+  @Override
   public void actionPerformed(ActionEvent event)
   {
     SortableTable table = errorTable;
@@ -57,6 +91,39 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
         ((BcsResource)resource).highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
       }
     }
+    else if (event.getSource() == bsave) {
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      fc.setDialogTitle("Save search result");
+      fc.setSelectedFile(new FileNI("result.txt"));
+      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
+        File output = fc.getSelectedFile();
+        if (output.exists()) {
+          String options[] = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
+                                           "Save result", JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+            return;
+        }
+        try {
+          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
+          pw.println("Result of script check");
+          if (table == errorTable) {
+            pw.println("Number of errors: " + table.getRowCount());
+          } else {
+            pw.println("Number of warnings: " + table.getRowCount());
+          }
+          for (int i = 0; i < table.getRowCount(); i++)
+            pw.println(table.getTableItemAt(i).toString());
+          pw.close();
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -64,6 +131,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
+  @Override
   public void stateChanged(ChangeEvent e)
   {
     if (tabbedPane.getSelectedIndex() == 0)
@@ -78,6 +146,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
   public void valueChanged(ListSelectionEvent event)
   {
     if (tabbedPane.getSelectedIndex() == 0)
@@ -92,20 +161,23 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
 // --------------------- Begin Interface Runnable ---------------------
 
+  @Override
   public void run()
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> scriptFiles = ResourceFactory.getInstance().getResources("BCS");
-    scriptFiles.addAll(ResourceFactory.getInstance().getResources("BS"));
+    List<ResourceEntry> scriptFiles = ResourceFactory.getResources("BCS");
+    scriptFiles.addAll(ResourceFactory.getResources("BS"));
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
                                                    "Checking scripts...", null, 0, scriptFiles.size());
-    errorTable = new SortableTable(new String[]{"Script", "Error message", "Line"},
-                                   new Class[]{Object.class, Object.class, Integer.class},
-                                   new int[]{120, 440, 50});
-    warningTable = new SortableTable(new String[]{"Script", "Warning", "Line"},
-                                     new Class[]{Object.class, Object.class, Integer.class},
-                                     new int[]{120, 440, 50});
+
+    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+    errorTable = new SortableTable(Arrays.asList(new String[]{"Script", "Error message", "Line"}),
+                                   colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
+    warningTable = new SortableTable(Arrays.asList(new String[]{"Script", "Warning", "Line"}),
+                                     colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
+
     for (int i = 0; i < scriptFiles.size(); i++) {
       ResourceEntry entry = scriptFiles.get(i);
       try {
@@ -152,12 +224,15 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       tabbedPane.addChangeListener(this);
       bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
       bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
       resultFrame.getRootPane().setDefaultButton(bopennew);
       JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       panel.add(bopen);
       panel.add(bopennew);
+      panel.add(bsave);
       JPanel pane = (JPanel)resultFrame.getContentPane();
       pane.setLayout(new BorderLayout(0, 3));
       pane.add(tabbedPane, BorderLayout.CENTER);
@@ -170,6 +245,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       warningTable.getSelectionModel().addListSelectionListener(this);
       MouseListener listener = new MouseAdapter()
       {
+        @Override
         public void mouseReleased(MouseEvent event)
         {
           if (event.getClickCount() == 2) {
@@ -188,6 +264,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       warningTable.addMouseListener(listener);
       bopen.addActionListener(this);
       bopennew.addActionListener(this);
+      bsave.addActionListener(this);
       pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       resultFrame.pack();
       Center.center(resultFrame, NearInfinity.getInstance().getBounds());
@@ -214,6 +291,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       this.error = error;
     }
 
+    @Override
     public Object getObjectAt(int columnIndex)
     {
       if (columnIndex == 0)
@@ -221,6 +299,13 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       else if (columnIndex == 1)
         return error;
       return lineNr;
+    }
+
+    @Override
+    public String toString()
+    {
+      return String.format("File: %1$s  Error: %2$s  Line: %3$d",
+                           resourceEntry.toString(), error, lineNr);
     }
   }
 }

@@ -4,7 +4,9 @@
 
 package infinity.resource.cre;
 
-import infinity.datatype.*;
+import infinity.datatype.Bitmap;
+import infinity.datatype.DecNumber;
+import infinity.datatype.ResourceRef;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -17,13 +19,14 @@ final class KnownSpells extends AbstractStruct implements AddRemovable
     super(null, "Known spell", new byte[12], 0);
   }
 
-  KnownSpells(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  KnownSpells(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Known spell", buffer, offset);
+    super(superStruct, "Known spell " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
+  @Override
   public boolean canRemove()
   {
     return true;
@@ -31,11 +34,12 @@ final class KnownSpells extends AbstractStruct implements AddRemovable
 
 //--------------------- End Interface AddRemovable ---------------------
 
-  protected int read(byte buffer[], int offset) throws Exception
+  @Override
+  public int read(byte buffer[], int offset) throws Exception
   {
-    list.add(new ResourceRef(buffer, offset, "Spell", "SPL"));
-    list.add(new DecNumber(buffer, offset + 8, 2, "Level"));
-    list.add(new Bitmap(buffer, offset + 10, 2, "Type", s_spelltype));
+    addField(new ResourceRef(buffer, offset, "Spell", "SPL"));
+    addField(new DecNumber(buffer, offset + 8, 2, "Level"));
+    addField(new Bitmap(buffer, offset + 10, 2, "Type", s_spelltype));
     return offset + 12;
   }
 }
