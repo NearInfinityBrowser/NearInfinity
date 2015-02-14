@@ -396,16 +396,42 @@ public final class BrowserMenuBar extends JMenuBar
   ///////////////////////////////
   private static final class GameMenu extends JMenu implements ActionListener
   {
-    private final String LASTGAME_IDS[] =
-      {"LastGameID1", "LastGameID2", "LastGameID3", "LastGameID4", "LastGameID5",
-       "LastGameID6", "LastGameID7", "LastGameID8", "LastGameID9", "LastGameID10"};
-    private final String LASTGAME_PATH[] =
-      {"LastGamePath1", "LastGamePath2", "LastGamePath3", "LastGamePath4", "LastGamePath5",
-       "LastGamePath6", "LastGamePath7", "LastGamePath8", "LastGamePath9", "LastGamePath10"};
+    private static final int MAX_LASTGAME_ENTRIES = 10;
+    private static final String FMT_LASTGAME_IDS  = "LastGameID%1$d";
+    private static final String FMT_LASTGAME_PATH = "LastGamePath%1$d";
+
     private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK, gameRecentClear;
-    private final JMenuItem gameLastGame[] = new JMenuItem[LASTGAME_IDS.length];
+    private final JMenu recentGames = new JMenu("Recently opened games");
+    private final List<JMenuItem> gameLastGame = new ArrayList<JMenuItem>();
     private final List<Profile.Game> lastGameID = new ArrayList<Profile.Game>();
     private final List<String> lastGamePath = new ArrayList<String>();
+
+
+    // Returns the max. number of supported last game entries
+    private static int getLastGameCount()
+    {
+      return MAX_LASTGAME_ENTRIES;
+    }
+
+    // Returns the Preferences key for a specific LastGameID
+    private static String getLastGameID(int idx)
+    {
+      if(idx >= 0 && idx < MAX_LASTGAME_ENTRIES) {
+        return String.format(FMT_LASTGAME_IDS, idx+1);
+      } else {
+        return null;
+      }
+    }
+
+    // Returns the Preferences key for a specific LastGamePath
+    private static String getLastGamePath(int idx)
+    {
+      if (idx >= 0 && idx < MAX_LASTGAME_ENTRIES) {
+        return String.format(FMT_LASTGAME_PATH, idx+1);
+      } else {
+        return null;
+      }
+    }
 
     private GameMenu()
     {
@@ -431,33 +457,16 @@ public final class BrowserMenuBar extends JMenuBar
       addSeparator();
 
       // adding recently opened games list
-      JMenu recentGames = new JMenu("Recently opened games");
       recentGames.setMnemonic('r');
       add(recentGames);
 
-      for (int i = 0; i < LASTGAME_IDS.length; i++) {
-        Profile.Game game = Profile.gameFromString(getPrefsProfiles().get(LASTGAME_IDS[i], Profile.Game.Unknown.toString()));
-        String gamepath = getPrefsProfiles().get(LASTGAME_PATH[i], null);
-        if (game != Profile.Game.Unknown && gamepath != null && new FileNI(gamepath).exists()) {
-          lastGameID.add(game);
-          lastGamePath.add(gamepath);
+      gameLastGame.clear();
+      for (int i = 0; i < getLastGameCount(); i++) {
+        Profile.Game game = Profile.gameFromString(getPrefsProfiles().get(getLastGameID(i), Profile.Game.Unknown.toString()));
+        String gamepath = getPrefsProfiles().get(getLastGamePath(i), null);
+        if (game != Profile.Game.Unknown && gamepath != null && new FileNI(gamepath).isFile()) {
+          addLastGame(lastGameID.size(), game, gamepath);
         }
-      }
-      for (int i = 0; i < LASTGAME_IDS.length; i++) {
-        if (i < lastGameID.size()) {
-          String label = String.format("%1$d  %2$s", i+1,
-                                       (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE,
-                                                                   lastGameID.get(i)));
-          String toolTip = lastGamePath.get(i);
-          gameLastGame[i] = new JMenuItem(label);
-          gameLastGame[i].setToolTipText(toolTip);
-        } else {
-          gameLastGame[i] = new JMenuItem(String.valueOf(i+1));
-          gameLastGame[i].setEnabled(false);
-        }
-        gameLastGame[i].addActionListener(this);
-        gameLastGame[i].setActionCommand("OpenOldGame");
-        recentGames.add(gameLastGame[i]);
       }
 
       recentGames.addSeparator();
@@ -465,6 +474,8 @@ public final class BrowserMenuBar extends JMenuBar
       gameRecentClear = new JMenuItem("Clear list of recent games");
       gameRecentClear.addActionListener(this);
       recentGames.add(gameRecentClear);
+
+      recentGames.setEnabled(!gameLastGame.isEmpty());
 
       addSeparator();
 
@@ -476,53 +487,113 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded(Profile.Game oldGame, String oldFile)
     {
-      int newIndex = -1;
-      for (int i = 0; i < lastGamePath.size(); i++)
-        if (ResourceFactory.getKeyfile().toString().equalsIgnoreCase(lastGamePath.get(i)))
-          newIndex = i;
-      if (newIndex != -1) {
-        lastGameID.remove(newIndex);
-        lastGamePath.remove(newIndex);
+      for (int i = 0; i < lastGamePath.size(); i++) {
+        if (ResourceFactory.getKeyfile().toString().equalsIgnoreCase(lastGamePath.get(i))) {
+          removeLastGame(i);
+          i--;
+        }
       }
-      if (oldGame != Profile.Game.Unknown) {
-        int oldIndex = -1;
-        for (int i = 0; i < lastGamePath.size(); i++)
+
+      if (oldGame != null && oldGame != Profile.Game.Unknown) {
+        for (int i = 0; i < lastGamePath.size(); i++) {
           if (oldFile.equalsIgnoreCase(lastGamePath.get(i))) {
-            oldIndex = i;
+            removeLastGame(i);
+            i--;
           }
-        if (oldIndex != -1) {
-          lastGameID.remove(oldIndex);
-          lastGamePath.remove(oldIndex);
         }
-        lastGameID.add(0, oldGame);
-        lastGamePath.add(0, oldFile);
+        addLastGame(0, oldGame, oldFile);
       }
-      while (lastGameID.size() > LASTGAME_IDS.length) {
-        lastGamePath.remove(lastGameID.size() - 1);
-        lastGameID.remove(lastGameID.size() - 1);
+
+      while (lastGameID.size() > getLastGameCount()) {
+        removeLastGame(lastGameID.size() - 1);
       }
-      if (newIndex != 1 || oldGame != Profile.Game.Unknown) {
-        for (int i = 0; i < lastGameID.size(); i++) {
-          gameLastGame[i].setText(String.format("%1$d %2$s", i+1, (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, lastGameID.get(i))));
-          gameLastGame[i].setToolTipText(lastGamePath.get(i));
-          gameLastGame[i].setEnabled(true);
+    }
+
+    // Creates and initializes a new menu item for the last game menu
+    private JMenuItem createLastGameMenuItem(int idx, Profile.Game game, String file)
+    {
+      if (idx >= 0 &&
+          game != null && game != Profile.Game.Unknown &&
+          file != null && !file.isEmpty()) {
+        String label = String.format("%1$d  %2$s", idx+1,
+                                     (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game));
+        JMenuItem mi = new JMenuItem(label);
+        mi.setToolTipText(file);
+        mi.addActionListener(this);
+        mi.setActionCommand("OpenOldGame");
+        return mi;
+      } else {
+        return null;
+      }
+    }
+
+    // Updates text and tooltip of the specified last game menu item
+    private void updateLastGameMenuItem(JMenuItem mi, int idx, Profile.Game game, String file)
+    {
+      if (mi != null && idx >= 0 &&
+          game != null && game != Profile.Game.Unknown &&
+          file != null && !file.isEmpty()) {
+        mi.setText(String.format("%1$d  %2$s", idx+1,
+                                 (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game)));
+        mi.setToolTipText(file);
+      }
+    }
+
+    // Adds the specified last game entry to the list
+    private void addLastGame(int idx, Profile.Game game, String file)
+    {
+      if (game != null && game != Profile.Game.Unknown && file != null && !file.isEmpty()) {
+        if (idx < 0 || idx > lastGameID.size()) {
+          idx = lastGameID.size();
         }
-        for (int i = lastGameID.size(); i < LASTGAME_IDS.length; i++) {
-          gameLastGame[i].setText(String.valueOf(i + 1));
-          gameLastGame[i].setEnabled(false);
+        lastGameID.add(idx, game);
+        lastGamePath.add(idx, file);
+        JMenuItem mi = createLastGameMenuItem(idx, game, file);
+        gameLastGame.add(idx, mi);
+        recentGames.insert(mi, idx);
+        recentGames.setEnabled(!gameLastGame.isEmpty());
+
+        for (int i = 0; i < gameLastGame.size(); i++) {
+          updateLastGameMenuItem(gameLastGame.get(i), i, lastGameID.get(i), lastGamePath.get(i));
+        }
+      }
+    }
+
+    // Removes the specified last game entry from the list
+    private void removeLastGame(int idx)
+    {
+      if (idx >= 0) {
+        if (idx < lastGameID.size()) {
+          lastGameID.remove(idx);
+        }
+
+        if (idx < lastGamePath.size()) {
+          lastGamePath.remove(idx);
+        }
+
+        if (idx < gameLastGame.size()) {
+          JMenuItem mi = gameLastGame.remove(idx);
+          mi.removeActionListener(this);
+          mi.setEnabled(false);
+          recentGames.remove(mi);
+          recentGames.setEnabled(!gameLastGame.isEmpty());
+        }
+
+        for (int i = 0; i < gameLastGame.size(); i++) {
+          updateLastGameMenuItem(gameLastGame.get(i), i, lastGameID.get(i), lastGamePath.get(i));
         }
       }
     }
 
     private void storePreferences()
     {
-      for (int i = 0; i < LASTGAME_IDS.length; i++) {
+      for (int i = 0; i < getLastGameCount(); i++) {
         if (i < lastGameID.size()) {
-          getPrefsProfiles().put(LASTGAME_IDS[i], lastGameID.get(i).toString());
-          getPrefsProfiles().put(LASTGAME_PATH[i], lastGamePath.get(i));
+          getPrefsProfiles().put(getLastGameID(i), lastGameID.get(i).toString());
+          getPrefsProfiles().put(getLastGamePath(i), lastGamePath.get(i));
         } else {
-          getPrefsProfiles().remove(LASTGAME_IDS[i]);
-          getPrefsProfiles().remove(LASTGAME_PATH[i]);
+          getPrefsProfiles().remove(getLastGameID(i));
+          getPrefsProfiles().remove(getLastGamePath(i));
         }
       }
     }
@@ -532,35 +603,35 @@ public final class BrowserMenuBar extends JMenuBar
     {
       if (event.getSource() == gameOpenFile) {
         OpenFileFrame openframe = (OpenFileFrame)ChildFrame.getFirstFrame(OpenFileFrame.class);
-        if (openframe == null)
+        if (openframe == null) {
           openframe = new OpenFileFrame();
+        }
         openframe.setVisible(true);
-      }
-      else if (event.getActionCommand().equals("OpenOldGame")) {
+      } else if (event.getActionCommand().equals("OpenOldGame")) {
         int selected = -1;
-        for (int i = 0; i < gameLastGame.length; i++)
-          if (event.getSource() == gameLastGame[i])
+        for (int i = 0; i < gameLastGame.size(); i++) {
+          if (event.getSource() == gameLastGame.get(i)) {
             selected = i;
-        File keyfile = new FileNI(lastGamePath.get(selected));
-        if (!keyfile.exists())
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), lastGamePath.get(selected) +
-                                                                    " could not be found",
-                                        "Open game failed", JOptionPane.ERROR_MESSAGE);
-        else
-          NearInfinity.getInstance().openGame(keyfile);
-      }
-      else if (event.getSource() == gameCloseTLK) {
+          }
+        }
+        if (selected != -1) {
+          File keyfile = new FileNI(lastGamePath.get(selected));
+          if (!keyfile.exists()) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(), lastGamePath.get(selected) +
+                                                                      " could not be found",
+                                          "Open game failed", JOptionPane.ERROR_MESSAGE);
+          } else {
+            NearInfinity.getInstance().openGame(keyfile);
+          }
+        }
+      } else if (event.getSource() == gameCloseTLK) {
         StringResource.close();
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Read lock released",
                                       "Release Dialog.tlk", JOptionPane.INFORMATION_MESSAGE);
-      }
-      else if (event.getSource() == gameRecentClear) {
-        for (int i = 0; i < LASTGAME_IDS.length; i++) {
-          gameLastGame[i].setText(String.valueOf(i+1));
-          gameLastGame[i].setEnabled(false);
+      } else if (event.getSource() == gameRecentClear) {
+        while (!gameLastGame.isEmpty()) {
+          removeLastGame(0);
         }
-        lastGameID.clear();
-        lastGamePath.clear();
       }
     }
   }
