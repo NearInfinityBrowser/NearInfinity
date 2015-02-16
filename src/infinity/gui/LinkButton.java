@@ -32,24 +32,47 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     setResource(resourceRef);
   }
 
+  public LinkButton(String resourceName)
+  {
+    super();
+    setHorizontalAlignment(SwingConstants.LEFT);
+    setResource(resourceName);
+  }
+
   /** Creates a link from the specified resource reference. */
   public void setResource(ResourceRef resourceRef)
   {
     if (resourceRef != null) {
-      setResource(resourceRef.toString());
+      setResource(resourceRef, resourceRef.toString());
     } else {
-      setResource("");
+      setResource(null, "");
     }
   }
 
   /** Attempts to create a link from the specified resource name. */
   public void setResource(String resourceName)
   {
+    setResource(null, resourceName);
+  }
+
+  // Uses either ResourceRef or String to create a link
+  private void setResource(ResourceRef resource, String resourceName)
+  {
     removeActionListener(this);
-    entry = ResourceFactory.getResourceEntry(resourceName);
+    if (resource != null) {
+      entry = ResourceFactory.getResourceEntry(resource.getResourceName());
+      if (resourceName == null) {
+        resourceName = resource.toString();
+      }
+    } else {
+      entry = ResourceFactory.getResourceEntry(resourceName);
+      if (resourceName == null) {
+        resourceName = "";
+      }
+    }
     if (entry != null) {
       addActionListener(this);
-      setLink(entry.toString(), entry.getResourceName(), true);
+      setLink(resourceName, entry.getResourceName(), true);
       setEnabled(true);
       setToolTipText(null);
     } else {

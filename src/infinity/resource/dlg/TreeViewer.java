@@ -1557,7 +1557,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pStateText.setBorder(createTitledBorder("Associated text", Font.BOLD, false));
       pStateText.add(taStateText, BorderLayout.CENTER);
 
-      lbStateWAV = new LinkButton(null);
+      lbStateWAV = new LinkButton("");
       pStateWAV = new JPanel(new GridBagLayout());
       pStateWAV.setBorder(createTitledBorder("Sound Resource", Font.BOLD, false));
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
