@@ -382,21 +382,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     } else if (event.getActionCommand().equals("Exit")) {
       quit();
     } else if (event.getActionCommand().equals("Refresh")) {
-      blocker.setBlocked(true);
-      reloadFactory(true);
-      if (removeViewable()) {
-        ChildFrame.closeWindows();
-        ResourceTreeModel treemodel = ResourceFactory.getResources();
-        final String msg = String.format(STATUSBAR_TEXT_FMT,
-                                         Profile.getProperty(Profile.GET_GAME_TITLE),
-                                         Profile.getGameRoot(), treemodel.size());
-        statusBar.setMessage(msg);
-        tree.setModel(treemodel);
-        containerpanel.removeAll();
-        containerpanel.revalidate();
-        containerpanel.repaint();
-      }
-      blocker.setBlocked(false);
+      refreshGame();
     } else if (event.getActionCommand().equals("ChangeLook")) {
       try {
         LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
@@ -557,6 +543,29 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       ChildFrame.closeWindows();
       storePreferences();
       System.exit(0);
+    }
+  }
+
+  // Re-initializes currently selected game
+  public void refreshGame()
+  {
+    try {
+      blocker.setBlocked(true);
+      reloadFactory(true);
+      if (removeViewable()) {
+        ChildFrame.closeWindows();
+        ResourceTreeModel treemodel = ResourceFactory.getResources();
+        final String msg = String.format(STATUSBAR_TEXT_FMT,
+                                         Profile.getProperty(Profile.GET_GAME_TITLE),
+                                         Profile.getGameRoot(), treemodel.size());
+        statusBar.setMessage(msg);
+        tree.setModel(treemodel);
+        containerpanel.removeAll();
+        containerpanel.revalidate();
+        containerpanel.repaint();
+      }
+    } finally {
+      blocker.setBlocked(false);
     }
   }
 

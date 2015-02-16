@@ -32,6 +32,7 @@ import infinity.search.SearchFrame;
 import infinity.search.SearchResource;
 import infinity.search.TextResourceSearcher;
 import infinity.util.MassExporter;
+import infinity.util.Pair;
 import infinity.util.StringResource;
 import infinity.util.io.FileNI;
 
@@ -61,6 +62,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
@@ -375,11 +377,13 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionShowOffset.isSelected();
   }
 
-  /** Returns the language code of the selected game language (BG(2)EE only). */
+  /**
+   * Returns the language code of the selected game language for Enhanced Edition games.
+   * Returns an empty string if autodetect is selected or game is not part of the Enhanced Edition.
+   */
   public String getSelectedGameLanguage()
   {
-    Preferences prefs = Preferences.userNodeForPackage(getClass());
-    return prefs.get(OptionsMenu.OPTION_LANGUAGE_GAME, "");
+    return optionsMenu.getSelectedGameLanguage();
   }
 
   public void storePreferences()
@@ -1335,7 +1339,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_VIEWOREDITSHOWN          = "ViewOrEditShown";
     private static final String OPTION_FONT                     = "Font";
     private static final String OPTION_TLKCHARSET               = "TLKCharsetType";
-    private static final String OPTION_LANGUAGE_GAME            = "GameLanguage";
+    private static final String OPTION_LANGUAGE_GAMES           = "GameLanguages";
     private static final String OPTION_TEXT_SHOWCURRENTLINE     = "TextShowCurrentLine";
     private static final String OPTION_TEXT_SHOWLINENUMBERS     = "TextShowLineNumbers";
     private static final String OPTION_TEXT_SYMBOLWHITESPACE    = "TextShowWhiteSpace";
@@ -1354,6 +1358,9 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SQL_COLORSCHEME          = "SqlColorScheme";
     private static final String OPTION_TEXT_DEBUG_ENABLECOLORSCHEME = "DebugColorSchemeEnabled";
     private static final String OPTION_TEXT_DEBUG_COLORSCHEME       = "DebugColorSchemeFile";
+
+    // Identifier for autodetected game language
+    private static final String LANGUAGE_AUTODETECT             = "Auto";
 
     // For debugging purposes only
     private static String DEBUGCOLORSCHEME = "";
@@ -1383,6 +1390,7 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionShowHexColored;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
+    private String languageDefinition;
 
     // Stores available languages in BG(2)EE
     private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<JRadioButtonMenuItem, String>();
@@ -1677,48 +1685,42 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->TLK Language
       mLanguageMenu = new JMenu("TLK Language (EE only)");
       add(mLanguageMenu);
+      languageDefinition = getPrefs().get(OPTION_LANGUAGE_GAMES, "");
     }
 
     // (Re-)creates a list of available TLK languages
     private void resetGameLanguage()
     {
-      final String autodetect = "Autodetect";
-
+      // removing old list of available game languages
       for (JRadioButtonMenuItem r: gameLanguage.keySet()) {
         r.removeActionListener(this);
       }
       mLanguageMenu.removeAll();
       gameLanguage.clear();
 
-      Preferences prefs = Preferences.userNodeForPackage(getClass());
-      String selectedCode = prefs.get(OPTION_LANGUAGE_GAME, autodetect);
+      // initializing new list of available game languages
+      String selectedCode = getGameLanguage(languageDefinition, Profile.getGame());
 
       ButtonGroup bg = new ButtonGroup();
       JRadioButtonMenuItem rbmi;
 
-      // adding "Autodetect" for all available game ids
-      rbmi = createLanguageMenuItem("", autodetect,
+      // adding "Autodetect" for all available game types
+      rbmi = createLanguageMenuItem(LANGUAGE_AUTODETECT, "Autodetect",
                                     "Autodetect language from baldur.ini. " +
                                         "Defaults to english if not available.", bg, true);
       mLanguageMenu.add(rbmi);
 
       if (Profile.isEnhancedEdition()) {
-        List<File> languages = ResourceFactory.getAvailableLanguages();
-        for (File dir: languages) {
-          String[] langCode = dir.getName().split("_");
-          if (langCode.length >= 2) {
-            Locale locale = new Locale(langCode[0], langCode[1]);
-            rbmi = createLanguageMenuItem(dir.getName(),
-                                          String.format("%1$s (%2$s)",
-                                                        locale.getDisplayLanguage(),
-                                                        dir.getName()),
-                                          null, bg,
-                                          selectedCode.equalsIgnoreCase(dir.getName()));
+        List<?> languages = (List<?>)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+        for (Iterator<?> iter = languages.iterator(); iter.hasNext();) {
+          String lang = (String)iter.next();
+          String langName = getDisplayLanguage(lang);
+          if (!langName.equalsIgnoreCase(lang)) {
+            rbmi = createLanguageMenuItem(lang, String.format("%1$s (%2$s)", langName, lang),
+                                          null, bg, selectedCode.equalsIgnoreCase(lang));
             mLanguageMenu.add(rbmi);
           } else {
-            rbmi = createLanguageMenuItem(dir.getName(), dir.getName(),
-                                          null, bg,
-                                          selectedCode.equalsIgnoreCase(dir.getName()));
+            rbmi = createLanguageMenuItem(lang, lang, null, bg, selectedCode.equalsIgnoreCase(lang));
             mLanguageMenu.add(rbmi);
           }
         }
@@ -1726,6 +1728,20 @@ public final class BrowserMenuBar extends JMenuBar
         rbmi.setEnabled(false);
         rbmi.setToolTipText(null);
       }
+    }
+
+    // Returns the name of the language specified by the given language code
+    private String getDisplayLanguage(String langCode)
+    {
+      String retVal = langCode;
+      String[] lang = langCode.split("_");
+      if (lang.length >= 2) {
+        retVal = (new Locale(lang[0], lang[1])).getDisplayLanguage();
+        if (retVal == null || retVal.isEmpty()) {
+          retVal = langCode;
+        }
+      }
+      return retVal;
     }
 
     // Initializes and returns a radio button menuitem
@@ -1976,13 +1992,7 @@ public final class BrowserMenuBar extends JMenuBar
       String charset = getSelectedButtonData();
       getPrefs().put(OPTION_TLKCHARSET, charset);
 
-      for (JRadioButtonMenuItem r: gameLanguage.keySet()) {
-        if (r.isSelected() && r.isEnabled()) {
-          String lang = gameLanguage.get(r);
-          getPrefs().put(OPTION_LANGUAGE_GAME, lang);
-          break;
-        }
-      }
+      getPrefs().put(OPTION_LANGUAGE_GAMES, languageDefinition);
     }
 
     // Returns the (first) index of the selected AbstractButton array
@@ -1998,6 +2008,168 @@ public final class BrowserMenuBar extends JMenuBar
         }
       }
       return retVal;
+    }
+
+    // Extracts entries of Game/Language pairs from the given argument
+    private List<Pair<String>> extractGameLanguages(String definition)
+    {
+      List<Pair<String>> list = new ArrayList<Pair<String>>();
+      if (definition != null && !definition.isEmpty()) {
+        String[] entries = definition.split(";");
+        if (entries != null) {
+          for (final String entry: entries) {
+            String[] elements = entry.split("=");
+            if (elements != null && elements.length == 2) {
+              Profile.Game game = Profile.gameFromString(elements[0]);
+              if (game != Profile.Game.Unknown) {
+                String lang = elements[1].trim();
+                Pair<String> pair = null;
+                if (lang.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
+                  pair = new Pair<String>();
+                  pair.setFirst(game.toString());
+                  pair.setSecond(LANGUAGE_AUTODETECT);
+                } else if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
+                  pair = new Pair<String>();
+                  pair.setFirst(game.toString());
+                  pair.setSecond(lang);
+                }
+
+                // check if game/language pair is already in the list
+                if (pair != null) {
+                  for (final Pair<String> curPair: list) {
+                    if (curPair.getFirst().equalsIgnoreCase(pair.getFirst())) {
+                      curPair.setSecond(pair.getSecond());
+                      pair = null;
+                      break;
+                    }
+                  }
+                }
+
+                if (pair != null) {
+                  list.add(pair);
+                }
+              }
+            }
+          }
+        }
+      }
+      return list;
+    }
+
+    // Creates a formatted string out of the Game/Language pairs included in the given list
+    private String createGameLanguages(List<Pair<String>> list)
+    {
+      StringBuilder sb = new StringBuilder();
+      if (list != null) {
+        for (Iterator<Pair<String>> iter = list.iterator(); iter.hasNext();) {
+          Pair<String> pair = iter.next();
+          sb.append(String.format("%1$s=%2$s", pair.getFirst(), pair.getSecond()));
+          if (iter.hasNext()) {
+            sb.append(';');
+          }
+        }
+      }
+      return sb.toString();
+    }
+
+    // Adds or updates the Game/Language pair in the formatted "definition" string
+    private String updateGameLanguages(String definition, Pair<String> pair)
+    {
+      List<Pair<String>> list = extractGameLanguages(definition);
+      if (pair != null && pair.getFirst() != null && pair.getSecond() != null) {
+        // attempt to update existing entry first
+        for (final Pair<String> curPair: list) {
+          if (curPair.getFirst().equalsIgnoreCase(pair.getFirst())) {
+            curPair.setSecond(pair.getSecond());
+            pair = null;
+            break;
+          }
+        }
+
+        // add new entry if necessary
+        if (pair != null) {
+          list.add(pair);
+        }
+
+        return createGameLanguages(list);
+      }
+      return "";
+    }
+
+    // Returns the language definition stored in "definition" for the specified game
+    private String getGameLanguage(String definition, Profile.Game game)
+    {
+      if (game != null && game != Profile.Game.Unknown) {
+        List<Pair<String>> list = extractGameLanguages(definition);
+        for (Iterator<Pair<String>> iter = list.iterator(); iter.hasNext();) {
+          Pair<String> pair = iter.next();
+          Profile.Game curGame = Profile.gameFromString(pair.getFirst());
+          if (curGame == game) {
+            return pair.getSecond();
+          }
+        }
+      }
+      return LANGUAGE_AUTODETECT;
+    }
+
+    // Returns the currently selected game language. Returns empty string on autodetect.
+    private String getSelectedGameLanguage()
+    {
+      String lang = getGameLanguage(languageDefinition, Profile.getGame());
+      return lang.equalsIgnoreCase(LANGUAGE_AUTODETECT) ? "" : lang;
+    }
+
+
+    // Attempts to switch the game language in Enhanced Edition games
+    private void switchGameLanguage(String newLanguage)
+    {
+      if (newLanguage != null) {
+        // switch language and refresh resources
+        String oldLanguage = (String)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAME);
+        String oldLangName = getDisplayLanguage(oldLanguage);
+        String newLanguageCode;
+        if (newLanguage.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
+          // "Autodetect" must be converted into an actual language code before proceeding
+          newLanguageCode = ResourceFactory.autodetectGameLanguage((File)Profile.getProperty(Profile.GET_GAME_INI_FILE));
+        } else {
+          newLanguageCode = newLanguage;
+        }
+        String newLangName = getDisplayLanguage(newLanguageCode);
+        boolean success = false, showErrorMsg = false;
+        if (JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
+                                          String.format("Do you want to switch from \"%1$s\" to \"%2$s\"?", oldLangName, newLangName),
+                                          "Switch game language", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+          if (Profile.updateGameLanguage(newLanguageCode)) {
+            languageDefinition =
+                updateGameLanguages(languageDefinition,
+                                    new Pair<String>(Profile.getGame().toString(), newLanguage));
+            NearInfinity.getInstance().refreshGame();
+            success = true;
+          } else {
+            showErrorMsg = true;
+          }
+        }
+        if (success == false) {
+          if (showErrorMsg == true) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          "Unable to set new language.",
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+          }
+          for (Iterator<Map.Entry<JRadioButtonMenuItem, String>> iter = gameLanguage.entrySet().iterator();
+               iter.hasNext();) {
+            Map.Entry<JRadioButtonMenuItem, String> entry = iter.next();
+            if (oldLanguage.equalsIgnoreCase(entry.getValue())) {
+              JRadioButtonMenuItem rbmi = entry.getKey();
+              // don't trigger item event
+              rbmi.removeItemListener(this);
+              entry.getKey().setSelected(true);
+              rbmi.addItemListener(this);
+              Profile.updateGameLanguage(oldLanguage);
+              break;
+            }
+          }
+        }
+      }
     }
 
 //    // Returns the path to a color scheme definition file
@@ -2168,13 +2340,10 @@ public final class BrowserMenuBar extends JMenuBar
     @Override
     public void itemStateChanged(ItemEvent event)
     {
-      if (event.getSource() instanceof JRadioButtonMenuItem &&
+      if (event.getStateChange() == ItemEvent.SELECTED &&
+          event.getSource() instanceof JRadioButtonMenuItem &&
           gameLanguage.containsKey(event.getSource())) {
-        if (event.getStateChange() == ItemEvent.SELECTED) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-              "Please restart NearInfinity to make the changes visible.",
-              "TLK language changed", JOptionPane.INFORMATION_MESSAGE);
-        }
+        switchGameLanguage(gameLanguage.get(event.getSource()));
       }
     }
   }

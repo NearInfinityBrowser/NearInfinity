@@ -296,7 +296,7 @@ public final class ResourceFactory
    * Returns a list of available game language directories for the current game in Enhanced Edition games.
    * Returns an empty list otherwise.
    */
-  public static List<File> getAvailableLanguages()
+  public static List<File> getAvailableGameLanguages()
   {
     List<File> list = new ArrayList<File>();
 
@@ -319,6 +319,41 @@ public final class ResourceFactory
       }
     }
     return list;
+  }
+
+  /**  Return the game language specified in the given baldur.ini if found. Returns <code>en_US</code> otherwise. */
+  public static String autodetectGameLanguage(File iniFile)
+  {
+    final String langDefault = "en_US";   // using default language, if no language entry found
+    if (Profile.isEnhancedEdition() && iniFile != null && iniFile.isFile()) {
+      // Attempt to autodetect game language
+      if (iniFile != null && iniFile.isFile()) {
+        try {
+          BufferedReader br = new BufferedReader(new FileReaderNI(iniFile));
+          String line = br.readLine();
+          while (line != null) {
+            if (line.contains("'Language'")) {
+              String[] entries = line.split(",");
+              if (entries.length == 3) {
+                String lang = entries[2].replace('\'', ' ').trim();
+                if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
+                  if (new FileNI(Profile.getGameRoot(), "lang/" + lang).isDirectory()) {
+                    br.close();
+                    return lang;
+                  }
+                }
+              }
+            }
+            line = br.readLine();
+          }
+          br.close();
+        } catch (IOException e) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error parsing " + iniFile.getName() +
+                                        ". Using language defaults.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    }
+    return langDefault;
   }
 
   /** Attempts to find the home folder of an Enhanced Edition game. */
@@ -425,7 +460,7 @@ public final class ResourceFactory
   }
 
   // Returns the currently used language of an Enhanced Edition game.
-  static String fetchLanguage(File iniFile)
+  static String fetchGameLanguage(File iniFile)
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
 
@@ -433,32 +468,7 @@ public final class ResourceFactory
       String lang = BrowserMenuBar.getInstance().getSelectedGameLanguage();
 
       if (lang == null || lang.isEmpty()) {
-        // Attempt to autodetect game language
-        if (iniFile != null && iniFile.isFile()) {
-          try {
-            BufferedReader br = new BufferedReader(new FileReaderNI(iniFile));
-            String line = br.readLine();
-            while (line != null) {
-              if (line.contains("'Language'")) {
-                String[] entries = line.split(",");
-                if (entries.length == 3) {
-                  lang = entries[2].replace('\'', ' ').trim();
-                  if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
-                    if (new FileNI(Profile.getGameRoot(), "lang/" + lang).isDirectory()) {
-                      br.close();
-                      return lang;
-                    }
-                  }
-                }
-              }
-              line = br.readLine();
-            }
-            br.close();
-          } catch (IOException e) {
-            JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error parsing " + iniFile.getName() +
-                                          ". Using language defaults.", "Error", JOptionPane.ERROR_MESSAGE);
-          }
-        }
+        return autodetectGameLanguage(iniFile);
       } else {
         // Using user-defined language
         if (lang.matches("[a-z]{2}_[A-Z]{2}") &&

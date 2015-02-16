@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -98,59 +99,58 @@ public final class Profile
 
   // Properties set at runtime
   /** Property: ({@link Game}) Game identifier. */
-  public static final int GET_GAME                            = 100;
+  public static final int GET_GAME_TYPE                       = 100;
   /** Property: ({@link Engine}) Engine identifier. */
-  public static final int GET_ENGINE                          = 101;
+  public static final int GET_GAME_ENGINE                     = 101;
   /** Property: (String) Name of the game's root folder. */
   public static final int GET_GAME_ROOT_FOLDER_NAME           = 102;
   /** Property: (String) Name of the game's home folder. (Enhanced Editions only) */
   public static final int GET_GAME_HOME_FOLDER_NAME           = 103;
-  /** Property: (String) Name of the game's language folder. (Enhanced Editions only) */
+  /** Property: (String) Name of the currently selected game language folder. (Enhanced Editions only) */
   public static final int GET_GAME_LANG_FOLDER_NAME           = 104;
-  /** Property: (List&lt;File&gt;) List of valid root folder, sorted by priority in descending order. */
-  public static final int GET_GAME_FOLDERS                    = 105;
-  /** Property: (File) Game's root folder. */
-  public static final int GET_GAME_ROOT_FOLDER                = 106;
-  /** Property: (File) Game's home folder. (Enhanced Editions only) */
-  public static final int GET_GAME_HOME_FOLDER                = 107;
-  /** Property: (File) Game's language folder. (Enhanced Editions only) */
-  public static final int GET_GAME_LANG_FOLDER                = 108;
-  /** Property: (File) Game's language root folder (where the actual language subfolder reside).
-   *            (Enhanced Editions only) */
-  public static final int GET_GAME_LANG_FOLDER_BASE           = 109;
-  /** Property: (List&lt;File&gt;) List of override folders to search for game resources,
-   *            sorted by priority in ascending order. */
-  public static final int GET_GAME_OVERRIDE_FOLDERS           = 110;
-  /** Property: (List&lt;String&gt;) List of extra folders containing game-related resources,
-   *            sorted alphabetically in ascending order. */
-  public static final int GET_GAME_EXTRA_FOLDERS              = 111;
-  /** Property: (File) The game's chitin.key. */
-  public static final int GET_GAME_CHITIN_KEY                 = 112;
-  /** Property: (String) Title of the game. */
-  public static final int GET_GAME_TITLE                      = 113;
-  /** Property: (String) A short user-defined description or name of the game.
-   *            Can be used to tell specific game installations apart. */
-  public static final int GET_GAME_DESC                       = 114;
-  /** Property: (String) Name of the game's ini file. */
-  public static final int GET_GAME_INI_NAME                   = 115;
-  /** Property: (File) Path of the game's ini file. */
-  public static final int GET_GAME_INI_FILE                   = 116;
   /** Property: (List&lt;String&gt;) List of available languages as language code
    *            for the current game. (Enhanced Editions only) */
-  public static final int GET_GAME_LANGUAGES_AVAILABLE        = 117;
-  /** Property: (String) Currently selected game language as language code,
-   *            such as en_US or zh_CN. (Enhanced Editions only) */
-  public static final int GET_GAME_LANGUAGE                   = 118;
+  public static final int GET_GAME_LANG_FOLDER_NAMES_AVAILABLE  = 105;
+  /** Property: (List&lt;File&gt;) List of valid root folder, sorted by priority in descending order. */
+  public static final int GET_GAME_FOLDERS                    = 106;
+  /** Property: (File) Game's root folder. */
+  public static final int GET_GAME_ROOT_FOLDER                = 107;
+  /** Property: (File) Game's home folder. (Enhanced Editions only) */
+  public static final int GET_GAME_HOME_FOLDER                = 108;
+  /** Property: (File) Game's language folder. (Enhanced Editions only) */
+  public static final int GET_GAME_LANG_FOLDER                = 109;
+  /** Property: (List<&lt;File&gt;) List of available game language folders. (Enhanced Editions only) */
+  public static final int GET_GAME_LANG_FOLDERS_AVAILABLE     = 110;
+  /** Property: (File) Game's language root folder (where the actual language subfolder reside).
+   *            (Enhanced Editions only) */
+  public static final int GET_GAME_LANG_FOLDER_BASE           = 111;
+  /** Property: (List&lt;File&gt;) List of override folders to search for game resources,
+   *            sorted by priority in ascending order. */
+  public static final int GET_GAME_OVERRIDE_FOLDERS           = 112;
+  /** Property: (List&lt;String&gt;) List of extra folders containing game-related resources,
+   *            sorted alphabetically in ascending order. */
+  public static final int GET_GAME_EXTRA_FOLDERS              = 113;
+  /** Property: (File) The game's chitin.key. */
+  public static final int GET_GAME_CHITIN_KEY                 = 114;
+  /** Property: (String) Title of the game. */
+  public static final int GET_GAME_TITLE                      = 115;
+  /** Property: (String) A short user-defined description or name of the game.
+   *            Can be used to tell specific game installations apart. */
+  public static final int GET_GAME_DESC                       = 116;
+  /** Property: (String) Name of the game's ini file. */
+  public static final int GET_GAME_INI_NAME                   = 117;
+  /** Property: (File) Path of the game's ini file. */
+  public static final int GET_GAME_INI_FILE                   = 118;
   /** Property: (File) Path to the currently selected <code>dialog.tlk</code>. */
-  public static final int GET_GAME_DIALOG_FILE                = 119;
+  public static final int GET_GAME_DIALOG_FILE                = 120;
   /** Property: (File) Path to the currently selected female <code>dialogf.tlk</code>.
    *            Returns <code>null</code> if the language does not require a dialogf.tlk. */
-  public static final int GET_GAME_DIALOGF_FILE               = 120;
+  public static final int GET_GAME_DIALOGF_FILE               = 121;
   /** Property: (List&lt;File&gt;) Unsorted list of extra folders containing BIFF archives.
    *            (Non-Enhanced Editions only) */
-  public static final int GET_GAME_BIFF_FOLDERS               = 121;
+  public static final int GET_GAME_BIFF_FOLDERS               = 122;
   /** Property: (Boolean) Is game an Enhanced Edition game? */
-  public static final int IS_ENHANCED_EDITION                 = 122;
+  public static final int IS_ENHANCED_EDITION                 = 123;
 
   /** Property: (Boolean) Are <code>2DA</code> resources supported? */
   public static final int IS_SUPPORTED_2DA                    = 1001;
@@ -408,8 +408,8 @@ public final class Profile
    */
   public static boolean openGame(File keyFile, String desc)
   {
-    closeGame();
     try {
+      closeGame();
       instance = new Profile(keyFile, desc);
       return true;
     } catch (Exception e) {
@@ -501,6 +501,46 @@ public final class Profile
   }
 
   /**
+   * Updates the value of the Property entry specified by <code>key</code> and returns
+   * the previous Property value.
+   * @param key The Property key.
+   * @param data The new value of the Property instance.
+   * @return the previous value of the specified Property, or <code>null</code> if not available or applicable.
+   */
+  public static Object updateProperty(int key, Object data)
+  {
+    // Properties requiring extra parameters cannot be updated
+    if (key >= 0) {
+      Property prop = properties.get(Integer.valueOf(key));
+      if (prop != null) {
+        return prop.setData(data);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Adds or updates a Property entry.
+   * @param key The Property key.
+   * @param type The data type.
+   * @param data The data of the Property instance.
+   * @return <code>true</code> if Property has been added or updated, <code>false</code> otherwise.
+   */
+  public static boolean addProperty(int key, Type type, Object data)
+  {
+    if (key >= 0) {
+      if (properties.containsKey(Integer.valueOf(key))) {
+        updateProperty(key, data);
+        return true;
+      } else {
+        addEntry(key, type, data);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Returns the name of the default override folder (without path). Does not need an opened game
    * to return a valid value.
    * @return The name of the override folder.
@@ -516,7 +556,7 @@ public final class Profile
    */
   public static Game getGame()
   {
-    Object ret = getProperty(GET_GAME);
+    Object ret = getProperty(GET_GAME_TYPE);
     return (ret instanceof Game) ? (Game)ret : Game.Unknown;
   }
 
@@ -526,7 +566,7 @@ public final class Profile
    */
   public static Engine getEngine()
   {
-    Object ret = getProperty(GET_ENGINE);
+    Object ret = getProperty(GET_GAME_ENGINE);
     return (ret instanceof Engine) ? (Engine)ret : Engine.Unknown;
   }
 
@@ -597,6 +637,37 @@ public final class Profile
   {
     Object ret = getProperty(GET_GAME_CHITIN_KEY);
     return (ret instanceof File) ? (File)ret : null;
+  }
+
+  /**
+   * Updates language-related Properties with the specified game language. (Enhanced Editions only)
+   * @param language The name of the language subfolder.
+   * @return <code>true</code> if the game language has been updated successfully, <code>false</code> otherwise.
+   */
+  public static boolean updateGameLanguage(String language)
+  {
+    if (isEnhancedEdition() && language != null) {
+      List<?> languages = (List<?>)getProperty(GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+      for (Iterator<?> iter = languages.iterator(); iter.hasNext();) {
+        String curLang = (String)iter.next();
+        if (curLang.equalsIgnoreCase(language)) {
+          // updating language names and folders
+          updateProperty(GET_GAME_LANG_FOLDER_NAME, curLang);
+          File langPath = new FileNI((File)getProperty(GET_GAME_LANG_FOLDER_BASE), curLang);
+          updateProperty(GET_GAME_LANG_FOLDER, langPath);
+          // updating dialog.tlks
+          updateProperty(GET_GAME_DIALOG_FILE, new FileNI(langPath, (String)getProperty(GET_GLOBAL_DIALOG_NAME)));
+          File femaleTlkFile = new FileNI(langPath, (String)getProperty(GET_GLOBAL_DIALOG_NAME_FEMALE));
+          if (femaleTlkFile.isFile()) {
+            addProperty(GET_GAME_DIALOGF_FILE, Type.File, femaleTlkFile);
+          } else {
+            updateProperty(GET_GAME_DIALOGF_FILE, null);
+          }
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   // Returns the Property object assigned to the given key.
@@ -725,7 +796,7 @@ public final class Profile
       addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     }
     // adding priliminary game type into storage
-    addEntry(GET_GAME, Type.Object, game);
+    addEntry(GET_GAME_TYPE, Type.Object, game);
     addEntry(GET_GAME_EXTRA_FOLDERS, Type.List, GAME_EXTRA_FOLDERS.get(game));
 
     // determining game engine
@@ -748,17 +819,22 @@ public final class Profile
     // Considering three different root folders to locate game resources
     // Note: Order of the root directories is important. FileNI will take the first one available.
     File homeRoot = ResourceFactory.getHomeRoot();
-    String language = ResourceFactory.fetchLanguage(new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
+    String language = ResourceFactory.fetchGameLanguage(new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
     File langRoot = FileNI.getFile((File)getProperty(GET_GAME_LANG_FOLDER_BASE), language);
     if (!langRoot.isDirectory()) {
       langRoot = null;
     }
     List<File> listRoots = new ArrayList<File>();
     if (langRoot != null) {
-      addEntry(GET_GAME_LANGUAGE, Type.String, language);
       addEntry(GET_GAME_LANG_FOLDER_NAME, Type.String, language);
       addEntry(GET_GAME_LANG_FOLDER, Type.File, langRoot);
-      addEntry(GET_GAME_LANGUAGES_AVAILABLE, Type.List, ResourceFactory.getAvailableLanguages());
+      List<File> langPaths = ResourceFactory.getAvailableGameLanguages();
+      addEntry(GET_GAME_LANG_FOLDERS_AVAILABLE, Type.List, langPaths);
+      List<String> languages = new ArrayList<String>(langPaths.size());
+      for (Iterator<File> iter = langPaths.iterator(); iter.hasNext();) {
+        languages.add(iter.next().getName());
+      }
+      addEntry(GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.List, languages);
       listRoots.add(langRoot);
     }
     if (homeRoot != null) {
@@ -807,7 +883,7 @@ public final class Profile
     }
 
     // updating game type
-    addEntry(GET_GAME, Type.Object, game);
+    addEntry(GET_GAME_TYPE, Type.Object, game);
     addEntry(GET_GAME_TITLE, Type.String, GAME_TITLE.get(game));
 
     // initializing list of folders containing BIFF archives
@@ -863,7 +939,7 @@ public final class Profile
       default:
         engine = Engine.Unknown;
     }
-    addEntry(GET_ENGINE, Type.Object, engine);
+    addEntry(GET_GAME_ENGINE, Type.Object, engine);
   }
 
   // Initializes supported override folders used by specific games
@@ -1091,6 +1167,9 @@ public final class Profile
 
     /** Returns the actual data of this property. */
     public Object getData() { return data; }
+
+    /** Sets new data value of this property. Returns the previous data. */
+    public Object setData(Object newValue) { Object retVal = data; data = newValue; return retVal; }
 
     @Override
     public String toString()
