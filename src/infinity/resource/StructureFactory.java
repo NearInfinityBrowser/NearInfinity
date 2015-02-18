@@ -258,8 +258,6 @@ public final class StructureFactory
         s_chr.add(ResourceStructure.ID_STRING, 4, "V2.2");        // Version
       } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V20)) {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V2.0");        // Version
-      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V12)) {
-        s_chr.add(ResourceStructure.ID_STRING, 4, "V1.2");        // Version
       } else {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V1.0");        // Version
       }

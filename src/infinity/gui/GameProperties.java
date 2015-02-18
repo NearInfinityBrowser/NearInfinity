@@ -62,7 +62,6 @@ public final class GameProperties extends ChildFrame implements ActionListener
     RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BMP_PAL), "BMP (8-bit)");
     RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BMP_ALPHA), "BMP (32-bit)");
     RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V10), "CHR V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V12), "CHR V1.2");
     RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V20), "CHR V2.0");
     RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V21), "CHR V2.1");
     RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V22), "CHR V2.2");

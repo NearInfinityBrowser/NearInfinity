@@ -184,8 +184,6 @@ public final class Profile
   public static final int IS_SUPPORTED_BMP_ALPHA              = 1015;
   /** Property: (Boolean) Are <code>CHR V1.0</code> resources supported? */
   public static final int IS_SUPPORTED_CHR_V10                = 1016;
-  /** Property: (Boolean) Are <code>CHR V1.2</code> resources supported? */
-  public static final int IS_SUPPORTED_CHR_V12                = 1017;
   /** Property: (Boolean) Are <code>CHR V2.0</code> resources supported? */
   public static final int IS_SUPPORTED_CHR_V20                = 1018;
   /** Property: (Boolean) Are <code>CHR V2.1</code> resources supported? */
@@ -1010,7 +1008,6 @@ public final class Profile
     addEntry(IS_SUPPORTED_BMP_ALPHA, Type.Boolean, isEnhancedEdition());
 
     addEntry(IS_SUPPORTED_CHR_V10, Type.Boolean, (engine == Engine.BG1 || engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_CHR_V12, Type.Boolean, (engine == Engine.PST));
     addEntry(IS_SUPPORTED_CHR_V20, Type.Boolean, (engine == Engine.BG2 || engine == Engine.EE));
     addEntry(IS_SUPPORTED_CHR_V21, Type.Boolean, (game == Game.BG2ToB || engine == Engine.EE));
     addEntry(IS_SUPPORTED_CHR_V22, Type.Boolean, (engine == Engine.IWD2));
