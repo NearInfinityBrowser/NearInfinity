@@ -404,7 +404,8 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String FMT_LASTGAME_IDS  = "LastGameID%1$d";
     private static final String FMT_LASTGAME_PATH = "LastGamePath%1$d";
 
-    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK, gameRecentClear;
+    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK,
+                            gameProperties, gameRecentClear;
     private final JMenu recentGames = new JMenu("Recently opened games");
     private final List<JMenuItem> gameLastGame = new ArrayList<JMenuItem>();
     private final List<Profile.Game> lastGameID = new ArrayList<Profile.Game>();
@@ -457,6 +458,9 @@ public final class BrowserMenuBar extends JMenuBar
       gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon("Release16.gif"),
                                   -1, this);
       add(gameCloseTLK);
+
+      gameProperties = makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.getIcon("Edit16.gif"), -1, this);
+      add(gameProperties);
 
       addSeparator();
 
@@ -632,6 +636,8 @@ public final class BrowserMenuBar extends JMenuBar
         StringResource.close();
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Read lock released",
                                       "Release Dialog.tlk", JOptionPane.INFORMATION_MESSAGE);
+      } else if (event.getSource() == gameProperties) {
+        new GameProperties(NearInfinity.getInstance());
       } else if (event.getSource() == gameRecentClear) {
         while (!gameLastGame.isEmpty()) {
           removeLastGame(0);
@@ -822,7 +828,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class EditMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem editString, editString2, editBIFF, editVarVar;
+    private final JMenuItem editString, editString2, editBIFF, editVarVar, editIni;
 
     private EditMenu()
     {
@@ -834,6 +840,9 @@ public final class BrowserMenuBar extends JMenuBar
       add(editString);
       editString2 = makeMenuItem("DialogF.tlk", KeyEvent.VK_F, Icons.getIcon("Edit16.gif"), -1, this);
       add(editString2);
+      editIni = makeMenuItem("baldur.ini", KeyEvent.VK_I, Icons.getIcon("Edit16.gif"), -1, NearInfinity.getInstance());
+      editIni.setActionCommand("GameIni");
+      add(editIni);
       editVarVar = makeMenuItem("Var.var", KeyEvent.VK_V, Icons.getIcon("RowInsertAfter16.gif"), -1, this);
       add(editVarVar);
       editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.getIcon("Edit16.gif"), KeyEvent.VK_E, this);
@@ -842,16 +851,28 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
+      File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
+      if (iniFile != null && iniFile.isFile()) {
+        editIni.setText(iniFile.getName());
+        editIni.setEnabled(true);
+        editIni.setToolTipText("Edit " + iniFile.toString());
+      } else {
+        editIni.setText("baldur.ini");
+        editIni.setEnabled(false);
+        editIni.setToolTipText("Ini file not available");
+      }
       editString2.setEnabled(Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE) != null);
       editVarVar.setEnabled(FileNI.getFile(Profile.getRootFolders(), "VAR.VAR").isFile());
-      if (editString2.isEnabled())
+      if (editString2.isEnabled()) {
         editString2.setToolTipText("");
-      else
+      } else {
         editString2.setToolTipText("DialogF.tlk not found");
-      if (editVarVar.isEnabled())
+      }
+      if (editVarVar.isEnabled()) {
         editVarVar.setToolTipText("");
-      else
+      } else {
         editVarVar.setToolTipText("Only available for Planescape: Torment");
+      }
     }
 
     @Override

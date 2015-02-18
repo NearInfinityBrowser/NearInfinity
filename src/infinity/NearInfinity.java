@@ -13,6 +13,7 @@ import infinity.gui.PopupWindowListener;
 import infinity.gui.QuickSearch;
 import infinity.gui.ResourceTree;
 import infinity.gui.StatusBar;
+import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
@@ -23,8 +24,10 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.Viewable;
 import infinity.resource.ViewableContainer;
 import infinity.resource.bcs.Compiler;
+import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
+import infinity.resource.text.PlainTextResource;
 import infinity.search.SearchFrame;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
@@ -381,6 +384,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       blocker.setBlocked(false);
     } else if (event.getActionCommand().equals("Exit")) {
       quit();
+    } else if (event.getActionCommand().equals("GameIni")) {
+      editGameIni(this);
     } else if (event.getActionCommand().equals("Refresh")) {
       refreshGame();
     } else if (event.getActionCommand().equals("ChangeLook")) {
@@ -567,6 +572,24 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     } finally {
       blocker.setBlocked(false);
     }
+  }
+
+  // Opens game's ini file in text editor
+  public boolean editGameIni(Component parent)
+  {
+    boolean retVal = false;
+    File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
+    try {
+      if (iniFile != null && iniFile.isFile()) {
+        new ViewFrame(parent, new PlainTextResource(new FileResourceEntry(iniFile)));
+      } else {
+        throw new Exception();
+      }
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(parent, "Cannot open INI file.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    return retVal;
   }
 
   private void storePreferences()
