@@ -76,6 +76,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -386,6 +387,16 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.getSelectedGameLanguage();
   }
 
+  /**
+   * Attempts to find a matching bookmark and returns its name.
+   * @param keyPath The path to the game's chitin.key.
+   * @return The bookmark name of a matching game or <code>null</code> otherwise.
+   */
+  public String getBookmarkName(File keyFile)
+  {
+    return gameMenu.getBookmarkName(keyFile);
+  }
+
   public void storePreferences()
   {
     optionsMenu.storePreferences();
@@ -400,43 +411,16 @@ public final class BrowserMenuBar extends JMenuBar
   ///////////////////////////////
   private static final class GameMenu extends JMenu implements ActionListener
   {
-    private static final int MAX_LASTGAME_ENTRIES = 10;
-    private static final String FMT_LASTGAME_IDS  = "LastGameID%1$d";
-    private static final String FMT_LASTGAME_PATH = "LastGamePath%1$d";
-
     private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK,
-                            gameProperties, gameRecentClear;
-    private final JMenu recentGames = new JMenu("Recently opened games");
-    private final List<JMenuItem> gameLastGame = new ArrayList<JMenuItem>();
-    private final List<Profile.Game> lastGameID = new ArrayList<Profile.Game>();
-    private final List<String> lastGamePath = new ArrayList<String>();
+                            gameProperties, gameBookmarkAdd, gameBookmarkEdit, gameRecentClear;
 
+    private final JMenu gameRecent = new JMenu("Recently opened games");
+    private final List<RecentGame> recentList = new ArrayList<RecentGame>();
+    private final JPopupMenu.Separator gameRecentSeparator = new JPopupMenu.Separator();
 
-    // Returns the max. number of supported last game entries
-    private static int getLastGameCount()
-    {
-      return MAX_LASTGAME_ENTRIES;
-    }
-
-    // Returns the Preferences key for a specific LastGameID
-    private static String getLastGameID(int idx)
-    {
-      if(idx >= 0 && idx < MAX_LASTGAME_ENTRIES) {
-        return String.format(FMT_LASTGAME_IDS, idx+1);
-      } else {
-        return null;
-      }
-    }
-
-    // Returns the Preferences key for a specific LastGamePath
-    private static String getLastGamePath(int idx)
-    {
-      if (idx >= 0 && idx < MAX_LASTGAME_ENTRIES) {
-        return String.format(FMT_LASTGAME_PATH, idx+1);
-      } else {
-        return null;
-      }
-    }
+    private final JMenu gameBookmarks = new JMenu("Bookmarked games");
+    private final List<Bookmark> bookmarkList = new ArrayList<Bookmark>();
+    private final JPopupMenu.Separator gameBookmarkSeparator = new JPopupMenu.Separator();
 
     private GameMenu()
     {
@@ -464,26 +448,63 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
-      // adding recently opened games list
-      recentGames.setMnemonic('r');
-      add(recentGames);
+      // adding bookmarked games list
+      gameBookmarks.setMnemonic('b');
+      add(gameBookmarks);
 
-      gameLastGame.clear();
-      for (int i = 0; i < getLastGameCount(); i++) {
-        Profile.Game game = Profile.gameFromString(getPrefsProfiles().get(getLastGameID(i), Profile.Game.Unknown.toString()));
-        String gamepath = getPrefsProfiles().get(getLastGamePath(i), null);
-        if (game != Profile.Game.Unknown && gamepath != null && new FileNI(gamepath).isFile()) {
-          addLastGame(lastGameID.size(), game, gamepath);
+      bookmarkList.clear();
+      int gameCount = getPrefsProfiles().getInt(Bookmark.getEntryCountKey(), 0);
+      for (int i = 0; i < gameCount; i++) {
+        Profile.Game game = Profile.gameFromString(getPrefsProfiles().get(Bookmark.getGameKey(i),
+                                                                          Profile.Game.Unknown.toString()));
+        String gamePath = getPrefsProfiles().get(Bookmark.getPathKey(i), null);
+        String gameName = getPrefsProfiles().get(Bookmark.getNameKey(i), null);
+        try {
+          Bookmark b = new Bookmark(gameName, game, gamePath, this);
+          addBookmarkedGame(bookmarkList.size(), b);
+        } catch (NullPointerException e) {
+          // skipping entry
         }
       }
 
-      recentGames.addSeparator();
+      gameBookmarks.add(gameBookmarkSeparator);
+
+      gameBookmarkAdd = new JMenuItem("Add current game...");
+      gameBookmarkAdd.addActionListener(this);
+      gameBookmarks.add(gameBookmarkAdd);
+
+      gameBookmarkEdit = new JMenuItem("Edit bookmarks...");
+      gameBookmarkEdit.addActionListener(this);
+      gameBookmarks.add(gameBookmarkEdit);
+
+      gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
+      gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
+
+      // adding recently opened games list
+      gameRecent.setMnemonic('r');
+      add(gameRecent);
+
+      recentList.clear();
+      for (int i = 0; i < RecentGame.getEntryCount(); i++) {
+        Profile.Game game = Profile.gameFromString(getPrefsProfiles().get(RecentGame.getGameKey(i),
+                                                                          Profile.Game.Unknown.toString()));
+        String gamePath = getPrefsProfiles().get(RecentGame.getPathKey(i), null);
+        try {
+          RecentGame rg = new RecentGame(game, gamePath, recentList.size(), this);
+          addLastGame(recentList.size(), rg);
+        } catch (NullPointerException e) {
+          // skipping entry
+        }
+      }
+
+      gameRecent.add(gameRecentSeparator);
 
       gameRecentClear = new JMenuItem("Clear list of recent games");
       gameRecentClear.addActionListener(this);
-      recentGames.add(gameRecentClear);
+      gameRecent.add(gameRecentClear);
 
-      recentGames.setEnabled(!gameLastGame.isEmpty());
+      gameRecent.setEnabled(!recentList.isEmpty());
+      gameRecentSeparator.setVisible(!recentList.isEmpty());
 
       addSeparator();
 
@@ -495,74 +516,126 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded(Profile.Game oldGame, String oldFile)
     {
-      for (int i = 0; i < lastGamePath.size(); i++) {
-        if (ResourceFactory.getKeyfile().toString().equalsIgnoreCase(lastGamePath.get(i))) {
+      // updating "Recently opened games" list
+      for (int i = 0; i < recentList.size(); i++) {
+        if (ResourceFactory.getKeyfile().toString().equalsIgnoreCase(recentList.get(i).getPath())) {
           removeLastGame(i);
           i--;
         }
       }
 
       if (oldGame != null && oldGame != Profile.Game.Unknown) {
-        for (int i = 0; i < lastGamePath.size(); i++) {
-          if (oldFile.equalsIgnoreCase(lastGamePath.get(i))) {
+        for (int i = 0; i < recentList.size(); i++) {
+          if (oldFile.equalsIgnoreCase(recentList.get(i).getPath())) {
             removeLastGame(i);
             i--;
           }
         }
-        addLastGame(0, oldGame, oldFile);
+        addLastGame(0, new RecentGame(oldGame, oldFile, 0, this));
       }
 
-      while (lastGameID.size() > getLastGameCount()) {
-        removeLastGame(lastGameID.size() - 1);
+      while (recentList.size() > RecentGame.getEntryCount()) {
+        removeLastGame(recentList.size() - 1);
       }
     }
 
-    // Creates and initializes a new menu item for the last game menu
-    private JMenuItem createLastGameMenuItem(int idx, Profile.Game game, String file)
+    // Updates list of bookmark menu items
+    private void updateBookmarkedGames()
     {
-      if (idx >= 0 &&
-          game != null && game != Profile.Game.Unknown &&
-          file != null && !file.isEmpty()) {
-        String label = String.format("%1$d  %2$s", idx+1,
-                                     (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game));
-        JMenuItem mi = new JMenuItem(label);
-        mi.setToolTipText(file);
-        mi.addActionListener(this);
-        mi.setActionCommand("OpenOldGame");
-        return mi;
+      // 1. remove old bookmark items from menu
+      while (gameBookmarks.getPopupMenu().getComponentCount() > 0) {
+        if (gameBookmarks.getPopupMenu().getComponent(0) != gameBookmarkSeparator) {
+          gameBookmarks.getPopupMenu().remove(0);
+        } else {
+          break;
+        }
+      }
+
+      // 2. add new bookmark items to menu
+      for (int i = 0, size = bookmarkList.size(); i < size; i++) {
+        gameBookmarks.insert(bookmarkList.get(i).getMenuItem(), i);
+      }
+      gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
+      gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
+
+      // Updating current game if needed
+      String gameDesc = getBookmarkName(Profile.getChitinKey());
+      if (gameDesc != null) {
+        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, gameDesc);
+        NearInfinity.getInstance().updateWindowTitle();
+      }
+    }
+
+    // Adds the specified bookmark to the list and associated menu
+    private void addBookmarkedGame(int idx, Bookmark bookmark)
+    {
+      if (idx < 0) {
+        idx = 0;
+      } else if (idx > bookmarkList.size()) {
+        idx = bookmarkList.size();
+      }
+
+      // use either separator item or menu item count as upper bounds for inserting new bookmark items
+      int separatorIdx = gameBookmarks.getPopupMenu().getComponentIndex(gameBookmarkSeparator);
+      if (separatorIdx < 0) {
+        separatorIdx = gameBookmarks.getPopupMenu().getComponentCount();
+      }
+
+      if (bookmark != null && idx <= separatorIdx) {
+        bookmarkList.add(idx, bookmark);
+        gameBookmarks.insert(bookmark.getMenuItem(), idx);
+        gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
+        gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
+      }
+    }
+
+    // Adds the current game to the bookmark section
+    private void addNewBookmark(String name)
+    {
+      if (name != null) {
+        name = name.trim();
+        if (name.isEmpty()) {
+          name = (String)Profile.getProperty(Profile.GET_GAME_TITLE);
+        }
+        Profile.Game game = Profile.getGame();
+        String path = Profile.getChitinKey().getAbsolutePath();
+        Bookmark b = new Bookmark(name, game, path, this);
+
+        // 1. check if game is already bookmarked
+        for (Iterator<Bookmark> iter = bookmarkList.iterator(); iter.hasNext();) {
+          Bookmark entry = iter.next();
+          if (entry.getPath().equalsIgnoreCase(path)) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          String.format("Game has already been bookmarked as \"%1$s\".",
+                                                        entry.getName()),
+                                          "Information", JOptionPane.INFORMATION_MESSAGE);
+            return;
+          }
+        }
+
+        // 2. add game to bookmark list
+        addBookmarkedGame(bookmarkList.size(), b);
       } else {
-        return null;
-      }
-    }
-
-    // Updates text and tooltip of the specified last game menu item
-    private void updateLastGameMenuItem(JMenuItem mi, int idx, Profile.Game game, String file)
-    {
-      if (mi != null && idx >= 0 &&
-          game != null && game != Profile.Game.Unknown &&
-          file != null && !file.isEmpty()) {
-        mi.setText(String.format("%1$d  %2$s", idx+1,
-                                 (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game)));
-        mi.setToolTipText(file);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No name specified.",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
 
     // Adds the specified last game entry to the list
-    private void addLastGame(int idx, Profile.Game game, String file)
+    private void addLastGame(int idx, RecentGame rg)
     {
-      if (game != null && game != Profile.Game.Unknown && file != null && !file.isEmpty()) {
-        if (idx < 0 || idx > lastGameID.size()) {
-          idx = lastGameID.size();
+      if (rg != null) {
+        if (idx < 0 || idx > recentList.size()) {
+          idx = recentList.size();
         }
-        lastGameID.add(idx, game);
-        lastGamePath.add(idx, file);
-        JMenuItem mi = createLastGameMenuItem(idx, game, file);
-        gameLastGame.add(idx, mi);
-        recentGames.insert(mi, idx);
-        recentGames.setEnabled(!gameLastGame.isEmpty());
+        rg.setIndex(idx);
+        recentList.add(idx, rg);
+        gameRecent.insert(rg.getMenuItem(), idx);
+        gameRecent.setEnabled(!recentList.isEmpty());
+        gameRecentSeparator.setVisible(!recentList.isEmpty());
 
-        for (int i = 0; i < gameLastGame.size(); i++) {
-          updateLastGameMenuItem(gameLastGame.get(i), i, lastGameID.get(i), lastGamePath.get(i));
+        for (int i = 0; i < recentList.size(); i++) {
+          recentList.get(i).setIndex(i);
         }
       }
     }
@@ -570,40 +643,65 @@ public final class BrowserMenuBar extends JMenuBar
     // Removes the specified last game entry from the list
     private void removeLastGame(int idx)
     {
-      if (idx >= 0) {
-        if (idx < lastGameID.size()) {
-          lastGameID.remove(idx);
-        }
+      if (idx >= 0 && idx < recentList.size()) {
+        recentList.get(idx).clear();
+        recentList.remove(idx);
+        gameRecent.setEnabled(!recentList.isEmpty());
+        gameRecentSeparator.setVisible(!recentList.isEmpty());
 
-        if (idx < lastGamePath.size()) {
-          lastGamePath.remove(idx);
-        }
-
-        if (idx < gameLastGame.size()) {
-          JMenuItem mi = gameLastGame.remove(idx);
-          mi.removeActionListener(this);
-          mi.setEnabled(false);
-          recentGames.remove(mi);
-          recentGames.setEnabled(!gameLastGame.isEmpty());
-        }
-
-        for (int i = 0; i < gameLastGame.size(); i++) {
-          updateLastGameMenuItem(gameLastGame.get(i), i, lastGameID.get(i), lastGamePath.get(i));
+        for (int i = 0; i < recentList.size(); i++) {
+          recentList.get(i).setIndex(i);
         }
       }
     }
 
     private void storePreferences()
     {
-      for (int i = 0; i < getLastGameCount(); i++) {
-        if (i < lastGameID.size()) {
-          getPrefsProfiles().put(getLastGameID(i), lastGameID.get(i).toString());
-          getPrefsProfiles().put(getLastGamePath(i), lastGamePath.get(i));
-        } else {
-          getPrefsProfiles().remove(getLastGameID(i));
-          getPrefsProfiles().remove(getLastGamePath(i));
+      // storing bookmarks
+      // 1. removing excess bookmark entries from preferences
+      int oldSize = getPrefsProfiles().getInt(Bookmark.getEntryCountKey(), 0);
+      if (oldSize > bookmarkList.size()) {
+        for (int i = bookmarkList.size(); i < oldSize; i++) {
+          getPrefsProfiles().remove(Bookmark.getNameKey(i));
+          getPrefsProfiles().remove(Bookmark.getPathKey(i));
+          getPrefsProfiles().remove(Bookmark.getGameKey(i));
         }
       }
+      // 2. storing bookmarks in preferences
+      getPrefsProfiles().putInt(Bookmark.getEntryCountKey(), bookmarkList.size());
+      for (int i = 0; i < bookmarkList.size(); i++) {
+        Bookmark bookmark = bookmarkList.get(i);
+        getPrefsProfiles().put(Bookmark.getNameKey(i), bookmark.getName());
+        getPrefsProfiles().put(Bookmark.getPathKey(i), bookmark.getPath());
+        getPrefsProfiles().put(Bookmark.getGameKey(i), bookmark.getGame().toString());
+      }
+
+      // storing recently used games
+      for (int i = 0; i < RecentGame.getEntryCount(); i++) {
+        if (i < recentList.size()) {
+          RecentGame rg = recentList.get(i);
+          getPrefsProfiles().put(RecentGame.getGameKey(i), rg.getGame().toString());
+          getPrefsProfiles().put(RecentGame.getPathKey(i), rg.getPath());
+        } else {
+          getPrefsProfiles().remove(RecentGame.getGameKey(i));
+          getPrefsProfiles().remove(RecentGame.getPathKey(i));
+        }
+      }
+    }
+
+    /** Attempts to find the name of the game from a matching bookmark. */
+    public String getBookmarkName(File keyFile)
+    {
+      if (keyFile != null) {
+        String path = keyFile.getAbsolutePath();
+        for (Iterator<Bookmark> iter = bookmarkList.iterator(); iter.hasNext();) {
+          Bookmark bookmark = iter.next();
+          if (bookmark.getPath().equalsIgnoreCase(path)) {
+            return bookmark.getName();
+          }
+        }
+      }
+      return null;
     }
 
     @Override
@@ -615,21 +713,42 @@ public final class BrowserMenuBar extends JMenuBar
           openframe = new OpenFileFrame();
         }
         openframe.setVisible(true);
-      } else if (event.getActionCommand().equals("OpenOldGame")) {
+      } else if (event.getActionCommand().equals(Bookmark.getCommand())) {
+        // Bookmark item selected
         int selected = -1;
-        for (int i = 0; i < gameLastGame.size(); i++) {
-          if (event.getSource() == gameLastGame.get(i)) {
+        for (int i = 0; i < bookmarkList.size(); i++) {
+          if (event.getSource() == bookmarkList.get(i).getMenuItem()) {
             selected = i;
+            break;
           }
         }
         if (selected != -1) {
-          File keyfile = new FileNI(lastGamePath.get(selected));
-          if (!keyfile.exists()) {
-            JOptionPane.showMessageDialog(NearInfinity.getInstance(), lastGamePath.get(selected) +
-                                                                      " could not be found",
+          File keyFile = new FileNI(bookmarkList.get(selected).getPath());
+          if (!keyFile.isFile()) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          bookmarkList.get(selected).getPath() + " could not be found",
                                           "Open game failed", JOptionPane.ERROR_MESSAGE);
           } else {
-            NearInfinity.getInstance().openGame(keyfile);
+            NearInfinity.getInstance().openGame(keyFile);
+          }
+        }
+      } else if (event.getActionCommand().equals(RecentGame.getCommand())) {
+        // Recently opened game item selected
+        int selected = -1;
+        for (int i = 0; i < recentList.size(); i++) {
+          if (event.getSource() == recentList.get(i).getMenuItem()) {
+            selected = i;
+            break;
+          }
+        }
+        if (selected != -1) {
+          File keyFile = new FileNI(recentList.get(selected).getPath());
+          if (!keyFile.isFile()) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          recentList.get(selected).getPath() + " could not be found",
+                                          "Open game failed", JOptionPane.ERROR_MESSAGE);
+          } else {
+            NearInfinity.getInstance().openGame(keyFile);
           }
         }
       } else if (event.getSource() == gameCloseTLK) {
@@ -638,8 +757,21 @@ public final class BrowserMenuBar extends JMenuBar
                                       "Release Dialog.tlk", JOptionPane.INFORMATION_MESSAGE);
       } else if (event.getSource() == gameProperties) {
         new GameProperties(NearInfinity.getInstance());
+      } else if (event.getSource() == gameBookmarkAdd) {
+        String name = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter bookmark name:",
+                                                  "Add game to bookmarks", JOptionPane.QUESTION_MESSAGE);
+        if (name != null) {
+          addNewBookmark(name);
+        }
+      } else if (event.getSource() == gameBookmarkEdit) {
+        List<Bookmark> list = BookmarkEditor.editBookmarks(bookmarkList);
+        if (list != null) {
+          bookmarkList.clear();
+          bookmarkList.addAll(list);
+          updateBookmarkedGames();
+        }
       } else if (event.getSource() == gameRecentClear) {
-        while (!gameLastGame.isEmpty()) {
+        while (!recentList.isEmpty()) {
           removeLastGame(0);
         }
       }
@@ -2615,6 +2747,279 @@ public final class BrowserMenuBar extends JMenuBar
 
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, title,
                                     JOptionPane.PLAIN_MESSAGE);
+    }
+  }
+
+  // Manages bookmarked game entries
+  static final class Bookmark implements Cloneable
+  {
+    // "Bookmarks" preferences entries (numbers are 1-based)
+    private static final String BOOKMARK_NUM_ENTRIES  = "BookmarkEntries";
+    private static final String FMT_BOOKMARK_NAME     = "BookmarkName%1$d";
+    private static final String FMT_BOOKMARK_ID       = "BookmarkID%1$d";
+    private static final String FMT_BOOKMARK_PATH     = "BookmarkPath%1$d";
+
+    private static final String MENUITEM_COMMAND      = "OpenBookmark";
+
+    private final Profile.Game game;
+    private final String path;
+
+    private String name;
+    private ActionListener listener;
+    private JMenuItem item;
+
+    public Bookmark(String name, Profile.Game game, String path, ActionListener listener)
+    {
+      if (game == null || game == Profile.Game.Unknown || path == null) {
+        throw new NullPointerException();
+      }
+      if (name == null || name.trim().isEmpty()) {
+        name = (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game);
+      }
+      this.name = name;
+      this.game = game;
+      this.path = path;
+      this.listener = listener;
+      updateMenuItem();
+    }
+
+    @Override
+    public String toString()
+    {
+      return getName();
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+      return new Bookmark(getName(), getGame(), getPath(), listener);
+    }
+
+
+    /** Returns user-defined game name. */
+    public String getName() { return name; }
+
+    /** Sets a new name and returns the previous name (if available). */
+    public String setName(String newName)
+    {
+      String retVal = getName();
+      if (newName != null && !newName.trim().isEmpty()) {
+        this.name = newName;
+        updateMenuItem();
+      }
+      return retVal;
+    }
+
+    /** Returns game type. */
+    public Profile.Game getGame() { return game; }
+
+    /** Returns game path (i.e. full path to the chitin.key). */
+    public String getPath() { return path; }
+
+    /** Returns associated menu item. */
+    public JMenuItem getMenuItem() { return item; }
+
+    /** Returns whether the bookmark points to an existing game installation. */
+    public boolean isEnabled() { return (new FileNI(path)).isFile(); }
+
+    // Creates or updates associated menu item
+    private void updateMenuItem()
+    {
+      if (item == null) {
+        item = new JMenuItem(getName());
+        item.setToolTipText(path);
+        item.setActionCommand(MENUITEM_COMMAND);
+        if (listener != null) {
+          item.addActionListener(listener);
+        }
+      } else {
+        item.setText(getName());
+      }
+      item.setEnabled(isEnabled());
+    }
+
+    /** Returns the command string used for all menu items. */
+    public static String getCommand()
+    {
+      return MENUITEM_COMMAND;
+    }
+
+    /** Returns the Preferences key for the number of available Bookmark entries. */
+    public static String getEntryCountKey()
+    {
+      return BOOKMARK_NUM_ENTRIES;
+    }
+
+    /** Returns the Preferences key for a specific BookmarkID. */
+    public static String getGameKey(int idx)
+    {
+      if (idx >= 0) {
+        return String.format(FMT_BOOKMARK_ID, idx+1);
+      } else {
+        return null;
+      }
+    }
+
+    /** Returns the Preferences key for a specific BookmarkPath. */
+    public static String getPathKey(int idx)
+    {
+      if (idx >= 0) {
+        return String.format(FMT_BOOKMARK_PATH, idx+1);
+      } else {
+        return null;
+      }
+    }
+
+    /** Returns the Preferences key for a specific BookmarkName. */
+    public static String getNameKey(int idx)
+    {
+      if (idx >= 0) {
+        return String.format(FMT_BOOKMARK_NAME, idx+1);
+      } else {
+        return null;
+      }
+    }
+  }
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  // Manages individual "Recently used games" entries
+  static final class RecentGame implements Cloneable
+  {
+    // "Recently opened games" preferences entries (numbers are 1-based)
+    private static final int MAX_LASTGAME_ENTRIES = 10;
+    private static final String FMT_LASTGAME_IDS  = "LastGameID%1$d";
+    private static final String FMT_LASTGAME_PATH = "LastGamePath%1$d";
+
+    private static final String MENUITEM_COMMAND  = "OpenOldGame";
+
+    private final Profile.Game game;
+    private final String path;
+
+    private JMenuItem item;
+    private ActionListener listener;
+    private int index;
+
+    public RecentGame(Profile.Game game, String path, int index, ActionListener listener)
+    {
+      if (game == null || game == Profile.Game.Unknown ||
+          path == null || !(new FileNI(path)).isFile()) {
+        throw new NullPointerException();
+      }
+      this.game = game;
+      this.path = path;
+      this.index = -1;
+      this.listener = listener;
+      setIndex(index);
+    }
+
+    @Override
+    public String toString()
+    {
+      if (index >= 0) {
+        return String.format("%1$d  %2$s", index+1,
+                             (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game));
+      } else {
+        return (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game);
+      }
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+      return new RecentGame(getGame(), getPath(), getIndex(), getActionListener());
+    }
+
+    /** Returns game type. */
+    public Profile.Game getGame() { return game; }
+
+    /** Returns game path (i.e. full path to the chitin.key). */
+    public String getPath() { return path; }
+
+    /** Returns associated menu item. */
+    public JMenuItem getMenuItem() { return item; }
+
+    /** Returns current entry index. */
+    public int getIndex() { return index; }
+
+    /** Updates existing menu item or creates a new one, based on the given index. */
+    public void setIndex(int index)
+    {
+      if (index >= 0 && index < getEntryCount() && index != this.index) {
+        this.index = index;
+        if (item == null) {
+          item = new JMenuItem(toString());
+          item.setToolTipText(path);
+          item.setActionCommand(MENUITEM_COMMAND);
+          if (listener != null) {
+            item.addActionListener(listener);
+          }
+        } else {
+          item.setText(toString());
+        }
+      }
+    }
+
+    /** Returns ActionListener used by the associated menu item. */
+    public ActionListener getActionListener() { return listener; }
+
+    /** Applies a new ActionListener object to the associated menu item. */
+    public void setActionListener(ActionListener listener)
+    {
+      if (item != null) {
+        item.removeActionListener(this.listener);
+      }
+      this.listener = listener;
+      if (listener != null && item != null) {
+        item.addActionListener(this.listener);
+      }
+    }
+
+    /** Removes the currently associated menu item. */
+    public void clear()
+    {
+      if (item != null) {
+        if (listener != null) {
+          item.removeActionListener(listener);
+          item.setEnabled(false);
+          if (item.getParent() != null) {
+            item.getParent().remove(item);
+          }
+          item = null;
+        }
+      }
+    }
+
+    /** Returns the command string used for all menu items. */
+    public static String getCommand()
+    {
+      return MENUITEM_COMMAND;
+    }
+
+    /** Returns the max. number of supported last game entries. */
+    public static int getEntryCount()
+    {
+      return MAX_LASTGAME_ENTRIES;
+    }
+
+    /** Returns the Preferences key for a specific LastGameID. */
+    public static String getGameKey(int index)
+    {
+      if (index >= 0 && index < getEntryCount()) {
+        return String.format(FMT_LASTGAME_IDS, index+1);
+      } else {
+        return null;
+      }
+    }
+
+    /** Returns the Preferences key for a specific LastGamePath. */
+    public static String getPathKey(int index)
+    {
+      if (index >= 0 && index < getEntryCount()) {
+        return String.format(FMT_LASTGAME_PATH, index+1);
+      } else {
+        return null;
+      }
     }
   }
 }

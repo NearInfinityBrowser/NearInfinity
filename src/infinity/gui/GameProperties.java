@@ -1,3 +1,7 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
 package infinity.gui;
 
 import infinity.NearInfinity;
@@ -328,7 +332,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
   }
 
   // Returns the name of the language specified by the given language code
-  private String getLanguageName(String langCode)
+  private static String getLanguageName(String langCode)
   {
     if (langCode != null && langCode.matches("[a-z]{2}_[A-Z]{2}")) {
       String lang[] = langCode.split("_");
@@ -343,7 +347,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
   }
 
   // Creates a read-only text field, optionally with visible caret
-  private JTextField createReadOnlyField(String text, boolean showCaret)
+  private static JTextField createReadOnlyField(String text, boolean showCaret)
   {
     JLabel l = new JLabel();
     JTextField tf = new JTextField();
@@ -373,7 +377,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
   }
 
   // Creates a label with a graphical icon specifying checked or unchecked state
-  private JLabel createCheckLabel(Integer key, String desc)
+  private static JLabel createCheckLabel(Integer key, String desc)
   {
     if (key != null && desc != null && Profile.getProperty(key) instanceof Boolean) {
       ImageIcon icon;
