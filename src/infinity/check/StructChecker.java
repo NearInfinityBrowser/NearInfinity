@@ -5,6 +5,11 @@
 package infinity.check;
 
 import infinity.NearInfinity;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
@@ -18,6 +23,8 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.wed.Overlay;
+import infinity.resource.wed.Tilemap;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
@@ -35,6 +42,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -315,6 +323,110 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
                                         last.getSize() + " unused bytes after " +
                                         entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) +
                                         "h)"));
+
+    // Type-specific checks
+    if (entry.getExtension().equalsIgnoreCase("WED")) {
+      List<Corruption> list = getWedCorruption(entry, struct);
+      for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
+        table.addTableItem(iter.next());
+      }
+    }
+  }
+
+  // Checks for WED-specific corruptions
+  private List<Corruption> getWedCorruption(ResourceEntry entry, AbstractStruct struct)
+  {
+    List<Corruption> list = new ArrayList<Corruption>();
+    if (entry.getExtension().equalsIgnoreCase("WED")) {
+      final int ovlSize = 0x18; // size of an Overlay structure
+      int ovlCount = ((SectionCount)struct.getAttribute(8, false)).getValue(); // # overlays
+      int ovlStartOfs = ((SectionOffset)struct.getAttribute(16, false)).getValue();  // Overlays offset
+
+      for (int ovlIdx = 0; ovlIdx < ovlCount; ovlIdx++) {
+        int ovlOfs = ovlStartOfs + ovlIdx*ovlSize;
+        Overlay overlay = (Overlay)struct.getAttribute(ovlOfs, false);  // Overlay
+        if (overlay == null) {
+          continue;
+        }
+        int width = ((DecNumber)overlay.getAttribute(ovlOfs + 0, false)).getValue();
+        int height = ((DecNumber)overlay.getAttribute(ovlOfs + 2, false)).getValue();
+        String tisName = ((ResourceRef)overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
+        int tileStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 16, false)).getValue();
+        if (tisName == null || tisName.isEmpty() || tisName.equalsIgnoreCase("None")) {
+          continue;
+        }
+
+        // checking Overlay fields
+        boolean skip = false;
+        if (width <= 0) {
+          list.add(new Corruption(entry, ovlOfs + 0,
+                                  String.format("Overlay %1$d: Tileset width is <= 0", ovlIdx)));
+          skip = true;
+        }
+        if (height <= 0) {
+          list.add(new Corruption(entry, ovlOfs + 2,
+                                  String.format("Overlay %1$d: Tileset height is <= 0", ovlIdx)));
+          skip = true;
+        }
+        if (!ResourceFactory.resourceExists(tisName)) {
+          list.add(new Corruption(entry, ovlOfs + 4,
+                                  String.format("Overlay %1$d: TIS resource %2$s does not exist", ovlIdx, tisName)));
+          skip = true;
+        }
+        if ((tileStartOfs <= ovlOfs + ovlCount*ovlSize) || (tileStartOfs >= struct.getSize())) {
+          list.add(new Corruption(entry, ovlOfs + 16,
+                                  String.format("Overlay %1$d: Tilemap offset is invalid", ovlIdx)));
+          skip = true;
+        }
+        if (skip) {
+          continue;
+        }
+
+        // Checking Tilemap fields
+        ResourceEntry tisResource = ResourceFactory.getResourceEntry(tisName);
+        int[] tisInfo;  // = {tileCount, tileSize}
+        try {
+          tisInfo = tisResource.getResourceInfo();
+        } catch (Exception e) {
+          tisInfo = null;
+        }
+        if (tisInfo == null || tisInfo.length < 2) {
+          continue;
+        }
+        final int tileSize = 0x0a;  // size of a Tilemap structure
+        int numTiles = width * height;
+        for (int tileIdx = 0; tileIdx < numTiles; tileIdx++) {
+          int tileOfs = tileStartOfs + tileIdx*tileSize;
+          Tilemap tile = (Tilemap)overlay.getAttribute(tileOfs, false);
+          if (tile == null) {
+            continue;
+          }
+          int tileIdxPri = ((DecNumber)tile.getAttribute(tileOfs + 0, false)).getValue();
+          int tileCountPri = ((DecNumber)tile.getAttribute(tileOfs + 2, false)).getValue();
+          int tileIdxSec = ((DecNumber)tile.getAttribute(tileOfs + 4, false)).getValue();
+          Flag tileFlag = (Flag)tile.getAttribute(tileOfs + 6, false);
+          int tileFlagValue = 0;
+          for (int i = 1; i < 8; i++) {
+            if (tileFlag.isFlagSet(i)) {
+              tileFlagValue += 1 << (i-1);
+            }
+          }
+          if (tileIdxPri+tileCountPri > tisInfo[0]) {
+            list.add(new Corruption(entry, tileOfs + 0,
+                                    String.format("Overlay %1$d/Tilemap %2$d: Primary tile index %3$d " +
+                                                  "out of range [0..%4$d]",
+                                                  ovlIdx, tileIdx, tileIdxPri, tisInfo[0] - 1)));
+          }
+          if (tileFlagValue > 0 && tileIdxSec >= tisInfo[0]) {
+            list.add(new Corruption(entry, tileOfs + 4,
+                                    String.format("Overlay %1$d/Tilemap %2$d: Secondary tile index %3$d " +
+                                                  "out of range [0..%4$d]",
+                                                  ovlIdx, tileIdx, tileIdxSec, tisInfo[0] - 1)));
+          }
+        }
+      }
+    }
+    return list;
   }
 
 // -------------------------- INNER CLASSES --------------------------

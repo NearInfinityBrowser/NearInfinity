@@ -1259,7 +1259,7 @@ public final class BrowserMenuBar extends JMenuBar
 
       toolCheckStructs =
           makeMenuItem("For Corrupted Files...", KeyEvent.VK_F, Icons.getIcon("Find16.gif"), -1, this);
-      toolCheckStructs.setToolTipText("Reports structured files with partially overlapping subsections");
+      toolCheckStructs.setToolTipText("Reports structured files with partially overlapping subsections or resource-specific corruptions");
       checkMenu.add(toolCheckStructs);
 
       toolCheckStringUse =
