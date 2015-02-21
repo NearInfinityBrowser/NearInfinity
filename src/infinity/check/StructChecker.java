@@ -352,7 +352,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
         int height = ((DecNumber)overlay.getAttribute(ovlOfs + 2, false)).getValue();
         String tisName = ((ResourceRef)overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
         int tileStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 16, false)).getValue();
-        if (tisName == null || tisName.isEmpty() || tisName.equalsIgnoreCase("None")) {
+        if (tisName == null || tisName.isEmpty() || !ResourceFactory.resourceExists(tisName)) {
           continue;
         }
 
@@ -366,11 +366,6 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
         if (height <= 0) {
           list.add(new Corruption(entry, ovlOfs + 2,
                                   String.format("Overlay %1$d: Tileset height is <= 0", ovlIdx)));
-          skip = true;
-        }
-        if (!ResourceFactory.resourceExists(tisName)) {
-          list.add(new Corruption(entry, ovlOfs + 4,
-                                  String.format("Overlay %1$d: TIS resource %2$s does not exist", ovlIdx, tisName)));
           skip = true;
         }
         if ((tileStartOfs <= ovlOfs + ovlCount*ovlSize) || (tileStartOfs >= struct.getSize())) {
