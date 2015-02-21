@@ -47,6 +47,7 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -471,6 +472,7 @@ public final class BrowserMenuBar extends JMenuBar
       gameBookmarks.add(gameBookmarkSeparator);
 
       gameBookmarkAdd = new JMenuItem("Add current game...");
+      gameBookmarkAdd.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, CTRL_MASK | InputEvent.ALT_DOWN_MASK));
       gameBookmarkAdd.addActionListener(this);
       gameBookmarks.add(gameBookmarkAdd);
 
