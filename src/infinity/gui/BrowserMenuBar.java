@@ -394,7 +394,8 @@ public final class BrowserMenuBar extends JMenuBar
    */
   public String getBookmarkName(File keyFile)
   {
-    return gameMenu.getBookmarkName(keyFile);
+    Bookmark bookmark = gameMenu.getBookmarkOf(keyFile);
+    return (bookmark != null) ? bookmark.getName() : null;
   }
 
   public void storePreferences()
@@ -559,9 +560,32 @@ public final class BrowserMenuBar extends JMenuBar
       gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
 
       // Updating current game if needed
-      String gameDesc = getBookmarkName(Profile.getChitinKey());
-      if (gameDesc != null) {
-        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, gameDesc);
+      Bookmark bookmark = getBookmarkOf(Profile.getChitinKey());
+      if (bookmark != null) {
+        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, bookmark.getName());
+        NearInfinity.getInstance().updateWindowTitle();
+      }
+    }
+
+    // Removes the bookmark specified by item index from the list and associated menu
+    private void removeBookmarkedGame(int idx)
+    {
+      if (idx >= 0 && idx < bookmarkList.size()) {
+        Bookmark b = bookmarkList.remove(idx);
+        if (b != null) {
+          b.setActionListener(null);
+        }
+        if (gameBookmarks.getPopupMenu().getComponent(idx) == b.getMenuItem()) {
+          gameBookmarks.getPopupMenu().remove(idx);
+        } else {
+          for (int i = 0, count = gameBookmarks.getPopupMenu().getComponentCount(); i < count; i++) {
+            if (gameBookmarks.getPopupMenu().getComponent(i) == b.getMenuItem()) {
+              gameBookmarks.getPopupMenu().remove(i);
+              break;
+            }
+          }
+        }
+        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, null);
         NearInfinity.getInstance().updateWindowTitle();
       }
     }
@@ -586,10 +610,12 @@ public final class BrowserMenuBar extends JMenuBar
         gameBookmarks.insert(bookmark.getMenuItem(), idx);
         gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
         gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
+        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, bookmark.getName());
+        NearInfinity.getInstance().updateWindowTitle();
       }
     }
 
-    // Adds the current game to the bookmark section
+    // Adds or replaces the current game to the bookmark section
     private void addNewBookmark(String name)
     {
       if (name != null) {
@@ -601,20 +627,17 @@ public final class BrowserMenuBar extends JMenuBar
         String path = Profile.getChitinKey().getAbsolutePath();
         Bookmark b = new Bookmark(name, game, path, this);
 
-        // 1. check if game is already bookmarked
-        for (Iterator<Bookmark> iter = bookmarkList.iterator(); iter.hasNext();) {
-          Bookmark entry = iter.next();
-          if (entry.getPath().equalsIgnoreCase(path)) {
-            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                          String.format("Game has already been bookmarked as \"%1$s\".",
-                                                        entry.getName()),
-                                          "Information", JOptionPane.INFORMATION_MESSAGE);
-            return;
-          }
+        // check whether to replace existing bookmark
+        Bookmark curBookmark = getBookmarkOf(Profile.getChitinKey());
+        int idx = (curBookmark != null) ? bookmarkList.indexOf(curBookmark) : -1;
+        if (idx >= 0) {
+          // replace existing bookmark
+          removeBookmarkedGame(idx);
+          addBookmarkedGame(idx, b);
+        } else {
+          // add new bookmark
+          addBookmarkedGame(bookmarkList.size(), b);
         }
-
-        // 2. add game to bookmark list
-        addBookmarkedGame(bookmarkList.size(), b);
       } else {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No name specified.",
                                       "Error", JOptionPane.ERROR_MESSAGE);
@@ -689,15 +712,15 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    /** Attempts to find the name of the game from a matching bookmark. */
-    public String getBookmarkName(File keyFile)
+    /** Attempts to find a bookmarked game using specified key file path. */
+    public Bookmark getBookmarkOf(File keyFile)
     {
       if (keyFile != null) {
         String path = keyFile.getAbsolutePath();
         for (Iterator<Bookmark> iter = bookmarkList.iterator(); iter.hasNext();) {
           Bookmark bookmark = iter.next();
           if (bookmark.getPath().equalsIgnoreCase(path)) {
-            return bookmark.getName();
+            return bookmark;
           }
         }
       }
@@ -758,10 +781,24 @@ public final class BrowserMenuBar extends JMenuBar
       } else if (event.getSource() == gameProperties) {
         new GameProperties(NearInfinity.getInstance());
       } else if (event.getSource() == gameBookmarkAdd) {
-        String name = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter bookmark name:",
-                                                  "Add game to bookmarks", JOptionPane.QUESTION_MESSAGE);
+        Object name = null;
+        Bookmark bookmark = getBookmarkOf(Profile.getChitinKey());
+        if (bookmark != null) {
+          int retVal = JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
+                                                     "The game has already been bookmarked.\nDo you want to update it?",
+                                                     "Update bookmark", JOptionPane.YES_NO_OPTION,
+                                                     JOptionPane.QUESTION_MESSAGE);
+          if (retVal == JOptionPane.YES_OPTION) {
+            name = bookmark.getName();
+          } else {
+            return;
+          }
+        }
+        name = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter bookmark name:",
+                                           "Add game to bookmarks", JOptionPane.QUESTION_MESSAGE,
+                                           null, null, name);
         if (name != null) {
-          addNewBookmark(name);
+          addNewBookmark(name.toString());
         }
       } else if (event.getSource() == gameBookmarkEdit) {
         List<Bookmark> list = BookmarkEditor.editBookmarks(bookmarkList);
@@ -2822,6 +2859,21 @@ public final class BrowserMenuBar extends JMenuBar
     /** Returns whether the bookmark points to an existing game installation. */
     public boolean isEnabled() { return (new FileNI(path)).isFile(); }
 
+    /** Returns ActionListener used by the associated menu item. */
+    public ActionListener getActionListener() { return listener; }
+
+    /** Assigns a new ActionListener object to the associated menu item. */
+    public void setActionListener(ActionListener listener)
+    {
+      if (item != null) {
+        item.removeActionListener(this.listener);
+      }
+      this.listener = listener;
+      if (listener != null && item != null) {
+        item.addActionListener(this.listener);
+      }
+    }
+
     // Creates or updates associated menu item
     private void updateMenuItem()
     {
@@ -2880,8 +2932,6 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
   }
-
-  // -------------------------- INNER CLASSES --------------------------
 
   // Manages individual "Recently used games" entries
   static final class RecentGame implements Cloneable
@@ -2963,7 +3013,7 @@ public final class BrowserMenuBar extends JMenuBar
     /** Returns ActionListener used by the associated menu item. */
     public ActionListener getActionListener() { return listener; }
 
-    /** Applies a new ActionListener object to the associated menu item. */
+    /** Assigns a new ActionListener object to the associated menu item. */
     public void setActionListener(ActionListener listener)
     {
       if (item != null) {
