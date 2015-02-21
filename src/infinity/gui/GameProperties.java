@@ -200,13 +200,13 @@ public final class GameProperties extends ChildFrame implements ActionListener
       l = new JLabel("Available languages:");
       tf = createReadOnlyField(sb.toString(), true);
       listControls.add(new Pair<JComponent>(l, tf));
-    }
 
-    // Entry: language
-    s = getLanguageName((String)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAME));
-    l = new JLabel("Current language:");
-    tf = createReadOnlyField(s, true);
-    listControls.add(new Pair<JComponent>(l, tf));
+      // Entry: language
+      s = getLanguageName((String)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAME));
+      l = new JLabel("Current language:");
+      tf = createReadOnlyField(s, true);
+      listControls.add(new Pair<JComponent>(l, tf));
+    }
 
     // Entry: Use female TLK file
     l = new JLabel("Uses female TLK file:");
