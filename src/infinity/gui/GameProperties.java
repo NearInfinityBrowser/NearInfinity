@@ -16,7 +16,6 @@ import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -25,7 +24,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -386,17 +384,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
       } else {
         icon = Icons.getIcon("Check_Not16.gif");
       }
-      // checked/unchecked icons must have same dimensions
-      ImageIcon icon2 = new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB));
-      Graphics g = icon2.getImage().getGraphics();
-      try {
-        g.drawImage(icon.getImage(),
-                    (icon2.getImage().getWidth(null) - icon.getImage().getWidth(null)) / 2,
-                    (icon2.getImage().getHeight(null) - icon.getImage().getHeight(null)) / 2, null);
-      } finally {
-        g.dispose();
-      }
-      JLabel label = new JLabel(desc, icon2, SwingConstants.LEFT);
+      JLabel label = new JLabel(desc, icon, SwingConstants.LEFT);
       label.setFont(new Font(Font.MONOSPACED, label.getFont().getStyle(), label.getFont().getSize()));
       return label;
     } else {
