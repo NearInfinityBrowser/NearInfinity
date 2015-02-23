@@ -1106,13 +1106,8 @@ public class TilesetRenderer extends RenderCanvas
             int tileIdx2 = ((DecNumber)tile.getAttribute("Secondary tile index")).getValue();
 
             // initializing overlay flags
-            int flags = 0;
             Flag drawOverlays = (Flag)tile.getAttribute("Draw Overlays");
-            for (int j = 0; j < 8; j++) {
-              if (drawOverlays.isFlagSet(j)) {
-                flags |= 1 << j;
-              }
-            }
+            int flags = (int)drawOverlays.getValue() & 255;
 
             listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTilesetV1));
             curOfs += tile.getSize();
