@@ -389,34 +389,30 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
           continue;
         }
         final int tileSize = 0x0a;  // size of a Tilemap structure
-        int numTiles = width * height;
-        for (int tileIdx = 0; tileIdx < numTiles; tileIdx++) {
-          int tileOfs = tileStartOfs + tileIdx*tileSize;
-          Tilemap tile = (Tilemap)overlay.getAttribute(tileOfs, false);
-          if (tile == null) {
-            continue;
-          }
-          int tileIdxPri = ((DecNumber)tile.getAttribute(tileOfs + 0, false)).getValue();
-          int tileCountPri = ((DecNumber)tile.getAttribute(tileOfs + 2, false)).getValue();
-          int tileIdxSec = ((DecNumber)tile.getAttribute(tileOfs + 4, false)).getValue();
-          Flag tileFlag = (Flag)tile.getAttribute(tileOfs + 6, false);
-          int tileFlagValue = 0;
-          for (int i = 1; i < 8; i++) {
-            if (tileFlag.isFlagSet(i)) {
-              tileFlagValue += 1 << (i-1);
+        List<StructEntry> overlayList = overlay.getList();
+        for (Iterator<StructEntry> iter = overlayList.iterator(); iter.hasNext();) {
+          StructEntry item = iter.next();
+          if (item instanceof Tilemap) {
+            Tilemap tile = (Tilemap)item;
+            int tileOfs = tile.getOffset();
+            int tileIdx = (tileOfs - tileStartOfs) / tileSize;
+            int tileIdxPri = ((DecNumber)tile.getAttribute(tileOfs + 0, false)).getValue();
+            int tileCountPri = ((DecNumber)tile.getAttribute(tileOfs + 2, false)).getValue();
+            int tileIdxSec = ((DecNumber)tile.getAttribute(tileOfs + 4, false)).getValue();
+            Flag tileFlag = (Flag)tile.getAttribute(tileOfs + 6, false);
+            int tileFlagValue = (int)tileFlag.getValue();
+            if (tileIdxPri+tileCountPri > tisInfo[0]) {
+              list.add(new Corruption(entry, tileOfs + 0,
+                                      String.format("Overlay %1$d/Tilemap %2$d: Primary tile index %3$d " +
+                                                    "out of range [0..%4$d]",
+                                                    ovlIdx, tileIdx, tileIdxPri, tisInfo[0] - 1)));
             }
-          }
-          if (tileIdxPri+tileCountPri > tisInfo[0]) {
-            list.add(new Corruption(entry, tileOfs + 0,
-                                    String.format("Overlay %1$d/Tilemap %2$d: Primary tile index %3$d " +
-                                                  "out of range [0..%4$d]",
-                                                  ovlIdx, tileIdx, tileIdxPri, tisInfo[0] - 1)));
-          }
-          if (tileFlagValue > 0 && tileIdxSec >= tisInfo[0]) {
-            list.add(new Corruption(entry, tileOfs + 4,
-                                    String.format("Overlay %1$d/Tilemap %2$d: Secondary tile index %3$d " +
-                                                  "out of range [0..%4$d]",
-                                                  ovlIdx, tileIdx, tileIdxSec, tisInfo[0] - 1)));
+            if (tileFlagValue > 0 && tileIdxSec >= tisInfo[0]) {
+              list.add(new Corruption(entry, tileOfs + 4,
+                                      String.format("Overlay %1$d/Tilemap %2$d: Secondary tile index %3$d " +
+                                                    "out of range [0..%4$d]",
+                                                    ovlIdx, tileIdx, tileIdxSec, tisInfo[0] - 1)));
+            }
           }
         }
       }
