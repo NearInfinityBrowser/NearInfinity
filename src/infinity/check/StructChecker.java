@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -352,6 +353,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
         int height = ((DecNumber)overlay.getAttribute(ovlOfs + 2, false)).getValue();
         String tisName = ((ResourceRef)overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
         int tileStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 16, false)).getValue();
+        int indexStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 20, false)).getValue();
         if (tisName == null || tisName.isEmpty() || !ResourceFactory.resourceExists(tisName)) {
           continue;
         }
@@ -373,6 +375,11 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
                                   String.format("Overlay %1$d: Tilemap offset is invalid", ovlIdx)));
           skip = true;
         }
+        if ((indexStartOfs < ovlOfs + ovlCount*ovlSize) || (indexStartOfs >= struct.getSize())) {
+          list.add(new Corruption(entry, ovlOfs + 16,
+                                  String.format("Overlay %1$d: Tilemap lookup offset is invalid", ovlIdx)));
+          skip = true;
+        }
         if (skip) {
           continue;
         }
@@ -389,11 +396,27 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
           continue;
         }
         final int tileSize = 0x0a;  // size of a Tilemap structure
-        List<StructEntry> overlayList = overlay.getList();
-        for (Iterator<StructEntry> iter = overlayList.iterator(); iter.hasNext();) {
+        int numTiles = width*height;
+        int tileEndOfs = tileStartOfs + numTiles*tileSize;
+        int indexEndOfs = indexStartOfs + 2*numTiles;
+        // caching tile maps and tile lookup indices
+        HashMap<Integer, Tilemap> mapTiles = new HashMap<Integer, Tilemap>(numTiles*3/2, 0.8f);
+        HashMap<Integer, Integer> mapIndices = new HashMap<Integer, Integer>(numTiles*3/2, 0.8f);
+        for (Iterator<StructEntry> iter = overlay.getList().iterator(); iter.hasNext();) {
           StructEntry item = iter.next();
-          if (item instanceof Tilemap) {
-            Tilemap tile = (Tilemap)item;
+          int curOfs = item.getOffset();
+          if (curOfs >= tileStartOfs && curOfs < tileEndOfs && item instanceof Tilemap) {
+            int index = (curOfs - tileStartOfs) / item.getSize();
+            mapTiles.put(Integer.valueOf(index), (Tilemap)item);
+          } else if (item.getOffset() > indexStartOfs && curOfs < indexEndOfs && item instanceof DecNumber) {
+            int index = (curOfs - indexStartOfs) / 2;
+            mapIndices.put(Integer.valueOf(index), Integer.valueOf(((DecNumber)item).getValue()));
+          }
+        }
+        // checking indices
+        for (int i = 0; i < numTiles; i++) {
+          Tilemap tile = mapTiles.get(Integer.valueOf(i));
+          if (tile != null) {
             int tileOfs = tile.getOffset();
             int tileIdx = (tileOfs - tileStartOfs) / tileSize;
             int tileIdxPri = ((DecNumber)tile.getAttribute(tileOfs + 0, false)).getValue();
@@ -401,11 +424,16 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
             int tileIdxSec = ((DecNumber)tile.getAttribute(tileOfs + 4, false)).getValue();
             Flag tileFlag = (Flag)tile.getAttribute(tileOfs + 6, false);
             int tileFlagValue = (int)tileFlag.getValue();
-            if (tileIdxPri+tileCountPri > tisInfo[0]) {
-              list.add(new Corruption(entry, tileOfs + 0,
-                                      String.format("Overlay %1$d/Tilemap %2$d: Primary tile index %3$d " +
-                                                    "out of range [0..%4$d]",
-                                                    ovlIdx, tileIdx, tileIdxPri, tisInfo[0] - 1)));
+            for (int j = tileIdxPri, count = tileIdxPri + tileCountPri; j < count; j++) {
+              Integer tileLookupIndex = mapIndices.get(Integer.valueOf(j));
+              if (tileLookupIndex != null) {
+                if (tileLookupIndex >= tisInfo[0]) {
+                  list.add(new Corruption(entry, tileOfs + 0,
+                                          String.format("Overlay %1$d/Tilemap %2$d: Primary tile index %3$d " +
+                                                        "out of range [0..%4$d]",
+                                                        ovlIdx, tileIdx, j, tisInfo[0] - 1)));
+                }
+              }
             }
             if (tileFlagValue > 0 && tileIdxSec >= tisInfo[0]) {
               list.add(new Corruption(entry, tileOfs + 4,
