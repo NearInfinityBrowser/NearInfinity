@@ -159,24 +159,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     SearchFrame.clearCache();
     StringResource.close();
     Compiler.restartCompiler();
-    if (refreshonly) {
-      try {
-        ResourceFactory.loadResources();
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
-                                      JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
-      }
-    } else {
-      File newkeyfile = findKeyfile();
-      if (newkeyfile == null) {
-        return false;
-      } else {
-        EffectFactory.init();
-        Profile.openGame(newkeyfile, BrowserMenuBar.getInstance().getBookmarkName(newkeyfile));
-      }
+    File keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
+    if (keyFile != null) {
+      EffectFactory.init();
+      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      return true;
     }
-    return true;
+    return false;
   }
 
   public static void main(String args[])
