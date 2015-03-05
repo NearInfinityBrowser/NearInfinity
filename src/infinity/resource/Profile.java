@@ -814,7 +814,7 @@ public final class Profile
       addEntry(GET_GAME_HOME_FOLDER_NAME, Type.String, GAME_HOME_FOLDER.get(game));
     }
 
-    // Considering three different root folders to locate game resources
+    // Considering three (or four) different root folders to locate game resources
     // Note: Order of the root directories is important. FileNI will take the first one available.
     File homeRoot = ResourceFactory.getHomeRoot();
     String language = ResourceFactory.fetchGameLanguage(new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
@@ -822,6 +822,13 @@ public final class Profile
     if (!langRoot.isDirectory()) {
       langRoot = null;
     }
+    // fallback language in case the selected language lacks certain game resources
+    String languageDef = ResourceFactory.fetchGameLanguage(null);
+    File langRootDef = FileNI.getFile((File)getProperty(GET_GAME_LANG_FOLDER_BASE), languageDef);
+    if (language.equals(languageDef) || !langRootDef.isDirectory()) {
+      langRootDef = null;
+    }
+
     List<File> listRoots = new ArrayList<File>();
     if (langRoot != null) {
       addEntry(GET_GAME_LANG_FOLDER_NAME, Type.String, language);
@@ -834,6 +841,9 @@ public final class Profile
       }
       addEntry(GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.List, languages);
       listRoots.add(langRoot);
+    }
+    if (langRootDef != null) {
+      listRoots.add(langRootDef);
     }
     if (homeRoot != null) {
       addEntry(GET_GAME_HOME_FOLDER, Type.File, homeRoot);
