@@ -3,7 +3,7 @@
 
 <!ELEMENT general (server*, info*)>
 
-<!ELEMENT release (file)>
+<!ELEMENT release (file, changelog?)>
 <!ATTLIST release type (latest|stable|updater) "latest">
 
 <!ELEMENT server (link)>
@@ -14,7 +14,9 @@
 
 <!ELEMENT link (#PCDATA)>
 
-<!ELEMENT file (name, url, version, timestamp, hash, link?, changelog?)>
+<!ELEMENT file (name, url, version, timestamp, hash, link?)>
+
+<!ELEMENT changelog (entry+)>
 
 <!ELEMENT url (#PCDATA)>
 <!ATTLIST url type (jar|zip|gzip) #REQUIRED>
@@ -26,7 +28,5 @@
 <!ELEMENT timestamp (#PCDATA)>
 
 <!ELEMENT hash (#PCDATA)>
-
-<!ELEMENT changelog (entry+)>
 
 <!ELEMENT entry (#PCDATA)>

@@ -56,14 +56,14 @@ Whitespace around text content will be trimmed automatically.
       <!-- "link" specifies a URL which can be used to manually download the file. 
             (optional, but strongly recommended for official releases) -->
       <link>https://github.com/Argent77/NearInfinity/releases/latest</link>
-      <!-- "changelog" contains changes introduced in the current release. (optional) -->
-      <changelog>
-        <!-- One or more changelog entries. Each entry will be displayed as a separate list 
-             element. (mandatory) -->
-        <entry>Added feature X.</entry>
-        <entry>Fixed missing fields in XYZ V1.0 resources.</entry>
-      </changelog>
     </file>
+    <!-- "changelog" contains changes introduced in the current release. (optional) -->
+    <changelog>
+      <!-- One or more changelog entries. Each entry will be displayed as a separate list 
+           element. (mandatory) -->
+      <entry>Added feature X.</entry>
+      <entry>Fixed missing fields in XYZ V1.0 resources.</entry>
+    </changelog>
   </release>
 
   <!-- Optional release type "stable" points to the latest stable Near Infinity version.
@@ -76,11 +76,11 @@ Whitespace around text content will be trimmed automatically.
       <timestamp>2013-06-24T13:31-01:00</timestamp>
       <hash>ea59bfa96f83db4d373299a8663b31a8</hash>
       <link>https://github.com/NearInfinityBrowser/NearInfinity/releases/tag/w1.3.0</link>
-      <changelog>
-        <entry>From-scratch resource creation</entry>
-        <entry>Improved handling of PRO files</entry>
-      </changelog>
     </file>
+    <changelog>
+      <entry>From-scratch resource creation</entry>
+      <entry>Improved handling of PRO files</entry>
+    </changelog>
   </release>
 
   <!-- The special release type "updater" provides information about the updater helper tool 
@@ -92,9 +92,9 @@ Whitespace around text content will be trimmed automatically.
       <version>1.0</version>
       <timestamp>2015-02-03T16:49-01:00</timestamp>
       <hash>ffb9a373d9686d59a3c6e1cd5c8a6049</hash>
-      <changelog>
-        <entry>Initial release.</entry>
-      </changelog>
     </file>
+    <changelog>
+      <entry>Initial release.</entry>
+    </changelog>
   </release>
 </update>

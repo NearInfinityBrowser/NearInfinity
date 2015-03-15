@@ -356,17 +356,24 @@ public class UpdateInfo
       type = ReleaseType.LATEST;
     }
 
-    NodeList children = elemRelease.getElementsByTagName(NODE_FILE);
-    Element elemFile = null;
+    // preprocessing available child elements in "release" section
+    NodeList children = elemRelease.getChildNodes();
+    Element elemFile = null, elemChangelog = null;
     for (int i = 0, size = children.getLength(); i < size; i++) {
-      if (children.item(i).getNodeType() == Node.ELEMENT_NODE) {
-        elemFile = (Element)children.item(i);
+      Node node = children.item(i);
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        if (node.getNodeName().equals(NODE_FILE)) {
+          elemFile = (Element)node;
+        } else if (node.getNodeName().equals(NODE_CHANGELOG)) {
+          elemChangelog = (Element)node;
+        }
       }
     }
+
+    // processing required element "file"
     if (elemFile == null || !elemFile.getNodeName().equals(NODE_FILE)) {
       throw new Exception("Update.xml: Missing \"" + NODE_FILE + "\" node");
     }
-
     children = elemFile.getChildNodes();
     for (int idx = 0, size = children.getLength(); idx < size; idx++) {
       Element elem = null;
@@ -375,7 +382,6 @@ public class UpdateInfo
       } else {
         continue;
       }
-
       if (elem.getNodeName().equals(NODE_NAME)) {
         fileName = elem.getTextContent().trim();
       } else if (elem.getNodeName().equals(NODE_URL)) {
@@ -389,19 +395,22 @@ public class UpdateInfo
         hash = elem.getTextContent().trim();
       } else if (elem.getNodeName().equals(NODE_LINK)) {
         linkManual = elem.getTextContent().trim();
-      } else if (elem.getNodeName().equals(NODE_CHANGELOG)) {
-        changelog = new ArrayList<String>();
-        NodeList changeList = elem.getElementsByTagName(NODE_ENTRY);
-        for (int entry = 0, entrySize = changeList.getLength(); entry < entrySize; entry++) {
-          Element e = (Element)changeList.item(entry);
-          String s = e.getTextContent().trim();
-          if (!s.isEmpty()) {
-            changelog.add(s);
-          }
+      }
+    }
+
+    // processing optional element "changelog"
+    if (elemChangelog != null) {
+      changelog = new ArrayList<String>();
+      children = elemChangelog.getElementsByTagName(NODE_ENTRY);
+      for (int idx = 0, size = children.getLength(); idx < size; idx++) {
+        Element elem = (Element)children.item(idx);
+        String s = elem.getTextContent().trim();
+        if (!s.isEmpty()) {
+          changelog.add(s);
         }
-        if (changelog.isEmpty()) {
-          changelog = null;
-        }
+      }
+      if (changelog.isEmpty()) {
+        changelog = null;
       }
     }
 
