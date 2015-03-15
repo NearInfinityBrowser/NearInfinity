@@ -31,6 +31,10 @@ import infinity.search.DialogSearcher;
 import infinity.search.SearchFrame;
 import infinity.search.SearchResource;
 import infinity.search.TextResourceSearcher;
+import infinity.updater.UpdateCheck;
+import infinity.updater.UpdateInfo;
+import infinity.updater.Updater;
+import infinity.updater.UpdaterSettings;
 import infinity.util.MassExporter;
 import infinity.util.Pair;
 import infinity.util.StringResource;
@@ -2547,7 +2551,8 @@ public final class BrowserMenuBar extends JMenuBar
   private static final class HelpMenu extends JMenu implements ActionListener
   {
     private final JMenuItem helpAbout, helpLicense, helpBsdLicense,
-                            helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense;
+                            helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense,
+                            helpUpdateSettings, helpUpdateCheck;
 
     private HelpMenu()
     {
@@ -2580,6 +2585,14 @@ public final class BrowserMenuBar extends JMenuBar
       helpJHexViewLicense =
           makeMenuItem("JHexView License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpJHexViewLicense);
+
+      addSeparator();
+
+      helpUpdateSettings = makeMenuItem("Update settings...", KeyEvent.VK_S, null, -1, this);
+      add(helpUpdateSettings);
+
+      helpUpdateCheck = makeMenuItem("Check for updates", KeyEvent.VK_U, Icons.getIcon("Find16.gif"), -1, this);
+      add(helpUpdateCheck);
     }
 
     @Override
@@ -2597,6 +2610,26 @@ public final class BrowserMenuBar extends JMenuBar
         displayLicense("infinity/RSyntaxTextArea.License.txt", "BSD License");
       } else if (event.getSource() == helpJHexViewLicense) {
         displayLicense("infinity/JHexView.License.txt", "GPL License");
+      } else if (event.getSource() == helpUpdateSettings) {
+        UpdaterSettings.showDialog(NearInfinity.getInstance());
+      } else if (event.getSource() == helpUpdateCheck) {
+        UpdateInfo info = null;
+        try {
+          WindowBlocker.blockWindow(NearInfinity.getInstance(), true);
+          info = Updater.getInstance().loadUpdateInfo();
+          if (info == null) {
+            final String msg = "Unable to find update information.\n" +
+                               "Please make sure that your Update Settings have been configured correctly.";
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+          if (!Updater.isNewRelease(info.getRelease(), false)) {
+            info = null;
+          }
+        } finally {
+          WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
+        }
+        UpdateCheck.showDialog(NearInfinity.getInstance(), info);
       }
     }
 

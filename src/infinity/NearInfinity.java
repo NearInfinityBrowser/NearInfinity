@@ -29,6 +29,9 @@ import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.resource.text.PlainTextResource;
 import infinity.search.SearchFrame;
+import infinity.updater.UpdateCheck;
+import infinity.updater.UpdateInfo;
+import infinity.updater.Updater;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
 import infinity.util.io.FileLookup;
@@ -336,6 +339,26 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setVisible(true);
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
 
+    // Checking for updates
+    if (Updater.getInstance().isAutoUpdateCheckEnabled() &&
+        Updater.getInstance().hasAutoUpdateCheckDateExpired()) {
+      // storing last check date for future reference
+      Updater.getInstance().setAutoUpdateCheckDate(null);
+      // running check in background with as little as possible interference with user interactions
+      new Thread(new Runnable() {
+        @Override
+        public void run()
+        {
+          UpdateInfo info = Updater.getInstance().loadUpdateInfo();
+          if (info != null) {
+            if (Updater.isNewRelease(info.getRelease(), true)) {
+              UpdateCheck.showDialog(NearInfinity.getInstance(), info);
+            }
+          }
+        }
+      }).start();
+    }
+
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run()
@@ -611,6 +634,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, Profile.getGameRoot().toString());
     BrowserMenuBar.getInstance().storePreferences();
+    Updater.getInstance().saveUpdateSettings();
   }
 
   private void setAppIcon()
