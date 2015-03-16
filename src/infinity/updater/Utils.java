@@ -333,20 +333,15 @@ public class Utils
   /**
    * Attempts to determine the size of the file specified by url.
    * @param url The URL pointing to a file of any kind.
-   * @param proxy An optional proxy definition. Can be null.
+   * @param proxy An optional proxy definition. Can be <code>null</code>.
    * @return The size of the file or -1 on error.
    * @throws IOException
-   * @throws UnknownServiceException
-   * @throws ProtocolException
    */
   public static int getFileSizeUrl(URL url, Proxy proxy)
-      throws IOException, UnknownServiceException, ProtocolException
+      throws IOException
   {
-    if (url != null && url.getProtocol().contains("http")) {
-      HttpURLConnection conn = null;
-      conn = (HttpURLConnection)url.openConnection();
-      conn.setRequestMethod("HEAD");
-      conn.getInputStream();
+    if (url != null) {
+      URLConnection conn = url.openConnection();
       return conn.getContentLength();
     }
     return -1;
