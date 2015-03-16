@@ -68,8 +68,8 @@ public class UpdateCheck extends JDialog
         dlg.setVisible(true);
         return dlg.retVal;
       } catch (NullPointerException e) {
-        JOptionPane.showMessageDialog(owner, "No updates available.",
-                                      "Check for updates", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(owner, "No updates available.", "Check for updates",
+                                      JOptionPane.INFORMATION_MESSAGE);
       }
     } finally {
       dlg = null;
@@ -80,9 +80,9 @@ public class UpdateCheck extends JDialog
 
   private UpdateCheck(Window owner, UpdateInfo updateInfo)
   {
-    super(owner, "Update found", Dialog.ModalityType.APPLICATION_MODAL);
+    super(owner, "New update available", Dialog.ModalityType.APPLICATION_MODAL);
     if (updateInfo == null) {
-      throw new NullPointerException("No Configuration object specified");
+      throw new NullPointerException();
     }
     this.updateInfo = updateInfo;
     init();

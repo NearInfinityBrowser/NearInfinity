@@ -528,7 +528,7 @@ public class Utils
    *             FileType.ZIP unpacks the first available file found in the zip archive.
    *             FileType.GZIP unpacks the data and writes it into the output stream.
    * @param listeners A list of event listeners to keep track of the current download progress.
-   * @return true on success, false on error.
+   * @return true on success, false on error or if operation has been canceled.
    * @throws IOException
    * @throws ProtocolException
    * @throws UnknownServiceException
@@ -574,6 +574,8 @@ public class Utils
 
   /**
    * Download data from the input stream into the output stream without special processing.
+   * @return <code>true</code> if the download has finished successfully,
+   *         <code>false</code> on error or if the download has been cancelled.
    * @throws IOException
    * @throws ProtocolException
    * @throws UnknownServiceException
@@ -591,7 +593,10 @@ public class Utils
         while ((size = is.read(buffer)) > 0) {
           os.write(buffer, 0, size);
           curSize += size;
-          fireProgressEvent(listeners, url, curSize, totalSize, false);
+          if (fireProgressEvent(listeners, url, curSize, totalSize, false)) {
+            os.flush();
+            return false;
+          }
         }
         os.flush();
         fireProgressEvent(listeners, url, curSize, totalSize, true);
@@ -605,6 +610,8 @@ public class Utils
 
   /**
    * Decompresses the first available file entry in the zipped data provided by the input stream.
+   * @return <code>true</code> if the download has finished successfully,
+   *         <code>false</code> on error or if the download has been cancelled.
    * @throws IOException
    * @throws ZipException
    */
@@ -624,7 +631,10 @@ public class Utils
           while ((size = zis.read(buffer)) != -1) {
             os.write(buffer, 0, size);
             curSize += size;
-            fireProgressEvent(listeners, url, curSize, totalSize, false);
+            if (fireProgressEvent(listeners, url, curSize, totalSize, false)) {
+              os.flush();
+              return false;
+            }
           }
           os.flush();
           fireProgressEvent(listeners, url, curSize, totalSize, true);
@@ -641,6 +651,8 @@ public class Utils
 
   /**
    * Decompresses the GZIP compressed data provided by the input stream.
+   * @return <code>true</code> if the download has finished successfully,
+   *         <code>false</code> on error or if the download has been cancelled.
    * @throws IOException
    */
   static boolean downloadGzip(InputStream is, OutputStream os, URL url, Proxy proxy,
@@ -658,7 +670,10 @@ public class Utils
         while ((size = gis.read(buffer)) != -1) {
           os.write(buffer, 0, size);
           curSize += size;
-          fireProgressEvent(listeners, url, curSize, totalSize, false);
+          if (fireProgressEvent(listeners, url, curSize, totalSize, false)) {
+            os.flush();
+            return false;
+          }
         }
         os.flush();
         fireProgressEvent(listeners, url, curSize, totalSize, true);
@@ -674,9 +689,11 @@ public class Utils
     return false;
   }
 
-  static void fireProgressEvent(List<ProgressListener> listeners, URL url,
+  // Informs about the progress of the current operation. Returns true if the operation can be cancelled.
+  static boolean fireProgressEvent(List<ProgressListener> listeners, URL url,
                                 int curBytes, int totalBytes, boolean finished)
   {
+    boolean bRet = false;
     if (listeners != null) {
       ProgressEvent event = null;
       for (Iterator<ProgressListener> iter = listeners.iterator(); iter.hasNext();) {
@@ -688,7 +705,11 @@ public class Utils
           l.dataProgressed(event);
         }
       }
+      if (event != null) {
+        bRet = event.isOperationCancelled();
+      }
     }
+    return bRet;
   }
 
   /**
@@ -751,6 +772,8 @@ public class Utils
     private final boolean finished;
     private final int currentBytes, totalBytes;
 
+    private boolean cancelOperation;
+
     /**
      * Constructs a new ProgressEvent object.
      * @param source should point to the URL object to download from or upload to.
@@ -764,6 +787,7 @@ public class Utils
       this.currentBytes = currentBytes;
       this.totalBytes = totalBytes;
       this.finished = finished;
+      this.cancelOperation = false;
     }
 
     /** Returns the cumulative amount of bytes processed in the current operation up until now. */
@@ -777,6 +801,15 @@ public class Utils
 
     /** Returns true if the process has been finished, false otherwise. */
     public boolean isFinished() { return finished; }
+
+    /**
+     * Call this method to signal that the current operation can be canceled (<code>true</code>)
+     * or resumed (<code>false</code>).
+     */
+    public void cancelOperation(boolean cancel) { cancelOperation = cancel; }
+
+    /** Returns whether the current operation can be cancelled. */
+    public boolean isOperationCancelled() { return cancelOperation; }
   }
 
 }
