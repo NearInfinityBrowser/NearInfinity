@@ -130,7 +130,7 @@ public class Utils
     if (timeStamp != null && !timeStamp.isEmpty()) {
       final String regDate  = "(\\d{4})-?([0-1][0-9])-?([0-3][0-9])";
       final String regTime = "T([0-2][0-9]):?([0-5][0-9])?:?([0-5][0-9])?";
-      final String regZone  = "([-+])([0-2][0-9]):?([0-5][0-9])?";
+      final String regZone  = "(([-+])([0-2][0-9]):?([0-5][0-9])|(Z))";
       int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, ofsHour = 0, ofsMinute = 0;
       char sign = 0;
       Matcher m;
@@ -159,10 +159,14 @@ public class Utils
             s = s.substring(m.end());
             m = Pattern.compile(regZone).matcher(s);
             if (m.find()) {
-              sign = m.group(1).charAt(0);
-              ofsHour = toNumber(m.group(2), 0);
-              if (m.groupCount() >= 3) {
-                ofsMinute = toNumber(m.group(3), 0);
+              if (m.group(5) != null) {
+                sign = '+';
+              } else {
+                sign = m.group(2).charAt(0);
+                ofsHour = toNumber(m.group(3), 0);
+                if (m.groupCount() >= 3) {
+                  ofsMinute = toNumber(m.group(4), 0);
+                }
               }
             }
           }
@@ -195,7 +199,7 @@ public class Utils
   /**
    * Returns an number based on the specified timestamp.
    * @param timestamp The timestamp in ISO 8601 format. Either in UTC or using time offset.<br>
-   *                  Syntax: YYYY-MM-DD[Thh:mm[:ss][±hh[:mm]]]<br>
+   *                  Syntax: YYYY-MM-DD[Thh:mm[:ss][(±hh[:mm])|Z]]<br>
    *                  (Example: 2007-11-26T14:53+06:00)
    * @return A comparable numeric value of the timestamp (higher = newer). Returns 0 on error.
    */
