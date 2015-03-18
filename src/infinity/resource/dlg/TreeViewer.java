@@ -93,10 +93,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private final HashMap<String, ViewFrame> mapViewer = new HashMap<String, ViewFrame>();
 
   private final DlgResource dlg;
-  private final DlgTreeModel dlgModel;
   private final JTree dlgTree;
   private final ItemInfo dlgInfo;
 
+  private DlgTreeModel dlgModel;
   private JScrollPane spInfo, spTree;
   private TreeWorker worker;
   private WindowBlocker blocker;
@@ -107,8 +107,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     super(new BorderLayout());
     this.dlg = dlg;
     this.dlg.addTableModelListener(this);
-    dlgModel = new DlgTreeModel(this.dlg);
-    dlgTree = new JTree();
+    dlgModel = null;
+    dlgTree = new JTree((TreeModel)null);
     dlgTree.addTreeSelectionListener(this);
     dlgInfo = new ItemInfo();
     initControls();
@@ -259,6 +259,15 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
  }
 
 //--------------------- End Interface PropertyChangeListener ---------------------
+
+  /** Initializes the actual dialog content. */
+  public void init()
+  {
+    if (dlgModel == null) {
+      dlgModel = new DlgTreeModel(this.dlg);
+      dlgTree.setModel(dlgModel);
+    }
+  }
 
   private void updateStateInfo(StateItem si)
   {
@@ -474,7 +483,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     });
 
     // setting model AFTER customizing visual appearance of the tree control
-    dlgTree.setModel(dlgModel);
+//    dlgTree.setModel(dlgModel);
 
     // initializing popup menu
     miEditEntry.addActionListener(this);

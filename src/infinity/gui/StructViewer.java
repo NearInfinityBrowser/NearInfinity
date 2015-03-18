@@ -792,84 +792,78 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   /** Helper method for finding out if a "View" tab is available. */
   public boolean hasViewTab()
   {
-    return (getTabIndex(TAB_VIEW) >= 0);
+    return hasTab(TAB_VIEW);
   }
 
   /** Helper method for finding out if "View" tab is selected. */
   public boolean isViewTabSelected()
   {
-    if (tabbedPane != null) {
-      return (getTabIndex(TAB_VIEW) == tabbedPane.getSelectedIndex());
-    }
-    return false;
+    return isTabSelected(getTabIndex(TAB_VIEW));
   }
 
   /** Helper method for selecting "View" tab if available. */
   public void selectViewTab()
   {
-    if (tabbedPane != null) {
-      int idx = getTabIndex(TAB_VIEW);
-      if (idx >= 0) {
-        tabbedPane.setSelectedIndex(idx);
-      }
-    }
+    selectTab(getTabIndex(TAB_VIEW));
   }
 
   /** Returns whether "Edit" tab is selected. */
   public boolean isEditTabSelected()
   {
-    if (tabbedPane != null) {
-      return (getEditTabIndex() == tabbedPane.getSelectedIndex());
-    }
-    return true;
+    return isTabSelected(getTabIndex(TAB_EDIT));
   }
 
   /** Selects the "Edit" tab. */
   public void selectEditTab()
   {
-    if (tabbedPane != null) {
-      int idx = getEditTabIndex();
-      if (idx >= 0) {
-        tabbedPane.setSelectedIndex(idx);
-      }
-    }
+    selectTab(getTabIndex(TAB_EDIT));
   }
 
   /** Returns tab index of "Edit" tab. */
   public int getEditTabIndex()
   {
-    if (tabbedPane != null) {
-      for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-        if (TAB_EDIT.equals(tabbedPane.getTitleAt(i))) {
-          return i;
-        }
-      }
-    }
-    return -1;
+    return getTabIndex(TAB_EDIT);
   }
 
   /** Helper method for finding out if a "Raw" tab is available. */
   public boolean hasRawTab()
   {
-    return (getTabIndex(TAB_RAW) >= 0);
+    return hasTab(TAB_RAW);
   }
 
   /** Helper method for finding out if "Raw" tab is selected. */
   public boolean isRawTabSelected()
   {
-    if (tabbedPane != null) {
-      return (getTabIndex(TAB_RAW) == tabbedPane.getSelectedIndex());
-    }
-    return false;
+    return isTabSelected(getTabIndex(TAB_RAW));
   }
 
   /** Helper method for selecting "Raw" tab if available. */
   public void selectRawTab()
   {
+    selectTab(getTabIndex(TAB_RAW));
+  }
+
+  /** Returns whether the tab with the given name exists. */
+  public boolean hasTab(String name)
+  {
+    return (getTabIndex(name) >= 0);
+  }
+
+  /** Returns whether the specified tab is currently selected. */
+  public boolean isTabSelected(int index)
+  {
+    if (index >= 0 && index < tabbedPane.getTabCount()) {
+      return (index == tabbedPane.getSelectedIndex());
+    }
+    return false;
+  }
+
+  /** Selects the specified tab if available. */
+  public void selectTab(int index)
+  {
     if (tabbedPane != null) {
-      int idx = getTabIndex(TAB_RAW);
-      if (idx >= 0) {
-        tabbedPane.setSelectedIndex(idx);
+      if (index >= 0 && index < tabbedPane.getTabCount()) {
+        tabbedPane.setSelectedIndex(index);
       }
     }
   }
@@ -878,7 +872,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public int getTabIndex(String name)
   {
     if (tabbedPane != null && name != null) {
-      for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+      for (int i = 0, count = tabbedPane.getTabCount(); i < count; i++) {
         if (name.equals(tabbedPane.getTitleAt(i))) {
           return i;
         }
