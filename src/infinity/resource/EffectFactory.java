@@ -2280,7 +2280,7 @@ public final class EffectFactory
                                          int effectType, boolean isV1)
   {
     String restype = null;
-    boolean isExtended = (Profile.getGame() == Profile.Game.IWDEE || Profile.getGame() == Profile.Game.BG2EE);
+    boolean isExtended = (Profile.getEngine() == Profile.Engine.EE && Profile.getGame() != Profile.Game.BG1EE);
 
     switch (effectType) {
       case 0: // AC bonus
@@ -2510,7 +2510,8 @@ public final class EffectFactory
 
       case 15: // Dexterity bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 || isExtended) {
+        if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
+            isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Set", "Set % of", "Cat's grace"}));
         } else {
@@ -2653,7 +2654,8 @@ public final class EffectFactory
 
       case 39: // Sleep
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 || isExtended) {
+        if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
+            isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
@@ -2675,7 +2677,8 @@ public final class EffectFactory
 
       case 44: // Strength bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 || isExtended) {
+        if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
+            isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Set", "Set % of", "Wizard strength"}));
         } else {
@@ -3422,8 +3425,7 @@ public final class EffectFactory
                                      int effectType, boolean isV1)
   {
     String restype = null;
-    boolean isExtended = (Profile.getGame() == Profile.Game.IWDEE || Profile.getGame() == Profile.Game.BG2EE);
-//    boolean isIWDEE = (Profile.getGame() == Profile.Game.ID_IWDEE);
+    boolean isExtended = (Profile.getEngine() == Profile.Engine.EE && Profile.getGame() != Profile.Game.BG1EE);
 
     switch (effectType) {
       case 61: // Creature RGB color fade
