@@ -336,10 +336,18 @@ public final class ResourceFactory
               String[] entries = line.split(",");
               if (entries.length == 3) {
                 String lang = entries[2].replace('\'', ' ').trim();
-                if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
-                  if (new FileNI(Profile.getGameRoot(), "lang/" + lang).isDirectory()) {
+                if (lang.matches("[A-Za-z]{2}_[A-Za-z]{2}")) {
+                  File dir = new FileNI(Profile.getGameRoot(), "lang/" + lang);
+                  if (dir.isDirectory()) {
+                    String retVal;
+                    try {
+                      // try to fetch the actual path name to ensure correct case
+                      retVal = dir.getCanonicalFile().getName();
+                    } catch (Exception e) {
+                      retVal = lang;
+                    }
                     br.close();
-                    return lang;
+                    return retVal;
                   }
                 }
               }
@@ -471,9 +479,18 @@ public final class ResourceFactory
         return autodetectGameLanguage(iniFile);
       } else {
         // Using user-defined language
-        if (lang.matches("[a-z]{2}_[A-Z]{2}") &&
-            new FileNI(Profile.getGameRoot(), "lang/" + lang).isDirectory()) {
-          return lang;
+        if (lang.matches("[A-Za-z]{2}_[A-Za-z]{2}")) {
+          File dir = new FileNI(Profile.getGameRoot(), "lang/" + lang);
+          if (dir.isDirectory()) {
+            String retVal;
+            try {
+              // try to fetch the actual path name to ensure correct case
+              retVal = dir.getCanonicalFile().getName();
+            } catch (Exception e) {
+              retVal = lang;
+            }
+            return retVal;
+          }
         }
       }
     }
