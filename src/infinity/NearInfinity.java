@@ -578,6 +578,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
                                          Profile.getProperty(Profile.GET_GAME_TITLE),
                                          Profile.getGameRoot(), treemodel.size());
         statusBar.setMessage(msg);
+        BrowserMenuBar.getInstance().gameLoaded(null, null);
         tree.setModel(treemodel);
         containerpanel.removeAll();
         containerpanel.revalidate();
