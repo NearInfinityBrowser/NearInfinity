@@ -388,11 +388,14 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit) == event.getSource()) {
         Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
         createViewFrame(getTopLevelAncestor(), selected);
-//        new ViewFrame(getTopLevelAncestor(), selected);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Remove) == event.getSource()) {
-        int row = table.getSelectedRow();
-        AddRemovable selected = (AddRemovable)table.getModel().getValueAt(row, 1);
-        struct.removeDatatype(selected, true);
+        int[] rows = table.getSelectedRows();
+        for (int i = rows.length - 1; i >= 0; i--) {
+          Object entry = table.getModel().getValueAt(rows[i], 1);
+          if (entry instanceof AddRemovable) {
+            struct.removeDatatype((AddRemovable)entry, true);
+          }
+        }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
         if (ResourceFactory.saveResource((Resource)struct, getTopLevelAncestor())) {
           struct.setStructChanged(false);
@@ -468,7 +471,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       // get a copy of the resource first
       DlgResource dlgRes = (DlgResource) ResourceFactory.getResource(struct.getResourceEntry());
       createViewFrame(getTopLevelAncestor(), dlgRes);
-//      new ViewFrame(getTopLevelAncestor(), dlgRes);
       dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
     }
   }
@@ -546,9 +548,14 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     ListSelectionModel lsm = (ListSelectionModel)event.getSource();
     if (lsm.isSelectionEmpty() || lsm.getMaxSelectionIndex() != lsm.getMinSelectionIndex()) {
       tatext.setText("");
+      // allow removal of multiple AddRemovable entries
+      boolean removeEnabled = !lsm.isSelectionEmpty();
+      for (int cur = lsm.getMinSelectionIndex(), max = lsm.getMaxSelectionIndex(); cur <= max && removeEnabled; cur++) {
+        removeEnabled = table.getModel().getValueAt(cur, 1) instanceof AddRemovable;
+      }
       JButton bRemove = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.Remove);
       if (bRemove != null) {
-        bRemove.setEnabled(false);
+        bRemove.setEnabled(removeEnabled);
       }
       JButton bView = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit);
       if (bView != null) {
