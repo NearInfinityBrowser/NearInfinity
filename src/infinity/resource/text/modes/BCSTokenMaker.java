@@ -5,6 +5,7 @@
 package infinity.resource.text.modes;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import infinity.resource.Profile;
@@ -63,7 +64,6 @@ public class BCSTokenMaker extends AbstractTokenMaker
   {
     TokenMap tokenMap = new TokenMap();
     IdsMap map;
-    List<IdsMapEntry> entries;
 
     // symbolic names
     List<String> idsFile = new ArrayList<String>();
@@ -143,14 +143,14 @@ public class BCSTokenMaker extends AbstractTokenMaker
         idsFile.add("SONGLIST.IDS");
       }
     }
-    for (int i = 0; i < idsFile.size(); i++) {
-      int type = ("SPELL.IDS".equalsIgnoreCase(idsFile.get(i))) ? TOKEN_SYMBOL_SPELL : TOKEN_SYMBOL;
-      if (ResourceFactory.resourceExists(idsFile.get(i))) {
-        map = IdsMapCache.get(idsFile.get(i));
+    for (Iterator<String> iterIDS = idsFile.iterator(); iterIDS.hasNext();) {
+      String ids = iterIDS.next();
+      int type = ("SPELL.IDS".equalsIgnoreCase(ids)) ? TOKEN_SYMBOL_SPELL : TOKEN_SYMBOL;
+      if (ResourceFactory.resourceExists(ids)) {
+        map = IdsMapCache.get(ids);
         if (map != null) {
-          entries = map.getAllValues();
-          for (int j = 0; j < entries.size(); j++) {
-            String name = entries.get(j).getString();
+          for (Iterator<IdsMapEntry> iterEntry = map.getAllValues().iterator(); iterEntry.hasNext();) {
+            String name = iterEntry.next().getString();
             if (name != null && !name.isEmpty()) {
               tokenMap.put(name, type);
             }
@@ -162,9 +162,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
     // objects
     map = IdsMapCache.get("OBJECT.IDS");
-    entries = map.getAllValues();
-    for (int i = 0; i < entries.size(); i++) {
-      String name = extractFunctionName(entries.get(i).getString());
+    for (Iterator<IdsMapEntry> iter = map.getAllValues().iterator(); iter.hasNext();) {
+      String name = extractFunctionName(iter.next().getString());
       if (name != null && !name.isEmpty()) {
         tokenMap.put(name, TOKEN_OBJECT);
       }
@@ -172,9 +171,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
     // actions
     map = IdsMapCache.get("ACTION.IDS");
-    entries = map.getAllValues();
-    for (int i = 0; i < entries.size(); i++) {
-      String name = extractFunctionName(entries.get(i).getString());
+    for (Iterator<IdsMapEntry> iter = map.getAllValues().iterator(); iter.hasNext();) {
+      String name = extractFunctionName(iter.next().getString());
       if (name != null && !name.isEmpty()) {
         tokenMap.put(name, TOKEN_ACTION);
       }
@@ -182,9 +180,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
     // triggers
     map = IdsMapCache.get("TRIGGER.IDS");
-    entries = map.getAllValues();
-    for (int i = 0; i < entries.size(); i++) {
-      String name = extractFunctionName(entries.get(i).getString());
+    for (Iterator<IdsMapEntry> iter = map.getAllValues().iterator(); iter.hasNext();) {
+      String name = extractFunctionName(iter.next().getString());
       if (name != null && !name.isEmpty()) {
         tokenMap.put(name, TOKEN_TRIGGER);
       }
@@ -229,8 +226,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
   {
     if (token != null) {
       if (token.getType() == TOKEN_KEYWORD) {
-        String s= String.valueOf(token.getTextArray(), token.getTextOffset(),
-                                 token.getEndOffset() - token.getTextOffset());
+        String s = String.valueOf(token.getTextArray(), token.getTextOffset(),
+                                  token.getEndOffset() - token.getTextOffset());
         if ("IF".equals(s) || "THEN".equals(s) || s.startsWith("#")) {
           return true;
         }
