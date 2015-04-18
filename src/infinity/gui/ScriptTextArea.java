@@ -258,7 +258,12 @@ public class ScriptTextArea extends InfinityTextArea
       IdsMapEntry idsEntry = IdsMapCache.get(idsFile).lookup(function + "(");
       if (idsEntry != null) {
         String[] paramDefs = idsEntry.getParameters().split(",");
-        String definition = paramDefs[paramPos];
+        String definition;
+        if (paramPos >= 0 && paramPos < paramDefs.length) {
+          definition = paramDefs[paramPos];
+        } else {
+          definition = "";
+        }
 
         // check script names (death var)
         if (definition.equalsIgnoreCase("O:Object*")
