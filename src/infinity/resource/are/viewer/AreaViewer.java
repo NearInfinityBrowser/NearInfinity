@@ -10,6 +10,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -24,8 +25,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EventObject;
@@ -33,6 +37,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -57,6 +62,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.ToolTipManager;
@@ -100,6 +106,7 @@ import infinity.resource.are.viewer.ViewerConstants.LayerStackingType;
 import infinity.resource.are.viewer.ViewerConstants.LayerType;
 import infinity.resource.are.viewer.icon.ViewerIcons;
 import infinity.resource.graphics.BmpResource;
+import infinity.resource.graphics.ColorConvert;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.wed.Overlay;
@@ -137,7 +144,7 @@ public class AreaViewer extends ChildFrame
   private Rectangle vpCenterExtent;   // combines map center and viewport extent in one structure
   private JToolBar toolBar;
   private JToggleButton tbView, tbEdit;
-  private JButton tbAre, tbWed, tbSongs, tbRest, tbSettings, tbRefresh;
+  private JButton tbAre, tbWed, tbSongs, tbRest, tbSettings, tbRefresh, tbExportPNG;
   private JTree treeControls;
   private ButtonPopupWindow bpwDayTime;
   private DayTimePanel pDayTime;
@@ -206,7 +213,7 @@ public class AreaViewer extends ChildFrame
     super("");
     windowTitle = String.format("Area Viewer: %1$s", (are != null) ? are.getName() : "[Unknown]");
     initProgressMonitor(parent, "Initializing " + are.getName(), "Loading ARE resource...", 3, 0, 0);
-    listeners = new Listeners(this);
+    listeners = new Listeners();
     map = new Map(this, are);
     // loading map in dedicated thread
     workerInitGui = new SwingWorker<Void, Void>() {
@@ -606,6 +613,14 @@ public class AreaViewer extends ChildFrame
     tbRefresh.setToolTipText("Update map");
     tbRefresh.addActionListener(listeners);
     toolBar.add(tbRefresh);
+
+    toolBar.addSeparator(dimSeparator);
+
+    tbExportPNG = new JButton(Icons.getIcon(ViewerIcons.class, "icn_export.png"));
+    tbExportPNG.setToolTipText("Export current map state as PNG");
+    tbExportPNG.addActionListener(listeners);
+    toolBar.add(tbExportPNG);
+
     pView.add(toolBar, BorderLayout.NORTH);
 
     updateToolBarButtons();
@@ -1901,6 +1916,52 @@ public class AreaViewer extends ChildFrame
     }
   }
 
+  // Exports the current map state to PNG
+  private void exportMap()
+  {
+    WindowBlocker.blockWindow(this, true);
+    initProgressMonitor(this, "Exporting to PNG...", null, 1, 0, 0);
+
+    // prevent blocking the event queue
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run()
+      {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        boolean bRet = false;
+        try {
+          try {
+            VolatileImage srcImage = (VolatileImage)rcCanvas.getImage();
+            BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
+                                                                        srcImage.getHeight(),
+                                                                        srcImage.getTransparency());
+            Graphics2D g = (Graphics2D)dstImage.getGraphics();
+            g.drawImage(srcImage, 0, 0, null);
+            g.dispose();
+            srcImage = null;
+            bRet = ImageIO.write(dstImage, "png", os);
+            dstImage.flush();
+            dstImage = null;
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        } finally {
+          releaseProgressMonitor();
+          WindowBlocker.blockWindow(AreaViewer.this, false);
+        }
+        if (bRet) {
+          String fileName = getCurrentAre().getResourceEntry().getResourceName()
+                              .toUpperCase(Locale.US).replace(".ARE", ".PNG");
+          ResourceFactory.exportResource(getCurrentAre().getResourceEntry(), os.toByteArray(),
+                                         fileName, AreaViewer.this);
+        } else {
+          JOptionPane.showMessageDialog(AreaViewer.this, "Error while exporting map as graphics.",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    });
+  }
+
 
 //----------------------------- INNER CLASSES -----------------------------
 
@@ -1909,11 +1970,8 @@ public class AreaViewer extends ChildFrame
                                      TilesetChangeListener, PropertyChangeListener, LayerItemListener,
                                      ComponentListener, TreeExpansionListener
   {
-    private final AreaViewer viewer;
-
-    public Listeners(AreaViewer viewer)
+    public Listeners()
     {
-      this.viewer = viewer;
     }
 
     //--------------------- Begin Interface ActionListener ---------------------
@@ -1947,29 +2005,29 @@ public class AreaViewer extends ChildFrame
           }
           updateRealAnimation();
         } else if (cb == cbEnableSchedules) {
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             Settings.EnableSchedules = cbEnableSchedules.isSelected();
             updateTimeSchedules();
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         } else if (cb == cbDrawClosed) {
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             setDoorState(cb.isSelected());
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         } else if (cb == cbDrawGrid) {
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             setTileGridEnabled(cb.isSelected());
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         } else if (cb == cbDrawOverlays) {
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             setOverlaysEnabled(cb.isSelected());
             cbAnimateOverlays.setEnabled(cb.isSelected());
@@ -1979,51 +2037,51 @@ public class AreaViewer extends ChildFrame
             }
             updateTreeNode(cbAnimateOverlays);
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         } else if (cb == cbAnimateOverlays) {
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             setOverlaysAnimated(cb.isSelected());
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         } else if (cb == cbMiniMaps[ViewerConstants.MAP_SEARCH]) {
           if (cb.isSelected()) {
             cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
             cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
           }
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             updateMiniMap();
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         } else if (cb == cbMiniMaps[ViewerConstants.MAP_LIGHT]) {
           if (cb.isSelected()) {
             cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
             cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
           }
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             updateMiniMap();
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         } else if (cb == cbMiniMaps[ViewerConstants.MAP_HEIGHT]) {
           if (cb.isSelected()) {
             cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
             cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
           }
-          WindowBlocker.blockWindow(viewer, true);
+          WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             updateMiniMap();
           } finally {
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         }
       } else if (event.getSource() == cbZoomLevel) {
-        WindowBlocker.blockWindow(viewer, true);
+        WindowBlocker.blockWindow(AreaViewer.this, true);
         try {
           int previousZoomLevel = Settings.ZoomLevel;
           try {
@@ -2031,15 +2089,15 @@ public class AreaViewer extends ChildFrame
           } catch (OutOfMemoryError e) {
             e.printStackTrace();
             cbZoomLevel.hidePopup();
-            WindowBlocker.blockWindow(viewer, false);
+            WindowBlocker.blockWindow(AreaViewer.this, false);
             String msg = "Not enough memory to set selected zoom level.\n"
                 + "(Note: It is highly recommended to close and reopen the area viewer.)";
-            JOptionPane.showMessageDialog(viewer, msg, "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(AreaViewer.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
             cbZoomLevel.setSelectedIndex(previousZoomLevel);
             setZoomLevel(previousZoomLevel);
           }
         } finally {
-          WindowBlocker.blockWindow(viewer, false);
+          WindowBlocker.blockWindow(AreaViewer.this, false);
         }
       } else if (event.getSource() == timerOverlays) {
         // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
@@ -2073,11 +2131,11 @@ public class AreaViewer extends ChildFrame
       } else if (event.getSource() == tbSettings) {
         viewSettings();
       } else if (event.getSource() == tbRefresh) {
-        WindowBlocker.blockWindow(viewer, true);
+        WindowBlocker.blockWindow(AreaViewer.this, true);
         try {
           reloadLayers();
         } finally {
-          WindowBlocker.blockWindow(viewer, false);
+          WindowBlocker.blockWindow(AreaViewer.this, false);
         }
 //      } else if (ArrayUtil.indexOf(tbAddLayerItem, event.getSource()) >= 0) {
 //        // TODO: include "Add layer item" functionality
@@ -2098,6 +2156,8 @@ public class AreaViewer extends ChildFrame
 //          case WallPoly:
 //            break;
 //        }
+      } else if (event.getSource() == tbExportPNG) {
+        exportMap();
       }
     }
 
@@ -2178,7 +2238,7 @@ public class AreaViewer extends ChildFrame
         if (workerLoadMap == null) {
           // loading map in a separate thread
           if (workerLoadMap == null) {
-            blocker = new WindowBlocker(viewer);
+            blocker = new WindowBlocker(AreaViewer.this);
             blocker.setBlocked(true);
             workerLoadMap = new SwingWorker<Void, Void>() {
               @Override
