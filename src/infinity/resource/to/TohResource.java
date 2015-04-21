@@ -84,11 +84,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
     int startOffset = offset;
     boolean isEnhanced = Profile.isEnhancedEdition() && (DynamicArray.getInt(buffer, offset + 4) == 2);
     addField(new TextString(buffer, offset, 4, "Signature"));
-    if (isEnhanced) {
-      addField(new DecNumber(buffer, offset + 4, 4, "Version"));
-    } else {
-      addField(new TextString(buffer, offset + 4, 4, "Version"));
-    }
+    addField(new DecNumber(buffer, offset + 4, 4, "Version"));
     addField(new Unknown(buffer, offset + 8, 4));
     SectionCount scStrref = new SectionCount(buffer, offset + 12, 4, "# strref entries", StrRefEntry.class);
     addField(scStrref);
