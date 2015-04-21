@@ -843,11 +843,12 @@ public class PseudoBamDecoder extends BamDecoder
 
   /**
    * Creates a BAM v2 resource from the current BAM structure.
+   * @param fileName The BAM filename. Path is also used for associated PVRZ files.
+   * @param dxtType The desired DXTn compression type to use.
    * @param pvrzIndex The start index of PVRZ files.
-   * @param pvrzPath The path where to save the associated PVRZ files.
    * @param progress An optional progress monitor to display the state of the export progress.
    * @param curProgress The current progress state of the progress monitor.
-   * @return <code>true</code> if the export was successfull, <code>false</code> otherwise.
+   * @return <code>true</code> if the export was successful, <code>false</code> otherwise.
    * @throws Exception If an unrecoverable error occured.
    */
   public boolean exportBamV2(String fileName, DxtEncoder.DxtType dxtType, int pvrzIndex,
@@ -1202,8 +1203,9 @@ public class PseudoBamDecoder extends BamDecoder
         List<FrameDataV2> frameDataList = new ArrayList<FrameDataV2>();
         framesList.add(frameDataList);
 
-        int imgWidth = listFrames.get(frameIdx).frame.getWidth();
-        int imgHeight = listFrames.get(frameIdx).frame.getHeight();
+        // 2px padding added to avoid black borders around frames
+        int imgWidth = listFrames.get(frameIdx).frame.getWidth() + 2;
+        int imgHeight = listFrames.get(frameIdx).frame.getHeight() + 2;
         int imgSize = imgWidth*imgHeight;
         int x = 0, y = 0, pOfs = 0;
 
@@ -1252,9 +1254,9 @@ public class PseudoBamDecoder extends BamDecoder
             // adding region to the page
             GridManager gm = gridList.get(pageIdx);
             gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
-            // registering page entry
-            FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx, rectMatch.x << 2,
-                                                rectMatch.y << 2, w, h, x, y);
+            // registering page entry (centering frame in padded region)
+            FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx, (rectMatch.x << 2) + 1,
+                                                (rectMatch.y << 2) + 1, w - 2, h - 2, x, y);
             frameDataList.add(entry);
           }
 
@@ -1345,7 +1347,7 @@ public class PseudoBamDecoder extends BamDecoder
               int sx = entry.dx, sy = entry.dy;
               int dx = entry.sx, dy = entry.sy;
               int w = entry.width, h = entry.height;
-              g.fillRect(dx, dy, w, h);
+              g.fillRect(dx - 1, dy - 1, w + 2, h + 2);   // compensating for padding done in buildFrameDataList()
               g.drawImage(image, dx, dy, dx+w, dy+h, sx, sy, sx+w, sy+h, null);
             }
           }
