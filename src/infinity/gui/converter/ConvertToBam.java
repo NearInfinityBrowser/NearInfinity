@@ -3596,8 +3596,7 @@ public class ConvertToBam extends ChildFrame
     } catch (Exception e) {
       e.printStackTrace();
       result.add(null);
-      result.add(String.format("Error while exporting BAM files.\n(%1$s: %2$s)",
-                               e.getClass().getName(), e.getMessage()));
+      result.add(String.format("Error while exporting BAM files.\n(%1$s)", e.getMessage()));
     }
     return result;
   }

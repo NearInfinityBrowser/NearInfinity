@@ -910,17 +910,22 @@ public class PseudoBamDecoder extends BamDecoder
 
         for (int j = 0; j < cycleFrames.size(); j++) {
           int idx = cycleFrames.get(j).intValue();
-          List<FrameDataV2> frame = listFrameData.get(idx);
-          PseudoBamFrameEntry bfe = listFrames.get(idx);
+          try {
+            List<FrameDataV2> frame = listFrameData.get(idx);
+            PseudoBamFrameEntry bfe = listFrames.get(idx);
 
-          PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.centerX, bfe.centerY);
-          entry.setOption(OPTION_INT_BLOCKINDEX, Integer.valueOf(blockStartIndex));
-          entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(frame.size()));
-          listFrameEntries.add(entry);
-          blockStartIndex += frame.size();
+            PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.centerX, bfe.centerY);
+            entry.setOption(OPTION_INT_BLOCKINDEX, Integer.valueOf(blockStartIndex));
+            entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(frame.size()));
+            listFrameEntries.add(entry);
+            blockStartIndex += frame.size();
 
-          for (int k = 0; k < frame.size(); k++) {
-            listFrameDataBlocks.add(frame.get(k));
+            for (int k = 0; k < frame.size(); k++) {
+              listFrameDataBlocks.add(frame.get(k));
+            }
+          } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException(
+                String.format("Invalid frame index %1$d found in cycle %2$d", idx, i));
           }
         }
         frameStartIndex += cycleFrames.size();

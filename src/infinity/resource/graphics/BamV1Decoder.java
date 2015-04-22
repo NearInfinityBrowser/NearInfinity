@@ -735,7 +735,7 @@ public class BamV1Decoder extends BamDecoder
         lookupIndex = idxLookup;
         frames = new int[indexCount];
         for (int i = 0; i < indexCount; i++) {
-          frames[i] = DynamicArray.getUnsignedShort(buffer, ofsLookup + 2*(lookupIndex+i));
+          frames[i] = DynamicArray.getShort(buffer, ofsLookup + 2*(lookupIndex+i));
         }
       } else {
         frames = new int[0];
