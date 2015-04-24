@@ -84,8 +84,8 @@ final class Viewer extends JPanel
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       AbstractStruct effect = (AbstractStruct)value;
-      StructEntry entry1 = effect.getAttribute("Name");
-      StructEntry entry2 = effect.getAttribute("Value");
+      StructEntry entry1 = effect.getAttribute(effect.getOffset(), false);
+      StructEntry entry2 = effect.getAttribute(effect.getOffset() + 40, false);
       label.setText(entry1 + " = " + entry2);
       return label;
     }

@@ -6,8 +6,8 @@ package infinity.resource.are;
 
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
+import infinity.datatype.FloatNumber;
 import infinity.datatype.TextString;
-import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
@@ -41,9 +41,11 @@ public final class Variable extends AbstractStruct implements AddRemovable
   {
     addField(new TextString(buffer, offset, 32, "Name"));
     addField(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
-    addField(new Unknown(buffer, offset + 34, 6));
-    addField(new DecNumber(buffer, offset + 40, 4, "Value"));
-    addField(new Unknown(buffer, offset + 44, 40));
+    addField(new DecNumber(buffer, offset + 34, 2, "Reference value"));
+    addField(new DecNumber(buffer, offset + 36, 4, "Dword value"));
+    addField(new DecNumber(buffer, offset + 40, 4, "Integer value"));
+    addField(new FloatNumber(buffer, offset + 44, 8, "Double value"));
+    addField(new TextString(buffer, offset + 52, 32, "Script name"));
     return offset + 84;
   }
 }
