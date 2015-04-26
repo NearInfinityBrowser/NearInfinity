@@ -10,12 +10,17 @@ import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
+import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.DynamicArray;
+import infinity.util.io.FileNI;
 
 
 /**
@@ -30,6 +35,7 @@ public class BamV2Decoder extends BamDecoder
 
   private BamV2Control defaultControl;
   private byte[] bamData;               // contains the raw (uncompressed) BAM v2 data
+  File bamPath;                         // base path of the BAM resource (or null if BAM is biffed)
 
   public BamV2Decoder(ResourceEntry bamEntry)
   {
@@ -139,9 +145,25 @@ public class BamV2Decoder extends BamDecoder
     // resetting data
     close();
 
-    if (getResourceEntry() != null) {
+    ResourceEntry entry = getResourceEntry();
+    if (entry != null) {
       try {
-        bamData = getResourceEntry().getResourceData();
+        File bamFile = entry.getActualFile();
+        if (bamFile != null) {
+          bamPath = bamFile.getParentFile();
+          // Skip path if it denotes an override folder of the game
+          @SuppressWarnings("unchecked")
+          List<File> list = (List<File>)Profile.getProperty(Profile.GET_GAME_OVERRIDE_FOLDERS);
+          if (list != null) {
+            for (Iterator<File> iter = list.iterator(); iter.hasNext();) {
+              if (bamPath.equals(iter.next())) {
+                bamPath = null;
+                break;
+              }
+            }
+          }
+        }
+        bamData = entry.getResourceData();
         String signature = DynamicArray.getString(bamData, 0x00, 4);
         String version = DynamicArray.getString(bamData, 0x04, 4);
         if (!"BAM ".equals(signature) || !"V2  ".equals(version)) {
@@ -207,7 +229,18 @@ public class BamV2Decoder extends BamDecoder
   {
     try {
       String name = String.format("MOS%1$04d.PVRZ", page);
-      ResourceEntry entry = ResourceFactory.getResourceEntry(name);
+      ResourceEntry entry = null;
+      if (bamPath != null) {
+        // preferring PVRZ files from the BAM's base path
+        File pvrzFile = new FileNI(bamPath, name);
+        if (pvrzFile.isFile()) {
+          entry = new FileResourceEntry(pvrzFile);
+        }
+      }
+      if (entry == null) {
+        // fallback: use PVRZ resources from game
+        entry = ResourceFactory.getResourceEntry(name);
+      }
       if (entry != null) {
         return PvrDecoder.loadPvr(entry);
       }
