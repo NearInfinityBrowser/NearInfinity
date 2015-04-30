@@ -1446,9 +1446,16 @@ public final class EffectFactory
             "Float text", "Summon creatures 2", "Attack damage type bonus", "Static charge",
             "Turn undead", "Seven eyes", "Seven eyes overlay", "Remove effects by opcode",
             "Disable rest or save", "Alter visual animation effect",
-            // 340..
+            // 340..349
             "Backstab hit effect", "Critical hit effect", "Override creature data",
-            "HP swap"};
+            "HP swap", "Unknown (344)", "Unknown (345)", "Unknown (346)", "Unknown (347)",
+            "Unknown (348)", "Unknown (349)",
+            // 350..359
+            "Unknown (350)", "Unknown (351)", "Unknown (352)", "Unknown (353)", "Unknown (354)",
+            "Unknown (355)", "Unknown (356)", "Unknown (357)", "Unknown (358)", "Unknown (359)",
+            // 360
+            "Ignore reputation breaking point"
+            };
         s_poricon = new String[]{
             // 0..9
             "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
@@ -4170,6 +4177,16 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Mode",
                 new String[]{"Swap if caster HP > target HP", "Always swap"}));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 360: // Ignore reputation breaking point
+        if (Profile.getGame() == Profile.Game.BG2EE ||
+            Profile.getGame() == Profile.Game.EET) {
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
