@@ -2474,42 +2474,25 @@ public final class EffectFactory
         } else {
           s.add(new Bitmap(buffer, offset, 4, "Display text?", s_yesno));
         }
-        if (isExtended) {
-          LongIntegerHashMap<String> map = new LongIntegerHashMap<String>();
-          map.put(0L, "Acid");
-          map.put(1L, "Burning");
-          map.put(2L, "Crushed");
-          map.put(3L, "Normal");
-          map.put(4L, "Exploding");
-          map.put(5L, "Stoned");
-          map.put(6L, "Freezing");
-          map.put(7L, "Exploding stoned");
-          map.put(8L, "Exploding freezing");
-          map.put(9L, "Electrified");
-          map.put(10L, "Disintegration");
-          map.put(1024L, "Exploding freezing (permanent)");
-          s.add(new HashBitmap(buffer, offset + 4, 4, "Death type", map));
+        String[] s_type;
+        if (Profile.getEngine() == Profile.Engine.BG1) {
+          s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
+                                "Freezing", "Exploding stoned", "Exploding freezing", "Electrified"};
+        } else if (Profile.getEngine() == Profile.Engine.PST) {
+          s_type = new String[]{"Normal", "", "", "", "Exploding", "", "Freezing", "Exploding stoned"};
+        } else if (Profile.getEngine() == Profile.Engine.IWD) {
+          s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
+                                "Freezing", "", "", "", "Disintegration", "Destruction"};
+        } else if (Profile.getEngine() == Profile.Engine.IWD2) {
+          s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
+                                "Freezing", "Exploding stoned", "Exploding freezing",
+                                "Electrified", "Disintegration", "Destruction"};
         } else {
-          String[] s_type;
-          if (Profile.getEngine() == Profile.Engine.BG1) {
-            s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
-                                  "Freezing", "Exploding stoned", "Exploding freezing", "Electrified"};
-          } else if (Profile.getEngine() == Profile.Engine.PST) {
-            s_type = new String[]{"Normal", "", "", "", "Exploding", "", "Freezing", "Exploding stoned"};
-          } else if (Profile.getEngine() == Profile.Engine.IWD) {
-            s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
-                                  "Freezing", "", "", "", "Disintegration", "Destruction"};
-          } else if (Profile.getEngine() == Profile.Engine.IWD2) {
-            s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
-                                  "Freezing", "Exploding stoned", "Exploding freezing",
-                                  "Electrified", "Disintegration", "Destruction"};
-          } else {
-            s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
-                                  "Freezing", "Exploding stoned", "Exploding freezing", "Electrified",
-                                  "Disintegration"};
-          }
-          s.add(new Flag(buffer, offset + 4, 4, "Death type", s_type));
+          s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
+                                "Freezing", "Exploding stoned", "Exploding freezing", "Electrified",
+                                "Disintegration"};
         }
+        s.add(new Flag(buffer, offset + 4, 4, "Death type", s_type));
         break;
       }
 
