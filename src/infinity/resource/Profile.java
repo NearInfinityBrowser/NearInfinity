@@ -1148,6 +1148,8 @@ public final class Profile
     if (engine == Engine.BG2) {
       File tobexIni = new FileNI((File)getProperty(GET_GAME_ROOT_FOLDER), "TobEx_ini/TobExCore.ini");
       addEntry(IS_GAME_TOBEX, Type.Boolean, tobexIni.isFile());
+    } else {
+      addEntry(IS_GAME_TOBEX, Type.Boolean, Boolean.FALSE);
     }
   }
 
