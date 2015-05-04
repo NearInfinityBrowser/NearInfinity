@@ -151,6 +151,8 @@ public final class Profile
   public static final int GET_GAME_BIFF_FOLDERS               = 122;
   /** Property: (Boolean) Is game an Enhanced Edition game? */
   public static final int IS_ENHANCED_EDITION                 = 123;
+  /** Property: (Boolean) Has current game been enhanced by TobEx? */
+  public static final int IS_GAME_TOBEX                       = 124;
 
   /** Property: (Boolean) Are <code>2DA</code> resources supported? */
   public static final int IS_SUPPORTED_2DA                    = 1001;
@@ -1141,6 +1143,12 @@ public final class Profile
 
     // display mode of overlays in tilesets
     addEntry(IS_TILESET_STENCILED, Type.Boolean, (engine == Engine.BG2 || game == Game.BG2EE));
+
+    // Has TobEx been installed?
+    if (engine == Engine.BG2) {
+      File tobexIni = new FileNI((File)getProperty(GET_GAME_ROOT_FOLDER), "TobEx_ini/TobExCore.ini");
+      addEntry(IS_GAME_TOBEX, Type.Boolean, tobexIni.isFile());
+    }
   }
 
 //-------------------------- INNER CLASSES --------------------------

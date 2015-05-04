@@ -1054,7 +1054,7 @@ public final class EffectFactory
             "Tracking", "Immunity to tracking", "Set local variable",
             // 310..
             "Immunity to time stop", "Wish", "Immunity to sequester", "High-level ability",
-            "Stoneskin protection", "Remove animation", "Rest", "Haste 2"};
+            "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Ex: Set stat"};
         s_poricon = new String[]{
             // 0..9
             "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
@@ -2288,6 +2288,7 @@ public final class EffectFactory
   {
     String restype = null;
     boolean isExtended = (Profile.getEngine() == Profile.Engine.EE && Profile.getGame() != Profile.Game.BG1EE);
+    boolean isTobEx = (Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX);
 
     switch (effectType) {
       case 0: // AC bonus
@@ -2407,9 +2408,6 @@ public final class EffectFactory
       case 29: // Electricity resistance bonus
       case 30: // Fire resistance bonus
       case 31: // Magic damage resistance bonus
-      case 33: // Save vs. death bonus / Fortitude save bonus
-      case 34: // Save vs. wand bonus / Reflex save bonus
-      case 35: // Save vs. polymorph bonus / Will save bonus
       case 49: // Wisdom bonus
       case 54: // Base THAC0 bonus / Base attack bonus
       case 59: // Stealth bonus / Move silently bonus
@@ -2518,7 +2516,7 @@ public final class EffectFactory
       case 15: // Dexterity bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
-            isExtended) {
+            isExtended || isTobEx) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Set", "Set % of", "Cat's grace"}));
         } else {
@@ -2592,6 +2590,9 @@ public final class EffectFactory
         } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Lucky streak", "Fortune's favorite"}));
+        } else if (isTobEx) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
+              s_inctype[0], s_inctype[1], s_inctype[2], "Instantaneous"}));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
@@ -2649,13 +2650,30 @@ public final class EffectFactory
         }
         break;
 
+      case 33: // Save vs. death bonus / Fortitude save bonus
+      case 34: // Save vs. wand bonus / Reflex save bonus
+      case 35: // Save vs. polymorph bonus / Will save bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        if (isTobEx) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
+              s_inctype[0], s_inctype[1], s_inctype[2], "Instantaneous"}));
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        }
+        break;
+
       case 36: // Save vs. breath bonus
       case 37: // Save vs. spell bonus
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+          if (isTobEx) {
+            s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
+                s_inctype[0], s_inctype[1], s_inctype[2], "Instantaneous"}));
+          } else {
+            s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+          }
         }
         break;
 
@@ -2677,9 +2695,15 @@ public final class EffectFactory
 
       case 42: // Bonus wizard spells
         s.add(new DecNumber(buffer, offset, 4, "# spells to add"));
-        s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
-                       new String[]{"Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
-                                    "Level 5", "Level 6", "Level 7", "Level 8", "Level 9"}));
+        if (isTobEx) {
+          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
+              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
+              "Level 5", "Level 6", "Level 7", "Level 8", "Level 9", "Ex: Double spells"}));
+        } else {
+          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
+              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
+              "Level 5", "Level 6", "Level 7", "Level 8", "Level 9"}));
+        }
         break;
 
       case 44: // Strength bonus
@@ -2688,6 +2712,9 @@ public final class EffectFactory
             isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Set", "Set % of", "Wizard strength"}));
+        } else if (isTobEx) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
+              s_inctype[0], s_inctype[1], s_inctype[2], "Strength spell"}));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
@@ -2737,8 +2764,15 @@ public final class EffectFactory
 
       case 58: // Dispel effects
         s.add(new DecNumber(buffer, offset, 4, "Level"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
-                         new String[]{"Always dispel", "Use caster level", "Use specific level"}));
+        if (isTobEx) {
+          s.add(new Bitmap(buffer, offset + 4, 2, "Dispel type", new String[]{
+              "Always dispel", "Use caster level", "Use specific level"}));
+          s.add(new Bitmap(buffer, offset + 6, 2, "Magic weapon dispel type", new String[]{
+              "Always dispel", "Do not dispel", "Chance of dispel"}));
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type", new String[]{
+              "Always dispel", "Use caster level", "Use specific level"}));
+        }
         break;
 
       case 60: // Casting failure
@@ -2767,10 +2801,14 @@ public final class EffectFactory
           s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
                          new String[]{"Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
                                       "Level 5", "Level 6", "Level 7", "Level 8", "Level 9"}));
+        } else if (isTobEx) {
+          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
+              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
+              "Level 5", "Level 6", "Level 7", null, null, "Ex: Double spells"}));
         } else {
-          s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
-                         new String[]{"Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
-                                      "Level 5", "Level 6", "Level 7"}));
+          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
+              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
+              "Level 5", "Level 6", "Level 7"}));
         }
         break;
 
@@ -3163,8 +3201,16 @@ public final class EffectFactory
 
       case 144: // Disable button
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Button",
-                         Profile.getEngine() == Profile.Engine.IWD2 ? s_button_iwd2 : s_button));
+        if (isTobEx) {
+          String[] buttons = new String[15];
+          for (int i = 0; i < 14; i++) { buttons[i] = s_button[i]; }
+          buttons[10] = "Bard song";
+          buttons[14] = "Find traps";
+          s.add(new Bitmap(buffer, offset + 4, 4, "Button", buttons));
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Button",
+                           Profile.getEngine() == Profile.Engine.IWD2 ? s_button_iwd2 : s_button));
+        }
         break;
 
       case 145: // Disable spellcasting
@@ -3186,7 +3232,15 @@ public final class EffectFactory
         break;
 
       case 147: // Learn spell
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        if (isTobEx) {
+          s.add(new DecNumber(buffer, offset, 2, "Unused"));
+          s.add(new Flag(buffer, offset + 2, 2, "Behavior", new String[]{
+              "Default", "No XP", null, "Always successful", null, "No XP if already learned",
+              "Exclude spell schools", "Exclude sorcerer", "Fail if max. spells learned"
+          }));
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        }
         if (Profile.getEngine() == Profile.Engine.PST) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell type",
                            new String[]{"Wizard", "Priest", "Innate"}));
@@ -3253,7 +3307,12 @@ public final class EffectFactory
 
       case 166: // Magic resistance bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{"Increment", "Set"}));
+        if (isTobEx) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
+              "Instantaneous", s_inctype[1], s_inctype[2], s_inctype[0]}));
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{"Increment", "Set"}));
+        }
         break;
 
       case 170: // Play damage animation
@@ -3275,6 +3334,9 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{"Increment", "Set"}));
+        } else if (isTobEx) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
+              s_inctype[1], s_inctype[0], s_inctype[2], "Instantaneous"}));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         }
@@ -3433,6 +3495,7 @@ public final class EffectFactory
   {
     String restype = null;
     boolean isExtended = (Profile.getEngine() == Profile.Engine.EE && Profile.getGame() != Profile.Game.BG1EE);
+    boolean isTobEx = (Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX);
 
     switch (effectType) {
       case 61: // Creature RGB color fade
@@ -3484,7 +3547,6 @@ public final class EffectFactory
       case 242: // Cure confusion
       case 268: // Clear fog of war
       case 271: // Disable creature
-      case 273: // Zone of sweet air
       case 274: // Phase
       case 287: // Remove feet circle
       case 304: // Mass raise dead
@@ -3506,9 +3568,7 @@ public final class EffectFactory
       case 294: // Set existence delay
       case 295: // Disable permanent death
       case 297: // Immunity to turn undead
-      case 298: // Pocket plane
       case 302: // Can use any item
-      case 303: // Backstab every hit
       case 308: // Immunity to tracking
       case 310: // Immunity to time stop
       case 312: // Immunity to sequester
@@ -3666,12 +3726,17 @@ public final class EffectFactory
             item.addUpdateListener((UpdateListener)parent);
           }
         } else {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
-                           new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                                        "HP below 25%", "HP below 10%", "If helpless",
-                                        "If poisoned", "Every round when attacked",
-                                        "Target in range 4'", "Target in range 10'",
-                                        "Every round", "Took damage"}));
+          String[] condition = new String[]{"Target hit", "Enemy sighted", "HP below 50%",
+                                            "HP below 25%", "HP below 10%", "If helpless",
+                                            "If poisoned", "Every round when attacked",
+                                            "Target in range 4'", "Target in range 10'",
+                                            "Every round", "Took damage"};
+          if (isTobEx) {
+            s.add(new Bitmap(buffer, offset + 4, 2, "Condition", condition));
+            s.add(new DecNumber(buffer, offset + 6, 2, "Trigger check period"));
+          } else {
+            s.add(new Bitmap(buffer, offset + 4, 4, "Condition", condition));
+          }
         }
         restype = "SPL";
         break;
@@ -3680,7 +3745,12 @@ public final class EffectFactory
       case 233: // Modify proficiencies
         s.add(new MultiNumber(buffer, offset, 4, "# stars", 3, 2,
                               new String[]{"Active class", "Original class"}));
-        s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
+        if (isTobEx) {
+          s.add(new IdsBitmap(buffer, offset + 4, 2, "Proficiency", "STATS.IDS"));
+          s.add(new Bitmap(buffer, offset + 4, 2, "Behavior", new String[]{"Set if higher", "Increment"}));
+        } else {
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
+        }
         break;
 
       case 234: // Create contingency
@@ -3851,9 +3921,30 @@ public final class EffectFactory
         restype = "EFF";
         break;
 
+      case 273: // Zone of sweet air
+      {
+        if (isTobEx) {
+          s.add(new Bitmap(buffer, offset, 4, "Mode", new String[]{
+              "Remove CLEARAIR.2DA only", "Remove CLEARAIR.2DA and resource"}));
+          restype = "2DA";
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        }
+        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        break;
+      }
+
       case 279: // Enable button
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
+        if (isTobEx) {
+          String[] buttons = new String[15];
+          for (int i = 0; i < 14; i++) { buttons[i] = s_button[i]; }
+          buttons[10] = "Bard song";
+          buttons[14] = "Find traps";
+          s.add(new Bitmap(buffer, offset + 4, 4, "Button", buttons));
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
+        }
         break;
 
       case 280: // Wild magic
@@ -3884,6 +3975,19 @@ public final class EffectFactory
         restype = "VEF:VVC:BAM";
         break;
 
+      case 298: // Pocket plane
+        if (isTobEx) {
+          s.add(new Bitmap(buffer, offset, 4, "Store party location", new String[]{
+              "Use pocket plane field", "Use party location field", "Do not store"
+          }));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Use custom script?", s_noyes));
+          restype = "BCS";
+        } else {
+          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
+        }
+        break;
+
       case 299: // Chaos shield effect
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Portrait",
@@ -3900,6 +4004,20 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
                          new String[]{"Always", "By this weapon only"}));
+        break;
+
+      case 303: // Backstab every hit
+        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        if (isTobEx) {
+          LongIntegerHashMap<String> idsmap = new LongIntegerHashMap<String>();
+          idsmap.put(0L, "Normal conditions");
+          idsmap.put(1L, "Ignore visual state and position");
+          idsmap.put(2L, "Ignore visual state only");
+          idsmap.put(4L, "Ignore position only");
+          s.add(new HashBitmap(buffer, offset + 4, 4, "Type", idsmap));
+        } else {
+          s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
+        }
         break;
 
       case 307: // Tracking
@@ -3924,7 +4042,31 @@ public final class EffectFactory
                          new String[]{"Normal", "Improved", "Movement rate only"}));
         break;
 
-      case 318: // Protection from Spell
+      case 318: // Protection from Spell, Ex: Set stat
+        if (isExtended) {
+          int param2 = DynamicArray.getInt(buffer, offset + 4);
+          if (param2 >= 102 && param2 <= 109) {
+            s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", s_cretype_ee[param2]));
+          } else {
+            s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          }
+          BitmapEx bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
+          s.add(bitmap);
+          if (parent != null && parent instanceof UpdateListener) {
+            bitmap.addUpdateListener((UpdateListener)parent);
+          }
+          restype = "SPL";
+        } else if (isTobEx) {
+          s.add(new DecNumber(buffer, offset, 4, "Value"));
+          s.add(new IdsBitmap(buffer, offset + 4, 2, "Stat opcode", "STATS.IDS"));
+          s.add(new Bitmap(buffer, offset + 6, 2, "Modifier type", new String[]{
+              "Increment", "Set", "Set % of", "Multiply", "Divide", "Modulus",
+              "Logical AND", "Logical OR", "Bitwise AND", "Bitwise OR", "Invert"}));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
       case 324: // Immunity to spell and message
       case 326: // Apply effects list
         if (isExtended) {
