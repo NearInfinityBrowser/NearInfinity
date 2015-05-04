@@ -47,6 +47,7 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -75,6 +76,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -389,12 +391,21 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
         createViewFrame(getTopLevelAncestor(), selected);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Remove) == event.getSource()) {
-        int[] rows = table.getSelectedRows();
-        for (int i = rows.length - 1; i >= 0; i--) {
-          Object entry = table.getModel().getValueAt(rows[i], 1);
-          if (entry instanceof AddRemovable) {
-            struct.removeDatatype((AddRemovable)entry, true);
+        Window wnd = SwingUtilities.getWindowAncestor(this);
+        if (wnd == null) {
+          wnd = NearInfinity.getInstance();
+        }
+        WindowBlocker.blockWindow(wnd, true);
+        try {
+          int[] rows = table.getSelectedRows();
+          for (int i = rows.length - 1; i >= 0; i--) {
+            Object entry = table.getModel().getValueAt(rows[i], 1);
+            if (entry instanceof AddRemovable) {
+              struct.removeDatatype((AddRemovable)entry, true);
+            }
           }
+        } finally {
+          WindowBlocker.blockWindow(wnd, false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
         if (ResourceFactory.saveResource((Resource)struct, getTopLevelAncestor())) {
