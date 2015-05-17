@@ -651,6 +651,8 @@ public final class Profile
       for (Iterator<?> iter = languages.iterator(); iter.hasNext();) {
         String curLang = (String)iter.next();
         if (curLang.equalsIgnoreCase(language)) {
+          instance.initRootDirs();
+          instance.initOverrides();
           // updating language names and folders
           updateProperty(GET_GAME_LANG_FOLDER_NAME, curLang);
           File langPath = new FileNI((File)getProperty(GET_GAME_LANG_FOLDER_BASE), curLang);
@@ -816,44 +818,7 @@ public final class Profile
       addEntry(GET_GAME_HOME_FOLDER_NAME, Type.String, GAME_HOME_FOLDER.get(game));
     }
 
-    // Considering three (or four) different root folders to locate game resources
-    // Note: Order of the root directories is important. FileNI will take the first one available.
-    File homeRoot = ResourceFactory.getHomeRoot();
-    String language = ResourceFactory.fetchGameLanguage(new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
-    File langRoot = FileNI.getFile((File)getProperty(GET_GAME_LANG_FOLDER_BASE), language);
-    if (!langRoot.isDirectory()) {
-      langRoot = null;
-    }
-    // fallback language in case the selected language lacks certain game resources
-    String languageDef = ResourceFactory.fetchGameLanguage(null);
-    File langRootDef = FileNI.getFile((File)getProperty(GET_GAME_LANG_FOLDER_BASE), languageDef);
-    if (language.equals(languageDef) || !langRootDef.isDirectory()) {
-      langRootDef = null;
-    }
-
-    List<File> listRoots = new ArrayList<File>();
-    if (langRoot != null) {
-      addEntry(GET_GAME_LANG_FOLDER_NAME, Type.String, language);
-      addEntry(GET_GAME_LANG_FOLDER, Type.File, langRoot);
-      List<File> langPaths = ResourceFactory.getAvailableGameLanguages();
-      addEntry(GET_GAME_LANG_FOLDERS_AVAILABLE, Type.List, langPaths);
-      List<String> languages = new ArrayList<String>(langPaths.size());
-      for (Iterator<File> iter = langPaths.iterator(); iter.hasNext();) {
-        languages.add(iter.next().getName());
-      }
-      addEntry(GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.List, languages);
-      listRoots.add(langRoot);
-    }
-    if (langRootDef != null) {
-      listRoots.add(langRootDef);
-    }
-    if (homeRoot != null) {
-      addEntry(GET_GAME_HOME_FOLDER, Type.File, homeRoot);
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
-      listRoots.add(homeRoot);
-    }
-    listRoots.add(gameRoot);
-    addEntry(GET_GAME_FOLDERS, Type.File, listRoots);
+    initRootDirs();
 
     // initializing dialog.tlk and dialogf.tlk
     File tlk = FileNI.getFile((List<?>)getProperty(GET_GAME_FOLDERS),
@@ -952,6 +917,49 @@ public final class Profile
     addEntry(GET_GAME_ENGINE, Type.Object, engine);
   }
 
+  // Initializes available root folders of the game
+  private void initRootDirs()
+  {
+    // Considering three (or four) different root folders to locate game resources
+    // Note: Order of the root directories is important. FileNI will take the first one available.
+    File homeRoot = ResourceFactory.getHomeRoot();
+    String language = ResourceFactory.fetchGameLanguage(new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
+    File langRoot = FileNI.getFile((File)getProperty(GET_GAME_LANG_FOLDER_BASE), language);
+    if (!langRoot.isDirectory()) {
+      langRoot = null;
+    }
+    // fallback language in case the selected language is not available
+    String languageDef = ResourceFactory.fetchGameLanguage(null);
+    File langRootDef = FileNI.getFile((File)getProperty(GET_GAME_LANG_FOLDER_BASE), languageDef);
+    if (langRoot != null || language.equals(languageDef) || !langRootDef.isDirectory()) {
+      langRootDef = null;
+    }
+
+    List<File> listRoots = new ArrayList<File>();
+    if (langRoot != null) {
+      addEntry(GET_GAME_LANG_FOLDER_NAME, Type.String, language);
+      addEntry(GET_GAME_LANG_FOLDER, Type.File, langRoot);
+      List<File> langPaths = ResourceFactory.getAvailableGameLanguages();
+      addEntry(GET_GAME_LANG_FOLDERS_AVAILABLE, Type.List, langPaths);
+      List<String> languages = new ArrayList<String>(langPaths.size());
+      for (Iterator<File> iter = langPaths.iterator(); iter.hasNext();) {
+        languages.add(iter.next().getName());
+      }
+      addEntry(GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.List, languages);
+      listRoots.add(langRoot);
+    }
+    if (langRootDef != null) {
+      listRoots.add(langRootDef);
+    }
+    if (homeRoot != null) {
+      addEntry(GET_GAME_HOME_FOLDER, Type.File, homeRoot);
+      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      listRoots.add(homeRoot);
+    }
+    listRoots.add((File)getProperty(GET_GAME_ROOT_FOLDER));
+    addEntry(GET_GAME_FOLDERS, Type.File, listRoots);
+  }
+
   // Initializes supported override folders used by specific games
   private void initOverrides()
   {
@@ -960,6 +968,7 @@ public final class Profile
       File gameRoot = (File)getProperty(GET_GAME_ROOT_FOLDER);
       File homeRoot = (File)getProperty(GET_GAME_HOME_FOLDER);
       File langRoot = (File)getProperty(GET_GAME_LANG_FOLDER);
+      list.add(new FileNI(langRoot, "Override"));
       list.add(new FileNI(langRoot, "Movies"));
       list.add(new FileNI(langRoot, "Sounds"));
       list.add(new FileNI(homeRoot, "Movies"));

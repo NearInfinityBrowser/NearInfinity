@@ -642,10 +642,6 @@ public final class ResourceFactory
                                   BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
     String overrideFolder = Profile.getOverrideFolderName();
     for (final File rootDir: rootDirs) {
-      // excluding language folder from search
-      if ((File)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER) == rootDir) {
-        continue;
-      }
       File overrideDir = FileNI.getFile(rootDir, overrideFolder);
       if (overrideDir.isDirectory()) {
         File overrideFiles[] = overrideDir.listFiles();
