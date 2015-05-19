@@ -420,7 +420,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       offset = offLocation.getValue();
       if (offset > 0) {
         for (int i = 0; i < numLocation.getValue(); i++) {
-          StoredLocation location = new StoredLocation(this, buffer, offset);
+          StoredLocation location = new StoredLocation(this, buffer, offset, i);
           offset += location.getSize();
           addField(location);
         }
@@ -431,7 +431,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       offset = offPocket.getValue();
       if (offset > 0) {
         for (int i = 0; i < numPocket.getValue(); i++) {
-          StoredLocation location = new StoredLocation(this, "Pocket plane", buffer, offset);
+          StoredLocation location = new StoredLocation(this, "Pocket plane", buffer, offset, i);
           offset += location.getSize();
           addField(location);
         }

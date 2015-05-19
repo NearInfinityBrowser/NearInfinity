@@ -16,14 +16,14 @@ class StoredLocation extends AbstractStruct implements AddRemovable
     super(null, "Stored location", new byte[12], 0);
   }
 
-  StoredLocation(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  StoredLocation(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Stored location", buffer, offset);
+    super(superStruct, "Stored location " + nr, buffer, offset);
   }
 
-  StoredLocation(AbstractStruct superStruct, String s, byte b[], int o) throws Exception
+  StoredLocation(AbstractStruct superStruct, String s, byte b[], int o, int nr) throws Exception
   {
-    super(superStruct, s, b, o);
+    super(superStruct, s + " " + nr, b, o);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
