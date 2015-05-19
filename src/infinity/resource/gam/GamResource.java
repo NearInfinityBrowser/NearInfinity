@@ -228,7 +228,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
                new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                             "Largest text window"}));
-      addField(new DecNumber(buffer, offset + 100, 4, "Save version"));
+      addField(new Bitmap(buffer, offset + 100, 4, "Save version",
+                          new String[]{"Restrict XP to BG1 limit", "Restrict XP to TotSC limit"}));
       addField(new Unknown(buffer, offset + 104, 76));
     }
     else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
@@ -265,7 +266,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
                new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                             "Largest text window", "", "Fullscreen mode", "Left pane hidden",
                             "Right pane hidden", "Automap notes hidden"}));
-      addField(new DecNumber(buffer, offset + 100, 4, "Save version"));
+
+      final String[] s_version = {"Restrict XP to BG1 limit", "Restrict XP to TotSC limit",
+                                  "Restrict XP to SoA limit", "Unknown", "SoA active", "ToB active"};
+      if (Profile.getGame() == Profile.Game.IWDEE) {
+        s_version[3] = "Icewind Dale";  // to be confirmed
+      }
+      addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version));
+
       offFamiliar = new SectionOffset(buffer, offset + 104, "Familiar info offset", Familiar.class);
       addField(offFamiliar);
       offLocation = new SectionOffset(buffer, offset + 108, "Stored locations offset", StoredLocation.class);
