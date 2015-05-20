@@ -471,8 +471,9 @@ public final class Decompiler
   private static ResourceEntry decompileStringCheck(String value, String[] fileTypes)
   {
     for (final String fileType : fileTypes)
-      if (ResourceFactory.resourceExists(value + fileType))
-        return ResourceFactory.getResourceEntry(value + fileType);
+      if (ResourceFactory.resourceExists(value + fileType, true)) {
+        return ResourceFactory.getResourceEntry(value + fileType, true);
+      }
     return null;
   }
 

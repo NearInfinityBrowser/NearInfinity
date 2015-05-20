@@ -367,9 +367,11 @@ public final class Compiler
         resourceTypes = Decompiler.getResRefType(function.substring(0, function.length() - 1));
 
       if (resourceTypes.length > 0) {
-        for (final String resourceType : resourceTypes)
-          if (ResourceFactory.resourceExists(value.substring(1, value.length() - 1) + resourceType))
+        for (final String resourceType : resourceTypes) {
+          if (ResourceFactory.resourceExists(value.substring(1, value.length() - 1) + resourceType, true)) {
             return;
+          }
+        }
         warnings.put(new Integer(linenr), "Resource not found: " + definition + " - " + value);
       }
     }

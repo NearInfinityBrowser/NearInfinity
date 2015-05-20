@@ -233,7 +233,20 @@ public final class ResourceFactory
    */
   public static boolean resourceExists(String resourceName)
   {
-    return (getResourceEntry(resourceName) != null);
+    return (getResourceEntry(resourceName, false) != null);
+  }
+
+  /**
+   * Returns whether the specified resource exists.
+   * @param resourceName The resource filename.
+   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
+   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @return <code>true</code> if the resource exists in BIFF archives or override folders,
+   *         <code>false</code> otherwise.
+   */
+  public static boolean resourceExists(String resourceName, boolean searchExtraDirs)
+  {
+    return (getResourceEntry(resourceName, searchExtraDirs) != null);
   }
 
   /**
@@ -244,8 +257,35 @@ public final class ResourceFactory
    */
   public static ResourceEntry getResourceEntry(String resourceName)
   {
+    return getResourceEntry(resourceName, false);
+  }
+
+  /**
+   * Returns a ResourceEntry instance of the given resource name.
+   * @param resourceName The resource filename.
+   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
+   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
+   *         available.
+   */
+  public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs)
+  {
     if (getInstance() != null) {
-      return getInstance().treeModel.getResourceEntry(resourceName);
+      ResourceEntry entry = getInstance().treeModel.getResourceEntry(resourceName);
+      if (searchExtraDirs && (entry == null)) {
+        @SuppressWarnings("unchecked")
+        List<File> extraFolders = (List<File>)Profile.getProperty(Profile.GET_GAME_OVERRIDE_FOLDERS);
+        if (extraFolders != null) {
+          for (final File folder: extraFolders) {
+            File f = new FileNI(folder, resourceName);
+            if (f.isFile()) {
+              entry = new FileResourceEntry(f);
+              break;
+            }
+          }
+        }
+      }
+      return entry;
     } else {
       return null;
     }

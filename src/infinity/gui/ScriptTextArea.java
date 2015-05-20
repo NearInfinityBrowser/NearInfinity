@@ -293,8 +293,8 @@ public class ScriptTextArea extends InfinityTextArea
           // retrieving spell resource specified by symbolic spell name
           String resName = infinity.resource.spl.Viewer.getResourceName(token, true);
           if (resName != null && !resName.isEmpty() &&
-              ResourceFactory.resourceExists(resName)) {
-            return ResourceFactory.getResourceEntry(resName);
+              ResourceFactory.resourceExists(resName, true)) {
+            return ResourceFactory.getResourceEntry(resName, true);
           } else {
             return null;
           }
@@ -303,8 +303,8 @@ public class ScriptTextArea extends InfinityTextArea
         // guessing
         String[] possibleExtensions = guessExtension(function, definition);
         for (final String ext : possibleExtensions) {
-          if (ResourceFactory.resourceExists(token + ext)) {
-            return ResourceFactory.getResourceEntry(token + ext);
+          if (ResourceFactory.resourceExists(token + ext, true)) {
+            return ResourceFactory.getResourceEntry(token + ext, true);
           }
         }
 
