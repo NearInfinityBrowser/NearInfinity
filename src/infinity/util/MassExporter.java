@@ -30,7 +30,6 @@ import infinity.resource.sound.AudioFactory;
 import infinity.resource.video.MveResource;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileOutputStreamNI;
-import infinity.util.io.FileReaderNI;
 import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
 
@@ -45,7 +44,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -87,7 +85,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbDecompress = new JCheckBox("Decompress BAM/MOS", false);
   private final JCheckBox cbConvertToPNG = new JCheckBox("Export MOS/PVRZ/TIS as PNG", false);
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
-  private final JCheckBox cbExecutableMVE = new JCheckBox("Make movies executable", false);
+  private final JCheckBox cbExportMVEasAVI = new JCheckBox("Export MVE as AVI", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
   private final JComboBox cbExtractFramesBAMFormat = new JComboBox(new String[]{"PNG", "BMP"});
@@ -157,7 +155,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     bottomRightPanel.add(pBamFrames, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 8, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbExecutableMVE, gbc);
+    bottomRightPanel.add(cbExportMVEasAVI, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 9, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbOverwrite, gbc);
@@ -257,7 +255,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       ResourceEntry resourceEntry = selectedFiles.get(i);
       export(resourceEntry);
       progress.setProgress(i);
-      if (i % 10 == 0) {
+      if (count < 50 || i % 10 == 0) {
         progress.setNote(String.format(fmtProgress, i, count));
       }
       if (progress.isCanceled()) {
@@ -270,28 +268,6 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   }
 
 // --------------------- End Interface Runnable ---------------------
-
-  /** Adds an executable stub to the specified resource entry and writes it into the specified output file. */
-  public static void exportMovieExecutable(ResourceEntry inEntry, File outFile) throws Exception
-  {
-    final byte[] buffer = new byte[65536];
-    if (inEntry != null && outFile != null) {
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(outFile));
-      BufferedInputStream stub = new BufferedInputStream(MveResource.class.getResourceAsStream("mve.stub"));
-      FileWriterNI.writeBytes(bos, FileReaderNI.readBytes(stub, 77312));
-      stub.close();
-      InputStream is = inEntry.getResourceDataAsStream();
-      int size = inEntry.getResourceInfo()[0];
-      int bytesRead = is.read(buffer);
-      while (size > 0) {
-        bos.write(buffer, 0, bytesRead);
-        size -= bytesRead;
-        bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
-      }
-      bos.close();
-      is.close();
-    }
-  }
 
   private void exportText(ResourceEntry entry, File output) throws Exception
   {
@@ -568,11 +544,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       else if (entry.getExtension().equalsIgnoreCase("WAV") && cbConvertWAV.isSelected()) {
         decompressWav(entry, output);
       }
-      else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExecutableMVE.isSelected()) {
-        output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "exe"));
-        if (output.exists() && !cbOverwrite.isSelected())
+      else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExportMVEasAVI.isSelected()) {
+        output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "avi"));
+        if (output.exists() && !cbOverwrite.isSelected()) {
           return;
-        exportMovieExecutable(entry, output);
+        }
+        MveResource.convertAvi(entry, output, null, true);
       }
       else {
         exportResource(entry, output);

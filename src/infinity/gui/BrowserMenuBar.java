@@ -2552,7 +2552,7 @@ public final class BrowserMenuBar extends JMenuBar
   {
     private final JMenuItem helpAbout, helpLicense, helpBsdLicense,
                             helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense,
-                            helpUpdateSettings, helpUpdateCheck;
+                            helpMonteMediaLicense, helpUpdateSettings, helpUpdateCheck;
 
     private HelpMenu()
     {
@@ -2586,6 +2586,10 @@ public final class BrowserMenuBar extends JMenuBar
           makeMenuItem("JHexView License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpJHexViewLicense);
 
+      helpMonteMediaLicense =
+          makeMenuItem("Monte Media License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+      miscLicenses.add(helpMonteMediaLicense);
+
       addSeparator();
 
       helpUpdateSettings = makeMenuItem("Update settings...", KeyEvent.VK_S, null, -1, this);
@@ -2610,6 +2614,8 @@ public final class BrowserMenuBar extends JMenuBar
         displayLicense("infinity/RSyntaxTextArea.License.txt", "BSD License");
       } else if (event.getSource() == helpJHexViewLicense) {
         displayLicense("infinity/JHexView.License.txt", "GPL License");
+      } else if (event.getSource() == helpMonteMediaLicense) {
+        displayLicense("infinity/MonteMedia.License.txt", "Creative Commons / LGPL License");
       } else if (event.getSource() == helpUpdateSettings) {
         UpdaterSettings.showDialog(NearInfinity.getInstance());
       } else if (event.getSource() == helpUpdateCheck) {
@@ -2667,6 +2673,7 @@ public final class BrowserMenuBar extends JMenuBar
           "Most icons (\u00A9) eclipse.org - Common Public License.",
           "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
           "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
+          "Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.",
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
           "JHexView by Sebastian Porst - GNU General Public License.",
       };

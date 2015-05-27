@@ -7,6 +7,7 @@ package infinity.resource.video;
 import infinity.NearInfinity;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.Profile;
@@ -15,17 +16,19 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
-import infinity.util.MassExporter;
 import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.ByteOrder;
+import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -37,7 +40,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ProgressMonitor;
 import javax.swing.SwingConstants;
+
+import org.monte.media.AudioFormatKeys;
+import org.monte.media.Format;
+import org.monte.media.FormatKeys;
+import org.monte.media.VideoFormatKeys;
+import org.monte.media.avi.AVIWriter;
+import org.monte.media.math.Rational;
 
 public class MveResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
 {
@@ -56,7 +67,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   private MveDecoder decoder;
   private ImageRenderer renderer;
   private MvePlayer player;
-  private JMenuItem miExport, miExportExecutable;
+  private JMenuItem miExport, miExportAvi;
   private JPanel panel;
   private JCheckBox cbZoom, cbFilter;
 
@@ -88,22 +99,14 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (miExport == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
-    } else if (miExportExecutable == event.getSource()) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
-      fc.setDialogTitle("Export MVE as Windows Executable");
-      String name = entry.getResourceName();
-      if (name.lastIndexOf('.') > 0) {
-        name = name.substring(0, name.lastIndexOf('.')) + ".exe";
-      } else {
-        name = name + ".exe";
-      }
-      fc.setSelectedFile(new FileNI(name));
-      fc.setDialogType(JFileChooser.SAVE_DIALOG);
-      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      if (fc.showSaveDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
-        exportAsExecutable(entry, fc.getSelectedFile(), panel.getTopLevelAncestor());
-      }
-      fc = null;
+    } else if (miExportAvi == event.getSource()) {
+      new Thread(new Runnable() {
+        @Override
+        public void run()
+        {
+          exportAsAvi(entry, (Window)panel.getTopLevelAncestor());
+        }
+      }).start();
     } else if (buttonPanel.getControlByType(CtrlPlay) == event.getSource()) {
       if (player.isStopped()) {
         new Thread(this).start();
@@ -263,11 +266,10 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
 
     miExport = new JMenuItem("as MVE");
     miExport.addActionListener(this);
-    miExportExecutable = new JMenuItem("as Windows executable");
-    miExportExecutable.setToolTipText("Only executable on Windows or compatible environments");
-    miExportExecutable.addActionListener(this);
+    miExportAvi = new JMenuItem("as AVI");
+    miExportAvi.addActionListener(this);
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.ExportMenu);
-    bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportExecutable});
+    bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportAvi});
 
     buttonPanel.addControl(bPlay, CtrlPlay);
     buttonPanel.addControl(bPause, CtrlPause);
@@ -286,29 +288,194 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
 
 //--------------------- End Interface Viewable ---------------------
 
-
-  // Export resource entry as Windows executable
-  private static void exportAsExecutable(ResourceEntry inEntry, File outFile, Component parent)
+  private static void exportAsAvi(ResourceEntry inEntry, Window parent)
   {
-    if (inEntry != null && outFile != null) {
-      if (outFile.exists()) {
-        String[] options = new String[]{"Overwrite", "Cancel"};
-        if (JOptionPane.showOptionDialog(parent, outFile + " exists. Overwrite?",
-                                         "Export resource", JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
-          return;
+    if (inEntry != null) {
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      fc.setDialogTitle("Export MVE as AVI");
+      String name = inEntry.getResourceName();
+      if (name.lastIndexOf('.') > 0) {
+        name = name.substring(0, name.lastIndexOf('.')) + ".avi";
+      } else {
+        name = name + ".avi";
+      }
+      fc.setSelectedFile(new FileNI(name));
+      fc.setDialogType(JFileChooser.SAVE_DIALOG);
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+        boolean cancelled = false;
+        if (fc.getSelectedFile().isFile()) {
+          final String[] options = {"Overwrite", "Cancel"};
+          final String msg = fc.getSelectedFile().toString() + " exists. Overwrite?";
+          final String title = "Export MVE to AVI";
+          int ret = JOptionPane.showOptionDialog(parent, msg, title, JOptionPane.YES_NO_OPTION,
+                                                 JOptionPane.WARNING_MESSAGE, null,
+                                                 options, options[0]);
+          cancelled = (ret != JOptionPane.YES_OPTION);
+        }
+        if (!cancelled) {
+          try {
+            WindowBlocker.blockWindow(parent, true);
+            convertAvi(inEntry, fc.getSelectedFile(), parent, false);
+          } finally {
+            WindowBlocker.blockWindow(parent, false);
+          }
         }
       }
-      try {
-        MassExporter.exportMovieExecutable(inEntry, outFile);
-        JOptionPane.showMessageDialog(parent, "File exported to " + outFile,
-                                      "Export complete", JOptionPane.INFORMATION_MESSAGE);
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(parent,
-                                      "Error while exporting " + inEntry + " as Windows executable.",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
-      }
+      fc = null;
     }
+  }
+
+  public static boolean convertAvi(ResourceEntry inEntry, File outFile, Window parent, boolean silent)
+  {
+    Format videoFormat = new Format(VideoFormatKeys.EncodingKey, VideoFormatKeys.ENCODING_AVI_MJPG,
+                                    VideoFormatKeys.DepthKey, 24,
+                                    VideoFormatKeys.QualityKey, 1.0f);
+    try {
+      MveDecoder decoder = null;
+      ProgressMonitor pm = null;
+      AVIWriter writer = null;
+      try {
+        if (!silent) {
+          pm = new ProgressMonitor(parent, "Converting MVE to AVI...", "Initializing", 0, 2);
+          pm.setMillisToDecideToPopup(0);
+          pm.setMillisToPopup(0);
+        }
+
+        decoder = new MveDecoder(inEntry);
+        decoder.setDefaultAudioOutput(new AudioQueue());
+
+        // prebuffering audio and searching for first video frame
+        LinkedList<byte[]> audioQueue = new LinkedList<byte[]>();
+        while (decoder.hasNextFrame()) {
+          decoder.processNextFrame();
+          if (!decoder.frameHasVideo()) {
+            if (decoder.frameHasAudio()) {
+              byte[] buffer = decoder.getAudioOutput(0).getNextData();
+              if (buffer != null) {
+                audioQueue.add(buffer);
+              }
+            }
+          } else {
+            break;
+          }
+        }
+
+        writer = new AVIWriter(outFile);
+
+        // initializing video track
+        int rate = 1000000;
+        int scale = decoder.getFrameDelay();
+        if (scale == 0) { scale = 66728; }   // assuming default frame rate
+        final int[] prim = { 29, 23, 19, 17, 13, 11, 7, 5, 3, 2 };
+        boolean divisible;
+        do {
+          divisible = false;
+          for (int i = 0; i < prim.length; i++) {
+            if (rate % prim[i] == 0 && scale % prim[i] == 0) {
+              divisible = true;
+              rate /= prim[i];
+              scale /= prim[i];
+            }
+          }
+        } while (divisible);
+
+        int width = decoder.getVideoWidth();
+        int height = decoder.getVideoHeight();
+        decoder.setVideoOutput(new BasicVideoBuffer(1, width, height, false));
+        videoFormat = videoFormat.prepend(VideoFormatKeys.MediaTypeKey, FormatKeys.MediaType.VIDEO,
+                                          VideoFormatKeys.FrameRateKey, new Rational(rate, scale),
+                                          VideoFormatKeys.WidthKey, width,
+                                          VideoFormatKeys.HeightKey, height);
+        int trackVideo = writer.addTrack(videoFormat);
+
+        // initializing audio track
+        Format audioFormat = null;
+        int channels = decoder.getAudioFormat().getChannels();
+        int sampleRate = (int)decoder.getAudioFormat().getSampleRate();
+        int sampleBits = decoder.getAudioFormat().getSampleSizeInBits();
+        int frameSize = decoder.getAudioFormat().getFrameSize();
+        audioFormat = new Format(AudioFormatKeys.EncodingKey, AudioFormatKeys.ENCODING_PCM_SIGNED,
+                                 AudioFormatKeys.ByteOrderKey, ByteOrder.LITTLE_ENDIAN,
+                                 AudioFormatKeys.ChannelsKey, channels,
+                                 AudioFormatKeys.SampleRateKey, new Rational(sampleRate),
+                                 AudioFormatKeys.SampleSizeInBitsKey, sampleBits,
+                                 AudioFormatKeys.FrameSizeKey, frameSize,
+                                 AudioFormatKeys.SignedKey, true);
+        int trackAudio = writer.addTrack(audioFormat);
+
+        if (!silent) {
+          pm.setProgress(1);
+        }
+        int frameIdx = 0;
+
+        // writing prebuffered audio data first
+        while (!audioQueue.isEmpty()) {
+          byte[] buffer = audioQueue.pollFirst();
+          writer.writeSample(trackAudio, buffer, 0, buffer.length, true);
+        }
+
+        // writing regular frame data
+        do {
+          if (!silent && frameIdx % 10 == 0) {
+            pm.setNote(String.format("Processing frame %1$d", frameIdx));
+          }
+
+          if (decoder.frameHasVideo()) {
+            BufferedImage image = (BufferedImage)decoder.getVideoOutput().frontBuffer();
+            writer.write(trackVideo, image, 1);
+            image = null;
+          }
+
+          byte[] buffer = decoder.getAudioOutput(0).getNextData();
+          if (buffer != null) {
+            writer.writeSample(trackAudio, buffer, 0, buffer.length, true);
+          }
+          frameIdx++;
+
+          if (!silent && pm.isCanceled()) {
+            if (writer != null) {
+              writer.close();
+              writer = null;
+            }
+            if (outFile.isFile()) {
+              outFile.delete();
+            }
+            JOptionPane.showMessageDialog(parent, "Conversion has been cancelled.",
+                                          "Information", JOptionPane.INFORMATION_MESSAGE);
+            return true;
+          }
+        } while (decoder.processNextFrame());
+
+        if (!silent) {
+          pm.setProgress(2);
+        }
+      } finally {
+        if (decoder != null) {
+          decoder.close();
+          decoder = null;
+        }
+        if (writer != null) {
+          writer.close();
+          writer = null;
+        }
+        if (pm != null) {
+          pm.close();
+          pm = null;
+        }
+      }
+      if (!silent) {
+        JOptionPane.showMessageDialog(parent, "Resource has been converted successfully: " + inEntry,
+                                      "Information", JOptionPane.INFORMATION_MESSAGE);
+      }
+      return true;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    if (!silent) {
+      JOptionPane.showMessageDialog(parent, "Error while exporting " + inEntry + " as AVI file.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    return false;
   }
 }
