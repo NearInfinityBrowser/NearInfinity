@@ -189,10 +189,23 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
     System.setOut(new ConsoleStream(System.out, consoletext));
     System.setErr(new ConsoleStream(System.err, consoletext));
-    new NearInfinity();
+
+    // Override game folder via application parameter
+    File gameOverride = null;
+    if (args.length > 0) {
+      File f = new FileNI(args[0]);
+      if (f.isFile()) {
+        f = f.getParentFile();
+      }
+      if (f.isDirectory()) {
+        gameOverride = f;
+      }
+    }
+
+    new NearInfinity(gameOverride);
   }
 
-  private NearInfinity()
+  private NearInfinity(File gameOverride)
   {
     super("Near Infinity");
     browser = this;
@@ -203,7 +216,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     BrowserMenuBar menuBar = new BrowserMenuBar();
     setJMenuBar(menuBar);
 
-    String lastDir = prefs.get(LAST_GAMEDIR, null);
+    String lastDir = null;
+    if (gameOverride != null && gameOverride.isDirectory()) {
+      lastDir = gameOverride.toString();
+    } else {
+      lastDir = prefs.get(LAST_GAMEDIR, null);
+    }
     if (new FileNI(KEYFILENAME).isFile()) {
       File keyFile = new FileNI(KEYFILENAME);
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
