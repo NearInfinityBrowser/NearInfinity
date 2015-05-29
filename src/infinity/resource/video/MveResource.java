@@ -26,6 +26,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.nio.ByteOrder;
 import java.util.LinkedList;
@@ -423,6 +425,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
 
           if (decoder.frameHasVideo()) {
             BufferedImage image = (BufferedImage)decoder.getVideoOutput().frontBuffer();
+            adjustColorSpace(image);
             writer.write(trackVideo, image, 1);
             image = null;
           }
@@ -477,5 +480,25 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
     return false;
+  }
+
+  // Reduces color range from [0, 255] to [16, 235] to conform to CCIR-601 standard.
+  private static void adjustColorSpace(BufferedImage image)
+  {
+    if (image != null) {
+      if (image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
+        // true color image
+        int[] data = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < data.length; i++) {
+          int b = data[i] & 0xff;
+          b = (16 + ((b * 220) >>> 8)) & 0xff;
+          int g = (data[i] >>> 8) & 0xff;
+          g = (16 + ((g * 220) >>> 8)) & 0xff;
+          int r = (data[i] >>> 16) & 0xff;
+          r = (16 + ((r * 220) >>> 8)) & 0xff;
+          data[i] = (data[i] & 0xff000000) | (r << 16) | (g << 8) | b;
+        }
+      }
+    }
   }
 }
