@@ -406,6 +406,10 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
                                  AudioFormatKeys.SignedKey, true);
         int trackAudio = writer.addTrack(audioFormat);
 
+        // default audio buffer for one frame
+        int bufferSize = (int)Math.ceil((double)(sampleRate)*(double)scale/(double)rate) * frameSize;
+        byte[] defaultBuffer = new byte[bufferSize];
+
         if (!silent) {
           pm.setProgress(1);
         }
@@ -431,9 +435,11 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
           }
 
           byte[] buffer = decoder.getAudioOutput(0).getNextData();
-          if (buffer != null) {
-            writer.writeSample(trackAudio, buffer, 0, buffer.length, true);
+          if (buffer == null) {
+            buffer = defaultBuffer;
           }
+          writer.writeSample(trackAudio, buffer, 0, buffer.length, true);
+
           frameIdx++;
 
           if (!silent && pm.isCanceled()) {
