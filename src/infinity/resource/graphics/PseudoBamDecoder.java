@@ -5,8 +5,8 @@
 package infinity.resource.graphics;
 
 import infinity.gui.converter.ConvertToPvrz;
+import infinity.util.BinPack2D;
 import infinity.util.DynamicArray;
-import infinity.util.GridManager;
 import infinity.util.Pair;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileOutputStreamNI;
@@ -877,8 +877,8 @@ public class PseudoBamDecoder extends BamDecoder
       } else {
         pvrzFilePath = "";
       }
-      List<List<FrameDataV2>> listFrameData = new ArrayList<List<FrameDataV2>>(listFrames.size());
-      List<GridManager> listGrid = new ArrayList<GridManager>();
+      List<FrameDataV2> listFrameData = new ArrayList<FrameDataV2>(listFrames.size());
+      List<BinPack2D> listGrid = new ArrayList<BinPack2D>();
 
       // initializing progress monitor
       if (progress != null) {
@@ -911,18 +911,15 @@ public class PseudoBamDecoder extends BamDecoder
         for (int j = 0; j < cycleFrames.size(); j++) {
           int idx = cycleFrames.get(j).intValue();
           try {
-            List<FrameDataV2> frame = listFrameData.get(idx);
+            FrameDataV2 frame = listFrameData.get(idx);
             PseudoBamFrameEntry bfe = listFrames.get(idx);
 
             PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.centerX, bfe.centerY);
             entry.setOption(OPTION_INT_BLOCKINDEX, Integer.valueOf(blockStartIndex));
-            entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(frame.size()));
+            entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(1));
             listFrameEntries.add(entry);
-            blockStartIndex += frame.size();
-
-            for (int k = 0; k < frame.size(); k++) {
-              listFrameDataBlocks.add(frame.get(k));
-            }
+            blockStartIndex++;
+            listFrameDataBlocks.add(frame);
           } catch (IndexOutOfBoundsException e) {
             throw new IndexOutOfBoundsException(
                 String.format("Invalid frame index %1$d found in cycle %2$d", idx, i));
@@ -1198,87 +1195,49 @@ public class PseudoBamDecoder extends BamDecoder
 
 
   // Calculates the locations of all frames on PVRZ textures and stores the results in framesList and gridList.
-  private boolean buildFrameDataList(List<List<FrameDataV2>> framesList, List<GridManager> gridList,
+  private boolean buildFrameDataList(List<FrameDataV2> framesList, List<BinPack2D> gridList,
                                      int pvrzPageIndex) throws Exception
   {
     if (framesList != null && gridList != null && pvrzPageIndex >= 0 && pvrzPageIndex < 99999) {
       final int pageDim = 1024;
+      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BottomLeftRule;
 
       for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
-        List<FrameDataV2> frameDataList = new ArrayList<FrameDataV2>();
-        framesList.add(frameDataList);
-
-        // 2px padding added to avoid black borders around frames
         int imgWidth = listFrames.get(frameIdx).frame.getWidth() + 2;
         int imgHeight = listFrames.get(frameIdx).frame.getHeight() + 2;
-        int imgSize = imgWidth*imgHeight;
-        int x = 0, y = 0, pOfs = 0;
 
-        while (pOfs < imgSize) {
-          int w = Math.min(pageDim, imgWidth - x);
-          int h = Math.min(pageDim, imgHeight - y);
-          if (w == pageDim && h == pageDim) {
-            // image is bigger than max. PVRZ texture size (very unlikely)
-            GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
-            gm.add(new Rectangle(0, 0, w >>> 2, h >>> 2));
-            gridList.add(gm);
-            // registering page entry
-            int pageIdx = gridList.size() - 1;
-            FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx, 0, 0, w, h, x, y);
-            frameDataList.add(entry);
-          } else {
-            // image is smaller than max. PVRZ texture size
-            // finding first available page containing sufficient space for the current image
-            // (using a multiple of 4 alignment for better DXT compression)
-            Dimension space = new Dimension((w+3) >>> 2, (h+3) >>> 2);
-            int pageIdx = -1;
-            Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-            for (int i = 0; i < gridList.size(); i++) {
-              GridManager gm = gridList.get(i);
-              Rectangle rect = gm.findNext(space, GridManager.Alignment.TopLeftHorizontal);
-              if (rect != null) {
-                pageIdx = i;
-                rectMatch = (Rectangle)rect.clone();
-                break;
-              }
-              if (pageIdx >= 0) {
-                break;
-              }
-            }
-
-            // creating a new page if no match has been found
-            if (pageIdx < 0) {
-              GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
-              gridList.add(gm);
-              pageIdx = gridList.size() - 1;
-              rectMatch.x = rectMatch.y = 0;
-              rectMatch.width = gm.getWidth();
-              rectMatch.height = gm.getHeight();
-            }
-
-            // adding region to the page
-            GridManager gm = gridList.get(pageIdx);
-            gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
-            // registering page entry (centering frame in padded region)
-            FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx, (rectMatch.x << 2) + 1,
-                                                (rectMatch.y << 2) + 1, w - 2, h - 2, x, y);
-            frameDataList.add(entry);
+        // use multiple of 4 to take advantage of texture compression algorithm
+        Dimension space = new Dimension((imgWidth+3) & ~3, (imgHeight+3) & ~3);
+        int pageIdx = -1;
+        Rectangle rectMatch = null;
+        for (int i = 0; i < gridList.size(); i++) {
+          BinPack2D packer = gridList.get(i);
+          rectMatch = packer.insert(space.width, space.height, binPackRule);
+          if (rectMatch.height > 0) {
+            pageIdx = i;
+            break;
           }
-
-          // advancing scan
-          if (x + pageDim >= imgWidth) {
-            x = 0;
-            y += pageDim;
-          } else {
-            x += pageDim;
-          }
-          pOfs = y*imgWidth + x;
         }
+
+        // create new page?
+        if (pageIdx < 0) {
+          BinPack2D packer = new BinPack2D(pageDim, pageDim);
+          gridList.add(packer);
+          pageIdx = gridList.size() - 1;
+          rectMatch = packer.insert(space.width, space.height, binPackRule);
+        }
+
+        // registering page entry (centering frame in padded region)
+        FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx,
+                                            rectMatch.x + 1, rectMatch.y + 1,
+                                            imgWidth - 2, imgHeight - 2,
+                                            0, 0);
+        framesList.add(entry);
       }
 
       if (pvrzPageIndex + gridList.size() > 100000) {
         throw new Exception(String.format("The number of required PVRZ files exceeds the max. index of 99999.\n" +
-                                          "Please choose a PVRZ start index smaller or equal to %1$d.",
+                                          "Please choose a PVRZ start index smaller than or equal to %1$d.",
                                           100000 - gridList.size()));
       }
       return true;
@@ -1287,8 +1246,8 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   // Creates all PVRZ files defined in the method arguments.
-  private boolean createPvrzPages(String path, DxtEncoder.DxtType dxtType, List<GridManager> gridList,
-                                  List<List<FrameDataV2>> framesList, ProgressMonitor progress,
+  private boolean createPvrzPages(String path, DxtEncoder.DxtType dxtType, List<BinPack2D> gridList,
+                                  List<FrameDataV2> framesList, ProgressMonitor progress,
                                   int curProgress) throws Exception
   {
     if (path == null) {
@@ -1304,11 +1263,9 @@ public class PseudoBamDecoder extends BamDecoder
     int pageMin = Integer.MAX_VALUE;
     int pageMax = -1;
     for (int i = 0; i < framesList.size(); i++) {
-      List<FrameDataV2> list = framesList.get(i);
-      for (int j = 0; j < list.size(); j++) {
-        pageMin = Math.min(pageMin, list.get(j).page);
-        pageMax = Math.max(pageMax, list.get(j).page);
-      }
+      FrameDataV2 entry = framesList.get(i);
+      pageMin = Math.min(pageMin, entry.page);
+      pageMax = Math.max(pageMax, entry.page);
     }
 
     String note = "Generating PVRZ file %1$s / %2$s";
@@ -1330,12 +1287,12 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       String pvrzName = path + String.format("MOS%1$04d.PVRZ", i);
-      GridManager gm = gridList.get(i - pageMin);
-      gm.shrink();
+      BinPack2D packer = gridList.get(i - pageMin);
+      packer.shrinkBin(true);
 
       // generating texture image
-      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth() << 2);
-      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight() << 2);
+      int tw = packer.getBinWidth();
+      int th = packer.getBinHeight();
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = (Graphics2D)texture.getGraphics();
       try {
@@ -1345,16 +1302,13 @@ public class PseudoBamDecoder extends BamDecoder
         g.setColor(TransparentColor);
         for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
           BufferedImage image = listFrames.get(frameIdx).frame;
-          List<FrameDataV2> frame = framesList.get(frameIdx);
-          for (int entryIdx = 0; entryIdx < frame.size(); entryIdx++) {
-            FrameDataV2 entry = frame.get(entryIdx);
-            if (entry.page == i) {
-              int sx = entry.dx, sy = entry.dy;
-              int dx = entry.sx, dy = entry.sy;
-              int w = entry.width, h = entry.height;
-              g.fillRect(dx - 1, dy - 1, w + 2, h + 2);   // compensating for padding done in buildFrameDataList()
-              g.drawImage(image, dx, dy, dx+w, dy+h, sx, sy, sx+w, sy+h, null);
-            }
+          FrameDataV2 frame = framesList.get(frameIdx);
+          if (frame.page == i) {
+            int sx = frame.dx, sy = frame.dy;
+            int dx = frame.sx, dy = frame.sy;
+            int w = frame.width, h = frame.height;
+            g.fillRect(dx - 1, dy - 1, w + 2, h + 2);   // compensating for padding done in buildFrameDataList()
+            g.drawImage(image, dx, dy, dx+w, dy+h, sx, sy, sx+w, sy+h, null);
           }
         }
       } finally {
