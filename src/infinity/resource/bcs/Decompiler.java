@@ -176,7 +176,10 @@ public final class Decompiler
         } else {
           StringBuilder sb = new StringBuilder();
           decompileInteger(sb, (long)nr, p);
-          comment = getResourceFileName(p, sb.toString());
+          String s = getResourceFileName(p, sb.toString());
+          if (s != null) {
+            comment = s;
+          }
         }
       }
       else if (p.substring(0, 2).equals("P:"))
