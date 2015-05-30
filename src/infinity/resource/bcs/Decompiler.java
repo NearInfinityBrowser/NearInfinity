@@ -168,7 +168,8 @@ public final class Decompiler
       else if (p.substring(0, 2).equals("I:")) {
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);
-        if (p.length() >= 8 && p.substring(0, 8).equalsIgnoreCase("I:StrRef")) {
+        if ((p.length() >= 8 && p.substring(0, 8).equalsIgnoreCase("I:StrRef")) ||
+            (p.length() >= 7 && p.substring(0, 7).equalsIgnoreCase("I:Entry"))) {
           comment = StringResource.getStringRef(nr);
           if (generateErrors)
             stringrefsUsed.add(new Integer(nr));
