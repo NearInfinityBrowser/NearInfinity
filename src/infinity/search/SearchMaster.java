@@ -19,6 +19,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -190,10 +191,15 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
       term = ".*" + term + ".*";
     }
     Pattern regPattern;
-    if (cbcase.isSelected()) {
-      regPattern = Pattern.compile(term, Pattern.DOTALL);
-    } else {
-      regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    try {
+      if (cbcase.isSelected()) {
+        regPattern = Pattern.compile(term, Pattern.DOTALL);
+      } else {
+        regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+      }
+    } catch (PatternSyntaxException e) {
+      JOptionPane.showMessageDialog(this, "Syntax error in search string.", "Error", JOptionPane.ERROR_MESSAGE);
+      return;
     }
     blocker.setBlocked(true);
     bnext.setEnabled(false);

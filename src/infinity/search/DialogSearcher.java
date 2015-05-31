@@ -32,6 +32,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -143,10 +144,15 @@ public final class DialogSearcher implements Runnable, ActionListener
       term = ".*" + term + ".*";
     }
     Pattern regPattern;
-    if (cbcase.isSelected()) {
-      regPattern = Pattern.compile(term, Pattern.DOTALL);
-    } else {
-      regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    try {
+      if (cbcase.isSelected()) {
+        regPattern = Pattern.compile(term, Pattern.DOTALL);
+      } else {
+        regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+      }
+    } catch (PatternSyntaxException e) {
+      JOptionPane.showMessageDialog(parent, "Syntax error in search string.", "Error", JOptionPane.ERROR_MESSAGE);
+      return;
     }
     inputFrame.setVisible(false);
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, files.size());
