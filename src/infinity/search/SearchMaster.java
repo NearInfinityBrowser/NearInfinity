@@ -37,6 +37,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
   private final JButton bclear = new JButton("New Search", Icons.getIcon("New16.gif"));
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
+  private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
   private final JFrame container;
   private final JRadioButton rbup = new JRadioButton("Up");
   private final JRadioButton rbdown = new JRadioButton("Down");
@@ -102,11 +103,13 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     dirpanel.add(rbdown);
     dirpanel.setBorder(BorderFactory.createTitledBorder("Direction"));
     JPanel matchpanel = new JPanel();
-    matchpanel.setLayout(new GridLayout(2, 1));
+    matchpanel.setLayout(new GridLayout(3, 1));
     matchpanel.add(cbwhole);
     matchpanel.add(cbcase);
+    matchpanel.add(cbregex);
     cbwhole.setMnemonic('w');
     cbcase.setMnemonic('m');
+    cbregex.setMnemonic('r');
     JPanel bpanel = new JPanel();
     bpanel.setLayout(new GridLayout(2, 1, 6, 6));
     bpanel.add(bclear);
@@ -178,14 +181,20 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
   {
     index = 0;
     String term = tfinput.getText();
-    term = term.replaceAll("(\\W)", "\\\\$1");
-    if (cbwhole.isSelected())
+    if (!cbregex.isSelected()) {
+      term = term.replaceAll("(\\W)", "\\\\$1");
+    }
+    if (cbwhole.isSelected()) {
       term = ".*\\b" + term + "\\b.*";
-    else
+    } else {
       term = ".*" + term + ".*";
-    Pattern regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    if (cbcase.isSelected())
+    }
+    Pattern regPattern;
+    if (cbcase.isSelected()) {
       regPattern = Pattern.compile(term, Pattern.DOTALL);
+    } else {
+      regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    }
     blocker.setBlocked(true);
     bnext.setEnabled(false);
     cbwhole.setEnabled(false);

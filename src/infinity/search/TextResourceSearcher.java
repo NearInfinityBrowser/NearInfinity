@@ -40,6 +40,7 @@ public final class TextResourceSearcher implements Runnable, ActionListener
   private final JButton bsearch = new JButton("Search", Icons.getIcon("FindAgain16.gif"));
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
+  private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
 
@@ -69,11 +70,13 @@ public final class TextResourceSearcher implements Runnable, ActionListener
     label.setLabelFor(tfinput);
     label.setDisplayedMnemonic('f');
     JPanel matchpanel = new JPanel();
-    matchpanel.setLayout(new GridLayout(0, 1));
+    matchpanel.setLayout(new GridLayout(0, 2));
     matchpanel.add(cbwhole);
     matchpanel.add(cbcase);
+    matchpanel.add(cbregex);
     cbwhole.setMnemonic('w');
     cbcase.setMnemonic('m');
+    cbregex.setMnemonic('r');
 
     gbc.insets = new Insets(6, 6, 3, 3);
     gbc.weightx = 0.0;
@@ -126,14 +129,20 @@ public final class TextResourceSearcher implements Runnable, ActionListener
   {
     String term = tfinput.getText();
     TextHitFrame resultFrame = new TextHitFrame(term, parent);
-    term = term.replaceAll("(\\W)", "\\\\$1");
-    if (cbwhole.isSelected())
+    if (!cbregex.isSelected()) {
+      term = term.replaceAll("(\\W)", "\\\\$1");
+    }
+    if (cbwhole.isSelected()) {
       term = ".*\\b" + term + "\\b.*";
-    else
+    } else {
       term = ".*" + term + ".*";
-    Pattern regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    if (cbcase.isSelected())
+    }
+    Pattern regPattern;
+    if (cbcase.isSelected()) {
       regPattern = Pattern.compile(term, Pattern.DOTALL);
+    } else {
+      regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    }
     inputFrame.setVisible(false);
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, files.size());
     progress.setMillisToDecideToPopup(100);
