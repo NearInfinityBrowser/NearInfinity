@@ -3730,7 +3730,7 @@ public final class EffectFactory
                               new String[]{"Active class", "Original class"}));
         if (isTobEx) {
           s.add(new IdsBitmap(buffer, offset + 4, 2, "Proficiency", "STATS.IDS"));
-          s.add(new Bitmap(buffer, offset + 4, 2, "Behavior", new String[]{"Set if higher", "Increment"}));
+          s.add(new Bitmap(buffer, offset + 6, 2, "Behavior", new String[]{"Set if higher", "Increment"}));
         } else {
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
         }
