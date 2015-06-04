@@ -272,7 +272,7 @@ public final class EffectFactory
                                              "Petrify/Polymorph", "", "", "",
                                              "", "", "EE: Ignore primary", "EE: Ignore secondary",
                                              "", "", "", "", "", "", "", "", "", "", "", "",
-                                             "EE: Bypass mirror image", "EE: Ignore difficulty"};
+                                             "EE/Ex: Bypass mirror image", "EE: Ignore difficulty"};
   public static final String s_savetype2[] = {"No save", "", "", "Fortitude", "Reflex", "Will"};
   public static final String s_spellstate[] = {"Chaotic Command", "Miscast Magic", "Pain",
                                                "Greater Malison", "Blood Rage", "Cat's Grace",
