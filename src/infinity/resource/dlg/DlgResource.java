@@ -5,6 +5,7 @@
 package infinity.resource.dlg;
 
 import infinity.NearInfinity;
+import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
@@ -152,6 +153,18 @@ public final class DlgResource extends AbstractStruct
   }
 
   @Override
+  protected void datatypeAdded(AddRemovable datatype)
+  {
+    updateReferences(datatype, true);
+  }
+
+  @Override
+  protected void datatypeRemoved(AddRemovable datatype)
+  {
+    updateReferences(datatype, false);
+  }
+
+  @Override
   public int read(byte buffer[], int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 4, "Signature"));
@@ -253,6 +266,107 @@ public final class DlgResource extends AbstractStruct
       treeViewer.init();
     } finally {
       WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
+    }
+  }
+
+  // Updates trigger/action references in states and responses
+  private void updateReferences(AddRemovable datatype, boolean added)
+  {
+    if (datatype instanceof StateTrigger) {
+      StateTrigger trigger = (StateTrigger)datatype;
+      int ofsStates = ((SectionOffset)getAttribute("States offset")).getValue();
+      int numStates = ((SectionCount)getAttribute("# states")).getValue();
+      int ofsTriggers = ((SectionOffset)getAttribute("State triggers offset")).getValue();
+      int idxTrigger = (trigger.getOffset() - ofsTriggers) / trigger.getSize();
+
+      // adjusting state trigger references
+      while (numStates > 0) {
+        State state = (State)getAttribute(ofsStates, false);
+        if (state != null) {
+          DecNumber dec = (DecNumber)state.getAttribute("Trigger index");
+          if (dec.getValue() == idxTrigger) {
+            if (added) {
+              dec.incValue(1);
+            } else {
+              dec.setValue(-1);
+            }
+          } else if (dec.getValue() > idxTrigger) {
+            if (added) {
+              dec.incValue(1);
+            } else {
+              dec.incValue(-1);
+            }
+          }
+          ofsStates += state.getSize();
+        }
+        numStates--;
+      }
+    } else if (datatype instanceof ResponseTrigger) {
+      ResponseTrigger trigger = (ResponseTrigger)datatype;
+      int ofsTrans = ((SectionOffset)getAttribute("Responses offset")).getValue();
+      int numTrans = ((SectionCount)getAttribute("# responses")).getValue();
+      int ofsTriggers = ((SectionOffset)getAttribute("Response triggers offset")).getValue();
+      int idxTrigger = (trigger.getOffset() - ofsTriggers) / trigger.getSize();
+
+      // adjusting response trigger references
+      while (numTrans > 0) {
+        Transition trans = (Transition)getAttribute(ofsTrans, false);
+        if (trans != null) {
+          Flag flags = (Flag)trans.getAttribute("Flags");
+          if (flags.isFlagSet(1)) {
+            DecNumber dec = (DecNumber)trans.getAttribute("Trigger index");
+            if (dec.getValue() == idxTrigger) {
+              if (added) {
+                dec.incValue(1);
+              } else {
+                flags.setValue(flags.getValue() & ~2L);
+                dec.setValue(0);
+              }
+            } else if (dec.getValue() > idxTrigger) {
+              if (added) {
+                dec.incValue(1);
+              } else {
+                dec.incValue(-1);
+              }
+            }
+          }
+          ofsTrans += trans.getSize();
+        }
+        numTrans--;
+      }
+    } else if (datatype instanceof Action) {
+      Action action = (Action)datatype;
+      int ofsTrans = ((SectionOffset)getAttribute("Responses offset")).getValue();
+      int numTrans = ((SectionCount)getAttribute("# responses")).getValue();
+      int ofsActions = ((SectionOffset)getAttribute("Actions offset")).getValue();
+      int idxAction = (action.getOffset() - ofsActions) / action.getSize();
+
+      // adjusting action references
+      while (numTrans > 0) {
+        Transition trans = (Transition)getAttribute(ofsTrans, false);
+        if (trans != null) {
+          Flag flags = (Flag)trans.getAttribute("Flags");
+          if (flags.isFlagSet(2)) {
+            DecNumber dec = (DecNumber)trans.getAttribute("Action index");
+            if (dec.getValue() == idxAction) {
+              if (added) {
+                dec.incValue(1);
+              } else {
+                flags.setValue(flags.getValue() & ~4L);
+                dec.setValue(0);
+              }
+            } else if (dec.getValue() > idxAction) {
+              if (added) {
+                dec.incValue(1);
+              } else {
+                dec.incValue(-1);
+              }
+            }
+          }
+          ofsTrans += trans.getSize();
+        }
+        numTrans--;
+      }
     }
   }
 }
