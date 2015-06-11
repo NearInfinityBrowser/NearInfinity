@@ -119,6 +119,7 @@ public final class ViewerUtil
       try {
         BamResource iconBam = new BamResource(iconEntry);
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
+        frameNr = Math.min(frameNr, iconBam.getFrameCount() - 1);
         label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -137,7 +138,12 @@ public final class ViewerUtil
       try {
         BamResource iconBam = new BamResource(iconEntry);
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
-        frameNr = iconBam.getFrameIndex(animNr, frameNr);
+        int frameIdx = -1;
+        for (int curAnimIdx = animNr; curAnimIdx >= 0 && frameIdx < 0; curAnimIdx--) {
+          for (int curFrameIdx = frameNr; curFrameIdx >= 0 && frameIdx < 0; curFrameIdx--) {
+            frameIdx = iconBam.getFrameIndex(curAnimIdx, curFrameIdx);
+          }
+        }
         label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -268,7 +274,7 @@ public final class ViewerUtil
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class StructListPanel extends JPanel implements TableModelListener, ActionListener
+  public static final class StructListPanel extends JPanel implements TableModelListener, ActionListener
   {
     private final AbstractStruct struct;
     private final Class<? extends StructEntry> listClass;
@@ -334,6 +340,9 @@ public final class ViewerUtil
       add(bOpen, BorderLayout.SOUTH);
       setPreferredSize(new Dimension(5, 5));
     }
+
+    /** Provides access to the list component of the panel. */
+    public JList getList() { return list; }
 
     @Override
     public void actionPerformed(ActionEvent event)
