@@ -144,7 +144,7 @@ public final class ViewerUtil
             frameIdx = iconBam.getFrameIndex(curAnimIdx, curFrameIdx);
           }
         }
-        label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));
+        label.setIcon(new ImageIcon(iconBam.getFrame(frameIdx)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
