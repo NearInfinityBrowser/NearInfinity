@@ -153,9 +153,8 @@ public class ChildFrame extends JFrame
             throw new IllegalAccessError(); // ToDo: This is just too ugly
           }
           windows.remove(ChildFrame.this);
-        } else {
-          ChildFrame.this.setVisible(false);
         }
+        ChildFrame.this.setVisible(false);
       }
     }
     );
