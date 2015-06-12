@@ -17,6 +17,7 @@ import java.awt.event.MouseListener;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.Locale;
 
 import infinity.NearInfinity;
 import infinity.datatype.DecNumber;
@@ -32,7 +33,6 @@ import infinity.gui.ViewerUtil.StructListPanel;
 import infinity.gui.WindowBlocker;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
-import infinity.resource.StructEntry;
 import infinity.resource.graphics.BamDecoder;
 import infinity.resource.graphics.BamDecoder.BamControl;
 import infinity.resource.graphics.ColorConvert;
@@ -115,7 +115,7 @@ public class ViewerMap extends JPanel
           rcMap = new RenderCanvas(ColorConvert.cloneImage(mapOrig));
           rcMap.addMouseListener(listeners);
 
-          listPanel = (StructListPanel)ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Name",
+          listPanel = (StructListPanel)ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Current area",
                                                                 new WmpAreaListRenderer(mapIcons), listeners);
           JScrollPane mapScroll = new JScrollPane(rcMap);
           mapScroll.getVerticalScrollBar().setUnitIncrement(16);
@@ -548,12 +548,21 @@ public class ViewerMap extends JPanel
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       AbstractStruct struct = (AbstractStruct)value;
-      StructEntry entry = struct.getAttribute("Name");
-      if (entry instanceof StringRef) {
-        label.setText(((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs()));
+
+      StringRef areaName = (StringRef)struct.getAttribute("Name");
+      ResourceRef areaRef = (ResourceRef)struct.getAttribute("Current area");
+      String text1 = null, text2 = null;
+      if (areaName.getValue() >= 0) {
+        text1 = areaName.toString(BrowserMenuBar.getInstance().showStrrefs());
       } else {
-        label.setText(entry.toString());
+        text1 = "";
       }
+      text2 = areaRef.getResourceName();
+      if (!text2.equalsIgnoreCase("NONE")) {
+        text2 = text2.toUpperCase(Locale.ENGLISH).replace(".ARE", "");
+      }
+      label.setText(String.format("[%1$s] %2$s", text2, text1));
+
       DecNumber animNr = (DecNumber)struct.getAttribute("Icon number");
       setIcon(null);
       if (ctrl != null) {
