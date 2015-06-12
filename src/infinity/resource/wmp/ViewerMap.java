@@ -61,7 +61,6 @@ public class ViewerMap extends JPanel
   private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons");
   private final JCheckBoxMenuItem miShowDistances = new JCheckBoxMenuItem("Show travel distances");
   private final BufferedImage iconDot;
-  private final MapIcon dotRestore;
   private final Listeners listeners = new Listeners();
   private final MapEntry mapEntry;
 
@@ -70,6 +69,8 @@ public class ViewerMap extends JPanel
   private BamDecoder mapIcons;
   private BamControl mapIconsCtrl;
   private StructListPanel listPanel;
+  private BufferedImage dotBackup;
+  private int dotX, dotY;
 
   ViewerMap(MapEntry wmpMap)
   {
@@ -88,7 +89,8 @@ public class ViewerMap extends JPanel
       g.dispose();
       g = null;
 
-      dotRestore = new MapIcon(-1, -1, new BufferedImage(iconDot.getWidth(), iconDot.getHeight(), iconDot.getType()));
+      dotBackup = new BufferedImage(iconDot.getWidth(), iconDot.getHeight(), iconDot.getType());
+      dotX = dotY = -1;
 
       miShowIcons.setMnemonic('i');
       miShowIcons.addActionListener(listeners);
@@ -397,15 +399,15 @@ public class ViewerMap extends JPanel
     if (entry != null) {
       int x = ((DecNumber)entry.getAttribute("Coordinate: X")).getValue();
       int y = ((DecNumber)entry.getAttribute("Coordinate: Y")).getValue();
-      int width = dotRestore.getWidth();
-      int height = dotRestore.getHeight();
+      int width = dotBackup.getWidth();
+      int height = dotBackup.getHeight();
       int xofs = width / 2;
       int yofs = height / 2;
-      Graphics2D g = dotRestore.getIcon().createGraphics();
+      Graphics2D g = dotBackup.createGraphics();
       try {
         g.drawImage(rcMap.getImage(), 0, 0, width, height, x-xofs, y-yofs, x-xofs+width, y-yofs+height, null);
-        dotRestore.setX(x-xofs);
-        dotRestore.setY(y-yofs);
+        dotX = x-xofs;
+        dotY = y-yofs;
       } finally {
         g.dispose();
         g = null;
@@ -416,16 +418,16 @@ public class ViewerMap extends JPanel
   // Restores background graphics of "dot"
   private void restoreDot()
   {
-    if (dotRestore.getX() != -1 && dotRestore.getY() != -1) {
-      int x = dotRestore.getX();
-      int y = dotRestore.getY();
-      int width = dotRestore.getWidth();
-      int height = dotRestore.getHeight();
+    if (dotX != -1 && dotY != -1) {
+      int x = dotX;
+      int y = dotY;
+      int width = dotBackup.getWidth();
+      int height = dotBackup.getHeight();
       Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
       try {
-        g.drawImage(dotRestore.getIcon(), x, y, x+width, y+height, 0, 0, width, height, null);
-        dotRestore.setX(-1);
-        dotRestore.setY(-1);
+        g.drawImage(dotBackup, x, y, x+width, y+height, 0, 0, width, height, null);
+        dotX = -1;
+        dotY = -1;
       } finally {
         g.dispose();
         g = null;
@@ -526,41 +528,6 @@ public class ViewerMap extends JPanel
     }
 
     // --------------------- End Interface ListSelectionListener ---------------------
-  }
-
-
-  private static class MapIcon
-  {
-    public int x, y;
-    public BufferedImage icon;
-
-    public MapIcon(int x, int y, BufferedImage icon)
-    {
-      init(x, y, icon);
-    }
-
-    public void init(int x, int y, BufferedImage icon)
-    {
-      this.x = x;
-      this.y = y;
-      this.icon = icon;
-    }
-
-    /** X position of the icon on the map. */
-    public int getX() { return x; }
-    public void setX(int x) { this.x = x; }
-
-    /** Y position of the icon on the map. */
-    public int getY() { return y; }
-    public void setY(int y) { this.y = y; }
-
-    /** Width of the icon. */
-    public int getWidth() { return (icon != null) ? icon.getWidth() : 0; }
-    /** Height of the icon. */
-    public int getHeight() { return (icon != null) ? icon.getHeight() : 0; }
-
-    /** Image data. */
-    public BufferedImage getIcon() { return icon; }
   }
 
 
