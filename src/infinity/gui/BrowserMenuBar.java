@@ -258,6 +258,12 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionBCSEnableCodeFolding.isSelected();
   }
 
+  /** Returns state of "BCS: Enable Automatic Indentation" */
+  public boolean getBcsAutoIndentEnabled()
+  {
+    return optionsMenu.optionBCSEnableAutoIndent.isSelected();
+  }
+
 //  /** Returns state of "BCS: Enable Auto-Completion" */
 //  public boolean getBcsAutoCompleteEnabled()
 //  {
@@ -1545,6 +1551,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_BCS_SYNTAXHIGHLIGHTING   = "BcsSyntaxHighlighting";
     private static final String OPTION_BCS_COLORSCHEME          = "BcsColorScheme";
     private static final String OPTION_BCS_CODEFOLDING          = "BcsCodeFolding";
+    private static final String OPTION_BCS_AUTO_INDENT          = "BcsAutoIndent";
 //    private static final String OPTION_BCS_AUTOCOMPLETE         = "BcsAutoComplete";
     private static final String OPTION_BCS_INDENT               = "BcsIndent";
     private static final String OPTION_GLSL_SYNTAXHIGHLIGHTING  = "GlslSyntaxHighlighting";
@@ -1575,7 +1582,7 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
                               optionBCSEnableSyntax, optionBCSEnableCodeFolding,
-                              optionGLSLEnableSyntax, optionSQLEnableSyntax,
+                              optionBCSEnableAutoIndent, optionGLSLEnableSyntax, optionSQLEnableSyntax,
 //                              optionBCSEnableAutoComplete,
                               optionGLSLEnableCodeFolding,
                               optionTextDebugColorSchemeEnabled;
@@ -1699,6 +1706,9 @@ public final class BrowserMenuBar extends JMenuBar
       optionBCSEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding",
                                                          getPrefs().getBoolean(OPTION_BCS_CODEFOLDING, false));
       textBCS.add(optionBCSEnableCodeFolding);
+      optionBCSEnableAutoIndent = new JCheckBoxMenuItem("Enable Automatic Indentation",
+                                                        getPrefs().getBoolean(OPTION_BCS_AUTO_INDENT, false));
+      textBCS.add(optionBCSEnableAutoIndent);
       // TODO: add auto-complete support
 //      optionBCSEnableAutoComplete = new JCheckBoxMenuItem("Enable Auto-Completion",
 //                                                          getPrefs().getBoolean(OPTION_BCS_AUTOCOMPLETE, false));
@@ -2171,6 +2181,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putInt(OPTION_BCS_COLORSCHEME, selectColorScheme);
       getPrefs().putBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, optionBCSEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_BCS_CODEFOLDING, optionBCSEnableCodeFolding.isSelected());
+      getPrefs().putBoolean(OPTION_BCS_AUTO_INDENT, optionBCSEnableAutoIndent.isSelected());
 //      prefs.putBoolean(OPTION_BCS_AUTOCOMPLETE, optionBCSEnableAutoComplete.isSelected());
       selectColorScheme = getSelectedButtonIndex(selectGlslColorScheme, 0);
       getPrefs().putInt(OPTION_GLSL_COLORSCHEME, selectColorScheme);

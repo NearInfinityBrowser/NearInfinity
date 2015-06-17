@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import infinity.gui.BrowserMenuBar;
 import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.util.IdsMap;
@@ -225,7 +226,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
   public boolean getShouldIndentNextLineAfter(Token token)
   {
     if (token != null) {
-      if (token.getType() == TOKEN_KEYWORD) {
+      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled() &&
+          token.getType() == TOKEN_KEYWORD) {
         String s = String.valueOf(token.getTextArray(), token.getTextOffset(),
                                   token.getEndOffset() - token.getTextOffset());
         if ("IF".equals(s) || "THEN".equals(s) || s.startsWith("#")) {
