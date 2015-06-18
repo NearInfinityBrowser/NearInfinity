@@ -349,7 +349,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       BufferedImage srcImage = ColorConvert.createCompatibleImage(img.getWidth(null),
                                                                   img.getHeight(null),
                                                                   Transparency.BITMASK);
-      Graphics2D g = (Graphics2D)srcImage.getGraphics();
+      Graphics2D g = srcImage.createGraphics();
       g.drawImage(getImage(), 0, 0, null);
       g.dispose();
       g = null;

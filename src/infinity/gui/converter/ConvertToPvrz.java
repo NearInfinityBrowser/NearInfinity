@@ -603,7 +603,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         int h = nextPowerOfTwo(srcImg.getHeight());
         if (w != srcImg.getWidth() || h != srcImg.getHeight()) {
           BufferedImage image = ColorConvert.createCompatibleImage(w, h, true);
-          Graphics2D g = (Graphics2D)image.getGraphics();
+          Graphics2D g = image.createGraphics();
           g.drawImage(srcImg, 0, 0, null);
           g.dispose();
           srcImg = image;

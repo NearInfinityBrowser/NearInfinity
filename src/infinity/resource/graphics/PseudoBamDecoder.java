@@ -1294,7 +1294,7 @@ public class PseudoBamDecoder extends BamDecoder
       int tw = packer.getBinWidth();
       int th = packer.getBinHeight();
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
-      Graphics2D g = (Graphics2D)texture.getGraphics();
+      Graphics2D g = texture.createGraphics();
       try {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, texture.getWidth(), texture.getHeight());

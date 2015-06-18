@@ -511,7 +511,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
   {
     if (viewerInitialized()) {
       BufferedImage image = (BufferedImage)rcDisplay.getImage();
-      Graphics2D g = (Graphics2D)image.getGraphics();
+      Graphics2D g = image.createGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         g.setColor(TransparentColor);
@@ -821,7 +821,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       }
       // creating global palette for all available frames
       BufferedImage composedImage = ColorConvert.createCompatibleImage(totalWidth, totalHeight, true);
-      Graphics2D g = (Graphics2D)composedImage.getGraphics();
+      Graphics2D g = composedImage.createGraphics();
       for (int i = 0, w = 0; i < frameCount; i++) {
         BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(control, i), true);
         if (img != null) {

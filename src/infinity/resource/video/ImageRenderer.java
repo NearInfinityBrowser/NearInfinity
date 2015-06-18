@@ -235,7 +235,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
     for (int i = 0; i < videoBuffer.bufferCount(); i++) {
       BufferedImage img = (BufferedImage)videoBuffer.frontBuffer();
       if (img != null) {
-        Graphics2D g = (Graphics2D)img.getGraphics();
+        Graphics2D g = img.createGraphics();
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, img.getWidth(), img.getHeight());
         g.dispose();

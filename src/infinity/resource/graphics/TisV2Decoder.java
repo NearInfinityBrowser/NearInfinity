@@ -256,7 +256,7 @@ public class TisV2Decoder extends TisDecoder
         // removing old content
         try {
           if (page == -1) {
-            Graphics2D g = (Graphics2D)workingCanvas.getGraphics();
+            Graphics2D g = workingCanvas.createGraphics();
             try {
               g.setColor(Color.BLACK);
               g.fillRect(0, 0, TileDimension, TileDimension);

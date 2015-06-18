@@ -586,7 +586,7 @@ public class ColorPicker extends Datatype implements Editable, MouseListener, Fo
     // drawing marker
     BufferedImage image = (BufferedImage)rcMainPreview.getImage();
     if (image != null) {
-      Graphics2D g = (Graphics2D)image.getGraphics();
+      Graphics2D g = image.createGraphics();
       if (g != null) {
         try {
           int x = tmpHue * image.getWidth() / 360;

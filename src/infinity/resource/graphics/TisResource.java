@@ -628,7 +628,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
                 progress.setNote(String.format(note, progressIndex, progressMax));
               }
 
-              Graphics2D g = (Graphics2D)image.getGraphics();
+              Graphics2D g = image.createGraphics();
               try {
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
                 g.setColor(TransparentColor);
@@ -828,7 +828,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           }
           try {
             image = ColorConvert.createCompatibleImage(tilesX*64, tilesY*64, Transparency.BITMASK);
-            Graphics2D g = (Graphics2D)image.getGraphics();
+            Graphics2D g = image.createGraphics();
             for (int idx = 0; idx < tileImages.size(); idx++) {
               if (tileImages.get(idx) != null) {
                 int tx = idx % tilesX;

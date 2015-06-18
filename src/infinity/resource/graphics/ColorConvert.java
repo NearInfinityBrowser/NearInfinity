@@ -149,7 +149,7 @@ public class ColorConvert
       }
       final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
                                                         hasTransparency);
-      Graphics2D g = (Graphics2D)image.getGraphics();
+      Graphics2D g = image.createGraphics();
       try {
         g.drawImage(img, 0, 0, null);
       } finally {

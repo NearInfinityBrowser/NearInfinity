@@ -1935,7 +1935,7 @@ public class AreaViewer extends ChildFrame
             BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
                                                                         srcImage.getHeight(),
                                                                         srcImage.getTransparency());
-            Graphics2D g = (Graphics2D)dstImage.getGraphics();
+            Graphics2D g = dstImage.createGraphics();
             g.drawImage(srcImage, 0, 0, null);
             g.dispose();
             srcImage = null;

@@ -848,7 +848,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private final Viewer viewer;
     private final Window panel;
 
-    private Image image, bg;
+    private BufferedImage image, bg;
 
     public Panel(Viewer viewer, Window panel)
     {
@@ -952,7 +952,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
       }
 
-      Graphics2D g = (Graphics2D)image.getGraphics();
+      Graphics2D g = image.createGraphics();
       if (g != null) {
         try {
           Composite comp = g.getComposite();
@@ -1227,7 +1227,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         Rectangle rect = getTextDimension(text, fntBam);
         BufferedImage letter = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_ARGB);
         image = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         try {
           int curX = 0;
           for (int i = 0; i < text.length(); i++) {
@@ -1315,7 +1315,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
 
       if (!isEmpty()) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         if (g != null) {
           try {
             // 1. clearing image
@@ -1413,7 +1413,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
 
       if (!isEmpty()) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         if (g != null) {
           try {
             // 1. clearing image
@@ -1522,7 +1522,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
 
       if (!isEmpty()) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         if (g != null) {
           try {
             // 1. clearing image
@@ -1631,7 +1631,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
 
       if (!isEmpty()) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         if (g != null) {
           try {
             // 1. clearing image
@@ -1748,7 +1748,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
 
       if (!isEmpty()) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         if (g != null) {
           try {
             // 1. clearing image
@@ -1799,7 +1799,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
 
       if (!isEmpty()) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         if (g != null) {
           try {
             // 1. clearing image
@@ -1906,7 +1906,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
 
       if (!isEmpty()) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         if (g != null) {
           try {
             // 1. clearing image

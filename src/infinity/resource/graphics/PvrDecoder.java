@@ -785,7 +785,7 @@ public class PvrDecoder
 
       // rendering aligned image to target image
       if (alignedImage != null) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,
@@ -905,7 +905,7 @@ public class PvrDecoder
 
       // rendering aligned image to target image
       if (alignedImage != null) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,
@@ -1042,7 +1042,7 @@ public class PvrDecoder
 
       // rendering aligned image to target image
       if (alignedImage != null) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,
@@ -1251,7 +1251,7 @@ public class PvrDecoder
 
       // rendering aligned image to target image
       if (alignedImage != null) {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(alignedImage, 0, 0, region.width, region.height,

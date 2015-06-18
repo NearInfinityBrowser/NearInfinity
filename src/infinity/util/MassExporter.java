@@ -400,7 +400,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         BufferedImage tile = ColorConvert.createCompatibleImage(64, 64, Transparency.BITMASK);
         BufferedImage image = ColorConvert.createCompatibleImage(64*columns, 64*rows, Transparency.BITMASK);
         try {
-          Graphics2D g = (Graphics2D)image.getGraphics();
+          Graphics2D g = image.createGraphics();
           try {
             for (int i = 0; i < tileCount; i++) {
               int x = 64*(i % columns);

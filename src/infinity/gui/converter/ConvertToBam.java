@@ -3165,7 +3165,7 @@ public class ConvertToBam extends ChildFrame
   {
     if (bamControlPreview != null && previewCanvas != null && rcPreview.getImage() != null) {
       // clearing old content
-      Graphics2D g = (Graphics2D)previewCanvas.getGraphics();
+      Graphics2D g = previewCanvas.createGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         g.setColor(new Color(0, true));
@@ -3541,7 +3541,7 @@ public class ConvertToBam extends ChildFrame
     BufferedImage canvas = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
     boolean typeFound = false;
     for (int i = 0; i < bamDecoder.frameCount(); i++) {
-      Graphics2D g = (Graphics2D)canvas.getGraphics();
+      Graphics2D g = canvas.createGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         g.setColor(new Color(0, true));

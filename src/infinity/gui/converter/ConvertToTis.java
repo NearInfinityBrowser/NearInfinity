@@ -560,7 +560,7 @@ public class ConvertToTis extends ChildFrame
       int w = packer.getBinWidth() * 64;
       int h = packer.getBinHeight() * 64;
       BufferedImage texture = ColorConvert.createCompatibleImage(w, h, true);
-      Graphics2D g = (Graphics2D)texture.getGraphics();
+      Graphics2D g = texture.createGraphics();
       g.setBackground(new Color(0, true));
       g.setColor(Color.BLACK);
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
