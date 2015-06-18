@@ -18,7 +18,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.awt.image.VolatileImage;
 import java.awt.image.WritableRaster;

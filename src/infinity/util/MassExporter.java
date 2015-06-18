@@ -84,6 +84,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbConvertCRE = new JCheckBox("Convert CHR=>CRE", false);
   private final JCheckBox cbDecompress = new JCheckBox("Decompress BAM/MOS", false);
   private final JCheckBox cbConvertToPNG = new JCheckBox("Export MOS/PVRZ/TIS as PNG", false);
+  private final JCheckBox cbConvertTisVersion = new JCheckBox("Convert TIS to ", false);
+  private final JComboBox cbConvertTisList = new JComboBox(new String[]{"Palette-based", "PVRZ-based"});
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExportMVEasAVI = new JCheckBox("Export MVE as AVI", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
@@ -112,6 +114,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     bCancel.setMnemonic('d');
     cbConvertToPNG.setToolTipText("Caution: Selecting both MOS and TIS may overwrite or skip some files!");
     cbExtractFramesBAM.setToolTipText("Note: Frames of each BAM resource are exported into separate subfolders.");
+    cbConvertTisVersion.setToolTipText("Caution: Conversion may take a long time. Files may be renamed to conform to naming scheme for PVRZ-based TIS files.");
 
     JPanel leftPanel = new JPanel(new BorderLayout());
     leftPanel.add(new JLabel("File types to export:"), BorderLayout.NORTH);
@@ -129,35 +132,42 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     pBamFrames.add(cbExtractFramesBAM);
     pBamFrames.add(cbExtractFramesBAMFormat);
 
+    JPanel pTisConvert = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    pTisConvert.add(cbConvertTisVersion);
+    pTisConvert.add(cbConvertTisList);
+
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     bottomRightPanel.add(new JLabel("Options:"), gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbConvertWAV, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbConvertCRE, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbDecompile, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbDecrypt, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbDecompress, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 6, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbConvertToPNG, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 7, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(pBamFrames, gbc);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(pTisConvert, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 8, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbExportMVEasAVI, gbc);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(pBamFrames, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 9, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbExportMVEasAVI, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 10, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbOverwrite, gbc);
 
     JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -246,12 +256,14 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     for (final Object newVar : selectedTypes) {
       selectedFiles.addAll(ResourceFactory.getResources((String)newVar));
     }
+    final int count = selectedFiles.size();
     ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
-                                                   String.format(fmtProgress, 999999, 999999),
+                                                   String.format(fmtProgress, 0, count),
                                                    0, selectedFiles.size());
     progress.setMillisToDecideToPopup(0);
     progress.setMillisToPopup(0);
-    for (int i = 0, count = selectedFiles.size(); i < count; i++) {
+    progress.setProgress(0);
+    for (int i = 0; i < count; i++) {
       ResourceEntry resourceEntry = selectedFiles.get(i);
       export(resourceEntry);
       progress.setProgress(i);
@@ -468,14 +480,28 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       int[] info = entry.getResourceInfo();
       int size = info[0];
       byte[] tileheader = null;
+      boolean isTis = false, isTisV2 = false;
       if (entry.getExtension().equalsIgnoreCase("TIS")) {
+        isTis = true;
         size *= info[1];
-        if (!entry.hasOverride())
+        if (!entry.hasOverride()) {
           tileheader = BIFFArchive.getTisHeader(info[0], info[1]);
-        else
-          size += 24;   // include header size
+        } else {
+          tileheader = new byte[24];
+          is.read(tileheader);
+        }
+        isTisV2 = (DynamicArray.getInt(tileheader, 12) == 0x0c);
       }
-      if (size >= 0) {
+
+      if (isTis && cbConvertTisVersion.isSelected() &&
+          isTisV2 == false && cbConvertTisList.getSelectedIndex() == 1) {
+        TisResource tis = new TisResource(entry);
+        tis.convertToPvrzTis(TisResource.makeTisFileNameValid(output), false);
+      } else if (isTis && cbConvertTisVersion.isSelected() &&
+                 isTisV2 == true && cbConvertTisList.getSelectedIndex() == 0) {
+        TisResource tis = new TisResource(entry);
+        tis.convertToPaletteTis(output, false);
+      } else if (size >= 0) {
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
         if (tileheader != null)
           bos.write(tileheader);

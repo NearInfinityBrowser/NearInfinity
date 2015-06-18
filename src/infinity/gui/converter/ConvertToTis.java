@@ -296,8 +296,7 @@ public class ConvertToTis extends ChildFrame
     if (!tisFileName.equalsIgnoreCase(createValidTisName(tisFileName, 2))) {
       result.add(null);
       result.add("Incompatible output file specified.\n\n" +
-              "Note:\nPVRZ-based TIS files are restricted to exactly 6 characters\n" +
-              "plus optional 'N' for night tilesets.)");
+                 "Note:\nPVRZ-based TIS filenames are restricted to 6 or 7 characters.)");
       return false;
     }
     if (tileCount < 1 || tileCount > (img.getWidth()*img.getHeight()/4096)) {
@@ -458,7 +457,7 @@ public class ConvertToTis extends ChildFrame
 
     // limit output filename to 6/7 or 8 characters (based on the TIS version)
     if (tisVersion == 2) {
-      if (!Pattern.matches(".{6}[nN]?", outNameBase)) {
+      if (!Pattern.matches(".{6,7}", outNameBase)) {
         if (outNameBase.length() > 6) {
           outNameBase = outNameBase.substring(0, 6);
         } else {
@@ -521,7 +520,7 @@ public class ConvertToTis extends ChildFrame
     if (tisNameBase.lastIndexOf('.') > 0) {
       tisNameBase = tisNameBase.substring(0, tisNameBase.lastIndexOf('.'));
     }
-    if (Pattern.matches(".{6}[nN]?", tisNameBase)) {
+    if (Pattern.matches(".{6,7}", tisNameBase)) {
       String pvrzName = String.format("%1$s%2$s%3$02d.PVRZ", tisNameBase.substring(0, 1),
                                       tisNameBase.substring(2, tisNameBase.length()), page);
       return path + pvrzName;
@@ -530,7 +529,7 @@ public class ConvertToTis extends ChildFrame
   }
 
   // generates PVRZ textures
-  private static boolean createPvrzPages(String tisFileName, BufferedImage srcImg,
+  public static boolean createPvrzPages(String tisFileName, BufferedImage srcImg,
                                          List<BinPack2D> pages, DxtEncoder.DxtType dxtType,
                                          List<TileEntry> entryList, List<String> result,
                                          ProgressMonitor progress)
@@ -1170,7 +1169,7 @@ public class ConvertToTis extends ChildFrame
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static class TileEntry
+  public static class TileEntry
   {
     public int tileIndex;
     public int page;
