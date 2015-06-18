@@ -2653,9 +2653,11 @@ public final class BrowserMenuBar extends JMenuBar
     private void displayAbout()
     {
       final String hauglidPage = "http://www.idi.ntnu.no/~joh/ni/";
-      final String githubPage = "https://github.com/NearInfinityBrowser/NearInfinity/";
+      final String githubPage1 = "https://github.com/Argent77/NearInfinity/";
+      final String githubPage2 = "https://github.com/NearInfinityBrowser/NearInfinity/";
       final String versionText = "Near Infinity " + VERSION;
-      final String githubHTML = "<html><a href=" + githubPage + "/>" + githubPage + "</a></html>";
+      final String githubHTML = "<html><a href=" + githubPage1 + "/>" + githubPage1 + "</a>" +
+                                "<br/><a href=" + githubPage2 + "/>" + githubPage2 + "</a></html>";
       final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
       final String hauglidCopyrightText = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
       final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" + hauglidPage + "</a></html>";
@@ -2692,7 +2694,8 @@ public final class BrowserMenuBar extends JMenuBar
       // Fixed elements
       JLabel version = new JLabel(versionText);
       JLabel githubLink = new JLabel(githubHTML, JLabel.LEADING);
-      githubLink.addMouseListener(new UrlBrowser(githubPage));
+      githubLink.addMouseListener(new UrlBrowser(githubPage1));
+      githubLink.addMouseListener(new UrlBrowser(githubPage2));
       githubLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.LEADING);
       JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.LEADING);
