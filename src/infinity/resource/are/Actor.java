@@ -184,7 +184,8 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     }
     HexNumber creOffset = new HexNumber(buffer, offset + 136, 4, "CRE structure offset");
     addField(creOffset);
-    addField(new DecNumber(buffer, offset + 140, 4, "CRE structure size"));
+    DecNumber creSize = new DecNumber(buffer, offset + 140, 4, "CRE structure size");
+    addField(creSize);
     if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new ResourceRef(buffer, offset + 144, "Special 1 script", "BCS"));
       addField(new Unknown(buffer, offset + 152, 120));
@@ -193,7 +194,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new Unknown(buffer, offset + 144, 128));
     }
 
-    if (creOffset.getValue() != 0) {
+    if (creOffset.getValue() > 0 && creSize.getValue() >= 0x2d4) {
       addField(new CreResource(this, "CRE file", buffer, creOffset.getValue()));
     }
 
