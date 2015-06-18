@@ -8,12 +8,15 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -71,6 +74,7 @@ public class ViewerMap extends JPanel
   private StructListPanel listPanel;
   private BufferedImage dotBackup;
   private int dotX, dotY;
+  private JLabel lInfoSize, lInfoPos;
 
   ViewerMap(MapEntry wmpMap)
   {
@@ -114,6 +118,7 @@ public class ViewerMap extends JPanel
           mapOrig = loadMap();
           rcMap = new RenderCanvas(ColorConvert.cloneImage(mapOrig));
           rcMap.addMouseListener(listeners);
+          rcMap.addMouseMotionListener(listeners);
 
           listPanel = (StructListPanel)ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, "Current area",
                                                                 new WmpAreaListRenderer(mapIcons), listeners);
@@ -126,6 +131,15 @@ public class ViewerMap extends JPanel
           split.setDividerLocation(NearInfinity.getInstance().getWidth() - 475);
           setLayout(new BorderLayout());
           add(split, BorderLayout.CENTER);
+
+          JPanel pInfo = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
+          lInfoSize = new JLabel(String.format("Worldmap size: %1$d x %2$d pixels", mapOrig.getWidth(), mapOrig.getHeight()));
+          lInfoSize.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+          lInfoPos = new JLabel();
+          lInfoPos.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+          pInfo.add(lInfoSize);
+          pInfo.add(lInfoPos);
+          add(pInfo, BorderLayout.SOUTH);
 
         } else {
           rcMap = null;
@@ -451,10 +465,21 @@ public class ViewerMap extends JPanel
     }
   }
 
+  // Shows specified coordinates as text info. Hides display for negative coordinates.
+  private void updateCursorInfo(int x, int y)
+  {
+    if (lInfoPos != null) {
+      if (x >= 0 && y >= 0) {
+        lInfoPos.setText(String.format("Cursor at (%1$d, %2$d)", x, y));
+      } else {
+        lInfoPos.setText("");
+      }
+    }
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
-  private class Listeners implements ActionListener, MouseListener, ListSelectionListener
+  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, ListSelectionListener
   {
     //--------------------- Begin Interface ActionListener ---------------------
 
@@ -514,6 +539,36 @@ public class ViewerMap extends JPanel
     public void mouseExited(MouseEvent e) {}
 
     //--------------------- End Interface MouseListener ---------------------
+
+    //--------------------- Begin Interface MouseMotionListener ---------------------
+
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e)
+    {
+      if (e.getSource() == rcMap) {
+        int ctrlWidth = rcMap.getWidth();
+        int ctrlHeight = rcMap.getHeight();
+        Image image = rcMap.getImage();
+        int imgWidth = image.getWidth(null);
+        int imgHeight = image.getHeight(null);
+        int startX = (ctrlWidth - imgWidth) / 2;
+        int startY = (ctrlHeight - imgHeight) / 2;
+        int x = e.getX();
+        int y = e.getY();
+        if (x >= startX && x < startX + imgWidth && y >= startY && y < startY + imgHeight) {
+          updateCursorInfo(x - startX, y - startY);
+        } else {
+          updateCursorInfo(-1, -1);
+        }
+      }
+    }
+
+    //--------------------- End Interface MouseMotionListener ---------------------
 
     // --------------------- Begin Interface ListSelectionListener ---------------------
 
