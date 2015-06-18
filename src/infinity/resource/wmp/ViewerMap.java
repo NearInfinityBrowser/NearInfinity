@@ -58,8 +58,8 @@ public class ViewerMap extends JPanel
   private enum Direction { North, West, South, East }
 
   private final JPopupMenu pmOptions = new JPopupMenu("Options");
-  private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons");
-  private final JCheckBoxMenuItem miShowDistances = new JCheckBoxMenuItem("Show travel distances");
+  private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons", true);
+  private final JCheckBoxMenuItem miShowDistances = new JCheckBoxMenuItem("Show travel distances", false);
   private final BufferedImage iconDot;
   private final Listeners listeners = new Listeners();
   private final MapEntry mapEntry;
@@ -134,6 +134,10 @@ public class ViewerMap extends JPanel
       } catch (Throwable t) {
         t.printStackTrace();
       }
+
+      // applying preselected overlays
+      showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+
     } finally {
       WindowBlocker.blockWindow(false);
     }
