@@ -2653,11 +2653,9 @@ public final class BrowserMenuBar extends JMenuBar
     private void displayAbout()
     {
       final String hauglidPage = "http://www.idi.ntnu.no/~joh/ni/";
-      final String githubPage1 = "https://github.com/Argent77/NearInfinity/";
-      final String githubPage2 = "https://github.com/NearInfinityBrowser/NearInfinity/";
+      final String[] githubPages = {"https://github.com/Argent77/NearInfinity/",
+                                    "https://github.com/NearInfinityBrowser/NearInfinity/"};
       final String versionText = "Near Infinity " + VERSION;
-      final String githubHTML = "<html><a href=" + githubPage1 + "/>" + githubPage1 + "</a>" +
-                                "<br/><a href=" + githubPage2 + "/>" + githubPage2 + "</a></html>";
       final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
       final String hauglidCopyrightText = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
       final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" + hauglidPage + "</a></html>";
@@ -2692,26 +2690,31 @@ public final class BrowserMenuBar extends JMenuBar
       };
 
       // Fixed elements
-      JLabel version = new JLabel(versionText);
-      JLabel githubLink = new JLabel(githubHTML, JLabel.LEADING);
-      githubLink.addMouseListener(new UrlBrowser(githubPage1));
-      githubLink.addMouseListener(new UrlBrowser(githubPage2));
-      githubLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.LEADING);
-      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.LEADING);
-      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.LEADING);
-      hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
-      hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      final Font defaultfont = version.getFont();
+      final Font defaultfont = (new JLabel()).getFont();
       final Font font = defaultfont.deriveFont(13.0f);
       final Font bigFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
       final Font smallFont = defaultfont.deriveFont(11.0f);
 
+      JLabel version = new JLabel(versionText);
       version.setFont(bigFont);
-      githubLink.setFont(font);
+
+      JLabel[] githubLinks = new JLabel[githubPages.length];
+      for (int i = 0; i < githubLinks.length; i++) {
+        githubLinks[i] = new JLabel("<html><a href=" + githubPages[i] + "/>" + githubPages[i] + "</a></html>",
+                                    JLabel.LEADING);
+        githubLinks[i].setFont(font);
+        githubLinks[i].addMouseListener(new UrlBrowser(githubPages[i]));
+        githubLinks[i].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+      }
+
+      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.LEADING);
       hauglidVersion.setFont(font);
+      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.LEADING);
       hauglidCopyright.setFont(font);
+      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.LEADING);
       hauglidLink.setFont(font);
+      hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
+      hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
       JPanel panel = new JPanel();
       GridBagLayout gbl = new GridBagLayout();
@@ -2724,9 +2727,15 @@ public final class BrowserMenuBar extends JMenuBar
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbl.setConstraints(version, gbc);
       panel.add(version);
-      gbc.insets = new Insets(3, 6, 3, 6);
-      gbl.setConstraints(githubLink, gbc);
-      panel.add(githubLink);
+      gbc.insets = new Insets(3, 6, 0, 6);
+      for (int i = 0; i < githubLinks.length; i++) {
+        if (i == githubLinks.length - 1) {
+          gbc.insets = new Insets(3, 6, 3, 6);
+        }
+        gbl.setConstraints(githubLinks[i], gbc);
+        panel.add(githubLinks[i]);
+      }
+
       gbc.insets = new Insets(6, 6, 0, 6);
       gbl.setConstraints(hauglidVersion, gbc);
       panel.add(hauglidVersion);
