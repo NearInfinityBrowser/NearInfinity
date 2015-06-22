@@ -10,6 +10,7 @@ import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
@@ -61,8 +62,27 @@ import javax.swing.event.ListSelectionListener;
 public final class StructChecker extends ChildFrame implements ActionListener, Runnable,
                                                                ListSelectionListener
 {
-  private static final String filetypes[] = {"ARE", "CHR", "CHU", "CRE", "DLG", "GAM", "ITM",
-                                             "SPL", "STO", "WED", "WMP"};
+  private static final String filetypes[] = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
+                                             "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
+  private static final HashMap<String, StructInfo> fileInfo = new HashMap<String, StructInfo>();
+  static {
+    fileInfo.put("ARE", new StructInfo("AREA", new String[]{"V1.0", "V9.1"}));
+    fileInfo.put("CHR", new StructInfo("CHR ", new String[]{"V1.0", "V1.2", "V2.0", "V2.1", "V2.2", "V9.0"}));
+    fileInfo.put("CHU", new StructInfo("CHUI", new String[]{"V1  "}));
+    fileInfo.put("CRE", new StructInfo("CRE ", new String[]{"V1.0", "V1.1", "V1.2", "V2.2", "V9.0"}));
+    fileInfo.put("DLG", new StructInfo("DLG ", new String[]{"V1.0"}));
+    fileInfo.put("EFF", new StructInfo("EFF ", new String[]{"V2.0"}));
+    fileInfo.put("GAM", new StructInfo("GAME", new String[]{"V1.1", "V2.0", "V2.1", "V2.2"}));
+    fileInfo.put("ITM", new StructInfo("ITM ", new String[]{"V1  ", "V1.1", "V2.0"}));
+    fileInfo.put("PRO", new StructInfo("PRO ", new String[]{"V1.0"}));
+    fileInfo.put("SPL", new StructInfo("SPL ", new String[]{"V1  ", "V2.0"}));
+    fileInfo.put("STO", new StructInfo("STOR", new String[]{"V1.0", "V1.1", "V9.0"}));
+    fileInfo.put("VEF", new StructInfo("VEF ", new String[]{"V1.0"}));
+    fileInfo.put("VVC", new StructInfo("VVC ", new String[]{"V1.0"}));
+    fileInfo.put("WED", new StructInfo("WED ", new String[]{"V1.3"}));
+    fileInfo.put("WMP", new StructInfo("WMAP", new String[]{"V1.0"}));
+  }
+
   private final ChildFrame resultFrame = new ChildFrame("Corrupted files found", true);
   private final JButton bstart = new JButton("Check", Icons.getIcon("Find16.gif"));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
@@ -325,6 +345,22 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
                                         entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) +
                                         "h)"));
 
+    // Checking signature and version fields
+    StructInfo info = fileInfo.get(entry.getExtension());
+    if (info != null) {
+      String sig = ((TextString)struct.getAttribute("Signature")).toString();
+      if (info.isSignature(sig)) {
+        String ver = ((TextString)struct.getAttribute("Version")).toString();
+        if (!info.isVersion(ver)) {
+          // invalid version?
+          table.addTableItem(new Corruption(entry, 4, "Unsupported or invalid version: \"" + ver + "\""));
+        }
+      } else {
+        // invalid signature?
+        table.addTableItem(new Corruption(entry, 0, "Invalid signature: \"" + sig + "\""));
+      }
+    }
+
     // Type-specific checks
     if (entry.getExtension().equalsIgnoreCase("WED")) {
       List<Corruption> list = getWedCorruption(entry, struct);
@@ -334,7 +370,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     }
   }
 
-  // Checks for WED-specific corruptions
+  // Checking for WED-specific corruptions
   private List<Corruption> getWedCorruption(ResourceEntry entry, AbstractStruct struct)
   {
     List<Corruption> list = new ArrayList<Corruption>();
@@ -482,6 +518,45 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       buf.append("  Offset: ").append(offset);
       buf.append("  Error message: ").append(errorMsg);
       return buf.toString();
+    }
+  }
+
+  // Stores supported signature and versions for a single structured resource format
+  private static final class StructInfo
+  {
+    public final String signature;
+    public final String[] version;
+
+    public StructInfo(String sig, String[] ver)
+    {
+      signature = (sig != null) ? sig : "";
+      if (ver != null) {
+        version = new String[ver.length];
+        for (int i = 0; i < version.length; i++) {
+          version[i] = (ver[i] != null) ? ver[i] : "";
+        }
+      } else {
+        version = new String[0];
+      }
+    }
+
+    /** Returns whether the signatures matches the signature of the current structure definition. */
+    public boolean isSignature(String sig)
+    {
+      return (sig != null) ? signature.equals(sig) : false;
+    }
+
+    /** Returns whether the specified version is supported by the current structure definition. */
+    public boolean isVersion(String ver)
+    {
+      if (ver != null) {
+        for (final String v: version) {
+          if (ver.equals(v)) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
   }
 }
