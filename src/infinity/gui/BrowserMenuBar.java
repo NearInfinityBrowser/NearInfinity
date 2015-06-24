@@ -2561,7 +2561,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class HelpMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem helpAbout, helpLicense, helpBsdLicense,
+    private final JMenuItem helpAbout, helpLicense,
                             helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense,
                             helpMonteMediaLicense, helpUpdateSettings, helpUpdateCheck;
 
@@ -2580,10 +2580,6 @@ public final class BrowserMenuBar extends JMenuBar
       JMenu miscLicenses = new JMenu("Third-party licenses");
       miscLicenses.setMnemonic(KeyEvent.VK_T);
       add(miscLicenses);
-
-      helpBsdLicense =
-          makeMenuItem("Plastic XP License", KeyEvent.VK_P, Icons.getIcon("Edit16.gif"), -1, this);
-      miscLicenses.add(helpBsdLicense);
 
       helpJOrbisLicense =
           makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon("Edit16.gif"), -1, this);
@@ -2617,8 +2613,6 @@ public final class BrowserMenuBar extends JMenuBar
         displayAbout();
       } else if (event.getSource() == helpLicense) {
         displayLicense("infinity/License.txt", "LGPL License");
-      } else if (event.getSource() == helpBsdLicense) {
-        displayLicense("infinity/bsd-license.txt", "BSD License");
       } else if (event.getSource() == helpJOrbisLicense) {
           displayLicense("infinity/JOrbis.License.txt", "LGPL License");
       } else if (event.getSource() == helpFifeLicense) {
@@ -2682,7 +2676,6 @@ public final class BrowserMenuBar extends JMenuBar
       // Third-party copyright messages
       final String[] copyThirdPartyText = new String[]{
           "Most icons (\u00A9) eclipse.org - Common Public License.",
-          "Plastic XP L&F (\u00A9) jgoodies.com - Berkeley Software Distribution License.",
           "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
           "Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.",
           "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
