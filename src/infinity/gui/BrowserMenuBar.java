@@ -1561,6 +1561,11 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SQL_COLORSCHEME          = "SqlColorScheme";
     private static final String OPTION_TEXT_DEBUG_ENABLECOLORSCHEME = "DebugColorSchemeEnabled";
     private static final String OPTION_TEXT_DEBUG_COLORSCHEME       = "DebugColorSchemeFile";
+    // this preferences key can be used internally to reset incorrectly set default values after a public release
+    private static final String OPTION_OPTION_FIXED             = "OptionFixedInternal";
+
+    // Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED)
+    private static final int MASK_OPTION_FIXED_AUTO_INDENT      = 0x00000001;
 
     // Identifier for autodetected game language
     private static final String LANGUAGE_AUTODETECT             = "Auto";
@@ -1594,6 +1599,7 @@ public final class BrowserMenuBar extends JMenuBar
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
+    private int optionFixedInternal;
 
     // Stores available languages in BG(2)EE
     private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<JRadioButtonMenuItem, String>();
@@ -1602,6 +1608,8 @@ public final class BrowserMenuBar extends JMenuBar
     {
       super("Options");
       setMnemonic(KeyEvent.VK_O);
+
+      optionFixedInternal = getPrefs().getInt(OPTION_OPTION_FIXED, 0);
 
       // Options
       optionBackupOnSave =
@@ -1706,8 +1714,13 @@ public final class BrowserMenuBar extends JMenuBar
       optionBCSEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding",
                                                          getPrefs().getBoolean(OPTION_BCS_CODEFOLDING, false));
       textBCS.add(optionBCSEnableCodeFolding);
-      optionBCSEnableAutoIndent = new JCheckBoxMenuItem("Enable Automatic Indentation",
-                                                        getPrefs().getBoolean(OPTION_BCS_AUTO_INDENT, false));
+      // XXX: Work-around to fix a previously incorrectly defined option
+      optionBCSEnableAutoIndent =
+          new JCheckBoxMenuItem("Enable Automatic Indentation",
+                                fixOption(MASK_OPTION_FIXED_AUTO_INDENT, true,
+                                          getPrefs().getBoolean(OPTION_BCS_AUTO_INDENT, false)));
+//        optionBCSEnableAutoIndent = new JCheckBoxMenuItem("Enable Automatic Indentation",
+//                                                          getPrefs().getBoolean(OPTION_BCS_AUTO_INDENT, false));
       textBCS.add(optionBCSEnableAutoIndent);
       // TODO: add auto-complete support
 //      optionBCSEnableAutoComplete = new JCheckBoxMenuItem("Enable Auto-Completion",
@@ -2190,6 +2203,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_GLSL_CODEFOLDING, optionGLSLEnableCodeFolding.isSelected());
+      getPrefs().putInt(OPTION_OPTION_FIXED, optionFixedInternal);
       if (NearInfinity.isDebug()) {
         getPrefs().putBoolean(OPTION_TEXT_DEBUG_ENABLECOLORSCHEME,
                               optionTextDebugColorSchemeEnabled.isSelected());
@@ -2404,6 +2418,39 @@ public final class BrowserMenuBar extends JMenuBar
 //        return fc.getSelectedFile().toString();
 //      }
 //      return null;
+//    }
+
+    // Returns defValue if masked bit is clear or value if masked bit is already set
+    private boolean fixOption(int mask, boolean defValue, boolean value)
+    {
+      boolean retVal = value;
+      if ((optionFixedInternal & mask) == 0) {
+        retVal = defValue;
+        optionFixedInternal |= mask;
+      }
+      return retVal;
+    }
+
+    // Returns defValue if masked bit is clear or value if masked bit is already set
+//    private int fixOption(int mask, int defValue, int value)
+//    {
+//      int retVal = value;
+//      if ((optionFixedInternal & mask) == 0) {
+//        retVal = defValue;
+//        optionFixedInternal |= mask;
+//      }
+//      return retVal;
+//    }
+
+    // Returns defValue if masked bit is clear or value if masked bit is already set
+//    private String fixOption(int mask, String defValue, String value)
+//    {
+//      String retVal = value;
+//      if ((optionFixedInternal & mask) == 0) {
+//        retVal = defValue;
+//        optionFixedInternal |= mask;
+//      }
+//      return retVal;
 //    }
 
     public int getTextIndentIndex()

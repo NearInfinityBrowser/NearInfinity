@@ -32,8 +32,13 @@ public final class Decompiler
   public static String decompile(String code, boolean generateErrors)
   {
     Decompiler.generateErrors = generateErrors;
-    if (BrowserMenuBar.getInstance() != null)
-      indent = BrowserMenuBar.getInstance().getBcsIndent();
+    if (BrowserMenuBar.getInstance() != null) {
+      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getBcsIndent();
+      } else {
+        indent = "";
+      }
+    }
     resourcesUsed.clear();
     stringrefsUsed.clear();
     idsErrors.clear();
