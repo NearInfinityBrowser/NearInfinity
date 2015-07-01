@@ -499,7 +499,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         retVal = fc.getSelectedFile();
         if (enforceValidName && !isTisFileNameValid(retVal)) {
           JOptionPane.showMessageDialog(parent,
-                                        "PVRZ-based TIS filenames are restricted to 6 or 7 characters.",
+                                        "PVRZ-based TIS filenames have to be 2 up to 7 characters long.",
                                         "Error", JOptionPane.ERROR_MESSAGE);
         } else {
           repeat = false;
@@ -976,7 +976,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       if (extOfs > 0) {
         tisName = tisName.substring(0, extOfs);
       }
-      if (Pattern.matches(".{6,7}", tisName)) {
+      if (Pattern.matches(".{2,7}", tisName)) {
         String pvrzName = String.format("%1$s%2$s%3$02d.PVRZ", tisName.substring(0, 1),
                                         tisName.substring(2, tisName.length()), page);
         return new FileNI(path, pvrzName);
@@ -994,7 +994,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       if (extOfs >= 0) {
         name = name.substring(0, extOfs);
       }
-      return Pattern.matches(".{6,7}", name);
+      return Pattern.matches(".{2,7}", name);
     }
     return false;
   }
@@ -1012,17 +1012,16 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       }
 
       boolean isNight = (Character.toUpperCase(name.charAt(name.length() - 1)) == 'N');
-      if (name.length() > 6) {
-        name = name.substring(0, 6) + (isNight ? "N" : "") + ext;
+      if (name.length() > 7) {
+        int numDelete = name.length() - 7;
+        int ofsDelete = name.length() - numDelete - (isNight ? 1 : 0);
+        name = name.substring(ofsDelete, numDelete);
         return new FileNI(fileName.getParent(), name);
-      } else if (name.length() < 6) {
+      } else if (name.length() < 2) {
         String fmt, newName = null;
         int maxNum;
         switch (name.length()) {
-          case 1:  fmt = name + "%1$s05d"; maxNum = 99999; break;
-          case 2:  fmt = name + "%1$s04d"; maxNum = 9999; break;
-          case 3:  fmt = name + "%1$s03d"; maxNum = 999; break;
-          case 4:  fmt = name + "%1$s02d"; maxNum = 99; break;
+          case 0:  fmt = name + "%1$s02d"; maxNum = 99; break;
           default: fmt = name + "%1$s01d"; maxNum = 9; break;
         }
         for (int i = 0; i < maxNum; i++) {

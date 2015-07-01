@@ -295,8 +295,7 @@ public class ConvertToTis extends ChildFrame
     }
     if (!tisFileName.equalsIgnoreCase(createValidTisName(tisFileName, 2))) {
       result.add(null);
-      result.add("Incompatible output file specified.\n\n" +
-                 "Note:\nPVRZ-based TIS filenames are restricted to 6 or 7 characters.)");
+      result.add("PVRZ-based TIS filenames have to be 2 up to 7 characters long.");
       return false;
     }
     if (tileCount < 1 || tileCount > (img.getWidth()*img.getHeight()/4096)) {
@@ -455,14 +454,14 @@ public class ConvertToTis extends ChildFrame
       outNameBase = outNameBase.substring(0, outNameBase.lastIndexOf('.'));
     }
 
-    // limit output filename to 6/7 or 8 characters (based on the TIS version)
+    // limit output filename to [2,7] or 8 characters (based on the TIS version)
     if (tisVersion == 2) {
-      if (!Pattern.matches(".{6,7}", outNameBase)) {
-        if (outNameBase.length() > 6) {
-          outNameBase = outNameBase.substring(0, 6);
+      if (!Pattern.matches(".{2,7}", outNameBase)) {
+        if (outNameBase.length() > 7) {
+          outNameBase = outNameBase.substring(0, 7);
         } else {
-          final String fill = "000000";
-          outNameBase = outNameBase + fill.substring(0, 6 - outNameBase.length());
+          final String fill = "00";
+          outNameBase = outNameBase + fill.substring(0, 2 - outNameBase.length());
         }
       }
     } else {
@@ -520,7 +519,7 @@ public class ConvertToTis extends ChildFrame
     if (tisNameBase.lastIndexOf('.') > 0) {
       tisNameBase = tisNameBase.substring(0, tisNameBase.lastIndexOf('.'));
     }
-    if (Pattern.matches(".{6,7}", tisNameBase)) {
+    if (Pattern.matches(".{2,7}", tisNameBase)) {
       String pvrzName = String.format("%1$s%2$s%3$02d.PVRZ", tisNameBase.substring(0, 1),
                                       tisNameBase.substring(2, tisNameBase.length()), page);
       return path + pvrzName;
