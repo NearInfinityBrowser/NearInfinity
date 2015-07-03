@@ -32,7 +32,8 @@ public final class Tilemap extends AbstractStruct // implements AddRemovable
     addField(new DecNumber(buffer, offset + 2, 2, "Primary tile count"));
     addField(new DecNumber(buffer, offset + 4, 2, "Secondary tile index"));
     addField(new Flag(buffer, offset + 6, 1, "Draw Overlays", s_flags));
-    addField(new Unknown(buffer, offset + 7, 3));
+    addField(new DecNumber(buffer, offset + 7, 1, "Animation speed"));
+    addField(new Unknown(buffer, offset + 8, 2));
     return offset + 10;
   }
 }
