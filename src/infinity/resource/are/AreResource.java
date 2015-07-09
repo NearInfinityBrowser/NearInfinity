@@ -13,6 +13,7 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
+import infinity.datatype.UnsignDecNumber;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
 import infinity.gui.hexview.HexViewer;
@@ -367,7 +368,12 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
     addField(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
     addField(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
-    addField(new DecNumber(buffer, offset + 82, 2, "Wind speed"));
+    if (Profile.getGame() == Profile.Game.BG2EE) {
+      addField(new UnsignDecNumber(buffer, offset + 82, 1, "Overlay transparency"));
+      addField(new Unknown(buffer, offset + 83, 1));
+    } else {
+      addField(new DecNumber(buffer, offset + 82, 2, "Wind speed"));
+    }
     if (version.toString().equalsIgnoreCase("V9.1")) {
       addField(new DecNumber(buffer, offset + 84, 1, "Area difficulty 2"));
       addField(new DecNumber(buffer, offset + 85, 1, "Area difficulty 3"));
