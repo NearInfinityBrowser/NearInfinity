@@ -273,7 +273,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     else if (entry instanceof BIFFResourceEntry) {
       String options[] = {"Delete", "Cancel"};
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), "Are you sure you want to delete the " +
-                                                                   "override file to " + entry + '?',
+                                                                   "override file " + entry + '?',
                                        "Delete file", JOptionPane.YES_NO_OPTION,
                                        JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return;
