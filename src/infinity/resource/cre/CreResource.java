@@ -15,6 +15,7 @@ import infinity.datatype.HexNumber;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
 import infinity.datatype.KitIdsBitmap;
+import infinity.datatype.MultiNumber;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
@@ -112,6 +113,7 @@ public final class CreResource extends AbstractStruct
   public static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
   public static final String s_noyes[] = {"No", "Yes"};
   public static final String s_visible[] = {"Shown", "Hidden"};
+  public static final String s_profLabels[] = {"Active class", "Original class"};
 
   static
   {
@@ -1191,14 +1193,14 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 100, 1, "Intoxication"));
     addField(new DecNumber(buffer, offset + 101, 1, "Luck"));
     if (version.equals("V1.0")) {
-      addField(new DecNumber(buffer, offset + 102, 1, "Large sword proficiency"));
-      addField(new DecNumber(buffer, offset + 103, 1, "Small sword proficiency"));
-      addField(new DecNumber(buffer, offset + 104, 1, "Bow proficiency"));
-      addField(new DecNumber(buffer, offset + 105, 1, "Spear proficiency"));
-      addField(new DecNumber(buffer, offset + 106, 1, "Blunt proficiency"));
-      addField(new DecNumber(buffer, offset + 107, 1, "Spiked proficiency"));
-      addField(new DecNumber(buffer, offset + 108, 1, "Axe proficiency"));
-      addField(new DecNumber(buffer, offset + 109, 1, "Missile proficiency"));
+      addField(new MultiNumber(buffer, offset + 102, 1, "Large sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, "Small sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, "Bow proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, "Spear proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, "Blunt proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, "Spiked proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 108, 1, "Axe proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 109, 1, "Missile proficiency", 3, 2, s_profLabels));
       if (Profile.isEnhancedEdition()) {
         if (Profile.getGame() == Profile.Game.BG2EE || Profile.getGame() == Profile.Game.IWDEE) {
           addField(new Unknown(buffer, offset + 110, 7));
@@ -1215,39 +1217,30 @@ public final class CreResource extends AbstractStruct
       }
     }
     else if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-      addField(new DecNumber(buffer, offset + 102, 1, "Fist proficiency"));
-      addField(new DecNumber(buffer, offset + 103, 1, "Edged-weapon proficiency"));
-      addField(new DecNumber(buffer, offset + 104, 1, "Hammer proficiency"));
-      addField(new DecNumber(buffer, offset + 105, 1, "Axe proficiency"));
-      addField(new DecNumber(buffer, offset + 106, 1, "Club proficiency"));
-      addField(new DecNumber(buffer, offset + 107, 1, "Bow proficiency"));
-//      addField(new DecNumber(buffer, offset + 108, 1, "Extra proficiency 1"));
-//      addField(new DecNumber(buffer, offset + 109, 1, "Extra proficiency 2"));
-//      addField(new DecNumber(buffer, offset + 110, 1, "Extra proficiency 3"));
-//      addField(new DecNumber(buffer, offset + 111, 1, "Extra proficiency 4"));
-//      addField(new DecNumber(buffer, offset + 112, 1, "Extra proficiency 5"));
-//      addField(new DecNumber(buffer, offset + 113, 1, "Extra proficiency 6"));
-//      addField(new DecNumber(buffer, offset + 114, 1, "Extra proficiency 7"));
-//      addField(new DecNumber(buffer, offset + 115, 1, "Extra proficiency 8"));
-//      addField(new DecNumber(buffer, offset + 116, 1, "Extra proficiency 9"));
+      addField(new MultiNumber(buffer, offset + 102, 1, "Fist proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, "Edged-weapon proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, "Hammer proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, "Axe proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, "Club proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, "Bow proficiency", 3, 2, s_profLabels));
       addField(new Unknown(buffer, offset + 108, 14));
     }
     else if (version.equalsIgnoreCase("V9.0")) {
-      addField(new DecNumber(buffer, offset + 102, 1, "Large sword proficiency"));
-      addField(new DecNumber(buffer, offset + 103, 1, "Small sword proficiency"));
-      addField(new DecNumber(buffer, offset + 104, 1, "Bow proficiency"));
-      addField(new DecNumber(buffer, offset + 105, 1, "Spear proficiency"));
-      addField(new DecNumber(buffer, offset + 106, 1, "Axe proficiency"));
-      addField(new DecNumber(buffer, offset + 107, 1, "Missile proficiency"));
-      addField(new DecNumber(buffer, offset + 108, 1, "Greatsword proficiency"));
-      addField(new DecNumber(buffer, offset + 109, 1, "Dagger proficiency"));
-      addField(new DecNumber(buffer, offset + 110, 1, "Halberd proficiency"));
-      addField(new DecNumber(buffer, offset + 111, 1, "Mace proficiency"));
-      addField(new DecNumber(buffer, offset + 112, 1, "Flail proficiency"));
-      addField(new DecNumber(buffer, offset + 113, 1, "Hammer proficiency"));
-      addField(new DecNumber(buffer, offset + 114, 1, "Club proficiency"));
-      addField(new DecNumber(buffer, offset + 115, 1, "Quarterstaff proficiency"));
-      addField(new DecNumber(buffer, offset + 116, 1, "Crossbow proficiency"));
+      addField(new MultiNumber(buffer, offset + 102, 1, "Large sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, "Small sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, "Bow proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, "Spear proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, "Axe proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, "Missile proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 108, 1, "Greatsword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 109, 1, "Dagger proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 110, 1, "Halberd proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 111, 1, "Mace proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 112, 1, "Flail proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 113, 1, "Hammer proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 114, 1, "Club proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 115, 1, "Quarterstaff proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 116, 1, "Crossbow proficiency", 3, 2, s_profLabels));
       addField(new Unknown(buffer, offset + 117, 5));
     }
     else {
