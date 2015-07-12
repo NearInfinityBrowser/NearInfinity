@@ -7,9 +7,10 @@ package infinity.resource.itm;
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
+import infinity.datatype.PriTypeBitmap;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.SecType2daBitmap;
+import infinity.datatype.SecTypeBitmap;
 import infinity.datatype.SectionCount;
 import infinity.datatype.UnsignDecNumber;
 import infinity.gui.StructViewer;
@@ -21,7 +22,6 @@ import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
-import infinity.resource.spl.SplResource;
 
 import javax.swing.JComponent;
 
@@ -115,9 +115,9 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
       addField(new DecNumber(buffer, offset + 19, 1, "Alternate damage bonus"));
       addField(new DecNumber(buffer, offset + 20, 2, "Bonus to hit"));
       addField(new DecNumber(buffer, offset + 22, 1, "Dice size"));
-      addField(new Bitmap(buffer, offset + 23, 1, "Primary type (school)", SplResource.s_school));
+      addField(new PriTypeBitmap(buffer, offset + 23, 1, "Primary type (school)"));
       addField(new DecNumber(buffer, offset + 24, 1, "# dice thrown"));
-      addField(new SecType2daBitmap(buffer, offset + 25, 1, "Secondary type"));
+      addField(new SecTypeBitmap(buffer, offset + 25, 1, "Secondary type"));
     }
     else {
       addField(new Bitmap(buffer, offset, 1, "Type", s_type));

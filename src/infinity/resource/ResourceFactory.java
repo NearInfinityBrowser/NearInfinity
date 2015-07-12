@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Locale;
 
 import infinity.NearInfinity;
+import infinity.datatype.PriTypeBitmap;
+import infinity.datatype.SecTypeBitmap;
 import infinity.datatype.Song2daBitmap;
 import infinity.datatype.Summon2daBitmap;
 import infinity.gui.BrowserMenuBar;
@@ -853,10 +855,14 @@ public final class ResourceFactory
         if (idsbrowser != null)
           idsbrowser.refreshList();
         Compiler.restartCompiler();
-      } else if (resource.getResourceEntry().toString().equalsIgnoreCase("SONGLIST.2DA")) {
+      } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Song2daBitmap.getTableName())) {
         Song2daBitmap.resetSonglist();
-      } else if (resource.getResourceEntry().toString().equalsIgnoreCase("SMTABLES.2DA")) {
+      } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Summon2daBitmap.getTableName())) {
         Summon2daBitmap.resetSummonTable();
+      } else if (resource.getResourceEntry().toString().equalsIgnoreCase(PriTypeBitmap.getTableName())) {
+        PriTypeBitmap.resetTypeTable();
+      } else if (resource.getResourceEntry().toString().equalsIgnoreCase(SecTypeBitmap.getTableName())) {
+        SecTypeBitmap.resetTypeTable();
       }
     } catch (IOException e) {
       JOptionPane.showMessageDialog(parent, "Error while saving " + resource.getResourceEntry().toString(),

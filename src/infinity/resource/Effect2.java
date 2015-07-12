@@ -9,11 +9,11 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.EffectType;
 import infinity.datatype.Flag;
 import infinity.datatype.IdsBitmap;
+import infinity.datatype.PriTypeBitmap;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.SecType2daBitmap;
+import infinity.datatype.SecTypeBitmap;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
-import infinity.resource.spl.SplResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +30,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 
   public static int readCommon(List<StructEntry> list, byte[] buffer, int offset)
   {
-    if (ResourceFactory.resourceExists("SCHOOL.IDS"))
-      list.add(new IdsBitmap(buffer, offset, 4, "Primary type (school)", "SCHOOL.IDS"));
-    else
-      list.add(new Bitmap(buffer, offset, 4, "Primary type (school)", SplResource.s_school));
+    list.add(new PriTypeBitmap(buffer, offset, 4, "Primary type (school)"));
     list.add(new Unknown(buffer, offset + 4, 4));
     list.add(new DecNumber(buffer, offset + 8, 4, "Minimum level"));
     list.add(new DecNumber(buffer, offset + 12, 4, "Maximum level"));
@@ -66,7 +63,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     list.add(new TextString(buffer, offset + 92, 32, "Variable name"));
     list.add(new DecNumber(buffer, offset + 124, 4, "Caster level"));
     list.add(new Unknown(buffer, offset + 128, 4));
-    list.add(new SecType2daBitmap(buffer, offset + 132, 4, "Secondary type"));
+    list.add(new SecTypeBitmap(buffer, offset + 132, 4, "Secondary type"));
     list.add(new Unknown(buffer, offset + 136, 4));
     list.add(new Unknown(buffer, offset + 140, 56));
     return offset + 196;

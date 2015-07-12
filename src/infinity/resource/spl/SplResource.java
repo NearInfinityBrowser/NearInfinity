@@ -7,9 +7,9 @@ package infinity.resource.spl;
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
-import infinity.datatype.IdsBitmap;
+import infinity.datatype.PriTypeBitmap;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.SecType2daBitmap;
+import infinity.datatype.SecTypeBitmap;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.StringRef;
@@ -24,7 +24,6 @@ import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
@@ -38,8 +37,6 @@ import javax.swing.JScrollPane;
 
 public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  public static final String[] s_school = {"None", "Abjurer", "Conjurer", "Diviner", "Enchanter", "Illusionist", "Invoker",
-                                           "Necromancer", "Transmuter", "Generalist"};
 //  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
 //  private static final LongIntegerHashMap<String> m_priesttype = new LongIntegerHashMap<String>();
   public static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate", "Bard song"};
@@ -280,13 +277,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 //    addField(new HashBitmap(buffer, offset + 32, 2, "Priest type", m_priesttype));     // 0x20
     addField(new Bitmap(buffer, offset + 34, 2, "Casting animation", s_anim));  // 0x22
     addField(new Unknown(buffer, offset + 36, 1));                                    // 0x23
-    if (ResourceFactory.resourceExists("SCHOOL.IDS")) {
-      addField(new IdsBitmap(buffer, offset + 37, 1, "Primary type (school)", "SCHOOL.IDS")); // 0x25
-    } else {
-      addField(new Bitmap(buffer, offset + 37, 1, "Primary type (school)", s_school)); // 0x25
-    }
+    addField(new PriTypeBitmap(buffer, offset + 37, 1, "Primary type (school)")); // 0x25
     addField(new Unknown(buffer, offset + 38, 1));
-    addField(new SecType2daBitmap(buffer, offset + 39, 1, "Secondary type"));       // 0x27
+    addField(new SecTypeBitmap(buffer, offset + 39, 1, "Secondary type"));       // 0x27
     addField(new Unknown(buffer, offset + 40, 12));
     addField(new DecNumber(buffer, offset + 52, 4, "Spell level"));
     addField(new Unknown(buffer, offset + 56, 2));

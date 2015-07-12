@@ -12,20 +12,30 @@ import infinity.util.LongIntegerHashMap;
 import infinity.util.Table2da;
 import infinity.util.Table2daCache;
 
-/** Specialized HashBitmap type for parsing MSECTYPE.2DA (Secondary type) entries. */
-public class SecType2daBitmap extends HashBitmap
+/** Specialized HashBitmap type for parsing "secondary type" entries. */
+public class SecTypeBitmap extends HashBitmap
 {
-  private static final String TableName = "MSECTYPE.2DA";
+  private static final String TableName = ResourceFactory.resourceExists("MSECTYPE.2DA") ? "MSECTYPE.2DA" : "";
+  private static final String[] s_category = {"None", "Spell protections", "Specific protections",
+                                              "Illusionary protections", "Magic attack",
+                                              "Divination attack", "Conjuration", "Combat protections",
+                                              "Contingency", "Battleground", "Offensive damage",
+                                              "Disabling", "Combination", "Non-combat"};
   private static final LongIntegerHashMap<String> typeMap = new LongIntegerHashMap<String>();
 
-  public SecType2daBitmap(byte buffer[], int offset, int length, String name)
+  public SecTypeBitmap(byte buffer[], int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public SecType2daBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public SecTypeBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name, getTypeTable());
+  }
+
+  public static String getTableName()
+  {
+    return TableName;
   }
 
   public static String[] getTypeArray()
@@ -43,6 +53,7 @@ public class SecType2daBitmap extends HashBitmap
   {
     if (typeMap.isEmpty()) {
       if (ResourceFactory.resourceExists(TableName)) {
+        // using MSECTYPE.2DA
         Table2da table = Table2daCache.get(TableName);
         if (table != null) {
           for (int row = 1, size = table.getRowCount(); row < size; row++) {
@@ -51,12 +62,17 @@ public class SecType2daBitmap extends HashBitmap
             typeMap.put(Long.valueOf(id), label);
           }
         }
+      } else {
+        // using predefined values
+        for (int i = 0; i < s_category.length; i++) {
+          typeMap.put(Long.valueOf(i), s_category[i].toUpperCase(Locale.ENGLISH));
+        }
       }
     }
     return typeMap;
   }
 
-  public static void resetSummonTable()
+  public static void resetTypeTable()
   {
     typeMap.clear();
   }

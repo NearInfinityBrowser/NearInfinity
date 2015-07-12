@@ -28,6 +28,11 @@ public class Summon2daBitmap extends HashBitmap
     super(parent, buffer, offset, length, name, getSummonTable());
   }
 
+  public static String getTableName()
+  {
+    return TableName;
+  }
+
   private static LongIntegerHashMap<String> getSummonTable()
   {
     if (summonMap.isEmpty()) {

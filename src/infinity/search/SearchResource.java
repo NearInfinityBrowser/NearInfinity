@@ -63,8 +63,9 @@ import infinity.datatype.HashBitmap;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IwdRef;
 import infinity.datatype.KitIdsBitmap;
+import infinity.datatype.PriTypeBitmap;
 import infinity.datatype.ProRef;
-import infinity.datatype.SecType2daBitmap;
+import infinity.datatype.SecTypeBitmap;
 import infinity.datatype.Song2daBitmap;
 import infinity.datatype.TextBitmap;
 import infinity.gui.ButtonPopupWindow;
@@ -2717,23 +2718,14 @@ public class SearchResource extends ChildFrame
 
       cbCastingAnim = new AutoComboBox(IndexedString.createArray(SplResource.s_anim, 0, 0));
 
-      ObjectString[] prim;
-      if (ResourceFactory.resourceExists("SCHOOL.IDS")) {
-        IdsBitmap ids = new IdsBitmap(new byte[]{0}, 0, 1, "", "SCHOOL.IDS");
-        prim = new ObjectString[ids.getIdsMapEntryCount()];
-        for (int i = 0; i < prim.length; i++) {
-          prim[i] = new ObjectString(ids.getIdsMapEntryByIndex(i).getString(),
-                                     new Integer((int)ids.getIdsMapEntryByIndex(i).getID()));
-        }
-      } else {
-        prim = new ObjectString[SplResource.s_school.length];
-        for (int i = 0; i < prim.length; i++) {
-          prim[i] = new ObjectString(SplResource.s_school[i], new Integer(i));
-        }
+      String[] priType = PriTypeBitmap.getTypeArray();
+      ObjectString[] prim = new ObjectString[priType.length];
+      for (int i = 0; i < priType.length; i++) {
+        prim[i] = new ObjectString(priType[i], Integer.valueOf(i));
       }
       cbPrimary = new AutoComboBox(prim);
 
-      cbSecondary = new AutoComboBox(IndexedString.createArray(SecType2daBitmap.getTypeArray(), 0, 0));
+      cbSecondary = new AutoComboBox(IndexedString.createArray(SecTypeBitmap.getTypeArray(), 0, 0));
 
       pAbility = new SplAbilityPanel();
       bpwAbility = new ButtonPopupWindow(setOptionsText, pAbility);

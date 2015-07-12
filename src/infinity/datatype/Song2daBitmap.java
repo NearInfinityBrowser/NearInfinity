@@ -35,6 +35,11 @@ public class Song2daBitmap extends HashBitmap
     super(parent, buffer, offset, length, name, getSongTable());
   }
 
+  public static String getTableName()
+  {
+    return TableName;
+  }
+
   private static LongIntegerHashMap<String> getSongTable()
   {
     if (songMap.isEmpty()) {
