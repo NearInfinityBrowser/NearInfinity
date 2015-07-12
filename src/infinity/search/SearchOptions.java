@@ -11,7 +11,6 @@ import infinity.datatype.HashBitmap;
 import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IwdRef;
-import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.Song2daBitmap;
@@ -634,8 +633,6 @@ public class SearchOptions
           n3 = (int)((IDSTargetEffect)number).getValue();
         } else if (number instanceof IwdRef) {
           n3 = (int)((IwdRef)number).getValue();
-        } else if (number instanceof Kit2daBitmap) {
-          n3 = (int)((Kit2daBitmap)number).getValue();
         } else if (number instanceof ProRef) {
           n3 = (int)((ProRef)number).getValue();
         } else if (number instanceof Song2daBitmap) {

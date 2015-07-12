@@ -4,17 +4,19 @@
 
 package infinity.datatype;
 
-import java.util.StringTokenizer;
+import java.util.Locale;
 
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
-import infinity.resource.text.PlainTextResource;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.Table2da;
+import infinity.util.Table2daCache;
 
 /** Specialized HashBitmap type for parsing SMTABLES.2DA from IWDEE. */
 public class Summon2daBitmap extends HashBitmap
 {
   private static final String TableName = "SMTABLES.2DA";
+  private static final LongIntegerHashMap<String> summonMap = new LongIntegerHashMap<String>();
 
   public Summon2daBitmap(byte[] buffer, int offset, int length, String name)
   {
@@ -28,50 +30,33 @@ public class Summon2daBitmap extends HashBitmap
 
   private static LongIntegerHashMap<String> getSummonTable()
   {
-    LongIntegerHashMap<String> map = new LongIntegerHashMap<String>();
-
-    if (ResourceFactory.resourceExists(TableName)) {
-      try {
-        PlainTextResource smtables =
-            new PlainTextResource(ResourceFactory.getResourceEntry(TableName));
-        StringTokenizer stLine = new StringTokenizer(smtables.getText(), "\r\n");
-
-        // skipping header
-        for (int i = 0; i < 3; i++) {
-          if (stLine.hasMoreTokens()) {
-            stLine.nextToken();
-          }
-        }
-
-        // parsing table data
-        while (stLine.hasMoreTokens()) {
-          String line = stLine.nextToken();
-          StringTokenizer stElement = new StringTokenizer(line);
-          String label = stElement.hasMoreTokens() ? stElement.nextToken() : "";
-          String ref = stElement.hasMoreTokens() ? stElement.nextToken() + ".2DA" : "";
-
-          if (!label.isEmpty() && !ref.isEmpty()) {
-            // Extracting number from label
-            int idx = 0;
-            for (; idx < label.length(); idx++) {
-              if (!Character.isDigit(label.charAt(idx))) break;
-            }
-
-            // adding new table entry to map
-            if (idx > 0) {
+    if (summonMap.isEmpty()) {
+      if (ResourceFactory.resourceExists(TableName)) {
+        Table2da table = Table2daCache.get(TableName);
+        if (table != null) {
+          for (int row = 1, size = table.getRowCount(); row < size; row++) {
+            String[] sid = table.get(row, 0).split("_");
+            if (sid.length > 0) {
               try {
-                long id = Long.parseLong(label.substring(0, idx));
-                map.put(id, ref);
-              } catch (NumberFormatException nfe) {
-                System.out.println("Number not found in smtables");
+                long id = Long.parseLong(sid[0]);
+                String resref = table.get(row, 1).toUpperCase(Locale.ENGLISH) + ".2DA";
+                summonMap.put(Long.valueOf(id), resref);
+                if (!ResourceFactory.resourceExists(resref)) {
+                  System.err.println("Resource does not exist: " + resref);
+                }
+              } catch (Exception e) {
+                e.printStackTrace();
               }
             }
           }
         }
-      } catch (Exception e) {
-        e.printStackTrace();
       }
     }
-    return map;
+    return summonMap;
+  }
+
+  public static void resetSummonTable()
+  {
+    summonMap.clear();
   }
 }

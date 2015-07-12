@@ -20,6 +20,7 @@ import infinity.datatype.IdsFlag;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SecType2daBitmap;
 import infinity.datatype.StringRef;
 import infinity.datatype.Summon2daBitmap;
 import infinity.datatype.TextString;
@@ -28,7 +29,6 @@ import infinity.datatype.UnsignDecNumber;
 import infinity.datatype.UpdateListener;
 import infinity.resource.are.Actor;
 import infinity.resource.itm.ItmResource;
-import infinity.resource.spl.SplResource;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
@@ -3598,7 +3598,7 @@ public final class EffectFactory
       case 203: // Reflect spell type
       case 205: // Protection from spell type
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
+        s.add(new SecType2daBitmap(buffer, offset + 4, 4, "Spell type"));
         break;
 
       case 206: // Protection from spell
@@ -3668,7 +3668,7 @@ public final class EffectFactory
       case 221: // Remove spell type protections
       case 230: // Remove protection by type
         s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
+        s.add(new SecType2daBitmap(buffer, offset + 4, 4, "Spell type"));
         break;
 
       case 222: // Teleport field
@@ -3685,7 +3685,7 @@ public final class EffectFactory
       case 226: // Spell type deflection
       case 228: // Spell type turning
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell type", SplResource.s_category));
+        s.add(new SecType2daBitmap(buffer, offset + 4, 4, "Spell type"));
         break;
 
       case 232: // Cast spell on condition

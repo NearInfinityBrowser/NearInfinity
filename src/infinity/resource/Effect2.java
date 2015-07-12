@@ -10,6 +10,7 @@ import infinity.datatype.EffectType;
 import infinity.datatype.Flag;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SecType2daBitmap;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.resource.spl.SplResource;
@@ -65,7 +66,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     list.add(new TextString(buffer, offset + 92, 32, "Variable name"));
     list.add(new DecNumber(buffer, offset + 124, 4, "Caster level"));
     list.add(new Unknown(buffer, offset + 128, 4));
-    list.add(new Bitmap(buffer, offset + 132, 4, "Secondary type", SplResource.s_category));
+    list.add(new SecType2daBitmap(buffer, offset + 132, 4, "Secondary type"));
     list.add(new Unknown(buffer, offset + 136, 4));
     list.add(new Unknown(buffer, offset + 140, 56));
     return offset + 196;

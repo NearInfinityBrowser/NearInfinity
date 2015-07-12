@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Locale;
 
 import infinity.NearInfinity;
-import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.Song2daBitmap;
+import infinity.datatype.Summon2daBitmap;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ChildFrame;
 import infinity.gui.IdsBrowser;
@@ -853,10 +853,10 @@ public final class ResourceFactory
         if (idsbrowser != null)
           idsbrowser.refreshList();
         Compiler.restartCompiler();
-      } else if (resource.getResourceEntry().toString().equalsIgnoreCase("KITLIST.2DA")) {
-        Kit2daBitmap.resetKitlist();
       } else if (resource.getResourceEntry().toString().equalsIgnoreCase("SONGLIST.2DA")) {
         Song2daBitmap.resetSonglist();
+      } else if (resource.getResourceEntry().toString().equalsIgnoreCase("SMTABLES.2DA")) {
+        Summon2daBitmap.resetSummonTable();
       }
     } catch (IOException e) {
       JOptionPane.showMessageDialog(parent, "Error while saving " + resource.getResourceEntry().toString(),

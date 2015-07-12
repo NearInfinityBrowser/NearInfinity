@@ -36,7 +36,6 @@ import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
 import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
-import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
@@ -145,7 +144,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     } else if (type instanceof AbstractCode) {
       return "Script code";
     } else if (type instanceof Bitmap || type instanceof HashBitmap || type instanceof IdsBitmap ||
-        type instanceof Kit2daBitmap || type instanceof Song2daBitmap) {
+               type instanceof Song2daBitmap) {
       return "Numeric type or identifier";
     } else if (type instanceof ColorPicker) {
       return "RGB Color";

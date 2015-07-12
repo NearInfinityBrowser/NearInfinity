@@ -9,6 +9,7 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SecType2daBitmap;
 import infinity.datatype.SectionCount;
 import infinity.datatype.UnsignDecNumber;
 import infinity.gui.StructViewer;
@@ -116,7 +117,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
       addField(new DecNumber(buffer, offset + 22, 1, "Dice size"));
       addField(new Bitmap(buffer, offset + 23, 1, "Primary type (school)", SplResource.s_school));
       addField(new DecNumber(buffer, offset + 24, 1, "# dice thrown"));
-      addField(new Bitmap(buffer, offset + 25, 1, "Secondary type", SplResource.s_category));
+      addField(new SecType2daBitmap(buffer, offset + 25, 1, "Secondary type"));
     }
     else {
       addField(new Bitmap(buffer, offset, 1, "Type", s_type));

@@ -9,6 +9,7 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SecType2daBitmap;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.StringRef;
@@ -37,10 +38,6 @@ import javax.swing.JScrollPane;
 
 public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  public static final String[] s_category = {"None", "Spell protections", "Specific protections", "Illusionary protections",
-                                             "Magic attack", "Divination attack", "Conjuration", "Combat protections",
-                                             "Contingency", "Battleground", "Offensive damage", "Disabling", "Combination",
-                                             "Non-combat"};
   public static final String[] s_school = {"None", "Abjurer", "Conjurer", "Diviner", "Enchanter", "Illusionist", "Invoker",
                                            "Necromancer", "Transmuter", "Generalist"};
 //  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
@@ -289,7 +286,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
       addField(new Bitmap(buffer, offset + 37, 1, "Primary type (school)", s_school)); // 0x25
     }
     addField(new Unknown(buffer, offset + 38, 1));
-    addField(new Bitmap(buffer, offset + 39, 1, "Secondary type", s_category));       // 0x27
+    addField(new SecType2daBitmap(buffer, offset + 39, 1, "Secondary type"));       // 0x27
     addField(new Unknown(buffer, offset + 40, 12));
     addField(new DecNumber(buffer, offset + 52, 4, "Spell level"));
     addField(new Unknown(buffer, offset + 56, 2));

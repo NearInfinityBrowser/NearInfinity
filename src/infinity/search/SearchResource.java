@@ -62,9 +62,9 @@ import infinity.datatype.Bitmap;
 import infinity.datatype.HashBitmap;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IwdRef;
-import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.KitIdsBitmap;
 import infinity.datatype.ProRef;
+import infinity.datatype.SecType2daBitmap;
 import infinity.datatype.Song2daBitmap;
 import infinity.datatype.TextBitmap;
 import infinity.gui.ButtonPopupWindow;
@@ -2733,7 +2733,7 @@ public class SearchResource extends ChildFrame
       }
       cbPrimary = new AutoComboBox(prim);
 
-      cbSecondary = new AutoComboBox(IndexedString.createArray(SplResource.s_category, 0, 0));
+      cbSecondary = new AutoComboBox(IndexedString.createArray(SecType2daBitmap.getTypeArray(), 0, 0));
 
       pAbility = new SplAbilityPanel();
       bpwAbility = new ButtonPopupWindow(setOptionsText, pAbility);
@@ -6722,8 +6722,6 @@ public class SearchResource extends ChildFrame
           id = Long.toString(((HashBitmap)curItem).getValue());
         } else if (curItem instanceof IwdRef) {
           id = Long.toString(((IwdRef)curItem).getValue());
-        } else if (curItem instanceof Kit2daBitmap) {
-          id = Long.toString(((Kit2daBitmap)curItem).getValue());
         } else if (curItem instanceof ProRef) {
           id = Long.toString(((ProRef)curItem).getValue());
         } else if (curItem instanceof Song2daBitmap) {
