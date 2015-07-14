@@ -75,5 +75,8 @@ public class SecTypeBitmap extends HashBitmap
   public static void resetTypeTable()
   {
     typeMap.clear();
+    if (TableName.endsWith(".2DA")) {
+      Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
+    }
   }
 }

@@ -14,13 +14,13 @@ public class Table2daCache
   private static final HashMap<ResourceEntry, Table2da> map = new HashMap<ResourceEntry, Table2da>();
 
   /** Removes the specified 2DA resource from the cache. */
-  public void cacheInvalid(ResourceEntry entry)
+  public static void cacheInvalid(ResourceEntry entry)
   {
     map.remove(entry);
   }
 
   /** Removes all cached 2DA resources. */
-  public void clearCache()
+  public static void clearCache()
   {
     map.clear();
   }

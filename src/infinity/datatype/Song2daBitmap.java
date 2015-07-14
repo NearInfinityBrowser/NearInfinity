@@ -4,6 +4,7 @@
 
 package infinity.datatype;
 
+import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.util.LongIntegerHashMap;
 import infinity.util.Table2da;
@@ -63,5 +64,6 @@ public class Song2daBitmap extends HashBitmap
   public static void resetSonglist()
   {
     songMap.clear();
+    Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
   }
 }

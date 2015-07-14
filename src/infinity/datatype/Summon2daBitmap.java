@@ -63,5 +63,6 @@ public class Summon2daBitmap extends HashBitmap
   public static void resetSummonTable()
   {
     summonMap.clear();
+    Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
   }
 }
