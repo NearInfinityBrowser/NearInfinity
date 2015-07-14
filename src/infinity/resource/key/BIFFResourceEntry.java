@@ -33,7 +33,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
     type = ResourceFactory.getKeyfile().getExtensionType(resourcename.substring(resourcename.indexOf((int)'.') + 1));
     int bifindex = bifentry.getIndex();
     locator = bifindex << 20;
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       locator |= offset << 14;
     else
       locator |= offset;
@@ -134,7 +134,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
       }
     }
     BIFFArchive biff = ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry());
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       return biff.getResource(locator >> 14 & 0x3f, true);
     return biff.getResource(locator & 0x3fff, false);
   }
@@ -150,7 +150,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
       }
     }
     BIFFArchive biff = ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry());
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       return biff.getResourceAsStream(locator >> 14 & 0x3f, true);
     return biff.getResourceAsStream(locator & 0x3fff, false);
   }
@@ -165,7 +165,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
         return getLocalFileInfo(override);
     }
     BIFFArchive biff = ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry());
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       return biff.getResourceInfo(locator >> 14 & 0x3f, true);
     return biff.getResourceInfo(locator & 0x3fff, false);
   }
