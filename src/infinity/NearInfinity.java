@@ -84,14 +84,17 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final boolean DEBUG = false;    // indicates whether to enable debugging features
 
   private static final InfinityTextArea consoletext = new InfinityTextArea(true);
-  private static final String KEYFILENAME     = "chitin.key";
-  private static final String WINDOW_SIZEX    = "WindowSizeX";
-  private static final String WINDOW_SIZEY    = "WindowSizeY";
-  private static final String WINDOW_POSX     = "WindowPosX";
-  private static final String WINDOW_POSY     = "WindowPosY";
-  private static final String WINDOW_STATE    = "WindowState";
-  private static final String WINDOW_SPLITTER = "WindowSplitter";
-  private static final String LAST_GAMEDIR    = "LastGameDir";
+  private static final String KEYFILENAME         = "chitin.key";
+  private static final String WINDOW_SIZEX        = "WindowSizeX";
+  private static final String WINDOW_SIZEY        = "WindowSizeY";
+  private static final String WINDOW_POSX         = "WindowPosX";
+  private static final String WINDOW_POSY         = "WindowPosY";
+  private static final String WINDOW_STATE        = "WindowState";
+  private static final String WINDOW_SPLITTER     = "WindowSplitter";
+  private static final String LAST_GAMEDIR        = "LastGameDir";
+  private static final String TABLE_WIDTH_ATTR    = "TableColWidthAttr";
+  private static final String TABLE_WIDTH_OFS     = "TableColWidthOfs";
+  private static final String TABLE_PANEL_HEIGHT  = "TablePanelHeight";
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %1$s @ %2$s - %3$d files available";
 
@@ -102,8 +105,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private final ResourceTree tree;
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
+  // stores table column widths for "Attribute", "Value" and "Offset"
+  private final int[] tableColumnWidth = { -1, -1, -1 };
+
   private Viewable viewable;
   private ButtonPopupWindow bpwQuickSearch;
+  private int tablePanelHeight;
 
 
   public static boolean isDebug()
@@ -356,6 +363,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
     setVisible(true);
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
+
+    tableColumnWidth[0] = Math.max(15, prefs.getInt(TABLE_WIDTH_ATTR, 300));
+    tableColumnWidth[1] = 0;
+    tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
+    tablePanelHeight = Math.max(50, prefs.getInt(TABLE_PANEL_HEIGHT, 250));
 
     // Checking for updates
     if (Updater.getInstance().isAutoUpdateCheckEnabled() &&
@@ -637,6 +649,60 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
+  /**
+   * Returns the current column width for tables of structured resources.
+   * @param index The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset)
+   */
+  public int getTableColumnWidth(int index)
+  {
+    index = Math.min(Math.max(0, index), 2);
+    if (tableColumnWidth[index] < 0) {
+      switch (index) {
+        case 0: // "Attribute" column
+          tableColumnWidth[index] = 300;
+          break;
+        case 1: // "Value" column (calculated dynamically)
+          tableColumnWidth[index] = 0;
+          break;
+        case 2: // optional "Offset" column
+          tableColumnWidth[index] = 100;
+          break;
+      }
+    }
+    return tableColumnWidth[index];
+  }
+
+  /**
+   * Updates the current default column width for tables of structured resources.
+   * @param index     The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset)
+   * @param newValue  New width in pixels for the specified column
+   * @return          Old column width
+   */
+  public int updateTableColumnWidth(int index, int newValue)
+  {
+    index = Math.min(Math.max(0, index), 2);
+    int retVal = tableColumnWidth[index];
+    tableColumnWidth[index] = Math.max(15, newValue);
+    return retVal;
+  }
+
+  /** Returns the current height of the panel below the table of structured resources.*/
+  public int getTablePanelHeight()
+  {
+    return tablePanelHeight;
+  }
+
+  /**
+   * Updates the height of the panel below the table of structured resources.
+   */
+  public int updateTablePanelHeight(int newValue)
+  {
+    newValue = Math.max(50, newValue);
+    int retVal = tablePanelHeight;
+    tablePanelHeight = newValue;
+    return retVal;
+  }
+
   private void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
@@ -652,6 +718,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(WINDOW_STATE, getExtendedState());
     prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
     prefs.put(LAST_GAMEDIR, Profile.getGameRoot().toString());
+    prefs.putInt(TABLE_WIDTH_ATTR, getTableColumnWidth(0));
+    prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
+    prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
     BrowserMenuBar.getInstance().storePreferences();
     Updater.getInstance().saveUpdateSettings();
   }

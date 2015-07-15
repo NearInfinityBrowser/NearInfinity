@@ -50,6 +50,8 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -86,7 +88,8 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
-                                                          ItemListener, ChangeListener, TableModelListener
+                                                          ItemListener, ChangeListener, TableModelListener,
+                                                          ComponentListener
 {
   // Commonly used tab names
   public static final String TAB_EDIT           = "Edit";
@@ -144,6 +147,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
   private JTabbedPane tabbedPane;
+  private JSplitPane splitv;
+  private boolean splitterSet;
+  private int oldSplitterHeight;
 
   private static JMenuItem createMenuItem(String cmd, String text, Icon icon, ActionListener l)
   {
@@ -177,7 +183,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           Object selected = table.getModel().getValueAt(table.getSelectedRow(), 1);
           if (selected instanceof Viewable) {
             createViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
-//            new ViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
           }
         }
       }
@@ -237,14 +242,19 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     InfinityScrollPane scroll = new InfinityScrollPane(tatext, true);
     scroll.setLineNumbersEnabled(false);
     table.setModel(struct);
-    table.getColumnModel().getColumn(0).setPreferredWidth(10);
-    table.getColumnModel().getColumn(1).setPreferredWidth(400);
-    if (table.getColumnCount() == 3)
-      table.getColumnModel().getColumn(2).setPreferredWidth(6);
+    table.getTableHeader().setReorderingAllowed(false);
+    table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+    table.addComponentListener(this);
+    table.getColumnModel().getColumn(0).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(0));
+    table.getColumnModel().getColumn(1).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(1));
+    if (table.getColumnCount() == 3) {
+      table.getColumnModel().getColumn(2).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(2));
+    }
 
     lowerpanel.add(scroll, CARD_TEXT);
     lowerpanel.add(editpanel, CARD_EDIT);
     lowerpanel.add(new JPanel(), CARD_EMPTY);
+    lowerpanel.addComponentListener(this);
     cards.show(lowerpanel, CARD_EMPTY);
 
     if (struct instanceof HasAddRemovable && struct.getFieldCount() > 0) {
@@ -307,7 +317,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     JScrollPane scrollTable = new JScrollPane(table);
     scrollTable.getViewport().setBackground(table.getBackground());
     scrollTable.setBorder(BorderFactory.createEmptyBorder());
-    JSplitPane splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTable, lowerpanel);
+    splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTable, lowerpanel);
     splitv.setDividerLocation(2 * (NearInfinity.getInstance().getHeight() - 100) / 3);
 
     setLayout(new BorderLayout());
@@ -375,6 +385,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         table.getSelectionModel().setSelectionInterval(0, 0);
       }
     }
+
+    addComponentListener(this);
 
     StructClipboard.getInstance().addChangeListener(this);
     table.repaint();
@@ -727,6 +739,56 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- End Interface TableModelListener ---------------------
 
+// --------------------- Begin Interface ComponentListener ---------------------
+
+  @Override
+  public void componentShown(ComponentEvent e)
+  {
+  }
+
+  @Override
+  public void componentResized(ComponentEvent e)
+  {
+    if (e.getSource() == this) {
+      // ensure fixed lower panel height
+      int loc = Math.max(50, splitv.getHeight() - NearInfinity.getInstance().getTablePanelHeight());
+      splitv.setDividerLocation(loc);
+      splitterSet = true;   // XXX: work-around to prevent storing uninitialized splitter location in prefs
+    } else if (e.getSource() == lowerpanel) {
+      if (oldSplitterHeight > 0 && splitv.getHeight() == oldSplitterHeight) {
+        int v = Math.max(50, splitv.getHeight() - splitv.getDividerLocation());
+        NearInfinity.getInstance().updateTablePanelHeight(v);
+      } else {
+        // don't update splitter location when resizing window
+        oldSplitterHeight = splitv.getHeight();
+      }
+    } else if (e.getSource() == table) {
+      // ensure fixed "Attribute" and "Offset" column widths
+      int w = table.getWidth();
+      int w0 = table.getColumnModel().getColumn(0).getPreferredWidth();
+      int w2 = (table.getColumnCount() == 3) ? table.getColumnModel().getColumn(2).getPreferredWidth() : 0;
+      int w1 = w - (w0 + w2);
+
+      table.getColumnModel().getColumn(0).setPreferredWidth(w0);
+      table.getColumnModel().getColumn(1).setPreferredWidth(w1);
+      if (table.getColumnCount() == 3) {
+        table.getColumnModel().getColumn(2).setPreferredWidth(w2);
+      }
+    }
+  }
+
+  @Override
+  public void componentMoved(ComponentEvent e)
+  {
+  }
+
+  @Override
+  public void componentHidden(ComponentEvent e)
+  {
+  }
+
+// --------------------- End Interface ComponentListener ---------------------
+
   public ButtonPanel getButtonPanel()
   {
     return buttonPanel;
@@ -734,6 +796,16 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   public void close()
   {
+    // storing current table column widths and divider location
+    NearInfinity.getInstance().updateTableColumnWidth(0, table.getColumnModel().getColumn(0).getPreferredWidth());
+    NearInfinity.getInstance().updateTableColumnWidth(1, table.getColumnModel().getColumn(1).getPreferredWidth());
+    if (table.getColumnCount() == 3) {
+      NearInfinity.getInstance().updateTableColumnWidth(2, table.getColumnModel().getColumn(2).getPreferredWidth());
+    }
+    if (splitterSet) {
+      NearInfinity.getInstance().updateTablePanelHeight(splitv.getHeight() - splitv.getDividerLocation());
+    }
+
     StructClipboard.getInstance().removeChangeListener(this);
     if (struct instanceof Resource) {
       if (tabbedPane != null && struct instanceof HasViewerTabs) {
