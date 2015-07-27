@@ -140,7 +140,6 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
    super.close();
    if (areaViewer != null) {
      areaViewer.close();
-     areaViewer.dispose();
      areaViewer = null;
    }
  }

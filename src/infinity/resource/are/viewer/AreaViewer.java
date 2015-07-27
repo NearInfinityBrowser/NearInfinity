@@ -227,38 +227,23 @@ public class AreaViewer extends ChildFrame
         return null;
       }
     };
-    workerInitGui.addPropertyChangeListener(listeners);
+    workerInitGui.addPropertyChangeListener(getListeners());
     workerInitGui.execute();
   }
 
-  /**
-   * Returns the tileset renderer for this viewer instance.
-   * @return The currently used TilesetRenderer instance.
-   */
-  public TilesetRenderer getRenderer()
-  {
-    return rcCanvas;
-  }
-
-//--------------------- Begin Class ChildFrame ---------------------
-
-  /** Returns the instance which handles all listeners of the area viewer. */
-  Listeners getListeners()
-  {
-    return listeners;
-  }
-
+  //--------------------- Begin Class ChildFrame ---------------------
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
+  public void close()
   {
+    System.out.println("AreaViewer.close() called");
     Settings.storeSettings(false);
 
     if (!map.closeWed(ViewerConstants.AREA_DAY, true)) {
-      return false;
+      return;
     }
     if (!map.closeWed(ViewerConstants.AREA_NIGHT, true)) {
-      return false;
+      return;
     }
     if (map != null) {
       map.clear();
@@ -274,10 +259,25 @@ public class AreaViewer extends ChildFrame
     }
     dispose();
     System.gc();
-    return super.windowClosing(forced);
+    super.close();
   }
 
-//--------------------- End Class ChildFrame ---------------------
+  //--------------------- End Class ChildFrame ---------------------
+
+  /**
+   * Returns the tileset renderer for this viewer instance.
+   * @return The currently used TilesetRenderer instance.
+   */
+  public TilesetRenderer getRenderer()
+  {
+    return rcCanvas;
+  }
+
+  /** Returns the instance which handles all listeners of the area viewer. */
+  Listeners getListeners()
+  {
+    return listeners;
+  }
 
 
   // initialize GUI and structures
@@ -298,10 +298,10 @@ public class AreaViewer extends ChildFrame
     // Creating main view area
     pCanvas = new JPanel(new GridBagLayout());
     rcCanvas = new TilesetRenderer();
-    rcCanvas.addComponentListener(listeners);
-    rcCanvas.addMouseListener(listeners);
-    rcCanvas.addMouseMotionListener(listeners);
-    rcCanvas.addChangeListener(listeners);
+    rcCanvas.addComponentListener(getListeners());
+    rcCanvas.addMouseListener(getListeners());
+    rcCanvas.addMouseMotionListener(getListeners());
+    rcCanvas.addChangeListener(getListeners());
     rcCanvas.setHorizontalAlignment(RenderCanvas.CENTER);
     rcCanvas.setVerticalAlignment(RenderCanvas.CENTER);
     rcCanvas.setLocation(0, 0);
@@ -310,8 +310,8 @@ public class AreaViewer extends ChildFrame
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pCanvas.add(rcCanvas, c);
     spCanvas = new JScrollPane(pCanvas);
-    spCanvas.addComponentListener(listeners);
-    spCanvas.getViewport().addChangeListener(listeners);
+    spCanvas.addComponentListener(getListeners());
+    spCanvas.getViewport().addChangeListener(getListeners());
     spCanvas.getVerticalScrollBar().setUnitIncrement(16);
     spCanvas.getHorizontalScrollBar().setUnitIncrement(16);
     JPanel pView = new JPanel(new BorderLayout());
@@ -330,32 +330,32 @@ public class AreaViewer extends ChildFrame
     Dimension d = bpwDayTime.getPreferredSize();
     bpwDayTime.setIconTextGap(8);
     pDayTime = new DayTimePanel(bpwDayTime, getHour());
-    pDayTime.addChangeListener(listeners);
+    pDayTime.addChangeListener(getListeners());
     bpwDayTime.setContent(pDayTime);
     bpwDayTime.setPreferredSize(d);
     bpwDayTime.setMargin(new Insets(2, bpwDayTime.getMargin().left, 2, bpwDayTime.getMargin().right));
 
     cbEnableSchedules = new JCheckBox(LabelEnableSchedule);
     cbEnableSchedules.setToolTipText("Enable activity schedules on layer structures that support them (e.g. actors, ambient sounds or background animations.");
-    cbEnableSchedules.addActionListener(listeners);
+    cbEnableSchedules.addActionListener(getListeners());
 
     cbDrawClosed = new JCheckBox(LabelDrawClosed);
     cbDrawClosed.setToolTipText("Draw opened or closed states of doors");
-    cbDrawClosed.addActionListener(listeners);
+    cbDrawClosed.addActionListener(getListeners());
 
     cbDrawGrid = new JCheckBox(LabelDrawGrid);
-    cbDrawGrid.addActionListener(listeners);
+    cbDrawGrid.addActionListener(getListeners());
 
     cbDrawOverlays = new JCheckBox(LabelDrawOverlays);
-    cbDrawOverlays.addActionListener(listeners);
+    cbDrawOverlays.addActionListener(getListeners());
 
     cbAnimateOverlays = new JCheckBox(LabelAnimateOverlays);
-    cbAnimateOverlays.addActionListener(listeners);
+    cbAnimateOverlays.addActionListener(getListeners());
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
     cbZoomLevel = new JComboBox(Settings.LabelZoomFactor);
     cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
-    cbZoomLevel.addActionListener(listeners);
+    cbZoomLevel.addActionListener(getListeners());
     JPanel pZoom = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
@@ -385,23 +385,23 @@ public class AreaViewer extends ChildFrame
     for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
       LayerType layer = LayerManager.getLayerType(i);
       cbLayers[i] = new JCheckBox(LayerManager.getLayerTypeLabel(layer));
-      cbLayers[i].addActionListener(listeners);
+      cbLayers[i].addActionListener(getListeners());
       t2 = new DefaultMutableTreeNode(cbLayers[i]);
       t.add(t2);
       if (i == LayerManager.getLayerTypeIndex(LayerType.Ambient)) {
         // Initializing ambient sound range checkbox
         cbLayerAmbientRange = new JCheckBox("Show local sound ranges");
-        cbLayerAmbientRange.addActionListener(listeners);
+        cbLayerAmbientRange.addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerAmbientRange);
         t2.add(t3);
       } else if (i == LayerManager.getLayerTypeIndex(LayerType.Animation)) {
         // Initializing real animation checkboxes
         cbLayerRealAnimation[0] = new JCheckBox("Show actual animations");
-        cbLayerRealAnimation[0].addActionListener(listeners);
+        cbLayerRealAnimation[0].addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[0]);
         t2.add(t3);
         cbLayerRealAnimation[1] = new JCheckBox("Animate actual animations");
-        cbLayerRealAnimation[1].addActionListener(listeners);
+        cbLayerRealAnimation[1].addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[1]);
         t2.add(t3);
       }
@@ -409,11 +409,11 @@ public class AreaViewer extends ChildFrame
 
     // Adding mini map entries
     cbMiniMaps[ViewerConstants.MAP_SEARCH] = new JCheckBox("Display search map");
-    cbMiniMaps[ViewerConstants.MAP_SEARCH].addActionListener(listeners);
+    cbMiniMaps[ViewerConstants.MAP_SEARCH].addActionListener(getListeners());
     cbMiniMaps[ViewerConstants.MAP_LIGHT] = new JCheckBox("Display light map");
-    cbMiniMaps[ViewerConstants.MAP_LIGHT].addActionListener(listeners);
+    cbMiniMaps[ViewerConstants.MAP_LIGHT].addActionListener(getListeners());
     cbMiniMaps[ViewerConstants.MAP_HEIGHT] = new JCheckBox("Display height map");
-    cbMiniMaps[ViewerConstants.MAP_HEIGHT].addActionListener(listeners);
+    cbMiniMaps[ViewerConstants.MAP_HEIGHT].addActionListener(getListeners());
 
     l = new JLabel("Mini maps");
     l.setFont(new Font(l.getFont().getFontName(), Font.BOLD, l.getFont().getSize()+1));
@@ -424,7 +424,7 @@ public class AreaViewer extends ChildFrame
     t.add(new DefaultMutableTreeNode(cbMiniMaps[2]));
 
     treeControls = new JTree(new DefaultTreeModel(top));
-    treeControls.addTreeExpansionListener(listeners);
+    treeControls.addTreeExpansionListener(getListeners());
     treeControls.setBackground(getBackground());
     treeControls.setRootVisible(false);
     treeControls.setShowsRootHandles(true);
@@ -500,12 +500,12 @@ public class AreaViewer extends ChildFrame
     toolBar.setFloatable(false);
     tbView = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_viewMode.png"), true);
     tbView.setToolTipText("Enter view mode");
-    tbView.addActionListener(listeners);
+    tbView.addActionListener(getListeners());
     tbView.setEnabled(false);
 //    toolBar.add(tbView);
     tbEdit = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_editMode.png"), false);
     tbEdit.setToolTipText("Enter edit mode");
-    tbEdit.addActionListener(listeners);
+    tbEdit.addActionListener(getListeners());
     tbEdit.setEnabled(false);
 //    toolBar.add(tbEdit);
 
@@ -514,73 +514,73 @@ public class AreaViewer extends ChildFrame
     JToggleButton tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addActor.png"), false);
     tb.setToolTipText("Add a new actor to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Actor)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addRegion.png"), false);
     tb.setToolTipText("Add a new region to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Region)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addEntrance.png"), false);
     tb.setToolTipText("Add a new entrance to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Entrance)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addContainer.png"), false);
     tb.setToolTipText("Add a new container to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Container)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAmbient.png"), false);
     tb.setToolTipText("Add a new global ambient sound to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Ambient)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addDoor.png"), false);
     tb.setToolTipText("Add a new door to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Door)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAnim.png"), false);
     tb.setToolTipText("Add a new background animation to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Animation)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAutomap.png"), false);
     tb.setToolTipText("Add a new automap note to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Automap)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addSpawnPoint.png"), false);
     tb.setToolTipText("Add a new spawn point to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.SpawnPoint)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addProTrap.png"), false);
     tb.setToolTipText("Add a new projectile trap to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.ProTrap)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addDoorPoly.png"), false);
     tb.setToolTipText("Add a new door polygon to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addWallPoly.png"), false);
     tb.setToolTipText("Add a new wall polygon to the map");
-    tb.addActionListener(listeners);
+    tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.WallPoly)] = tb;
@@ -589,36 +589,36 @@ public class AreaViewer extends ChildFrame
 
     tbAre = new JButton(Icons.getIcon(ViewerIcons.class, "icn_mapAre.png"));
     tbAre.setToolTipText(String.format("Edit ARE structure (%1$s)", map.getAre().getName()));
-    tbAre.addActionListener(listeners);
+    tbAre.addActionListener(getListeners());
     toolBar.add(tbAre);
     tbWed = new JButton(Icons.getIcon(ViewerIcons.class, "icn_mapWed.png"));
-    tbWed.addActionListener(listeners);
+    tbWed.addActionListener(getListeners());
     toolBar.add(tbWed);
     tbSongs = new JButton(Icons.getIcon(ViewerIcons.class, "icn_songs.png"));
     tbSongs.setToolTipText("Edit song entries");
-    tbSongs.addActionListener(listeners);
+    tbSongs.addActionListener(getListeners());
     toolBar.add(tbSongs);
     tbRest = new JButton(Icons.getIcon(ViewerIcons.class, "icn_rest.png"));
     tbRest.setToolTipText("Edit rest encounters");
-    tbRest.addActionListener(listeners);
+    tbRest.addActionListener(getListeners());
     toolBar.add(tbRest);
 
     toolBar.addSeparator(dimSeparator);
 
     tbSettings = new JButton(Icons.getIcon(ViewerIcons.class, "icn_settings.png"));
     tbSettings.setToolTipText("Area viewer settings");
-    tbSettings.addActionListener(listeners);
+    tbSettings.addActionListener(getListeners());
     toolBar.add(tbSettings);
     tbRefresh = new JButton(Icons.getIcon(ViewerIcons.class, "icn_refresh.png"));
     tbRefresh.setToolTipText("Update map");
-    tbRefresh.addActionListener(listeners);
+    tbRefresh.addActionListener(getListeners());
     toolBar.add(tbRefresh);
 
     toolBar.addSeparator(dimSeparator);
 
     tbExportPNG = new JButton(Icons.getIcon(ViewerIcons.class, "icn_export.png"));
     tbExportPNG.setToolTipText("Export current map state as PNG");
-    tbExportPNG.addActionListener(listeners);
+    tbExportPNG.addActionListener(getListeners());
     toolBar.add(tbExportPNG);
 
     pView.add(toolBar, BorderLayout.NORTH);
@@ -635,7 +635,7 @@ public class AreaViewer extends ChildFrame
     pMain.add(pSideBar, c);
 
     // setting frame rate for overlay animations to 5 fps (in-game frame rate: 7.5 fps)
-    timerOverlays = new Timer(1000/5, listeners);
+    timerOverlays = new Timer(1000/5, getListeners());
 
     advanceProgressMonitor("Initializing map...");
     Container pane = getContentPane();
@@ -1302,7 +1302,7 @@ public class AreaViewer extends ChildFrame
                   if (lenPrefix + lenMsg > MaxLen) {
                     dmi.setToolTipText(items[k].getMessage());
                   }
-                  dmi.addActionListener(listeners);
+                  dmi.addActionListener(getListeners());
                   menuItems.add(dmi);
                 }
               }
