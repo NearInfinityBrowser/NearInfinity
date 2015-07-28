@@ -13,18 +13,25 @@ import infinity.gui.PopupWindowListener;
 import infinity.gui.QuickSearch;
 import infinity.gui.ResourceTree;
 import infinity.gui.StatusBar;
+import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
 import infinity.resource.EffectFactory;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Viewable;
 import infinity.resource.ViewableContainer;
 import infinity.resource.bcs.Compiler;
+import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
+import infinity.resource.text.PlainTextResource;
 import infinity.search.SearchFrame;
+import infinity.updater.UpdateCheck;
+import infinity.updater.UpdateInfo;
+import infinity.updater.Updater;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
 import infinity.util.io.FileLookup;
@@ -34,6 +41,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
@@ -76,14 +84,19 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final boolean DEBUG = false;    // indicates whether to enable debugging features
 
   private static final InfinityTextArea consoletext = new InfinityTextArea(true);
-  private static final String KEYFILENAME = "chitin.key";
-  private static final String WINDOW_SIZEX = "WindowSizeX";
-  private static final String WINDOW_SIZEY = "WindowSizeY";
-  private static final String WINDOW_POSX = "WindowPosX";
-  private static final String WINDOW_POSY = "WindowPosY";
-  private static final String WINDOW_STATE = "WindowState";
-  private static final String WINDOW_SPLITTER = "WindowSplitter";
-  private static final String LAST_GAMEDIR = "LastGameDir";
+  private static final String KEYFILENAME         = "chitin.key";
+  private static final String WINDOW_SIZEX        = "WindowSizeX";
+  private static final String WINDOW_SIZEY        = "WindowSizeY";
+  private static final String WINDOW_POSX         = "WindowPosX";
+  private static final String WINDOW_POSY         = "WindowPosY";
+  private static final String WINDOW_STATE        = "WindowState";
+  private static final String WINDOW_SPLITTER     = "WindowSplitter";
+  private static final String LAST_GAMEDIR        = "LastGameDir";
+  private static final String TABLE_WIDTH_ATTR    = "TableColWidthAttr";
+  private static final String TABLE_WIDTH_OFS     = "TableColWidthOfs";
+  private static final String TABLE_PANEL_HEIGHT  = "TablePanelHeight";
+
+  private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %1$s @ %2$s - %3$d files available";
 
   private static NearInfinity browser;
 
@@ -92,8 +105,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private final ResourceTree tree;
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
+  // stores table column widths for "Attribute", "Value" and "Offset"
+  private final int[] tableColumnWidth = { -1, -1, -1 };
+
   private Viewable viewable;
   private ButtonPopupWindow bpwQuickSearch;
+  private int tablePanelHeight;
 
 
   public static boolean isDebug()
@@ -104,10 +121,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static File findKeyfile()
   {
     JFileChooser chooser;
-    if (ResourceFactory.getRootDir() == null)
+    if (Profile.getGameRoot() == null) {
       chooser = new JFileChooser(new FileNI("."));
-    else
-      chooser = new JFileChooser(ResourceFactory.getRootDir());
+    } else {
+      chooser = new JFileChooser(Profile.getGameRoot());
+    }
     chooser.setDialogTitle("Open game: Locate keyfile");
     chooser.setFileFilter(new FileFilter()
     {
@@ -151,24 +169,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     SearchFrame.clearCache();
     StringResource.close();
     Compiler.restartCompiler();
-    if (refreshonly)
-      try {
-        ResourceFactory.getInstance().loadResources();
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
-                                      JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
-      }
-    else {
-      File newkeyfile = findKeyfile();
-      if (newkeyfile == null)
-        return false;
-      else {
-        EffectFactory.init();
-        new ResourceFactory(newkeyfile);
-      }
+    File keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
+    if (keyFile != null) {
+      EffectFactory.init();
+      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      return true;
     }
-    return true;
+    return false;
   }
 
   public static void main(String args[])
@@ -189,32 +196,54 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
     System.setOut(new ConsoleStream(System.out, consoletext));
     System.setErr(new ConsoleStream(System.err, consoletext));
-    browser = new NearInfinity();
+
+    // Override game folder via application parameter
+    File gameOverride = null;
+    if (args.length > 0) {
+      File f = new FileNI(args[0]);
+      if (f.isFile()) {
+        f = f.getParentFile();
+      }
+      if (f.isDirectory()) {
+        gameOverride = f;
+      }
+    }
+
+    new NearInfinity(gameOverride);
   }
 
-  private NearInfinity()
+  private NearInfinity(File gameOverride)
   {
     super("Near Infinity");
+    browser = this;
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setAppIcon();
     Preferences prefs = Preferences.userNodeForPackage(getClass());
 
-    BrowserMenuBar menuBar = new BrowserMenuBar(this);
+    BrowserMenuBar menuBar = new BrowserMenuBar();
     setJMenuBar(menuBar);
 
-    String lastDir = prefs.get(LAST_GAMEDIR, null);
-    if (new FileNI(KEYFILENAME).exists()) {
-      new ResourceFactory(new FileNI(KEYFILENAME));
-    } else if (lastDir != null && new FileNI(lastDir, KEYFILENAME).exists()) {
-      new ResourceFactory(new FileNI(lastDir, KEYFILENAME));
+    String lastDir = null;
+    if (gameOverride != null && gameOverride.isDirectory()) {
+      lastDir = gameOverride.toString();
     } else {
-      File key = findKeyfile();
-      if (key == null)
+      lastDir = prefs.get(LAST_GAMEDIR, null);
+    }
+    if (new FileNI(KEYFILENAME).isFile()) {
+      File keyFile = new FileNI(KEYFILENAME);
+      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+    } else if (lastDir != null && new FileNI(lastDir, KEYFILENAME).isFile()) {
+      File keyFile = new FileNI(lastDir, KEYFILENAME);
+      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+    } else {
+      File keyFile = findKeyfile();
+      if (keyFile == null) {
         System.exit(10);
-      new ResourceFactory(key);
+      }
+      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
     }
 
-    menuBar.gameLoaded(-1, null);
+    menuBar.gameLoaded(Profile.Game.Unknown, null);
 
     addWindowListener(new WindowAdapter()
     {
@@ -237,14 +266,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     statusBar = new StatusBar();
-    ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
-    setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
-    statusBar.setMessage(
-            "Welcome to Near Infinity! - " +
-            ResourceFactory.getGameName(ResourceFactory.getGameID()) +
-            " @ "
-            + ResourceFactory.getRootDir().toString() + " - " + treemodel.size() +
-            " files available");
+    ResourceTreeModel treemodel = ResourceFactory.getResources();
+    updateWindowTitle();
+    final String msg = String.format(STATUSBAR_TEXT_FMT,
+                                     Profile.getProperty(Profile.GET_GAME_TITLE),
+                                     Profile.getGameRoot(), treemodel.size());
+    statusBar.setMessage(msg);
     tree = new ResourceTree(treemodel);
     tree.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -337,6 +364,31 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setVisible(true);
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
 
+    tableColumnWidth[0] = Math.max(15, prefs.getInt(TABLE_WIDTH_ATTR, 300));
+    tableColumnWidth[1] = 0;
+    tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
+    tablePanelHeight = Math.max(50, prefs.getInt(TABLE_PANEL_HEIGHT, 250));
+
+    // Checking for updates
+    if (Updater.getInstance().isAutoUpdateCheckEnabled() &&
+        Updater.getInstance().hasAutoUpdateCheckDateExpired()) {
+      // storing last check date for future reference
+      Updater.getInstance().setAutoUpdateCheckDate(null);
+      // running check in background with as little as possible interference with user interactions
+      new Thread(new Runnable() {
+        @Override
+        public void run()
+        {
+          UpdateInfo info = Updater.getInstance().loadUpdateInfo();
+          if (info != null) {
+            if (Updater.isNewRelease(info.getRelease(), true)) {
+              UpdateCheck.showDialog(NearInfinity.getInstance(), info);
+            }
+          }
+        }
+      }).start();
+    }
+
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run()
@@ -353,21 +405,20 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     if (event.getActionCommand().equals("Open")) {
       blocker.setBlocked(true);
-      int oldGame = ResourceFactory.getGameID();
-      String oldFile = ResourceFactory.getKeyfile().toString();
+      Profile.Game oldGame = Profile.getGame();
+      String oldFile = Profile.getChitinKey().toString();
       if (reloadFactory(false)) {
         if (!removeViewable()) {
           blocker.setBlocked(false);
           return;
         }
         ChildFrame.closeWindows();
-        ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
-        setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
-        statusBar.setMessage(
-                "Welcome to Near Infinity! - " +
-                ResourceFactory.getGameName(ResourceFactory.getGameID()) +
-                " @ " + ResourceFactory.getRootDir().toString() + " - " +
-                treemodel.size() + " files available");
+        ResourceTreeModel treemodel = ResourceFactory.getResources();
+        updateWindowTitle();
+        final String msg = String.format(STATUSBAR_TEXT_FMT,
+                                         Profile.getProperty(Profile.GET_GAME_TITLE),
+                                         Profile.getGameRoot(), treemodel.size());
+        statusBar.setMessage(msg);
         BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
         tree.setModel(treemodel);
         containerpanel.removeAll();
@@ -375,28 +426,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         containerpanel.repaint();
       }
       blocker.setBlocked(false);
-    }
-    else if (event.getActionCommand().equals("Exit")) {
+    } else if (event.getActionCommand().equals("Exit")) {
       quit();
-    }
-    else if (event.getActionCommand().equals("Refresh")) {
-      blocker.setBlocked(true);
-      reloadFactory(true);
-      if (removeViewable()) {
-        ChildFrame.closeWindows();
-        ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
-        statusBar.setMessage("Welcome to Near Infinity! - " +
-                             ResourceFactory.getGameName(ResourceFactory.getGameID()) +
-                             " @ " + ResourceFactory.getRootDir().toString() +
-                             " - " + treemodel.size() + " files available");
-        tree.setModel(treemodel);
-        containerpanel.removeAll();
-        containerpanel.revalidate();
-        containerpanel.repaint();
-      }
-      blocker.setBlocked(false);
-    }
-    else if (event.getActionCommand().equals("ChangeLook")) {
+    } else if (event.getActionCommand().equals("GameIni")) {
+      editGameIni(this);
+    } else if (event.getActionCommand().equals("Refresh")) {
+      refreshGame();
+    } else if (event.getActionCommand().equals("ChangeLook")) {
       try {
         LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
         UIManager.setLookAndFeel(info.getClassName());
@@ -409,8 +445,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } catch (Exception e) {
         e.printStackTrace();
       }
-    }
-    else if (event.getActionCommand().equals("Collapse")) {
+    } else if (event.getActionCommand().equals("Collapse")) {
       try {
         WindowBlocker.blockWindow(this, true);
         tree.collapseSelected();
@@ -418,8 +453,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
-    }
-    else if (event.getActionCommand().equals("Expand")) {
+    } else if (event.getActionCommand().equals("Expand")) {
       try {
         WindowBlocker.blockWindow(this, true);
         tree.expandSelected();
@@ -427,8 +461,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
-    }
-    else if (event.getActionCommand().equals("CollapseAll")) {
+    } else if (event.getActionCommand().equals("CollapseAll")) {
       try {
         WindowBlocker.blockWindow(this, true);
         tree.collapseAll();
@@ -436,8 +469,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
-    }
-    else if (event.getActionCommand().equals("ExpandAll")) {
+    } else if (event.getActionCommand().equals("ExpandAll")) {
       try {
         WindowBlocker.blockWindow(this, true);
         tree.expandAll();
@@ -504,27 +536,25 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return tree;
   }
 
-  public void openGame(File keyfile)
+  public void openGame(File keyFile)
   {
     blocker.setBlocked(true);
-    int oldGame = ResourceFactory.getGameID();
-    String oldFile = ResourceFactory.getKeyfile().toString();
+    Profile.Game oldGame = Profile.getGame();
+    String oldFile = Profile.getChitinKey().toString();
     IdsMapCache.clearCache();
     SearchFrame.clearCache();
     StringResource.close();
     Compiler.restartCompiler();
     EffectFactory.init();
-    new ResourceFactory(keyfile);
+    Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
     removeViewable();
     ChildFrame.closeWindows();
-    ResourceTreeModel treemodel = ResourceFactory.getInstance().getResources();
-    setTitle("Near Infinity - " + ResourceFactory.getGameName(ResourceFactory.getGameID()));
-    statusBar.setMessage(
-            "Welcome to Near Infinity! - " +
-            ResourceFactory.getGameName(ResourceFactory.getGameID()) +
-            " @ "
-            + ResourceFactory.getRootDir().toString() + " - " + treemodel.size() +
-            " files available");
+    ResourceTreeModel treemodel = ResourceFactory.getResources();
+    updateWindowTitle();
+    final String msg = String.format(STATUSBAR_TEXT_FMT,
+                                     Profile.getProperty(Profile.GET_GAME_TITLE),
+                                     Profile.getGameRoot(), treemodel.size());
+    statusBar.setMessage(msg);
     BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
     tree.setModel(treemodel);
     containerpanel.removeAll();
@@ -565,17 +595,134 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
+  // Re-initializes currently selected game
+  public void refreshGame()
+  {
+    try {
+      blocker.setBlocked(true);
+      reloadFactory(true);
+      if (removeViewable()) {
+        ChildFrame.closeWindows();
+        ResourceTreeModel treemodel = ResourceFactory.getResources();
+        final String msg = String.format(STATUSBAR_TEXT_FMT,
+                                         Profile.getProperty(Profile.GET_GAME_TITLE),
+                                         Profile.getGameRoot(), treemodel.size());
+        statusBar.setMessage(msg);
+        BrowserMenuBar.getInstance().gameLoaded(null, null);
+        tree.setModel(treemodel);
+        containerpanel.removeAll();
+        containerpanel.revalidate();
+        containerpanel.repaint();
+      }
+    } finally {
+      blocker.setBlocked(false);
+    }
+  }
+
+  // Set/Reset main window title
+  public void updateWindowTitle()
+  {
+    String title = (String)Profile.getProperty(Profile.GET_GAME_TITLE);
+    String desc = (String)Profile.getProperty(Profile.GET_GAME_DESC);
+    if (desc != null && !desc.isEmpty()) {
+      setTitle(String.format("Near Infinity - %1$s (%2$s)", title, desc));
+    } else {
+      setTitle(String.format("Near Infinity - %1$s", title));
+    }
+  }
+
+  // Opens game's ini file in text editor
+  public boolean editGameIni(Component parent)
+  {
+    boolean retVal = false;
+    File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
+    try {
+      if (iniFile != null && iniFile.isFile()) {
+        new ViewFrame(parent, new PlainTextResource(new FileResourceEntry(iniFile)));
+      } else {
+        throw new Exception();
+      }
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(parent, "Cannot open INI file.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    return retVal;
+  }
+
+  /**
+   * Returns the current column width for tables of structured resources.
+   * @param index The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset)
+   */
+  public int getTableColumnWidth(int index)
+  {
+    index = Math.min(Math.max(0, index), 2);
+    if (tableColumnWidth[index] < 0) {
+      switch (index) {
+        case 0: // "Attribute" column
+          tableColumnWidth[index] = 300;
+          break;
+        case 1: // "Value" column (calculated dynamically)
+          tableColumnWidth[index] = 0;
+          break;
+        case 2: // optional "Offset" column
+          tableColumnWidth[index] = 100;
+          break;
+      }
+    }
+    return tableColumnWidth[index];
+  }
+
+  /**
+   * Updates the current default column width for tables of structured resources.
+   * @param index     The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset)
+   * @param newValue  New width in pixels for the specified column
+   * @return          Old column width
+   */
+  public int updateTableColumnWidth(int index, int newValue)
+  {
+    index = Math.min(Math.max(0, index), 2);
+    int retVal = tableColumnWidth[index];
+    tableColumnWidth[index] = Math.max(15, newValue);
+    return retVal;
+  }
+
+  /** Returns the current height of the panel below the table of structured resources.*/
+  public int getTablePanelHeight()
+  {
+    return tablePanelHeight;
+  }
+
+  /**
+   * Updates the height of the panel below the table of structured resources.
+   */
+  public int updateTablePanelHeight(int newValue)
+  {
+    newValue = Math.max(50, newValue);
+    int retVal = tablePanelHeight;
+    tablePanelHeight = newValue;
+    return retVal;
+  }
+
   private void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
-    prefs.putInt(WINDOW_SIZEX, (int)getSize().getWidth());
-    prefs.putInt(WINDOW_SIZEY, (int)getSize().getHeight());
-    prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
-    prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
+    // preserve non-maximized size and position of the window if possible
+    if ((getExtendedState() & Frame.MAXIMIZED_HORIZ) == 0) {
+      prefs.putInt(WINDOW_SIZEX, (int)getSize().getWidth());
+      prefs.putInt(WINDOW_POSX, (int)getLocation().getX());
+    }
+    if ((getExtendedState() & Frame.MAXIMIZED_VERT) == 0) {
+      prefs.putInt(WINDOW_SIZEY, (int)getSize().getHeight());
+      prefs.putInt(WINDOW_POSY, (int)getLocation().getY());
+    }
     prefs.putInt(WINDOW_STATE, getExtendedState());
     prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
-    prefs.put(LAST_GAMEDIR, ResourceFactory.getRootDir().toString());
+    prefs.put(LAST_GAMEDIR, Profile.getGameRoot().toString());
+    prefs.putInt(TABLE_WIDTH_ATTR, getTableColumnWidth(0));
+    prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
+    prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
     BrowserMenuBar.getInstance().storePreferences();
+    Updater.getInstance().saveUpdateSettings();
   }
 
   private void setAppIcon()

@@ -5,6 +5,7 @@
 package infinity.resource.key;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.util.io.FileInputStreamNI;
 import infinity.util.io.FileNI;
@@ -91,8 +92,9 @@ public final class FileResourceEntry extends ResourceEntry
         ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1)
       return getExtension();
     else {
-      if (hasOverride())
-        return ResourceFactory.OVERRIDEFOLDER;
+      if (hasOverride()) {
+        return Profile.getOverrideFolderName();
+      }
       return file.getParentFile().getName();
     }
   }

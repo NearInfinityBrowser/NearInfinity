@@ -10,6 +10,7 @@ import infinity.gui.ButtonPopupMenu;
 import infinity.gui.InfinityScrollPane;
 import infinity.gui.InfinityTextArea;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.ViewableContainer;
@@ -72,10 +73,10 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void actionPerformed(ActionEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
-      if (ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor()))
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()))
         resourceChanged = false;
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TrimSpaces) == event.getSource()) {
       StringBuffer newText = new StringBuffer(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
@@ -99,8 +100,8 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
       File output;
       if (entry instanceof BIFFResourceEntry)
         output =
-            FileNI.getFile(ResourceFactory.getRootDirs(),
-                 ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
+            FileNI.getFile(Profile.getRootFolders(),
+                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
       else
         output = entry.getActualFile();
       String options[] = {"Save changes", "Discard changes", "Cancel"};
@@ -108,7 +109,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == 0)
-        ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
+        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
       else if (result != 1)
         throw new Exception("Save aborted");
     }
@@ -149,7 +150,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     if (event.getSource() == bpmFind) {
       if (bpmFind.getSelectedItem() == ifindall) {
         String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources(type);
+        List<ResourceEntry> files = ResourceFactory.getResources(type);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
@@ -273,6 +274,11 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     InfinityTextArea.Language language = InfinityTextArea.Language.NONE;
     if (entry != null) {
       if ("SQL".equalsIgnoreCase(entry.getExtension())) {
+        if (BrowserMenuBar.getInstance() == null ||
+            BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
+          language = InfinityTextArea.Language.SQL;
+        }
+      } else if (Profile.isEnhancedEdition() && "BALDUR.INI".equalsIgnoreCase(entry.getResourceName())) {
         if (BrowserMenuBar.getInstance() == null ||
             BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;

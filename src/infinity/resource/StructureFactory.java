@@ -75,16 +75,18 @@ public final class StructureFactory
       case RES_BIO:
       case RES_CHR:
       case RES_RES:
-        savedir = FileNI.getFile(ResourceFactory.getRootDirs(), "Characters");
-        if (!savedir.exists())
-          savedir = FileNI.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+        savedir = FileNI.getFile(Profile.getRootFolders(), "Characters");
+        if (!savedir.exists()) {
+          savedir = FileNI.getFile(Profile.getGameRoot(), Profile.getOverrideFolderName());
+        }
         break;
       default:
-        savedir = FileNI.getFile(ResourceFactory.getRootDir(), ResourceFactory.OVERRIDEFOLDER);
+        savedir = FileNI.getFile(Profile.getGameRoot(), Profile.getOverrideFolderName());
         break;
     }
-    if (savedir == null || !savedir.exists())
-      savedir = ResourceFactory.getRootDir();
+    if (savedir == null || !savedir.exists()) {
+      savedir = Profile.getGameRoot();
+    }
     JFileChooser fc = new JFileChooser(savedir);
     String title = "Create new " + resExt.get(type) + " resource";
     fc.setDialogTitle(title);
@@ -135,62 +137,33 @@ public final class StructureFactory
   // Create new structure of specified type
   public ResourceStructure createStructure(ResType type, String fileName, Window parent) throws StructureException
   {
-    // simplifying game id
-    int game = ResourceFactory.ID_UNKNOWNGAME;
-    switch (ResourceFactory.getGameID()) {
-      case ResourceFactory.ID_BG1:
-      case ResourceFactory.ID_BG1TOTSC:
-        game = ResourceFactory.ID_BG1;
-        break;
-      case ResourceFactory.ID_TORMENT:
-        game = ResourceFactory.ID_TORMENT;
-        break;
-      case ResourceFactory.ID_ICEWIND:
-      case ResourceFactory.ID_ICEWINDHOW:
-      case ResourceFactory.ID_ICEWINDHOWTOT:
-        game = ResourceFactory.ID_ICEWIND;
-        break;
-      case ResourceFactory.ID_BG2:
-      case ResourceFactory.ID_BG2TOB:
-      case ResourceFactory.ID_BGEE:
-      case ResourceFactory.ID_BG2EE:
-      case ResourceFactory.ID_IWDEE:
-        game = ResourceFactory.ID_BG2;
-        break;
-      case ResourceFactory.ID_ICEWIND2:
-        game = ResourceFactory.ID_ICEWIND2;
-        break;
-      default:
-        return unsupportedGame();
-    }
-
     switch (type) {
-      case RES_2DA:  return create2DA(game);
-      case RES_ARE:  return createARE(game, fileName);
-      case RES_BAF:  return createBAF(game);
-      case RES_BCS:  return createBCS(game);
-      case RES_BIO:  return createRES(game, parent);
-      case RES_CHR:  return createCHR(game, parent);
-      case RES_CRE:  return createCRE(game);
-      case RES_EFF:  return createEFF(game);
-      case RES_IDS:  return createIDS(game);
-      case RES_ITM:  return createITM(game);
-      case RES_INI:  return createINI(game);
-      case RES_PRO:  return createPRO(game, parent);
-      case RES_RES:  return createRES(game, parent);
-      case RES_SPL:  return createSPL(game);
-      case RES_SRC:  return createSRC(game);
-      case RES_STO:  return createSTO(game);
-      case RES_VEF:  return createVEF(game);
-      case RES_VVC:  return createVVC(game);
-      case RES_WED:  return createWED(game);
-      case RES_WFX:  return createWFX(game);
-      case RES_WMAP: return createWMAP(game);
+      case RES_2DA:  return create2DA();
+      case RES_ARE:  return createARE(fileName);
+      case RES_BAF:  return createBAF();
+      case RES_BCS:  return createBCS();
+      case RES_BIO:  return createRES(parent);
+      case RES_CHR:  return createCHR(parent);
+      case RES_CRE:  return createCRE();
+      case RES_EFF:  return createEFF();
+      case RES_IDS:  return createIDS();
+      case RES_ITM:  return createITM();
+      case RES_INI:  return createINI();
+      case RES_PRO:  return createPRO(parent);
+      case RES_RES:  return createRES(parent);
+      case RES_SPL:  return createSPL();
+      case RES_SRC:  return createSRC();
+      case RES_STO:  return createSTO();
+      case RES_VEF:  return createVEF();
+      case RES_VVC:  return createVVC();
+      case RES_WED:  return createWED();
+      case RES_WFX:  return createWFX();
+      case RES_WMAP: return createWMAP();
       default:       return createUnknown();
     }
   }
 
-  private ResourceStructure create2DA(int id) throws StructureException
+  private ResourceStructure create2DA() throws StructureException
   {
     ResourceStructure s_2da = new ResourceStructure();
     final String s = "2DA V1.0\r\n0\r\n        COLUMN1\r\nROW1    0\r\n"; //.replaceAll("\r\n", System.getProperty("line.separator"));
@@ -199,7 +172,7 @@ public final class StructureFactory
     return s_2da;
   }
 
-  private ResourceStructure createARE(int id, String fileName) throws StructureException
+  private ResourceStructure createARE(String fileName) throws StructureException
   {
     ResourceStructure s_are = new ResourceStructure();
 
@@ -207,13 +180,12 @@ public final class StructureFactory
     if (fileBase.length() > 8)
       fileBase = fileBase.substring(0, 8);
 
+    boolean isV91 = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ARE_V91);
     s_are.add(ResourceStructure.ID_STRING, 4, "AREA");      // Signature
-    s_are.add(ResourceStructure.ID_STRING, 4,
-        (id == ResourceFactory.ID_ICEWIND2) ? "V9.1" : "V1.0");   // Version
+    s_are.add(ResourceStructure.ID_STRING, 4, isV91 ? "V9.1" : "V1.0");   // Version
     s_are.add(ResourceStructure.ID_RESREF, fileBase);       // Area WED (replaced with actual WED filename)
-    s_are.add(ResourceStructure.ID_ARRAY,
-        (id == ResourceFactory.ID_ICEWIND2) ? 84 : 68);     // block of zero
-    int ofs = (id == ResourceFactory.ID_ICEWIND2) ? 0x12c : 0x11c;
+    s_are.add(ResourceStructure.ID_ARRAY, isV91 ? 84 : 68);     // block of zero
+    int ofs = isV91 ? 0x12c : 0x11c;
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Actors offset
     s_are.add(ResourceStructure.ID_DWORD);                  // 2x zero
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Regions offset
@@ -238,12 +210,13 @@ public final class StructureFactory
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Tiled objects offset
     s_are.add(ResourceStructure.ID_DWORD, ofs, ofs);        // Song entries offset
     s_are.add(ResourceStructure.ID_DWORD, ofs, ofs + 144);  // Rest interruptions offset
-    if (id == ResourceFactory.ID_TORMENT)                   // Automap notes offset (except PST)
+    if (Profile.getEngine() == Profile.Engine.PST) {        // Automap notes offset (except PST)
       s_are.add(ResourceStructure.ID_DWORD, -1);
-    else if (id == ResourceFactory.ID_BG2)                  // only BG2 actively uses automap notes in standalone ARE files
+    } else if (Profile.getEngine() == Profile.Engine.BG2) { // only BG2 actively uses automap notes in standalone ARE files
       s_are.add(ResourceStructure.ID_DWORD, ofs, ofs + 372);
-    else
+    } else {
       s_are.add(ResourceStructure.ID_DWORD, ofs, 0);
+    }
     s_are.add(ResourceStructure.ID_DWORD, 0);               // PST: Automap notes offset
     s_are.add(ResourceStructure.ID_ARRAY, 80);              // block of zeros
     // Song section
@@ -254,7 +227,7 @@ public final class StructureFactory
     return s_are;
   }
 
-  private ResourceStructure createBAF(int id) throws StructureException
+  private ResourceStructure createBAF() throws StructureException
   {
     ResourceStructure s_baf = new ResourceStructure();
     final String s = "// Empty BCS script" + System.getProperty("line.separator");
@@ -263,7 +236,7 @@ public final class StructureFactory
     return s_baf;
   }
 
-  private ResourceStructure createBCS(int id) throws StructureException
+  private ResourceStructure createBCS() throws StructureException
   {
     ResourceStructure s_bcs = new ResourceStructure();
     final String s = "SC\r\nSC\r\n";
@@ -272,33 +245,34 @@ public final class StructureFactory
     return s_bcs;
   }
 
-  private ResourceStructure createCHR(int id, Window parent) throws StructureException
+  private ResourceStructure createCHR(Window parent) throws StructureException
   {
     NewChrSettings dlg = new NewChrSettings(parent);
     if (dlg.isAccepted()) {
       String name = dlg.getConfig().getName();
       ResourceStructure s_chr = new ResourceStructure();
-      ResourceStructure s_cre = createCRE(id);
+      ResourceStructure s_cre = createCRE();
 
       s_chr.add(ResourceStructure.ID_STRING, 4, "CHR ");          // Signature
-      if (id == ResourceFactory.ID_ICEWIND2)
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V22)) {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V2.2");        // Version
-      else if (id == ResourceFactory.ID_BG2)
+      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V20)) {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V2.0");        // Version
-      else if (id == ResourceFactory.ID_TORMENT)
-        s_chr.add(ResourceStructure.ID_STRING, 4, "V1.2");        // Version
-      else
+      } else {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V1.0");        // Version
+      }
       s_chr.add(ResourceStructure.ID_STRING, 32, name);           // Name of Protagonist/Player
-      if (id == ResourceFactory.ID_ICEWIND2)
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V22)) {
         s_chr.add(ResourceStructure.ID_DWORD, 0x0224);            // Offset to CRE structure
-      else
+      } else {
         s_chr.add(ResourceStructure.ID_DWORD, 0x0064);            // Offset to CRE structure
+      }
       s_chr.add(ResourceStructure.ID_DWORD, s_cre.size());        // Length of the CRE structure
-      if (id == ResourceFactory.ID_ICEWIND2)
+      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V22)) {
         s_chr.add(ResourceStructure.ID_ARRAY, 500);               // block of zeros
-      else
+      } else {
         s_chr.add(ResourceStructure.ID_ARRAY, 52);                // block of zeros
+      }
       s_chr.add(ResourceStructure.ID_ARRAY, s_cre.size(), s_cre.getBytes());    // CRE structure
 
       return s_chr;
@@ -306,13 +280,21 @@ public final class StructureFactory
       return cancelOperation();
   }
 
-  private ResourceStructure createCRE(int id) throws StructureException
+  private ResourceStructure createCRE() throws StructureException
   {
     final String[] version = {"V1.0", "V1.2", "V2.2", "V9.0"};
     final int[] ofs = {0x2d4, 0x378, 0, 0x33c};
     final int[] count = {38, 46, 50, 38};
-    int idx = (id == ResourceFactory.ID_ICEWIND) ? 3 : (id == ResourceFactory.ID_ICEWIND2) ? 2 :
-      (id == ResourceFactory.ID_TORMENT) ? 1 : 0;
+    int idx;
+    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V90)) { // IWD
+      idx = 3;
+    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {  // IWD2
+      idx = 2;
+    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V12)) {  // PST
+      idx = 1;
+    } else {  // BG1, BG2, EE
+      idx = 0;
+    }
     ResourceStructure s_cre = new ResourceStructure();
     s_cre.add(ResourceStructure.ID_STRING, 4, "CRE ");        // Signature
     s_cre.add(ResourceStructure.ID_STRING, 4, version[idx]);  // Version
@@ -322,37 +304,44 @@ public final class StructureFactory
     s_cre.add(ResourceStructure.ID_ARRAY, 8,
         new byte[]{30, 37, 57, 12, 23, 28, 0, 1});            // Color indices and EFF structure version
     s_cre.add(ResourceStructure.ID_ARRAY, 112);               // block of zeros
-    if (id == ResourceFactory.ID_ICEWIND2)
+    if (idx == 2) {
       s_cre.add(ResourceStructure.ID_ARRAY, 8);               // block of zeros
-    for (int i = 0; i < (id == ResourceFactory.ID_ICEWIND2 ? 64 : 100); i++)
+    }
+    for (int i = 0, size = (idx == 2) ? 64 : 100; i < size; i++) {
       s_cre.add(ResourceStructure.ID_DWORD, -1);              // Char-related strrefs
-    if (id == ResourceFactory.ID_ICEWIND2)
+    }
+    if (idx == 2) {
       s_cre.add(ResourceStructure.ID_ARRAY, 182);             // block of zeros
+    }
     s_cre.add(ResourceStructure.ID_ARRAY, 4,
         new byte[]{0, 0, 0, 1});                              // last byte: Gender
-    if (id == ResourceFactory.ID_ICEWIND)
+    if (idx == 3) {
       s_cre.add(ResourceStructure.ID_ARRAY, 172);             // block of zeros
-    else if (id == ResourceFactory.ID_ICEWIND2)
+    } else if (idx == 2) {
       s_cre.add(ResourceStructure.ID_ARRAY, 298);             // block of zeros
-    else if (id == ResourceFactory.ID_TORMENT)
+    } else if (idx == 1) {
       s_cre.add(ResourceStructure.ID_ARRAY, 92);              // block of zeros
-    else
+    } else {
       s_cre.add(ResourceStructure.ID_ARRAY, 68);              // block of zeros
-    if (id == ResourceFactory.ID_TORMENT) {
+    }
+    if (idx == 1) {
       s_cre.add(ResourceStructure.ID_DWORD, 0x3d8);           // Overlays offset
       s_cre.add(ResourceStructure.ID_ARRAY, 136);             // block of zeros
     }
     s_cre.add(ResourceStructure.ID_WORD, -1);                 // Global identifier
     s_cre.add(ResourceStructure.ID_WORD, -1);                 // Local identifier
     s_cre.add(ResourceStructure.ID_ARRAY, 32);                // block of zeros
-    if (id == ResourceFactory.ID_ICEWIND2)
+    if (idx == 2) {
       s_cre.add(ResourceStructure.ID_ARRAY, 6);               // block of zeros
-    if (id == ResourceFactory.ID_ICEWIND2) {
-      for (int i = 0; i < 63; i++)
+    }
+    if (idx == 2) {
+      for (int i = 0; i < 63; i++) {
         s_cre.add(ResourceStructure.ID_DWORD, 0x62e + i*8);   // Spell levels offsets
+      }
       s_cre.add(ResourceStructure.ID_ARRAY, 252);             // blocks of zeros
-      for (int i = 0; i < 9; i++)
+      for (int i = 0; i < 9; i++) {
         s_cre.add(ResourceStructure.ID_DWORD, 0x826 + i*8);   // Domain spells offsets
+      }
       s_cre.add(ResourceStructure.ID_ARRAY, 36);              // blocks of zeros
       for (int i = 0; i < 3; i++) {
         s_cre.add(ResourceStructure.ID_DWORD, 0x86e + i*8);   // Spell levels offsets
@@ -384,7 +373,7 @@ public final class StructureFactory
     return s_cre;
   }
 
-  private ResourceStructure createEFF(int id) throws StructureException
+  private ResourceStructure createEFF() throws StructureException
   {
     ResourceStructure s_eff = new ResourceStructure();
     s_eff.add(ResourceStructure.ID_STRING, 4, "EFF ");    // Signature
@@ -396,7 +385,7 @@ public final class StructureFactory
     return s_eff;
   }
 
-  private ResourceStructure createIDS(int id) throws StructureException
+  private ResourceStructure createIDS() throws StructureException
   {
     ResourceStructure s_ids = new ResourceStructure();
     final String s = "1\r\n0 Identifier1\r\n";
@@ -405,7 +394,7 @@ public final class StructureFactory
     return s_ids;
   }
 
-  private ResourceStructure createINI(int id) throws StructureException
+  private ResourceStructure createINI() throws StructureException
   {
     ResourceStructure s_ini = new ResourceStructure();
     final String s = "[locals]\r\n\r\n[spawn_main]\r\n";
@@ -414,12 +403,19 @@ public final class StructureFactory
     return s_ini;
   }
 
-  private ResourceStructure createITM(int id) throws StructureException
+  private ResourceStructure createITM() throws StructureException
   {
     final String[] version = {"V1  ", "V1.1", "V2.0"};
     final int[] ofs = {0x72, 0x9a, 0x82};
     final int[] count = {4, 44, 20};
-    int idx = (id == ResourceFactory.ID_ICEWIND2) ? 2 : (id == ResourceFactory.ID_TORMENT) ? 1 : 0;
+    int idx;
+    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) { // IWD2
+      idx = 2;
+    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) { // PST
+      idx = 1;
+    } else {  // BG1, BG2, IWD, EE
+      idx = 0;
+    }
     ResourceStructure s_itm = new ResourceStructure();
     s_itm.add(ResourceStructure.ID_STRING, 4, "ITM ");          // Signature
     s_itm.add(ResourceStructure.ID_STRING, 4, version[idx]);    // Version
@@ -432,17 +428,18 @@ public final class StructureFactory
     s_itm.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Abilities offset
     s_itm.add(ResourceStructure.ID_WORD);                       // zero
     s_itm.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Effects offset
-    if (id == ResourceFactory.ID_TORMENT) {
+    if (idx == 1) {
       s_itm.add(ResourceStructure.ID_ARRAY, 12);                // block of zeros
       s_itm.add(ResourceStructure.ID_STRREF, -1);               // Conversable label
       s_itm.add(ResourceStructure.ID_ARRAY, count[idx] - 16);   // block of zeros
-    } else
+    } else {
       s_itm.add(ResourceStructure.ID_ARRAY, count[idx]);        // block of zeros
+    }
 
     return s_itm;
   }
 
-  private ResourceStructure createPRO(int id, Window parent) throws StructureException
+  private ResourceStructure createPRO(Window parent) throws StructureException
   {
     NewProSettings dlg = new NewProSettings(parent, 2);
     if (dlg.isAccepted()) {
@@ -458,7 +455,7 @@ public final class StructureFactory
       return cancelOperation();
   }
 
-  private ResourceStructure createRES(int id, Window parent) throws StructureException
+  private ResourceStructure createRES(Window parent) throws StructureException
   {
     NewResSettings dlg = new NewResSettings(parent);
     if (dlg.isAccepted()) {
@@ -472,22 +469,23 @@ public final class StructureFactory
       return cancelOperation();
   }
 
-  private ResourceStructure createSPL(int id) throws StructureException
+  private ResourceStructure createSPL() throws StructureException
   {
     final String[] version = {"V1  ", "V2.0"};
     final int[] ofs = {0x72, 0x82};
     final int[] count = {4, 20};
-    int idx = (id == ResourceFactory.ID_ICEWIND2) ? 1 : 0;
+    int idx = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_SPL_V2) ? 1 : 0;
     ResourceStructure s_spl = new ResourceStructure();
     s_spl.add(ResourceStructure.ID_STRING, 4, "SPL ");        // Signature
     s_spl.add(ResourceStructure.ID_STRING, 4, version[idx]);  // Version
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Unidentified spell name
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Identified spell name
     s_spl.add(ResourceStructure.ID_ARRAY, 40);                // block of zeros
-    if (id == ResourceFactory.ID_TORMENT || id == ResourceFactory.ID_ICEWIND)
+    if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD) {
       s_spl.add(ResourceStructure.ID_WORD, 1);                // always set?
-    else
+    } else {
       s_spl.add(ResourceStructure.ID_WORD, 0);                // zero
+    }
     s_spl.add(ResourceStructure.ID_ARRAY, 22);                // block of zeros
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Unidentified spell description
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Identified spell description
@@ -500,16 +498,16 @@ public final class StructureFactory
     return s_spl;
   }
 
-  private ResourceStructure createSRC(int id) throws StructureException
+  private ResourceStructure createSRC() throws StructureException
   {
-    if (id == ResourceFactory.ID_TORMENT) {
+    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_SRC_PST)) {
       ResourceStructure s_src = new ResourceStructure();
       s_src.add(ResourceStructure.ID_DWORD, 1);         // strref entry count
       s_src.add(ResourceStructure.ID_STRREF, -1);       // strref
       s_src.add(ResourceStructure.ID_DWORD, 1);         // always 1?
 
       return s_src;
-    } else if (id == ResourceFactory.ID_ICEWIND2) {
+    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_SRC_IWD2)) {
       ResourceStructure s_src = new ResourceStructure();
       final String s = "Placeholder text...";
       s_src.add(ResourceStructure.ID_STRING, s);
@@ -519,13 +517,19 @@ public final class StructureFactory
       return unsupportedFormat(ResType.RES_SRC);
   }
 
-  private ResourceStructure createSTO(int id) throws StructureException
+  private ResourceStructure createSTO() throws StructureException
   {
     final String[] version = {"V1.0", "V1.1", "V9.0"};
     final int[] ofs = {0x9c, 0x9c, 0xf0};
     final int[] count = {40, 40, 124};
-    int idx = (id == ResourceFactory.ID_ICEWIND || id == ResourceFactory.ID_ICEWIND2) ? 2 :
-              (id == ResourceFactory.ID_TORMENT) ? 1 : 0;
+    int idx;
+    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V90)) { // IWD, IWD2
+      idx = 2;
+    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V11)) { // PST
+      idx = 1;
+    } else {  // BG1, BG2, EE
+      idx = 0;
+    }
     ResourceStructure s_sto = new ResourceStructure();
     s_sto.add(ResourceStructure.ID_STRING, 4, "STOR");          // Signature
     s_sto.add(ResourceStructure.ID_STRING, 4, version[idx]);    // Version
@@ -544,7 +548,7 @@ public final class StructureFactory
     return s_sto;
   }
 
-  private ResourceStructure createVEF(int id) throws StructureException
+  private ResourceStructure createVEF() throws StructureException
   {
     ResourceStructure s_vef = new ResourceStructure();
     s_vef.add(ResourceStructure.ID_STRING, 4, "VEF ");    // Signature
@@ -557,7 +561,7 @@ public final class StructureFactory
     return s_vef;
   }
 
-  private ResourceStructure createVVC(int id) throws StructureException
+  private ResourceStructure createVVC() throws StructureException
   {
     ResourceStructure s_vvc = new ResourceStructure();
     s_vvc.add(ResourceStructure.ID_STRING, 4, "VVC ");    // Signature
@@ -567,7 +571,7 @@ public final class StructureFactory
     return s_vvc;
   }
 
-  private ResourceStructure createWED(int id) throws StructureException
+  private ResourceStructure createWED() throws StructureException
   {
     ResourceStructure s_wed = new ResourceStructure();
     s_wed.add(ResourceStructure.ID_STRING, 4, "WED ");    // Signature
@@ -592,7 +596,7 @@ public final class StructureFactory
     return s_wed;
   }
 
-  private ResourceStructure createWFX(int id) throws StructureException
+  private ResourceStructure createWFX() throws StructureException
   {
     ResourceStructure s_wfx = new ResourceStructure();
     s_wfx.add(ResourceStructure.ID_STRING, 4, "WFX ");    // Signature
@@ -602,7 +606,7 @@ public final class StructureFactory
     return s_wfx;
   }
 
-  private ResourceStructure createWMAP(int id) throws StructureException
+  private ResourceStructure createWMAP() throws StructureException
   {
     ResourceStructure s_wmp = new ResourceStructure();
     s_wmp.add(ResourceStructure.ID_STRING, 4, "WMAP");    // Signature
@@ -637,11 +641,6 @@ public final class StructureFactory
   private ResourceStructure unsupportedFormat(ResType type) throws StructureException
   {
     throw new StructureException(type);
-  }
-
-  private ResourceStructure unsupportedGame() throws StructureException
-  {
-    throw new StructureException(StructureException.Reason.UNSUPPORTED_GAME);
   }
 
   private ResourceStructure cancelOperation() throws StructureException

@@ -5,7 +5,7 @@
 package infinity.gui;
 
 import infinity.icon.Icons;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.util.StringResource;
 
 import java.awt.BorderLayout;
@@ -19,6 +19,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.EnumMap;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -28,59 +29,65 @@ import javax.swing.JPanel;
 
 public final class NewResSettings extends NewAbstractSettings implements KeyListener
 {
-  private static final Vector<Vector<StrrefItem>> STRREF_ITEM = new Vector<Vector<StrrefItem>>();
+  private enum GameType { Unknown, BG2, IWD, IWD2, IWDEE }
+
+  private static final EnumMap<GameType, Vector<StrrefItem>> STRREF_ITEM  =
+      new EnumMap<GameType, Vector<StrrefItem>>(GameType.class);
   static {
+    Vector<StrrefItem> list;
     // creating maps for unknown, BG2, IWD and IWD2
     // initializing 'unknown' items
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.get(0).add(new StrrefItem(-1,    "User-defined biography"));
+    STRREF_ITEM.put(GameType.Unknown, (list = new Vector<StrrefItem>()));
+    list.add(new StrrefItem(-1,    "User-defined biography"));
     // initializing BG2 items
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.get(1).add(new StrrefItem(-1,    "User-defined biography"));
-    STRREF_ITEM.get(1).add(new StrrefItem(33347, "Biography of the protagonist"));
-    STRREF_ITEM.get(1).add(new StrrefItem(15882, "Biography of a generic NPC"));
+    STRREF_ITEM.put(GameType.BG2, (list = new Vector<StrrefItem>()));
+    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(33347, "Biography of the protagonist"));
+    list.add(new StrrefItem(15882, "Biography of a generic NPC"));
     // initializing IWD items
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.get(2).add(new StrrefItem(-1,    "User-defined biography"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19423, "Biography of a fighter"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19429, "Biography of a ranger"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19427, "Biography of a paladin"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19422, "Biography of a cleric"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19421, "Biography of a druid"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19430, "Biography of a mage"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19428, "Biography of a thief"));
-    STRREF_ITEM.get(2).add(new StrrefItem(19425, "Biography of a bard"));
+    STRREF_ITEM.put(GameType.IWD, (list = new Vector<StrrefItem>()));
+    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(19423, "Biography of a fighter"));
+    list.add(new StrrefItem(19429, "Biography of a ranger"));
+    list.add(new StrrefItem(19427, "Biography of a paladin"));
+    list.add(new StrrefItem(19422, "Biography of a cleric"));
+    list.add(new StrrefItem(19421, "Biography of a druid"));
+    list.add(new StrrefItem(19430, "Biography of a mage"));
+    list.add(new StrrefItem(19428, "Biography of a thief"));
+    list.add(new StrrefItem(19425, "Biography of a bard"));
     // initializing IWD2 items
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.get(3).add(new StrrefItem(-1,    "User-defined biography"));
-    STRREF_ITEM.get(3).add(new StrrefItem(27862, "Biography of a barbarian"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19425, "Biography of a bard"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19422, "Biography of a cleric"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19421, "Biography of a druid"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19423, "Biography of a fighter"));
-    STRREF_ITEM.get(3).add(new StrrefItem(27860, "Biography of a monk"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19427, "Biography of a paladin"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19429, "Biography of a ranger"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19428, "Biography of a rogue"));
-    STRREF_ITEM.get(3).add(new StrrefItem(27863, "Biography of a sorcerer"));
-    STRREF_ITEM.get(3).add(new StrrefItem(19430, "Biography of a wizard"));
-    // TODO: check if needed!
+    STRREF_ITEM.put(GameType.IWD2, (list = new Vector<StrrefItem>()));
+    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(27862, "Biography of a barbarian"));
+    list.add(new StrrefItem(19425, "Biography of a bard"));
+    list.add(new StrrefItem(19422, "Biography of a cleric"));
+    list.add(new StrrefItem(19421, "Biography of a druid"));
+    list.add(new StrrefItem(19423, "Biography of a fighter"));
+    list.add(new StrrefItem(27860, "Biography of a monk"));
+    list.add(new StrrefItem(19427, "Biography of a paladin"));
+    list.add(new StrrefItem(19429, "Biography of a ranger"));
+    list.add(new StrrefItem(19428, "Biography of a rogue"));
+    list.add(new StrrefItem(27863, "Biography of a sorcerer"));
+    list.add(new StrrefItem(19430, "Biography of a wizard"));
     // initializing IWDEE items
-    STRREF_ITEM.add(new Vector<StrrefItem>());
-    STRREF_ITEM.get(4).add(new StrrefItem(-1,    "User-defined biography"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19423, "Biography of a fighter"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19429, "Biography of a ranger"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19427, "Biography of a paladin"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19422, "Biography of a cleric"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19421, "Biography of a druid"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19430, "Biography of a mage"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19428, "Biography of a thief"));
-    STRREF_ITEM.get(4).add(new StrrefItem(19425, "Biography of a bard"));
+    STRREF_ITEM.put(GameType.IWDEE, (list = new Vector<StrrefItem>()));
+    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(19423, "Biography of a fighter"));
+    list.add(new StrrefItem(19429, "Biography of a ranger"));
+    list.add(new StrrefItem(19427, "Biography of a paladin"));
+    list.add(new StrrefItem(19422, "Biography of a cleric"));
+    list.add(new StrrefItem(19421, "Biography of a druid"));
+    list.add(new StrrefItem(19430, "Biography of a mage"));
+    list.add(new StrrefItem(19428, "Biography of a thief"));
+    list.add(new StrrefItem(19425, "Biography of a bard"));
+    list.add(new StrrefItem(40284, "Biography of a sorcerer"));
+    list.add(new StrrefItem(40273, "Biography of a monk"));
+    list.add(new StrrefItem(40276, "Biography of a barbarian"));
   }
 
   private JComboBox cbStrref;
   private JButton updateButton;
-  private int gameId;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
+  private GameType gameType;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
   private int lastStrref;
 
   private InfinityTextArea taText;
@@ -119,7 +126,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   {
     getRootPane().setDefaultButton(null);   // prevent accidental file creation
 
-    cbStrref = new JComboBox(STRREF_ITEM.get(gameId));
+    cbStrref = new JComboBox(STRREF_ITEM.get(gameType));
     cbStrref.addKeyListener(this);
     lastStrref = -1;
 
@@ -192,26 +199,26 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
 
   private void initGame()
   {
-    switch (ResourceFactory.getGameID()) {
-      case ResourceFactory.ID_BG2:
-      case ResourceFactory.ID_BG2TOB:
-      case ResourceFactory.ID_BGEE:
-      case ResourceFactory.ID_BG2EE:
-        gameId = 1;
+    switch (Profile.getGame()) {
+      case BG2SoA:
+      case BG2ToB:
+      case BG1EE:
+      case BG2EE:
+        gameType = GameType.BG2;
         break;
-      case ResourceFactory.ID_ICEWIND:
-      case ResourceFactory.ID_ICEWINDHOW:
-      case ResourceFactory.ID_ICEWINDHOWTOT:
-        gameId = 2;
+      case IWD:
+      case IWDHoW:
+      case IWDHowToTLM:
+        gameType = GameType.IWD;
         break;
-      case ResourceFactory.ID_ICEWIND2:
-        gameId = 3;
+      case IWD2:
+        gameType = GameType.IWD2;
         break;
-      case ResourceFactory.ID_IWDEE:    // TODO: check if needed!
-        gameId = 4;
+      case IWDEE:
+        gameType = GameType.IWDEE;
         break;
       default:
-        gameId = 0;
+        gameType = GameType.Unknown;
         break;
     }
   }

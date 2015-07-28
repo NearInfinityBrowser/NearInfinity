@@ -13,6 +13,7 @@ import infinity.gui.TableItem;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -152,7 +153,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Save result");
       chooser.setSelectedFile(new FileNI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {

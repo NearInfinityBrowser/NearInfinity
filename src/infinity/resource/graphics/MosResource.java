@@ -9,6 +9,7 @@ import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
@@ -27,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +90,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportMOSV1) {
       if (mosType == MosDecoder.Type.MOSV2) {
         // create new MOS V1 from scratch
@@ -101,8 +103,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
           try {
             byte[] data = entry.getResourceData();
             data = Compressor.decompress(data);
-            ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
@@ -122,8 +123,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         try {
           byte[] data = entry.getResourceData();
           data = Compressor.compress(data, "MOSC", "V1  ");
-          ResourceFactory.getInstance().exportResource(entry, data, entry.toString(),
-                                                       panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
         } catch (Exception e) {
           e.printStackTrace();
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
@@ -145,8 +145,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
           WindowBlocker.blockWindow(false);
         }
         if (bRet) {
-          ResourceFactory.getInstance().exportResource(entry, os.toByteArray(),
-                                                       fileName, panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, os.toByteArray(), fileName, panel.getTopLevelAncestor());
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
@@ -187,8 +186,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         }
         if (mosData != null) {
           if (mosData.length > 0) {
-            ResourceFactory.getInstance().exportResource(entry, mosData, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, mosData, entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
@@ -245,9 +243,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         miExportMOSV1 = new JMenuItem("decompressed");
         miExportMOSV1.addActionListener(this);
       } else {
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-            ResourceFactory.isEnhancedEdition()) {
+        if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
           miExportMOSC = new JMenuItem("compressed");
           miExportMOSC.addActionListener(this);
         }
@@ -353,7 +349,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       BufferedImage srcImage = ColorConvert.createCompatibleImage(img.getWidth(null),
                                                                   img.getHeight(null),
                                                                   Transparency.BITMASK);
-      Graphics2D g = (Graphics2D)srcImage.getGraphics();
+      Graphics2D g = srcImage.createGraphics();
       g.drawImage(getImage(), 0, 0, null);
       g.dispose();
       g = null;
@@ -494,5 +490,53 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
     };
     workerConvert.addPropertyChangeListener(this);
     workerConvert.execute();
+  }
+
+  /** Returns whether the specified PVRZ index can be found in the current MOS resource. */
+  public boolean containsPvrzReference(int index)
+  {
+    boolean retVal = false;
+    if (index >= 0 && index <= 99999) {
+      try {
+        InputStream is = entry.getResourceDataAsStream();
+        if (is != null) {
+          try {
+            // parsing resource header
+            byte[] sig = new byte[8];
+            byte[] buf = new byte[16];
+            long len;
+            long curOfs = 0;
+            if ((len = is.read(sig)) != sig.length) throw new Exception();
+            if (!"MOS V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+            curOfs += len;
+            if ((len = is.read(buf)) != buf.length) throw new Exception();
+            curOfs += len;
+            int numBlocks = DynamicArray.getInt(buf, 8);
+            int ofsBlocks = DynamicArray.getInt(buf, 12);
+            curOfs = ofsBlocks - curOfs;
+            if (curOfs > 0) {
+              do {
+                len = is.skip(curOfs);
+                if (len <= 0) throw new Exception();
+                curOfs -= len;
+              } while (curOfs > 0);
+            }
+
+            // parsing blocks
+            buf = new byte[28];
+            for (int i = 0; i < numBlocks && !retVal; i++) {
+              if (is.read(buf) != buf.length) throw new Exception();
+              int curIndex = DynamicArray.getInt(buf, 0);
+              retVal = (curIndex == index);
+            }
+          } finally {
+            is.close();
+            is = null;
+          }
+        }
+      } catch (Exception e) {
+      }
+    }
+    return retVal;
   }
 }

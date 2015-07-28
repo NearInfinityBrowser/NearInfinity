@@ -82,7 +82,7 @@ import infinity.gui.RenderCanvas;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.graphics.BamDecoder;
 import infinity.resource.graphics.BamV1Decoder;
 import infinity.resource.graphics.ColorConvert;
@@ -850,7 +850,7 @@ public class ConvertToBam extends ChildFrame
 
     currentPath = BamOptionsDialog.getPath();
     if (currentPath.isEmpty()) {
-      currentPath = ResourceFactory.getRootDir().toString();
+      currentPath = Profile.getGameRoot().toString();
     }
 
     // initializing frame image lists
@@ -3165,7 +3165,7 @@ public class ConvertToBam extends ChildFrame
   {
     if (bamControlPreview != null && previewCanvas != null && rcPreview.getImage() != null) {
       // clearing old content
-      Graphics2D g = (Graphics2D)previewCanvas.getGraphics();
+      Graphics2D g = previewCanvas.createGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         g.setColor(new Color(0, true));
@@ -3541,7 +3541,7 @@ public class ConvertToBam extends ChildFrame
     BufferedImage canvas = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
     boolean typeFound = false;
     for (int i = 0; i < bamDecoder.frameCount(); i++) {
-      Graphics2D g = (Graphics2D)canvas.getGraphics();
+      Graphics2D g = canvas.createGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         g.setColor(new Color(0, true));
@@ -3596,8 +3596,7 @@ public class ConvertToBam extends ChildFrame
     } catch (Exception e) {
       e.printStackTrace();
       result.add(null);
-      result.add(String.format("Error while exporting BAM files.\n(%1$s: %2$s)",
-                               e.getClass().getName(), e.getMessage()));
+      result.add(String.format("Error while exporting BAM files.\n(%1$s)", e.getMessage()));
     }
     return result;
   }

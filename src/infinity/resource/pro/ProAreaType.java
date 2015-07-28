@@ -15,7 +15,7 @@ import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.util.LongIntegerHashMap;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable
@@ -81,8 +81,8 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
-    final String[] s_types = ResourceFactory.isEnhancedEdition() ? new String[]{"VVC", "BAM"} :
-                                                                   new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
+                                                         : new String[]{"VEF", "VVC", "BAM"};
 
     addField(new Flag(buffer, offset, 4, "Area flags", s_areaflags));
     addField(new DecNumber(buffer, offset + 4, 2, "Trap size"));
@@ -98,7 +98,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     addField(new ProRef(buffer, offset + 26, "Explosion projectile"));
     addField(new ResourceRef(buffer, offset + 28, "Explosion animation", s_types));
     addField(new DecNumber(buffer, offset + 36, 2, "Cone width"));
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       addField(new Unknown(buffer, offset + 38, 2));
       addField(new ResourceRef(buffer, offset + 40, "Spread animation", s_types));
       addField(new ResourceRef(buffer, offset + 48, "Ring animation", s_types));

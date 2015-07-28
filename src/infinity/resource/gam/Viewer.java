@@ -6,7 +6,7 @@ package infinity.resource.gam;
 
 import infinity.gui.ViewerUtil;
 import infinity.resource.AbstractStruct;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 
 import java.awt.Component;
@@ -32,10 +32,9 @@ final class Viewer extends JPanel
     gbc.insets = new Insets(2, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Current area"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (game seconds)"), gbl, gbc, true);
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.isEnhancedEdition()) // V2.0 - better check?
+    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0 - better check?
       ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Game time (real seconds)"), gbl, gbc, true);
+    }
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Party gold"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute("Master area"), gbl, gbc, true);
     return panel;
@@ -44,29 +43,20 @@ final class Viewer extends JPanel
   Viewer(GamResource gam)
   {
     JPanel stats1Panel, stats2Panel;
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC) {
+    if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.BG1) {
       stats1Panel =
       ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class, null);
       stats2Panel =
       ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, null);
-    }
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
       stats1Panel =
       ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class, "Name");
       stats2Panel =
       ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, "Name");
-    }
-    else {
-      stats1Panel =
-      ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class,
-                               "Character");
-      stats2Panel =
-      ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, "Character");
+    } else {
+      stats1Panel = ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class,
+                                             "Character");
+      stats2Panel = ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, "Character");
     }
 
     JPanel var1Panel = ViewerUtil.makeListPanel("Variables", gam, Variable.class, "Name",
@@ -94,8 +84,8 @@ final class Viewer extends JPanel
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       AbstractStruct effect = (AbstractStruct)value;
-      StructEntry entry1 = effect.getAttribute("Name");
-      StructEntry entry2 = effect.getAttribute("Value");
+      StructEntry entry1 = effect.getAttribute(effect.getOffset(), false);
+      StructEntry entry2 = effect.getAttribute(effect.getOffset() + 40, false);
       label.setText(entry1 + " = " + entry2);
       return label;
     }

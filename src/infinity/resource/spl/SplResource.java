@@ -7,8 +7,9 @@ package infinity.resource.spl;
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
-import infinity.datatype.IdsBitmap;
+import infinity.datatype.PriTypeBitmap;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SecTypeBitmap;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.StringRef;
@@ -23,7 +24,6 @@ import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
@@ -37,12 +37,6 @@ import javax.swing.JScrollPane;
 
 public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  public static final String[] s_category = {"None", "Spell protections", "Specific protections", "Illusionary protections",
-                                             "Magic attack", "Divination attack", "Conjuration", "Combat protections",
-                                             "Contingency", "Battleground", "Offensive damage", "Disabling", "Combination",
-                                             "Non-combat"};
-  public static final String[] s_school = {"None", "Abjurer", "Conjurer", "Diviner", "Enchanter", "Illusionist", "Invoker",
-                                           "Necromancer", "Transmuter", "Generalist"};
 //  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
 //  private static final LongIntegerHashMap<String> m_priesttype = new LongIntegerHashMap<String>();
   public static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate", "Bard song"};
@@ -60,7 +54,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                               "", "", "Hostile", "No LOS required", "Allow spotting",
                                               "Outdoors only", "Ignore dead/wild magic", "Ignore wild surge",
                                               "Non-combat ability", "", "", "", "", "", "", "",
-                                              "Ex: Can target invisible", "EE: Castable when silenced"};
+                                              "Ex: Can target invisible", "EE/Ex: Castable when silenced"};
   public static final String[] s_exclude = { "None", "Chaotic", "Evil", "Good",
                                              "... Neutral", "Lawful", "Neutral ...",
                                              "Abjurer", "Conjurer", "Diviner", "Enchanter",
@@ -283,13 +277,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 //    addField(new HashBitmap(buffer, offset + 32, 2, "Priest type", m_priesttype));     // 0x20
     addField(new Bitmap(buffer, offset + 34, 2, "Casting animation", s_anim));  // 0x22
     addField(new Unknown(buffer, offset + 36, 1));                                    // 0x23
-    if (ResourceFactory.getInstance().resourceExists("SCHOOL.IDS")) {
-      addField(new IdsBitmap(buffer, offset + 37, 1, "Primary type (school)", "SCHOOL.IDS")); // 0x25
-    } else {
-      addField(new Bitmap(buffer, offset + 37, 1, "Primary type (school)", s_school)); // 0x25
-    }
+    addField(new PriTypeBitmap(buffer, offset + 37, 1, "Primary type (school)")); // 0x25
     addField(new Unknown(buffer, offset + 38, 1));
-    addField(new Bitmap(buffer, offset + 39, 1, "Secondary type", s_category));       // 0x27
+    addField(new SecTypeBitmap(buffer, offset + 39, 1, "Secondary type"));       // 0x27
     addField(new Unknown(buffer, offset + 40, 12));
     addField(new DecNumber(buffer, offset + 52, 4, "Spell level"));
     addField(new Unknown(buffer, offset + 56, 2));
@@ -358,25 +348,25 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)spl.getAttribute("Effects offset");
-        DecNumber cnt = (DecNumber)spl.getAttribute("# global effects");
+        DecNumber ofs = (DecNumber)spl.getAttribute("Effects offset", false);
+        DecNumber cnt = (DecNumber)spl.getAttribute("# global effects", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.SPL_Effect), idx);
-            effects[idx] = (Effect)spl.getAttribute(label);
+            effects[idx] = (Effect)spl.getAttribute(label, false);
           }
         } else {
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)spl.getAttribute("Abilities offset");
-        cnt = (DecNumber)spl.getAttribute("# abilities");
+        ofs = (DecNumber)spl.getAttribute("Abilities offset", false);
+        cnt = (DecNumber)spl.getAttribute("# abilities", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.SPL_Ability), idx);
-            abilities[idx] = (Ability)spl.getAttribute(label);
+            abilities[idx] = (Ability)spl.getAttribute(label, false);
           }
         } else {
           abilities = new Ability[0];
@@ -385,12 +375,12 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute("# effects");
+            cnt = (DecNumber)abilities[idx].getAttribute("# effects", false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {
                 String label = String.format(SearchOptions.getResourceName(SearchOptions.SPL_Ability_Effect), idx2);
-                abilityEffects[idx][idx2] = (Effect)abilities[idx].getAttribute(label);
+                abilityEffects[idx][idx2] = (Effect)abilities[idx].getAttribute(label, false);
               }
             } else {
               abilityEffects[idx] = new Effect[0];
@@ -404,7 +394,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         if (retVal) {
           key = SearchOptions.SPL_Name;
           o = searchOptions.getOption(key);
-          StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
         }
 
@@ -415,7 +405,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
@@ -427,7 +417,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
@@ -445,7 +435,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
             for (int idx2 = 0; idx2 < effects.length; idx2++) {
               if (!found) {
                 if (effects[idx2] != null) {
-                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
@@ -486,7 +476,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
               for (int j = 0; j < 7; j++) {
                 key = keyList[j];
                 o = abilityOption.getOption(key);
-                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key));
+                StructEntry struct = abilities[i].getAttribute(SearchOptions.getResourceName(key), false);
                 abilityMatches[i][j] = SearchOptions.Utils.matchNumber(struct, o);
               }
 
@@ -495,7 +485,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                 o = abilityOption.getOption(key);
                 for (int k = 0; k < abilityEffects[i].length; k++) {
                   if (abilityEffects[i][k] != null) {
-                    StructEntry struct = abilityEffects[i][k].getAttribute(SearchOptions.getResourceName(key));
+                    StructEntry struct = abilityEffects[i][k].getAttribute(SearchOptions.getResourceName(key), false);
                     abilityMatches[i][j] |= SearchOptions.Utils.matchNumber(struct, o);
                   }
                 }

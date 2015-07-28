@@ -84,13 +84,13 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     if (buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu) == event.getSource()) {
       ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
       if (bpmExport.getSelectedItem() == miExport) {
-        ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+        ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       } else if (bpmExport.getSelectedItem() == miConvert) {
         String fileName = entry.toString();
         if (fileName.lastIndexOf('.') > 0)
           fileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".WAV";
-        ResourceFactory.getInstance().exportResource(entry, audioBuffer.getAudioData(),
-                                                     fileName, panel.getTopLevelAncestor());
+        ResourceFactory.exportResource(entry, audioBuffer.getAudioData(), fileName,
+                                       panel.getTopLevelAncestor());
       }
     }
   }

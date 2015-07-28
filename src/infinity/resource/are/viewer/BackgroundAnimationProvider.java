@@ -435,7 +435,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
         }
 
         // clearing old content
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.setColor(TransparentColor);
@@ -490,7 +490,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
           g = null;
         }
       } else {
-        Graphics2D g = (Graphics2D)image.getGraphics();
+        Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.setColor(TransparentColor);

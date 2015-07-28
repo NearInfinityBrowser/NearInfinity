@@ -8,7 +8,7 @@ import java.util.List;
 
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.AutomapNote;
@@ -33,7 +33,7 @@ public class LayerAutomap extends BasicLayer<LayerObject>
    */
   public boolean isTorment()
   {
-    return (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT);
+    return (Profile.getEngine() == Profile.Engine.PST);
   }
 
   @Override

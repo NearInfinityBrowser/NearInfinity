@@ -401,6 +401,24 @@ public class MveDecoder
   }
 
   /**
+   * Indicates whether the current frame contains video data.
+   * @return <code>true</code> if the frame contains video data, <code>false</code> otherwise.
+   */
+  public boolean frameHasVideo()
+  {
+    return (info.chunk.getType() == MVE_CHUNK_VIDEO);
+  }
+
+  /**
+   * Indicates whether the current frame contains audio data.
+   * @return <code>true</code> if the frame contains audio data, <code>false</code> otherwise.
+   */
+  public boolean frameHasAudio()
+  {
+    return (info.chunk.getType() == MVE_CHUNK_VIDEO || info.chunk.getType() == MVE_CHUNK_AUDIO_ONLY);
+  }
+
+  /**
    * Determines whether the MVE data stream contains more frames.
    * @return <code>true</code> if there is at least one more frame is available,
    *         <code>false</code> otherwise.

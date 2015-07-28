@@ -5,6 +5,7 @@
 package infinity.resource.key;
 
 import infinity.gui.BIFFEditor;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.util.io.FileInputStreamNI;
 import infinity.util.io.FileNI;
@@ -119,7 +120,7 @@ public final class BIFFWriter
 
   public void write() throws Exception
   {
-    File dummyfile = FileNI.getFile(ResourceFactory.getRootDirs(),
+    File dummyfile = FileNI.getFile(Profile.getRootFolders(),
                               "data" + File.separatorChar + "_dummy.bif");
     writeBIFF(dummyfile);
     ResourceFactory.getKeyfile().closeBIFFFile();
@@ -128,18 +129,18 @@ public final class BIFFWriter
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = FileNI.getFile(ResourceFactory.getRootDirs(), bifentry.toString());
+        realfile = FileNI.getFile(Profile.getRootFolders(), bifentry.toString());
       else
         realfile.delete();
       dummyfile.renameTo(realfile);
     }
     else if (format == BIFFEditor.BIF) {
-      File compressedfile = FileNI.getFile(ResourceFactory.getRootDirs(),
+      File compressedfile = FileNI.getFile(Profile.getRootFolders(),
                                      "data" + File.separatorChar + "_dummy.cbf");
       compressBIF(dummyfile, compressedfile, bifentry.toString());
       dummyfile.delete();
       // Delete both BIFF version if this exist
-      String filename = FileNI.getFile(ResourceFactory.getRootDirs(), bifentry.toString()).toString();
+      String filename = FileNI.getFile(Profile.getRootFolders(), bifentry.toString()).toString();
       new FileNI(filename).delete();
       filename = filename.substring(0, filename.lastIndexOf(".")) + ".cbf";
       // Delete old BIF, rename this to real name
@@ -151,14 +152,14 @@ public final class BIFFWriter
       compressedfile.renameTo(realfile);
     }
     else if (format == BIFFEditor.BIFC) {
-      File compressedfile = FileNI.getFile(ResourceFactory.getRootDirs(),
+      File compressedfile = FileNI.getFile(Profile.getRootFolders(),
                                      "data" + File.separatorChar + "_dummy2.bif");
       compressBIFC(dummyfile, compressedfile);
       dummyfile.delete();
       // Delete old BIF, rename this to real name
       File realfile = bifentry.getFile();
       if (realfile == null)
-        realfile = FileNI.getFile(ResourceFactory.getRootDirs(), bifentry.toString());
+        realfile = FileNI.getFile(Profile.getRootFolders(), bifentry.toString());
       else
         realfile.delete();
       compressedfile.renameTo(realfile);
@@ -167,9 +168,9 @@ public final class BIFFWriter
 
   private BIFFResourceEntry reloadNode(ResourceEntry entry, int newoffset)
   {
-    ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
+    ResourceFactory.getResources().removeResourceEntry(entry);
     BIFFResourceEntry newentry = new BIFFResourceEntry(bifentry, entry.toString(), newoffset);
-    ResourceFactory.getInstance().getResources().addResourceEntry(newentry, newentry.getTreeFolder());
+    ResourceFactory.getResources().addResourceEntry(newentry, newentry.getTreeFolder());
     return newentry;
   }
 

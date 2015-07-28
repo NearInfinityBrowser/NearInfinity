@@ -5,6 +5,12 @@
 package infinity.check;
 
 import infinity.NearInfinity;
+import infinity.datatype.DecNumber;
+import infinity.datatype.Flag;
+import infinity.datatype.ResourceRef;
+import infinity.datatype.SectionCount;
+import infinity.datatype.SectionOffset;
+import infinity.datatype.TextString;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
@@ -13,10 +19,13 @@ import infinity.gui.TableItem;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.wed.Overlay;
+import infinity.resource.wed.Tilemap;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
@@ -34,6 +43,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -51,8 +62,27 @@ import javax.swing.event.ListSelectionListener;
 public final class StructChecker extends ChildFrame implements ActionListener, Runnable,
                                                                ListSelectionListener
 {
-  private static final String filetypes[] = {"ARE", "CHR", "CHU", "CRE", "DLG", "GAM", "ITM",
-                                             "SPL", "STO", "WED", "WMP"};
+  private static final String filetypes[] = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
+                                             "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
+  private static final HashMap<String, StructInfo> fileInfo = new HashMap<String, StructInfo>();
+  static {
+    fileInfo.put("ARE", new StructInfo("AREA", new String[]{"V1.0", "V9.1"}));
+    fileInfo.put("CHR", new StructInfo("CHR ", new String[]{"V1.0", "V1.2", "V2.0", "V2.1", "V2.2", "V9.0"}));
+    fileInfo.put("CHU", new StructInfo("CHUI", new String[]{"V1  "}));
+    fileInfo.put("CRE", new StructInfo("CRE ", new String[]{"V1.0", "V1.1", "V1.2", "V2.2", "V9.0"}));
+    fileInfo.put("DLG", new StructInfo("DLG ", new String[]{"V1.0"}));
+    fileInfo.put("EFF", new StructInfo("EFF ", new String[]{"V2.0"}));
+    fileInfo.put("GAM", new StructInfo("GAME", new String[]{"V1.1", "V2.0", "V2.1", "V2.2"}));
+    fileInfo.put("ITM", new StructInfo("ITM ", new String[]{"V1  ", "V1.1", "V2.0"}));
+    fileInfo.put("PRO", new StructInfo("PRO ", new String[]{"V1.0"}));
+    fileInfo.put("SPL", new StructInfo("SPL ", new String[]{"V1  ", "V2.0"}));
+    fileInfo.put("STO", new StructInfo("STOR", new String[]{"V1.0", "V1.1", "V9.0"}));
+    fileInfo.put("VEF", new StructInfo("VEF ", new String[]{"V1.0"}));
+    fileInfo.put("VVC", new StructInfo("VVC ", new String[]{"V1.0"}));
+    fileInfo.put("WED", new StructInfo("WED ", new String[]{"V1.3"}));
+    fileInfo.put("WMP", new StructInfo("WMAP", new String[]{"V1.0"}));
+  }
+
   private final ChildFrame resultFrame = new ChildFrame("Corrupted files found", true);
   private final JButton bstart = new JButton("Check", Icons.getIcon("Find16.gif"));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
@@ -124,7 +154,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       setVisible(false);
       for (int i = 0; i < filetypes.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getInstance().getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(filetypes[i]));
       }
       if (files.size() > 0)
         new Thread(this).start();
@@ -151,7 +181,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
       chooser.setDialogTitle("Save result");
       chooser.setSelectedFile(new FileNI("result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -314,6 +344,144 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
                                         last.getSize() + " unused bytes after " +
                                         entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) +
                                         "h)"));
+
+    // Checking signature and version fields
+    StructInfo info = fileInfo.get(entry.getExtension());
+    if (info != null) {
+      String sig = ((TextString)struct.getAttribute("Signature")).toString();
+      if (info.isSignature(sig)) {
+        String ver = ((TextString)struct.getAttribute("Version")).toString();
+        if (!info.isVersion(ver)) {
+          // invalid version?
+          table.addTableItem(new Corruption(entry, 4, "Unsupported or invalid version: \"" + ver + "\""));
+        }
+      } else {
+        // invalid signature?
+        table.addTableItem(new Corruption(entry, 0, "Invalid signature: \"" + sig + "\""));
+      }
+    }
+
+    // Type-specific checks
+    if (entry.getExtension().equalsIgnoreCase("WED")) {
+      List<Corruption> list = getWedCorruption(entry, struct);
+      for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
+        table.addTableItem(iter.next());
+      }
+    }
+  }
+
+  // Checking for WED-specific corruptions
+  private List<Corruption> getWedCorruption(ResourceEntry entry, AbstractStruct struct)
+  {
+    List<Corruption> list = new ArrayList<Corruption>();
+    if (entry.getExtension().equalsIgnoreCase("WED")) {
+      final int ovlSize = 0x18; // size of an Overlay structure
+      int ovlCount = ((SectionCount)struct.getAttribute(8, false)).getValue(); // # overlays
+      int ovlStartOfs = ((SectionOffset)struct.getAttribute(16, false)).getValue();  // Overlays offset
+
+      for (int ovlIdx = 0; ovlIdx < ovlCount; ovlIdx++) {
+        int ovlOfs = ovlStartOfs + ovlIdx*ovlSize;
+        Overlay overlay = (Overlay)struct.getAttribute(ovlOfs, false);  // Overlay
+        if (overlay == null) {
+          continue;
+        }
+        int width = ((DecNumber)overlay.getAttribute(ovlOfs + 0, false)).getValue();
+        int height = ((DecNumber)overlay.getAttribute(ovlOfs + 2, false)).getValue();
+        String tisName = ((ResourceRef)overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
+        int tileStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 16, false)).getValue();
+        int indexStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 20, false)).getValue();
+        if (tisName == null || tisName.isEmpty() || !ResourceFactory.resourceExists(tisName)) {
+          continue;
+        }
+
+        // checking Overlay fields
+        boolean skip = false;
+        if (width <= 0) {
+          list.add(new Corruption(entry, ovlOfs + 0,
+                                  String.format("Overlay %1$d: Tileset width is <= 0", ovlIdx)));
+          skip = true;
+        }
+        if (height <= 0) {
+          list.add(new Corruption(entry, ovlOfs + 2,
+                                  String.format("Overlay %1$d: Tileset height is <= 0", ovlIdx)));
+          skip = true;
+        }
+        if ((tileStartOfs <= ovlOfs + ovlCount*ovlSize) || (tileStartOfs >= struct.getSize())) {
+          list.add(new Corruption(entry, ovlOfs + 16,
+                                  String.format("Overlay %1$d: Tilemap offset is invalid", ovlIdx)));
+          skip = true;
+        }
+        if ((indexStartOfs < ovlOfs + ovlCount*ovlSize) || (indexStartOfs >= struct.getSize())) {
+          list.add(new Corruption(entry, ovlOfs + 16,
+                                  String.format("Overlay %1$d: Tilemap lookup offset is invalid", ovlIdx)));
+          skip = true;
+        }
+        if (skip) {
+          continue;
+        }
+
+        // Checking Tilemap fields
+        ResourceEntry tisResource = ResourceFactory.getResourceEntry(tisName);
+        int[] tisInfo;  // = {tileCount, tileSize}
+        try {
+          tisInfo = tisResource.getResourceInfo();
+        } catch (Exception e) {
+          tisInfo = null;
+        }
+        if (tisInfo == null || tisInfo.length < 2) {
+          continue;
+        }
+        final int tileSize = 0x0a;  // size of a Tilemap structure
+        int numTiles = width*height;
+        int tileEndOfs = tileStartOfs + numTiles*tileSize;
+        int indexEndOfs = indexStartOfs + 2*numTiles;
+        // caching tile maps and tile lookup indices
+        HashMap<Integer, Tilemap> mapTiles = new HashMap<Integer, Tilemap>(numTiles*3/2, 0.8f);
+        HashMap<Integer, Integer> mapIndices = new HashMap<Integer, Integer>(numTiles*3/2, 0.8f);
+        for (Iterator<StructEntry> iter = overlay.getList().iterator(); iter.hasNext();) {
+          StructEntry item = iter.next();
+          int curOfs = item.getOffset();
+          if (curOfs >= tileStartOfs && curOfs < tileEndOfs && item instanceof Tilemap) {
+            int index = (curOfs - tileStartOfs) / item.getSize();
+            mapTiles.put(Integer.valueOf(index), (Tilemap)item);
+          } else if (item.getOffset() > indexStartOfs && curOfs < indexEndOfs && item instanceof DecNumber) {
+            int index = (curOfs - indexStartOfs) / 2;
+            mapIndices.put(Integer.valueOf(index), Integer.valueOf(((DecNumber)item).getValue()));
+          }
+        }
+        // checking indices
+        for (int i = 0; i < numTiles; i++) {
+          Tilemap tile = mapTiles.get(Integer.valueOf(i));
+          if (tile != null) {
+            int tileOfs = tile.getOffset();
+            int tileIdx = (tileOfs - tileStartOfs) / tileSize;
+            int tileIdxPri = ((DecNumber)tile.getAttribute(tileOfs + 0, false)).getValue();
+            int tileCountPri = ((DecNumber)tile.getAttribute(tileOfs + 2, false)).getValue();
+            int tileIdxSec = ((DecNumber)tile.getAttribute(tileOfs + 4, false)).getValue();
+            Flag tileFlag = (Flag)tile.getAttribute(tileOfs + 6, false);
+            int tileFlagValue = (int)tileFlag.getValue();
+            for (int j = tileIdxPri, count = tileIdxPri + tileCountPri; j < count; j++) {
+              Integer tileLookupIndex = mapIndices.get(Integer.valueOf(j));
+              if (tileLookupIndex != null) {
+                if (tileLookupIndex >= tisInfo[0]) {
+                  list.add(new Corruption(entry, tileOfs + 0,
+                                          String.format("Overlay %1$d/Tilemap %2$d: Primary tile index %3$d " +
+                                                        "out of range [0..%4$d]",
+                                                        ovlIdx, tileIdx, j, tisInfo[0] - 1)));
+                }
+              }
+            }
+            if (tileFlagValue > 0 && tileIdxSec >= tisInfo[0]) {
+              list.add(new Corruption(entry, tileOfs + 4,
+                                      String.format("Overlay %1$d/Tilemap %2$d: Secondary tile index %3$d " +
+                                                    "out of range [0..%4$d]",
+                                                    ovlIdx, tileIdx, tileIdxSec, tisInfo[0] - 1)));
+            }
+          }
+        }
+      }
+    }
+    return list;
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -350,6 +518,45 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       buf.append("  Offset: ").append(offset);
       buf.append("  Error message: ").append(errorMsg);
       return buf.toString();
+    }
+  }
+
+  // Stores supported signature and versions for a single structured resource format
+  private static final class StructInfo
+  {
+    public final String signature;
+    public final String[] version;
+
+    public StructInfo(String sig, String[] ver)
+    {
+      signature = (sig != null) ? sig : "";
+      if (ver != null) {
+        version = new String[ver.length];
+        for (int i = 0; i < version.length; i++) {
+          version[i] = (ver[i] != null) ? ver[i] : "";
+        }
+      } else {
+        version = new String[0];
+      }
+    }
+
+    /** Returns whether the signatures matches the signature of the current structure definition. */
+    public boolean isSignature(String sig)
+    {
+      return (sig != null) ? signature.equals(sig) : false;
+    }
+
+    /** Returns whether the specified version is supported by the current structure definition. */
+    public boolean isVersion(String ver)
+    {
+      if (ver != null) {
+        for (final String v: version) {
+          if (ver.equals(v)) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
   }
 }

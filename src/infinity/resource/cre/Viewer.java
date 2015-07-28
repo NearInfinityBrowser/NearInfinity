@@ -45,7 +45,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Race"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Class"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gender"), gbl, gbc, true);
-    if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
+    if (ResourceFactory.resourceExists("KIT.IDS")) {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Kit"), gbl, gbc, true);
     } else {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Mage type"), gbl, gbc, true);
@@ -180,7 +180,7 @@ public final class Viewer extends JPanel
 //    if (imageRef.getResourceName().endsWith(".BAM"))
 //      imagePanel = ViewerUtil.makeBamPanel(imageRef, 0);
     if (imageRef.getResourceName().endsWith(".BMP") &&
-        ResourceFactory.getInstance().resourceExists(imageRef.getResourceName()))
+        ResourceFactory.resourceExists(imageRef.getResourceName()))
       imagePanel = ViewerUtil.makeImagePanel(imageRef);
     else
       imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute("Small portrait"));

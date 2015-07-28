@@ -7,12 +7,12 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
+import infinity.util.BinPack2D;
 import infinity.util.DynamicArray;
-import infinity.util.GridManager;
 import infinity.util.IntegerHashMap;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileOutputStreamNI;
@@ -66,7 +66,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ConvertToTis extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener
 {
-  private static String currentDir = ResourceFactory.getRootDir().toString();
+  private static String currentDir = Profile.getGameRoot().toString();
 
   private String inFileName;
   private JSlider sTileNum;
@@ -295,9 +295,7 @@ public class ConvertToTis extends ChildFrame
     }
     if (!tisFileName.equalsIgnoreCase(createValidTisName(tisFileName, 2))) {
       result.add(null);
-      result.add("Incompatible output file specified.\n\n" +
-              "Note:\nPVRZ-based TIS files are restricted to exactly 6 characters\n" +
-              "plus optional 'N' for night tilesets.)");
+      result.add("PVRZ-based TIS filenames have to be 2 up to 7 characters long.");
       return false;
     }
     if (tileCount < 1 || tileCount > (img.getWidth()*img.getHeight()/4096)) {
@@ -308,8 +306,7 @@ public class ConvertToTis extends ChildFrame
 
     // preparing variables
     ProgressMonitor progress = null;
-    List<GridManager> pageListComplete = new ArrayList<GridManager>();
-    List<GridManager> pageListIncomplete = new ArrayList<GridManager>();
+    List<BinPack2D> pageList = new ArrayList<BinPack2D>();
     List<TileEntry> entryList = new ArrayList<TileEntry>(tileCount);
 
     byte[] dst = new byte[24 + tileCount*12];   // header + tiles
@@ -333,6 +330,7 @@ public class ConvertToTis extends ChildFrame
       dstOfs += 24;
 
       // processing tiles
+      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BottomLeftRule;
       final int pageDim = 1024;
       final int tileDim = 64;
       final int tilesPerDim = pageDim / tileDim;
@@ -344,79 +342,39 @@ public class ConvertToTis extends ChildFrame
           int x = px * pageDim, y = py * pageDim;
           int w = Math.min(pageDim, img.getWidth() - x);
           int h = Math.min(pageDim, img.getHeight() - y);
-          if (w == pageDim && h == pageDim) {
-            // add page to complete pages list
-            GridManager gm = new GridManager(tilesPerDim, tilesPerDim);
-            gm.add(new Rectangle(0, 0, tilesPerDim, tilesPerDim));
-            pageListComplete.add(gm);
-            // register each tile entry in the page
-            int pageIdx = pageListComplete.size() - 1;
-            int tileIdx = (y*img.getWidth())/(tileDim*tileDim) + x/tileDim;
-            for (int ty = 0; ty < tilesPerDim; ty++, tileIdx += img.getWidth()/tileDim) {
-              for (int tx = 0; tx < tilesPerDim; tx++) {
-                if (tileIdx + tx < tileCount) {
-                  TileEntry entry = new TileEntry(tileIdx + tx, pageIdx, tileDim*tx, tileDim*ty);
-                  entryList.add(entry);
-                }
-              }
-            }
-          } else {
-            // find first available page containing sufficient space for the current region
-            Dimension space = new Dimension(w/tileDim, h/tileDim);
-            int pageIdx = -1;
-            Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-            for (int i = 0; i < pageListIncomplete.size(); i++) {
-              GridManager gm = pageListIncomplete.get(i);
-              Rectangle rect = gm.findNext(space, GridManager.Alignment.TopLeftHorizontal);
-              if (rect != null) {
-                pageIdx = i;
-                rectMatch = (Rectangle)rect.clone();
-                break;
-              }
-              if (pageIdx >= 0) {
-                break;
-              }
-            }
 
-            // create new page if no match found
-            if (pageIdx == -1) {
-              GridManager gm = new GridManager(tilesPerDim, tilesPerDim);
-              pageListIncomplete.add(gm);
-              pageIdx = pageListIncomplete.size() - 1;
-              rectMatch.x = rectMatch.y = 0;
-              rectMatch.width = gm.getWidth(); rectMatch.height = gm.getHeight();
+          Dimension space = new Dimension(w / tileDim, h / tileDim);
+          int pageIdx = -1;
+          Rectangle rectMatch = null;
+          for (int i = 0; i < pageList.size(); i++) {
+            BinPack2D packer = pageList.get(i);
+            rectMatch = packer.insert(space.width, space.height, binPackRule);
+            if (rectMatch.height > 0) {
+              pageIdx = i;
+              break;
             }
+          }
 
-            // add region to the page
-            GridManager gm = pageListIncomplete.get(pageIdx);
-            gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
-            // registering tile entries
-            int tileIdx = (y*img.getWidth())/(tileDim*tileDim) + x/tileDim;
-            for (int ty = 0; ty < space.height; ty++, tileIdx += img.getWidth()/tileDim) {
-              for (int tx = 0; tx < space.width; tx++) {
-                // marking page index as incomplete
-                if (tileIdx + tx < tileCount) {
-                  TileEntry entry = new TileEntry(tileIdx + tx, pageIdx | 0x80000000,
-                                                  (rectMatch.x + tx)*tileDim, (rectMatch.y + ty)*tileDim);
-                  entryList.add(entry);
-                }
+          // create new page?
+          if (pageIdx < 0) {
+            BinPack2D packer = new BinPack2D(tilesPerDim, tilesPerDim);
+            pageList.add(packer);
+            pageIdx = pageList.size() - 1;
+            rectMatch = packer.insert(space.width, space.height, binPackRule);
+          }
+
+          // registering tile entries
+          int tileIdx = (y*img.getWidth())/(tileDim*tileDim) + x/tileDim;
+          for (int ty = 0; ty < space.height; ty++, tileIdx += img.getWidth()/tileDim) {
+            for (int tx = 0; tx < space.width; tx++) {
+              // marking page index as incomplete
+              if (tileIdx + tx < tileCount) {
+                TileEntry entry = new TileEntry(tileIdx + tx, pageIdx,
+                                                (rectMatch.x + tx)*tileDim, (rectMatch.y + ty)*tileDim);
+                entryList.add(entry);
               }
             }
           }
-        }
-      }
-
-      // adjusting page indices of the marked tiles
-      int incompleteBase = pageListComplete.size();
-      for (int i = 0; i < pageListIncomplete.size(); i++) {
-        GridManager gm = pageListIncomplete.get(i);
-        gm.shrink();
-        pageListComplete.add(gm);
-      }
-      for (int i = 0; i < entryList.size(); i++) {
-        TileEntry entry = entryList.get(i);
-        if ((entry.page & 0x80000000) != 0) {
-          entry.page = (entry.page & 0xff) + incompleteBase;
         }
       }
 
@@ -454,7 +412,7 @@ public class ConvertToTis extends ChildFrame
       }
 
       // generating PVRZ files
-      if (!createPvrzPages(tisFileName, img, pageListComplete, DxtEncoder.DxtType.DXT1, entryList,
+      if (!createPvrzPages(tisFileName, img, pageList, DxtEncoder.DxtType.DXT1, entryList,
                            result, progress)) {
         return false;
       }
@@ -496,14 +454,14 @@ public class ConvertToTis extends ChildFrame
       outNameBase = outNameBase.substring(0, outNameBase.lastIndexOf('.'));
     }
 
-    // limit output filename to 6/7 or 8 characters (based on the TIS version)
+    // limit output filename to [2,7] or 8 characters (based on the TIS version)
     if (tisVersion == 2) {
-      if (!Pattern.matches(".{6}[nN]?", outNameBase)) {
-        if (outNameBase.length() > 6) {
-          outNameBase = outNameBase.substring(0, 6);
+      if (!Pattern.matches(".{2,7}", outNameBase)) {
+        if (outNameBase.length() > 7) {
+          outNameBase = outNameBase.substring(0, 7);
         } else {
-          final String fill = "000000";
-          outNameBase = outNameBase + fill.substring(0, 6 - outNameBase.length());
+          final String fill = "00";
+          outNameBase = outNameBase + fill.substring(0, 2 - outNameBase.length());
         }
       }
     } else {
@@ -561,7 +519,7 @@ public class ConvertToTis extends ChildFrame
     if (tisNameBase.lastIndexOf('.') > 0) {
       tisNameBase = tisNameBase.substring(0, tisNameBase.lastIndexOf('.'));
     }
-    if (Pattern.matches(".{6}[nN]?", tisNameBase)) {
+    if (Pattern.matches(".{2,7}", tisNameBase)) {
       String pvrzName = String.format("%1$s%2$s%3$02d.PVRZ", tisNameBase.substring(0, 1),
                                       tisNameBase.substring(2, tisNameBase.length()), page);
       return path + pvrzName;
@@ -570,8 +528,8 @@ public class ConvertToTis extends ChildFrame
   }
 
   // generates PVRZ textures
-  private static boolean createPvrzPages(String tisFileName, BufferedImage srcImg,
-                                         List<GridManager> pages, DxtEncoder.DxtType dxtType,
+  public static boolean createPvrzPages(String tisFileName, BufferedImage srcImg,
+                                         List<BinPack2D> pages, DxtEncoder.DxtType dxtType,
                                          List<TileEntry> entryList, List<String> result,
                                          ProgressMonitor progress)
   {
@@ -594,13 +552,14 @@ public class ConvertToTis extends ChildFrame
         progress.setNote(String.format(note, pageIdx+1, pages.size()));
       }
       String pvrzName = generatePvrzName(tisFileName, pageIdx);
-      GridManager gm = pages.get(pageIdx);
+      BinPack2D packer = pages.get(pageIdx);
+      packer.shrinkBin(true);
 
       // generating texture image
-      int w = ConvertToPvrz.nextPowerOfTwo(gm.getWidth()*64);
-      int h = ConvertToPvrz.nextPowerOfTwo(gm.getHeight()*64);
+      int w = packer.getBinWidth() * 64;
+      int h = packer.getBinHeight() * 64;
       BufferedImage texture = ColorConvert.createCompatibleImage(w, h, true);
-      Graphics2D g = (Graphics2D)texture.getGraphics();
+      Graphics2D g = texture.createGraphics();
       g.setBackground(new Color(0, true));
       g.setColor(Color.BLACK);
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
@@ -741,7 +700,7 @@ public class ConvertToTis extends ChildFrame
         }
       }
     } else if (event.getSource() == bOutput) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Specify output filename");
       fc.setDialogType(JFileChooser.SAVE_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1209,7 +1168,7 @@ public class ConvertToTis extends ChildFrame
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static class TileEntry
+  public static class TileEntry
   {
     public int tileIndex;
     public int page;

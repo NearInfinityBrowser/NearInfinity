@@ -4,12 +4,14 @@
 
 package infinity.resource.wed;
 
+import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.HexNumber;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 
 public final class Overlay extends AbstractStruct // implements AddRemovable, HasAddRemovable
 {
@@ -38,7 +40,13 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
     addField(height);
     ResourceRef tileset = new ResourceRef(buffer, offset + 4, "Tileset", "TIS");
     addField(tileset);
-    addField(new Unknown(buffer, offset + 12, 4));
+    if (Profile.isEnhancedEdition()) {
+      addField(new DecNumber(buffer, offset + 12, 2, "# unique tiles"));
+      addField(new Bitmap(buffer, offset + 14, 2, "Movement type",
+                          new String[]{"Default", "Disable rendering", "Alternate rendering"}));
+    } else {
+      addField(new Unknown(buffer, offset + 12, 4));
+    }
     SectionOffset offset_tilemap = new SectionOffset(buffer, offset + 16, "Tilemap offset", null);
     addField(offset_tilemap);
     SectionOffset offset_tilelookup = new SectionOffset(buffer, offset + 20, "Tilemap lookup offset", null);

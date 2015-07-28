@@ -5,6 +5,7 @@
 package infinity.resource.key;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.Writeable;
 import infinity.util.DynamicArray;
@@ -32,7 +33,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
     type = ResourceFactory.getKeyfile().getExtensionType(resourcename.substring(resourcename.indexOf((int)'.') + 1));
     int bifindex = bifentry.getIndex();
     locator = bifindex << 20;
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       locator |= offset << 14;
     else
       locator |= offset;
@@ -75,8 +76,8 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
 
   public void deleteOverride()
   {
-    File override = FileNI.getFile(ResourceFactory.getRootDirs(),
-                             ResourceFactory.OVERRIDEFOLDER + File.separatorChar + resourceName);
+    File override = FileNI.getFile(Profile.getRootFolders(),
+                             Profile.getOverrideFolderName() + File.separatorChar + resourceName);
     if (override != null && override.exists() && !override.isDirectory())
       override.delete();
     hasOverride = false;
@@ -86,8 +87,8 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   public File getActualFile(boolean ignoreoverride)
   {
     if (!ignoreoverride) {
-      File override = FileNI.getFile(ResourceFactory.getRootDirs(),
-                               ResourceFactory.OVERRIDEFOLDER + File.separatorChar + resourceName);
+      File override = FileNI.getFile(Profile.getRootFolders(),
+                               Profile.getOverrideFolderName() + File.separatorChar + resourceName);
       if (override.exists() && !override.isDirectory())
         return override;
     }
@@ -123,8 +124,8 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   public byte[] getResourceData(boolean ignoreoverride) throws Exception
   {
     if (!ignoreoverride) {
-      File override = FileNI.getFile(ResourceFactory.getRootDirs(),
-                               ResourceFactory.OVERRIDEFOLDER + File.separatorChar + resourceName);
+      File override = FileNI.getFile(Profile.getRootFolders(),
+                               Profile.getOverrideFolderName() + File.separatorChar + resourceName);
       if (override.exists() && !override.isDirectory()) {
         InputStream is = new BufferedInputStream(new FileInputStreamNI(override));
         byte buffer[] = FileReaderNI.readBytes(is, (int)override.length());
@@ -133,7 +134,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
       }
     }
     BIFFArchive biff = ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry());
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       return biff.getResource(locator >> 14 & 0x3f, true);
     return biff.getResource(locator & 0x3fff, false);
   }
@@ -142,14 +143,14 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   public InputStream getResourceDataAsStream(boolean ignoreoverride) throws Exception
   {
     if (!ignoreoverride) {
-      File override = FileNI.getFile(ResourceFactory.getRootDirs(),
-                               ResourceFactory.OVERRIDEFOLDER + File.separatorChar + resourceName);
+      File override = FileNI.getFile(Profile.getRootFolders(),
+                               Profile.getOverrideFolderName() + File.separatorChar + resourceName);
       if (override.exists() && !override.isDirectory()) {
         return new BufferedInputStream(new FileInputStreamNI(override));
       }
     }
     BIFFArchive biff = ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry());
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       return biff.getResourceAsStream(locator >> 14 & 0x3f, true);
     return biff.getResourceAsStream(locator & 0x3fff, false);
   }
@@ -158,13 +159,13 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   public int[] getResourceInfo(boolean ignoreoverride) throws IOException
   {
     if (!ignoreoverride) {
-      File override = FileNI.getFile(ResourceFactory.getRootDirs(),
-                               ResourceFactory.OVERRIDEFOLDER + File.separatorChar + resourceName);
+      File override = FileNI.getFile(Profile.getRootFolders(),
+                               Profile.getOverrideFolderName() + File.separatorChar + resourceName);
       if (override.exists() && !override.isDirectory())
         return getLocalFileInfo(override);
     }
     BIFFArchive biff = ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry());
-    if (type == 0x3eb) // TIS
+    if (type == Keyfile.TYPE_TIS) // TIS
       return biff.getResourceInfo(locator >> 14 & 0x3f, true);
     return biff.getResourceInfo(locator & 0x3fff, false);
   }
@@ -180,8 +181,9 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   {
     if (BrowserMenuBar.getInstance() != null &&
         BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE &&
-        hasOverride())
-      return ResourceFactory.OVERRIDEFOLDER;
+        hasOverride()) {
+      return Profile.getOverrideFolderName();
+    }
     return getExtension();
   }
 
@@ -194,8 +196,8 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   public boolean hasOverride()
   {
     if (!BrowserMenuBar.getInstance().cacheOverride()) {
-      File override = FileNI.getFile(ResourceFactory.getRootDirs(),
-                               ResourceFactory.OVERRIDEFOLDER + File.separatorChar + resourceName);
+      File override = FileNI.getFile(Profile.getRootFolders(),
+                               Profile.getOverrideFolderName() + File.separatorChar + resourceName);
       hasOverride = override.exists() && !override.isDirectory();
     }
     return hasOverride;

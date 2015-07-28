@@ -25,6 +25,7 @@ import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.gui.RenderCanvas;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.ColorConvert;
@@ -579,9 +580,7 @@ public class TilesetRenderer extends RenderCanvas
     release(false);
 
     // resetting states
-    blendedOverlays = (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-                       ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-                       ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE);
+    blendedOverlays = (Boolean)Profile.getProperty(Profile.IS_TILESET_STENCILED);
     lighting = ViewerConstants.LIGHTING_DAY;
 
     // loading map data
@@ -776,7 +775,7 @@ public class TilesetRenderer extends RenderCanvas
   private synchronized void drawTile(Tile tile, boolean isDoorTile)
   {
     if (tile != null) {
-      boolean isDoorClosed = (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) ? !isClosed : isClosed;
+      boolean isDoorClosed = (Profile.getEngine() == Profile.Engine.PST) ? !isClosed : isClosed;
       int[] target = ((DataBufferInt)workingTile.getRaster().getDataBuffer()).getData();
 
       int fa = 255, fr = 0, fg = 0, fb = 0;
@@ -1107,13 +1106,8 @@ public class TilesetRenderer extends RenderCanvas
             int tileIdx2 = ((DecNumber)tile.getAttribute("Secondary tile index")).getValue();
 
             // initializing overlay flags
-            int flags = 0;
             Flag drawOverlays = (Flag)tile.getAttribute("Draw Overlays");
-            for (int j = 0; j < 8; j++) {
-              if (drawOverlays.isFlagSet(j)) {
-                flags |= 1 << j;
-              }
-            }
+            int flags = (int)drawOverlays.getValue() & 255;
 
             listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTilesetV1));
             curOfs += tile.getSize();
@@ -1146,8 +1140,7 @@ public class TilesetRenderer extends RenderCanvas
         }
         if (!tisName.isEmpty()) {
           // Special: BG1 has a weird way to select extended night tilesets
-          if (ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
-              ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC) {
+          if (Profile.getEngine() == Profile.Engine.BG1) {
             String wedName = wed.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH);
             if (wedName.lastIndexOf('.') > 0) {
               wedName = wedName.substring(0, wedName.lastIndexOf('.'));
@@ -1158,13 +1151,13 @@ public class TilesetRenderer extends RenderCanvas
 
             // XXX: not sure whether this check is correct
             if (wedName.length() > 6 && wedName.charAt(6) == 'N' && tisName.length() == 6) {
-              entry = ResourceFactory.getInstance().getResourceEntry(tisName + "N.TIS");
+              entry = ResourceFactory.getResourceEntry(tisName + "N.TIS");
             }
             if (entry == null) {
-              entry = ResourceFactory.getInstance().getResourceEntry(tisName + ".TIS");
+              entry = ResourceFactory.getResourceEntry(tisName + ".TIS");
             }
           } else {
-            entry = ResourceFactory.getInstance().getResourceEntry(tisName);
+            entry = ResourceFactory.getResourceEntry(tisName);
           }
         }
       }

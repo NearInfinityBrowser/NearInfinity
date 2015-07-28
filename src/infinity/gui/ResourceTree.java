@@ -168,7 +168,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     if (entry == null)
       tree.clearSelection();
     else if (entry != shownresource) {
-      TreePath tp = ResourceFactory.getInstance().getResources().getPathToNode(entry);
+      TreePath tp = ResourceFactory.getResources().getPathToNode(entry);
       tree.scrollPathToVisible(tp);
       tree.addSelectionPath(tp);
     }
@@ -248,7 +248,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       return;
     }
     entry.renameFile(filename);
-    ResourceFactory.getInstance().getResources().resourceEntryChanged(entry);
+    ResourceFactory.getResources().resourceEntryChanged(entry);
   }
 
   /** Attempts to delete the specified resource if it exists as a file in the game path. */
@@ -263,17 +263,25 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                        JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return;
       NearInfinity.getInstance().removeViewable();
-      ResourceFactory.getInstance().getResources().removeResourceEntry(entry);
+      ResourceFactory.getResources().removeResourceEntry(entry);
+      File bakFile = getBackupFile(entry);
+      if (bakFile != null) {
+        bakFile.delete();
+      }
       ((FileResourceEntry)entry).deleteFile();
     }
     else if (entry instanceof BIFFResourceEntry) {
       String options[] = {"Delete", "Cancel"};
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), "Are you sure you want to delete the " +
-                                                                   "override file to " + entry + '?',
+                                                                   "override file " + entry + '?',
                                        "Delete file", JOptionPane.YES_NO_OPTION,
                                        JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return;
       NearInfinity.getInstance().removeViewable();
+      File bakFile = getBackupFile(entry);
+      if (bakFile != null) {
+        bakFile.delete();
+      }
       ((BIFFResourceEntry)entry).deleteOverride();
     }
   }
@@ -282,26 +290,29 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   static void restoreResource(ResourceEntry entry)
   {
     if (entry != null) {
-      String[] options = { "Restore", "Cancel" };
-      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(),
-                                       "Are you sure you want to restore " + entry + " with a previous version?",
-                                       "Restore backup", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+      final String[] options = { "Restore", "Cancel" };
+      final String msgBackup = "Are you sure you want to restore " + entry + " with a previous version?";
+      final String msgBiffed = "Are you sure you want to restore the biffed version of " + entry + "?";
+      File bakFile = getBackupFile(entry);
+      boolean isBackedUp = (bakFile != null && (bakFile.getName().toLowerCase(Locale.ENGLISH).endsWith(".bak")));
+      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), isBackedUp ?
+                                       msgBackup : msgBiffed, "Restore backup",
+                                       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                                        null, options, options[0]) == JOptionPane.YES_OPTION) {
-        File curFile = entry.getActualFile();
-        File bakFile = getBackupFile(entry);
-        File tmpFile = getTempFile(curFile);
-        if (curFile != null && curFile.isFile() && bakFile != null && bakFile.isFile()) {
-          if (curFile.renameTo(tmpFile)) {
-            if (bakFile.renameTo(curFile)) {
-              tmpFile.delete();
-              JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                            "Backup has been restored successfully.\n" +
-                                            "(You may need to reload the current resource\n" +
-                                            "to make changes visible.)",
-                                            "Restore backup", JOptionPane.INFORMATION_MESSAGE);
-              return;
-            } else {
-              if (!tmpFile.renameTo(curFile)) {
+        NearInfinity.getInstance().removeViewable();
+        if (bakFile != null && (bakFile.getName().toLowerCase(Locale.ENGLISH).endsWith(".bak"))) {
+          // .bak available -> restore .bak version
+          File curFile = getCurrentFile(entry);
+          File tmpFile = getTempFile(curFile);
+          if (curFile != null && curFile.isFile() && bakFile != null && bakFile.isFile()) {
+            if (curFile.renameTo(tmpFile)) {
+              if (bakFile.renameTo(curFile)) {
+                tmpFile.delete();
+                JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                              "Backup has been restored successfully.",
+                                              "Restore backup", JOptionPane.INFORMATION_MESSAGE);
+                return;
+              } else if (!tmpFile.renameTo(curFile)) {
                 // Worst possible scenario: failed restore operation can't restore original resource
                 String path = tmpFile.getParent();
                 String tmp = tmpFile.getName();
@@ -309,8 +320,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                 JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                               "Error while restoring resource.\n" +
                                               "Near Infinity is unable to recover from the restore operation.\n" +
-                                              "Please manually rename the file \"" + tmp + "\" into \"" + cur +
-                                              "\", located in \n\"" + path + "\".",
+                                              String.format("Please manually rename the file \"%1$s\" into \"%2$s\", located in \n + \"%3$s\"",
+                                                            tmp, cur, path),
                                               "Critical Error", JOptionPane.ERROR_MESSAGE);
                 return;
               }
@@ -319,6 +330,13 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                         "Error while restoring resource.\nRestore operation has been cancelled.",
                                         "Error", JOptionPane.ERROR_MESSAGE);
+        } else if (entry instanceof BIFFResourceEntry && entry.hasOverride()) {
+          // Biffed and no .bak available -> delete overridden copy
+          ((BIFFResourceEntry)entry).deleteOverride();
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                        "Backup has been restored successfully.",
+                                        "Restore backup", JOptionPane.INFORMATION_MESSAGE);
+          return;
         }
       }
     }
@@ -347,26 +365,45 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     }
   }
 
-  /** Returns whether a backup exists in the same folder as the specified resource entry. */
+  /**
+   * Returns whether a backup exists in the same folder as the specified resource entry
+   * or a biffed file has been overriden. */
   static boolean isBackupAvailable(ResourceEntry entry)
   {
-    File bakFile = getBackupFile(entry);
-    return (bakFile != null);
+    if (entry != null) {
+      return (getBackupFile(entry) != null ||
+              (entry instanceof BIFFResourceEntry && entry.hasOverride()));
+    }
+    return false;
   }
 
   // Returns the backup file of the specified resource entry if available or null.
+  // A backup file is either a *.bak file or a biffed file which has been overridden.
   private static File getBackupFile(ResourceEntry entry)
   {
-    if (entry != null) {
-      File file = entry.getActualFile();
+    File file = getCurrentFile(entry);
+    if (entry instanceof FileResourceEntry || (entry instanceof BIFFResourceEntry && entry.hasOverride())) {
       if (file != null) {
         File bakFile = new FileNI(file.getPath() + ".bak");
         if (bakFile.isFile()) {
           return bakFile;
         }
       }
+    } else if (entry instanceof BIFFResourceEntry) {
+      return file;
     }
     return null;
+  }
+
+  // Returns the actual physical file of the given resource entry or null.
+  private static File getCurrentFile(ResourceEntry entry)
+  {
+    if (entry instanceof FileResourceEntry ||
+        (entry instanceof BIFFResourceEntry && entry.hasOverride())) {
+      return entry.getActualFile();
+    } else {
+      return null;
+    }
   }
 
   // Returns an unoccupied filename based on 'file'.
@@ -523,7 +560,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       mi_rename.setEnabled(tree.getLastSelectedPathComponent() instanceof FileResourceEntry);
       if (tree.getLastSelectedPathComponent() instanceof ResourceEntry) {
         ResourceEntry entry = (ResourceEntry)tree.getLastSelectedPathComponent();
-        mi_delete.setEnabled(entry.hasOverride() || entry instanceof FileResourceEntry);
+        mi_delete.setEnabled(entry != null && entry.hasOverride() || entry instanceof FileResourceEntry);
         mi_restore.setEnabled(isBackupAvailable(entry));
       }
       else {
@@ -553,10 +590,10 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           new ViewFrame(NearInfinity.getInstance(), res);
       }
       else if (event.getSource() == mi_export) {
-        ResourceFactory.getInstance().exportResource(node, NearInfinity.getInstance());
+        ResourceFactory.exportResource(node, NearInfinity.getInstance());
       }
       else if (event.getSource() == mi_addcopy) {
-        ResourceFactory.getInstance().saveCopyOfResource(node);
+        ResourceFactory.saveCopyOfResource(node);
       }
       else if (event.getSource() == mi_rename) {
         if (tree.getLastSelectedPathComponent() instanceof FileResourceEntry) {

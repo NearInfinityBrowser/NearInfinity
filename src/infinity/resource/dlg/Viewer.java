@@ -171,8 +171,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     if (stateList.size() > 0) {
       showState(0);
       showTransition(currentstate.getFirstTrans());
-    }
-    else {
+    } else {
       bPrevState.setEnabled(false);
       bNextState.setEnabled(false);
       bPrevTrans.setEnabled(false);
@@ -182,7 +181,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     bUndo.setEnabled(false);
   }
 
-  public void setUndoDlg(DlgResource dlg) {
+  public void setUndoDlg(DlgResource dlg)
+  {
     this.undoDlg = dlg;
     buttonPanel.getControlByType(CtrlUndo).setEnabled(true);
   }
@@ -204,7 +204,6 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       if (lastStates.empty() && (undoDlg == null)) {
         bUndo.setEnabled(false);
       }
-      //bundo.setEnabled(lastStates.size() > 0);
       if (oldstate != currentstate) {
         showState(oldstate.getNumber());
       }
@@ -225,26 +224,24 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       } else if (event.getSource() == tfState) {
         try {
           int number = Integer.parseInt(tfState.getText());
-          if (number > 0 && number <= stateList.size()) {
-            newstate = number - 1;
+          if (number >= 0 && number <= stateList.size()) {
+            newstate = number;
           } else {
-            tfState.setText(String.valueOf(currentstate.getNumber() + 1));
+            tfState.setText(String.valueOf(currentstate.getNumber()));
           }
         } catch (Exception e) {
-          tfState.setText(String.valueOf(currentstate.getNumber() + 1));
+          tfState.setText(String.valueOf(currentstate.getNumber()));
         }
       } else if (event.getSource() == tfResponse) {
         try {
           int number = Integer.parseInt(tfResponse.getText());
-          if (number > 0 && number <= currentstate.getTransCount()) {
-            newtrans = currentstate.getFirstTrans() + number - 1;
+          if (number >= 0 && number <= currentstate.getTransCount()) {
+            newtrans = currentstate.getFirstTrans() + number;
           } else {
-            tfResponse.setText(
-                    String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans() + 1));
+            tfResponse.setText(String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans()));
           }
         } catch (Exception e) {
-          tfResponse.setText(
-                  String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans() + 1));
+          tfResponse.setText(String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans()));
         }
       } else if (buttonPanel.getControlByType(CtrlSelect) == event.getSource()) {
         ResourceRef next_dlg = currenttransition.getNextDialog();
@@ -254,8 +251,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           buttonPanel.getControlByType(CtrlUndo).setEnabled(true);
           newstate = currenttransition.getNextDialogState();
         } else {
-          DlgResource newdlg = (DlgResource)ResourceFactory.getResource(
-              ResourceFactory.getInstance().getResourceEntry(next_dlg.toString()));
+          DlgResource newdlg =
+              (DlgResource)ResourceFactory.getResource(ResourceFactory.getResourceEntry(next_dlg.toString()));
           showExternState(newdlg, currenttransition.getNextDialogState(), false);
         }
       }
@@ -281,7 +278,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
-        List<ResourceEntry> files = ResourceFactory.getInstance().getResources("DLG");
+        List<ResourceEntry> files = ResourceFactory.getResources("DLG");
         new DialogSearcher(files, getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
@@ -326,8 +323,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       int triggerOffset = ((StateTrigger) entry).getOffset();
       int nr = 0;
       for (StateTrigger trig : staTriList) {
-        if (trig.getOffset() == triggerOffset)
+        if (trig.getOffset() == triggerOffset) {
           break;
+        }
         nr++;
       }
 
@@ -343,8 +341,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       int triggerOffset = ((ResponseTrigger) entry).getOffset();
       int nr = 0;
       for (ResponseTrigger trig : transTriList) {
-        if (trig.getOffset() == triggerOffset)
+        if (trig.getOffset() == triggerOffset) {
           break;
+        }
         nr++;
       }
 
@@ -359,8 +358,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       int actionOffset = ((Action) entry).getOffset();
       int nr = 0;
       for (Action action : actionList) {
-        if (action.getOffset() == actionOffset)
+        if (action.getOffset() == actionOffset) {
           break;
+        }
         nr++;
       }
 
@@ -404,10 +404,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     showTransition(transNrToShow);
   }
 
-  private int findStateForTrans(int transnr) {
+  private int findStateForTrans(int transnr)
+  {
     for (State state : stateList) {
-      if ((transnr >= state.getFirstTrans())
-          && (transnr < (state.getFirstTrans() + state.getTransCount()))) {
+      if ((transnr >= state.getFirstTrans()) &&
+          (transnr < (state.getFirstTrans() + state.getTransCount()))) {
         return state.getNumber();
       }
     }
@@ -417,13 +418,14 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
   private void showState(int nr)
   {
-    if (currentstate != null)
+    if (currentstate != null) {
       currentstate.removeTableModelListener(this);
+    }
     currentstate = stateList.get(nr);
     currentstate.addTableModelListener(this);
-    bostate.setTitle("State " + (nr + 1) + '/' + stateList.size());
+    bostate.setTitle("State " + nr + '/' + (stateList.size() - 1));
     stateTextPanel.display(currentstate, nr);
-    tfState.setText(String.valueOf(nr + 1));
+    tfState.setText(String.valueOf(nr));
     outerpanel.repaint();
     if (currentstate.getTriggerIndex() != 0xffffffff) {
       stateTriggerPanel.display(staTriList.get(currentstate.getTriggerIndex()),
@@ -442,9 +444,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
     currenttransition = transList.get(nr);
     currenttransition.addTableModelListener(this);
-    botrans.setTitle("Response " + (nr - currentstate.getFirstTrans() + 1) +
-                     '/' + currentstate.getTransCount());
-    tfResponse.setText(String.valueOf(nr - currentstate.getFirstTrans() + 1));
+    botrans.setTitle("Response " + (nr - currentstate.getFirstTrans()) +
+                     '/' + (currentstate.getTransCount() - 1));
+    tfResponse.setText(String.valueOf(nr - currentstate.getFirstTrans()));
     outerpanel.repaint();
     transTextPanel.display(currenttransition, nr);
     if (currenttransition.getFlag().isFlagSet(1)) {
@@ -474,16 +476,17 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     actionList.clear();
     for (int i = 0; i < dlg.getFieldCount(); i++) {
       StructEntry entry = dlg.getField(i);
-      if (entry instanceof State)
+      if (entry instanceof State) {
         stateList.add((State)entry);
-      else if (entry instanceof Transition)
+      } else if (entry instanceof Transition) {
         transList.add((Transition)entry);
-      else if (entry instanceof StateTrigger)
+      } else if (entry instanceof StateTrigger) {
         staTriList.add((StateTrigger)entry);
-      else if (entry instanceof ResponseTrigger)
+      } else if (entry instanceof ResponseTrigger) {
         transTriList.add((ResponseTrigger)entry);
-      else if (entry instanceof Action)
+      } else if (entry instanceof Action) {
         actionList.add((Action)entry);
+      }
     }
   }
 
@@ -491,17 +494,17 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     alive = false;
     Container window = getTopLevelAncestor();
-    if (window instanceof ViewFrame && window.isVisible())
+    if (window instanceof ViewFrame && window.isVisible()) {
       ((ViewFrame) window).setViewable(newdlg);
-    else
+    } else {
       NearInfinity.getInstance().setViewable(newdlg);
+    }
 
     Viewer newdlg_viewer = (Viewer)newdlg.getViewerTab(0);
     if (isUndo) {
       newdlg_viewer.alive = true;
       newdlg_viewer.repaint(); // only necessary when dlg is in extra window
-    }
-    else {
+    } else {
       newdlg_viewer.setUndoDlg(this.dlg);
       newdlg_viewer.showState(state);
       newdlg_viewer.showTransition(newdlg_viewer.currentstate.getFirstTrans());
@@ -630,13 +633,14 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       String code = Compiler.getInstance().compileDialogCode(trigger.toString(), trigger instanceof Action);
       try {
         if (Compiler.getInstance().getErrors().size() == 0) {
-          if (trigger instanceof Action)
+          if (trigger instanceof Action) {
             textArea.setText(Decompiler.decompileDialogAction(code, true));
-          else
+          } else {
             textArea.setText(Decompiler.decompileDialogTrigger(code, true));
-        }
-        else
+          }
+        } else {
           textArea.setText(trigger.toString());
+        }
       } catch (Exception e) {
         textArea.setText(trigger.toString());
       }
@@ -656,20 +660,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     @Override
     public void actionPerformed(ActionEvent event)
     {
-      if (event.getSource() == bView)
+      if (event.getSource() == bView) {
         new ViewFrame(getTopLevelAncestor(), struct);
-      else if (event.getSource() == bGoto)
+      } else if (event.getSource() == bGoto) {
         dlg.getViewer().selectEntry(structEntry.getName());
-      else if (event.getSource() == bPlay) {
+      } else if (event.getSource() == bPlay) {
         StringRef text = null;
-        if (struct instanceof State)
+        if (struct instanceof State) {
           text = ((State)struct).getResponse();
-        else if (struct instanceof Transition)
+        } else if (struct instanceof Transition) {
           text = ((Transition)struct).getAssociatedText();
+        }
         if (text != null) {
           String resourceName = StringResource.getResource(text.getValue()) + ".WAV";
           if (resourceName != null) {
-            ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(resourceName);
+            ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName);
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
           }
         }

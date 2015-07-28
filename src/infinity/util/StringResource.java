@@ -4,7 +4,7 @@
 
 package infinity.util;
 
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.util.io.FileReaderNI;
 import infinity.util.io.RandomAccessFileNI;
 
@@ -107,16 +107,30 @@ public final class StringResource
     return getStringRef(index, false);
   }
 
-  /**
-   * Returns the string of the specified sttrref entry. Optionally add the specified
-   * sttref entry to the returned string.
-   * @param index The strref entry
-   * @param extended If <code>true</code> adds the specified strref entry to the resulting string.
-   * @return The string optionally including the strref entry.
-   */
+  /** Returns the string of the specified sttref entry, optionally with an appended strref value. */
   public static String getStringRef(int index, boolean extended)
   {
-    String fmtResult = extended ? "%1$s (Strref: %2$d)" : "%1$s";
+    return getStringRef(index, extended, false);
+  }
+
+  /**
+   * Returns the string of the specified sttrref entry. Optionally adds the specified
+   * Strref entry to the returned string.
+   * @param index The strref entry
+   * @param extended If <code>true</code> adds the specified strref entry to the resulting string.
+   * @param asPrefix Strref value is prepended (if <code>true</code>) or appended
+   *                 (if <code>false</code>) to the string. Ignored if "extended" is <code>false</code>.
+   * @return The string optionally including the strref entry.
+   */
+  public static String getStringRef(int index, boolean extended, boolean asPrefix)
+  {
+    final String fmtResult;
+    if (extended) {
+      fmtResult = asPrefix ? "(Strref: %2$d) %1$s" : "%1$s (Strref: %2$d)";
+    } else {
+      fmtResult = "%1$s";
+    }
+
     int strref = index;
     try {
       if (file == null)
@@ -163,7 +177,7 @@ public final class StringResource
       file.seek((long)0x0C);
     maxnr = FileReaderNI.readInt(file);
     startindex = FileReaderNI.readInt(file);
-    if (ResourceFactory.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       usedCharset = utf8Charset;
     }
   }

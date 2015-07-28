@@ -12,6 +12,7 @@ import infinity.datatype.ResourceRef;
 import infinity.datatype.Song2daBitmap;
 import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 
 public final class Song extends AbstractStruct // implements AddRemovable
@@ -27,7 +28,7 @@ public final class Song extends AbstractStruct // implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    if (ResourceFactory.getInstance().resourceExists("SONGLIST.2DA")) { // BG2
+    if (ResourceFactory.resourceExists("SONGLIST.2DA")) { // BG2
       addField(new Song2daBitmap(buffer, offset, 4, "Day song"));
       addField(new Song2daBitmap(buffer, offset + 4, 4, "Night song"));
       addField(new Song2daBitmap(buffer, offset + 8, 4, "Victory song"));
@@ -39,7 +40,7 @@ public final class Song extends AbstractStruct // implements AddRemovable
       addField(new Song2daBitmap(buffer, offset + 32, 4, "Alternative battle song"));
       addField(new Song2daBitmap(buffer, offset + 36, 4, "Alternative defeat song"));
     }
-    else if (ResourceFactory.getInstance().resourceExists("MUSICLIS.IDS")) { // IWD
+    else if (ResourceFactory.resourceExists("MUSICLIS.IDS")) { // IWD
       addField(new IdsBitmap(buffer, offset, 4, "Day song", "MUSICLIS.IDS"));
       addField(new IdsBitmap(buffer, offset + 4, 4, "Night song", "MUSICLIS.IDS"));
       addField(new IdsBitmap(buffer, offset + 8, 4, "Victory song", "MUSICLIS.IDS"));
@@ -51,7 +52,7 @@ public final class Song extends AbstractStruct // implements AddRemovable
       addField(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "MUSICLIS.IDS"));
       addField(new IdsBitmap(buffer, offset + 36, 4, "Alternative defeat song", "MUSICLIS.IDS"));
     }
-    else if (ResourceFactory.getInstance().resourceExists("MUSIC.IDS")) { // IWD2
+    else if (ResourceFactory.resourceExists("MUSIC.IDS")) { // IWD2
       addField(new IdsBitmap(buffer, offset, 4, "Day song", "MUSIC.IDS"));
       addField(new IdsBitmap(buffer, offset + 4, 4, "Night song", "MUSIC.IDS"));
       addField(new IdsBitmap(buffer, offset + 8, 4, "Victory song", "MUSIC.IDS"));
@@ -63,7 +64,7 @@ public final class Song extends AbstractStruct // implements AddRemovable
       addField(new IdsBitmap(buffer, offset + 32, 4, "Alternative battle song", "MUSIC.IDS"));
       addField(new IdsBitmap(buffer, offset + 36, 4, "Alternative defeat song", "MUSIC.IDS"));
     }
-    else if (ResourceFactory.getInstance().resourceExists("SONGS.IDS")) { // PST
+    else if (ResourceFactory.resourceExists("SONGS.IDS")) { // PST
       addField(new IdsBitmap(buffer, offset, 4, "Day song", "SONGS.IDS"));
       addField(new IdsBitmap(buffer, offset + 4, 4, "Night song", "SONGS.IDS"));
       addField(new Unknown(buffer, offset + 8, 4));
@@ -107,9 +108,9 @@ public final class Song extends AbstractStruct // implements AddRemovable
       addField(new ResourceRef(buffer, offset + 68, "Main ambient (night) 2", "WAV"));
       addField(new DecNumber(buffer, offset + 76, 4, "Main ambient volume (night)"));
     }
-    if (ResourceFactory.getInstance().resourceExists("REVERB.IDS")) {
+    if (ResourceFactory.resourceExists("REVERB.IDS")) {
       addField(new IdsBitmap(buffer, offset + 80, 4, "Reverb", "REVERB.IDS"));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 80, 4, "Reverb", s_reverb));
     } else {
       addField(new Unknown(buffer, offset + 80, 4));

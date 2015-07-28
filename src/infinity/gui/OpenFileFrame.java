@@ -97,7 +97,7 @@ final class OpenFileFrame extends ChildFrame implements ActionListener
       }
     });
     lpInternal =
-    new TextListPanel(new ArrayList<ResourceEntry>(ResourceFactory.getInstance().getResources().getResourceEntries()));
+    new TextListPanel(new ArrayList<ResourceEntry>(ResourceFactory.getResources().getResourceEntries()));
     bOpen.addActionListener(this);
     bOpenNew.addActionListener(this);
     bOpenNew.setEnabled(false);

@@ -22,6 +22,17 @@ public final class SectionCount extends DecNumber
     this.section = section;
   }
 
+//--------------------- Begin Interface InlineEditable ---------------------
+
+ @Override
+ public boolean update(Object value)
+ {
+   // should not be modified by the user
+   return false;
+ }
+
+//--------------------- End Interface InlineEditable ---------------------
+
   public Class<? extends StructEntry> getSection()
   {
     return section;

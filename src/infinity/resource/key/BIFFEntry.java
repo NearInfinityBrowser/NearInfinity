@@ -105,10 +105,10 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
   public File getFile()
   {
-    File file = ResourceFactory.getInstance().getFile(filename);
+    File file = ResourceFactory.getFile(filename);
     if (file == null) {
       String bifFilename = filename.substring(0, filename.lastIndexOf((int)'.')) + ".cbf";
-      file = ResourceFactory.getInstance().getFile(bifFilename); // Icewind Dale
+      file = ResourceFactory.getFile(bifFilename); // Icewind Dale
     }
     return file;
   }

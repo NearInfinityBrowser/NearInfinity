@@ -19,7 +19,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.are.Actor;
 import infinity.resource.cre.CreResource;
@@ -51,13 +51,11 @@ class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable,
   PartyNPC() throws Exception
   {
     super(null, "Party character",
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG1 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG1TOTSC ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-          ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-          ResourceFactory.isEnhancedEdition() ? new byte[352] :
-          ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT ? new byte[360] :
-          ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2 ? new byte[832] : new byte[384],
+          (Profile.getEngine() == Profile.Engine.BG1 ||
+          Profile.getEngine() == Profile.Engine.BG2 ||
+          Profile.isEnhancedEdition()) ? new byte[352] :
+          (Profile.getEngine() == Profile.Engine.PST) ? new byte[360] :
+          (Profile.getEngine() == Profile.Engine.IWD2) ? new byte[832] : new byte[384],
           0);
   }
 
@@ -171,8 +169,7 @@ class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable,
     addField(new DecNumber(buffer, offset + 36, 2, "Viewport location: X"));
     addField(new DecNumber(buffer, offset + 38, 2, "Viewport location: Y"));
 
-    int gameid = ResourceFactory.getGameID();
-    if (gameid == ResourceFactory.ID_BG1 || gameid == ResourceFactory.ID_BG1TOTSC) {
+    if (Profile.getEngine() == Profile.Engine.BG1) {
       addField(new DecNumber(buffer, offset + 40, 2, "Modal state"));
       addField(new DecNumber(buffer, offset + 42, 2, "Happiness"));
       addField(new Unknown(buffer, offset + 44, 96));
@@ -199,8 +196,7 @@ class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable,
       addField(new TextString(buffer, offset, 8, "Voice set"));
       offset += 8;
     }
-    else if (gameid == ResourceFactory.ID_BG2 || gameid == ResourceFactory.ID_BG2TOB ||
-             ResourceFactory.isEnhancedEdition()) {
+    else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new IdsBitmap(buffer, offset + 40, 2, "Modal state", "MODAL.IDS"));
       addField(new DecNumber(buffer, offset + 42, 2, "Happiness"));
       addField(new Unknown(buffer, offset + 44, 96));
@@ -227,7 +223,7 @@ class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable,
       addField(new TextString(buffer, offset, 8, "Voice set"));
       offset += 8;
     }
-    else if (gameid == ResourceFactory.ID_TORMENT) {
+    else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new DecNumber(buffer, offset + 40, 2, "Modal state"));
       addField(new DecNumber(buffer, offset + 42, 2, "Happiness"));
       addField(new Unknown(buffer, offset + 44, 96));
@@ -258,8 +254,7 @@ class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable,
       addField(new Unknown(buffer, offset, 8));
       offset += 8;
     }
-    else if (gameid == ResourceFactory.ID_ICEWIND || gameid == ResourceFactory.ID_ICEWINDHOW ||
-             gameid == ResourceFactory.ID_ICEWINDHOWTOT) {
+    else if (Profile.getEngine() == Profile.Engine.IWD) {
       addField(new DecNumber(buffer, offset + 40, 2, "Modal state"));
       addField(new Unknown(buffer, offset + 42, 98));
       addField(new IdsBitmap(buffer, offset + 140, 2, "Quick weapon slot 1", "SLOTS.IDS"));
@@ -286,7 +281,7 @@ class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable,
       addField(new TextString(buffer, offset + 8, 32, "Voice set"));
       offset += 40;
     }
-    else if (gameid == ResourceFactory.ID_ICEWIND2) {
+    else if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new DecNumber(buffer, offset + 40, 2, "Modal state"));
       addField(new Unknown(buffer, offset + 42, 98));
       addField(new IdsBitmap(buffer, offset + 140, 2, "Quick weapon slot 1", "SLOTS.IDS"));

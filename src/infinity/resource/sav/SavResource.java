@@ -74,51 +74,15 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
   public void actionPerformed(ActionEvent event)
   {
     if (buttonPanel.getControlByType(CtrlCompress) == event.getSource()) {
-      try {
-        WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
-        try {
-          block.setBlocked(true);
-          handler.compress(entries);
-          ResourceFactory.getInstance().saveResource(this, panel.getTopLevelAncestor());
-          buttonPanel.getControlByType(CtrlDecompress).setEnabled(true);
-          filelist.setEnabled(false);
-          buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
-          buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
-          buttonPanel.getControlByType(CtrlCompress).setEnabled(false);
-        } finally {
-          block.setBlocked(false);
-          block = null;
-        }
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(panel, "Error compressing file", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
-      }
+      compressData(true);
     } else if (buttonPanel.getControlByType(CtrlDecompress) == event.getSource()) {
-      try {
-        WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
-        try {
-          block.setBlocked(true);
-          entries = handler.decompress();
-          buttonPanel.getControlByType(CtrlCompress).setEnabled(true);
-          filelist.setEnabled(true);
-          buttonPanel.getControlByType(CtrlEdit).setEnabled(true);
-          buttonPanel.getControlByType(CtrlDelete).setEnabled(true);
-          buttonPanel.getControlByType(CtrlDecompress).setEnabled(false);
-          filelist.setSelectedIndex(0);
-        } finally {
-          block.setBlocked(false);
-          block = null;
-        }
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(panel, "Error decompressing file", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
-      }
+      decompressData(true);
     } else if (buttonPanel.getControlByType(CtrlEdit) == event.getSource()) {
       ResourceEntry fileentry = (ResourceEntry)entries.get(filelist.getSelectedIndex());
       Resource res = ResourceFactory.getResource(fileentry);
       new ViewFrame(panel.getTopLevelAncestor(), res);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-      ResourceFactory.getInstance().exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(CtrlDelete) == event.getSource()) {
       int index = filelist.getSelectedIndex();
       ResourceEntry resourceentry = (ResourceEntry)entries.get(index);
@@ -145,6 +109,13 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
   @Override
   public void close()
   {
+    if (buttonPanel.getControlByType(CtrlCompress).isEnabled()) {
+      final String msg = getResourceEntry().getResourceName() + " is still decompressed. Compress it?";
+      if (JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(), msg, "Question", JOptionPane.YES_NO_OPTION,
+                                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+        compressData(true);
+      }
+    }
     handler.close();
   }
 
@@ -264,6 +235,60 @@ public final class SavResource implements Resource, ActionListener, Closeable, W
   public IOHandler getFileHandler()
   {
     return handler;
+  }
+
+  private boolean compressData(boolean showError)
+  {
+    try {
+      WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
+      try {
+        block.setBlocked(true);
+        handler.compress(entries);
+        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+        buttonPanel.getControlByType(CtrlDecompress).setEnabled(true);
+        filelist.setEnabled(false);
+        buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
+        buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
+        buttonPanel.getControlByType(CtrlCompress).setEnabled(false);
+      } finally {
+        block.setBlocked(false);
+        block = null;
+      }
+    } catch (Exception e) {
+      if (showError) {
+        JOptionPane.showMessageDialog(panel, "Error compressing file", "Error", JOptionPane.ERROR_MESSAGE);
+      }
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  private boolean decompressData(boolean showError)
+  {
+    try {
+      WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
+      try {
+        block.setBlocked(true);
+        entries = handler.decompress();
+        buttonPanel.getControlByType(CtrlCompress).setEnabled(true);
+        filelist.setEnabled(true);
+        buttonPanel.getControlByType(CtrlEdit).setEnabled(true);
+        buttonPanel.getControlByType(CtrlDelete).setEnabled(true);
+        buttonPanel.getControlByType(CtrlDecompress).setEnabled(false);
+        filelist.setSelectedIndex(0);
+      } finally {
+        block.setBlocked(false);
+        block = null;
+      }
+    } catch (Exception e) {
+      if (showError) {
+        JOptionPane.showMessageDialog(panel, "Error decompressing file", "Error", JOptionPane.ERROR_MESSAGE);
+      }
+      e.printStackTrace();
+      return false;
+    }
+    return true;
   }
 }
 

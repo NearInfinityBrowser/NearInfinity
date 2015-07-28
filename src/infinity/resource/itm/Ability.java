@@ -7,8 +7,10 @@ package infinity.resource.itm;
 import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
+import infinity.datatype.PriTypeBitmap;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SecTypeBitmap;
 import infinity.datatype.SectionCount;
 import infinity.datatype.UnsignDecNumber;
 import infinity.gui.StructViewer;
@@ -18,8 +20,8 @@ import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
-import infinity.resource.spl.SplResource;
 
 import javax.swing.JComponent;
 
@@ -98,9 +100,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.isEnhancedEdition()) {
+    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new Bitmap(buffer, offset, 1, "Type", s_type));
       addField(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
       addField(new Bitmap(buffer, offset + 2, 1, "Ability location", s_abilityuse));
@@ -115,9 +115,9 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
       addField(new DecNumber(buffer, offset + 19, 1, "Alternate damage bonus"));
       addField(new DecNumber(buffer, offset + 20, 2, "Bonus to hit"));
       addField(new DecNumber(buffer, offset + 22, 1, "Dice size"));
-      addField(new Bitmap(buffer, offset + 23, 1, "Primary type (school)", SplResource.s_school));
+      addField(new PriTypeBitmap(buffer, offset + 23, 1, "Primary type (school)"));
       addField(new DecNumber(buffer, offset + 24, 1, "# dice thrown"));
-      addField(new Bitmap(buffer, offset + 25, 1, "Secondary type", SplResource.s_category));
+      addField(new SecTypeBitmap(buffer, offset + 25, 1, "Secondary type"));
     }
     else {
       addField(new Bitmap(buffer, offset, 1, "Type", s_type));
@@ -139,14 +139,11 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new DecNumber(buffer, offset + 34, 2, "# charges"));
     addField(new Bitmap(buffer, offset + 36, 2, "When drained", s_drain));
     addField(new Flag(buffer, offset + 38, 4, "Flags", s_recharge));
-    if (ResourceFactory.getInstance().resourceExists("PROJECTL.IDS")) {
+    if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
       addField(new ProRef(buffer, offset + 42, "Projectile"));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 42, 2, "Projectile", s_proj_pst));
-    } else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new Bitmap(buffer, offset + 42, 2, "Projectile", s_proj_iwd));
     } else {
       addField(new Bitmap(buffer, offset + 42, 2, "Projectile", s_projectile));

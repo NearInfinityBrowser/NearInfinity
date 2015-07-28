@@ -135,7 +135,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
         if (retVal) {
           key = SearchOptions.VVC_Animation;
           o = searchOptions.getOption(key);
-          StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key));
+          StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key), false);
           retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
         }
 
@@ -145,7 +145,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;

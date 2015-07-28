@@ -31,6 +31,47 @@ import javax.swing.JOptionPane;
 public final class Keyfile
 {
   public static final ImageIcon ICON_STRUCT = Icons.getIcon("RowInsertAfter16.gif");
+
+  public static final int TYPE_BMP    = 0x001;
+  public static final int TYPE_MVE    = 0x002;
+  public static final int TYPE_WAV    = 0x004;
+  public static final int TYPE_WFX    = 0x005;
+  public static final int TYPE_PLT    = 0x006;
+  public static final int TYPE_BAM    = 0x3e8;
+  public static final int TYPE_WED    = 0x3e9;
+  public static final int TYPE_CHU    = 0x3ea;
+  public static final int TYPE_TIS    = 0x3eb;
+  public static final int TYPE_MOS    = 0x3ec;
+  public static final int TYPE_ITM    = 0x3ed;
+  public static final int TYPE_SPL    = 0x3ee;
+  public static final int TYPE_BCS    = 0x3ef;
+  public static final int TYPE_IDS    = 0x3f0;
+  public static final int TYPE_CRE    = 0x3f1;
+  public static final int TYPE_ARE    = 0x3f2;
+  public static final int TYPE_DLG    = 0x3f3;
+  public static final int TYPE_2DA    = 0x3f4;
+  public static final int TYPE_GAM    = 0x3f5;
+  public static final int TYPE_STO    = 0x3f6;
+  public static final int TYPE_WMP    = 0x3f7;
+  public static final int TYPE_EFF    = 0x3f8;
+  public static final int TYPE_BS     = 0x3f9;
+  public static final int TYPE_CHR    = 0x3fa;
+  public static final int TYPE_VVC    = 0x3fb;
+  public static final int TYPE_VEF    = 0x3fc;
+  public static final int TYPE_PRO    = 0x3fd;
+  public static final int TYPE_BIO    = 0x3fe;
+  public static final int TYPE_WBM    = 0x3ff;
+  public static final int TYPE_FNT    = 0x400;
+  public static final int TYPE_GUI    = 0x402;
+  public static final int TYPE_SQL    = 0x403;
+  public static final int TYPE_PVRZ   = 0x404;
+  public static final int TYPE_GLSL   = 0x405;
+  public static final int TYPE_BAH    = 0x44c;
+  public static final int TYPE_INI    = 0x802;
+  public static final int TYPE_SRC    = 0x803;
+  public static final int TYPE_MUS    = 0xffe;  // not in bif?
+  public static final int TYPE_ACM    = 0xfff;  // not in bif?
+
   private static final ImageIcon ICON_TEXT = Icons.getIcon("Edit16.gif");
   private static final ImageIcon ICON_UNKNOWN = Icons.getIcon("Help16.gif");
   private static final ImageIcon ICON_SOUND = Icons.getIcon("Volume16.gif");
@@ -46,119 +87,89 @@ public final class Keyfile
   private List<BIFFEntry> biffEntries;
   private String signature, version;
 
-//  public static void main(String args[]) throws Exception
-//  {
-//    // Compare two keyfiles
-//    Keyfile key1 = new Keyfile(new File(args[0]), ResourceFactory.ID_BG2TOB);
-//    Keyfile key2 = new Keyfile(new File(args[1]), ResourceFactory.ID_BG2TOB);
-//    ResourceTreeModel model1 = new ResourceTreeModel();
-//    ResourceTreeModel model2 = new ResourceTreeModel();
-//    key1.addBIFFResourceEntries(model1);
-//    key2.addBIFFResourceEntries(model2);
-//    model1.sort();
-//    model2.sort();
-//    List<BIFFResourceEntry> entries1 = model1.getBIFFResourceEntries();
-//    List<BIFFResourceEntry> entries2 = model2.getBIFFResourceEntries();
-//    if (!key1.equals(key2))
-//      System.out.println(key1 + " differs from " + key2);
-//    for (int i = 0; i < key1.biffEntries.size(); i++) {
-//      BIFFEntry entry1 = key1.biffEntries.get(i);
-//      BIFFEntry entry2 = key2.biffEntries.get(i);
-//      if (!entry1.equals(entry2))
-//        System.out.println(entry1 + " differs from " + entry2);
-//    }
-//    for (int i = 0; i < entries1.size(); i++) {
-//      ResourceEntry entry1 = entries1.get(i);
-//      ResourceEntry entry2 = entries2.get(i);
-//      if (!entry1.equals(entry2))
-//        System.out.println(entry1 + " differs from " + entry2);
-//    }
-//    System.exit(0);
-//  }
-
-  public Keyfile(File keyfile, int currentGame)
+  public Keyfile(File keyfile)
   {
     this.keyfile = keyfile;
     resourceicons.clear();
     resourceicons.put("???", ICON_UNKNOWN);
-    extmap.put(0x001, "BMP");
+    extmap.put(TYPE_BMP, "BMP");
     resourceicons.put("BMP", ICON_IMAGE);
-    extmap.put(0x002, "MVE");
+    extmap.put(TYPE_MVE, "MVE");
     resourceicons.put("MVE", ICON_MOVIE);
-    extmap.put(0x004, "WAV");
+    extmap.put(TYPE_WAV, "WAV");
     resourceicons.put("WAV", ICON_SOUND);
-    extmap.put(0x005, "WFX");
+    extmap.put(TYPE_WFX, "WFX");
     resourceicons.put("WFX", ICON_STRUCT);
-    extmap.put(0x006, "PLT");
+    extmap.put(TYPE_PLT, "PLT");
     resourceicons.put("PLT", ICON_IMAGE);
-    extmap.put(0x3e8, "BAM");
+    extmap.put(TYPE_BAM, "BAM");
     resourceicons.put("BAM", ICON_MOVIE);
-    extmap.put(0x3e9, "WED");
+    extmap.put(TYPE_WED, "WED");
     resourceicons.put("WED", ICON_STRUCT);
-    extmap.put(0x3ea, "CHU");
+    extmap.put(TYPE_CHU, "CHU");
     resourceicons.put("CHU", ICON_STRUCT);
-    extmap.put(0x3eb, "TIS");
+    extmap.put(TYPE_TIS, "TIS");
     resourceicons.put("TIS", ICON_IMAGE);
-    extmap.put(0x3ec, "MOS");
+    extmap.put(TYPE_MOS, "MOS");
     resourceicons.put("MOS", ICON_IMAGE);
-    extmap.put(0x3ed, "ITM");
+    extmap.put(TYPE_ITM, "ITM");
     resourceicons.put("ITM", ICON_STRUCT);
-    extmap.put(0x3ee, "SPL");
+    extmap.put(TYPE_SPL, "SPL");
     resourceicons.put("SPL", ICON_STRUCT);
-    extmap.put(0x3ef, "BCS");
+    extmap.put(TYPE_BCS, "BCS");
     resourceicons.put("BCS", ICON_SCRIPT);
-    extmap.put(0x3f0, "IDS");
+    extmap.put(TYPE_IDS, "IDS");
     resourceicons.put("IDS", ICON_TEXT);
-    extmap.put(0x3f1, "CRE");
+    extmap.put(TYPE_CRE, "CRE");
     resourceicons.put("CRE", ICON_STRUCT);
-    extmap.put(0x3f2, "ARE");
+    extmap.put(TYPE_ARE, "ARE");
     resourceicons.put("ARE", ICON_STRUCT);
-    extmap.put(0x3f3, "DLG");
+    extmap.put(TYPE_DLG, "DLG");
     resourceicons.put("DLG", ICON_STRUCT);
-    extmap.put(0x3f4, "2DA");
+    extmap.put(TYPE_2DA, "2DA");
     resourceicons.put("2DA", ICON_TEXT);
-    extmap.put(0x3f5, "GAM");
+    extmap.put(TYPE_GAM, "GAM");
     resourceicons.put("GAM", ICON_STRUCT);
-    extmap.put(0x3f6, "STO");
+    extmap.put(TYPE_STO, "STO");
     resourceicons.put("STO", ICON_STRUCT);
-    extmap.put(0x3f7, "WMP");
+    extmap.put(TYPE_WMP, "WMP");
     resourceicons.put("WMP", ICON_STRUCT);
-    extmap.put(0x3f8, "EFF");
+    extmap.put(TYPE_EFF, "EFF");
     resourceicons.put("EFF", ICON_STRUCT);
-    extmap.put(0x3f9, "BS");
+    extmap.put(TYPE_BS, "BS");
     resourceicons.put("BS", ICON_SCRIPT);
-    extmap.put(0x3fa, "CHR");
+    extmap.put(TYPE_CHR, "CHR");
     resourceicons.put("CHR", ICON_STRUCT);
-    extmap.put(0x3fb, "VVC");
+    extmap.put(TYPE_VVC, "VVC");
     resourceicons.put("VVC", ICON_STRUCT);
-    extmap.put(0x3fc, "VEF");
+    extmap.put(TYPE_VEF, "VEF");
     resourceicons.put("VEF", ICON_STRUCT);
-    extmap.put(0x3fd, "PRO");
+    extmap.put(TYPE_PRO, "PRO");
     resourceicons.put("PRO", ICON_STRUCT);
-    extmap.put(0x3fe, "BIO");
+    extmap.put(TYPE_BIO, "BIO");
     resourceicons.put("BIO", ICON_TEXT);
-    extmap.put(0x3ff, "WBM");
+    extmap.put(TYPE_WBM, "WBM");
     resourceicons.put("WBM", ICON_MOVIE);
-    extmap.put(0x44c, "BAH"); // ???????
-    extmap.put(0x802, "INI");
+    extmap.put(TYPE_BAH, "BAH"); // ???????
+    extmap.put(TYPE_INI, "INI");
     resourceicons.put("INI", ICON_TEXT);
-    extmap.put(0x803, "SRC");
+    extmap.put(TYPE_SRC, "SRC");
     resourceicons.put("SRC", ICON_STRUCT);
-    extmap.put(0x400, "FNT");
+    extmap.put(TYPE_FNT, "FNT");
     resourceicons.put("FNT", ICON_IMAGE);
-    extmap.put(0x401, "WBM");
-    resourceicons.put("WBM", ICON_MOVIE);
-    extmap.put(0x402, "GUI");
+    extmap.put(TYPE_GUI, "GUI");
     resourceicons.put("GUI", ICON_TEXT);
-    extmap.put(0x403, "SQL");
+    extmap.put(TYPE_SQL, "SQL");
     resourceicons.put("SQL", ICON_TEXT);
-    extmap.put(0x404, "PVRZ");
+    extmap.put(TYPE_PVRZ, "PVRZ");
     resourceicons.put("PVRZ", ICON_IMAGE);
-    extmap.put(0x405, "GLSL");
+    extmap.put(TYPE_GLSL, "GLSL");
     resourceicons.put("GLSL", ICON_TEXT);
 
-    resourceicons.put("ACM", ICON_SOUND);
+    extmap.put(TYPE_MUS, "MUS");
     resourceicons.put("MUS", ICON_SOUND);
+    extmap.put(TYPE_ACM, "ACM");
+    resourceicons.put("ACM", ICON_SOUND);
     resourceicons.put("SAV", ICON_BUNDLE);
     resourceicons.put("TXT", ICON_TEXT);
     resourceicons.put("RES", ICON_TEXT);
@@ -222,7 +233,7 @@ public final class Keyfile
     Set<BIFFEntry> toRemove = new HashSet<BIFFEntry>(biffEntries);
     // Determine BIFFs with no files in them
     List<BIFFResourceEntry> resourceEntries =
-            ResourceFactory.getInstance().getResources().getBIFFResourceEntries();
+            ResourceFactory.getResources().getBIFFResourceEntries();
     for (int i = 0; i < resourceEntries.size(); i++) {
       BIFFResourceEntry entry = resourceEntries.get(i);
       toRemove.remove(entry.getBIFFEntry());
@@ -317,8 +328,7 @@ public final class Keyfile
       offset += biffEntries.get(i).updateOffset(offset);
     int resoff = offset;
 
-    List<BIFFResourceEntry> resourceentries =
-            ResourceFactory.getInstance().getResources().getBIFFResourceEntries();
+    List<BIFFResourceEntry> resourceentries = ResourceFactory.getResources().getBIFFResourceEntries();
 
     FileWriterNI.writeString(os, signature, 4);
     FileWriterNI.writeString(os, version, 4);
@@ -342,7 +352,7 @@ public final class Keyfile
     System.out.println("Removing " + entry);
     int index = biffEntries.indexOf(entry);
     // Remove bogus BIFFResourceEntries
-    ResourceTreeModel resources = ResourceFactory.getInstance().getResources();
+    ResourceTreeModel resources = ResourceFactory.getResources();
     for (final BIFFResourceEntry resourceEntry : resources.getBIFFResourceEntries()) {
       if (resourceEntry.getBIFFEntry() == entry)
         resources.removeResourceEntry(resourceEntry);

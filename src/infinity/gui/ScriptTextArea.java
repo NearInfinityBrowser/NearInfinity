@@ -258,7 +258,12 @@ public class ScriptTextArea extends InfinityTextArea
       IdsMapEntry idsEntry = IdsMapCache.get(idsFile).lookup(function + "(");
       if (idsEntry != null) {
         String[] paramDefs = idsEntry.getParameters().split(",");
-        String definition = paramDefs[paramPos];
+        String definition;
+        if (paramPos >= 0 && paramPos < paramDefs.length) {
+          definition = paramDefs[paramPos];
+        } else {
+          definition = "";
+        }
 
         // check script names (death var)
         if (definition.equalsIgnoreCase("O:Object*")
@@ -288,8 +293,8 @@ public class ScriptTextArea extends InfinityTextArea
           // retrieving spell resource specified by symbolic spell name
           String resName = infinity.resource.spl.Viewer.getResourceName(token, true);
           if (resName != null && !resName.isEmpty() &&
-              ResourceFactory.getInstance().resourceExists(resName)) {
-            return ResourceFactory.getInstance().getResourceEntry(resName);
+              ResourceFactory.resourceExists(resName, true)) {
+            return ResourceFactory.getResourceEntry(resName, true);
           } else {
             return null;
           }
@@ -298,8 +303,8 @@ public class ScriptTextArea extends InfinityTextArea
         // guessing
         String[] possibleExtensions = guessExtension(function, definition);
         for (final String ext : possibleExtensions) {
-          if (ResourceFactory.getInstance().resourceExists(token + ext)) {
-            return ResourceFactory.getInstance().getResourceEntry(token + ext);
+          if (ResourceFactory.resourceExists(token + ext, true)) {
+            return ResourceFactory.getResourceEntry(token + ext, true);
           }
         }
 

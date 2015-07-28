@@ -5,6 +5,7 @@
 package infinity.resource.bcs;
 
 import infinity.gui.BrowserMenuBar;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMap;
@@ -31,8 +32,13 @@ public final class Decompiler
   public static String decompile(String code, boolean generateErrors)
   {
     Decompiler.generateErrors = generateErrors;
-    if (BrowserMenuBar.getInstance() != null)
-      indent = BrowserMenuBar.getInstance().getBcsIndent();
+    if (BrowserMenuBar.getInstance() != null) {
+      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getBcsIndent();
+      } else {
+        indent = "";
+      }
+    }
     resourcesUsed.clear();
     stringrefsUsed.clear();
     idsErrors.clear();
@@ -167,14 +173,18 @@ public final class Decompiler
       else if (p.substring(0, 2).equals("I:")) {
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);
-        if (p.length() >= 8 && p.substring(0, 8).equalsIgnoreCase("I:StrRef")) {
+        if ((p.length() >= 8 && p.substring(0, 8).equalsIgnoreCase("I:StrRef")) ||
+            (p.length() >= 7 && p.substring(0, 7).equalsIgnoreCase("I:Entry"))) {
           comment = StringResource.getStringRef(nr);
           if (generateErrors)
             stringrefsUsed.add(new Integer(nr));
         } else {
           StringBuilder sb = new StringBuilder();
           decompileInteger(sb, (long)nr, p);
-          comment = getResourceFileName(p, sb.toString());
+          String s = getResourceFileName(p, sb.toString());
+          if (s != null) {
+            comment = s;
+          }
         }
       }
       else if (p.substring(0, 2).equals("P:"))
@@ -470,8 +480,9 @@ public final class Decompiler
   private static ResourceEntry decompileStringCheck(String value, String[] fileTypes)
   {
     for (final String fileType : fileTypes)
-      if (ResourceFactory.getInstance().resourceExists(value + fileType))
-        return ResourceFactory.getInstance().getResourceEntry(value + fileType);
+      if (ResourceFactory.resourceExists(value + fileType, true)) {
+        return ResourceFactory.getResourceEntry(value + fileType, true);
+      }
     return null;
   }
 
@@ -640,7 +651,7 @@ public final class Decompiler
       return new String[] {".2DA"};
     }
     else if (function.equalsIgnoreCase("StartMovie")) {
-      if (ResourceFactory.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         return new String[] {".WBM", ".MVE"};
       } else {
         return new String[] {".MVE"};
@@ -770,7 +781,7 @@ public final class Decompiler
     if (string1.length() > 9
         && (Compiler.isPossibleNamespace(string1.substring(0, 7) + '\"')
 //        && (!string1.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.getInstance().resourceExists(string1.substring(1, 7) + ".ARE"))) {
+            || ResourceFactory.resourceExists(string1.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string1.substring(7);
       newStrings[index++] = string1.substring(0, 7) + '\"';
     }
@@ -780,7 +791,7 @@ public final class Decompiler
     if (string2.length() > 9
         && (Compiler.isPossibleNamespace(string2.substring(0, 7) + '\"')
 //        && (!string2.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.getInstance().resourceExists(string2.substring(1, 7) + ".ARE"))) {
+            || ResourceFactory.resourceExists(string2.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string2.substring(7);
       newStrings[index++] = string2.substring(0, 7) + '\"';
     }

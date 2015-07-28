@@ -14,6 +14,7 @@ import infinity.gui.ViewFrame;
 import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -97,7 +98,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(ResourceFactory.getRootDir());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Save result");
       fc.setSelectedFile(new FileNI("result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
@@ -173,7 +174,7 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> dlgFiles = ResourceFactory.getInstance().getResources("DLG");
+    List<ResourceEntry> dlgFiles = ResourceFactory.getResources("DLG");
     if (checkOnlyOverride) {
       for (Iterator<ResourceEntry> i = dlgFiles.iterator(); i.hasNext();) {
         ResourceEntry resourceEntry = i.next();

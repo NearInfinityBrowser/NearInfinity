@@ -336,7 +336,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       }
 
       // scaling image
-      Graphics2D g = (Graphics2D)dstImage.getGraphics();
+      Graphics2D g = dstImage.createGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(factor, factor),

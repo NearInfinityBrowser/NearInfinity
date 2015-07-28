@@ -47,8 +47,11 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -75,6 +78,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -84,7 +88,8 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
-                                                          ItemListener, ChangeListener, TableModelListener
+                                                          ItemListener, ChangeListener, TableModelListener,
+                                                          ComponentListener
 {
   // Commonly used tab names
   public static final String TAB_EDIT           = "Edit";
@@ -142,6 +147,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
   private JTabbedPane tabbedPane;
+  private JSplitPane splitv;
+  private boolean splitterSet;
+  private int oldSplitterHeight;
 
   private static JMenuItem createMenuItem(String cmd, String text, Icon icon, ActionListener l)
   {
@@ -175,7 +183,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           Object selected = table.getModel().getValueAt(table.getSelectedRow(), 1);
           if (selected instanceof Viewable) {
             createViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
-//            new ViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
           }
         }
       }
@@ -235,14 +242,19 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     InfinityScrollPane scroll = new InfinityScrollPane(tatext, true);
     scroll.setLineNumbersEnabled(false);
     table.setModel(struct);
-    table.getColumnModel().getColumn(0).setPreferredWidth(10);
-    table.getColumnModel().getColumn(1).setPreferredWidth(400);
-    if (table.getColumnCount() == 3)
-      table.getColumnModel().getColumn(2).setPreferredWidth(6);
+    table.getTableHeader().setReorderingAllowed(false);
+    table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+    table.addComponentListener(this);
+    table.getColumnModel().getColumn(0).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(0));
+    table.getColumnModel().getColumn(1).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(1));
+    if (table.getColumnCount() == 3) {
+      table.getColumnModel().getColumn(2).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(2));
+    }
 
     lowerpanel.add(scroll, CARD_TEXT);
     lowerpanel.add(editpanel, CARD_EDIT);
     lowerpanel.add(new JPanel(), CARD_EMPTY);
+    lowerpanel.addComponentListener(this);
     cards.show(lowerpanel, CARD_EMPTY);
 
     if (struct instanceof HasAddRemovable && struct.getFieldCount() > 0) {
@@ -305,7 +317,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     JScrollPane scrollTable = new JScrollPane(table);
     scrollTable.getViewport().setBackground(table.getBackground());
     scrollTable.setBorder(BorderFactory.createEmptyBorder());
-    JSplitPane splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTable, lowerpanel);
+    splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTable, lowerpanel);
     splitv.setDividerLocation(2 * (NearInfinity.getInstance().getHeight() - 100) / 3);
 
     setLayout(new BorderLayout());
@@ -374,6 +386,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
     }
 
+    addComponentListener(this);
+
     StructClipboard.getInstance().addChangeListener(this);
     table.repaint();
   }
@@ -388,17 +402,29 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit) == event.getSource()) {
         Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
         createViewFrame(getTopLevelAncestor(), selected);
-//        new ViewFrame(getTopLevelAncestor(), selected);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Remove) == event.getSource()) {
-        int row = table.getSelectedRow();
-        AddRemovable selected = (AddRemovable)table.getModel().getValueAt(row, 1);
-        struct.removeDatatype(selected, true);
+        Window wnd = SwingUtilities.getWindowAncestor(this);
+        if (wnd == null) {
+          wnd = NearInfinity.getInstance();
+        }
+        WindowBlocker.blockWindow(wnd, true);
+        try {
+          int[] rows = table.getSelectedRows();
+          for (int i = rows.length - 1; i >= 0; i--) {
+            Object entry = table.getModel().getValueAt(rows[i], 1);
+            if (entry instanceof AddRemovable) {
+              struct.removeDatatype((AddRemovable)entry, true);
+            }
+          }
+        } finally {
+          WindowBlocker.blockWindow(wnd, false);
+        }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
-        if (ResourceFactory.getInstance().saveResource((Resource)struct, getTopLevelAncestor())) {
+        if (ResourceFactory.saveResource((Resource)struct, getTopLevelAncestor())) {
           struct.setStructChanged(false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
-        ResourceFactory.getInstance().exportResource(struct.getResourceEntry(), getTopLevelAncestor());
+        ResourceFactory.exportResource(struct.getResourceEntry(), getTopLevelAncestor());
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Print) == event.getSource()) {
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setPrintable(table);
@@ -468,7 +494,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       // get a copy of the resource first
       DlgResource dlgRes = (DlgResource) ResourceFactory.getResource(struct.getResourceEntry());
       createViewFrame(getTopLevelAncestor(), dlgRes);
-//      new ViewFrame(getTopLevelAncestor(), dlgRes);
       dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
     }
   }
@@ -546,9 +571,14 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     ListSelectionModel lsm = (ListSelectionModel)event.getSource();
     if (lsm.isSelectionEmpty() || lsm.getMaxSelectionIndex() != lsm.getMinSelectionIndex()) {
       tatext.setText("");
+      // allow removal of multiple AddRemovable entries
+      boolean removeEnabled = !lsm.isSelectionEmpty();
+      for (int cur = lsm.getMinSelectionIndex(), max = lsm.getMaxSelectionIndex(); cur <= max && removeEnabled; cur++) {
+        removeEnabled = table.getModel().getValueAt(cur, 1) instanceof AddRemovable;
+      }
       JButton bRemove = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.Remove);
       if (bRemove != null) {
-        bRemove.setEnabled(false);
+        bRemove.setEnabled(removeEnabled);
       }
       JButton bView = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.ViewEdit);
       if (bView != null) {
@@ -709,6 +739,56 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
 // --------------------- End Interface TableModelListener ---------------------
 
+// --------------------- Begin Interface ComponentListener ---------------------
+
+  @Override
+  public void componentShown(ComponentEvent e)
+  {
+  }
+
+  @Override
+  public void componentResized(ComponentEvent e)
+  {
+    if (e.getSource() == this) {
+      // ensure fixed lower panel height
+      int loc = Math.max(50, splitv.getHeight() - NearInfinity.getInstance().getTablePanelHeight());
+      splitv.setDividerLocation(loc);
+      splitterSet = true;   // XXX: work-around to prevent storing uninitialized splitter location in prefs
+    } else if (e.getSource() == lowerpanel) {
+      if (oldSplitterHeight > 0 && splitv.getHeight() == oldSplitterHeight) {
+        int v = Math.max(50, splitv.getHeight() - splitv.getDividerLocation());
+        NearInfinity.getInstance().updateTablePanelHeight(v);
+      } else {
+        // don't update splitter location when resizing window
+        oldSplitterHeight = splitv.getHeight();
+      }
+    } else if (e.getSource() == table) {
+      // ensure fixed "Attribute" and "Offset" column widths
+      int w = table.getWidth();
+      int w0 = table.getColumnModel().getColumn(0).getPreferredWidth();
+      int w2 = (table.getColumnCount() == 3) ? table.getColumnModel().getColumn(2).getPreferredWidth() : 0;
+      int w1 = w - (w0 + w2);
+
+      table.getColumnModel().getColumn(0).setPreferredWidth(w0);
+      table.getColumnModel().getColumn(1).setPreferredWidth(w1);
+      if (table.getColumnCount() == 3) {
+        table.getColumnModel().getColumn(2).setPreferredWidth(w2);
+      }
+    }
+  }
+
+  @Override
+  public void componentMoved(ComponentEvent e)
+  {
+  }
+
+  @Override
+  public void componentHidden(ComponentEvent e)
+  {
+  }
+
+// --------------------- End Interface ComponentListener ---------------------
+
   public ButtonPanel getButtonPanel()
   {
     return buttonPanel;
@@ -716,6 +796,16 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   public void close()
   {
+    // storing current table column widths and divider location
+    NearInfinity.getInstance().updateTableColumnWidth(0, table.getColumnModel().getColumn(0).getPreferredWidth());
+    NearInfinity.getInstance().updateTableColumnWidth(1, table.getColumnModel().getColumn(1).getPreferredWidth());
+    if (table.getColumnCount() == 3) {
+      NearInfinity.getInstance().updateTableColumnWidth(2, table.getColumnModel().getColumn(2).getPreferredWidth());
+    }
+    if (splitterSet) {
+      NearInfinity.getInstance().updateTablePanelHeight(splitv.getHeight() - splitv.getDividerLocation());
+    }
+
     StructClipboard.getInstance().removeChangeListener(this);
     if (struct instanceof Resource) {
       if (tabbedPane != null && struct instanceof HasViewerTabs) {
@@ -792,84 +882,78 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   /** Helper method for finding out if a "View" tab is available. */
   public boolean hasViewTab()
   {
-    return (getTabIndex(TAB_VIEW) >= 0);
+    return hasTab(TAB_VIEW);
   }
 
   /** Helper method for finding out if "View" tab is selected. */
   public boolean isViewTabSelected()
   {
-    if (tabbedPane != null) {
-      return (getTabIndex(TAB_VIEW) == tabbedPane.getSelectedIndex());
-    }
-    return false;
+    return isTabSelected(getTabIndex(TAB_VIEW));
   }
 
   /** Helper method for selecting "View" tab if available. */
   public void selectViewTab()
   {
-    if (tabbedPane != null) {
-      int idx = getTabIndex(TAB_VIEW);
-      if (idx >= 0) {
-        tabbedPane.setSelectedIndex(idx);
-      }
-    }
+    selectTab(getTabIndex(TAB_VIEW));
   }
 
   /** Returns whether "Edit" tab is selected. */
   public boolean isEditTabSelected()
   {
-    if (tabbedPane != null) {
-      return (getEditTabIndex() == tabbedPane.getSelectedIndex());
-    }
-    return true;
+    return isTabSelected(getTabIndex(TAB_EDIT));
   }
 
   /** Selects the "Edit" tab. */
   public void selectEditTab()
   {
-    if (tabbedPane != null) {
-      int idx = getEditTabIndex();
-      if (idx >= 0) {
-        tabbedPane.setSelectedIndex(idx);
-      }
-    }
+    selectTab(getTabIndex(TAB_EDIT));
   }
 
   /** Returns tab index of "Edit" tab. */
   public int getEditTabIndex()
   {
-    if (tabbedPane != null) {
-      for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-        if (TAB_EDIT.equals(tabbedPane.getTitleAt(i))) {
-          return i;
-        }
-      }
-    }
-    return -1;
+    return getTabIndex(TAB_EDIT);
   }
 
   /** Helper method for finding out if a "Raw" tab is available. */
   public boolean hasRawTab()
   {
-    return (getTabIndex(TAB_RAW) >= 0);
+    return hasTab(TAB_RAW);
   }
 
   /** Helper method for finding out if "Raw" tab is selected. */
   public boolean isRawTabSelected()
   {
-    if (tabbedPane != null) {
-      return (getTabIndex(TAB_RAW) == tabbedPane.getSelectedIndex());
-    }
-    return false;
+    return isTabSelected(getTabIndex(TAB_RAW));
   }
 
   /** Helper method for selecting "Raw" tab if available. */
   public void selectRawTab()
   {
+    selectTab(getTabIndex(TAB_RAW));
+  }
+
+  /** Returns whether the tab with the given name exists. */
+  public boolean hasTab(String name)
+  {
+    return (getTabIndex(name) >= 0);
+  }
+
+  /** Returns whether the specified tab is currently selected. */
+  public boolean isTabSelected(int index)
+  {
+    if (index >= 0 && index < tabbedPane.getTabCount()) {
+      return (index == tabbedPane.getSelectedIndex());
+    }
+    return false;
+  }
+
+  /** Selects the specified tab if available. */
+  public void selectTab(int index)
+  {
     if (tabbedPane != null) {
-      int idx = getTabIndex(TAB_RAW);
-      if (idx >= 0) {
-        tabbedPane.setSelectedIndex(idx);
+      if (index >= 0 && index < tabbedPane.getTabCount()) {
+        tabbedPane.setSelectedIndex(index);
       }
     }
   }
@@ -878,7 +962,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public int getTabIndex(String name)
   {
     if (tabbedPane != null && name != null) {
-      for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+      for (int i = 0, count = tabbedPane.getTabCount(); i < count; i++) {
         if (name.equals(tabbedPane.getTitleAt(i))) {
           return i;
         }

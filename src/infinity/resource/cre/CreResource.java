@@ -15,6 +15,7 @@ import infinity.datatype.HexNumber;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
 import infinity.datatype.KitIdsBitmap;
+import infinity.datatype.MultiNumber;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
@@ -33,6 +34,7 @@ import infinity.resource.Effect;
 import infinity.resource.Effect2;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
+import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
@@ -111,6 +113,7 @@ public final class CreResource extends AbstractStruct
   public static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
   public static final String s_noyes[] = {"No", "Yes"};
   public static final String s_visible[] = {"Shown", "Hidden"};
+  public static final String s_profLabels[] = {"Active class", "Original class"};
 
   static
   {
@@ -215,7 +218,7 @@ public final class CreResource extends AbstractStruct
       return;
     String resourcename = resourceEntry.toString();
     resourcename = resourcename.substring(0, resourcename.lastIndexOf(".")) + ".CRE";
-    JFileChooser chooser = new JFileChooser(ResourceFactory.getRootDir());
+    JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
     chooser.setDialogTitle("Convert CHR to CRE");
     chooser.setSelectedFile(new FileNI(resourcename));
     if (chooser.showSaveDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
@@ -355,17 +358,18 @@ public final class CreResource extends AbstractStruct
   public AddRemovable[] getAddRemovables() throws Exception
   {
     DecNumber effectFlag = (DecNumber)getAttribute("Effect flag");
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
-      if (effectFlag.getValue() == 1)
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
+      if (effectFlag.getValue() == 1) {
         return new AddRemovable[]{new Item(), new Effect2()};
-      else
+      } else {
         return new AddRemovable[]{new Item(), new Effect()};
-    }
-    else {
-      if (effectFlag.getValue() == 1)
+      }
+    } else {
+      if (effectFlag.getValue() == 1) {
         return new AddRemovable[]{new Item(), new Effect2(), new KnownSpells(), new SpellMemorization()};
-      else
+      } else {
         return new AddRemovable[]{new Item(), new Effect(), new KnownSpells(), new SpellMemorization()};
+      }
     }
   }
 
@@ -713,7 +717,7 @@ public final class CreResource extends AbstractStruct
     addField(new Unknown(buffer, offset + 142, 22));
 
     LongIntegerHashMap<IdsMapEntry> sndmap = null;
-    if (ResourceFactory.getInstance().resourceExists("SOUNDOFF.IDS")) {
+    if (ResourceFactory.resourceExists("SOUNDOFF.IDS")) {
       sndmap = IdsMapCache.get("SOUNDOFF.IDS").getMap();
     }
     if (sndmap != null) {
@@ -1189,17 +1193,16 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 100, 1, "Intoxication"));
     addField(new DecNumber(buffer, offset + 101, 1, "Luck"));
     if (version.equals("V1.0")) {
-      addField(new DecNumber(buffer, offset + 102, 1, "Large sword proficiency"));
-      addField(new DecNumber(buffer, offset + 103, 1, "Small sword proficiency"));
-      addField(new DecNumber(buffer, offset + 104, 1, "Bow proficiency"));
-      addField(new DecNumber(buffer, offset + 105, 1, "Spear proficiency"));
-      addField(new DecNumber(buffer, offset + 106, 1, "Blunt proficiency"));
-      addField(new DecNumber(buffer, offset + 107, 1, "Spiked proficiency"));
-      addField(new DecNumber(buffer, offset + 108, 1, "Axe proficiency"));
-      addField(new DecNumber(buffer, offset + 109, 1, "Missile proficiency"));
-      if (ResourceFactory.isEnhancedEdition()) {
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_IWDEE ||
-            ResourceFactory.getGameID() == ResourceFactory.ID_BG2EE) {
+      addField(new MultiNumber(buffer, offset + 102, 1, "Large sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, "Small sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, "Bow proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, "Spear proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, "Blunt proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, "Spiked proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 108, 1, "Axe proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 109, 1, "Missile proficiency", 3, 2, s_profLabels));
+      if (Profile.isEnhancedEdition()) {
+        if (Profile.getGame() == Profile.Game.BG2EE || Profile.getGame() == Profile.Game.IWDEE) {
           addField(new Unknown(buffer, offset + 110, 7));
           addField(new Bitmap(buffer, offset + 117, 1, "Nightmare mode", s_noyes));
           addField(new UnsignDecNumber(buffer, offset + 118, 1, "Translucency"));
@@ -1214,39 +1217,30 @@ public final class CreResource extends AbstractStruct
       }
     }
     else if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-      addField(new DecNumber(buffer, offset + 102, 1, "Fist proficiency"));
-      addField(new DecNumber(buffer, offset + 103, 1, "Edged-weapon proficiency"));
-      addField(new DecNumber(buffer, offset + 104, 1, "Hammer proficiency"));
-      addField(new DecNumber(buffer, offset + 105, 1, "Axe proficiency"));
-      addField(new DecNumber(buffer, offset + 106, 1, "Club proficiency"));
-      addField(new DecNumber(buffer, offset + 107, 1, "Bow proficiency"));
-//      addField(new DecNumber(buffer, offset + 108, 1, "Extra proficiency 1"));
-//      addField(new DecNumber(buffer, offset + 109, 1, "Extra proficiency 2"));
-//      addField(new DecNumber(buffer, offset + 110, 1, "Extra proficiency 3"));
-//      addField(new DecNumber(buffer, offset + 111, 1, "Extra proficiency 4"));
-//      addField(new DecNumber(buffer, offset + 112, 1, "Extra proficiency 5"));
-//      addField(new DecNumber(buffer, offset + 113, 1, "Extra proficiency 6"));
-//      addField(new DecNumber(buffer, offset + 114, 1, "Extra proficiency 7"));
-//      addField(new DecNumber(buffer, offset + 115, 1, "Extra proficiency 8"));
-//      addField(new DecNumber(buffer, offset + 116, 1, "Extra proficiency 9"));
+      addField(new MultiNumber(buffer, offset + 102, 1, "Fist proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, "Edged-weapon proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, "Hammer proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, "Axe proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, "Club proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, "Bow proficiency", 3, 2, s_profLabels));
       addField(new Unknown(buffer, offset + 108, 14));
     }
     else if (version.equalsIgnoreCase("V9.0")) {
-      addField(new DecNumber(buffer, offset + 102, 1, "Large sword proficiency"));
-      addField(new DecNumber(buffer, offset + 103, 1, "Small sword proficiency"));
-      addField(new DecNumber(buffer, offset + 104, 1, "Bow proficiency"));
-      addField(new DecNumber(buffer, offset + 105, 1, "Spear proficiency"));
-      addField(new DecNumber(buffer, offset + 106, 1, "Axe proficiency"));
-      addField(new DecNumber(buffer, offset + 107, 1, "Missile proficiency"));
-      addField(new DecNumber(buffer, offset + 108, 1, "Greatsword proficiency"));
-      addField(new DecNumber(buffer, offset + 109, 1, "Dagger proficiency"));
-      addField(new DecNumber(buffer, offset + 110, 1, "Halberd proficiency"));
-      addField(new DecNumber(buffer, offset + 111, 1, "Mace proficiency"));
-      addField(new DecNumber(buffer, offset + 112, 1, "Flail proficiency"));
-      addField(new DecNumber(buffer, offset + 113, 1, "Hammer proficiency"));
-      addField(new DecNumber(buffer, offset + 114, 1, "Club proficiency"));
-      addField(new DecNumber(buffer, offset + 115, 1, "Quarterstaff proficiency"));
-      addField(new DecNumber(buffer, offset + 116, 1, "Crossbow proficiency"));
+      addField(new MultiNumber(buffer, offset + 102, 1, "Large sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, "Small sword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, "Bow proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, "Spear proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, "Axe proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, "Missile proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 108, 1, "Greatsword proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 109, 1, "Dagger proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 110, 1, "Halberd proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 111, 1, "Mace proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 112, 1, "Flail proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 113, 1, "Hammer proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 114, 1, "Club proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 115, 1, "Quarterstaff proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 116, 1, "Crossbow proficiency", 3, 2, s_profLabels));
       addField(new Unknown(buffer, offset + 117, 5));
     }
     else {
@@ -1257,9 +1251,9 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 123, 1, "Tracking"));
     addField(new TextString(buffer, offset + 124, 32, "Target"));
     LongIntegerHashMap<IdsMapEntry> sndmap = null;
-    if (ResourceFactory.getInstance().resourceExists("SNDSLOT.IDS")) {
+    if (ResourceFactory.resourceExists("SNDSLOT.IDS")) {
       sndmap = IdsMapCache.get("SNDSLOT.IDS").getMap();
-    } else if (ResourceFactory.getInstance().resourceExists("SOUNDOFF.IDS")) {
+    } else if (ResourceFactory.resourceExists("SOUNDOFF.IDS")) {
       sndmap = IdsMapCache.get("SOUNDOFF.IDS").getMap();
     }
     if (sndmap != null) {
@@ -1293,18 +1287,18 @@ public final class CreResource extends AbstractStruct
     addField(new IdsBitmap(buffer, offset + 569, 1, "Racial enemy", "RACE.IDS"));
     addField(new DecNumber(buffer, offset + 570, 2, "Morale recovery"));
 //    addField(new Unknown(buffer, offset + 571, 1));
-    if (ResourceFactory.getInstance().resourceExists("KIT.IDS")) {
+    if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new KitIdsBitmap(buffer, offset + 572, "Kit"));
     }
     else {
-      if (ResourceFactory.getInstance().resourceExists("DEITY.IDS")) {
+      if (ResourceFactory.resourceExists("DEITY.IDS")) {
         addField(new IdsBitmap(buffer, offset + 572, 2, "Deity", "DEITY.IDS"));
-      } else if (ResourceFactory.getInstance().resourceExists("DIETY.IDS")) {
+      } else if (ResourceFactory.resourceExists("DIETY.IDS")) {
         addField(new IdsBitmap(buffer, offset + 572, 2, "Deity", "DIETY.IDS"));
       } else {
         addField(new Unknown(buffer, offset + 572, 2));
       }
-      if (ResourceFactory.getInstance().resourceExists("MAGESPEC.IDS")) {
+      if (ResourceFactory.resourceExists("MAGESPEC.IDS")) {
         addField(new IdsBitmap(buffer, offset + 574, 2, "Mage type", "MAGESPEC.IDS"));
       } else {
         addField(new HashBitmap(buffer, offset + 574, 2, "Mage type", m_magetype));
@@ -1624,7 +1618,7 @@ public final class CreResource extends AbstractStruct
     if (event.getSource() == bExport) {
       JMenuItem item = bExport.getSelectedItem();
       if (item == miExport) {
-        ResourceFactory.getInstance().exportResource(getResourceEntry(), NearInfinity.getInstance());
+        ResourceFactory.exportResource(getResourceEntry(), NearInfinity.getInstance());
       } else if (item == miConvert) {
         convertCHRtoCRE(getResourceEntry());
       }
@@ -1649,31 +1643,31 @@ public final class CreResource extends AbstractStruct
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)cre.getAttribute("Effects offset");
-        DecNumber cnt = (DecNumber)cre.getAttribute("# effects");
+        DecNumber ofs = (DecNumber)cre.getAttribute("Effects offset", false);
+        DecNumber cnt = (DecNumber)cre.getAttribute("# effects", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Effect), idx);
-            effects[idx] = (AbstractStruct)cre.getAttribute(label);
+            effects[idx] = (AbstractStruct)cre.getAttribute(label, false);
           }
         } else {
           effects = new AbstractStruct[0];
         }
 
-        ofs = (DecNumber)cre.getAttribute("Items offset");
-        cnt = (DecNumber)cre.getAttribute("# items");
+        ofs = (DecNumber)cre.getAttribute("Items offset", false);
+        cnt = (DecNumber)cre.getAttribute("# items", false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Item), idx);
-            items[idx] = (AbstractStruct)cre.getAttribute(label);
+            items[idx] = (AbstractStruct)cre.getAttribute(label, false);
           }
         } else {
           items = new AbstractStruct[0];
         }
 
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+        if (Profile.getEngine() == Profile.Engine.IWD2) {
           final String[] spellTypes = new String[]{
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard),
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellCleric),
@@ -1689,11 +1683,11 @@ public final class CreResource extends AbstractStruct
           for (int i = 0; i < spellTypes.length; i++) {
             for (int j = 1; j < 10; j++) {
               String label = String.format(spellTypes[i], j);
-              AbstractStruct struct1 = (AbstractStruct)cre.getAttribute(label);
+              AbstractStruct struct1 = (AbstractStruct)cre.getAttribute(label, false);
               if (struct1 != null) {
-                AbstractStruct struct2 = (AbstractStruct)struct1.getAttribute(spellTypesStruct);
+                AbstractStruct struct2 = (AbstractStruct)struct1.getAttribute(spellTypesStruct, false);
                 if (struct2 != null) {
-                  Datatype struct3 = (Datatype)struct2.getAttribute(spellTypesRef);
+                  Datatype struct3 = (Datatype)struct2.getAttribute(spellTypesRef, false);
                   if (struct3 != null) {
                     listSpells.add(struct3);
                   }
@@ -1706,15 +1700,15 @@ public final class CreResource extends AbstractStruct
             spells[i] = listSpells.get(i);
           }
         } else {
-          ofs = (DecNumber)cre.getAttribute("Known spells offset");
-          cnt = (DecNumber)cre.getAttribute("# known spells");
+          ofs = (DecNumber)cre.getAttribute("Known spells offset", false);
+          cnt = (DecNumber)cre.getAttribute("# known spells", false);
           if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
             spells = new Datatype[cnt.getValue()];
             final String spellLabel = SearchOptions.getResourceName(SearchOptions.CRE_Spell_Spell1);
             for (int idx = 0; idx < cnt.getValue(); idx++) {
               String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Spell), idx);
-              AbstractStruct struct = (AbstractStruct)cre.getAttribute(label);
-              spells[idx] = (Datatype)struct.getAttribute(spellLabel);
+              AbstractStruct struct = (AbstractStruct)cre.getAttribute(label, false);
+              spells[idx] = (Datatype)struct.getAttribute(spellLabel, false);
             }
           } else {
             spells = new Datatype[0];
@@ -1727,7 +1721,7 @@ public final class CreResource extends AbstractStruct
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
           } else {
             break;
@@ -1736,7 +1730,7 @@ public final class CreResource extends AbstractStruct
 
         keyList = new String[]{SearchOptions.CRE_Script1, SearchOptions.CRE_Script2};
         String[] scriptFields;
-        if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+        if (Profile.getEngine() == Profile.Engine.IWD2) {
           scriptFields = new String[]{"Team script", "Special script 1", "Override script",
                                       "Special script 2", "Combat script", "Special script 3",
                                       "Movement script"};
@@ -1750,7 +1744,7 @@ public final class CreResource extends AbstractStruct
             key = keyList[idx];
             o = searchOptions.getOption(key);
             for (int idx2 = 0; idx2 < scriptFields.length; idx2++) {
-              StructEntry struct = cre.getAttribute(scriptFields[idx2]);
+              StructEntry struct = cre.getAttribute(scriptFields[idx2], false);
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
             retVal &= found;
@@ -1764,7 +1758,7 @@ public final class CreResource extends AbstractStruct
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
@@ -1787,7 +1781,7 @@ public final class CreResource extends AbstractStruct
           if (retVal) {
             key = keyList[idx];
             o = searchOptions.getOption(key);
-            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key));
+            StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
@@ -1804,7 +1798,7 @@ public final class CreResource extends AbstractStruct
             for (int idx2 = 0; idx2 < effects.length; idx2++) {
               if (!found) {
                 if (effects[idx2] != null) {
-                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
@@ -1827,7 +1821,7 @@ public final class CreResource extends AbstractStruct
             for (int idx2 = 0; idx2 < items.length; idx2++) {
               if (!found) {
                 if (items[idx2] != null) {
-                  StructEntry struct = items[idx2].getAttribute(SearchOptions.getResourceName(key));
+                  StructEntry struct = items[idx2].getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
                 }
               } else {

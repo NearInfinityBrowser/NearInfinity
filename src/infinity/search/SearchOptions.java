@@ -11,7 +11,6 @@ import infinity.datatype.HashBitmap;
 import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IwdRef;
-import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.Song2daBitmap;
@@ -36,7 +35,6 @@ import java.util.Locale;
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the
  * resource-specific search methods.
- * @author argent77
  */
 public class SearchOptions
 {
@@ -502,7 +500,7 @@ public class SearchOptions
 
         // special case: "NONE"
         if ((s1.isEmpty() || "NONE".equalsIgnoreCase(s1)) &&
-            (s2.isEmpty() || "NONE".equalsIgnoreCase(s2) || ResourceFactory.getInstance().getResourceEntry(s2) == null)) {
+            (s2.isEmpty() || "NONE".equalsIgnoreCase(s2) || ResourceFactory.getResourceEntry(s2) == null)) {
           return true;
         }
 
@@ -635,8 +633,6 @@ public class SearchOptions
           n3 = (int)((IDSTargetEffect)number).getValue();
         } else if (number instanceof IwdRef) {
           n3 = (int)((IwdRef)number).getValue();
-        } else if (number instanceof Kit2daBitmap) {
-          n3 = (int)((Kit2daBitmap)number).getValue();
         } else if (number instanceof ProRef) {
           n3 = (int)((ProRef)number).getValue();
         } else if (number instanceof Song2daBitmap) {

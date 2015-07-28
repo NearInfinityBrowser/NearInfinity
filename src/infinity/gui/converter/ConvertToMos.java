@@ -7,12 +7,12 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
+import infinity.util.BinPack2D;
 import infinity.util.DynamicArray;
-import infinity.util.GridManager;
 import infinity.util.IntegerHashMap;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileOutputStreamNI;
@@ -65,7 +65,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ConvertToMos extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener
 {
-  private static String currentDir = ResourceFactory.getRootDir().toString();
+  private static String currentDir = Profile.getGameRoot().toString();
 
   private JTabbedPane tabPane;
   private JTextField tfInputV1, tfOutputV1, tfInputV2, tfOutputV2;
@@ -300,7 +300,7 @@ public class ConvertToMos extends ChildFrame
     ProgressMonitor progress = null;
     int width = img.getWidth();
     int height = img.getHeight();
-    List<GridManager> pageList = new ArrayList<GridManager>();
+    List<BinPack2D> pageList = new ArrayList<BinPack2D>();
     List<MosEntry> entryList = new ArrayList<MosEntry>();
 
     try {
@@ -314,55 +314,37 @@ public class ConvertToMos extends ChildFrame
 
       // processing tiles
       final int pageDim = 1024;
+      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BottomLeftRule;
+
       int x = 0, y = 0, pOfs = 0;
       while (pOfs < width*height) {
         int w = Math.min(pageDim, width - x);
         int h = Math.min(pageDim, height - y);
-        if (w == pageDim && h == pageDim) {
-          // add page to complete pages list
-          GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
-          gm.add(new Rectangle(0, 0, pageDim >>> 2, pageDim >>> 2));
-          pageList.add(gm);
-          // register page entry
-          int pageIdx = pageList.size() - 1;
-          MosEntry entry = new MosEntry(pvrzIndex + pageIdx, new Point(0, 0), w, h, new Point(x, y));
-          entryList.add(entry);
-        } else {
-          // find first available page containing sufficient space for the current region
-          // (forcing 4 pixels alignment for better DXT compression)
-          Dimension space = new Dimension((w + 3) >>> 2, (h + 3) >>> 2);
-          int pageIdx = -1;
-          Rectangle rectMatch = new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-          for (int i = 0; i < pageList.size(); i++) {
-            GridManager gm = pageList.get(i);
-            Rectangle rect = gm.findNext(space, GridManager.Alignment.TopLeftHorizontal);
-            if (rect != null) {
-              pageIdx = i;
-              rectMatch = (Rectangle)rect.clone();
-              break;
-            }
-            if (pageIdx >= 0) {
-              break;
-            }
+        Dimension space = new Dimension((w+3) & ~3, (h+3) & ~3);
+        int pageIdx = -1;
+        Rectangle rectMatch = null;
+        for (int i = 0; i < pageList.size(); i++) {
+          BinPack2D packer = pageList.get(i);
+          rectMatch = packer.insert(space.width, space.height, binPackRule);
+          if (rectMatch.height > 0) {
+            pageIdx = i;
+            break;
           }
-
-          // create new page if no match found
-          if (pageIdx == -1) {
-            GridManager gm = new GridManager(pageDim >>> 2, pageDim >>> 2);
-            pageList.add(gm);
-            pageIdx = pageList.size() - 1;
-            rectMatch.x = rectMatch.y = 0;
-            rectMatch.width = gm.getWidth(); rectMatch.height = gm.getHeight();
-          }
-
-          // add region to the page
-          GridManager gm = pageList.get(pageIdx);
-          gm.add(new Rectangle(rectMatch.x, rectMatch.y, space.width, space.height));
-          // register page entry
-          MosEntry entry = new MosEntry(pvrzIndex + pageIdx, new Point(rectMatch.x << 2, rectMatch.y << 2),
-                                        w, h, new Point(x, y));
-          entryList.add(entry);
         }
+
+        // create new page?
+        if (pageIdx < 0) {
+          BinPack2D packer = new BinPack2D(pageDim, pageDim);
+          pageList.add(packer);
+          pageIdx = pageList.size() - 1;
+          rectMatch = packer.insert(space.width, space.height, binPackRule);
+        }
+
+        // register page entry
+        MosEntry entry = new MosEntry(pvrzIndex + pageIdx,
+                                      new Point(rectMatch.x, rectMatch.y),
+                                      w, h, new Point(x, y));
+        entryList.add(entry);
 
         // advance scanning
         if (x + pageDim >= width) {
@@ -378,7 +360,7 @@ public class ConvertToMos extends ChildFrame
       if (pvrzIndex + pageList.size() > 100000) {
         result.add(null);
         result.add(String.format("One or more PVRZ indices exceed the max. possible value of 99999.\n" +
-                                 "Please choose a start index smaller or equal to %1$d.",
+                                 "Please choose a start index smaller than or equal to %1$d.",
                                  100000 - pageList.size()));
         return false;
       }
@@ -481,7 +463,7 @@ public class ConvertToMos extends ChildFrame
 
   // generates PVRZ textures
   private static boolean createPvrzPages(String path, BufferedImage img, DxtEncoder.DxtType dxtType,
-                                         List<GridManager> gridList, List<MosEntry> entryList,
+                                         List<BinPack2D> gridList, List<MosEntry> entryList,
                                          List<String> result, ProgressMonitor progress)
   {
     // preparing variables
@@ -521,14 +503,14 @@ public class ConvertToMos extends ChildFrame
         curProgress++;
       }
       String pvrzName = path + String.format("MOS%1$04d.PVRZ", i);
-      GridManager gm = gridList.get(i - pageMin);
-      gm.shrink();
+      BinPack2D packer = gridList.get(i - pageMin);
+      packer.shrinkBin(true);
 
       // generating texture image
-      int tw = ConvertToPvrz.nextPowerOfTwo(gm.getWidth() << 2);
-      int th = ConvertToPvrz.nextPowerOfTwo(gm.getHeight() << 2);
+      int tw = packer.getBinWidth();
+      int th = packer.getBinHeight();
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
-      Graphics2D g = (Graphics2D)texture.getGraphics();
+      Graphics2D g = texture.createGraphics();
       g.setBackground(new Color(0, true));
       g.setColor(Color.BLACK);
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());

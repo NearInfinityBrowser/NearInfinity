@@ -12,7 +12,7 @@ import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.util.LongIntegerHashMap;
 
 final class JournalEntry extends AbstractStruct implements AddRemovable
@@ -52,9 +52,7 @@ final class JournalEntry extends AbstractStruct implements AddRemovable
   {
     addField(new StringRef(buffer, offset, "Text"));
     addField(new DecNumber(buffer, offset + 4, 4, "Time (ticks)"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB ||
-        ResourceFactory.isEnhancedEdition()) {
+    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new UnsignDecNumber(buffer, offset + 8, 1, "Chapter"));
       addField(new Unknown(buffer, offset + 9, 1));
       addField(new Flag(buffer, offset + 10, 1, "Section", s_section));

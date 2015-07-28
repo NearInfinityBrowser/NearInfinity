@@ -2,6 +2,23 @@
 
 A file browser and editor for the Infinity Engine.
 
+## How to build Near Infinity ##
+
+**Required tools:**
+- Java SE Development Kit 6 or higher ([Link](http://www.oracle.com/technetwork/java/javase/downloads/index.html))
+- Apache Ant ([Link](http://ant.apache.org/))
+
+If you wish to compile Near Infinity from source, the easiest way to do so is 
+by using the included Ant build script. The default target builds the `NearInfinity.jar`.
+
+```
+cd NearInfinity
+ant
+```
+
+The sources also contain configuration files for the [Eclipse IDE](http://www.eclipse.org/). 
+It is preferred to use `Apache Ant` for compiling Near Infinity, however.
+
 ## Contributors ##
 
 This section contains information intended for those who contribute

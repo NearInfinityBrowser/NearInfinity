@@ -36,7 +36,6 @@ import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
 import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
-import infinity.datatype.Kit2daBitmap;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
@@ -57,6 +56,7 @@ import infinity.gui.WindowBlocker;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
+import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.dlg.AbstractCode;
@@ -144,7 +144,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
     } else if (type instanceof AbstractCode) {
       return "Script code";
     } else if (type instanceof Bitmap || type instanceof HashBitmap || type instanceof IdsBitmap ||
-        type instanceof Kit2daBitmap || type instanceof Song2daBitmap) {
+               type instanceof Song2daBitmap) {
       return "Numeric type or identifier";
     } else if (type instanceof ColorPicker) {
       return "RGB Color";
@@ -280,7 +280,7 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       findPattern((int)getHexView().getCurrentOffset());
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_EXPORT)) {
-      ResourceFactory.getInstance().exportResource(getStruct().getResourceEntry(), getTopLevelAncestor());
+      ResourceFactory.exportResource(getStruct().getResourceEntry(), getTopLevelAncestor());
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_SAVE)) {
       // XXX: Ugly hack: mimicking ResourceFactory.saveResource()
@@ -288,9 +288,9 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       ResourceEntry entry = getStruct().getResourceEntry();
       File output;
       if (entry instanceof BIFFResourceEntry) {
-        output = FileNI.getFile(ResourceFactory.getRootDirs(),
-                                ResourceFactory.OVERRIDEFOLDER + File.separatorChar + entry.toString());
-        File override = FileNI.getFile(ResourceFactory.getRootDirs(), ResourceFactory.OVERRIDEFOLDER);
+        output = FileNI.getFile(Profile.getRootFolders(),
+                                Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+        File override = FileNI.getFile(Profile.getRootFolders(), Profile.getOverrideFolderName());
         if (!override.exists()) {
           override.mkdir();
         }

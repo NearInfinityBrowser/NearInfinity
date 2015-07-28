@@ -15,11 +15,12 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.awt.image.VolatileImage;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -67,11 +68,15 @@ public class ColorConvert
    */
   public static BufferedImage createCompatibleImage(int width, int height, int transparency)
   {
-    // obtain the current system's graphical settings
-    final GraphicsConfiguration gfxConfig =
-        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+    if (transparency == Transparency.TRANSLUCENT) {
+      return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    } else {
+      // obtain the current system's graphical settings
+      final GraphicsConfiguration gfxConfig =
+          GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
-    return gfxConfig.createCompatibleImage(width, height, transparency);
+      return gfxConfig.createCompatibleImage(width, height, transparency);
+    }
   }
 
   /**
@@ -144,7 +149,7 @@ public class ColorConvert
       }
       final BufferedImage image = createCompatibleImage(img.getWidth(null), img.getHeight(null),
                                                         hasTransparency);
-      Graphics2D g = (Graphics2D)image.getGraphics();
+      Graphics2D g = image.createGraphics();
       try {
         g.drawImage(img, 0, 0, null);
       } finally {
@@ -169,39 +174,10 @@ public class ColorConvert
   {
     BufferedImage dstImage = null;
     if (image != null) {
-      if ((image.getType() == BufferedImage.TYPE_BYTE_INDEXED ||
-           image.getType() == BufferedImage.TYPE_BYTE_BINARY) &&
-          image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_BYTE) {
-        // Pixel size: Integer and palette available
-        IndexColorModel cm1 = (IndexColorModel)image.getColorModel();
-        int[] colors = new int[1 << cm1.getPixelSize()];
-        cm1.getRGBs(colors);
-        IndexColorModel cm2 = new IndexColorModel(cm1.getPixelSize(), colors.length, colors, 0,
-                                                  cm1.hasAlpha(), cm1.getTransparentPixel(),
-                                                  DataBuffer.TYPE_BYTE);
-        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType(), cm2);
-        byte[] srcBuf = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
-        byte[] dstBuf = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
-        System.arraycopy(srcBuf, 0, dstBuf, 0, dstBuf.length);
-        srcBuf = null; dstBuf = null;
-      } else if (image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
-        // Pixel size: Integer
-        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-        int[] srcBuf = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-        int[] dstBuf = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
-        System.arraycopy(srcBuf, 0, dstBuf, 0, dstBuf.length);
-        srcBuf = null; dstBuf = null;
-      } else {
-        // Fall back solution: create a truecolored version of the source image
-        dstImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-        Graphics2D g = (Graphics2D)dstImage.getGraphics();
-        try {
-          g.drawImage(image, 0, 0, null);
-        } finally {
-          g.dispose();
-          g = null;
-        }
-      }
+      ColorModel cm = image.getColorModel();
+      boolean isAlphaPreMultiplied = cm.isAlphaPremultiplied();
+      WritableRaster raster = image.copyData(null);
+      dstImage = new BufferedImage(cm, raster, isAlphaPreMultiplied, null);
     }
     return dstImage;
   }

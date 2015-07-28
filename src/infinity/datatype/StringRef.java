@@ -73,7 +73,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
       taRefText.setText(StringResource.getStringRef(Integer.parseInt(tfRefNr.getText())));
       String resname = StringResource.getResource(Integer.parseInt(tfRefNr.getText()));
-      bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+      bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     }
     else if (event.getSource() == bEdit) {
       StringEditor editor = null;
@@ -92,8 +92,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     }
     else if (event.getSource() == bPlay) {
       int newvalue = Integer.parseInt(tfRefNr.getText());
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(
-              StringResource.getResource(newvalue) + ".WAV");
+      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getResource(newvalue) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch)
@@ -129,7 +128,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
       bSearch.setMnemonic('f');
     }
     String resname = StringResource.getResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     taRefText.setText(StringResource.getStringRef(value));
     taRefText.setCaretPosition(0);
     InfinityScrollPane scroll = new InfinityScrollPane(taRefText, true);
@@ -237,7 +236,12 @@ public final class StringRef extends Datatype implements Editable, ActionListene
 
   public String toString(boolean extended)
   {
-    return StringResource.getStringRef(value, extended);
+    return toString(extended, false);
+  }
+
+  public String toString(boolean extended, boolean asPrefix)
+  {
+    return StringResource.getStringRef(value, extended, asPrefix);
   }
 
   public int getValue()
@@ -251,7 +255,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     taRefText.setText(StringResource.getStringRef(value));
     tfRefNr.setText(String.valueOf(value));
     String resname = StringResource.getResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.getInstance().resourceExists(resname + ".WAV"));
+    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
   }
 }
 

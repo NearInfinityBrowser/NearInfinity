@@ -7,7 +7,6 @@ package infinity.resource.gam;
 import infinity.datatype.DecNumber;
 import infinity.datatype.HexNumber;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 
 final class Familiar extends AbstractStruct
@@ -29,17 +28,28 @@ final class Familiar extends AbstractStruct
     addField(new ResourceRef(buffer, offset + 48, "Chaotic good", "CRE"));
     addField(new ResourceRef(buffer, offset + 56, "Chaotic neutral", "CRE"));
     addField(new ResourceRef(buffer, offset + 64, "Chaotic evil", "CRE"));
-    HexNumber offEOS = new HexNumber(buffer, offset + 72, 4, "End of structure offset");
+    HexNumber offEOS = new HexNumber(buffer, offset + 72, 4, "Familiar resources offset");
     addField(offEOS);
     offset += 76;
-    int unknownOfs = offEOS.getValue();
-    if (unknownOfs < offset) {
-      // size of unknown block appears to be always 324 bytes in valid GAM files
-      unknownOfs = Math.min(offset + 324, buffer.length);
+    // To be confirmed: I've never seen these fields in use
+    final String[] alignLabels = { "LG", "LN", "CG", "NG", "TN", "NE", "LE", "CN", "CE" };
+    int numFamiliarExtra = 0;
+    for (final String align: alignLabels) {
+      for (int i = 1; i < 10; i++) {
+        DecNumber familiarCount = new DecNumber(buffer, offset, 4,
+                                                String.format("%1$s level %2$d familiar count", align, i));
+        numFamiliarExtra += familiarCount.getValue();
+        addField(familiarCount);
+        offset += 4;
+      }
     }
-    int unknownSize = unknownOfs > buffer.length ? buffer.length - offset : unknownOfs - offset;
-    addField(new Unknown(buffer, offset, unknownSize));
-    offset += unknownSize;
+    if (numFamiliarExtra > 0) {
+      int curOffset = offEOS.getValue();
+      for (int i = 0; i < numFamiliarExtra; i++) {
+        addField(new ResourceRef(buffer, curOffset, "Familiar resource " + i, "CRE"));
+        curOffset += 8;
+      }
+    }
     return offset;
   }
 

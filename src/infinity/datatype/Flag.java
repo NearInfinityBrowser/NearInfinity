@@ -213,6 +213,16 @@ public class Flag extends Datatype implements Editable, ActionListener
     return (value & bitnr) == bitnr;
   }
 
+  public long getValue()
+  {
+    return value;
+  }
+
+  public void setValue(long newValue)
+  {
+    value = newValue;
+  }
+
   private void setFlag(int i)
   {
     long bitnr = (long)Math.pow((double)2, (double)i);

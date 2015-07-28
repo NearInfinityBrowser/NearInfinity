@@ -360,7 +360,7 @@ public class DynamicArray
   public static boolean putString(byte[] buffer, int offset, int length, String s, Charset cs)
   {
     if (buffer != null && offset >= 0 && length >= 0 && offset+length <= buffer.length && s != null) {
-      if (cs == null) cs = Charset.forName("ISO-8859-1"); // TODO: Using "US-ASCII" instead?
+      if (cs == null) cs = Charset.forName("windows-1252"); // TODO: Using "US-ASCII" instead?
       byte[] buf = s.getBytes(cs);
       int len = Math.min(buffer.length - offset, buf.length);
       System.arraycopy(buf, 0, buffer, offset, len);

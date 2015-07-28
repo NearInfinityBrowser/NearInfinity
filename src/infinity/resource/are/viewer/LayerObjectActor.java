@@ -147,7 +147,7 @@ public class LayerObjectActor extends LayerObject
         } else if (obj instanceof ResourceRef) {
           String creName = ((ResourceRef)obj).getResourceName();
           if (creName.lastIndexOf('.') > 0) {
-            cre = new CreResource(ResourceFactory.getInstance().getResourceEntry(creName));
+            cre = new CreResource(ResourceFactory.getResourceEntry(creName));
           }
         }
         if (cre != null) {

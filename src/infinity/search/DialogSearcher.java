@@ -32,6 +32,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -49,6 +50,7 @@ public final class DialogSearcher implements Runnable, ActionListener
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbsearchcode = new JCheckBox("Include trigger & action scripts", true);
+  private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
 
@@ -77,8 +79,10 @@ public final class DialogSearcher implements Runnable, ActionListener
     matchpanel.add(cbwhole);
     matchpanel.add(cbsearchcode);
     matchpanel.add(cbcase);
+    matchpanel.add(cbregex);
     cbwhole.setMnemonic('w');
     cbcase.setMnemonic('m');
+    cbregex.setMnemonic('r');
 
     gbc.insets = new Insets(6, 6, 3, 3);
     gbc.weightx = 0.0;
@@ -131,14 +135,25 @@ public final class DialogSearcher implements Runnable, ActionListener
   {
     String term = tfinput.getText();
     ReferenceHitFrame resultFrame = new ReferenceHitFrame(term, parent);
-    term = term.replaceAll("(\\W)", "\\\\$1");
-    if (cbwhole.isSelected())
+    if (!cbregex.isSelected()) {
+      term = term.replaceAll("(\\W)", "\\\\$1");
+    }
+    if (cbwhole.isSelected()) {
       term = ".*\\b" + term + "\\b.*";
-    else
+    } else {
       term = ".*" + term + ".*";
-    Pattern regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    if (cbcase.isSelected())
-      regPattern = Pattern.compile(term, Pattern.DOTALL);
+    }
+    Pattern regPattern;
+    try {
+      if (cbcase.isSelected()) {
+        regPattern = Pattern.compile(term, Pattern.DOTALL);
+      } else {
+        regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+      }
+    } catch (PatternSyntaxException e) {
+      JOptionPane.showMessageDialog(parent, "Syntax error in search string.", "Error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     inputFrame.setVisible(false);
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, files.size());
     progress.setMillisToDecideToPopup(100);

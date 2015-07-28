@@ -19,9 +19,12 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -38,6 +41,7 @@ public final class TextResourceSearcher implements Runnable, ActionListener
   private final JButton bsearch = new JButton("Search", Icons.getIcon("FindAgain16.gif"));
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
+  private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
 
@@ -67,11 +71,13 @@ public final class TextResourceSearcher implements Runnable, ActionListener
     label.setLabelFor(tfinput);
     label.setDisplayedMnemonic('f');
     JPanel matchpanel = new JPanel();
-    matchpanel.setLayout(new GridLayout(0, 1));
+    matchpanel.setLayout(new GridLayout(0, 2));
     matchpanel.add(cbwhole);
     matchpanel.add(cbcase);
+    matchpanel.add(cbregex);
     cbwhole.setMnemonic('w');
     cbcase.setMnemonic('m');
+    cbregex.setMnemonic('r');
 
     gbc.insets = new Insets(6, 6, 3, 3);
     gbc.weightx = 0.0;
@@ -124,14 +130,25 @@ public final class TextResourceSearcher implements Runnable, ActionListener
   {
     String term = tfinput.getText();
     TextHitFrame resultFrame = new TextHitFrame(term, parent);
-    term = term.replaceAll("(\\W)", "\\\\$1");
-    if (cbwhole.isSelected())
+    if (!cbregex.isSelected()) {
+      term = term.replaceAll("(\\W)", "\\\\$1");
+    }
+    if (cbwhole.isSelected()) {
       term = ".*\\b" + term + "\\b.*";
-    else
+    } else {
       term = ".*" + term + ".*";
-    Pattern regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    if (cbcase.isSelected())
-      regPattern = Pattern.compile(term, Pattern.DOTALL);
+    }
+    Pattern regPattern;
+    try {
+      if (cbcase.isSelected()) {
+        regPattern = Pattern.compile(term, Pattern.DOTALL);
+      } else {
+        regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+      }
+    } catch (PatternSyntaxException e) {
+      JOptionPane.showMessageDialog(parent, "Syntax error in search string.", "Error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     inputFrame.setVisible(false);
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, files.size());
     progress.setMillisToDecideToPopup(100);
@@ -139,15 +156,23 @@ public final class TextResourceSearcher implements Runnable, ActionListener
       ResourceEntry entry = files.get(i);
       TextResource resource = (TextResource)ResourceFactory.getResource(entry);
       if (resource != null) {
-        int linenr = 0;
-        StringTokenizer tokenizer = new StringTokenizer(resource.getText(), "\n", true);
-        while (tokenizer.hasMoreTokens()) {
-          linenr++;
-          String token = tokenizer.nextToken();
-          if (token.equals("\n") && tokenizer.hasMoreTokens())
-            token = tokenizer.nextToken();
-          if (regPattern.matcher(token).matches())
-            resultFrame.addHit(entry, token, linenr);
+        BufferedReader br = new BufferedReader(new StringReader(resource.getText()));
+        try {
+          try {
+            String line;
+            int linenr = 0;
+            while ((line = br.readLine()) != null) {
+              linenr++;
+              if (regPattern.matcher(line).matches()) {
+                resultFrame.addHit(entry, line, linenr);
+              }
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          br.close();
+        } catch (IOException e) {
+          e.printStackTrace();
         }
       }
       progress.setProgress(i + 1);

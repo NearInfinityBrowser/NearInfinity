@@ -15,7 +15,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
-import infinity.resource.ResourceFactory;
+import infinity.resource.Profile;
 import infinity.resource.StructEntry;
 import infinity.resource.vertex.Vertex;
 
@@ -134,17 +134,14 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 //    addField(new DecNumber(buffer, offset + 134, 2, "Override box: Top"));
 //    addField(new DecNumber(buffer, offset + 136, 2, "Override box: Right"));
 //    addField(new DecNumber(buffer, offset + 138, 2, "Override box: Bottom"));
-    if (ResourceFactory.getGameID() == ResourceFactory.ID_TORMENT) {
+    if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Unknown(buffer, offset + 132, 48));
       addField(new DecNumber(buffer, offset + 180, 2, "Speaker point: X"));
       addField(new DecNumber(buffer, offset + 182, 2, "Speaker point: Y"));
       addField(new StringRef(buffer, offset + 184, "Speaker name"));
       addField(new ResourceRef(buffer, offset + 188, "Dialogue", "DLG"));
     }
-    else if (ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOW ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWINDHOWTOT ||
-             ResourceFactory.getGameID() == ResourceFactory.ID_ICEWIND2) {
+    else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new DecNumber(buffer, offset + 132, 2, "Override point: X"));
       addField(new DecNumber(buffer, offset + 134, 2, "Override point: Y"));
       addField(new DecNumber(buffer, offset + 136, 4, "Alternate point: X"));

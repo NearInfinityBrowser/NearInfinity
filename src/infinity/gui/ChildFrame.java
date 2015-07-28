@@ -119,7 +119,6 @@ public class ChildFrame extends JFrame
     windows.add(this);
     JPanel pane = new JPanel();
     setContentPane(pane);
-    final ChildFrame frame = this;
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     pane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                                                             pane);
@@ -128,17 +127,17 @@ public class ChildFrame extends JFrame
       @Override
       public void actionPerformed(ActionEvent e)
       {
-        if (frame.closeOnInvisible) {
+        if (ChildFrame.this.closeOnInvisible) {
           try {
-            if (!frame.windowClosing(false))
+            if (!ChildFrame.this.windowClosing(false))
               return;
           } catch (Exception e2) {
             e2.printStackTrace();
             return;
           }
-          windows.remove(frame);
+          windows.remove(ChildFrame.this);
         }
-        frame.setVisible(false);
+        ChildFrame.this.setVisible(false);
       }
     });
     addWindowListener(new WindowAdapter()
@@ -146,18 +145,16 @@ public class ChildFrame extends JFrame
       @Override
       public void windowClosing(WindowEvent e)
       {
-        try {
-          if (!frame.windowClosing(false))
-            return;
-        } catch (Exception e2) {
-          throw new IllegalAccessError(); // ToDo: This is just too ugly
+        if (ChildFrame.this.closeOnInvisible) {
+          try {
+            if (!ChildFrame.this.windowClosing(false))
+              return;
+          } catch (Exception e2) {
+            throw new IllegalAccessError(); // ToDo: This is just too ugly
+          }
+          windows.remove(ChildFrame.this);
         }
-        if (frame.closeOnInvisible) {
-          windows.remove(frame);
-          frame.dispose();
-        } else {
-          frame.setVisible(false);
-        }
+        ChildFrame.this.setVisible(false);
       }
     }
     );

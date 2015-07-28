@@ -26,7 +26,7 @@ public final class SpawnResourceRef extends ResourceRef
   @Override
   void addExtraEntries(List<Object> entries)
   {
-    ResourceEntry spawnRef = ResourceFactory.getInstance().getResourceEntry("SPAWNGRP.2DA");
+    ResourceEntry spawnRef = ResourceFactory.getResourceEntry("SPAWNGRP.2DA");
     if (spawnRef != null) {
       PlainTextResource spawn = (PlainTextResource)ResourceFactory.getResource(spawnRef);
       List<String> headers = spawn.extract2DAHeaders();

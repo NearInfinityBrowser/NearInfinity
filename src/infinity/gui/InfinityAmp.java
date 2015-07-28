@@ -62,7 +62,7 @@ public final class InfinityAmp extends ChildFrame
   {
     super("InfinityAmp");
     setIconImage(Icons.getIcon("Volume16.gif").getImage());
-    List<ResourceEntry> files = ResourceFactory.getInstance().getResources("MUS");
+    List<ResourceEntry> files = ResourceFactory.getResources("MUS");
     for (int i = 0; i < files.size(); i++) {
       allMusModel.addElement(files.get(i));
     }

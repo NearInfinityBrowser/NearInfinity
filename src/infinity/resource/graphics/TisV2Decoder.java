@@ -189,7 +189,7 @@ public class TisV2Decoder extends TisDecoder
   {
     try {
       String name = String.format("%1$s%2$02d.PVRZ", pvrzNameBase, page);
-      ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(name);
+      ResourceEntry entry = ResourceFactory.getResourceEntry(name);
       if (entry != null) {
         return PvrDecoder.loadPvr(entry);
       }
@@ -256,7 +256,7 @@ public class TisV2Decoder extends TisDecoder
         // removing old content
         try {
           if (page == -1) {
-            Graphics2D g = (Graphics2D)workingCanvas.getGraphics();
+            Graphics2D g = workingCanvas.createGraphics();
             try {
               g.setColor(Color.BLACK);
               g.fillRect(0, 0, TileDimension, TileDimension);

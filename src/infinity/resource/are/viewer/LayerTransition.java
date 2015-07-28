@@ -37,7 +37,7 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
           if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
             AreResource destAre = null;
             try {
-              destAre = new AreResource(ResourceFactory.getInstance().getResourceEntry(ref.getResourceName()));
+              destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
             } catch (Exception e) {
               e.printStackTrace();
             }
