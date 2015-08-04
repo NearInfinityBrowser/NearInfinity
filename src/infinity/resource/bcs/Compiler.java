@@ -404,7 +404,7 @@ public final class Compiler
 
     String list_i[] = {"0", "0", "0"};
     String list_o[] = {emptyObject, emptyObject, emptyObject};
-    String list_s[] = {"\"\"", "\"\"", "\"\"", "\"\""}; // Might be more than two because of ModifyStrings
+    String list_s[] = {null, null, null, null}; // Might be more than two because of ModifyStrings
     String list_p[] = {"0 0"};
     int index_i = 0, index_o = 0, index_s = 0, index_p = 0;
 
@@ -895,7 +895,7 @@ public final class Compiler
     code.append("TR\n").append(idsEntry.getID()).append(' ');
     String integers[] = {"0", "0", "0"};
     String object = null;
-    String strings[] = {"\"\"", "\"\"", "\"\"", "\"\""};
+    String strings[] = {null, null, null, null};
     String point = "[0,0]";
     int indexI = 0, indexS = 0;
 
@@ -992,24 +992,64 @@ public final class Compiler
   {
     String newStrings[] = new String[strings.length];
     int newIndex = 0;
-    for (final String string : strings) {
-      if (string.charAt(0) == '"' && string.charAt(string.length() - 1) != '"')
-        errors.put(new Integer(linenr), "Missing end quote - " + string);
-      else if (string.charAt(0) != '"' && string.charAt(string.length() - 1) == '"')
-        errors.put(new Integer(linenr), "Missing begin quote - " + string);
-      else if (string.charAt(0) != '"' && string.charAt(string.length() - 1) != '"')
-        errors.put(new Integer(linenr), "Missing quotes - " + string);
-//        strings[i] = '"' + strings[i] + '"';
-      if (newIndex == 0 || id == 16449 || id == 16566 || id == 16448) // Don't ask me why...
-        newStrings[newIndex++] = string;
-      else if (isPossibleNamespace(string) && !isPossibleNamespace(newStrings[newIndex - 1]))
-        newStrings[newIndex - 1] = string.substring(0, 7) + newStrings[newIndex - 1].substring(1);
-      else
-        newStrings[newIndex++] = string;
+    for (int i = 0; i < strings.length; i++) {
+      String s = strings[i];
+      if (s != null) {
+        boolean q_start = (s.length() > 0 && s.charAt(0) == '"');
+        boolean q_end = (s.length() > 1 && s.charAt(s.length() - 1) == '"');
+        if (!q_start && q_end) {
+          errors.put(new Integer(linenr), "Missing begin quote - " + s);
+        } else if (q_start && !q_end) {
+          errors.put(new Integer(linenr), "Missing end quote - " + s);
+        } else if (!q_start && !q_end) {
+          errors.put(new Integer(linenr), "Missing quotes - " + s);
+        }
+        s = quoteString(s);
+        if (newIndex > 0 && isPossibleNamespace(s) && !isPossibleNamespace(newStrings[newIndex - 1])) {
+          newStrings[newIndex - 1] = s.substring(0, 7) + newStrings[newIndex - 1].substring(1);
+        } else if (newIndex > 1) {
+          newStrings[newIndex - 1] = quoteString(unquoteString(newStrings[newIndex - 1]) + ":" + unquoteString(s));
+        } else {
+          newStrings[newIndex++] = s;
+        }
+      } else {
+        newStrings[i] = "\"\"";
+      }
     }
-    while (newIndex < newStrings.length)
+
+    while (newIndex < newStrings.length) {
       newStrings[newIndex++] = "\"\"";
+    }
+
     return newStrings;
+  }
+
+  private String unquoteString(String s)
+  {
+    if (s != null) {
+      int startIdx = (s.length() > 0 && s.charAt(0) == '"') ? 1 : 0;
+      int endIdx = (s.length() > 1 && s.charAt(s.length() - 1) == '"') ? s.length() - 1 : s.length();
+      return s.substring(startIdx, endIdx);
+    } else {
+      return null;
+    }
+  }
+
+  private String quoteString(String s)
+  {
+    if (s != null) {
+      StringBuilder sb = new StringBuilder(s.length() + 2);
+      if (s.length() == 0 || s.charAt(0) != '"') {
+        sb.append('"');
+      }
+      sb.append(s);
+      if (s.length() < 2 || s.charAt(s.length() - 1) != '"') {
+        sb.append('"');
+      }
+      return sb.toString();
+    } else {
+      return null;
+    }
   }
 }
 

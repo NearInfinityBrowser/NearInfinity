@@ -160,7 +160,7 @@ public final class Decompiler
             index += 4;
           }
         }
-        else if (newp != null) { // ToDo: IWD2 bug?
+        else if (newp != null) {
           String function = action.getString().substring(0, action.getString().length() - 1);
           comment = getResourceName(function, p, newp.substring(1, newp.length() - 1));
         }
@@ -810,10 +810,33 @@ public final class Decompiler
       newStrings[index++] = '\"' + string2.substring(7);
       newStrings[index++] = string2.substring(0, 7) + '\"';
     }
-    else
-      newStrings[index++] = string2;
+    else {
+      String[] splitted = splitString(string2);
+      for (int i = 0; i < splitted.length; i++) {
+        newStrings[index++] = splitted[i];
+      }
+    }
 
     return newStrings;
+  }
+
+  private static String[] splitString(String string)
+  {
+    String[] values = string.split(":");
+    String[] retVal = new String[values.length];
+    for (int i = 0; i < values.length; i++) {
+      StringBuilder sb = new StringBuilder(values[i].length() + 2);
+      if (values[i].length() == 0 || values[i].charAt(0) != '"') {
+        sb.append('"');
+      }
+      sb.append(values[i]);
+      if (values[i].length() < 2 || values[i].charAt(values[i].length() - 1) != '"') {
+        sb.append('"');
+      }
+      retVal[i] = sb.toString();
+    }
+
+    return retVal;
   }
 
   private static boolean useOverflowCommand(StringTokenizer defParam, int numbers[], int x, int y,
