@@ -280,45 +280,60 @@ public final class Decompiler
     if (pIndex != -1 && pIndex != p.length() - 1) {
 //      if (nr < 0)
 //        nr += 4294967296L;
-      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS");
-      IdsMapEntry entry = map.getValue(nr);
-      if (entry != null)
-        code.append(entry.getString());
-      else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
-                           map.toString().equalsIgnoreCase("BITS.IDS") ||
-                           map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
-                           map.toString().equalsIgnoreCase("STATE.IDS"))) {
-        if (nr < 0)
-          nr += 4294967296L;
-        StringBuilder temp = new StringBuilder();
-        for (int bit = 0; nr > 0 && bit < 32; bit++) {
-          long bitnr = (long)Math.pow((double)2, (double)bit);
-          if ((nr & bitnr) == bitnr) {
-            entry = map.getValue(bitnr);
-            if (entry != null) {
-              if (temp.length() > 0)
-                temp.append(" | ");
-              temp.append(entry.getString());
-              nr ^= bitnr;
+      String idsFile = p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS";
+      IdsMap map = IdsMapCache.get(idsFile);
+      if (map != null) {
+        IdsMapEntry entry = map.getValue(nr);
+        if (entry != null) {
+          code.append(entry.getString());
+        }
+        else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
+                             map.toString().equalsIgnoreCase("BITS.IDS") ||
+                             map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
+                             map.toString().equalsIgnoreCase("STATE.IDS"))) {
+          if (nr < 0) {
+            nr += 4294967296L;
+          }
+          StringBuilder temp = new StringBuilder();
+          for (int bit = 0; nr > 0 && bit < 32; bit++) {
+            long bitnr = (long)Math.pow((double)2, (double)bit);
+            if ((nr & bitnr) == bitnr) {
+              entry = map.getValue(bitnr);
+              if (entry != null) {
+                if (temp.length() > 0) {
+                  temp.append(" | ");
+                }
+                temp.append(entry.getString());
+                nr ^= bitnr;
+              }
             }
           }
+          if (nr > 0) {
+            code.append(nr);
+            if (generateErrors) {
+              idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
+            }
+          }
+          else {
+            code.append(temp);
+          }
         }
-        if (nr > 0) {
+        else {
           code.append(nr);
           if (generateErrors)
             idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
         }
-        else
-          code.append(temp);
       }
       else {
         code.append(nr);
-        if (generateErrors)
-          idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
+        if (generateErrors) {
+          idsErrors.put(new Integer(lineNr), "Could not find " + idsFile);
+        }
       }
     }
-    else
+    else {
       code.append(nr);
+    }
   }
 
   private static String decompileOB(StringTokenizer st)
