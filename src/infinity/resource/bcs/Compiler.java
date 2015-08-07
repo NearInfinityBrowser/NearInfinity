@@ -55,12 +55,10 @@ public final class Compiler
         string.equalsIgnoreCase("\"MYAREA\"") ||
         string.equalsIgnoreCase("\"KAPUTZ\"") || // PS:T
         string.length() == 8 &&
-        (string.substring(0, 3).equalsIgnoreCase("\"AR") && Character.isDigit(string.charAt(3)) &&
-         Character.isDigit(string.charAt(4)) &&
-         Character.isDigit(string.charAt(5)) &&
-         Character.isDigit(string.charAt(6)) ||
-         ResourceFactory.resourceExists(string.substring(1, 7) + ".ARE")))
+        (string.toUpperCase(Locale.US).matches("\"\\S{2}\\d{4}\"") ||
+         ResourceFactory.resourceExists(unquoteString(string) + ".ARE"))) {
       return true;
+    }
     return false;
   }
 
@@ -1006,7 +1004,7 @@ public final class Compiler
         }
         s = quoteString(s);
         if (newIndex > 0 && isPossibleNamespace(s) && !isPossibleNamespace(newStrings[newIndex - 1])) {
-          newStrings[newIndex - 1] = s.substring(0, 7) + newStrings[newIndex - 1].substring(1);
+          newStrings[newIndex - 1] = quoteString(unquoteString(s) + unquoteString(newStrings[newIndex - 1]));
         } else if (newIndex > 1) {
           newStrings[newIndex - 1] = quoteString(unquoteString(newStrings[newIndex - 1]) + ":" + unquoteString(s));
         } else {
@@ -1024,7 +1022,7 @@ public final class Compiler
     return newStrings;
   }
 
-  private String unquoteString(String s)
+  private static String unquoteString(String s)
   {
     if (s != null) {
       int startIdx = (s.length() > 0 && s.charAt(0) == '"') ? 1 : 0;
@@ -1035,7 +1033,7 @@ public final class Compiler
     }
   }
 
-  private String quoteString(String s)
+  private static String quoteString(String s)
   {
     if (s != null) {
       StringBuilder sb = new StringBuilder(s.length() + 2);
