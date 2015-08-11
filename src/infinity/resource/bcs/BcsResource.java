@@ -468,6 +468,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   public JComponent makeViewer(ViewableContainer container)
   {
     sourceText = new ScriptTextArea();
+    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
     sourceText.setMargin(new Insets(3, 3, 3, 3));
