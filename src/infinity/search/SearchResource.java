@@ -122,7 +122,11 @@ public class SearchResource extends ChildFrame
       @Override
       public Void doInBackground()
       {
-        init();
+        try {
+          init();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         return null;
       }
     }).execute();
@@ -273,7 +277,7 @@ public class SearchResource extends ChildFrame
   // --------------------- End Interface Runnable ---------------------
 
   // initialize dialog
-  private void init()
+  private void init() throws Exception
   {
     int progress = 1;
     ProgressMonitor pm = new ProgressMonitor(NearInfinity.getInstance(),
@@ -295,28 +299,37 @@ public class SearchResource extends ChildFrame
       if (vvcSupported) resTypeCount++;
 
       // creating resource-specific options panels
+      pm.setNote("Processing ARE...");
       mapOptionsPanel.put(optionPanels[0], new OptionsAREPanel(this));
       pm.setProgress(progress++);
+      pm.setNote("Processing CRE...");
       mapOptionsPanel.put(optionPanels[1], new OptionsCREPanel(this));
       pm.setProgress(progress++);
       if (effSupported) {
+        pm.setNote("Processing EFF...");
         mapOptionsPanel.put(optionPanels[2], new OptionsEFFPanel(this));
       }
       pm.setProgress(progress++);
+      pm.setNote("Processing ITM...");
       mapOptionsPanel.put(optionPanels[3], new OptionsITMPanel(this));
       pm.setProgress(progress++);
       if (proSupported) {
+        pm.setNote("Processing PRO...");
         mapOptionsPanel.put(optionPanels[4], new OptionsPROPanel(this));
       }
       pm.setProgress(progress++);
+      pm.setNote("Processing SPL...");
       mapOptionsPanel.put(optionPanels[5], new OptionsSPLPanel(this));
       pm.setProgress(progress++);
+      pm.setNote("Processing STO...");
       mapOptionsPanel.put(optionPanels[6], new OptionsSTOPanel(this));
       pm.setProgress(progress++);
       if (vvcSupported) {
+        pm.setNote("Processing VVC...");
         mapOptionsPanel.put(optionPanels[7], new OptionsVVCPanel(this));
       }
       pm.setProgress(progress++);
+      pm.setNote("Processing controls...");
 
       // creating Find section
       JLabel lResType = new JLabel("Resource type:");
@@ -3530,7 +3543,7 @@ public class SearchResource extends ChildFrame
       JPanel pBits = new JPanel(new GridBagLayout());
       for (int row = 0, col = 0, i = 0; i < bits; i++, row++) {
         String label;
-        if (i+1 >= table.length || table[i+1].trim().isEmpty()) {
+        if (i+1 >= table.length || table[i+1] == null || table[i+1].trim().isEmpty()) {
           label = String.format("%1$s (%2$d)", "Unknown", i);
         } else {
           label = String.format("%1$s (%2$d)", table[i+1], i);
