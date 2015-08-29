@@ -23,12 +23,16 @@ import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Profile;
 import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.are.viewer.AreaViewer;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.vertex.Vertex;
 import infinity.search.SearchOptions;
 import infinity.util.DynamicArray;
+import infinity.util.IdsMap;
+import infinity.util.IdsMapCache;
+import infinity.util.IdsMapEntry;
 
 import java.awt.Component;
 import java.io.IOException;
@@ -43,11 +47,12 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 {
   public static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
                                          "Weather", "City", "Forest", "Dungeon",
-                                         "Extended night", "Can rest"};
-  public static final String s_flag_torment[] = {"Indoors", "Hive", "", "Clerk's ward", "Lower ward",
-                                                 "Ravel's maze", "Baator", "Rubikon",
+                                         "Extended night", "Can rest",
+                                         null, null, null, null, null, null, null, null };
+  public static final String s_flag_torment[] = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
+                                                 "Lower ward", "Ravel's maze", "Baator", "Rubikon",
                                                  "Negative material plane", "Curst", "Carceri",
-                                                 "Allow day/night"};
+                                                 "Allow day/night", null, null, null, null, null};
   public static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
   public static final String s_atype_ee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
@@ -358,11 +363,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new Flag(buffer, offset + 56, 4, "Edge flags south", s_edge));
     addField(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
     addField(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
-    if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Flag(buffer, offset + 72, 2, "Location", s_flag_torment));
-    } else {
-      addField(new Flag(buffer, offset + 72, 2, "Location", s_flag));
-    }
+    addField(new Flag(buffer, offset + 72, 2, "Location", updatedLocationFlags()));
     addField(new DecNumber(buffer, offset + 74, 2, "Rain probability"));
     addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
     addField(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
@@ -682,6 +683,30 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     ((DecNumber)getAttribute("# vertices")).setValue(count);
+  }
+
+  // Returns updated location flags with entries from AREATYPE.IDS if needed
+  private static String[] updatedLocationFlags()
+  {
+    if (Profile.getGame() != Profile.Game.PST) {
+      if (ResourceFactory.resourceExists("AREATYPE.IDS")) {
+        IdsMap map = IdsMapCache.get("AREATYPE.IDS");
+        if (map != null) {
+          for (int i = 0; i < 16; i++) {
+            int flagIdx = i + 1;
+            if (s_flag[flagIdx] == null) {
+              IdsMapEntry entry = map.getValue((long)(1 << i));
+              if (entry != null) {
+                s_flag[flagIdx] = entry.getString();
+              }
+            }
+          }
+        }
+      }
+      return s_flag;
+    } else {
+      return s_flag_torment;
+    }
   }
 
   /** Displays the area viewer for this ARE resource. */

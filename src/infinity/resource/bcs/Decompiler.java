@@ -160,7 +160,7 @@ public final class Decompiler
             index += 4;
           }
         }
-        else if (newp != null) { // ToDo: IWD2 bug?
+        else if (newp != null) {
           String function = action.getString().substring(0, action.getString().length() - 1);
           comment = getResourceName(function, p, newp.substring(1, newp.length() - 1));
         }
@@ -280,45 +280,60 @@ public final class Decompiler
     if (pIndex != -1 && pIndex != p.length() - 1) {
 //      if (nr < 0)
 //        nr += 4294967296L;
-      IdsMap map = IdsMapCache.get(p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS");
-      IdsMapEntry entry = map.getValue(nr);
-      if (entry != null)
-        code.append(entry.getString());
-      else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
-                           map.toString().equalsIgnoreCase("BITS.IDS") ||
-                           map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
-                           map.toString().equalsIgnoreCase("STATE.IDS"))) {
-        if (nr < 0)
-          nr += 4294967296L;
-        StringBuilder temp = new StringBuilder();
-        for (int bit = 0; nr > 0 && bit < 32; bit++) {
-          long bitnr = (long)Math.pow((double)2, (double)bit);
-          if ((nr & bitnr) == bitnr) {
-            entry = map.getValue(bitnr);
-            if (entry != null) {
-              if (temp.length() > 0)
-                temp.append(" | ");
-              temp.append(entry.getString());
-              nr ^= bitnr;
+      String idsFile = p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS";
+      IdsMap map = IdsMapCache.get(idsFile);
+      if (map != null) {
+        IdsMapEntry entry = map.getValue(nr);
+        if (entry != null) {
+          code.append(entry.getString());
+        }
+        else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
+                             map.toString().equalsIgnoreCase("BITS.IDS") ||
+                             map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
+                             map.toString().equalsIgnoreCase("STATE.IDS"))) {
+          if (nr < 0) {
+            nr += 4294967296L;
+          }
+          StringBuilder temp = new StringBuilder();
+          for (int bit = 0; nr > 0 && bit < 32; bit++) {
+            long bitnr = (long)Math.pow((double)2, (double)bit);
+            if ((nr & bitnr) == bitnr) {
+              entry = map.getValue(bitnr);
+              if (entry != null) {
+                if (temp.length() > 0) {
+                  temp.append(" | ");
+                }
+                temp.append(entry.getString());
+                nr ^= bitnr;
+              }
             }
           }
+          if (nr > 0) {
+            code.append(nr);
+            if (generateErrors) {
+              idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
+            }
+          }
+          else {
+            code.append(temp);
+          }
         }
-        if (nr > 0) {
+        else {
           code.append(nr);
           if (generateErrors)
             idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
         }
-        else
-          code.append(temp);
       }
       else {
         code.append(nr);
-        if (generateErrors)
-          idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
+        if (generateErrors) {
+          idsErrors.put(new Integer(lineNr), "Could not find " + idsFile);
+        }
       }
     }
-    else
+    else {
       code.append(nr);
+    }
   }
 
   private static String decompileOB(StringTokenizer st)
@@ -795,10 +810,33 @@ public final class Decompiler
       newStrings[index++] = '\"' + string2.substring(7);
       newStrings[index++] = string2.substring(0, 7) + '\"';
     }
-    else
-      newStrings[index++] = string2;
+    else {
+      String[] splitted = splitString(string2);
+      for (int i = 0; i < splitted.length; i++) {
+        newStrings[index++] = splitted[i];
+      }
+    }
 
     return newStrings;
+  }
+
+  private static String[] splitString(String string)
+  {
+    String[] values = string.split(":");
+    String[] retVal = new String[values.length];
+    for (int i = 0; i < values.length; i++) {
+      StringBuilder sb = new StringBuilder(values[i].length() + 2);
+      if (values[i].length() == 0 || values[i].charAt(0) != '"') {
+        sb.append('"');
+      }
+      sb.append(values[i]);
+      if (values[i].length() < 2 || values[i].charAt(values[i].length() - 1) != '"') {
+        sb.append('"');
+      }
+      retVal[i] = sb.toString();
+    }
+
+    return retVal;
   }
 
   private static boolean useOverflowCommand(StringTokenizer defParam, int numbers[], int x, int y,

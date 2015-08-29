@@ -93,7 +93,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.36-20150718";
+  public static final String VERSION = "v1.36-20150827";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -1487,7 +1487,7 @@ public final class BrowserMenuBar extends JMenuBar
   {
     private static final Font[] FONTS = {
       new Font(Font.MONOSPACED, Font.PLAIN, 12), new Font(Font.SERIF, Font.PLAIN, 12),
-      new Font(Font.SANS_SERIF, Font.PLAIN, 12), new Font(Font.DIALOG, Font.PLAIN, 12)};
+      new Font(Font.SANS_SERIF, Font.PLAIN, 12), new Font(Font.DIALOG, Font.PLAIN, 12), null};
     private static final String DefaultCharset = "Auto";
     private static final List<String[]> CharsetsUsed = new ArrayList<String[]>();
     // BCS indentations to use when decompiling (indent, title)
@@ -1540,6 +1540,9 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_LOOKANDFEELCLASS         = "LookAndFeelClass";
     private static final String OPTION_VIEWOREDITSHOWN          = "ViewOrEditShown";
     private static final String OPTION_FONT                     = "Font";
+    private static final String OPTION_FONT_NAME                = "FontName";
+    private static final String OPTION_FONT_STYLE               = "FontStyle";
+    private static final String OPTION_FONT_SIZE                = "FontSize";
     private static final String OPTION_TLKCHARSET               = "TLKCharsetType";
     private static final String OPTION_LANGUAGE_GAMES           = "GameLanguages";
     private static final String OPTION_TEXT_SHOWCURRENTLINE     = "TextShowCurrentLine";
@@ -1880,11 +1883,25 @@ public final class BrowserMenuBar extends JMenuBar
       JMenu scriptmenu = new JMenu("Text Font");
       add(scriptmenu);
       bg = new ButtonGroup();
-      int selectedfont = getPrefs().getInt(OPTION_FONT, 0);
+      int selectedFont = getPrefs().getInt(OPTION_FONT, 0);
+      selectedFont = Math.min(Math.max(selectedFont, 0), FONTS.length - 1);
       for (int i = 0; i < FONTS.length; i++) {
-        selectFont[i] =
-        new JRadioButtonMenuItem(FONTS[i].getName() + ' ' + FONTS[i].getSize(), i == selectedfont);
-        selectFont[i].setFont(FONTS[i]);
+        if (FONTS[i] != null) {
+          selectFont[i] = new JRadioButtonMenuItem(FONTS[i].getName() + ' ' + FONTS[i].getSize(),
+                                                   i == selectedFont);
+          selectFont[i].setFont(FONTS[i]);
+        } else {
+          Font font = null;
+          String fontName = getPrefs().get(OPTION_FONT_NAME, "");
+          if (!fontName.isEmpty()) {
+            font = new Font(fontName,
+                            getPrefs().getInt(OPTION_FONT_STYLE, Font.PLAIN),
+                            getPrefs().getInt(OPTION_FONT_SIZE, 12));
+          }
+          selectFont[i] = new JRadioButtonMenuItem("Select font...", i == selectedFont);
+          selectFont[i].addActionListener(this);
+          applyCustomFont(font);
+        }
         scriptmenu.add(selectFont[i]);
         bg.add(selectFont[i]);
       }
@@ -2181,6 +2198,12 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
       getPrefs().putInt(OPTION_FONT, selectedFont);
+      Font font = FONTS[FONTS.length - 1];
+      if (font != null) {
+        getPrefs().put(OPTION_FONT_NAME, font.getName());
+        getPrefs().putInt(OPTION_FONT_STYLE, font.getStyle());
+        getPrefs().putInt(OPTION_FONT_SIZE, font.getSize());
+      }
       int selectedIndent = getSelectedButtonIndex(selectBcsIndent, 0);
       getPrefs().putInt(OPTION_BCS_INDENT, selectedIndent);
       getPrefs().putBoolean(OPTION_TEXT_SHOWCURRENTLINE, optionTextHightlightCurrent.isSelected());
@@ -2420,6 +2443,15 @@ public final class BrowserMenuBar extends JMenuBar
 //      return null;
 //    }
 
+    private void applyCustomFont(Font font)
+    {
+      int index = FONTS.length - 1;
+      FONTS[index] = (font != null) ? font : (new JMenuItem()).getFont().deriveFont(Font.PLAIN);
+      selectFont[index].setText(String.format("Select font... (%1$s %2$d)",
+                                              FONTS[index].getName(), FONTS[index].getSize()));
+      selectFont[index].setFont(FONTS[index].deriveFont((float)12.0f));
+    }
+
     // Returns defValue if masked bit is clear or value if masked bit is already set
     private boolean fixOption(int mask, boolean defValue, boolean value)
     {
@@ -2555,7 +2587,17 @@ public final class BrowserMenuBar extends JMenuBar
     @Override
     public void actionPerformed(ActionEvent event)
     {
-      if (event.getSource() instanceof DataRadioButtonMenuItem) {
+      if (event.getSource() == selectFont[selectFont.length - 1]) {
+        int index = FONTS.length - 1;
+        FontChooser fc = new FontChooser();
+        if (FONTS[index] != null) {
+          fc.setSelectedFont(FONTS[index]);
+        }
+        if (fc.showDialog(NearInfinity.getInstance()) == FontChooser.OK_OPTION) {
+          applyCustomFont(fc.getSelectedFont());
+        }
+      }
+      else if (event.getSource() instanceof DataRadioButtonMenuItem) {
         DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
         String csName = (String)dmi.getData();
         if (csName != null) {
@@ -2610,7 +2652,8 @@ public final class BrowserMenuBar extends JMenuBar
   {
     private final JMenuItem helpAbout, helpLicense,
                             helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense,
-                            helpMonteMediaLicense, helpUpdateSettings, helpUpdateCheck;
+                            helpMonteMediaLicense, helpJFontChooserLicense,
+                            helpUpdateSettings, helpUpdateCheck;
 
     private HelpMenu()
     {
@@ -2633,16 +2676,20 @@ public final class BrowserMenuBar extends JMenuBar
       miscLicenses.add(helpJOrbisLicense);
 
       helpFifeLicense =
-          makeMenuItem("Fifesoft License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("Fifesoft License", KeyEvent.VK_F, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpFifeLicense);
 
       helpJHexViewLicense =
-          makeMenuItem("JHexView License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("JHexView License", KeyEvent.VK_H, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpJHexViewLicense);
 
       helpMonteMediaLicense =
-          makeMenuItem("Monte Media License", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("Monte Media License", KeyEvent.VK_M, Icons.getIcon("Edit16.gif"), -1, this);
       miscLicenses.add(helpMonteMediaLicense);
+
+      helpJFontChooserLicense =
+          makeMenuItem("JFontChooser License", KeyEvent.VK_C, Icons.getIcon("Edit16.gif"), -1, this);
+      miscLicenses.add(helpJFontChooserLicense);
 
       addSeparator();
 
@@ -2668,6 +2715,8 @@ public final class BrowserMenuBar extends JMenuBar
         displayLicense("infinity/JHexView.License.txt", "GPL License");
       } else if (event.getSource() == helpMonteMediaLicense) {
         displayLicense("infinity/MonteMedia.License.txt", "Creative Commons / LGPL License");
+      } else if (event.getSource() == helpJFontChooserLicense) {
+        displayLicense("infinity/JFontChooser.License.txt", "MIT License");
       } else if (event.getSource() == helpUpdateSettings) {
         UpdaterSettings.showDialog(NearInfinity.getInstance());
       } else if (event.getSource() == helpUpdateCheck) {

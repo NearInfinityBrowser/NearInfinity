@@ -9,6 +9,7 @@ import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.InfinityScrollPane;
 import infinity.gui.InfinityTextArea;
+import infinity.gui.ScriptTextArea;
 import infinity.gui.ViewFrame;
 import infinity.icon.Icons;
 import infinity.resource.Closeable;
@@ -388,9 +389,10 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    sourceText = new InfinityTextArea(text, true);
+    sourceText = new ScriptTextArea();
+    sourceText.setText(text);
     sourceText.setCaretPosition(0);
-    sourceText.applyExtendedSettings(InfinityTextArea.Language.BCS, null);
+    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
     sourceText.setMargin(new Insets(3, 3, 3, 3));
