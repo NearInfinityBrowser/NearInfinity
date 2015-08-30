@@ -73,18 +73,20 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
     for (int i = 0; i < dialog.getFieldCount(); i++) {
       StructEntry o = dialog.getField(i);
       if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
+          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
         addHit(entry, entry.getSearchString(), o);
+      }
       else if (o instanceof AbstractCode) {
         AbstractCode sourceCode = (AbstractCode)o;
         try {
           String code = Compiler.getInstance().compileDialogCode(sourceCode.toString(),
                                                                  sourceCode instanceof Action);
           if (Compiler.getInstance().getErrors().size() == 0) {
-            if (o instanceof Action)
+            if (o instanceof Action) {
               Decompiler.decompileDialogAction(code, true);
-            else
+            } else {
               Decompiler.decompileDialogTrigger(code, true);
+            }
             for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
               if (targetEntry.toString().equalsIgnoreCase(resourceUsed.toString())) {
                 addHit(entry, entry.getSearchString(), sourceCode);
@@ -94,6 +96,13 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
                 if (s != null && s.equalsIgnoreCase(resourceUsed.toString())) {
                   addHit(entry, s, sourceCode);
                 }
+              }
+            }
+            if (targetEntryName != null) {
+              Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+              Matcher m = p.matcher(code);
+              if (m.find()) {
+                addHit(entry, targetEntryName, sourceCode);
               }
             }
           }
@@ -132,10 +141,17 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchScript(ResourceEntry entry, BcsResource bcsfile)
   {
-    Decompiler.decompile(bcsfile.getCode(), true);
+    String code = Decompiler.decompile(bcsfile.getCode(), true);
     for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
       if (resourceUsed == targetEntry) {
         addHit(entry, null, null);
+      }
+    }
+    if (targetEntryName != null) {
+      Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+      Matcher m = p.matcher(code);
+      if (m.find()) {
+        addHit(entry, targetEntryName, null);
       }
     }
   }
@@ -236,6 +252,13 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
       Matcher m = p.matcher(text.getText());
       if (m.find()) {
         addHit(entry, null, null);
+      }
+    }
+    if (targetEntryName != null) {
+      Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+      Matcher m = p.matcher(text.getText());
+      if (m.find()) {
+        addHit(entry, targetEntryName, null);
       }
     }
   }

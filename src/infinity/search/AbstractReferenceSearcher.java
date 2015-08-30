@@ -4,6 +4,7 @@
 
 package infinity.search;
 
+import infinity.datatype.TextString;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
@@ -11,6 +12,7 @@ import infinity.icon.Icons;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
+import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
@@ -51,6 +53,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   private final ReferenceHitFrame hitFrame;
   private final String[] filetypes;
   private final boolean[] preselect;
+  protected String targetEntryName;   // optional alternate name to search for
   private JCheckBox[] boxes;
   private List<ResourceEntry> files;
 
@@ -62,6 +65,23 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   AbstractReferenceSearcher(ResourceEntry targetEntry, String filetypes[], boolean[] preselect, Component parent)
   {
     this.targetEntry = targetEntry;
+    if (targetEntry.getExtension().equalsIgnoreCase("CRE")) {
+      String resName = targetEntry.getResourceName();
+      if (resName.lastIndexOf('.') > 0) {
+        resName = resName.substring(0, resName.lastIndexOf('.'));
+      }
+      try {
+        CreResource cre = new CreResource(targetEntry);
+        StructEntry nameEntry = cre.getAttribute("Script name");
+        if (nameEntry instanceof TextString &&
+            !((TextString)nameEntry).toString().equalsIgnoreCase(resName)) {
+          targetEntryName = ((TextString)nameEntry).toString();
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
     this.filetypes = filetypes;
     this.preselect = preselect;
     this.parent = parent;
