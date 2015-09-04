@@ -73,9 +73,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       offset = 16;
 
     // Actors
-    if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2)
-      addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 84),
-                     (int)DynamicArray.getShort(buffer, offset + 88), 272);
+    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 84),
+                   (int)DynamicArray.getShort(buffer, offset + 88), 272, true);
 
     // ITEPoints
     addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 92),
@@ -119,16 +118,27 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
   private static void addScriptNames(Set<String> scriptNames, byte buffer[], int offset, int count, int size)
   {
+    addScriptNames(scriptNames, buffer, offset, count, size, false);
+  }
+
+  private static void addScriptNames(Set<String> scriptNames, byte buffer[], int offset, int count,
+                                     int size, boolean checkOverride)
+  {
     for (int i = 0; i < count; i++) {
-      StringBuilder sb = new StringBuilder(32);
-      for (int j = 0; j < 32; j++) {
-        byte b = buffer[offset + i * size + j];
-        if (b == 0x00)
-          break;
-        else if (b != 0x20) // Space
-          sb.append(Character.toLowerCase((char)b));
+      int curOfs = offset + i*size;
+      // Bit 3 of "Loading" flag determines whether to override the actor's script name
+      if (!checkOverride || ((buffer[curOfs + 40] & 8) == 8)) {
+        StringBuilder sb = new StringBuilder(32);
+        for (int j = 0; j < 32; j++) {
+          byte b = buffer[curOfs + j];
+          if (b == 0x00) {
+            break;
+          } else if (b != 0x20) { // Space
+            sb.append(Character.toLowerCase((char)b));
+          }
+        }
+        scriptNames.add(sb.toString());
       }
-      scriptNames.add(sb.toString());
     }
   }
 

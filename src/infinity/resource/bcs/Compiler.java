@@ -43,8 +43,9 @@ public final class Compiler
 
   public static Compiler getInstance()
   {
-    if (compiler == null)
-      compiler = new Compiler();
+    if (compiler == null) {
+      restartCompiler();
+    }
     return compiler;
   }
 
@@ -64,7 +65,7 @@ public final class Compiler
 
   public static void restartCompiler()
   {
-    compiler = null;
+    compiler = new Compiler();
   }
 
   private Compiler()
@@ -133,6 +134,7 @@ public final class Compiler
 
         }
 
+        scriptNamesAre.add("none");   // default script name for many CRE resources
         files = ResourceFactory.getResources("ARE");
         for (int i = 0; i < files.size(); i++) {
           ResourceEntry resourceEntry = files.get(i);
@@ -261,21 +263,23 @@ public final class Compiler
   {
     String name = value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
     if (scriptNamesValid) {
-        if (name.equals("") || !(scriptNamesCre.containsKey(name) || scriptNamesAre.contains(name)))
-          warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
-//        else {
-//          System.out.println(definition + " - " + value + " OK");
-//        }
+      if (name.equals("") || !(scriptNamesCre.containsKey(name) || scriptNamesAre.contains(name))) {
+        warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
+//      } else {
+//        System.out.println(definition + " - " + value + " OK");
+      }
     }
   }
 
   private void checkString(String function, String definition, String value)
   {
+    String value_str = value.substring(1, value.length() - 1);
+    String value_norm = value_str.toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
 //    if (!definition.endsWith("*"))
 //      System.out.println("Compiler.checkString: " + function + " " + definition + " " + value);
-    if (value.equals("\"\"")) // ToDo: "" due to IWD2 decompiler bug?
+    if (value_str.isEmpty()) // ToDo: "" due to IWD2 decompiler bug?
       return;
-    if (value.substring(1, value.length() - 1).length() > 32)
+    if (value_str.length() > 32)
       warnings.put(new Integer(linenr), "Invalid string length: " + definition + " - " + value);
     else if (definition.equalsIgnoreCase("S:Area*") ||
              definition.equalsIgnoreCase("S:Area1*") ||
@@ -293,19 +297,19 @@ public final class Compiler
             function.equalsIgnoreCase("NumDead(") ||
             function.equalsIgnoreCase("NumDeadGT(") ||
             function.equalsIgnoreCase("NumDeadLT(")) {
-          if (!scriptNamesCre.containsKey(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
+          if (!(scriptNamesCre.containsKey(value_norm) || scriptNamesAre.contains(value_norm)) &&
               IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
             warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
         }
         else if (function.equalsIgnoreCase("SetCorpseEnabled(")) {
-          if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
+          if (!scriptNamesAre.contains(value_norm) &&
               IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
             warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
         }
       }
     }
     else if (function.equalsIgnoreCase("AttachTransitionToDoor(") && scriptNamesValid) {
-        if (!scriptNamesAre.contains(value.substring(1, value.length() - 1).toLowerCase(Locale.ENGLISH).replaceAll(" ", "")) &&
+        if (!scriptNamesAre.contains(value_norm) &&
             IdsMapCache.get("OBJECT.IDS").lookup(value) == null)
           warnings.put(new Integer(linenr), "Script name not found: " + definition + " - " + value);
     }
@@ -366,7 +370,7 @@ public final class Compiler
 
       if (resourceTypes.length > 0) {
         for (final String resourceType : resourceTypes) {
-          if (ResourceFactory.resourceExists(value.substring(1, value.length() - 1) + resourceType, true)) {
+          if (ResourceFactory.resourceExists(value_str + resourceType, true)) {
             return;
           }
         }
