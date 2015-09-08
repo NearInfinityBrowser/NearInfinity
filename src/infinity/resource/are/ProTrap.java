@@ -5,6 +5,7 @@
 package infinity.resource.are;
 
 import infinity.datatype.DecNumber;
+import infinity.datatype.IdsBitmap;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionOffset;
 import infinity.resource.AbstractStruct;
@@ -36,17 +37,31 @@ public final class ProTrap extends AbstractStruct implements AddRemovable
   public int read(byte buffer[], int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, "Trap", "PRO"));
-    addField(new SectionOffset(buffer, offset + 8, "Effects list offset", null));
+    SectionOffset ofsEffects = new SectionOffset(buffer, offset + 8, "Effects list offset", null);
+    addField(ofsEffects);
     // Mac ToB doesn't save these right, so EFFs not handled
-    addField(new DecNumber(buffer, offset + 12, 2, "Effects list size"));
+    DecNumber sizeEffects = new DecNumber(buffer, offset + 12, 2, "Effects list size");
+    addField(sizeEffects);
     addField(new DecNumber(buffer, offset + 14, 2, "Projectile"));
     addField(new DecNumber(buffer, offset + 16, 2, "Explosion frequency (frames)"));
     addField(new DecNumber(buffer, offset + 18, 2, "Duration"));
     addField(new DecNumber(buffer, offset + 20, 2, "Location: X"));
     addField(new DecNumber(buffer, offset + 22, 2, "Location: Y"));
     addField(new DecNumber(buffer, offset + 24, 2, "Location: Z"));
-    addField(new DecNumber(buffer, offset + 26, 1, "Target"));
+    addField(new IdsBitmap(buffer, offset + 26, 1, "Target", "EA.IDS"));
     addField(new DecNumber(buffer, offset + 27, 1, "Portrait"));
+
+    if (ofsEffects.getValue() > 0 && sizeEffects.getValue() > 0) {
+      int curOffset = ofsEffects.getValue();
+      int endOffset = curOffset + sizeEffects.getValue();
+      int number = 0;
+      while (curOffset < endOffset) {
+        ProEffect pe = new ProEffect(this, buffer, curOffset, number++);
+        curOffset = pe.getEndOffset();
+        addField(pe);
+      }
+    }
+
     return offset + 28;
   }
 }
