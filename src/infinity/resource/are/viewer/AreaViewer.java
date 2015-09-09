@@ -236,7 +236,6 @@ public class AreaViewer extends ChildFrame
   @Override
   public void close()
   {
-    System.out.println("AreaViewer.close() called");
     Settings.storeSettings(false);
 
     if (!map.closeWed(ViewerConstants.AREA_DAY, true)) {

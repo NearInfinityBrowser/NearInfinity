@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.Point;
 
 import infinity.datatype.DecNumber;
+import infinity.datatype.IdsBitmap;
 import infinity.datatype.ResourceRef;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
@@ -104,7 +105,7 @@ public class LayerObjectProTrap extends LayerObject
         location.x = ((DecNumber)trap.getAttribute("Location: X")).getValue();
         location.y = ((DecNumber)trap.getAttribute("Location: Y")).getValue();
         msg = ((ResourceRef)trap.getAttribute("Trap")).toString();
-        int target = ((DecNumber)trap.getAttribute("Target")).getValue();
+        int target = (int)((IdsBitmap)trap.getAttribute("Target")).getValue();
         if (target < 0) target = 0; else if (target > 255) target = 255;
         if (target >= 2 && target <= 30) {
           msg += " (hostile)";
