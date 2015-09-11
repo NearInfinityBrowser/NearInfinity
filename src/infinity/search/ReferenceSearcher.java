@@ -6,6 +6,7 @@ package infinity.search;
 
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
@@ -20,6 +21,7 @@ import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.graphics.TisResource;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.other.EffResource;
 import infinity.resource.sav.SavResource;
 import infinity.resource.text.PlainTextResource;
 
@@ -163,12 +165,30 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
     for (int i = 0; i < struct.getFieldCount(); i++) {
       StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
+          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
         addHit(entry, entry.getSearchString(), o);
-      else if (o instanceof ProRef && ((ProRef)o).getSelectedEntry() == targetEntry)
+      } else if (o instanceof ProRef && ((ProRef)o).getSelectedEntry() == targetEntry) {
         addHit(entry, entry.getSearchString(), o);
-      else if (o instanceof AbstractStruct)
+      } else if (o instanceof AbstractStruct) {
         searchStruct(entry, (AbstractStruct)o);
+      }
+    }
+
+    // special cases
+    final String keyword = (targetEntry.toString().lastIndexOf('.') >= 0) ?
+        targetEntry.toString().substring(0, targetEntry.toString().lastIndexOf('.')) :
+          targetEntry.toString();
+    if (struct instanceof EffResource) {
+      // checking resource2/3 fields
+      final String[] fieldName = {"Resource 2", "Resource 3"};
+      for (int i = 0; i < fieldName.length; i++) {
+        StructEntry o = struct.getAttribute(fieldName[i]);
+        if (o instanceof TextString) {
+          if (o.toString().equalsIgnoreCase(keyword)) {
+            addHit(entry, entry.getSearchString(), o);
+          }
+        }
+      }
     }
   }
 
