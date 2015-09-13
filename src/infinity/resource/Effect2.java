@@ -62,7 +62,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     list.add(new IdsBitmap(buffer, offset + 88, 4, "Source item slot", "SLOTS.IDS"));
     list.add(new TextString(buffer, offset + 92, 32, "Variable name"));
     list.add(new DecNumber(buffer, offset + 124, 4, "Caster level"));
-    list.add(new Unknown(buffer, offset + 128, 4));
+    list.add(new Flag(buffer, offset + 128, 4, "Internal flags", null));
     list.add(new SecTypeBitmap(buffer, offset + 132, 4, "Secondary type"));
     list.add(new Unknown(buffer, offset + 136, 4));
     list.add(new Unknown(buffer, offset + 140, 56));
