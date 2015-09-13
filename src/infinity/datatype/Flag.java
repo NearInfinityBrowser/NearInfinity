@@ -26,11 +26,13 @@ import javax.swing.JPanel;
 
 public class Flag extends Datatype implements Editable, ActionListener
 {
-  String nodesc;
-  String[] table;
+  public static final String DESC_NONE = "No flags set";
+
+  protected String nodesc;
+  protected String[] table;
   private ActionListener container;
   private JButton bAll, bNone;
-  private JCheckBox checkBoxes[];
+  private JCheckBox[] checkBoxes;
   private long value;
 
   Flag(byte buffer[], int offset, int length, String name)
@@ -52,10 +54,13 @@ public class Flag extends Datatype implements Editable, ActionListener
   public Flag(StructEntry parent, byte buffer[], int offset, int length, String name, String[] stable)
   {
     this(parent, buffer, offset, length, name);
-    nodesc = stable[0];
+    nodesc = (stable != null && stable.length > 0 && stable[0] != null) ? stable[0] : DESC_NONE;
     table = new String[8 * length];
-    for (int i = 1; i < stable.length; i++)
-      table[i - 1] = stable[i];
+    if (stable != null) {
+      for (int i = 1; i < stable.length; i++) {
+        table[i - 1] = stable[i];
+      }
+    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
