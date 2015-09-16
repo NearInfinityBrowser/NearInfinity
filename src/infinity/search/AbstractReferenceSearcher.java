@@ -37,8 +37,8 @@ import javax.swing.ProgressMonitor;
 abstract class AbstractReferenceSearcher implements Runnable, ActionListener
 {
   protected static final String[] FILE_TYPES = {"2DA", "ARE", "BCS", "CHR", "CHU", "CRE", "DLG",
-                                                "EFF", "GAM", "ITM", "PRO", "SAV", "SPL", "STO",
-                                                "VEF", "VVC", "WED", "WMP"};
+                                                "EFF", "GAM", "INI", "ITM", "PRO", "SAV", "SPL",
+                                                "STO", "VEF", "VVC", "WED", "WMP"};
 
   private static boolean lastSelected[] = {true};
   final ResourceEntry targetEntry;
@@ -274,12 +274,12 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
         selectedExt = new String[]{"2DA", "BCS", "DLG", "GAM", "WMP"};
       } else if ("BAM".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF",
-                                   "GAM", "ITM", "PRO", "SPL", "VEF", "VVC", "WMP"};
+                                   "GAM", "INI", "ITM", "PRO", "SPL", "VEF", "VVC", "WMP"};
       } else if ("BMP".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM",
-                                   "ITM", "PRO", "SPL", "VEF", "VVC"};
+                                   "INI", "ITM", "PRO", "SPL", "VEF", "VVC"};
       } else if ("CRE".equalsIgnoreCase(ext)) {
-        selectedExt = new String[]{"2DA", "ARE", "BCS", "DLG", "EFF", "GAM", "ITM", "SPL"};
+        selectedExt = new String[]{"2DA", "ARE", "BCS", "DLG", "EFF", "GAM", "INI", "ITM", "SPL"};
       } else if ("DLG".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"2DA", "BCS", "CRE", "DLG", "GAM"};
       } else if ("EFF".equalsIgnoreCase(ext)) {
@@ -305,11 +305,11 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
       } else if ("TIS".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"WED"};
       } else if ("VVC".equalsIgnoreCase(ext)) {
-        selectedExt = new String[]{"ARE", "BCS", "DLG", "EFF", "GAM", "ITM", "PRO",
+        selectedExt = new String[]{"ARE", "BCS", "DLG", "EFF", "GAM", "INI", "ITM", "PRO",
                                    "SPL", "VEF", "VVC"};
       } else if ("WAV".equalsIgnoreCase(ext)) {
-        selectedExt = new String[]{"2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "ITM",
-                                   "PRO", "SPL", "VEF", "VVC"};
+        selectedExt = new String[]{"2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "INI",
+                                   "ITM", "PRO", "SPL", "VEF", "VVC"};
       } else if ("WED".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"ARE"};
       } else if ("WMP".equalsIgnoreCase(ext)) {

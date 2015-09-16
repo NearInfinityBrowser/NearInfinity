@@ -16,8 +16,10 @@ import infinity.resource.bcs.BcsResource;
 import infinity.resource.cre.CreResource;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.text.PlainTextResource;
 
 import java.awt.Component;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
@@ -28,7 +30,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   public ScriptReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG"}, parent);
+    super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
     this.targetResRef = targetEntry.getResourceName().substring(0,
                           targetEntry.getResourceName().indexOf('.'));
     this.cutscene = Pattern.compile("StartCutScene(\""
@@ -44,8 +46,9 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
       if (cutscene.matcher(text).find()) {
         addHit(entry, null, null);
       }
-    }
-    else {
+    } else if (resource instanceof PlainTextResource) {
+      searchText(entry, (PlainTextResource)resource);
+    } else {
       searchStruct(entry, (AbstractStruct)resource);
     }
   }
@@ -77,6 +80,20 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
           addHit(entry, o.getName(), o);
         }
       }
+    }
+  }
+
+  private void searchText(ResourceEntry entry, PlainTextResource text)
+  {
+    String name = getTargetEntry().getResourceName();
+    int idx = name.lastIndexOf('.');
+    if (idx > 0) {
+      name = name.substring(0, idx);
+    }
+    Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
+    Matcher m = p.matcher(text.getText());
+    if (m.find()) {
+      addHit(entry, entry.getSearchString(), null);
     }
   }
 }
