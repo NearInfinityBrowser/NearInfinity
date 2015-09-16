@@ -25,6 +25,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -40,8 +41,10 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
                                                 "EFF", "GAM", "INI", "ITM", "PRO", "SAV", "SPL",
                                                 "STO", "VEF", "VVC", "WED", "WMP"};
 
-  private static boolean lastSelected[] = {true};
+  private static HashMap<String, Boolean[]> lastSelection = new HashMap<String, Boolean[]>();
+
   final ResourceEntry targetEntry;
+
   private final ChildFrame selectframe = new ChildFrame("References", true);
   private final Component parent;
   private final JButton bStart = new JButton("Search", Icons.getIcon("Find16.gif"));
@@ -112,9 +115,12 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
         boxpanel.add(boxes[i]);
       }
       boxpanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 0));
-      if (lastSelected.length == boxes.length)
-        for (int i = 0; i < lastSelected.length; i++)
-          boxes[i].setSelected(lastSelected[i]);
+      Boolean[] selection = lastSelection.get(this.targetEntry.getExtension());
+      if (selection != null) {
+        for (int i = 0; i < selection.length; i++) {
+          boxes[i].setSelected(selection[i]);
+        }
+      }
 
       GridBagConstraints gbc = new GridBagConstraints();
       JPanel ipanel1 = new JPanel(new GridBagLayout());
@@ -165,17 +171,24 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
     if (event.getSource() == bStart) {
       selectframe.setVisible(false);
       files = new ArrayList<ResourceEntry>();
-      lastSelected = new boolean[filetypes.length];
-      for (int i = 0; i < filetypes.length; i++) {
-        if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getResources(filetypes[i]));
-        lastSelected[i] = boxes[i].isSelected();
+      Boolean[] selection = lastSelection.get(targetEntry.getExtension());
+      if (selection == null) {
+        selection = new Boolean[filetypes.length];
+        lastSelection.put(targetEntry.getExtension(), selection);
       }
-      if (files.size() > 0)
+      for (int i = 0; i < filetypes.length; i++) {
+        if (boxes[i].isSelected()) {
+          files.addAll(ResourceFactory.getResources(filetypes[i]));
+        }
+        selection[i] = Boolean.valueOf(boxes[i].isSelected());
+      }
+      if (files.size() > 0) {
         new Thread(this).start();
+      }
     }
-    else if (event.getSource() == bCancel)
+    else if (event.getSource() == bCancel) {
       selectframe.setVisible(false);
+    }
     else if (event.getSource() == bInvert) {
       for (final JCheckBox box: boxes) {
         box.setSelected(!box.isSelected());
@@ -200,7 +213,6 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
             boxes[i].setSelected(true);
           }
         }
-      } else {
       }
     }
   }
