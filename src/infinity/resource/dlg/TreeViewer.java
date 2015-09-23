@@ -79,9 +79,6 @@ import javax.swing.tree.TreeSelectionModel;
 final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
                                                  TableModelListener, PropertyChangeListener
 {
-  // Max. node depth allowed to search or expand the tree model
-  private static final int MAX_DEPTH = 32;
-
   private final JPopupMenu pmTree = new JPopupMenu();
   private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes");
   private final JMenuItem miExpand = new JMenuItem("Expand selected node");
@@ -530,13 +527,39 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     add(splitv, BorderLayout.CENTER);
   }
 
+  // Checks whether given path contains a node with the specified item object
+  private boolean nodeExists(TreePath path, Object item)
+  {
+    if (path != null && item != null) {
+      final Object[] nodes = path.getPath();
+      if (nodes != null) {
+        for (int i = 1; i < nodes.length; i++) {
+          if (nodes[i] instanceof DefaultMutableTreeNode) {
+            final Object curItem = ((DefaultMutableTreeNode)nodes[i]).getUserObject();
+            if (item.equals(curItem)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   // Expands all children and their children of the given path
-  private void expandNode(TreePath path, int maxDepth)
+  private void expandNode(TreePath path)
   {
     final TreePath curPath = path;
     if (worker != null && worker.userCancelled()) return;
-    if (path != null && maxDepth > path.getPathCount()) {
+    if (path != null) {
       TreeNode node = (TreeNode)path.getLastPathComponent();
+
+      final Object item = ((DefaultMutableTreeNode)node).getUserObject();
+      if (item instanceof StateItem) {
+        if (nodeExists(path.getParentPath(), item)) {
+          return;
+        }
+      }
 
       if (worker != null) { worker.advanceProgress(); }
       if (!dlgTree.isExpanded(path)) {
@@ -552,26 +575,24 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         }
       }
 
-      for (int i = 0; i < node.getChildCount(); i++) {
-        expandNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth);
+      for (int i = 0, count = node.getChildCount(); i < count; i++) {
+        expandNode(curPath.pathByAddingChild(node.getChildAt(i)));
         if (worker != null && worker.userCancelled()) return;
       }
     }
   }
 
   // Collapses all children and their children of the given path
-  private void collapseNode(TreePath path, int maxDepth)
+  private void collapseNode(TreePath path)
   {
     final TreePath curPath = path;
     if (worker != null && worker.userCancelled()) return;
     if (path != null) {
-      if (maxDepth > path.getPathCount()) {
-        TreeNode node = (TreeNode)path.getLastPathComponent();
+      TreeNode node = (TreeNode)path.getLastPathComponent();
 
-        for (int i = 0; i < node.getChildCount(); i++) {
-          collapseNode(curPath.pathByAddingChild(node.getChildAt(i)), maxDepth);
-          if (worker != null && worker.userCancelled()) return;
-        }
+      for (int i = 0; i < node.getChildCount(); i++) {
+        collapseNode(curPath.pathByAddingChild(node.getChildAt(i)));
+        if (worker != null && worker.userCancelled()) return;
       }
 
       if (worker != null) { worker.advanceProgress(); }
@@ -639,9 +660,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   // Applies expand or collapse operations on a set of dialog tree nodes in a background task
   private static class TreeWorker extends SwingWorker<Void, Void>
   {
-    // Display short notice after expanding more than this number of nodes
-    private static final int MAX_NODE_WAIT = 5000;
-
     // Supported operations
     public enum Type { Expand, Collapse }
 
@@ -658,7 +676,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       this.path = path;
 
       String msg;
-      switch (this.type) {
+      switch (getType()) {
         case Expand:
           msg = "Expanding nodes";
           break;
@@ -678,12 +696,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     protected Void doInBackground() throws Exception
     {
       try {
-        switch (type) {
+        switch (getType()) {
           case Expand:
-            instance.expandNode(path, MAX_DEPTH);
+            instance.expandNode(path);
             break;
           case Collapse:
-            instance.collapseNode(path, MAX_DEPTH);
+            instance.collapseNode(path);
             break;
         }
       } catch (Exception e) {
@@ -712,12 +730,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       if (progress != null) {
         progress.setMaximum(progress.getMaximum() + 1);
-        if ((progress.getMaximum() < MAX_NODE_WAIT) || getType() == Type.Collapse) {
-          if ((progress.getMaximum() - 1) % 100 == 0) {
-            progress.setNote(String.format("Processing node %1$d", progress.getMaximum() - 1));
-          }
-        } else if (progress.getMaximum() == MAX_NODE_WAIT && getType() == Type.Expand) {
-          progress.setNote("You may cancel this operation.");
+        if ((progress.getMaximum() - 1) % 100 == 0) {
+          progress.setNote(String.format("Processing node %1$d", progress.getMaximum() - 1));
         }
         progress.setProgress(progress.getMaximum() - 1);
       }
