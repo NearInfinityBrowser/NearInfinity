@@ -175,7 +175,7 @@ public class QuickSearch extends JPanel implements Runnable
     bOkNew.setToolTipText("Open in new window (Shortcut: Shift+Enter)");
     bCancel = new JButton(Icons.getIcon("Check_Not16.gif"));
     bCancel.setMargin(new Insets(1, 2, 1, 2));
-    bCancel.setToolTipText("Cancel search (Shortcut: Escape)");
+    bCancel.setToolTipText("Cancel search (Shortcut: Esc)");
     bCancel.addActionListener(rejectAction);
 
     GridBagConstraints gbc = new GridBagConstraints();
