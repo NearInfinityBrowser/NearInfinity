@@ -68,7 +68,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   AbstractReferenceSearcher(ResourceEntry targetEntry, String filetypes[], boolean[] preselect, Component parent)
   {
     this.targetEntry = targetEntry;
-    if (targetEntry.getExtension().equalsIgnoreCase("CRE")) {
+    if (getTargetExtension().equalsIgnoreCase("CRE")) {
       String resName = targetEntry.getResourceName();
       if (resName.lastIndexOf('.') > 0) {
         resName = resName.substring(0, resName.lastIndexOf('.'));
@@ -115,7 +115,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
         boxpanel.add(boxes[i]);
       }
       boxpanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 0));
-      Boolean[] selection = lastSelection.get(this.targetEntry.getExtension());
+      Boolean[] selection = lastSelection.get(getTargetExtension());
       if (selection != null) {
         for (int i = 0; i < selection.length; i++) {
           boxes[i].setSelected(selection[i]);
@@ -171,10 +171,10 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
     if (event.getSource() == bStart) {
       selectframe.setVisible(false);
       files = new ArrayList<ResourceEntry>();
-      Boolean[] selection = lastSelection.get(targetEntry.getExtension());
+      Boolean[] selection = lastSelection.get(getTargetExtension());
       if (selection == null) {
         selection = new Boolean[filetypes.length];
-        lastSelection.put(targetEntry.getExtension(), selection);
+        lastSelection.put(getTargetExtension(), selection);
       }
       for (int i = 0; i < filetypes.length; i++) {
         if (boxes[i].isSelected()) {
@@ -261,6 +261,11 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   ResourceEntry getTargetEntry()
   {
     return targetEntry;
+  }
+
+  String getTargetExtension()
+  {
+    return (targetEntry != null) ? targetEntry.getExtension() : "";
   }
 
   private boolean isPreselected(String[] filetypes, boolean[] preselect, int index)
