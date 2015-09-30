@@ -5209,7 +5209,7 @@ public final class EffectFactory
   {
     boolean isIWDEE = (Profile.getGame() == Profile.Game.IWDEE);
 
-    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       switch (effectType) {
         case 12:    // Damage
           s.add(new Flag(buffer, offset, 4, "Special",
@@ -5219,11 +5219,7 @@ public final class EffectFactory
           break;
 
         case 181:   // Disallow item type
-          if (Profile.isEnhancedEdition()) {
-            s.add(new StringRef(buffer, offset, "Description note"));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
-          }
+          s.add(new StringRef(buffer, offset, "Description note"));
           break;
 
         case 218: // Stoneskin effect
@@ -5300,6 +5296,8 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Special"));
           break;
       }
+    } else if (Profile.getEngine() == Profile.Engine.BG2) {
+      s.add(new DecNumber(buffer, offset, 4, "Special"));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {
         case 12:    // Damage
