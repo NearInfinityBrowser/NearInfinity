@@ -1888,9 +1888,10 @@ public final class EffectFactory
             } catch (NumberFormatException e) {
             }
           }
-        } else {
-          s_poricon = new String[0];
         }
+      }
+      if (s_poricon == null) {
+        s_poricon = new String[0];
       }
     }
     return s_poricon;

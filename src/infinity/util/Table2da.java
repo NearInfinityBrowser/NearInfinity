@@ -23,6 +23,7 @@ public class Table2da
 
   private final List<List<String>> table = new ArrayList<List<String>>();
   private final ResourceEntry entry;
+  private String defaultValue;
 
   public Table2da(String resource)
   {
@@ -75,6 +76,12 @@ public class Table2da
     return table.isEmpty();
   }
 
+  /** Returns the default value of the table. */
+  public String getDefaultValue()
+  {
+    return (defaultValue != null && !defaultValue.isEmpty()) ? defaultValue : "0";
+  }
+
   private void init(ResourceEntry entry)
   {
     table.clear();
@@ -88,6 +95,22 @@ public class Table2da
       String[] lines = text.getText().split("\\r?\\n");
       if (lines.length >= 2) {
         int minSize = 0;
+
+        // checking signature
+        String[] sig = lines[0].trim().split("\\s+");
+        if (sig.length > 1) {
+          if (!sig[0].equalsIgnoreCase("2DA")) {
+            throw new Exception("Invalid signature: " + sig[0]);
+          }
+          if (!sig[1].equalsIgnoreCase("V1.0")) {
+            throw new Exception("Invalid version: " + sig[1]);
+          }
+        } else {
+          return;
+        }
+
+        // storing default value
+        defaultValue = lines[1].trim();
 
         // adding 2da entries (skipping first two lines)
         for (int idx = 2; idx < lines.length; idx++) {
