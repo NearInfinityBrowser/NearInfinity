@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Locale;
 
 import javax.swing.ImageIcon;
@@ -31,6 +32,14 @@ import javax.swing.JOptionPane;
 
 public abstract class ResourceEntry implements Comparable<ResourceEntry>
 {
+  // list of file extensions not shown in the resource tree
+  private static final HashSet<String> skippedExtensions = new HashSet<String>();
+
+  static {
+    skippedExtensions.add("BAK");
+    skippedExtensions.add("BIF");
+  }
+
   private String searchString;
 
   static int[] getLocalFileInfo(File file)
@@ -152,7 +161,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
    */
   public boolean isVisible()
   {
-    return !getResourceName().toUpperCase(Locale.ENGLISH).endsWith(".BAK");
+    return !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH));
   }
 
   protected abstract File getActualFile(boolean ignoreoverride);
