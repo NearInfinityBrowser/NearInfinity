@@ -21,6 +21,7 @@ public class Table2da
   /** Row index pointing to row labels. */
   public static final int ROW_HEADER    = 0;
 
+  private final List<String> header = new ArrayList<String>();
   private final List<List<String>> table = new ArrayList<List<String>>();
   private final ResourceEntry entry;
   private String defaultValue;
@@ -59,7 +60,10 @@ public class Table2da
     return table.size();
   }
 
-  /** Returns element at specified location. Returns <code>null</code> on error. */
+  /**
+   * Returns element at specified location.
+   * Returns {@link #getDefaultValue()} if arguments are out of range.
+   */
   public String get(int row, int col)
   {
     if (row >= 0 && row < getRowCount()) {
@@ -67,7 +71,17 @@ public class Table2da
         return table.get(row).get(col);
       }
     }
-    return null;
+    return defaultValue;
+  }
+
+  /**
+   * Returns header label of specified column.
+   * <b>Note:</b> Column 0 always contains empty label.
+   * Returns <code>null</code> on error.
+   */
+  public String getHeader(int col)
+  {
+    return (col >= 0 && col < header.size()) ? header.get(col) : null;
   }
 
   /** Returns whether table contains any data. */
@@ -112,18 +126,27 @@ public class Table2da
         // storing default value
         defaultValue = lines[1].trim();
 
-        // adding 2da entries (skipping first two lines)
-        for (int idx = 2; idx < lines.length; idx++) {
+        // setting table header
+        if (lines.length > 2) {
+          String[] elements = lines[2].split("\\s+");
+          header.add(""); // first column does not contain label
+          for (final String s: elements) {
+            if (!s.isEmpty()) {
+              header.add(s);
+            }
+          }
+        }
+
+        // adding actual table entries
+        for (int idx = 3; idx < lines.length; idx++) {
           String curLine = lines[idx].trim();
           String[] elements = curLine.split("\\s+");
           if (elements.length > 0) {
             List<String> listLine = new ArrayList<String>();
-            if (idx == 2) {
-              // special: contains column labels
-              listLine.add("");
-            }
             for (final String s: elements) {
-              listLine.add(s);
+              if (!s.isEmpty()) {
+                listLine.add(s);
+              }
             }
             table.add(listLine);
             minSize = Math.max(minSize, listLine.size());
@@ -134,8 +157,11 @@ public class Table2da
         for (int idx = 0, size = table.size(); idx < size; idx++) {
           List<String> curList = table.get(idx);
           while (curList.size() < minSize) {
-            curList.add("");
+            curList.add(defaultValue);
           }
+        }
+        while (header.size() < minSize) {
+          header.add("");
         }
       }
     } catch (Exception e) {

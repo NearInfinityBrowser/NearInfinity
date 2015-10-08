@@ -39,7 +39,7 @@ public class Summon2daBitmap extends HashBitmap
       if (ResourceFactory.resourceExists(TableName)) {
         Table2da table = Table2daCache.get(TableName);
         if (table != null) {
-          for (int row = 1, size = table.getRowCount(); row < size; row++) {
+          for (int row = 0, size = table.getRowCount(); row < size; row++) {
             String[] sid = table.get(row, 0).split("_");
             if (sid.length > 0) {
               try {
