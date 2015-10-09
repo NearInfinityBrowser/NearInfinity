@@ -21,6 +21,7 @@ import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SecTypeBitmap;
+import infinity.datatype.SpellProtBitmap;
 import infinity.datatype.StringRef;
 import infinity.datatype.Summon2daBitmap;
 import infinity.datatype.TextString;
@@ -194,6 +195,7 @@ public final class EffectFactory
     "Daytime", "Not daytime", "Outdoor", "Not outdoor",
     // 90..
     "Keg", "Not keg", "Outsider", "Not outsider"};
+  // TODO: remove this array after all Enhanced Editions have been updated
   public static final String[] s_cretype_ee = {
     // 0..9
     "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
@@ -709,7 +711,7 @@ public final class EffectFactory
   private static boolean updateOpcode318(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
-      if (Profile.getGame() == Profile.Game.IWDEE) {
+      if (Profile.isEnhancedEdition()) {
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
         if (map.containsKey(EffectEntry.IDX_OPCODE)) {
           int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
@@ -718,20 +720,54 @@ public final class EffectFactory
             case 324: // Immunity to spell and message
             case 326: // Apply effects list
             {
-              int param2 = ((Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
-              if (param2 >= 102 && param2 <= 109) {
-                replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                             new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                           0, 4, "IDS entry", s_cretype_ee[param2]));
-              } else {
-                StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                if (entry instanceof DecNumber) {
-                  // no replace action needed
-                  return false;
+              BitmapEx bitmap = (BitmapEx)getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
+              if (bitmap instanceof SpellProtBitmap) {
+                SpellProtBitmap spb = (SpellProtBitmap)bitmap;
+                if (spb.useCustomValue()) {
+                  String idsFile = spb.getIdsFile();
+                  if (!idsFile.isEmpty()) {
+                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                 new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                               0, 4, "Creature value", idsFile));
+                  } else {
+                    StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
+                    if (entry instanceof DecNumber && entry.getName().equals("Creature value")) {
+                      // no replace action needed
+                      return false;
+                    } else {
+                      replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                   new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                                 0, 4, "Creature value"));
+                    }
+                  }
                 } else {
+                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
+                  if (entry.getName().equals("Unused")) {
+                    // no replace action needed
+                    return false;
+                  } else {
+                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                               0, 4, "Unused"));
+                  }
+                }
+              } else {
+                // TODO: remove this section after all Enhanced Editions have been updated
+                int param2 = bitmap.getValue();
+                if (param2 >= 102 && param2 <= 109) {
                   replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                               new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                             0, 4, "Unused"));
+                               new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                             0, 4, "Creature value", s_cretype_ee[param2]));
+                } else {
+                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
+                  if (entry.getName().equals("Unused")) {
+                    // no replace action needed
+                    return false;
+                  } else {
+                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                               0, 4, "Unused"));
+                  }
                 }
               }
               break;
@@ -3702,15 +3738,33 @@ public final class EffectFactory
 
       case 318: // Protection from Spell, Ex: Set stat
         if (isExtended) {
-          int param2 = DynamicArray.getInt(buffer, offset + 4);
-          if (param2 >= 102 && param2 <= 109) {
-            s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", s_cretype_ee[param2]));
+          BitmapEx bitmap = null;
+          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
+            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
+            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
+            if (spb.useCustomValue()) {
+              String idsFile = spb.getIdsFile();
+              if (!idsFile.isEmpty()) {
+                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
+              } else {
+                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
+              }
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            // TODO: remove this section after all Enhanced Editions have been updated
+            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
+            int param2 = bitmap.getValue();
+            if (param2 >= 102 && param2 <= 109) {
+              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           }
-          BitmapEx bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-          s.add(bitmap);
-          if (parent != null && parent instanceof UpdateListener) {
+          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
             bitmap.addUpdateListener((UpdateListener)parent);
           }
           restype = "SPL";
@@ -3728,15 +3782,33 @@ public final class EffectFactory
       case 324: // Immunity to spell and message
       case 326: // Apply effects list
         if (isExtended) {
-          int param2 = DynamicArray.getInt(buffer, offset + 4);
-          if (param2 >= 102 && param2 <= 109) {
-            s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", s_cretype_ee[param2]));
+          BitmapEx bitmap = null;
+          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
+            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
+            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
+            if (spb.useCustomValue()) {
+              String idsFile = spb.getIdsFile();
+              if (!idsFile.isEmpty()) {
+                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
+              } else {
+                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
+              }
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            // TODO: remove this section after all Enhanced Editions have been updated
+            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
+            int param2 = bitmap.getValue();
+            if (param2 >= 102 && param2 <= 109) {
+              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           }
-          BitmapEx bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-          s.add(bitmap);
-          if (parent != null && parent instanceof UpdateListener) {
+          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
             bitmap.addUpdateListener((UpdateListener)parent);
           }
           restype = "SPL";
