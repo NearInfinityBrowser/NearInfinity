@@ -21,15 +21,15 @@ public class SpellProtBitmap extends BitmapEx
 {
   private static final String tableName = "SPLPROT.2DA";
   private static final String[] relation = { "<=", "=", "<", ">", ">=", "!=",
-                                             "<= [bit]", ">= [bit]", "= [bit]",
-                                             "!= [bit]", "> [bit]", "< [bit]" };
+                                             "bit_l_e", "bit_g_e", "bit_eq",
+                                             "bit_uneq", "bit_greater", "bit_less" };
   private static final HashMap<Integer, String> statIds = new HashMap<Integer, String>();
   private static String[] creType;
 
   static {
     statIds.put(152, "KIT.IDS");
     statIds.put(0x106, "AREATYPE.IDS");
-    statIds.put(0x107, "TIMEODAY.IDS");
+//    statIds.put(0x107, "TIMEODAY.IDS");
     statIds.put(0x10a, "EA.IDS");
     statIds.put(0x10b, "GENERAL.IDS");
     statIds.put(0x10c, "RACE.IDS");
@@ -103,7 +103,11 @@ public class SpellProtBitmap extends BitmapEx
                 label = "Not source";
                 break;
               case 0x102: // circle size
-                label = String.format("Circle size %1$s %2$d", getRelation(rel), value);
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("Circle size %1$s %2$d [0x%3$x]", getRelation(rel), value, value);
+                } else {
+                  label = String.format("Circle size %1$s %2$d", getRelation(rel), value);
+                }
                 break;
               case 0x103: // use two rows of splprot.2da
                 label = String.format("Match entries %1$d and %2$d", value, rel);
@@ -119,12 +123,20 @@ public class SpellProtBitmap extends BitmapEx
                 }
                 break;
               case 0x106: // areatype (like outdoors, forest, etc)
-                label = String.format("AREATYPE %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                } else {
+                  label = String.format("AREATYPE %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                }
+                  label = String.format("AREATYPE %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)));
                 break;
               case 0x107: // daytime
-                label = (value == 0) ? "Daytime" : "Not daytime";
+                // TODO: confirm
+                label = (value == 0) ? "Not daytime" : "Daytime";
                 break;
               case 0x108: // source and target ethical match
                 switch (rel) {
@@ -137,49 +149,112 @@ public class SpellProtBitmap extends BitmapEx
                 label = "Evasion check";
                 break;
               case 0x10a: // EA
-                label = String.format("EA %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("EA.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("EA %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("EA.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("EA %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("EA.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x10b: // GENERAL
-                label = String.format("GENERAL %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("GENERAL %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("GENERAL %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x10c: // RACE
-                label = String.format("RACE %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("RACE.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("RACE %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("RACE.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("RACE %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("RACE.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x10d: // CLASS
-                label = String.format("CLASS %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("CLASS.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("CLASS %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("CLASS.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("CLASS %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("CLASS.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x10e: // SPECIFIC
-                label = String.format("SPECIFIC %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("SPECIFIC.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("SPECIFIC %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("SPECIFIC.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("SPECIFIC %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("SPECIFIC.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x10f: // GENDER
-                label = String.format("GENDER %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("GENDER.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("GENDER %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("GENDER.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("GENDER %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("GENDER.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x110: // ALIGNMENT
-                label = String.format("ALIGNMENT %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("ALIGNMEN.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("ALIGNMENT %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("ALIGNMEN.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("ALIGNMENT %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("ALIGNMEN.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x111: // STATE
-                label = String.format("STATE %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("STATE.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("STATE %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("STATE.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("STATE %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("STATE.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x112: // SPELL STATE
-                label = String.format("SPLSTATE %1$s %2$s",
-                                      getRelation(rel),
-                                      getIdsValue("SPLSTATE.IDS", value, isBitwiseRelation(rel)));
+                if (isBitwiseRelation(rel) && value != -1) {
+                  label = String.format("SPLSTATE %1$s %2$s [0x%3$x]",
+                                        getRelation(rel),
+                                        getIdsValue("SPLSTATE.IDS", value, isBitwiseRelation(rel)),
+                                        value);
+                } else {
+                  label = String.format("SPLSTATE %1$s %2$s",
+                                        getRelation(rel),
+                                        getIdsValue("SPLSTATE.IDS", value, isBitwiseRelation(rel)));
+                }
                 break;
               case 0x113: // source and target allies
                 switch (rel) {
@@ -203,9 +278,15 @@ public class SpellProtBitmap extends BitmapEx
                                           getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
                                           getRelation(rel));
                   } else {
-                    label = String.format("STAT %1$s %2$s %3$d",
-                                          getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
-                                          getRelation(rel), value);
+                    if (isBitwiseRelation(rel)) {
+                      label = String.format("STAT %1$s %2$s %3$x",
+                                            getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
+                                            getRelation(rel), value);
+                    } else {
+                      label = String.format("STAT %1$s %2$s %3$d",
+                                            getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
+                                            getRelation(rel), value);
+                    }
                   }
                 } else {
                   label = "Undefined";
