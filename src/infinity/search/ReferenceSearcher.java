@@ -271,7 +271,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
     if (idx > 0) {
       name = name.substring(0, idx);
     }
-    Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
+    Pattern p = Pattern.compile("\\b(AP_|GA_)?" + name + "\\b", Pattern.CASE_INSENSITIVE);
     Matcher m = p.matcher(text.getText());
     if (m.find()) {
       addHit(entry, entry.getSearchString(), null);
