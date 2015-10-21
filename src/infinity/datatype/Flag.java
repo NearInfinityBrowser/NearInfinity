@@ -17,6 +17,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -29,7 +30,7 @@ public class Flag extends Datatype implements Editable, ActionListener
   public static final String DESC_NONE = "No flags set";
 
   protected String nodesc;
-  protected String[] table;
+  protected String[] table, toolTable;
   private ActionListener container;
   private JButton bAll, bNone;
   private JCheckBox[] checkBoxes;
@@ -46,19 +47,64 @@ public class Flag extends Datatype implements Editable, ActionListener
     read(buffer, offset);
   }
 
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the defaul
+   *               separator char ';'.
+   */
   public Flag(byte buffer[], int offset, int length, String name, String[] stable)
   {
     this(null, buffer, offset, length, name, stable);
   }
 
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the specified
+   *               separator char.
+   * @param separator Character that can be used to split flag description and tool tip.
+   */
+  public Flag(byte buffer[], int offset, int length, String name, String[] stable, char separator)
+  {
+    this(null, buffer, offset, length, name, stable, separator);
+  }
+
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the defaul
+   *               separator char ';'.
+   */
   public Flag(StructEntry parent, byte buffer[], int offset, int length, String name, String[] stable)
+  {
+    this(parent, buffer, offset, length, name, stable, ';');
+  }
+
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the specified
+   *               separator char.
+   * @param separator Character that can be used to split flag description and tool tip.
+   */
+  public Flag(StructEntry parent, byte buffer[], int offset, int length, String name, String[] stable,
+              char separator)
   {
     this(parent, buffer, offset, length, name);
     nodesc = (stable != null && stable.length > 0 && stable[0] != null) ? stable[0] : DESC_NONE;
     table = new String[8 * length];
+    toolTable = new String[8 * length];
     if (stable != null) {
       for (int i = 1; i < stable.length; i++) {
-        table[i - 1] = stable[i];
+        String[] s = null;
+        try {
+          s = stable[i].split(String.valueOf(separator));
+        } catch (PatternSyntaxException pse) {
+        }
+        if (s == null || s.length == 0) {
+          table[i - 1] = stable[i];
+          toolTable[i - 1] = null;
+        } else {
+          table[i - 1] = s[0];
+          toolTable[i - 1] = (s.length > 1) ? s[1] : null;
+        }
       }
     }
   }
@@ -90,10 +136,14 @@ public class Flag extends Datatype implements Editable, ActionListener
     this.container = container;
     checkBoxes = new JCheckBox[table.length];
     for (int i = 0; i < table.length; i++) {
-      if (table[i] == null || table[i].equals(""))
+      if (table[i] == null || table[i].isEmpty()) {
         checkBoxes[i] = new JCheckBox("Unknown (" + i + ')');
-      else
+      } else {
         checkBoxes[i] = new JCheckBox(table[i] + " (" + i + ')');
+      }
+      if (toolTable[i] != null && !toolTable[i].isEmpty()) {
+        checkBoxes[i].setToolTipText(toolTable[i]);
+      }
       checkBoxes[i].addActionListener(container);
       checkBoxes[i].setActionCommand(StructViewer.UPDATE_VALUE);
     }

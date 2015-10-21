@@ -14,7 +14,7 @@ import infinity.resource.StructEntry;
  */
 public class FlagEx extends Flag
 {
-  private final Vector<UpdateListener> listeners;
+  private final Vector<UpdateListener> listeners = new Vector<UpdateListener>();
 
   FlagEx(byte[] buffer, int offset, int length, String name)
   {
@@ -24,18 +24,48 @@ public class FlagEx extends Flag
   FlagEx(StructEntry parent, byte[] buffer, int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name);
-    listeners = new Vector<UpdateListener>();
   }
 
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the defaul
+   *               separator char ';'.
+   */
   public FlagEx(byte[] buffer, int offset, int length, String name, String[] stable)
   {
-    this(null, buffer, offset, length, name, stable);
+    super(buffer, offset, length, name, stable);
   }
 
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the specified
+   *               separator char.
+   * @param separator Character that can be used to split flag description and tool tip.
+   */
+  public FlagEx(byte[] buffer, int offset, int length, String name, String[] stable, char separator)
+  {
+    super(buffer, offset, length, name, stable, separator);
+  }
+
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the defaul
+   *               separator char ';'.
+   */
   public FlagEx(StructEntry parent, byte[] buffer, int offset, int length, String name, String[] stable)
   {
     super(parent, buffer, offset, length, name, stable);
-    listeners = new Vector<UpdateListener>();
+  }
+
+  /**
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
+   *               Optionally you can combine flag descriptions with tool tips, using the specified
+   *               separator char.
+   * @param separator Character that can be used to split flag description and tool tip.
+   */
+  public FlagEx(StructEntry parent, byte[] buffer, int offset, int length, String name, String[] stable, char separator)
+  {
+    super(parent, buffer, offset, length, name, stable, separator);
   }
 
 //--------------------- Begin Interface Editable ---------------------
