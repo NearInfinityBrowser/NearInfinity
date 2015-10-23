@@ -110,10 +110,10 @@ public class SpellProtBitmap extends BitmapEx
                 }
                 break;
               case 0x103: // use two rows of splprot.2da
-                label = String.format("Match entries %1$d and %2$d", value, rel);
+                label = String.format("Match entries %1$d or %2$d", value, rel);
                 break;
               case 0x104: // negate 0x103
-                label = String.format("Not match entries %1$d and %2$d", value, rel);
+                label = String.format("Not match entries %1$d or %2$d", value, rel);
                 break;
               case 0x105: // source and target morale match
                 switch (rel) {
