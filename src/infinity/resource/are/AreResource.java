@@ -4,7 +4,6 @@
 
 package infinity.resource.are;
 
-import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HexNumber;
@@ -37,6 +36,7 @@ import infinity.util.IdsMapEntry;
 import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -47,16 +47,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 {
   public static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
                                          "Weather", "City", "Forest", "Dungeon",
-                                         "Extended night", "Can rest",
-                                         null, null, null, null, null, null, null, null };
+                                         "Extended night", "Can rest"};
   public static final String s_flag_torment[] = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
                                                  "Lower ward", "Ravel's maze", "Baator", "Rubikon",
                                                  "Negative material plane", "Curst", "Carceri",
-                                                 "Allow day/night", null, null, null, null, null};
+                                                 "Allow day/night"};
   public static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
   public static final String s_atype_ee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
-                                               "Dream area", "Player1 can die"};
+                                             "Dream area", "Player1 can die;Allows death of party leader without ending the game"};
   public static final String s_atype_torment[] = {"Can rest", "Cannot save",
                                                   "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                   "Cannot save", "Can rest with permission"};
@@ -357,13 +356,13 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
     addField(new DecNumber(buffer, offset + 16, 4, "Last saved"));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype_iwd2));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4)));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Bitmap(buffer, offset + 20, 4, "Area type", s_atype_torment));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_torment, null, 4)));
     } else if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype_ee));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4)));
     } else {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", s_atype));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4)));
     }
     addField(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
     addField(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
@@ -373,7 +372,11 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new Flag(buffer, offset + 56, 4, "Edge flags south", s_edge));
     addField(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
     addField(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
-    addField(new Flag(buffer, offset + 72, 2, "Location", updatedLocationFlags()));
+    if (Profile.getGame() == Profile.Game.PST) {
+      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag_torment, null, 2)));
+    } else {
+      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2)));
+    }
     addField(new DecNumber(buffer, offset + 74, 2, "Rain probability"));
     addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
     addField(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
@@ -695,28 +698,52 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     ((DecNumber)getAttribute("# vertices")).setValue(count);
   }
 
-  // Returns updated location flags with entries from AREATYPE.IDS if needed
-  private static String[] updatedLocationFlags()
+  // Uses static array and IDS resource to construct an array of flag labels
+  private static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size)
   {
-    if (Profile.getGame() != Profile.Game.PST) {
-      if (ResourceFactory.resourceExists("AREATYPE.IDS")) {
-        IdsMap map = IdsMapCache.get("AREATYPE.IDS");
-        if (map != null) {
-          for (int i = 0; i < 16; i++) {
-            int flagIdx = i + 1;
-            if (s_flag[flagIdx] == null) {
-              IdsMapEntry entry = map.getValue((long)(1 << i));
-              if (entry != null) {
-                s_flag[flagIdx] = entry.getString();
-              }
-            }
+    ArrayList<String> list = new ArrayList<String>(32);
+
+    // adding static labels
+    if (flags != null && flags.length > 1) {
+      for (int i = 0; i < flags.length; i++) {
+        list.add(flags[i]);
+      }
+    } else {
+      list.add(null); // empty flags label
+    }
+
+    // cleaning up trailing null labels
+    while (list.size() > 1 && list.get(list.size() - 1) == null) {
+      list.remove(list.size() - 1);
+    }
+
+    // getting remaining labels from IDS entries
+    if (ResourceFactory.resourceExists(idsFile)) {
+      IdsMap map = IdsMapCache.get(idsFile);
+      if (map != null) {
+        for (int i = list.size() - 1, count = size*8; i < count; i++) {
+          IdsMapEntry entry = map.getValue((long)(1 << i));
+          if (entry != null) {
+            list.add(entry.getString());
+          } else {
+            list.add(null);
           }
         }
       }
-      return s_flag;
-    } else {
-      return s_flag_torment;
     }
+
+    // cleaning up trailing null labels
+    while (list.size() > 1 && list.get(list.size() - 1) == null) {
+      list.remove(list.size() - 1);
+    }
+
+    // converting list into array
+    String[] retVal = new String[list.size()];
+    for (int i = 0; i < retVal.length; i++) {
+      retVal[i] = list.get(i);
+    }
+
+    return retVal;
   }
 
   /** Displays the area viewer for this ARE resource. */

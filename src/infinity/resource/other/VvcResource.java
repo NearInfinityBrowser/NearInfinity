@@ -24,15 +24,19 @@ import infinity.search.SearchOptions;
 
 public final class VvcResource extends AbstractStruct implements Resource, HasViewerTabs
 {
-  public static final String s_transparency[] = {"No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
-                                                 "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
-                                                 "3D blend", "Not covered by wall", "Persist through time stop", "Ignore dream palette",
-                                                 "2D blend"};
-  public static final String s_tint[] = {"No flags set", "Not light source", "Light source", "Internal brightness", "Time stopped", "",
-                                         "Internal gamma", "Non-reserved palette", "Full palette", "", "Dream palette"};
-  public static final String s_seq[] = {"No flags set", "Looping", "Special lighting", "Modify for height", "Draw animation", "Custom palette",
-                                        "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};
-  public static final String s_face[] = {"Use current", "Face target", "Follow target", "Follow path", "Lock orientation"};
+  public static final String s_transparency[] = {
+      "No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
+      "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
+      "3D blend", "Not covered by wall", "Persist through time stop", "Ignore dream palette",
+      "2D blend"};
+  public static final String s_tint[] = {
+      "No flags set", "Not light source", "Light source", "Internal brightness", "Time stopped", "",
+      "Internal gamma", "Non-reserved palette", "Full palette", "", "Dream palette"};
+  public static final String s_seq[] = {
+      "No flags set", "Looping", "Special lighting", "Modify for height", "Draw animation", "Custom palette",
+      "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};
+  public static final String s_face[] = {"Use current", "Face target", "Follow target", "Follow path",
+                                         "Lock orientation"};
   public static final String s_noyes[] = {"No", "Yes"};
 
   private HexViewer hexViewer;

@@ -6,6 +6,7 @@ package infinity.search;
 
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.TextString;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
@@ -20,6 +21,7 @@ import infinity.resource.graphics.BamResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.graphics.TisResource;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.other.EffResource;
 import infinity.resource.sav.SavResource;
 import infinity.resource.text.PlainTextResource;
 
@@ -70,6 +72,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
   {
+    boolean hit = false;
     for (int i = 0; i < dialog.getFieldCount(); i++) {
       StructEntry o = dialog.getField(i);
       if (o instanceof ResourceRef &&
@@ -89,6 +92,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
             }
             for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
               if (targetEntry.toString().equalsIgnoreCase(resourceUsed.toString())) {
+                hit = true;
                 addHit(entry, entry.getSearchString(), sourceCode);
               } else if (targetEntry == resourceUsed) {
                 // searching for symbolic spell names
@@ -98,7 +102,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
                 }
               }
             }
-            if (targetEntryName != null) {
+            if (!hit && targetEntryName != null) {
               Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
               Matcher m = p.matcher(code);
               if (m.find()) {
@@ -141,13 +145,13 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchScript(ResourceEntry entry, BcsResource bcsfile)
   {
+    boolean hit = false;
     String code = Decompiler.decompile(bcsfile.getCode(), true);
-    for (final ResourceEntry resourceUsed : Decompiler.getResourcesUsed()) {
-      if (resourceUsed == targetEntry) {
-        addHit(entry, null, null);
-      }
+    if (Decompiler.getResourcesUsed().contains(targetEntry)) {
+      hit = true;
+      addHit(entry, entry.getSearchString(), null);
     }
-    if (targetEntryName != null) {
+    if (!hit && targetEntryName != null) {
       Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
       Matcher m = p.matcher(code);
       if (m.find()) {
@@ -161,12 +165,30 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
     for (int i = 0; i < struct.getFieldCount(); i++) {
       StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString()))
+          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
         addHit(entry, entry.getSearchString(), o);
-      else if (o instanceof ProRef && ((ProRef)o).getSelectedEntry() == targetEntry)
+      } else if (o instanceof ProRef && ((ProRef)o).getSelectedEntry() == targetEntry) {
         addHit(entry, entry.getSearchString(), o);
-      else if (o instanceof AbstractStruct)
+      } else if (o instanceof AbstractStruct) {
         searchStruct(entry, (AbstractStruct)o);
+      }
+    }
+
+    // special cases
+    final String keyword = (targetEntry.toString().lastIndexOf('.') >= 0) ?
+        targetEntry.toString().substring(0, targetEntry.toString().lastIndexOf('.')) :
+          targetEntry.toString();
+    if (struct instanceof EffResource) {
+      // checking resource2/3 fields
+      final String[] fieldName = {"Resource 2", "Resource 3"};
+      for (int i = 0; i < fieldName.length; i++) {
+        StructEntry o = struct.getAttribute(fieldName[i]);
+        if (o instanceof TextString) {
+          if (o.toString().equalsIgnoreCase(keyword)) {
+            addHit(entry, entry.getSearchString(), o);
+          }
+        }
+      }
     }
   }
 
@@ -247,16 +269,16 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
     String name = getTargetEntry().getResourceName();
     int idx = name.lastIndexOf('.');
     if (idx > 0) {
-      String nameBase = name.substring(0, idx);
-      Pattern p = Pattern.compile("\\b" + nameBase + "\\b", Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(text.getText());
-      if (m.find()) {
-        addHit(entry, null, null);
-      }
+      name = name.substring(0, idx);
     }
-    if (targetEntryName != null) {
-      Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(text.getText());
+    Pattern p = Pattern.compile("\\b(AP_|GA_)?" + name + "\\b", Pattern.CASE_INSENSITIVE);
+    Matcher m = p.matcher(text.getText());
+    if (m.find()) {
+      addHit(entry, entry.getSearchString(), null);
+    }
+    if (targetEntryName != null && !targetEntryName.equalsIgnoreCase(name)) {
+      p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+      m = p.matcher(text.getText());
       if (m.find()) {
         addHit(entry, targetEntryName, null);
       }

@@ -73,16 +73,14 @@ public final class CreResource extends AbstractStruct
 {
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
-  public static final String s_flag[] = {"No flags set", "Identified", "No corpse", "Permanent corpse",
-                                         "Original class: Fighter",
-                                         "Original class: Mage", "Original class: Cleric",
-                                         "Original class: Thief", "Original class: Druid",
-                                         "Original class: Ranger", "Fallen paladin", "Fallen ranger",
-                                         "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-                                         "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
-                                         "General tracking", "Race tracking", "Class tracking",
-                                         "Specifics tracking", "Gender tracking", "Alignment tracking",
-                                         "Uninterruptible"};
+  public static final String s_flag[] = {
+    "No flags set", "Identified", "No corpse", "Permanent corpse",
+    "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
+    "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
+    "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
+    "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
+    "General tracking", "Race tracking", "Class tracking", "Specifics tracking", "Gender tracking",
+    "Alignment tracking", "Uninterruptible"};
   public static final String s_feats1[] = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",

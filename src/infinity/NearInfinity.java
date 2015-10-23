@@ -162,6 +162,23 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return BrowserMenuBar.VERSION;
   }
 
+  public static void printHelp(String jarFile)
+  {
+    if (jarFile == null ||
+        jarFile.isEmpty() ||
+        !jarFile.toLowerCase(Locale.ENGLISH).endsWith(".jar")) {
+      jarFile = "NearInfinity.jar";
+    }
+    System.out.format("Usage: java -jar %1$s [game_path | options]", jarFile).println();
+    System.out.println("\nOptions:");
+    System.out.println("  -v, -version    Display version information.");
+    System.out.println("  -h, -help       Display this help.");
+    System.out.println("\nExamples:");
+    System.out.format("Specify game path: java -jar %1$s \"C:\\Games\\Baldurs Gate II\"", jarFile).println();
+    System.out.format("Display version:   java -jar %1$s -v", jarFile).println();
+    System.out.format("Display help:      java -jar %1$s -help", jarFile).println();
+  }
+
   private static boolean reloadFactory(boolean refreshonly)
   {
     FileLookup.getInstance().clearCache();
@@ -180,6 +197,25 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public static void main(String args[])
   {
+    // evaluating command line arguments
+    for (final String arg: args) {
+      if (arg.equalsIgnoreCase("-v") ||
+          arg.equalsIgnoreCase("-version")) {
+        System.out.println("Near Infinity " + getVersion());
+        System.exit(0);
+      }
+
+      if (arg.equalsIgnoreCase("-h") ||
+          arg.equalsIgnoreCase("-help")) {
+        String jarFile = infinity.updater.Utils.getJarFileName(NearInfinity.class);
+        if (!jarFile.isEmpty()) {
+          jarFile = new File(jarFile).getName();
+        }
+        printHelp(jarFile);
+        System.exit(0);
+      }
+    }
+
     String[] javaVersion = System.getProperty("java.specification.version").split("\\.");
     try {
       for (int i = 0; i < Math.min(JAVA_VERSION.length, javaVersion.length); i++) {

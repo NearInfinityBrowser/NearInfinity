@@ -53,8 +53,7 @@ Whitespace around text content will be trimmed automatically.
       <timestamp>2014-12-03T13:32-01:00</timestamp>
       <!-- "hash" specifies the md5 checksum/hash value of the file. (mandatory) -->
       <hash>5f5cf4fc416716b6692a0d2adcb7f719</hash>
-      <!-- "link" specifies a URL which can be used to manually download the file. 
-            (optional, but strongly recommended for official releases) -->
+      <!-- "link" specifies a URL which can be used to manually download the file. (mandatory) -->
       <link>https://github.com/Argent77/NearInfinity/releases/latest</link>
     </file>
     <!-- "changelog" contains changes introduced in the current release. (optional) -->
@@ -92,6 +91,7 @@ Whitespace around text content will be trimmed automatically.
       <version>1.0</version>
       <timestamp>2015-02-03T16:49-01:00</timestamp>
       <hash>ffb9a373d9686d59a3c6e1cd5c8a6049</hash>
+      <link>https://github.com/Argent77/NI_Updater/releases/latest</link>
     </file>
     <changelog>
       <entry>Initial release.</entry>

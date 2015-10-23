@@ -162,13 +162,15 @@ public class Bitmap extends Datatype implements Editable
 
   private String getString(int nr)
   {
-    if (nr >= table.length)
+    if (nr >= table.length) {
       return "Unknown (" + nr + ')';
-    if (nr < 0)
+    } else if (nr < 0) {
       return "Error (" + nr + ')';
-    if (table[nr].equals(""))
+    } else if (table[nr] == null || table[nr].equals("")) {
       return "Unknown (" + nr + ')';
-    return new StringBuffer(table[nr]).append(" (").append(nr).append(')').toString();
+    } else {
+      return new StringBuffer(table[nr]).append(" (").append(nr).append(')').toString();
+    }
   }
 }
 

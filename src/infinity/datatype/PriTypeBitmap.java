@@ -67,8 +67,8 @@ public class PriTypeBitmap extends HashBitmap
         // using MSCHOOL.2DA
         Table2da table = Table2daCache.get(TableName);
         if (table != null) {
-          for (int row = 1, size = table.getRowCount(); row < size; row++) {
-            long id = row - 1;
+          for (int row = 0, size = table.getRowCount(); row < size; row++) {
+            long id = row;
             String label = table.get(row, 0).toUpperCase(Locale.ENGLISH);
             typeMap.put(Long.valueOf(id), label);
           }

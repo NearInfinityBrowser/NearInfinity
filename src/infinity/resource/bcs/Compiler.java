@@ -30,6 +30,24 @@ import javax.swing.SwingWorker;
 
 public final class Compiler
 {
+  // Definition of triggers which don't use combined string and namespace arguments
+  private static final HashSet<Long> separateNsTriggers= new HashSet<Long>(20);
+  static {
+    separateNsTriggers.add(Long.valueOf(0x403F));   // GlobalTimerExact(S:Name*,S:Area*)
+    separateNsTriggers.add(Long.valueOf(0x4040));   // GlobalTimerExpired(S:Name*,S:Area*)
+    separateNsTriggers.add(Long.valueOf(0x4041));   // GlobalTimerNotExpired(S:Name*,S:Area*)
+    separateNsTriggers.add(Long.valueOf(0x4098));   // GlobalsEqual(S:Name1*,S:Name2*)
+    separateNsTriggers.add(Long.valueOf(0x4099));   // GlobalsGT(S:Name1*,S:Name2*)
+    separateNsTriggers.add(Long.valueOf(0x409A));   // GlobalsLT(S:Name1*,S:Name2*)
+    separateNsTriggers.add(Long.valueOf(0x409B));   // LocalsEqual(S:Name1*,S:Name2*)
+    separateNsTriggers.add(Long.valueOf(0x409C));   // LocalsGT(S:Name1*,S:Name2*)
+    separateNsTriggers.add(Long.valueOf(0x409D));   // LocalsLT(S:Name1*,S:Name2*)
+    separateNsTriggers.add(Long.valueOf(0x40B5));   // RealGlobalTimerExact(S:Name*,S:Area*)
+    separateNsTriggers.add(Long.valueOf(0x40B6));   // RealGlobalTimerExpired(S:Name*,S:Area*)
+    separateNsTriggers.add(Long.valueOf(0x40B7));   // RealGlobalTimerNotExpired(S:Name*,S:Area*)
+    separateNsTriggers.add(Long.valueOf(0x40E5));   // Switch(S:Global*,S:Area*)
+  }
+
   private static Compiler compiler;
   private final IdsMap[] itype;
   private final Map<String, Set<ResourceEntry>> scriptNamesCre =
@@ -47,6 +65,12 @@ public final class Compiler
       restartCompiler();
     }
     return compiler;
+  }
+
+  // Returns whether the namespace argument is stored separately from the first string argument
+  static boolean useSeparateNamespaceArgument(long id)
+  {
+    return separateNsTriggers.contains(Long.valueOf(id));
   }
 
   static boolean isPossibleNamespace(String string)
@@ -1007,7 +1031,10 @@ public final class Compiler
           errors.put(new Integer(linenr), "Missing quotes - " + s);
         }
         s = quoteString(s);
-        if (newIndex > 0 && isPossibleNamespace(s) && !isPossibleNamespace(newStrings[newIndex - 1])) {
+
+        if (useSeparateNamespaceArgument(id)) {
+          newStrings[newIndex++] = s;
+        } else if (newIndex > 0 && isPossibleNamespace(s) && !isPossibleNamespace(newStrings[newIndex - 1])) {
           newStrings[newIndex - 1] = quoteString(unquoteString(s) + unquoteString(newStrings[newIndex - 1]));
         } else if (newIndex > 1) {
           newStrings[newIndex - 1] = quoteString(unquoteString(newStrings[newIndex - 1]) + ":" + unquoteString(s));

@@ -4,7 +4,10 @@
 
 package infinity.gui;
 
+import infinity.NearInfinity;
 import infinity.icon.Icons;
+import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.key.ResourceTreeModel;
 import infinity.util.MapTree;
@@ -13,6 +16,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Collection;
@@ -44,6 +48,11 @@ public class QuickSearch extends JPanel implements Runnable
     Idle, Update, Destroy
   }
 
+  // Defines available search actions
+  private enum Result {
+    Cancel, Open, OpenNew,
+  }
+
   private final ButtonPopupWindow parent;
   private final ResourceTree tree;
   private final MapTree<Character, List<ResourceEntry>> resourceTree;
@@ -52,7 +61,7 @@ public class QuickSearch extends JPanel implements Runnable
 
   private JLabel lSearch;
   private JComboBox cbSearch;
-  private JButton bOK, bCancel;
+  private JButton bOk, bOkNew, bCancel;
   private String keyword;
   private Command command;
 
@@ -77,7 +86,16 @@ public class QuickSearch extends JPanel implements Runnable
       @Override
       public void actionPerformed(ActionEvent e)
       {
-        close(true);
+        close(Result.Open);
+      }
+    };
+
+    // Action for pressing "Enter"
+    final Action acceptNewAction = new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e)
+      {
+        close(Result.OpenNew);
       }
     };
 
@@ -86,7 +104,7 @@ public class QuickSearch extends JPanel implements Runnable
       @Override
       public void actionPerformed(ActionEvent e)
       {
-        close(false);
+        close(Result.Cancel);
       }
     };
 
@@ -98,11 +116,15 @@ public class QuickSearch extends JPanel implements Runnable
         switch (event.getKeyCode()) {
           case KeyEvent.VK_ESCAPE:
             event.consume();
-            close(false);
+            close(Result.Cancel);
             break;
           case KeyEvent.VK_ENTER:
             event.consume();
-            close(true);
+            if ((event.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK) {
+              close(Result.OpenNew);
+            } else {
+              close(Result.Open);
+            }
             break;
           default:
             if (event.getKeyChar() != KeyEvent.CHAR_UNDEFINED) {
@@ -143,13 +165,17 @@ public class QuickSearch extends JPanel implements Runnable
     cbSearch.setEditable(true);
     cbSearch.getEditor().getEditorComponent().addKeyListener(keyListener);
 
-    bOK = new JButton(Icons.getIcon("Check16.gif"));
-    bOK.addActionListener(acceptAction);
-    bOK.setMargin(new Insets(1, 4, 1, 5));
-    bOK.setToolTipText("OK");
+    bOk = new JButton(Icons.getIcon("Check16.gif"));
+    bOk.addActionListener(acceptAction);
+    bOk.setMargin(new Insets(1, 4, 1, 4));
+    bOk.setToolTipText("Open (Shortcut: Enter)");
+    bOkNew = new JButton(Icons.getIcon("Open16.gif"));
+    bOkNew.addActionListener(acceptNewAction);
+    bOkNew.setMargin(new Insets(1, 5, 1, 4));
+    bOkNew.setToolTipText("Open in new window (Shortcut: Shift+Enter)");
     bCancel = new JButton(Icons.getIcon("Check_Not16.gif"));
     bCancel.setMargin(new Insets(1, 2, 1, 2));
-    bCancel.setToolTipText("Cancel");
+    bCancel.setToolTipText("Cancel search (Shortcut: Esc)");
     bCancel.addActionListener(rejectAction);
 
     GridBagConstraints gbc = new GridBagConstraints();
@@ -161,8 +187,11 @@ public class QuickSearch extends JPanel implements Runnable
     mainPanel.add(cbSearch, gbc);
     gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
         GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
-    mainPanel.add(bOK, gbc);
+    mainPanel.add(bOk, gbc);
     gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
+        GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
+    mainPanel.add(bOkNew, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 4, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
         GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
     mainPanel.add(bCancel, gbc);
 
@@ -194,16 +223,22 @@ public class QuickSearch extends JPanel implements Runnable
   }
 
   // Executed when accepting current input
-  private void close(boolean accept)
+  private void close(Result result)
   {
-    if (accept) {
+    if (result != Result.Cancel) {
       Object item = cbSearch.getSelectedItem();
-      if (item instanceof ResourceEntry) {
-        tree.select((ResourceEntry)item);
-      } else if (cbSearch.getModel().getSize() > 0) {
+      if (!(item instanceof ResourceEntry)) {
         item = cbSearch.getItemAt(0);
-        if (item instanceof ResourceEntry) {
+      }
+
+      if (item instanceof ResourceEntry) {
+        if (result == Result.Open) {
           tree.select((ResourceEntry)item);
+        } else if (result == Result.OpenNew) {
+          Resource res = ResourceFactory.getResource((ResourceEntry)item);
+          if (res != null) {
+            new ViewFrame(NearInfinity.getInstance(), res);
+          }
         }
       }
     }

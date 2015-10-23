@@ -21,6 +21,7 @@ import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SecTypeBitmap;
+import infinity.datatype.SpellProtBitmap;
 import infinity.datatype.StringRef;
 import infinity.datatype.Summon2daBitmap;
 import infinity.datatype.TextString;
@@ -32,6 +33,9 @@ import infinity.resource.itm.ItmResource;
 import infinity.util.DynamicArray;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.StringResource;
+import infinity.util.Table2da;
+import infinity.util.Table2daCache;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -41,8 +45,8 @@ import java.util.List;
 public final class EffectFactory
 {
   private static EffectFactory efactory;
-  private final String s_poricon[];
-  private String s_effname[];
+  private String[] s_poricon;
+  private String[] s_effname;
 
   /**
    * Used in conjunction with <code>getEffectStructure</code> to address specific fields within
@@ -100,11 +104,11 @@ public final class EffectFactory
   public static final LongIntegerHashMap<String> m_itemids = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<String>();
-  public static final String s_inctype[] = {"Increment", "Set", "Set % of"};
-  public static final String s_yesno[] = {"Yes", "No"};
-  public static final String s_noyes[] = {"No", "Yes"};
+  public static final String[] s_inctype = {"Increment", "Set", "Set % of"};
+  public static final String[] s_yesno = {"Yes", "No"};
+  public static final String[] s_noyes = {"No", "Yes"};
 
-  public static final String s_visuals[] = {
+  public static final String[] s_visuals = {
     // 0..9
     "None", "Hit abjuration", "Hit alteration", "Hit invocation", "Hit necromancy", "Hit conjuration",
     "Hit enchantment", "Hit illusion", "Hit divination", "Armor",
@@ -147,7 +151,7 @@ public final class EffectFactory
     "Fire summoning circle", "Water summoning circle", "Gedlee's electric loop",
     // 110...
     "Darktree attack"};
-  public static final String s_lighting[] = {
+  public static final String[] s_lighting = {
     // 0..9
     "Necromancy air", "Necromancy earth", "Necromancy water", "", "Alteration air",
     "Alteration earth", "Alteration water", "", "Enchantment air", "Enchantment earth",
@@ -160,7 +164,7 @@ public final class EffectFactory
     // 30..39
     "Divination water", "", "Mushroom fire", "Mushroom gray", "Mushroom green", "Shaft fire",
     "Shaft light", "Shaft white", "Hit door", "Hit finger of death"};
-  public static final String s_cretype[] = {
+  public static final String[] s_cretype = {
     // 0..9
     "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
     "Not humanoid", "Animal", "Not animal", "Elemental",
@@ -191,7 +195,8 @@ public final class EffectFactory
     "Daytime", "Not daytime", "Outdoor", "Not outdoor",
     // 90..
     "Keg", "Not keg", "Outsider", "Not outsider"};
-  public static final String s_cretype_ee[] = {
+  // TODO: remove this array after all Enhanced Editions have been updated
+  public static final String[] s_cretype_ee = {
     // 0..9
     "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
     "Not humanoid", "Animal", "Not animal", "Elemental",
@@ -222,24 +227,24 @@ public final class EffectFactory
     // 100..109
     "", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
     "ALIGN.IDS", "KIT.IDS" };
-  public static final String s_sumanim[] = {"No animation", "Monster summoning circle",
+  public static final String[] s_sumanim = {"No animation", "Monster summoning circle",
                                             "Animal summoning circle", "Earth summoning circle",
                                             "Fire summoning circle", "Water summoning circle", "",
                                             "Puff of smoke"};
-  public static final String s_sparklecolor[] = {"", "Black", "Blue", "Chromatic", "Gold", "Green",
+  public static final String[] s_sparklecolor = {"", "Black", "Blue", "Chromatic", "Gold", "Green",
                                                  "Purple", "Red", "White", "Ice", "Stone", "Magenta",
                                                  "Orange"};
-  public static final String s_actype[] = {"All weapons", "Crushing weapons", "Missile weapons",
+  public static final String[] s_actype = {"All weapons", "Crushing weapons", "Missile weapons",
                                            "Piercing weapons", "Slashing weapons", "Set base AC to value"};
-  public static final String s_damagetype[] = {"All", "Fire damage", "Cold damage",
+  public static final String[] s_damagetype = {"All", "Fire damage", "Cold damage",
                                                "Electricity damage", "Acid damage", "Magic damage",
                                                "Poison damage", "Slashing damage", "Piercing damage",
                                                "Crushing damage", "Missile damage"};
-  public static final String s_button[] = {"Stealth", "Thieving", "Spell select", "Quick spell 1",
+  public static final String[] s_button = {"Stealth", "Thieving", "Spell select", "Quick spell 1",
                                            "Quick spell 2", "Quick spell 3", "Turn undead", "Talk",
                                            "Use item", "Quick item 1", "", "Quick item 2",
                                            "Quick item 3", "Special abilities"};
-  public static final String s_button_iwd2[] = {"Stealth", "Thieving", "Cast spell", "Quick spell 0",
+  public static final String[] s_button_iwd2 = {"Stealth", "Thieving", "Cast spell", "Quick spell 0",
                                                 "Quick spell 1", "Quick spell 2", "Quick spell 3",
                                                 "Quick spell 4", "Quick spell 5", "Quick spell 6",
                                                 "Quick spell 7", "Quick spell 8", "Bard song",
@@ -249,32 +254,32 @@ public final class EffectFactory
                                                 "Quick skill 0", "Quick skill 1", "Quick skill 2",
                                                 "Quick skill 3", "Quick skill 4", "Quick skill 5",
                                                 "Quick skill 6", "Quick skill 7", "Quick skill 8"};
-  public static final String s_school[] = {"None", "Abjuration", "Conjuration", "Divination",
+  public static final String[] s_school = {"None", "Abjuration", "Conjuration", "Divination",
                                            "Enchantment", "Illusion", "Evocation",
                                            "Necromancy", "Alteration", "Generalist"};
-  public static final String s_attacks[] = {"0 attacks per round", "1 attack per round",
+  public static final String[] s_attacks = {"0 attacks per round", "1 attack per round",
                                             "2 attacks per round", "3 attacks per round",
                                             "4 attacks per round", "5 attacks per round",
                                             "0.5 attack per round", "1.5 attacks per round",
                                             "2.5 attacks per round", "3.5 attacks per round",
                                             "4.5 attacks per round"};
-  public static final String s_summoncontrol[] = {"Match target", "Match target", "From CRE file",
+  public static final String[] s_summoncontrol = {"Match target", "Match target", "From CRE file",
                                                   "Match target", "From CRE file", "Hostile",
                                                   "From CRE file", "", "From CRE file"};
-  public static final String s_regentype[] = {"Amount HP per second", "Amount HP percentage per second",
+  public static final String[] s_regentype = {"Amount HP per second", "Amount HP percentage per second",
                                               "Amount HP per second", "1 HP per amount seconds",
                                               "Parameter3 HP per amount seconds"};
-  public static final String s_regentype_iwd[] = {"Amount HP per second", "Amount HP percentage per second",
+  public static final String[] s_regentype_iwd = {"Amount HP per second", "Amount HP percentage per second",
                                                   "Amount HP per second", "1 HP per amount seconds",
                                                   "Amount HP per round"};
-  public static final String s_savetype[] = {"No save", "Spell", "Breath weapon",
+  public static final String[] s_savetype = {"No save", "Spell", "Breath weapon",
                                              "Paralyze/Poison/Death", "Rod/Staff/Wand",
                                              "Petrify/Polymorph", "", "", "",
                                              "", "", "EE: Ignore primary", "EE: Ignore secondary",
                                              "", "", "", "", "", "", "", "", "", "", "", "",
                                              "EE/Ex: Bypass mirror image", "EE: Ignore difficulty"};
-  public static final String s_savetype2[] = {"No save", "", "", "Fortitude", "Reflex", "Will"};
-  public static final String s_spellstate[] = {"Chaotic Command", "Miscast Magic", "Pain",
+  public static final String[] s_savetype2 = {"No save", "", "", "Fortitude", "Reflex", "Will"};
+  public static final String[] s_spellstate = {"Chaotic Command", "Miscast Magic", "Pain",
                                                "Greater Malison", "Blood Rage", "Cat's Grace",
                                                "Mold Touch", "Shroud of Flame"};
 
@@ -706,7 +711,7 @@ public final class EffectFactory
   private static boolean updateOpcode318(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
-      if (Profile.getGame() == Profile.Game.IWDEE) {
+      if (Profile.isEnhancedEdition()) {
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
         if (map.containsKey(EffectEntry.IDX_OPCODE)) {
           int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
@@ -715,20 +720,54 @@ public final class EffectFactory
             case 324: // Immunity to spell and message
             case 326: // Apply effects list
             {
-              int param2 = ((Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
-              if (param2 >= 102 && param2 <= 109) {
-                replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                             new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                           0, 4, "IDS entry", s_cretype_ee[param2]));
-              } else {
-                StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                if (entry instanceof DecNumber) {
-                  // no replace action needed
-                  return false;
+              BitmapEx bitmap = (BitmapEx)getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
+              if (bitmap instanceof SpellProtBitmap) {
+                SpellProtBitmap spb = (SpellProtBitmap)bitmap;
+                if (spb.useCustomValue()) {
+                  String idsFile = spb.getIdsFile();
+                  if (!idsFile.isEmpty()) {
+                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                 new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                               0, 4, "Creature value", idsFile));
+                  } else {
+                    StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
+                    if (entry instanceof DecNumber && entry.getName().equals("Creature value")) {
+                      // no replace action needed
+                      return false;
+                    } else {
+                      replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                   new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                                 0, 4, "Creature value"));
+                    }
+                  }
                 } else {
+                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
+                  if (entry.getName().equals("Unused")) {
+                    // no replace action needed
+                    return false;
+                  } else {
+                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                               0, 4, "Unused"));
+                  }
+                }
+              } else {
+                // TODO: remove this section after all Enhanced Editions have been updated
+                int param2 = bitmap.getValue();
+                if (param2 >= 102 && param2 <= 109) {
                   replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                               new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                             0, 4, "Unused"));
+                               new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                             0, 4, "Creature value", s_cretype_ee[param2]));
+                } else {
+                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
+                  if (entry.getName().equals("Unused")) {
+                    // no replace action needed
+                    return false;
+                  } else {
+                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
+                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
+                                               0, 4, "Unused"));
+                  }
                 }
               }
               break;
@@ -901,26 +940,6 @@ public final class EffectFactory
             "Set local variable", "Increase spells cast per round", "Increase casting speed factor",
             // 190..
             "Increase attack speed factor", "Casting level bonus"};
-        s_poricon = new String[]{
-            // 0..9
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Magic armor", "Held",
-            "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
-            "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead",
-            // 30..39
-            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Haste", "Fatigue",
-            // 40..49
-            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
-            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
-            // 50..
-            "Champion's strength", "Dying", "Mind shield", "Energy drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery"};
         break;
 
       case BG2SoA:
@@ -1055,65 +1074,6 @@ public final class EffectFactory
             // 310..
             "Immunity to time stop", "Wish", "Immunity to sequester", "High-level ability",
             "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Ex: Set stat"};
-        s_poricon = new String[]{
-            // 0..9
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Magic armor",
-            "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
-            "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead",
-            // 30..39
-            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Haste", "Fatigue",
-            // 40..49
-            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
-            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
-            // 50..59
-            "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery", "Energy drain",
-            // 60..69
-            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
-            "Spell turning", "Repulsing undead", "Spell deflection", "Fire shield (red)",
-            "Fire shield (blue)",
-            // 70..79
-            "Protection from normal weapons", "Protection from magic weapons",
-            "Tenser's transformation", "Protection from magic energy", "Mislead", "Contingency",
-            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
-            // 80..89
-            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
-            "Intelligence drained", "Regenerating", "Talking", "Shopping",
-            // 90..99
-            "Negative plane protection", "Ability score drained", "Spell sequencer",
-            "Protection from energy", "Magnetized", "Able to poison weapons", "Setting trap",
-            "Glass dust", "Blade barrier", "Death ward",
-            // 100..109
-            "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
-            "Spell immunity", "True seeing", "Detecting traps",
-            // 110..119
-            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
-            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
-            // 120..129
-            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability", "Spell shield",
-            "Polymorphed", "Otiluke's resilient sphere", "Nauseous", "Ghost armor", "Glitterdust",
-            "Webbed",
-            // 130..139
-            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
-            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage",
-            "Boon of lathander",
-            // 140..149
-            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
-            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
-            // 150..159
-            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
-            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
-            "Improved alacrity",
-            // 160..
-            "Aura of flaming death", "Globe of blades", "Improved chaos shield", "Chaos shield",
-            "Fire elemental transformation", "Earth elemental transformation"};
         break;
 
       case BG1EE:
@@ -1247,65 +1207,6 @@ public final class EffectFactory
             "Restrict item",
             // 320..
             "Change weather", "Remove effects by resource"};
-        s_poricon = new String[]{
-            // 0..9
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Magic armor",
-            "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
-            "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead",
-            // 30..39
-            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Haste", "Fatigue",
-            // 40..49
-            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
-            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
-            // 50..59
-            "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery", "Energy drain",
-            // 60..69
-            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
-            "Spell turning", "Repulsing undead", "Spell deflection", "Fire shield (red)",
-            "Fire shield (blue)",
-            // 70..79
-            "Protection from normal weapons", "Protection from magic weapons",
-            "Tenser's transformation", "Spell shield", "Mislead", "Contingency",
-            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
-            // 80..89
-            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
-            "Intelligence drained", "Regenerating", "Talking", "Shopping",
-            // 90..99
-            "Negative plane protection", "Ability score drained", "Spell sequencer",
-            "Protection from energy", "Magnetized", "Able to poison weapons", "Setting trap",
-            "Glass dust", "Blade barrier", "Death ward",
-            // 100..109
-            "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
-            "Spell immunity", "True seeing", "Detecting traps",
-            // 110..119
-            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
-            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
-            // 120..129
-            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability",
-            "Protection from magic energy", "Polymorphed", "Otiluke's resilient sphere", "Nauseous",
-            "Ghost armor", "Glitterdust", "Webbed",
-            // 130..139
-            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
-            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage",
-            "Boon of lathander",
-            // 140..149
-            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
-            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
-            // 150..159
-            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
-            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
-            "Improved alacrity",
-            // 160..
-            "Aura of flaming death", "Globe of blades", "Improved chaos shield",
-            "Chaos shield", "Fire elemental transformation", "Earth elemental transformation"};
         break;
 
       case BG2EE:
@@ -1456,65 +1357,6 @@ public final class EffectFactory
             // 360
             "Ignore reputation breaking point"
             };
-        s_poricon = new String[]{
-            // 0..9
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Magic armor",
-            "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
-            "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead",
-            // 30..39
-            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Haste", "Fatigue",
-            // 40..49
-            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
-            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
-            // 50..59
-            "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery", "Energy drain",
-            // 60..69
-            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
-            "Spell turning", "Repulsing undead", "Spell deflection", "Fire shield (red)",
-            "Fire shield (blue)",
-            // 70..79
-            "Protection from normal weapons", "Protection from magic weapons",
-            "Tenser's transformation", "Spell shield", "Mislead", "Contingency",
-            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
-            // 80..89
-            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
-            "Intelligence drained", "Regenerating", "Talking", "Shopping",
-            // 90..99
-            "Negative plane protection", "Ability score drained", "Spell sequencer",
-            "Protection from energy", "Magnetized", "Able to poison weapons", "Setting trap",
-            "Glass dust", "Blade barrier", "Death ward",
-            // 100..109
-            "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
-            "Spell immunity", "True seeing", "Detecting traps",
-            // 110..119
-            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
-            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
-            // 120..129
-            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability",
-            "Protection from magic energy", "Polymorphed", "Otiluke's resilient sphere", "Nauseous",
-            "Ghost armor", "Glitterdust", "Webbed",
-            // 130..139
-            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
-            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage",
-            "Boon of lathander",
-            // 140..149
-            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
-            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
-            // 150..159
-            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
-            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
-            "Improved alacrity",
-            // 160..
-            "Aura of flaming death", "Globe of blades", "Improved chaos shield",
-            "Chaos shield", "Fire elemental transformation", "Earth elemental transformation"};
         break;
 
       case IWDEE:
@@ -1657,72 +1499,6 @@ public final class EffectFactory
             // 340..
             "Backstab hit effect", "Critical hit effect", "Override creature data",
             "HP swap"};
-        s_poricon = new String[]{
-            // 0..9
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk",
-            "Intoxicated", "Poisoned", "Nauseated", "Blind", "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Magic armor",
-            "Held", "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
-            "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead",
-            // 30..39
-            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Haste", "Fatigue",
-            // 40..49
-            "Bard song", "Slow", "Static Charge", "Domination", "Hopelessness", "Greater malison",
-            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
-            // 50..59
-            "Champion's strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Entropy Shield", "Perception", "Master thievery", "Energy drain",
-            // 60..69
-            "Holy power", "Cloak of fear", "Iron skins", "Magic resistance", "Righteous magic",
-            "Spell turning", "Beltyn's Burning Blood", "Spell deflection", "Fire shield (red)",
-            "Fire shield (blue)",
-            // 70..79
-            "Protection from normal weapons", "Protection from magic weapons",
-            "Tenser's transformation", "Spell shield", "Mislead", "Contingency",
-            "Protection from the elements", "Projected image", "Maze", "Imprisonment",
-            // 80..89
-            "Stoneskin", "Kai", "Called shot", "Spell failure", "Offensive stance", "Defensive stance",
-            "Intelligence drained", "Regenerating", "Talking", "Shopping",
-            // 90..99
-            "Negative plane protection", "Ability score drained", "Spell sequencer",
-            "Antimagic Shell", "Shroud of Flame", "Able to poison weapons", "Setting trap",
-            "Glass dust", "Blade barrier", "Death ward",
-            // 100..109
-            "Doom", "Decaying", "Acid", "Vocalize", "Mantle", "Miscast magic", "Lower resistance",
-            "Spell immunity", "True seeing", "Detecting traps",
-            // 110..119
-            "Improved haste", "Spell trigger", "Deaf", "Enfeebled", "Infravision", "Friends",
-            "Shield of the archons", "Spell trap", "Absolute immunity", "Improved mantle",
-            // 120..129
-            "Farsight", "Globe of invulnerability", "Minor globe of invulnerability",
-            "Protection from magic energy", "Polymorphed", "Otiluke's resilient sphere", "Nauseous",
-            "Ghost armor", "Glitterdust", "Webbed",
-            // 130..139
-            "Unconscious", "Mental combat", "Physical mirror", "Repulse undead", "Chaotic commands",
-            "Draw upon holy might", "Strength of one", "Bleeding", "Barbarian rage", "Boon of lathander",
-            // 140..149
-            "Storm shield", "Enraged", "Stunning blow", "Quivering palm", "Entangled", "Grease",
-            "Smite", "Hardiness", "Power attack", "Whirlwind attack",
-            // 150..159
-            "Greater whirlwind attack", "Magic flute", "Critical strike", "Greater deathblow",
-            "Deathblow", "Avoid death", "Assassination", "Evasion", "Greater evasion",
-            "Improved alacrity",
-            // 160..169
-            "Aura of flaming death", "Globe of blades", "Improved chaos shield", "Chaos shield",
-            "Shield of Lathander", "Greater Shield of Lathander", "Mind Blank", "Aid", "Phased",
-            "Pain",
-            // 170..179
-            "Impervious Sanctity of Mind", "Petrified", "Iron Body", "Animal Rage", "Exaltation",
-            "Recitation", "Blood Rage", "The Ballad of Three Heroes", "The Tale of Curran Strongheart",
-            "Tymora's Melody",
-            // 180..
-            "The Song of Kaudies", "The Siren's Yearning", "War Chant of Sith", "Prayer",
-            "Righteous Wrath of the Faithful", "Cat's Grace", "Hope", "Courage"};
         break;
 
       case PST:
@@ -1810,26 +1586,6 @@ public final class EffectFactory
             "Move view to target", "Embalm", "Stop all actions", "Fist of iron", "Soul exodus",
             // 210..
             "Detect evil", "Induce hiccups", "Speak with dead"};
-        s_poricon = new String[]{
-            // 0..9
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Magic armor", "Held",
-            "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
-            "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead",
-            // 30..39
-            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Haste", "Fatigue",
-            // 40..49
-            "Bard song", "Slow", "Regenerate", "Domination", "Hopelessness", "Greater malison",
-            "Spirit armor", "Chaos", "Feeblemind", "Defensive harmony",
-            // 50..
-            "Champions strength", "Dying", "Mind shield", "Level drain", "Polymorph self", "Stun",
-            "Regeneration", "Perception", "Master thievery"};
         break;
 
       case IWD:
@@ -1952,36 +1708,6 @@ public final class EffectFactory
             // 290..299
             "Display spell immunity string", "Rod of smiting", "Rest", "Beholder dispel magic",
             "Harpy wail", "Jackalwere gaze", "Set global variable"};
-        s_poricon = new String[]{
-            // 0..9
-            "Charm", "Dire charm", "Rigid thinking", "Confused", "Berserk", "Intoxicated", "Poisoned",
-            "Nauseated", "Blind", "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Magic armor", "Held",
-            "Sleep", "Shielded", "Protection from fire", "Blessed", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Invulnerable", "Protection from acid",
-            "Protection from cold", "Resist fire/cold", "Protection from electricity",
-            "Protection from magic", "Protection from undead",
-            // 30..39
-            "Protection from poison", "Nondetection", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Haste", "Fatigue",
-            // 40..49
-            "Bard song", "Slow", "Regenerate", "Nauseous", "Stun", "Ghost armor", "Stoneskin",
-            "Hopelessness", "Courage", "Friends",
-            // 50..59
-            "Hope", "Malison", "Spirit armor", "Domination", "Feeblemind", "Tenser's transformation",
-            "Mind blank", "Aid", "Find traps", "Draw upon holy might",
-            // 60..69
-            "Miscast magic", "Strength of one", "Prayer", "Defensive harmony", "Recitation",
-            "Champion's strength", "Chaotic commands", "Righteous wrath of the faithful", "Phased",
-            "Pain",
-            // 70..79
-            "Impervious sanctity of mind", "Petrified", "Iron body", "Animal rage", "Exaltation",
-            "Cat's grace", "Blood rage", "Ballad of three heroes", "Tale of curran strongheart",
-            "Tymora's melody",
-            // 80..
-            "Song of kaudies", "Siren's yearning", "War chant of sith", "Deaf", "Armor of faith"};
         break;
 
       case IWD2:
@@ -2157,69 +1883,54 @@ public final class EffectFactory
             // 450..459
             "Globe of invulnerability", "Lower resistance", "Bane", "Power attack", "Expertise",
             "Arterial strike", "Hamstring", "Rapid shot"};
-        s_poricon = new String[]{
-            // 0..9
-            "Charmed", "", "", "Confused", "Berserk", "Intoxicated", "Poisoned", "Diseased", "Blind",
-            "Protection from evil",
-            // 10..19
-            "Protection from petrification", "Protection from normal missiles", "Armor", "Held",
-            "Asleep", "Shield", "Protection from fire", "Bless", "Chant", "Free action",
-            // 20..29
-            "Barkskin", "Strength", "Heroism", "Spell invulnerability", "Protection from acid",
-            "Protection from cold", "", "Protection from electricity", "Protection from magic",
-            "Protection from undead",
-            // 30..39
-            "Protection from poison", "Undetectable", "Good luck", "Bad luck", "Silenced", "Cursed",
-            "Panic", "Resist fear", "Hasted", "Fatigued",
-            // 40..49
-            "Bard song", "Slowed", "Regenerating", "Nauseous", "Stunned", "Ghost armor", "Stoneskin",
-            "Hopelessness", "Courage", "Friends",
-            // 50..59
-            "Hope", "Malison", "Spirit armor", "Dominated", "Feebleminded", "Tenser's transformation",
-            "Mind blank", "Aid", "Find traps", "Draw upon holy might",
-            // 60..69
-            "Miscast magic", "Strength of one", "Prayer", "Defensive harmony", "Recitation",
-            "Champion's strength", "Chaotic commands", "Righteous wrath of the faithful", "Phased",
-            "Pain",
-            // 70..79
-            "Impervious sanctity of mind", "Petrified", "Iron body", "Animal rage", "Exaltation",
-            "Cat's grace", "Blood rage", "Ballad of three heroes", "Tale of curran strongheart",
-            "Tymora's melody",
-            // 80..89
-            "Song of kaudies", "Siren's yearning", "War chant of sith", "Deaf", "Armor of faith",
-            "Bleeding wound", "Holy power", "Death ward", "Unconscious", "Iron skins",
-            // 90..99
-            "Enfeeblement", "Sanctuary", "Entangle", "Protection from the elements", "Grease", "Web",
-            "Minor globe of invulnerability", "Globe of invulnerability", "Shroud of flame",
-            "Antimagic shell",
-            // 100..109
-            "Otiluke's resilient sphere", "Intelligence drained", "Cloak of fear", "Entropy shield",
-            "Insect plague", "Storm shell", "Shield of lathander", "Greater shield of lathander",
-            "Seven eyes", "Blur",
-            // 110..119
-            "Invisibility", "Barbarian rage", "Called shot", "Defensive spin", "Maximized attacks",
-            "Offensive spin", "Envenom weapon", "Unconscious", "Doom", "Aegis",
-            // 120..129
-            "Executioner's eyes", "Fire shield (red)", "Fire shield (blue)", "Energy drained",
-            "Faerie fire", "Tortoise shell", "Spell shield", "Negative energy protection",
-            "Aura of vitality", "Death armor",
-            // 130..139
-            "Blink", "Vipergout", "Mind fog", "", "Stunning fist", "Quivering palm", "Gram's paradox",
-            "Blindness", "Heroic inspiration", "Vocalize",
-            // 140..
-            "Despair", "Ilmater's endurance", "Destructive blow", "Master thievery",
-            "Improved invisibility"};
         break;
 
       default:
         s_effname = new String[0];
-        s_poricon = new String[0];
     }
   }
 
   public String[] getEffectNameArray()
   {
     return s_effname;
+  }
+
+  // Returns portrait icon description array (used by opcodes 142, 149 and 240)
+  public String[] getIconDescArray()
+  {
+    if (s_poricon == null) {
+      Table2da table = Table2daCache.get("STATDESC.2DA");
+      if (table != null) {
+        // first pass: determine highest icon index
+        int maxIndex = -1;
+        for (int i = 0, count = table.getRowCount(); i < count; i++) {
+          try {
+            int idx = Integer.parseInt(table.get(i, 0));
+            maxIndex = Math.max(idx, maxIndex);
+          } catch (NumberFormatException e) {
+          }
+        }
+
+        // second pass: collect icon descriptions
+        if (maxIndex >= 0) {
+          s_poricon = new String[maxIndex + 1];
+          for (int i = 0, count = table.getRowCount(); i < count; i++) {
+            try {
+              int idx = Integer.parseInt(table.get(i, 0));
+              int strref = Integer.parseInt(table.get(i, 1));
+              if (idx >= 0 && strref >= 0) {
+                s_poricon[idx] = StringResource.getStringRef(strref);
+              }
+            } catch (NumberFormatException e) {
+            }
+          }
+        }
+      }
+      if (s_poricon == null) {
+        s_poricon = new String[0];
+      }
+    }
+    return s_poricon;
   }
 
   public int makeEffectStruct(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
@@ -3157,7 +2868,7 @@ public final class EffectFactory
       case 142: // Display portrait icon
       case 169: // Prevent portrait icon
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Icon", s_poricon));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Icon", getIconDescArray()));
         break;
 
       case 143: // Create item in slot
@@ -3781,7 +3492,7 @@ public final class EffectFactory
 
       case 240: // Remove portrait icon
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Icon", s_poricon));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Icon", getIconDescArray()));
         break;
 
       case 241: // Control creature
@@ -4027,15 +3738,33 @@ public final class EffectFactory
 
       case 318: // Protection from Spell, Ex: Set stat
         if (isExtended) {
-          int param2 = DynamicArray.getInt(buffer, offset + 4);
-          if (param2 >= 102 && param2 <= 109) {
-            s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", s_cretype_ee[param2]));
+          BitmapEx bitmap = null;
+          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
+            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
+            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
+            if (spb.useCustomValue()) {
+              String idsFile = spb.getIdsFile();
+              if (!idsFile.isEmpty()) {
+                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
+              } else {
+                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
+              }
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            // TODO: remove this section after all Enhanced Editions have been updated
+            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
+            int param2 = bitmap.getValue();
+            if (param2 >= 102 && param2 <= 109) {
+              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           }
-          BitmapEx bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-          s.add(bitmap);
-          if (parent != null && parent instanceof UpdateListener) {
+          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
             bitmap.addUpdateListener((UpdateListener)parent);
           }
           restype = "SPL";
@@ -4053,15 +3782,33 @@ public final class EffectFactory
       case 324: // Immunity to spell and message
       case 326: // Apply effects list
         if (isExtended) {
-          int param2 = DynamicArray.getInt(buffer, offset + 4);
-          if (param2 >= 102 && param2 <= 109) {
-            s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", s_cretype_ee[param2]));
+          BitmapEx bitmap = null;
+          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
+            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
+            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
+            if (spb.useCustomValue()) {
+              String idsFile = spb.getIdsFile();
+              if (!idsFile.isEmpty()) {
+                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
+              } else {
+                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
+              }
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            // TODO: remove this section after all Enhanced Editions have been updated
+            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
+            int param2 = bitmap.getValue();
+            if (param2 >= 102 && param2 <= 109) {
+              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
+            } else {
+              s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            }
+            s.add(bitmap);
           }
-          BitmapEx bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-          s.add(bitmap);
-          if (parent != null && parent instanceof UpdateListener) {
+          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
             bitmap.addUpdateListener((UpdateListener)parent);
           }
           restype = "SPL";
@@ -5209,7 +4956,7 @@ public final class EffectFactory
   {
     boolean isIWDEE = (Profile.getGame() == Profile.Game.IWDEE);
 
-    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
       switch (effectType) {
         case 12:    // Damage
           s.add(new Flag(buffer, offset, 4, "Special",
@@ -5219,16 +4966,12 @@ public final class EffectFactory
           break;
 
         case 181:   // Disallow item type
-          if (Profile.isEnhancedEdition()) {
-            s.add(new StringRef(buffer, offset, "Description note"));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
-          }
+          s.add(new StringRef(buffer, offset, "Description note"));
           break;
 
         case 218: // Stoneskin effect
           if (isIWDEE) {
-            s.add(new Bitmap(buffer, offset, 4, "Icon", s_poricon));
+            s.add(new Bitmap(buffer, offset, 4, "Icon", getIconDescArray()));
           } else {
             s.add(new DecNumber(buffer, offset, 4, "Special"));
           }
@@ -5300,6 +5043,8 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Special"));
           break;
       }
+    } else if (Profile.getEngine() == Profile.Engine.BG2) {
+      s.add(new DecNumber(buffer, offset, 4, "Special"));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {
         case 12:    // Damage

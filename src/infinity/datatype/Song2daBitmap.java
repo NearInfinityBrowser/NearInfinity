@@ -46,7 +46,7 @@ public class Song2daBitmap extends HashBitmap
     if (songMap.isEmpty()) {
       Table2da table = Table2daCache.get(TableName);
       if (table != null) {
-        for (int row = 1, size = table.getRowCount(); row < size; row++) {
+        for (int row = 0, size = table.getRowCount(); row < size; row++) {
           String s = table.get(row, 0);
           try {
             long id = Long.parseLong(s);

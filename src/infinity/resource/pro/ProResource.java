@@ -4,15 +4,19 @@
 
 package infinity.resource.pro;
 
+import java.util.List;
+
 import javax.swing.JComponent;
 
 import infinity.datatype.Bitmap;
 import infinity.datatype.ColorPicker;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
-import infinity.datatype.HashBitmap;
+import infinity.datatype.FlagEx;
 import infinity.datatype.HashBitmapEx;
+import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.SpellProtBitmap;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
@@ -23,10 +27,12 @@ import infinity.gui.hexview.BasicColorMap;
 import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
+import infinity.resource.EffectFactory;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Profile;
 import infinity.resource.Resource;
+import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
@@ -78,8 +84,23 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
-    if (event.getSource() instanceof HashBitmap) {
-      HashBitmap proType = (HashBitmap)event.getSource();
+    if (event.getSource() instanceof FlagEx &&
+        ((StructEntry)event.getSource()).getName().equals("Extended flags")) {
+      boolean isIwdStyle = ((FlagEx)event.getSource()).isFlagSet(30);
+      AbstractStruct struct = event.getStructure();
+      boolean bRet = false;
+      if (isIwdStyle) {
+        bRet |= setIwdStyleIdsType(struct, 60, 1);
+        bRet |= setIwdStyleIdsType(struct, 64, 2);
+      } else {
+        bRet |= setOldStyleIdsType(struct, 60, 1);
+        bRet |= setOldStyleIdsType(struct, 64, 2);
+      }
+      return bRet;
+    }
+    else if (event.getSource() instanceof HashBitmapEx &&
+             ((StructEntry)event.getSource()).getName().equals("Projectile type")) {
+      HashBitmapEx proType = (HashBitmapEx)event.getSource();
       AbstractStruct struct = event.getStructure();
       // add/remove extended sections in the parent structure depending on the current value
       if (struct instanceof Resource && struct instanceof HasAddRemovable) {
@@ -179,22 +200,34 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 24, "Impact sound", "WAV"));
     addField(new ResourceRef(buffer, offset + 32, "Source animation", s_types));
     addField(new Bitmap(buffer, offset + 40, 2, "Particle color", s_color));
-    addField(new Unknown(buffer, offset + 42, 2));
     if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx));
+      addField(new DecNumber(buffer, offset + 42, 2, "Projectile width"));
+      FlagEx flagEx = new FlagEx(buffer, offset + 44, 4, "Extended flags", s_flagsEx);
+      addField(flagEx);
       addField(new StringRef(buffer, offset + 48, "String"));
       addField(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
       addField(new DecNumber(buffer, offset + 56, 2, "Color speed"));
       addField(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
-      addField(new DecNumber(buffer, offset + 60, 2, "IDS1 value"));
-      addField(new DecNumber(buffer, offset + 62, 2, "IDS1 type"));
-      addField(new DecNumber(buffer, offset + 64, 2, "IDS2 value"));
-      addField(new DecNumber(buffer, offset + 66, 2, "IDS2 type"));
+      if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
+        flagEx.addUpdateListener(this);
+        if (flagEx.isFlagSet(30)) {
+          addField(new DecNumber(buffer, offset + 60, 2, "Creature value 1"));
+          addField(new SpellProtBitmap(buffer, offset + 62, 2, "Creature type 1"));
+          addField(new DecNumber(buffer, offset + 64, 2, "Creature value 2"));
+          addField(new SpellProtBitmap(buffer, offset + 66, 2, "Creature type 2"));
+        } else {
+          addField(new IDSTargetEffect(buffer, offset + 60, 4, "IDS target 1"));
+          addField(new IDSTargetEffect(buffer, offset + 64, 4, "IDS target 2"));
+        }
+      } else {
+        addField(new IDSTargetEffect(buffer, offset + 60, 4, "IDS target 1"));
+        addField(new IDSTargetEffect(buffer, offset + 64, 4, "IDS target 2"));
+      }
       addField(new ResourceRef(buffer, 68, "Default spell", "SPL"));
       addField(new ResourceRef(buffer, 76, "Success spell", "SPL"));
       addField(new Unknown(buffer, offset + 84, 172));
     } else {
-      addField(new Unknown(buffer, offset + 44, 212));
+      addField(new Unknown(buffer, offset + 42, 214));
     }
     offset += 256;
 
@@ -249,6 +282,83 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     super.datatypeRemovedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
+    }
+  }
+
+  // Updates current IDS targeting to IWD style and returns true if changes have been made
+  private boolean setIwdStyleIdsType(AbstractStruct struct, int offset, int nr)
+  {
+    if (struct != null && offset >= 0) {
+      StructEntry e = struct.getAttribute(offset, false);
+      if (e instanceof IDSTargetEffect) {
+        e = removeEntry(struct, offset);
+        if (e != null) {
+          byte[] data = EffectFactory.getEntryData(e);
+          e = new DecNumber(data, 0, 2, "Creature value " + nr);
+          e.setOffset(offset);
+          addEntry(struct, offset, e);
+          e = new SpellProtBitmap(data, 2, 2, "Creature type " + nr);
+          e.setOffset(offset + 2);
+          addEntry(struct, offset + 2, e);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Updates current IDS targeting to old BG style and returns true if changes have been made
+  private boolean setOldStyleIdsType(AbstractStruct struct, int offset, int nr)
+  {
+    if (struct != null && offset >= 0) {
+      StructEntry e = struct.getAttribute(offset, false);
+      if (!(e instanceof IDSTargetEffect)) {
+        byte[] data = new byte[4];
+        e = removeEntry(struct, offset);
+        if (e != null) {
+          System.arraycopy(EffectFactory.getEntryData(e), 0, data, 0, 2);
+        }
+        e = removeEntry(struct, offset + 2);
+        if (e != null) {
+          System.arraycopy(EffectFactory.getEntryData(e), 0, data, 2, 2);
+        }
+        e = new IDSTargetEffect(data, 0, 4, "IDS target " + nr);
+        e.setOffset(offset);
+        addEntry(struct, offset, e);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Removes the StructEntry object at the specified offset and returns it.
+  private StructEntry removeEntry(AbstractStruct struct, int offset)
+  {
+    if (struct != null && offset >= 0) {
+      List<StructEntry> list = struct.getList();
+      if (list != null) {
+        for (int i = 0, size = list.size(); i < size; i++) {
+          StructEntry e = list.get(i);
+          if (offset >= e.getOffset() && offset < (e.getOffset() + e.getSize())) {
+            return list.remove(i);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // Adds the specified StructEntry object to the current resource structure
+  private void addEntry(AbstractStruct struct, int offset, StructEntry entry)
+  {
+    if (struct != null && offset >= 0 && entry != null) {
+      List<StructEntry> list = getList();
+      for (int i = 0, size = list.size(); i < size; i++) {
+        if (list.get(i).getOffset() > offset) {
+          list.add(i, entry);
+          return;
+        }
+      }
     }
   }
 

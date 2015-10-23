@@ -11,7 +11,6 @@ import java.util.Vector;
 
 /**
  * Adds UpdateListener callback support to the Bitmap class.
- * @author argent77
  */
 public class BitmapEx extends Bitmap
 {
@@ -30,20 +29,21 @@ public class BitmapEx extends Bitmap
 
 //--------------------- Begin Interface Editable ---------------------
 
- @Override
-public boolean updateValue(AbstractStruct struct)
- {
-   boolean result = super.updateValue(struct);
-   if (!listeners.isEmpty()) {
-     boolean ret = false;
-     UpdateEvent event = new UpdateEvent(this, struct);
-     for (final UpdateListener l: listeners)
-       ret |= l.valueUpdated(event);
-     if (ret)
-       struct.fireTableDataChanged();
-   }
-   return result;
- }
+  @Override
+  public boolean updateValue(AbstractStruct struct)
+  {
+    boolean result = super.updateValue(struct);
+    if (!listeners.isEmpty()) {
+      boolean ret = false;
+      UpdateEvent event = new UpdateEvent(this, struct);
+      for (final UpdateListener l: listeners)
+        ret |= l.valueUpdated(event);
+      if (ret) {
+        struct.fireTableDataChanged();
+      }
+    }
+    return result;
+  }
 
 //--------------------- End Interface Editable ---------------------
 

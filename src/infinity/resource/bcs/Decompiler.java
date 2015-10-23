@@ -212,11 +212,15 @@ public final class Decompiler
       if (token.equalsIgnoreCase("TR")) {
         String trigger = decompileTR(st);
         if (orcount > 0) {
-          orcount--;
+          // NextTriggerObject doesn't count as separate trigger
+          if (!trigger.startsWith("NextTriggerObject")) {
+            orcount--;
+          }
           code.append(indent);
         }
-        else if (trigger.substring(0, 3).equalsIgnoreCase("OR("))
+        else if (trigger.substring(0, 3).equalsIgnoreCase("OR(")) {
           orcount = Integer.parseInt(trigger.substring(3, trigger.indexOf(")")));
+        }
         code.append(indent).append(trigger);
       }
       token = st.nextToken();

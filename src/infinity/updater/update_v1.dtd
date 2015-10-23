@@ -14,7 +14,7 @@
 
 <!ELEMENT link (#PCDATA)>
 
-<!ELEMENT file (name, url, version, timestamp, hash, link?)>
+<!ELEMENT file (name, url, version, timestamp, hash, link)>
 
 <!ELEMENT changelog (entry+)>
 
