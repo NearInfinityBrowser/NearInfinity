@@ -1271,11 +1271,11 @@ public final class DxtEncoder
 
   private static final class Lookups
   {
-    public static int SIZE = 256;
-    public static SingleColorLookup[] lookup53 = new SingleColorLookup[SIZE];
-    public static SingleColorLookup[] lookup63 = new SingleColorLookup[SIZE];
-    public static SingleColorLookup[] lookup54 = new SingleColorLookup[SIZE];
-    public static SingleColorLookup[] lookup64 = new SingleColorLookup[SIZE];
+    public static final int SIZE = 256;
+    public static final SingleColorLookup[] lookup53 = new SingleColorLookup[SIZE];
+    public static final SingleColorLookup[] lookup63 = new SingleColorLookup[SIZE];
+    public static final SingleColorLookup[] lookup54 = new SingleColorLookup[SIZE];
+    public static final SingleColorLookup[] lookup64 = new SingleColorLookup[SIZE];
     static {
       lookup53[0] = new SingleColorLookup(new SourceBlock(0, 0, 0), new SourceBlock(0, 0, 0));
       lookup53[1] = new SingleColorLookup(new SourceBlock(0, 0, 1), new SourceBlock(0, 0, 1));
