@@ -108,7 +108,7 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
     super(parent, offset, size, (name != null) ? name : DEFAULT_NAME);
     sIDS = sIDS_default;
     sIDS[2] = secondIDS;
-    if (Profile.isEnhancedEdition() || (Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX)) {
+    if (Profile.isEnhancedEdition()) {
       sIDS[9] = "KIT.IDS";
     }
     sIDS[8] = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
