@@ -6,6 +6,7 @@ package infinity.check;
 
 import infinity.NearInfinity;
 import infinity.datatype.ResourceRef;
+import infinity.datatype.StringRef;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
@@ -24,8 +25,11 @@ import infinity.resource.bcs.Decompiler;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
 import infinity.resource.dlg.DlgResource;
+import infinity.resource.dlg.State;
+import infinity.resource.dlg.Transition;
 import infinity.resource.key.ResourceEntry;
 import infinity.resource.text.PlainTextResource;
+import infinity.util.StringResource;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
@@ -304,11 +308,12 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       if (flatList.get(i) instanceof ResourceRef) {
         ResourceRef ref = (ResourceRef)flatList.get(i);
         if (ref.getType().equalsIgnoreCase(checkType)) {
-          for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();)
+          for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
             if (j.next().toString().equalsIgnoreCase(ref.getResourceName())) {
               j.remove();
               break;
             }
+          }
         }
       }
       else if (flatList.get(i) instanceof AbstractCode) {
@@ -316,15 +321,37 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
         try {
           String compiled = infinity.resource.bcs.Compiler.getInstance().compileDialogCode(code.toString(),
                                                                                            code instanceof Action);
-          if (code instanceof Action)
+          if (code instanceof Action) {
             Decompiler.decompileDialogAction(compiled, true);
-          else
+          } else {
             Decompiler.decompileDialogTrigger(compiled, true);
+          }
           Set<ResourceEntry> resourcesUsed = Decompiler.getResourcesUsed();
-          for (final ResourceEntry resourceEntry : resourcesUsed)
+          for (final ResourceEntry resourceEntry : resourcesUsed) {
             checkList.remove(resourceEntry);
+          }
         } catch (Exception e) {
           e.printStackTrace();
+        }
+      }
+      else if (checkType.equalsIgnoreCase("WAV") &&
+               (flatList.get(i) instanceof State || flatList.get(i) instanceof Transition)) {
+        List<StructEntry> subList = ((AbstractStruct)flatList.get(i)).getFlatList();
+        for (int j = 0; j < subList.size(); j++) {
+          if (subList.get(j) instanceof StringRef) {
+            StringRef ref = (StringRef)subList.get(j);
+            if (ref.getValue() >= 0) {
+              String wav = StringResource.getResource(ref.getValue()) + ".WAV";
+              if (wav != null) {
+                for (Iterator<ResourceEntry> k = checkList.iterator(); k.hasNext();) {
+                  if (wav.equalsIgnoreCase(k.next().toString())) {
+                    k.remove();
+                    break;
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -334,8 +361,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   {
     Decompiler.decompile(script.getCode(), true);
     Set<ResourceEntry> resourcesUsed = Decompiler.getResourcesUsed();
-    for (final ResourceEntry resourceEntry : resourcesUsed)
+    for (final ResourceEntry resourceEntry : resourcesUsed) {
       checkList.remove(resourceEntry);
+    }
   }
 
   private void checkStruct(AbstractStruct struct)
@@ -345,11 +373,26 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       if (flatList.get(i) instanceof ResourceRef) {
         ResourceRef ref = (ResourceRef)flatList.get(i);
         if (ref.getType().equalsIgnoreCase(checkType)) {
-          for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();)
+          for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
             if (j.next().toString().equalsIgnoreCase(ref.getResourceName())) {
               j.remove();
               break;
             }
+          }
+        }
+      }
+      else if (checkType.equalsIgnoreCase("WAV") && flatList.get(i) instanceof StringRef) {
+        StringRef ref = (StringRef)flatList.get(i);
+        if (ref.getValue() >= 0) {
+          String wav = StringResource.getResource(ref.getValue()) + ".WAV";
+          if (wav != null) {
+            for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
+              if (wav.equalsIgnoreCase(j.next().toString())) {
+                j.remove();
+                break;
+              }
+            }
+          }
         }
       }
     }
