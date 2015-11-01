@@ -600,7 +600,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       structEntry = state;
       StringRef response = state.getResponse();
       textArea.setText(response.toString() + "\n(StrRef: " + response.getValue() + ')');
-      bPlay.setEnabled(StringResource.getResource(response.getValue()) != null);
+      bPlay.setEnabled(StringResource.getWavResource(response.getValue()) != null);
       textArea.setCaretPosition(0);
     }
 
@@ -618,7 +618,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         text = assText.toString() + "\n(StrRef: " + assText.getValue() + ")\n";
       if (trans.getFlag().isFlagSet(4))
         text += "\nJournal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
-      bPlay.setEnabled(StringResource.getResource(assText.getValue()) != null);
+      bPlay.setEnabled(StringResource.getWavResource(assText.getValue()) != null);
       textArea.setText(text);
       textArea.setCaretPosition(0);
     }
@@ -672,7 +672,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           text = ((Transition)struct).getAssociatedText();
         }
         if (text != null) {
-          String resourceName = StringResource.getResource(text.getValue()) + ".WAV";
+          String resourceName = StringResource.getWavResource(text.getValue()) + ".WAV";
           if (resourceName != null) {
             ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName);
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));

@@ -72,7 +72,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
   {
     if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
       taRefText.setText(StringResource.getStringRef(Integer.parseInt(tfRefNr.getText())));
-      String resname = StringResource.getResource(Integer.parseInt(tfRefNr.getText()));
+      String resname = StringResource.getWavResource(Integer.parseInt(tfRefNr.getText()));
       bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     }
     else if (event.getSource() == bEdit) {
@@ -92,7 +92,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     }
     else if (event.getSource() == bPlay) {
       int newvalue = Integer.parseInt(tfRefNr.getText());
-      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getResource(newvalue) + ".WAV");
+      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getWavResource(newvalue) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch)
@@ -127,7 +127,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
       bSearch.addActionListener(this);
       bSearch.setMnemonic('f');
     }
-    String resname = StringResource.getResource(value);
+    String resname = StringResource.getWavResource(value);
     bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     taRefText.setText(StringResource.getStringRef(value));
     taRefText.setCaretPosition(0);
@@ -254,7 +254,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     value = newvalue;
     taRefText.setText(StringResource.getStringRef(value));
     tfRefNr.setText(String.valueOf(value));
-    String resname = StringResource.getResource(value);
+    String resname = StringResource.getWavResource(value);
     bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
   }
 }

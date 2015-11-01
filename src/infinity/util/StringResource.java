@@ -13,17 +13,20 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
 public final class StringResource
 {
+  private static final HashMap<Integer, StringEntry> cachedEntry = new HashMap<Integer, StringResource.StringEntry>(1000);
+  private static final Charset cp1252Charset = Charset.forName("windows-1252");
+  private static final Charset utf8Charset = Charset.forName("utf8");
+
   private static File ffile;
   private static RandomAccessFile file;
   private static String version;
   private static int maxnr, startindex;
-  private static Charset cp1252Charset = Charset.forName("windows-1252");
-  private static Charset utf8Charset = Charset.forName("utf8");
   private static Charset charset = cp1252Charset;
   private static Charset usedCharset = charset;
 
@@ -33,21 +36,22 @@ public final class StringResource
   }
 
   /** Specify the charset used to decode strings of the string resource. */
-  public static void setCharset(String cs) {
+  public static synchronized void setCharset(String cs) {
     charset = Charset.forName(cs);
     usedCharset = charset;
   }
 
   /** Explicitly closes the dialog.tlk file handle. */
-  public static void close()
+  public static synchronized void close()
   {
-    if (file == null) return;
-    try {
-      file.close();
-    } catch (IOException e) {
-      e.printStackTrace();
+    if (file != null) {
+      try {
+        file.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      file = null;
     }
-    file = null;
   }
 
   /** Returns the File instance of the dialog.tlk */
@@ -63,37 +67,12 @@ public final class StringResource
   }
 
   /** Returns the resource name of the sound file associated with the specified strref entry. */
-  public static String getResource(int index)
+  public static String getWavResource(int index)
   {
     try {
-      if (file == null)
-        open();
-      if (index >= maxnr || index == 0xffffffff) return null;
-      byte buffer[] = null;
-      if (version.equalsIgnoreCase("V1  ")) {
-        index *= 0x1a;
-        file.seek((long)(0x12 + index + 0x02));
-        buffer = new byte[8];
-      }
-      else if (version.equalsIgnoreCase("V3.0")) {
-        index *= 0x28;
-        file.seek((long)(0x14 + index + 0x04));
-        buffer = new byte[16];
-      }
-      file.readFully(buffer);
-      if (buffer[0] == 0)
-        return null;
-      int max = buffer.length;
-      for (int i = 0; i < buffer.length; i++) {
-        if (buffer[i] == 0x00) {
-          max = i;
-          break;
-        }
-      }
-      if (max != buffer.length)
-        buffer = Arrays.copyOfRange(buffer, 0, max);
-      return new String(buffer);
-    } catch (Exception e) {
+      StringEntry entry = fetchStringEntry(index);
+      return entry.soundRes;
+    } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -114,7 +93,7 @@ public final class StringResource
   }
 
   /**
-   * Returns the string of the specified sttrref entry. Optionally adds the specified
+   * Returns the string of the specified strref entry. Optionally adds the specified
    * Strref entry to the returned string.
    * @param index The strref entry
    * @param extended If <code>true</code> adds the specified strref entry to the resulting string.
@@ -131,29 +110,59 @@ public final class StringResource
       fmtResult = "%1$s";
     }
 
-    int strref = index;
     try {
-      if (file == null)
-        open();
-      if (index >= maxnr || index < 0) return String.format(fmtResult, "No such index", strref);
-      if (version.equalsIgnoreCase("V1  ")) {
-        index *= 0x1A;
-        file.seek((long)(0x12 + index + 0x12));
+      StringEntry entry = fetchStringEntry(index);
+      if (entry != null) {
+        return String.format(fmtResult, entry.text, entry.strref);
       }
-      else if (version.equalsIgnoreCase("V3.0")) {
-        index *= 0x28;
-        file.seek((long)(0x14 + index + 0x1C));
-      }
-      int offset = startindex + FileReaderNI.readInt(file);
-      int length = FileReaderNI.readInt(file);
-      file.seek((long)offset);
-      return String.format(fmtResult, FileReaderNI.readString(file, length, usedCharset), strref);
     } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
     return "Error";
+  }
+
+  /** Returns message type of specified strref. */
+  public short getFlags(int index)
+  {
+    try {
+      StringEntry entry = fetchStringEntry(index);
+      if (entry != null) {
+        return entry.type;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return 0;
+  }
+
+  /** Returns volume variance of the specified strref. */
+  public int getVolume(int index)
+  {
+    try {
+      StringEntry entry = fetchStringEntry(index);
+      if (entry != null) {
+        return entry.volume;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return 0;
+  }
+
+  /** Returns pitch variance of the specified strref. */
+  public int getPitch(int index)
+  {
+    try {
+      StringEntry entry = fetchStringEntry(index);
+      if (entry != null) {
+        return entry.pitch;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return 0;
   }
 
   /** Specify a new dialog.tlk. */
@@ -163,25 +172,85 @@ public final class StringResource
     StringResource.ffile = ffile;
   }
 
-  private static void open() throws IOException
+  private static synchronized void open() throws IOException
   {
-    file = new RandomAccessFileNI(ffile, "r");
-    file.seek((long)0x00);
-    String signature = FileReaderNI.readString(file, 4);
-    if (!signature.equalsIgnoreCase("TLK "))
-      throw new IOException("Not valid TLK file");
-    version = FileReaderNI.readString(file, 4);
-    if (version.equalsIgnoreCase("V1  "))
-      file.seek((long)0x0A);
-    else if (version.equalsIgnoreCase("V3.0"))
-      file.seek((long)0x0C);
-    maxnr = FileReaderNI.readInt(file);
-    startindex = FileReaderNI.readInt(file);
-    if (Profile.isEnhancedEdition()) {
-      usedCharset = utf8Charset;
+    if (file == null) {
+      file = new RandomAccessFileNI(ffile, "r");
+      file.seek((long)0x00);
+      String signature = FileReaderNI.readString(file, 4);
+      if (!signature.equalsIgnoreCase("TLK "))
+        throw new IOException("Not valid TLK file");
+      version = FileReaderNI.readString(file, 4);
+      if (version.equalsIgnoreCase("V1  ")) {
+        file.seek((long)0x0A);
+      } else {
+        file.close();
+        file = null;
+        throw new IOException("Invalid TLK version");
+      }
+      maxnr = FileReaderNI.readInt(file);
+      startindex = FileReaderNI.readInt(file);
+      if (Profile.isEnhancedEdition()) {
+        usedCharset = utf8Charset;
+      }
     }
   }
 
+  private static synchronized StringEntry fetchStringEntry(int index) throws IOException
+  {
+    StringEntry entry = cachedEntry.get(Integer.valueOf(index));
+    if (entry == null) {
+      entry = new StringEntry(index);
+      cachedEntry.put(Integer.valueOf(index), entry);
+    }
+    return entry;
+  }
+
   private StringResource(){}
+
+
+//-------------------------- INNER CLASSES --------------------------
+
+  private static class StringEntry
+  {
+    public final int strref;
+    public final short type;
+    public final String soundRes;
+    public final int volume, pitch;
+    public final String text;
+
+    private StringEntry(int index) throws IOException
+    {
+      open();
+      if (index >= 0 && index < maxnr ) {
+        strref = index;
+        index *= 0x1a;
+        file.seek((long)(0x12 + index));
+        type = FileReaderNI.readShort(file);
+        byte[] buffer = new byte[8];
+        file.read(buffer);
+        int len = buffer.length;
+        for (int i = 0; i < buffer.length; i++) {
+          if (buffer[i] == 0) {
+            len = i;
+            break;
+          }
+        }
+        soundRes = new String(Arrays.copyOf(buffer, len));
+        volume = FileReaderNI.readInt(file);
+        pitch = FileReaderNI.readInt(file);
+        long offset = startindex + FileReaderNI.readInt(file);
+        int length = FileReaderNI.readInt(file);
+        file.seek(offset);
+        text = FileReaderNI.readString(file, length, usedCharset);
+      } else {
+        strref = -1;
+        type = 0;
+        volume = pitch = 0;
+        soundRes = null;
+        text = "No such index";
+      }
+    }
+  }
 }
 

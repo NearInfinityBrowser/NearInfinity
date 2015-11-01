@@ -41,7 +41,7 @@ public class Song2daBitmap extends HashBitmap
     return TableName;
   }
 
-  private static LongIntegerHashMap<String> getSongTable()
+  private static synchronized LongIntegerHashMap<String> getSongTable()
   {
     if (songMap.isEmpty()) {
       Table2da table = Table2daCache.get(TableName);
@@ -61,7 +61,7 @@ public class Song2daBitmap extends HashBitmap
     return songMap;
   }
 
-  public static void resetSonglist()
+  public static synchronized void resetSonglist()
   {
     songMap.clear();
     Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));

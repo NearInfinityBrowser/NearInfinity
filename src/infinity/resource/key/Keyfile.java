@@ -259,15 +259,12 @@ public final class Keyfile
     return true;
   }
 
-  public void closeBIFFFile()
+  public synchronized void closeBIFFFile()
   {
-    if (currentBIFF != null)
-      try {
-        currentBIFF.close();
-        currentBIFFEntry = null;
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    if (currentBIFF != null) {
+      currentBIFF = null;
+      currentBIFFEntry = null;
+    }
   }
 
   public Object[] getBIFFEntriesSorted()
@@ -282,18 +279,21 @@ public final class Keyfile
     return biffEntries.get(index);
   }
 
-  public BIFFArchive getBIFFFile(BIFFEntry entry) throws IOException
+  public synchronized BIFFArchive getBIFFFile(BIFFEntry entry) throws IOException
   {
-    if (currentBIFFEntry == entry)
+    if (entry == null) {
+      return null;
+    } else if (entry.equals(currentBIFFEntry)) {
       return currentBIFF; // Caching
-    File file = entry.getFile();
-    if (file == null)
-      throw new IOException(entry + " not found");
-    if (currentBIFF != null)
-      currentBIFF.close();
-    currentBIFFEntry = entry;
-    currentBIFF = new BIFFArchive(file);
-    return currentBIFF;
+    } else {
+      File file = entry.getFile();
+      if (file == null) {
+        throw new IOException(entry + " not found");
+      }
+      currentBIFFEntry = entry;
+      currentBIFF = new BIFFArchive(file);
+      return currentBIFF;
+    }
   }
 
   public String getExtension(int type)
@@ -322,29 +322,36 @@ public final class Keyfile
   public void write() throws IOException
   {
     BufferedOutputStream os = new BufferedOutputStream(new FileOutputStreamNI(keyfile));
-    int bifoff = 0x18;
-    int offset = bifoff + 0x0c * biffEntries.size();
-    for (int i = 0; i < biffEntries.size(); i++)
-      offset += biffEntries.get(i).updateOffset(offset);
-    int resoff = offset;
+    try {
+      int bifoff = 0x18;
+      int offset = bifoff + 0x0c * biffEntries.size();
+      for (int i = 0; i < biffEntries.size(); i++) {
+        offset += biffEntries.get(i).updateOffset(offset);
+      }
+      int resoff = offset;
 
-    List<BIFFResourceEntry> resourceentries = ResourceFactory.getResources().getBIFFResourceEntries();
+      List<BIFFResourceEntry> resourceentries = ResourceFactory.getResources().getBIFFResourceEntries();
 
-    FileWriterNI.writeString(os, signature, 4);
-    FileWriterNI.writeString(os, version, 4);
-    FileWriterNI.writeInt(os, biffEntries.size());
-    FileWriterNI.writeInt(os, resourceentries.size());
-    FileWriterNI.writeInt(os, bifoff);
-    FileWriterNI.writeInt(os, resoff);
+      FileWriterNI.writeString(os, signature, 4);
+      FileWriterNI.writeString(os, version, 4);
+      FileWriterNI.writeInt(os, biffEntries.size());
+      FileWriterNI.writeInt(os, resourceentries.size());
+      FileWriterNI.writeInt(os, bifoff);
+      FileWriterNI.writeInt(os, resoff);
 
-    for (int i = 0; i < biffEntries.size(); i++)
-      biffEntries.get(i).write(os);
-    for (int i = 0; i < biffEntries.size(); i++)
-      biffEntries.get(i).writeString(os);
+      for (int i = 0; i < biffEntries.size(); i++) {
+        biffEntries.get(i).write(os);
+      }
+      for (int i = 0; i < biffEntries.size(); i++) {
+        biffEntries.get(i).writeString(os);
+      }
 
-    for (int i = 0; i < resourceentries.size(); i++)
-      resourceentries.get(i).write(os);
-    os.close();
+      for (int i = 0; i < resourceentries.size(); i++) {
+        resourceentries.get(i).write(os);
+      }
+    } finally {
+      os.close();
+    }
   }
 
   private void removeBIFFEntry(BIFFEntry entry)
@@ -354,10 +361,11 @@ public final class Keyfile
     // Remove bogus BIFFResourceEntries
     ResourceTreeModel resources = ResourceFactory.getResources();
     for (final BIFFResourceEntry resourceEntry : resources.getBIFFResourceEntries()) {
-      if (resourceEntry.getBIFFEntry() == entry)
+      if (resourceEntry.getBIFFEntry() == entry) {
         resources.removeResourceEntry(resourceEntry);
-      else
+      } else {
         resourceEntry.adjustSourceIndex(index);     // Update relevant BIFFResourceEntries
+      }
     }
     // Remove BIFFEntry
     biffEntries.remove(entry);

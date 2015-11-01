@@ -208,7 +208,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
     this.hasOverride = hasOverride;
   }
 
-  void adjustSourceIndex(int index)
+  synchronized void adjustSourceIndex(int index)
   {
     int sourceindex = locator >> 20 & 0xfff;
     if (sourceindex > index) {

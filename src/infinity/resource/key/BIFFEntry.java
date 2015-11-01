@@ -88,13 +88,17 @@ public final class BIFFEntry implements Writeable, Comparable<BIFFEntry>
   @Override
   public boolean equals(Object o)
   {
-    if (!(o instanceof BIFFEntry))
+    if (this == o) {
+      return true;
+    } else if (!(o instanceof BIFFEntry)) {
       return false;
-    BIFFEntry other = (BIFFEntry)o;
-    return filelength == other.filelength && stringoffset == other.stringoffset &&
-           stringlength == other.stringlength &&
-           location == other.location &&
-           filename.equals(other.filename);
+    } else {
+      BIFFEntry other = (BIFFEntry)o;
+      return filelength == other.filelength && stringoffset == other.stringoffset &&
+             stringlength == other.stringlength &&
+             location == other.location &&
+             filename.equals(other.filename);
+    }
   }
 
   @Override

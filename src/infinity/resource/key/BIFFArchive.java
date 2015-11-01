@@ -27,52 +27,83 @@ import javax.swing.JOptionPane;
 
 public final class BIFFArchive
 {
+  /** Available BIFF file versions */
+  public enum Type {
+    /** Uncompressed BIFF V1 */
+    BIFF,
+    /** File-compressed BIF V1.0 */
+    BIF,
+    /** Block-compressed BIFC V1.0 */
+    BIFC,
+    /** Unsupported file type */
+    Unknown
+  }
+
   private static final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
   private final File file;
-  private final String signature;
-  private RandomAccessFile ranfile;
+  private final Type biffType;
   private int biffEntryOff, comprOff, numFiles;
 
   BIFFArchive(File file) throws IOException
   {
     this.file = file;
     InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
-    signature = FileReaderNI.readString(is, 4);
-    if (signature.equals("BIFF")) {
-      readBIFFHeader(is);
-      ranfile = new RandomAccessFileNI(file, "r");
-    }
-    else if (signature.equals("BIF ")) {
-      FileReaderNI.readString(is, 4); // Version
-      int namelength = FileReaderNI.readInt(is);
-      FileReaderNI.readString(is, namelength); // Name
-      FileReaderNI.readInt(is); // Unc_length
-      FileReaderNI.readInt(is); // Com_length
-      comprOff = 20 + namelength;
-      InflaterInputStream iis = new InflaterInputStream(is);
-      FileReaderNI.readString(iis, 4); // BIFF
-      readBIFFHeader(iis);
-      iis.close();
-    }
-    else if (signature.equals("BIFC")) {
-      FileReaderNI.readString(is, 4); // Version
-      FileReaderNI.readInt(is); // Unc_length
-      comprOff = 12;
-      is.skip((long)8); // 8 - Header of BIFC Block
-      InflaterInputStream iis = new InflaterInputStream(is);
-      FileReaderNI.readString(iis, 4); // BIFF
-      readBIFFHeader(iis);
-      iis.close();
-    }
-    else
-      JOptionPane.showMessageDialog(null, "Unsupported BIFF file:" + file, "Error", JOptionPane.ERROR_MESSAGE);
-    is.close();
-  }
+    try {
+      String signature = FileReaderNI.readString(is, 4);
+      if (signature.equals("BIFF")) {
+        biffType = Type.BIFF;
+      } else if (signature.equals("BIF ")) {
+        biffType = Type.BIF;
+      } else if (signature.equals("BIFC")) {
+        biffType = Type.BIFC;
+      } else {
+        biffType = Type.Unknown;
+      }
 
-  public void close() throws IOException
-  {
-    if (ranfile != null)
-      ranfile.close();
+      switch (biffType) {
+        case BIFF:
+        {
+          readBIFFHeader(is);
+          break;
+        }
+        case BIF:
+        {
+          FileReaderNI.readString(is, 4); // Version
+          int namelength = FileReaderNI.readInt(is);
+          FileReaderNI.readString(is, namelength); // Name
+          FileReaderNI.readInt(is); // Unc_length
+          FileReaderNI.readInt(is); // Com_length
+          comprOff = 20 + namelength;
+          InflaterInputStream iis = new InflaterInputStream(is);
+          try {
+            FileReaderNI.readString(iis, 4); // BIFF
+            readBIFFHeader(iis);
+          } finally {
+            iis.close();
+          }
+          break;
+        }
+        case BIFC:
+        {
+          FileReaderNI.readString(is, 4); // Version
+          FileReaderNI.readInt(is); // Unc_length
+          comprOff = 12;
+          is.skip((long)8); // 8 - Header of BIFC Block
+          InflaterInputStream iis = new InflaterInputStream(is);
+          try {
+            FileReaderNI.readString(iis, 4); // BIFF
+            readBIFFHeader(iis);
+          } finally {
+            iis.close();
+          }
+          break;
+        }
+        default:
+          JOptionPane.showMessageDialog(null, "Unsupported BIFF file:" + file, "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    } finally {
+      is.close();
+    }
   }
 
   public File getFile()
@@ -80,136 +111,157 @@ public final class BIFFArchive
     return file;
   }
 
-  public String getSignature()
+  public Type getType()
   {
-    return signature;
+    return biffType;
   }
 
-  byte[] getResource(int offset, boolean isTile) throws IOException
+  synchronized byte[] getResource(int offset, boolean isTile) throws IOException
   {
-    if (isTile)
+    if (isTile) {
       offset = 16 * numFiles + 20 * (offset - 1); // Tileset index starts at 1
-    else
+    } else {
       offset *= 16;
-    byte buffer[] = null;
-    if (signature.equals("BIFF"))
-      buffer = getBIFFResource(offset, isTile);
-    else if (signature.equals("BIF "))
-      buffer = getBIFResource(offset, isTile);
-    else if (signature.equals("BIFC"))
-      buffer = getBIFCResource(offset, isTile);
+    }
+    byte[] buffer;
+    switch (biffType) {
+      case BIFF:
+        buffer = getBIFFResource(offset, isTile);
+        break;
+      case BIF:
+        buffer = getBIFResource(offset, isTile);
+        break;
+      case BIFC:
+        buffer = getBIFCResource(offset, isTile);
+        break;
+      default:
+        buffer = null;
+    }
     blocker.setBlocked(false);
     return buffer;
   }
 
-  InputStream getResourceAsStream(int offset, boolean isTile) throws IOException
+  synchronized InputStream getResourceAsStream(int offset, boolean isTile) throws IOException
   {
-    if (isTile)
+    if (isTile) {
       offset = 16 * numFiles + 20 * (offset - 1); // Tileset index starts at 1
-    else
+    } else {
       offset *= 16;
-    if (signature.equals("BIFF"))
-      return getBIFFResourceAsStream(offset);
-    else if (signature.equals("BIF "))
-      return getBIFResourceAsStream(offset, isTile);
-    else if (signature.equals("BIFC"))
-      return getBIFCResourceAsStream(offset, isTile);
-    throw new IOException("Not implemented");
+    }
+    switch (biffType) {
+      case BIFF:
+        return getBIFFResourceAsStream(offset);
+      case BIF:
+        return getBIFResourceAsStream(offset, isTile);
+      case BIFC:
+        return getBIFCResourceAsStream(offset, isTile);
+      default:
+        throw new IOException("Not implemented");
+    }
   }
 
-  int[] getResourceInfo(int offset, boolean isTile) throws IOException
+  synchronized int[] getResourceInfo(int offset, boolean isTile) throws IOException
   {
-    if (isTile)
+    if (isTile) {
       offset = 16 * numFiles + 20 * (offset - 1); // Tileset index starts at 1
-    else
+    } else {
       offset *= 16;
-    if (signature.equals("BIFF"))
-      return getBIFFResourceInfo(offset, isTile);
-    else if (signature.equals("BIF "))
-      return getBIFResourceInfo(offset, isTile);
-    return getBIFCResourceInfo(offset, isTile);
+    }
+    switch (biffType) {
+      case BIFF:
+        return getBIFFResourceInfo(offset, isTile);
+      case BIF:
+        return getBIFResourceInfo(offset, isTile);
+      case BIFC:
+        return getBIFCResourceInfo(offset, isTile);
+      default:
+        return null;
+    }
   }
 
   private byte[] getBIFCResource(int offset, boolean isTile) throws IOException
   {
     BufferedInputStream fis = new BufferedInputStream(new FileInputStreamNI(file));
-    fis.skip((long)comprOff);
-    int startoffset = biffEntryOff + offset;
+    try {
+      fis.skip((long)comprOff);
+      int startoffset = biffEntryOff + offset;
 
-    int currentoffset = 0;
-    BifcBlock block = new BifcBlock(fis);
-    while (startoffset > currentoffset + block.decompSize) {
-      currentoffset += block.decompSize;
-      fis.skip((long)block.compSize);
-      block = new BifcBlock(fis);
-    }
-    // File Header now begins inside block
-    byte header[];
-    if (isTile)
-      header = new byte[20];
-    else
-      header = new byte[16];
-    int hindex = 0;
-    while (hindex < header.length) {
-      int toread = Math.min(header.length, currentoffset + block.decompSize - startoffset);
-      byte header2[] = block.getData(fis, startoffset - currentoffset, toread);
-      System.arraycopy(header2, 0, header, hindex, header2.length);
-      hindex += header2.length;
-      if (hindex < header.length) {
+      int currentoffset = 0;
+      BifcBlock block = new BifcBlock(fis);
+      while (startoffset > currentoffset + block.decompSize) {
+        currentoffset += block.decompSize;
+        fis.skip((long)block.compSize);
+        block = new BifcBlock(fis);
+      }
+      // File Header now begins inside block
+      byte header[];
+      if (isTile)
+        header = new byte[20];
+      else
+        header = new byte[16];
+      int hindex = 0;
+      while (hindex < header.length) {
+        int toread = Math.min(header.length, currentoffset + block.decompSize - startoffset);
+        byte header2[] = block.getData(fis, startoffset - currentoffset, toread);
+        System.arraycopy(header2, 0, header, hindex, header2.length);
+        hindex += header2.length;
+        if (hindex < header.length) {
+          currentoffset += block.decompSize;
+          block = new BifcBlock(fis);
+        }
+      }
+
+      int size;
+      byte[] tileheader = null;
+  //    DynamicArray.getInt(header, 0); // Locator
+      int resoff = DynamicArray.getInt(header, 4);
+      if (!isTile) {
+        size = DynamicArray.getInt(header, 8);
+  //      DynamicArray.getShort(header, 12); // Type
+  //      DynamicArray.getShort(header, 14); // Unknown
+      }
+      else {
+        int tilecount = DynamicArray.getInt(header, 8);
+        int tilesize = DynamicArray.getInt(header, 12);
+        size = tilecount * tilesize;
+        tileheader = getTisHeader(tilecount, tilesize);
+  //      DynamicArray.getShort(header, 16); // Type
+  //      DynamicArray.getShort(header, 18); // Unknown
+      }
+
+      if (size > 1000000)
+        blocker.setBlocked(true);
+
+      if (resoff > currentoffset + block.decompSize) {
         currentoffset += block.decompSize;
         block = new BifcBlock(fis);
       }
-    }
-
-    int size;
-    byte[] tileheader = null;
-//    DynamicArray.getInt(header, 0); // Locator
-    int resoff = DynamicArray.getInt(header, 4);
-    if (!isTile) {
-      size = DynamicArray.getInt(header, 8);
-//      DynamicArray.getShort(header, 12); // Type
-//      DynamicArray.getShort(header, 14); // Unknown
-    }
-    else {
-      int tilecount = DynamicArray.getInt(header, 8);
-      int tilesize = DynamicArray.getInt(header, 12);
-      size = tilecount * tilesize;
-      tileheader = getTisHeader(tilecount, tilesize);
-//      DynamicArray.getShort(header, 16); // Type
-//      DynamicArray.getShort(header, 18); // Unknown
-    }
-
-    if (size > 1000000)
-      blocker.setBlocked(true);
-
-    if (resoff > currentoffset + block.decompSize) {
-      currentoffset += block.decompSize;
-      block = new BifcBlock(fis);
-    }
-    while (resoff > currentoffset + block.decompSize) {
-      currentoffset += block.decompSize;
-      block.getData(fis, 0, block.decompSize);
-      block = new BifcBlock(fis);
-    }
-    // Data now starts inside block
-    byte buffer[] = new byte[isTile ? size + tileheader.length : size];
-    int index = 0;
-    int indexofs = 0;
-    if (isTile) {
-      System.arraycopy(tileheader, 0, buffer, 0, tileheader.length);
-      indexofs += tileheader.length;
-    }
-    while (index < size) {
-      int toread = Math.min(size - index, currentoffset + block.decompSize - (resoff + index));
-      byte buffer2[] = block.getData(fis, resoff + index - currentoffset, toread);
-      System.arraycopy(buffer2, 0, buffer, index + indexofs, buffer2.length);
-      index += buffer2.length;
-      currentoffset += block.decompSize;
-      if (index < size)
+      while (resoff > currentoffset + block.decompSize) {
+        currentoffset += block.decompSize;
+        block.getData(fis, 0, block.decompSize);
         block = new BifcBlock(fis);
+      }
+      // Data now starts inside block
+      byte[] buffer = new byte[isTile ? size + tileheader.length : size];
+      int index = 0;
+      int indexofs = 0;
+      if (isTile) {
+        System.arraycopy(tileheader, 0, buffer, 0, tileheader.length);
+        indexofs += tileheader.length;
+      }
+      while (index < size) {
+        int toread = Math.min(size - index, currentoffset + block.decompSize - (resoff + index));
+        byte[] buffer2 = block.getData(fis, resoff + index - currentoffset, toread);
+        System.arraycopy(buffer2, 0, buffer, index + indexofs, buffer2.length);
+        index += buffer2.length;
+        currentoffset += block.decompSize;
+        if (index < size)
+          block = new BifcBlock(fis);
+      }
+      return buffer;
+    } finally {
+      fis.close();
     }
-    fis.close();
-    return buffer;
   }
 
   private InputStream getBIFCResourceAsStream(int offset, boolean isTile) throws IOException
@@ -278,129 +330,162 @@ public final class BIFFArchive
   private int[] getBIFCResourceInfo(int offset, boolean isTile) throws IOException
   {
     BufferedInputStream fis = new BufferedInputStream(new FileInputStreamNI(file));
-    fis.skip((long)comprOff);
-    int startoffset = biffEntryOff + offset;
+    try {
+      fis.skip((long)comprOff);
+      int startoffset = biffEntryOff + offset;
 
-    int currentoffset = 0;
-    BifcBlock block = new BifcBlock(fis);
-    while (startoffset > currentoffset + block.decompSize) {
-      currentoffset += block.decompSize;
-      fis.skip((long)block.compSize);
-      block = new BifcBlock(fis);
-    }
-    // File Header now begins inside block
-    byte header[];
-    if (isTile)
-      header = new byte[20];
-    else
-      header = new byte[16];
-    int hindex = 0;
-    while (hindex < header.length) {
-      int toread = Math.min(header.length, currentoffset + block.decompSize - startoffset);
-      byte header2[] = block.getData(fis, startoffset - currentoffset, toread);
-      System.arraycopy(header2, 0, header, hindex, header2.length);
-      hindex += header2.length;
-      if (hindex < header.length) {
+      int currentoffset = 0;
+      BifcBlock block = new BifcBlock(fis);
+      while (startoffset > currentoffset + block.decompSize) {
         currentoffset += block.decompSize;
+        fis.skip((long)block.compSize);
         block = new BifcBlock(fis);
       }
-    }
-    fis.close();
+      // File Header now begins inside block
+      byte header[];
+      if (isTile)
+        header = new byte[20];
+      else
+        header = new byte[16];
+      int hindex = 0;
+      while (hindex < header.length) {
+        int toread = Math.min(header.length, currentoffset + block.decompSize - startoffset);
+        byte header2[] = block.getData(fis, startoffset - currentoffset, toread);
+        System.arraycopy(header2, 0, header, hindex, header2.length);
+        hindex += header2.length;
+        if (hindex < header.length) {
+          currentoffset += block.decompSize;
+          block = new BifcBlock(fis);
+        }
+      }
 
-    if (isTile)
-      return new int[]{DynamicArray.getInt(header, 8), DynamicArray.getInt(header, 12)};
-    return new int[]{DynamicArray.getInt(header, 8)};
+      if (isTile) {
+        return new int[]{DynamicArray.getInt(header, 8), DynamicArray.getInt(header, 12)};
+      } else {
+        return new int[]{DynamicArray.getInt(header, 8)};
+      }
+    } finally {
+      fis.close();
+    }
   }
 
-  private byte[] getBIFFResource(int offset, boolean isTile) throws IOException
+  private synchronized byte[] getBIFFResource(int offset, boolean isTile) throws IOException
   {
-    ranfile.seek((long)(biffEntryOff + offset));
-    FileReaderNI.readInt(ranfile); // Locator
-    int resoff = FileReaderNI.readInt(ranfile);
-    int size = FileReaderNI.readInt(ranfile);
-    byte[] tileheader = null;
-    if (isTile) {
-      int tilesize = FileReaderNI.readInt(ranfile);
-      tileheader = getTisHeader(size, tilesize);
-      size *= tilesize;
+    if (file == null) {
+      throw new IOException("No file specified");
     }
-//    Filereader.readShort(ranfile); // Type
-//    Filereader.readShort(ranfile); // Unknown
-    if (size > 1000000)
-      blocker.setBlocked(true);
+    RandomAccessFile ranfile = new RandomAccessFileNI(file, "r");
+    try {
+      ranfile.seek((long)(biffEntryOff + offset + 4));  // skip locator
+      int resoff = FileReaderNI.readInt(ranfile);
+      int size = FileReaderNI.readInt(ranfile);
+      byte[] tileheader = null;
+      if (isTile) {
+        int tilesize = FileReaderNI.readInt(ranfile);
+        tileheader = getTisHeader(size, tilesize);
+        size *= tilesize;
+      }
+  //    Filereader.readShort(ranfile); // Type
+  //    Filereader.readShort(ranfile); // Unknown
+      if (size > 1000000)
+        blocker.setBlocked(true);
 
-    byte buffer[] = new byte[isTile ? size + tileheader.length : size];
-    int index = 0;
-    if (isTile) {
-      System.arraycopy(tileheader, 0, buffer, index, tileheader.length);
-      index += tileheader.length;
+      byte[] buffer = new byte[isTile ? size + tileheader.length : size];
+      int index = 0;
+      if (isTile) {
+        System.arraycopy(tileheader, 0, buffer, index, tileheader.length);
+        index += tileheader.length;
+      }
+      ranfile.seek((long)resoff);
+      ranfile.readFully(buffer, index, size);
+      return buffer;
+    } finally {
+      ranfile.close();
     }
-    ranfile.seek((long)resoff);
-    ranfile.readFully(buffer, index, size);
-    return buffer;
   }
 
-  private InputStream getBIFFResourceAsStream(int offset) throws IOException
+  private synchronized InputStream getBIFFResourceAsStream(int offset) throws IOException
   {
-    ranfile.seek((long)(biffEntryOff + offset));
-    FileReaderNI.readInt(ranfile); // Locator
-    int resoff = FileReaderNI.readInt(ranfile);
+    if (file == null) {
+      throw new IOException("No file specified");
+    }
+    RandomAccessFile ranfile = new RandomAccessFileNI(file, "r");
+    try {
+      ranfile.seek((long)(biffEntryOff + offset + 4));  // skip locator
+      int resoff = FileReaderNI.readInt(ranfile);
 
-    InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
-    is.skip((long)resoff);
+      InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
+      is.skip((long)resoff);
 
-    return is;
+      return is;
+    } finally {
+      ranfile.close();
+    }
   }
 
   ///////////////////////////////
   // BIFF Support
   ///////////////////////////////
 
-  private int[] getBIFFResourceInfo(int offset, boolean isTile) throws IOException
+  private synchronized int[] getBIFFResourceInfo(int offset, boolean isTile) throws IOException
   {
-    ranfile.seek((long)(biffEntryOff + offset + 8));
-    if (isTile)
-      return new int[]{FileReaderNI.readInt(ranfile), FileReaderNI.readInt(ranfile)};
-    return new int[]{FileReaderNI.readInt(ranfile)};
+    if (file == null) {
+      throw new IOException("No file specified");
+    }
+    RandomAccessFile ranfile = new RandomAccessFileNI(file, "r");
+    try {
+      ranfile.seek((long)(biffEntryOff + offset + 8));
+      if (isTile)
+        return new int[]{FileReaderNI.readInt(ranfile), FileReaderNI.readInt(ranfile)};
+      return new int[]{FileReaderNI.readInt(ranfile)};
+    } finally {
+      ranfile.close();
+    }
   }
 
   private byte[] getBIFResource(int offset, boolean isTile) throws IOException
   {
     BufferedInputStream bis = new BufferedInputStream(new FileInputStreamNI(file));
-    bis.skip((long)comprOff);
+    try {
+      bis.skip((long)comprOff);
 
-    InflaterInputStream iis = new InflaterInputStream(bis);
-    iis.skip((long)(biffEntryOff + offset));
-    FileReaderNI.readInt(iis); // Locator
-    int resoff = FileReaderNI.readInt(iis);
-    int size;
-    byte[] tileheader = null;
-    if (isTile) {
-      int tilecount = FileReaderNI.readInt(iis);
-      int tilesize = FileReaderNI.readInt(iis);
-      size = tilecount * tilesize;
-      offset += 4;
-      tileheader = getTisHeader(tilecount, tilesize);
+      InflaterInputStream iis = new InflaterInputStream(bis);
+      try {
+        iis.skip((long)(biffEntryOff + offset));
+        FileReaderNI.readInt(iis); // Locator
+        int resoff = FileReaderNI.readInt(iis);
+        int size;
+        byte[] tileheader = null;
+        if (isTile) {
+          int tilecount = FileReaderNI.readInt(iis);
+          int tilesize = FileReaderNI.readInt(iis);
+          size = tilecount * tilesize;
+          offset += 4;
+          tileheader = getTisHeader(tilecount, tilesize);
+        }
+        else
+          size = FileReaderNI.readInt(iis);
+        FileReaderNI.readShort(iis); // Type
+        FileReaderNI.readShort(iis); // Unknown
+
+        if (size > 1000000)
+          blocker.setBlocked(true);
+
+        iis.skip((long)(resoff - (biffEntryOff + offset + 16)));
+        byte[] buffer = new byte[isTile ? size + tileheader.length : size];
+        int index = 0;
+        if (isTile) {
+          System.arraycopy(tileheader, 0, buffer, index, tileheader.length);
+          index += tileheader.length;
+        }
+        System.arraycopy(FileReaderNI.readBytes(iis, size), 0, buffer, index, size);
+        return buffer;
+      } finally {
+        iis.close();
+      }
+    } finally {
+      bis.close();
     }
-    else
-      size = FileReaderNI.readInt(iis);
-    FileReaderNI.readShort(iis); // Type
-    FileReaderNI.readShort(iis); // Unknown
-
-    if (size > 1000000)
-      blocker.setBlocked(true);
-
-    iis.skip((long)(resoff - (biffEntryOff + offset + 16)));
-    byte buffer[] = new byte[isTile ? size + tileheader.length : size];
-    int index = 0;
-    if (isTile) {
-      System.arraycopy(tileheader, 0, buffer, index, tileheader.length);
-      index += tileheader.length;
-    }
-    System.arraycopy(FileReaderNI.readBytes(iis, size), 0, buffer, index, size);
-    iis.close();
-    bis.close();
-    return buffer;
   }
 
   private InputStream getBIFResourceAsStream(int offset, boolean isTile) throws IOException
@@ -431,27 +516,33 @@ public final class BIFFArchive
   private int[] getBIFResourceInfo(int offset, boolean isTile) throws IOException
   {
     BufferedInputStream bis = new BufferedInputStream(new FileInputStreamNI(file));
-    bis.skip((long)comprOff);
+    try {
+      bis.skip((long)comprOff);
 
-    InflaterInputStream iis = new InflaterInputStream(bis);
-    iis.skip((long)(biffEntryOff + offset));
+      InflaterInputStream iis = new InflaterInputStream(bis);
+      try {
+        iis.skip((long)(biffEntryOff + offset));
 
-    FileReaderNI.readInt(iis); // Locator
-    FileReaderNI.readInt(iis); // Resoff
-    if (isTile) {
-      int tilecount = FileReaderNI.readInt(iis);
-      int tilesize = FileReaderNI.readInt(iis);
-      iis.close();
+        FileReaderNI.readInt(iis); // Locator
+        FileReaderNI.readInt(iis); // Resoff
+        if (isTile) {
+          int tilecount = FileReaderNI.readInt(iis);
+          int tilesize = FileReaderNI.readInt(iis);
+          iis.close();
+          bis.close();
+          return new int[]{tilecount, tilesize};
+        }
+        int size = FileReaderNI.readInt(iis);
+        return new int[]{size};
+      } finally {
+        iis.close();
+      }
+    } finally {
       bis.close();
-      return new int[]{tilecount, tilesize};
     }
-    int size = FileReaderNI.readInt(iis);
-    iis.close();
-    bis.close();
-    return new int[]{size};
   }
 
-  private void readBIFFHeader(InputStream is) throws IOException
+  private synchronized void readBIFFHeader(InputStream is) throws IOException
   {
     FileReaderNI.readString(is, 4); // Version
     numFiles = FileReaderNI.readInt(is);
