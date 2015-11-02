@@ -79,9 +79,11 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
       JButton bCheck = (JButton)event.getSource();
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlErrors);
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlWarnings);
-      Compiler.getInstance().compileDialogCode(textArea.getText(), this instanceof Action);
-      errors = Compiler.getInstance().getErrors();
-      warnings = Compiler.getInstance().getWarnings();
+      Compiler compiler = new Compiler(textArea.getText(),
+                                       (this instanceof Action) ? Compiler.ScriptType.Action :
+                                                                  Compiler.ScriptType.Trigger);
+      errors = compiler.getErrors();
+      warnings = compiler.getWarnings();
       if (errors.size() > 0) {
         JMenuItem errorItems[] = new JMenuItem[errors.size()];
         int count = 0;

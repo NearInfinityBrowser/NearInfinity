@@ -225,8 +225,9 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
 
   private void checkScript(BcsResource script)
   {
-    Decompiler.decompile(script.getCode(), true);
-    SortedMap<Integer, String> idsErrors = Decompiler.getIdsErrors();
+    Decompiler decompiler = new Decompiler(script.getCode(), Decompiler.ScriptType.BCS, true);
+    decompiler.decompile();
+    SortedMap<Integer, String> idsErrors = decompiler.getIdsErrors();
     for (final Integer lineNr: idsErrors.keySet()) {
       String error = idsErrors.get(lineNr);
       if (error.indexOf("GTIMES.IDS") == -1 &&

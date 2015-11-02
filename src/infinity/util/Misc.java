@@ -1,5 +1,9 @@
 package infinity.util;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * A general-purpose class containing useful function not fitting elsewhere.
  */
@@ -50,6 +54,57 @@ public class Misc
       }
     }
     return fileName;
+  }
+
+  /**
+   * Creates a thread pool with a pool size depending on the number of available CPU cores.<br>
+   * <br>
+   * <b>numThreads:</b>   Number of available CPU cores.<br>
+   * <b>maxQueueSize:</b> 2 x <code>numThreads</code>.<br>
+   * @return A ThreadPoolExecutor instance.
+   */
+  public static ThreadPoolExecutor createThreadPool()
+  {
+    int numThreads = Runtime.getRuntime().availableProcessors();
+    return createThreadPool(numThreads, numThreads*2);
+  }
+
+  /**
+   * Creates a thread pool with the specified parameters.
+   * @param numThreads Max. number of parallel threads to execute. Must be >= 1.
+   * @param maxQueueSize Max. size of the working queue. Must be >= <code>numThreads</code>.
+   * @return A ThreadPoolExecutor instance.
+   */
+  public static ThreadPoolExecutor createThreadPool(int numThreads, int maxQueueSize)
+  {
+    numThreads = Math.max(1, numThreads);
+    maxQueueSize = Math.max(numThreads, maxQueueSize);
+    return new ThreadPoolExecutor(numThreads, numThreads, 0L, TimeUnit.MILLISECONDS,
+                                  new ArrayBlockingQueue<Runnable>(maxQueueSize));
+  }
+
+  /**
+   * Helper routine which can be used to check or block execution of new threads while the
+   * blocking queue is full.
+   * @param executor The executor to query.
+   * @param block Specify <code>true</code> to block execution as long as the queue is full.
+   * @param maxWaitMs Specify max. time to block queue, in milliseconds. Specify -1 to block indefinitely.
+   * @return <code>true</code> if queue is ready for new elements, <code>false</code> otherwise.
+   */
+  public static boolean isQueueReady(ThreadPoolExecutor executor, boolean block, int maxWaitMs)
+  {
+    if (executor != null) {
+      if (block) {
+        if (maxWaitMs < 0) { maxWaitMs = Integer.MAX_VALUE; }
+        int curWaitMs = 0;
+        while (curWaitMs < maxWaitMs && executor.getQueue().size() > executor.getCorePoolSize()) {
+          try { Thread.sleep(1); } catch (InterruptedException e) {}
+          curWaitMs++;
+        }
+      }
+      return executor.getQueue().size() <= executor.getCorePoolSize();
+    }
+    return false;
   }
 
 

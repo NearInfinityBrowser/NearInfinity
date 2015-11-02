@@ -14,6 +14,8 @@ import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.Debugging;
+import infinity.util.Misc;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -27,6 +29,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -40,6 +43,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   protected static final String[] FILE_TYPES = {"2DA", "ARE", "BCS", "CHR", "CHU", "CRE", "DLG",
                                                 "EFF", "GAM", "INI", "ITM", "PRO", "SAV", "SPL",
                                                 "STO", "VEF", "VVC", "WED", "WMP"};
+  private static final String FMT_PROGRESS = "Processing %ss...";
 
   private static HashMap<String, Boolean[]> lastSelection = new HashMap<String, Boolean[]>();
 
@@ -59,6 +63,8 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   protected String targetEntryName;   // optional alternate name to search for
   private JCheckBox[] boxes;
   private List<ResourceEntry> files;
+  private ProgressMonitor progress;
+  private int progressIndex;
 
   AbstractReferenceSearcher(ResourceEntry targetEntry, String filetypes[], Component parent)
   {
@@ -229,33 +235,65 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
   @Override
   public void run()
   {
-    ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, files.size());
-    progress.setMillisToDecideToPopup(100);
-    String type = null;
-    long startTime = System.currentTimeMillis();
-    for (int i = 0; i < files.size(); i++) {
-      ResourceEntry entry = files.get(i);
-      Resource resource = ResourceFactory.getResource(entry);
-      if (resource != null) {
-        if (!entry.getExtension().equalsIgnoreCase(type)) {
-          type = entry.getExtension();
-          progress.setNote(type + 's');
+    try {
+      // executing multithreaded search
+      boolean isCancelled = false;
+      ThreadPoolExecutor executor = Misc.createThreadPool();
+      String type = "";
+      progressIndex = 0;
+      progress = new ProgressMonitor(parent, "Searching...",
+                                     String.format(FMT_PROGRESS, "WWWW"),
+                                     0, files.size());
+      progress.setMillisToDecideToPopup(100);
+      Debugging.timerReset();
+      for (int i = 0; i < files.size(); i++) {
+        ResourceEntry entry = files.get(i);
+        if (i % 10 == 0) {
+          String ext = entry.getExtension();
+          if (ext != null && !type.equalsIgnoreCase(ext)) {
+            type = ext;
+            progress.setNote(String.format(FMT_PROGRESS, type));
+          }
         }
-        search(entry, resource);
+        Misc.isQueueReady(executor, true, -1);
+        executor.execute(new Worker(entry));
+        if (progress.isCanceled()) {
+          isCancelled = true;
+          break;
+        }
       }
-      progress.setProgress(i + 1);
-      if (progress.isCanceled()) {
-        JOptionPane.showMessageDialog(parent, "Search canceled", "Info", JOptionPane.INFORMATION_MESSAGE);
-        return;
+
+      // enforcing thread termination if process has been cancelled
+      if (isCancelled) {
+        executor.shutdownNow();
+      } else {
+        executor.shutdown();
       }
+
+      // waiting for pending threads to terminate
+      while (!executor.isTerminated()) {
+        if (!isCancelled && progress.isCanceled()) {
+          executor.shutdownNow();
+          isCancelled = true;
+        }
+        try { Thread.sleep(1); } catch (InterruptedException e) {}
+      }
+
+      if (isCancelled) {
+        hitFrame.close();
+        JOptionPane.showMessageDialog(parent, "Search cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);
+      } else {
+        hitFrame.setVisible(true);
+      }
+    } finally {
+      advanceProgress(true);
     }
-    System.out.println("Search completed: " + (System.currentTimeMillis() - startTime) + "ms.");
-    hitFrame.setVisible(true);
+    Debugging.timerShow("Search completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
-  void addHit(ResourceEntry entry, String name, StructEntry ref)
+  synchronized void addHit(ResourceEntry entry, String name, StructEntry ref)
   {
     hitFrame.addHit(entry, name, ref);
   }
@@ -355,6 +393,44 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
       }
     }
     return retVal;
+  }
+
+  private synchronized void advanceProgress(boolean finished)
+  {
+    if (progress != null) {
+      if (finished) {
+        progressIndex = 0;
+        progress.close();
+        progress = null;
+      } else {
+        progressIndex++;
+        progress.setProgress(progressIndex);
+      }
+    }
+  }
+
+//-------------------------- INNER CLASSES --------------------------
+
+  private class Worker implements Runnable
+  {
+    private final ResourceEntry entry;
+
+    public Worker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        Resource resource = ResourceFactory.getResource(entry);
+        if (resource != null) {
+          search(entry, resource);
+        }
+      }
+      advanceProgress(false);
+    }
   }
 }
 

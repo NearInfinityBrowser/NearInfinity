@@ -275,7 +275,7 @@ public class ScriptTextArea extends InfinityTextArea
            || function.equalsIgnoreCase("NumDead")
            || function.equalsIgnoreCase("NumDeadGT")
            || function.equalsIgnoreCase("NumDeadLT")))) {
-          Compiler bcscomp = Compiler.getInstance();
+          Compiler bcscomp = new Compiler();
           if (bcscomp.hasScriptName(token)) {
             Set<ResourceEntry> entries = bcscomp.getResForScriptName(token);
             for (ResourceEntry entry : entries) {

@@ -204,13 +204,16 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
           StructEntry o = dialog.getField(j);
           if (o instanceof AbstractCode) {
             AbstractCode dialogCode = (AbstractCode)o;
-            Compiler.getInstance().compileDialogCode(dialogCode.toString(), dialogCode instanceof Action);
-            SortedMap<Integer, String> errorMap = Compiler.getInstance().getErrors();
+            Compiler compiler = new Compiler(dialogCode.toString(),
+                                             (dialogCode instanceof Action) ? Compiler.ScriptType.Action :
+                                                                              Compiler.ScriptType.Trigger);
+            compiler.getCode();
+            SortedMap<Integer, String> errorMap = compiler.getErrors();
             for (final Integer lineNr : errorMap.keySet()) {
               String error = errorMap.get(lineNr);
               errorTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, lineNr, error));
             }
-            SortedMap<Integer, String> warningMap = Compiler.getInstance().getWarnings();
+            SortedMap<Integer, String> warningMap = compiler.getWarnings();
             for (final Integer lineNr : warningMap.keySet()) {
               String warning = warningMap.get(lineNr);
               warningTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, lineNr, warning));

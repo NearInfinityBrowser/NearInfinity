@@ -19,6 +19,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.bcs.BcsResource;
+import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
@@ -250,13 +251,18 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
       else if (flatList.get(i) instanceof AbstractCode) {
         AbstractCode code = (AbstractCode)flatList.get(i);
         try {
-          String compiled = infinity.resource.bcs.Compiler.getInstance().compileDialogCode(code.toString(),
-                                                                                           code instanceof Action);
-          if (code instanceof Action)
-            Decompiler.decompileDialogAction(compiled, true);
-          else
-            Decompiler.decompileDialogTrigger(compiled, true);
-          Set<Integer> used = Decompiler.getStringRefsUsed();
+          Compiler compiler = new Compiler(code.toString(),
+                                           (code instanceof Action) ? Compiler.ScriptType.Action :
+                                                                      Compiler.ScriptType.Trigger);
+          String compiled = compiler.getCode();
+          Decompiler decompiler = new Decompiler(compiled, true);
+          if (code instanceof Action) {
+            decompiler.setScriptType(Decompiler.ScriptType.Action);
+          } else {
+            decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+          }
+          decompiler.decompile();
+          Set<Integer> used = decompiler.getStringRefsUsed();
           for (final Integer stringRef : used) {
             int u = stringRef.intValue();
             if (u >= 0 && u < strUsed.length)
@@ -271,8 +277,9 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
   private void checkScript(BcsResource script)
   {
-    Decompiler.decompile(script.getCode(), true);
-    Set<Integer> used = Decompiler.getStringRefsUsed();
+    Decompiler decompiler = new Decompiler(script.getCode(), true);
+    decompiler.decompile();
+    Set<Integer> used = decompiler.getStringRefsUsed();
     for (final Integer stringRef : used) {
       int u = stringRef.intValue();
       if (u >= 0 && u < strUsed.length)

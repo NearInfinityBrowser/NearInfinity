@@ -22,16 +22,38 @@ import java.util.TreeMap;
 
 public final class Decompiler
 {
-  private static final Set<Integer> stringrefsUsed = new HashSet<Integer>();
-  private static final Set<ResourceEntry> resourcesUsed = new HashSet<ResourceEntry>();
-  private static final SortedMap<Integer, String> idsErrors = new TreeMap<Integer, String>();
-  private static String indent = "\t";
-  private static boolean generateErrors;
-  private static int lineNr;
+  /** Indicates how to decompile script code. */
+  public enum ScriptType {
+    /** Treat code as full BCS resource. */
+    BCS,
+    /** Treat code as script trigger only. */
+    Trigger,
+    /** Treat code as script action only. */
+    Action,
+    /** Do not decompile automatically. */
+    Custom
+  }
 
-  public static String decompile(String code, boolean generateErrors)
+  private final Set<Integer> stringrefsUsed = new HashSet<Integer>();
+  private final Set<ResourceEntry> resourcesUsed = new HashSet<ResourceEntry>();
+  private final SortedMap<Integer, String> idsErrors = new TreeMap<Integer, String>();
+  private String code;    // script byte code
+  private String source;  // decompiled script source
+  private ScriptType scriptType;
+  private String indent = "\t";
+  private boolean generateErrors;
+  private int lineNr;
+
+  public Decompiler(ResourceEntry bcsEntry, boolean generateErrors) throws Exception
   {
-    Decompiler.generateErrors = generateErrors;
+    this(bcsEntry, ScriptType.BCS, generateErrors);
+  }
+
+  public Decompiler(ResourceEntry bcsEntry, ScriptType type, boolean generateErrors) throws Exception
+  {
+    if (bcsEntry == null) {
+      throw new NullPointerException();
+    }
     if (BrowserMenuBar.getInstance() != null) {
       if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
         indent = BrowserMenuBar.getInstance().getBcsIndent();
@@ -39,20 +61,311 @@ public final class Decompiler
         indent = "";
       }
     }
+    this.scriptType = type;
+    this.generateErrors = generateErrors;
+    byte[] data = bcsEntry.getResourceData();
+    this.code = (data.length > 0) ? new String(data) : "";
+  }
+
+  public Decompiler(String code, boolean generateErrors)
+  {
+    this(code, ScriptType.BCS, generateErrors);
+  }
+
+  public Decompiler(String code, ScriptType type, boolean generateErrors)
+  {
+    if (BrowserMenuBar.getInstance() != null) {
+      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getBcsIndent();
+      } else {
+        indent = "";
+      }
+    }
+    this.scriptType = type;
+    this.generateErrors = generateErrors;
+    this.code = (code != null) ? code : "";
+  }
+
+  /** Returns unprocessed BCS byte code. */
+  public String getCode()
+  {
+    return code;
+  }
+
+  /** Set new BCS byte code to decompile. */
+  public void setCode(String code)
+  {
+    this.code = (code != null) ? code : "";
+    reset();
+  }
+
+  /** Load new BCS byte code from the specified resource entry to decompile. */
+  public void setCode(ResourceEntry bcsEntry) throws Exception
+  {
+    if (bcsEntry == null) {
+      throw new NullPointerException();
+    }
+    byte[] data = bcsEntry.getResourceData();
+    this.code = (data.length > 0) ? new String(data) : "";
+    reset();
+  }
+
+  /** Returns the decompiled script source. Executes decompile process if needed. */
+  public String getSource()
+  {
+    if (source == null) {
+      decompile();
+    }
+    return source;
+  }
+
+  /** Returns currently used script type. */
+  public ScriptType getScriptType()
+  {
+    return scriptType;
+  }
+
+  /**
+   * Specify new script type.
+   * <b>Note:</b> Automatically invalidates previously decompiled script code.
+   */
+  public void setScriptType(ScriptType type)
+  {
+    if (type != scriptType) {
+      reset();
+      this.scriptType = type;
+    }
+  }
+
+  /** Returns whether to generate decompile errors. */
+  public boolean isGenerateErrors()
+  {
+    return generateErrors;
+  }
+
+  /**
+   * Specify whether to generate decompile errors.
+   * <b>Note:</b> Automatically invalidates previously decompiled script code.
+   */
+  public void setGenerateErrors(boolean flag)
+  {
+    if (flag != generateErrors) {
+      reset();
+      generateErrors = flag;
+    }
+  }
+
+  /** Returns currently used string for a single level of intendation. */
+  public String getIndent()
+  {
+    return indent;
+  }
+
+  /** Applies the indentation string defined in the currently selected item in the Options menu. */
+  public void setIndent()
+  {
+    if (BrowserMenuBar.getInstance() != null) {
+      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getBcsIndent();
+      } else {
+        indent = "";
+      }
+    }
+  }
+
+  /** Applies the specified string for a single level of indentation. */
+  public void setIndent(String newIndent)
+  {
+    if (newIndent != null && !indent.equals(newIndent)) {
+      indent = newIndent;
+    }
+  }
+
+  public SortedMap<Integer, String> getIdsErrors()
+  {
+    return idsErrors;
+  }
+
+  public Set<ResourceEntry> getResourcesUsed()
+  {
+    return resourcesUsed;
+  }
+
+  public Set<Integer> getStringRefsUsed()
+  {
+    return stringrefsUsed;
+  }
+
+  /**
+   * Decompiles the currently loaded script code into human-readable source.
+   * Uses {@link #getScriptType()} to determine the correct decompile action.
+   * @return The decompiled script source.
+   * @throws Exception Thrown if script type is <code>Custom</code>.
+   */
+  public String decompile()
+  {
+    switch (scriptType) {
+      case BCS: return decompileScript();
+      case Trigger: return decompileTrigger();
+      case Action: return decompileAction();
+      default: throw new IllegalArgumentException("Could not determine script type");
+    }
+  }
+
+  /**
+   * Decompiles the current script code as if defined as <code>ScriptType.BCS</code>.
+   * @return The decompiled script source. Also available via {@link #getSource()}.
+   */
+  public String decompileScript()
+  {
+    reset();
+    StringBuilder sb = new StringBuilder(code.length() * 2);
+    StringTokenizer st = new StringTokenizer(code);
+    while (st.hasMoreTokens()) {
+      if (st.nextToken().equalsIgnoreCase("CR"))
+        decompileCR(sb, st);
+    }
+    source = sb.toString();
+    return source;
+  }
+
+  /**
+   * Decompiles the current script code as if defined as <code>ScriptType.Trigger</code>.
+   * @return The decompiled script source. Also available via {@link #getSource()}.
+   */
+  public String decompileTrigger()
+  {
+    String curIndent = indent;
+    indent = "";  // ignore indentation for dialog script actions
+    try {
+      reset();
+      StringBuilder sb = new StringBuilder(code.length() * 2);
+      StringTokenizer st = new StringTokenizer(code);
+      while (st.hasMoreTokens()) {
+        if (st.nextToken().equalsIgnoreCase("TR"))
+          sb.append(decompileTR(st));
+      }
+      source = sb.toString();
+      return source;
+    } finally {
+      indent = curIndent;
+    }
+  }
+
+  /**
+   * Decompiles the current script code as if defined as <code>ScriptType.Action</code>.
+   * @return The decompiled script source. Also available via {@link #getSource()}.
+   */
+  public String decompileAction()
+  {
+    String curIndent = indent;
+    indent = "";  // ignore indentation for dialog script actions
+    try {
+      reset();
+      StringBuilder sb = new StringBuilder(code.length() * 2);
+      StringTokenizer st = new StringTokenizer(code);
+      while (st.hasMoreTokens()) {
+        if (st.nextToken().equalsIgnoreCase("AC"))
+          decompileAC(sb, st);
+      }
+      source = sb.toString();
+      return source;
+    } finally {
+      indent = curIndent;
+    }
+  }
+
+  public static String[] getResRefType(String function)
+  {
+    if (function.equalsIgnoreCase("DropItem") ||
+        function.equalsIgnoreCase("EquipItem") ||
+        function.equalsIgnoreCase("GetItem") ||
+        function.equalsIgnoreCase("GiveItem") ||
+        function.equalsIgnoreCase("UseItem") ||
+        function.equalsIgnoreCase("HasItem") ||
+        function.equalsIgnoreCase("Contains") ||
+        function.equalsIgnoreCase("NumItems") ||
+        function.equalsIgnoreCase("NumItemsGT") ||
+        function.equalsIgnoreCase("NumItemsLT") ||
+        function.equalsIgnoreCase("NumItemsParty") ||
+        function.equalsIgnoreCase("NumItemsPartyGT") ||
+        function.equalsIgnoreCase("NumItemsPartyLT") ||
+        function.equalsIgnoreCase("HasItemEquiped") ||
+        function.equalsIgnoreCase("PartyHasItem") ||
+        function.equalsIgnoreCase("PartyHasItemIdentified") ||
+        function.equalsIgnoreCase("HasItemEquipedReal") ||
+        function.equalsIgnoreCase("Acquired") ||
+        function.equalsIgnoreCase("Unusable") ||
+        function.equalsIgnoreCase("CreateItem") ||
+        function.equalsIgnoreCase("GiveItemCreate") ||
+        function.equalsIgnoreCase("DestroyItem") ||
+        function.equalsIgnoreCase("TakePartyItemNum") ||
+        function.equalsIgnoreCase("CreateItemNumGlobal") ||
+        function.equalsIgnoreCase("CreateItemGlobal") ||
+        function.equalsIgnoreCase("PickUpItem")) {
+      return new String[] {".ITM"};
+    }
+    else if (function.equalsIgnoreCase("ChangeAnimation") ||
+             function.equalsIgnoreCase("ChangeAnimationNoEffect") ||
+             function.equalsIgnoreCase("CreateCreature") ||
+             function.equalsIgnoreCase("CreateCreatureObject") ||
+             function.equalsIgnoreCase("CreateCreatureImpassable") ||
+             function.equalsIgnoreCase("CreateCreatureDoor") ||
+             function.equalsIgnoreCase("CreateCreatureObjectDoor") ||
+             function.equalsIgnoreCase("CreateCreatureObjectOffScreen") ||
+             function.equalsIgnoreCase("CreateCreatureOffScreen") ||
+             function.equalsIgnoreCase("CreateCreatureAtLocation") ||
+             function.equalsIgnoreCase("CreateCreatureObjectCopy") ||
+             function.equalsIgnoreCase("CreateCreatureObjectOffset") ||
+             function.equalsIgnoreCase("CreateCreatureCopyPoint") ||
+             function.equalsIgnoreCase("CreateCreatureImpassableAllowOverlap")) {
+      return new String[] {".CRE"};
+    }
+    else if (function.equalsIgnoreCase("AreaCheck") ||
+             function.equalsIgnoreCase("AreaCheckObject") ||
+             function.equalsIgnoreCase("RevealAreaOnMap") ||
+             function.equalsIgnoreCase("HideAreaOnMap") ||
+             function.equalsIgnoreCase("CopyGroundPilesTo") ||
+             function.equalsIgnoreCase("EscapeAreaObjectMove")) {
+      return new String[] {".ARE"};
+    }
+    else if (function.equalsIgnoreCase("G") ||
+             function.equalsIgnoreCase("GGT") ||
+             function.equalsIgnoreCase("GLT")) {
+      return new String[] {};
+    }
+    else if (function.equalsIgnoreCase("IncrementChapter") ||
+             function.equalsIgnoreCase("TakeItemListParty") ||
+             function.equalsIgnoreCase("TakeItemListPartyNum")) {
+      return new String[] {".2DA"};
+    }
+    else if (function.equalsIgnoreCase("StartMovie")) {
+      if (Profile.isEnhancedEdition()) {
+        return new String[] {".WBM", ".MVE"};
+      } else {
+        return new String[] {".MVE"};
+      }
+    }
+    else if (function.equalsIgnoreCase("AddSpecialAbility")) {
+      return new String[] {".SPL"};
+    }
+    else if (function.equalsIgnoreCase("CreateVisualEffect")) {
+      return new String[] {".VEF", ".VVC", ".BAM"};
+    }
+    return new String[] {".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
+                         ".MVE", ".SPL", ".DLG", ".VEF", ".VVC", ".BAM"};
+  }
+
+  private void reset()
+  {
     resourcesUsed.clear();
     stringrefsUsed.clear();
     idsErrors.clear();
     lineNr = 1;
-    StringBuilder source = new StringBuilder(code.length() * 2);
-    StringTokenizer st = new StringTokenizer(code);
-    while (st.hasMoreTokens()) {
-      if (st.nextToken().equalsIgnoreCase("CR"))
-        decompileCR(source, st);
-    }
-    return source.toString();
+    source = null;
   }
 
-  private static void decompileAC(StringBuilder code, StringTokenizer st)
+  private void decompileAC(StringBuilder code, StringTokenizer st)
   {
     int numbers[] = new int[3];
     String objects[] = new String[2];
@@ -202,7 +515,7 @@ public final class Decompiler
     lineNr++;
   }
 
-  private static void decompileCO(StringBuilder code, StringTokenizer st)
+  private void decompileCO(StringBuilder code, StringTokenizer st)
   {
     code.append("IF\n");
     lineNr++;
@@ -227,7 +540,7 @@ public final class Decompiler
     }
   }
 
-  private static void decompileCR(StringBuilder code, StringTokenizer st)
+  private void decompileCR(StringBuilder code, StringTokenizer st)
   {
     String token = st.nextToken();
     while (st.hasMoreTokens() && !token.equalsIgnoreCase("CR")) {
@@ -242,43 +555,7 @@ public final class Decompiler
     lineNr += 2;
   }
 
-  public static String decompileDialogAction(String code, boolean generateErrors)
-  {
-    Decompiler.generateErrors = generateErrors;
-    if (BrowserMenuBar.getInstance() != null)
-      indent = BrowserMenuBar.getInstance().getBcsIndent();
-    resourcesUsed.clear();
-    stringrefsUsed.clear();
-    idsErrors.clear();
-    lineNr = 1;
-    StringBuilder source = new StringBuilder(code.length() * 2);
-    StringTokenizer st = new StringTokenizer(code);
-    while (st.hasMoreTokens()) {
-      if (st.nextToken().equalsIgnoreCase("AC"))
-        decompileAC(source, st);
-    }
-    return source.toString();
-  }
-
-  public static String decompileDialogTrigger(String code, boolean generateErrors)
-  {
-    Decompiler.generateErrors = generateErrors;
-    if (BrowserMenuBar.getInstance() != null)
-      indent = BrowserMenuBar.getInstance().getBcsIndent();
-    resourcesUsed.clear();
-    stringrefsUsed.clear();
-    idsErrors.clear();
-    lineNr = 1;
-    StringBuilder source = new StringBuilder(code.length() * 2);
-    StringTokenizer st = new StringTokenizer(code);
-    while (st.hasMoreTokens()) {
-      if (st.nextToken().equalsIgnoreCase("TR"))
-        source.append(decompileTR(st));
-    }
-    return source.toString();
-  }
-
-  private static void decompileInteger(StringBuilder code, long nr, String p)
+  private void decompileInteger(StringBuilder code, long nr, String p)
   {
     int pIndex = p.indexOf((int)'*');
     if (pIndex != -1 && pIndex != p.length() - 1) {
@@ -340,7 +617,7 @@ public final class Decompiler
     }
   }
 
-  private static String decompileOB(StringTokenizer st)
+  private String decompileOB(StringTokenizer st)
   {
     int numbers[] = new int[15];
     int numbersIndex = 0;
@@ -458,7 +735,7 @@ public final class Decompiler
     return code.append(endcode).toString();
   }
 
-  private static void decompileRE(StringBuilder code, StringTokenizer st)
+  private void decompileRE(StringBuilder code, StringTokenizer st)
   {
     String token = st.nextToken();
     int i = token.indexOf("AC");
@@ -484,7 +761,7 @@ public final class Decompiler
     }
   }
 
-  private static void decompileRS(StringBuilder code, StringTokenizer st)
+  private void decompileRS(StringBuilder code, StringTokenizer st)
   {
     code.append("THEN\n");
     lineNr++;
@@ -498,14 +775,15 @@ public final class Decompiler
 
   private static ResourceEntry decompileStringCheck(String value, String[] fileTypes)
   {
-    for (final String fileType : fileTypes)
+    for (final String fileType : fileTypes) {
       if (ResourceFactory.resourceExists(value + fileType, true)) {
         return ResourceFactory.getResourceEntry(value + fileType, true);
       }
+    }
     return null;
   }
 
-  private static String decompileTR(StringTokenizer st)
+  private String decompileTR(StringTokenizer st)
   {
     int triggercode = Integer.parseInt(st.nextToken());
     IdsMapEntry trigger = IdsMapCache.get("TRIGGER.IDS").getValue((long)triggercode);
@@ -595,98 +873,14 @@ public final class Decompiler
     }
 
     lineNr++;
-    if (comment != null)
+    if (comment != null) {
       return code.append(") // ").append(comment.replace('\n', ' ')).append('\n').toString();
-    return code.append(")\n").toString();
+    } else {
+      return code.append(")\n").toString();
+    }
   }
 
-  public static SortedMap<Integer, String> getIdsErrors()
-  {
-    return idsErrors;
-  }
-
-  public static String[] getResRefType(String function)
-  {
-    if (function.equalsIgnoreCase("DropItem") ||
-        function.equalsIgnoreCase("EquipItem") ||
-        function.equalsIgnoreCase("GetItem") ||
-        function.equalsIgnoreCase("GiveItem") ||
-        function.equalsIgnoreCase("UseItem") ||
-        function.equalsIgnoreCase("HasItem") ||
-        function.equalsIgnoreCase("Contains") ||
-        function.equalsIgnoreCase("NumItems") ||
-        function.equalsIgnoreCase("NumItemsGT") ||
-        function.equalsIgnoreCase("NumItemsLT") ||
-        function.equalsIgnoreCase("NumItemsParty") ||
-        function.equalsIgnoreCase("NumItemsPartyGT") ||
-        function.equalsIgnoreCase("NumItemsPartyLT") ||
-        function.equalsIgnoreCase("HasItemEquiped") ||
-        function.equalsIgnoreCase("PartyHasItem") ||
-        function.equalsIgnoreCase("PartyHasItemIdentified") ||
-        function.equalsIgnoreCase("HasItemEquipedReal") ||
-        function.equalsIgnoreCase("Acquired") ||
-        function.equalsIgnoreCase("Unusable") ||
-        function.equalsIgnoreCase("CreateItem") ||
-        function.equalsIgnoreCase("GiveItemCreate") ||
-        function.equalsIgnoreCase("DestroyItem") ||
-        function.equalsIgnoreCase("TakePartyItemNum") ||
-        function.equalsIgnoreCase("CreateItemNumGlobal") ||
-        function.equalsIgnoreCase("CreateItemGlobal") ||
-        function.equalsIgnoreCase("PickUpItem")) {
-      return new String[] {".ITM"};
-    }
-    else if (function.equalsIgnoreCase("ChangeAnimation") ||
-             function.equalsIgnoreCase("ChangeAnimationNoEffect") ||
-             function.equalsIgnoreCase("CreateCreature") ||
-             function.equalsIgnoreCase("CreateCreatureObject") ||
-             function.equalsIgnoreCase("CreateCreatureImpassable") ||
-             function.equalsIgnoreCase("CreateCreatureDoor") ||
-             function.equalsIgnoreCase("CreateCreatureObjectDoor") ||
-             function.equalsIgnoreCase("CreateCreatureObjectOffScreen") ||
-             function.equalsIgnoreCase("CreateCreatureOffScreen") ||
-             function.equalsIgnoreCase("CreateCreatureAtLocation") ||
-             function.equalsIgnoreCase("CreateCreatureObjectCopy") ||
-             function.equalsIgnoreCase("CreateCreatureObjectOffset") ||
-             function.equalsIgnoreCase("CreateCreatureCopyPoint") ||
-             function.equalsIgnoreCase("CreateCreatureImpassableAllowOverlap")) {
-      return new String[] {".CRE"};
-    }
-    else if (function.equalsIgnoreCase("AreaCheck") ||
-             function.equalsIgnoreCase("AreaCheckObject") ||
-             function.equalsIgnoreCase("RevealAreaOnMap") ||
-             function.equalsIgnoreCase("HideAreaOnMap") ||
-             function.equalsIgnoreCase("CopyGroundPilesTo") ||
-             function.equalsIgnoreCase("EscapeAreaObjectMove")) {
-      return new String[] {".ARE"};
-    }
-    else if (function.equalsIgnoreCase("G") ||
-             function.equalsIgnoreCase("GGT") ||
-             function.equalsIgnoreCase("GLT")) {
-      return new String[] {};
-    }
-    else if (function.equalsIgnoreCase("IncrementChapter") ||
-             function.equalsIgnoreCase("TakeItemListParty") ||
-             function.equalsIgnoreCase("TakeItemListPartyNum")) {
-      return new String[] {".2DA"};
-    }
-    else if (function.equalsIgnoreCase("StartMovie")) {
-      if (Profile.isEnhancedEdition()) {
-        return new String[] {".WBM", ".MVE"};
-      } else {
-        return new String[] {".MVE"};
-      }
-    }
-    else if (function.equalsIgnoreCase("AddSpecialAbility")) {
-      return new String[] {".SPL"};
-    }
-    else if (function.equalsIgnoreCase("CreateVisualEffect")) {
-      return new String[] {".VEF", ".VVC", ".BAM"};
-    }
-    return new String[] {".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
-                         ".MVE", ".SPL", ".DLG", ".VEF", ".VVC", ".BAM"};
-  }
-
-  private static String getResourceName(String function, String definition, String value)
+  private String getResourceName(String function, String definition, String value)
   {
     if (definition.startsWith("S:") && value.length() > 8)
       return null;
@@ -739,14 +933,15 @@ public final class Decompiler
 //    else
 //      System.out.println("Decompiler.getResourceName: " + definition + " - " + value);
     if (entry != null) {
-      if (generateErrors)
+      if (generateErrors) {
         resourcesUsed.add(entry);
+      }
       return entry.getSearchString();
     }
     return null;
   }
 
-  private static String getResourceFileName(String definition, String value)
+  private String getResourceFileName(String definition, String value)
   {
     if (!definition.startsWith("I:")) {
       return null;
@@ -769,17 +964,7 @@ public final class Decompiler
     return retVal;
   }
 
-  public static Set<ResourceEntry> getResourcesUsed()
-  {
-    return resourcesUsed;
-  }
-
-  public static Set<Integer> getStringRefsUsed()
-  {
-    return stringrefsUsed;
-  }
-
-  private static String lookup(IdsMap idsmap, int code)
+  private String lookup(IdsMap idsmap, int code)
   {
     if (code == 0) return null;
     IdsMapEntry entry = idsmap.getValue((long)code);
@@ -879,7 +1064,5 @@ public final class Decompiler
       return true;
     return false; // Don't use overflow action/trigger
   }
-
-  private Decompiler(){}
 }
 

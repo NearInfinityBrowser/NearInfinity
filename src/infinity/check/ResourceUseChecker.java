@@ -21,6 +21,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.bcs.BcsResource;
+import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
@@ -319,14 +320,18 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       else if (flatList.get(i) instanceof AbstractCode) {
         AbstractCode code = (AbstractCode)flatList.get(i);
         try {
-          String compiled = infinity.resource.bcs.Compiler.getInstance().compileDialogCode(code.toString(),
-                                                                                           code instanceof Action);
+          Compiler compiler = new Compiler(code.toString(),
+                                           (code instanceof Action) ? Compiler.ScriptType.Action :
+                                                                      Compiler.ScriptType.Trigger);
+          String compiled = compiler.getCode();
+          Decompiler decompiler = new Decompiler(compiled, Decompiler.ScriptType.BCS, true);
           if (code instanceof Action) {
-            Decompiler.decompileDialogAction(compiled, true);
+            decompiler.setScriptType(Decompiler.ScriptType.Action);
           } else {
-            Decompiler.decompileDialogTrigger(compiled, true);
+            decompiler.setScriptType(Decompiler.ScriptType.Trigger);
           }
-          Set<ResourceEntry> resourcesUsed = Decompiler.getResourcesUsed();
+          decompiler.decompile();
+          Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
           for (final ResourceEntry resourceEntry : resourcesUsed) {
             checkList.remove(resourceEntry);
           }
@@ -359,8 +364,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
   private void checkScript(BcsResource script)
   {
-    Decompiler.decompile(script.getCode(), true);
-    Set<ResourceEntry> resourcesUsed = Decompiler.getResourcesUsed();
+    Decompiler decompiler = new Decompiler(script.getCode(), true);
+    decompiler.decompile();
+    Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
     for (final ResourceEntry resourceEntry : resourcesUsed) {
       checkList.remove(resourceEntry);
     }

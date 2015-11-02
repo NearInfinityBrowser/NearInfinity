@@ -303,7 +303,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       if (data[0] == -1) {
         data = Decryptor.decrypt(data, 2, data.length).getBytes();
       }
-      String script = Decompiler.decompile(new String(data), false);
+      Decompiler decompiler = new Decompiler(new String(data), false);
+      String script = decompiler.getSource();
       PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
       pw.println(script);
       pw.close();

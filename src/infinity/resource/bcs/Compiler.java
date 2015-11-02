@@ -30,6 +30,18 @@ import javax.swing.SwingWorker;
 
 public final class Compiler
 {
+  /** Indicates how to compile the script source. */
+  public enum ScriptType {
+    /** Treat source as full BAF resource. */
+    BAF,
+    /** Treat source as script trigger only. */
+    Trigger,
+    /** Treat source as script action only. */
+    Action,
+    /** Do not compile automatically. */
+    Custom
+  }
+
   // Definition of triggers which don't use combined string and namespace arguments
   private static final HashSet<Long> separateNsTriggers= new HashSet<Long>(20);
   static {
@@ -48,23 +60,29 @@ public final class Compiler
     separateNsTriggers.add(Long.valueOf(0x40E5));   // Switch(S:Global*,S:Area*)
   }
 
-  private static Compiler compiler;
-  private final IdsMap[] itype;
-  private final Map<String, Set<ResourceEntry>> scriptNamesCre =
-    new HashMap<String, Set<ResourceEntry>>();
-  private final Set<String> scriptNamesAre = new HashSet<String>();
+  private static final Map<String, Set<ResourceEntry>> scriptNamesCre =
+      new HashMap<String, Set<ResourceEntry>>();
+  private static final Set<String> scriptNamesAre = new HashSet<String>();
+  private static boolean scriptNamesValid = false;
+
   private final SortedMap<Integer, String> errors = new TreeMap<Integer, String>();
   private final SortedMap<Integer, String> warnings = new TreeMap<Integer, String>();
-  private final String emptyObject;
+  private IdsMap[] itype;
+  private String emptyObject;
+  private String source;  // script source
+  private String code;    // compiled byte code
+  private ScriptType scriptType;
   private int linenr;
-  private boolean scriptNamesValid = false;
 
-  public static Compiler getInstance()
+  /** Globally initialize and cache creature and area references. */
+  public static synchronized void restartCompiler()
   {
-    if (compiler == null) {
-      restartCompiler();
+    if (BrowserMenuBar.getInstance().checkScriptNames()) {
+      scriptNamesCre.clear();
+      scriptNamesAre.clear();
+      scriptNamesValid = false;
+      setupScriptNames();
     }
-    return compiler;
   }
 
   // Returns whether the namespace argument is stored separately from the first string argument
@@ -75,6 +93,7 @@ public final class Compiler
 
   static boolean isPossibleNamespace(String string)
   {
+    // TODO: simplify namespace detection
     if (string.equalsIgnoreCase("\"GLOBAL\"") ||
         string.equalsIgnoreCase("\"LOCALS\"") ||
         string.equalsIgnoreCase("\"MYAREA\"") ||
@@ -87,14 +106,188 @@ public final class Compiler
     return false;
   }
 
-  public static void restartCompiler()
+  public Compiler()
   {
-    compiler = new Compiler();
+    this("", ScriptType.BAF);
   }
 
-  private Compiler()
+  public Compiler(ResourceEntry bafEntry) throws Exception
   {
-    if (Profile.getEngine() == Profile.Engine.PST)
+    this(bafEntry, ScriptType.BAF);
+  }
+
+  public Compiler(ResourceEntry bafEntry, ScriptType type) throws Exception
+  {
+    if (bafEntry == null) {
+      throw new NullPointerException();
+    }
+    init();
+    this.scriptType = type;
+    setSource(bafEntry);
+  }
+
+  public Compiler(String source)
+  {
+    this(source, ScriptType.BAF);
+  }
+
+  public Compiler(String source, ScriptType type)
+  {
+    init();
+    this.scriptType = type;
+    setSource(source);
+  }
+
+  /** Returns BAF script source. */
+  public String getSource()
+  {
+    return source;
+  }
+
+  /** Set new BAF script source. */
+  public void setSource(String source)
+  {
+    this.source = (source != null) ? source : "";
+    reset();
+  }
+
+  /** Load new script source from the specified BAF resource entry. */
+  public void setSource(ResourceEntry bafEntry) throws Exception
+  {
+    if (bafEntry == null) {
+      throw new NullPointerException();
+    }
+    byte[] data = bafEntry.getResourceData();
+    this.source = (data.length > 0) ? new String(data) : "";
+    reset();
+  }
+
+  /** Returns compiled script byte code. */
+  public String getCode()
+  {
+    if (code == null) {
+      compile();
+    }
+    return code;
+  }
+
+  /** Returns currently used script type. */
+  public ScriptType getScriptType()
+  {
+    return scriptType;
+  }
+
+  /**
+   * Specify new script type.
+   * <b>Node:</b> Automatically invalidates previously compile script source.
+   */
+  public void setScriptType(ScriptType type)
+  {
+    if (type != scriptType) {
+      reset();
+      scriptType = type;
+    }
+  }
+
+  public SortedMap<Integer, String> getErrors()
+  {
+    return errors;
+  }
+
+  public SortedMap<Integer, String> getWarnings()
+  {
+    return warnings;
+  }
+
+  public boolean hasValidScriptNames()
+  {
+    return scriptNamesValid;
+  }
+
+  public boolean hasScriptName(String scriptName)
+  {
+    if (scriptNamesValid &&
+        scriptNamesCre.containsKey(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""))) {
+      return true;
+    }
+    return false;
+  }
+
+  public Set<ResourceEntry> getResForScriptName(String scriptName)
+  {
+    return scriptNamesCre.get(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""));
+  }
+
+  /**
+   * Compiles the currently loaded script source into BCS byte code.
+   * Uses {@link #getScriptType()} to determine the correct compile action.
+   * @return The compiled BCS script byte code.
+   */
+  public String compile()
+  {
+    switch (scriptType) {
+      case BAF: return compileScript();
+      case Trigger: return compileTrigger();
+      case Action: return compileAction();
+      default: throw new IllegalArgumentException("Could not determine script type");
+    }
+  }
+
+  /**
+   * Compiles the current script source as if defined as <code>ScriptType.BAF</code>.
+   * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
+   */
+  public String compileScript()
+  {
+    reset();
+    StringBuilder sb = new StringBuilder("SC\n");
+    StringTokenizer st = new StringTokenizer(source, "\n", true);
+
+    String line = null;
+    if (st.hasMoreTokens())
+      line = getNextLine(st);
+    while (st.hasMoreTokens()) {
+      if (line == null || !line.equalsIgnoreCase("IF")) {
+        String error = "Missing IF";
+        errors.put(new Integer(linenr), error);
+        return "Error - " + error;
+      }
+
+      sb.append("CR\n");
+      compileCondition(sb, st);
+      compileResponseSet(sb, st);
+      sb.append("CR\n");
+
+      line = getNextLine(st);
+      while (line.length() == 0 && st.hasMoreTokens())
+        line = getNextLine(st);
+    }
+    sb.append("SC\n");
+    code = sb.toString();
+    return code;
+  }
+
+  /**
+   * Compiles the current script source as if defined as <code>ScriptType.Trigger</code>.
+   * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
+   */
+  public String compileTrigger()
+  {
+    return compileDialog(false);
+  }
+
+  /**
+   * Compiles the current script source as if defined as <code>ScriptType.Action</code>.
+   * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
+   */
+  public String compileAction()
+  {
+    return compileDialog(true);
+  }
+
+  private void init()
+  {
+    if (Profile.getEngine() == Profile.Engine.PST) {
       itype = new IdsMap[]{
         IdsMapCache.get("EA.IDS"),
         IdsMapCache.get("FACTION.IDS"),
@@ -106,7 +299,7 @@ public final class Compiler
         IdsMapCache.get("GENDER.IDS"),
         IdsMapCache.get("ALIGN.IDS")
       };
-    else if (Profile.getEngine() == Profile.Engine.IWD2)
+    } else if (Profile.getEngine() == Profile.Engine.IWD2) {
       itype = new IdsMap[]{
         IdsMapCache.get("EA.IDS"),
         IdsMapCache.get("GENERAL.IDS"),
@@ -119,7 +312,7 @@ public final class Compiler
         IdsMapCache.get("CLASS.IDS"),
         IdsMapCache.get("CLASSMSK.IDS")
       };
-    else
+    } else {
       itype = new IdsMap[]{
         IdsMapCache.get("EA.IDS"),
         IdsMapCache.get("GENERAL.IDS"),
@@ -129,14 +322,16 @@ public final class Compiler
         IdsMapCache.get("GENDER.IDS"),
         IdsMapCache.get("ALIGN.IDS")
       };
+    }
     emptyObject = compileObject(null, "");
-
-    if (BrowserMenuBar.getInstance().checkScriptNames())
-        setupScriptNames();
   }
 
-  private void setupScriptNames()
+  private static synchronized void setupScriptNames()
   {
+    if (scriptNamesValid) {
+      return;
+    }
+
     final StatusBar statusBar = NearInfinity.getInstance().getStatusBar();
     final String oldMessage = statusBar.getMessage();
     final String notification = "Gathering creature and area names ...";
@@ -145,9 +340,6 @@ public final class Compiler
     SwingWorker<Object, Object> task = new SwingWorker<Object, Object>() {
       @Override
       protected Object doInBackground() {
-        scriptNamesCre.clear();
-        scriptNamesAre.clear();
-
         List<ResourceEntry> files = ResourceFactory.getResources("CRE");
         for (int i = 0; i < files.size(); i++) {
           ResourceEntry resourceEntry = files.get(i);
@@ -184,103 +376,57 @@ public final class Compiler
     task.execute();
   }
 
-  public boolean hasValidScriptNames() {
-    return scriptNamesValid;
-  }
-
-  public boolean hasScriptName(String scriptName) {
-    if (scriptNamesValid &&
-        scriptNamesCre.containsKey(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""))) {
-      return true;
-    }
-    return false;
-  }
-
-  public Set<ResourceEntry> getResForScriptName(String scriptName) {
-    return scriptNamesCre.get(scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", ""));
-  }
-
-  public String compile(String source)
+  private void reset()
   {
-    StringBuilder code = new StringBuilder("SC\n");
-    StringTokenizer st = new StringTokenizer(source, "\n", true);
     linenr = 0;
     errors.clear();
     warnings.clear();
-
-    String line = null;
-    if (st.hasMoreTokens())
-      line = getNextLine(st);
-    while (st.hasMoreTokens()) {
-      if (line == null || !line.equalsIgnoreCase("IF")) {
-        String error = "Missing IF";
-        errors.put(new Integer(linenr), error);
-        return "Error - " + error;
-      }
-
-      code.append("CR\n");
-      compileCondition(code, st);
-      compileResponseSet(code, st);
-      code.append("CR\n");
-
-      line = getNextLine(st);
-      while (line.length() == 0 && st.hasMoreTokens())
-        line = getNextLine(st);
-    }
-    code.append("SC\n");
-    return code.toString();
+    code = null;
   }
 
-  public String compileDialogCode(String source, boolean isAction)
+  private String compileDialog(boolean isAction)
   {
-//    source = source.replaceAll(" ", ""); // ToDo: Replace with something better
-    StringBuilder code = new StringBuilder();
-    linenr = 0;
-    errors.clear();
-    warnings.clear();
-    if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.PST ||
+    reset();
+    StringBuilder sb = new StringBuilder();
+    if (Profile.getEngine() == Profile.Engine.IWD ||
+        Profile.getEngine() == Profile.Engine.PST ||
         Profile.getEngine() == Profile.Engine.IWD2) {
       StringTokenizer st = new StringTokenizer(source, ")");
       while (st.hasMoreTokens()) {
         String line = st.nextToken().trim() + ')';
         linenr++;
         int index = line.indexOf("//");
-        if (index != -1)
+        if (index != -1) {
           line = line.substring(0, index);
+        }
         if (line.length() > 0 && !line.equals(")")) {
-          if (isAction)
-            compileAction(code, line);
-          else
-            compileTrigger(code, line);
+          if (isAction) {
+            compileAction(sb, line);
+          } else {
+            compileTrigger(sb, line);
+          }
+        }
+      }
+    } else {
+      StringTokenizer st = new StringTokenizer(source + "\n\n", "\n", true);
+      String line = null;
+      if (st.hasMoreTokens()) {
+        line = getNextLine(st);
+      }
+      while (st.hasMoreTokens()) {
+        if (isAction) {
+          compileAction(sb, line);
+        } else {
+          compileTrigger(sb, line);
+        }
+        line = getNextLine(st);
+        while (line.length() == 0 && st.hasMoreTokens()) {
+          line = getNextLine(st);
         }
       }
     }
-    else {
-      StringTokenizer st = new StringTokenizer(source + "\n\n", "\n", true);
-      String line = null;
-      if (st.hasMoreTokens())
-        line = getNextLine(st);
-      while (st.hasMoreTokens()) {
-        if (isAction)
-          compileAction(code, line);
-        else
-          compileTrigger(code, line);
-        line = getNextLine(st);
-        while (line.length() == 0 && st.hasMoreTokens())
-          line = getNextLine(st);
-      }
-    }
-    return code.toString();
-  }
-
-  public SortedMap<Integer, String> getErrors()
-  {
-    return errors;
-  }
-
-  public SortedMap<Integer, String> getWarnings()
-  {
-    return warnings;
+    code = sb.toString();
+    return code;
   }
 
   private void checkObjectString(String definition, String value)

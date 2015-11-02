@@ -182,14 +182,16 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       ResourceEntry entry = scriptFiles.get(i);
       try {
         BcsResource script = new BcsResource(entry);
-        String decompiled = Decompiler.decompile(script.getCode(), true);
-        Compiler.getInstance().compile(decompiled);
-        SortedMap<Integer, String> errorMap = Compiler.getInstance().getErrors();
+        Decompiler decompiler = new Decompiler(script.getCode(), true);
+        String decompiled = decompiler.getSource();
+        Compiler compiler = new Compiler(decompiled);
+        compiler.compile();
+        SortedMap<Integer, String> errorMap = compiler.getErrors();
         for (final Integer lineNr : errorMap.keySet()) {
           String error = errorMap.get(lineNr);
           errorTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, error));
         }
-        SortedMap<Integer, String> warningMap = Compiler.getInstance().getWarnings();
+        SortedMap<Integer, String> warningMap = compiler.getWarnings();
         for (final Integer lineNr : warningMap.keySet()) {
           String warning = warningMap.get(lineNr);
           warningTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, warning));

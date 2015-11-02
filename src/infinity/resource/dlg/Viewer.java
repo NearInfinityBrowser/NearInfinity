@@ -630,14 +630,19 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bPlay.setEnabled(false);
       bGoto.setEnabled(true);
       structEntry = trigger;
-      String code = Compiler.getInstance().compileDialogCode(trigger.toString(), trigger instanceof Action);
+      Compiler compiler = new Compiler(trigger.toString(),
+                                       (trigger instanceof Action) ? Compiler.ScriptType.Action :
+                                                                     Compiler.ScriptType.Trigger);
+      String code = compiler.getCode();
       try {
-        if (Compiler.getInstance().getErrors().size() == 0) {
+        if (compiler.getErrors().size() == 0) {
+          Decompiler decompiler = new Decompiler(code, true);
           if (trigger instanceof Action) {
-            textArea.setText(Decompiler.decompileDialogAction(code, true));
+            decompiler.setScriptType(Decompiler.ScriptType.Action);
           } else {
-            textArea.setText(Decompiler.decompileDialogTrigger(code, true));
+            decompiler.setScriptType(Decompiler.ScriptType.Trigger);
           }
+          textArea.setText(decompiler.getSource());
         } else {
           textArea.setText(trigger.toString());
         }

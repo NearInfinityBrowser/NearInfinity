@@ -852,8 +852,9 @@ public final class ResourceFactory
       if (resource.getResourceEntry().getExtension().equals("IDS")) {
         IdsMapCache.cacheInvalid(resource.getResourceEntry());
         IdsBrowser idsbrowser = (IdsBrowser)ChildFrame.getFirstFrame(IdsBrowser.class);
-        if (idsbrowser != null)
+        if (idsbrowser != null) {
           idsbrowser.refreshList();
+        }
         Compiler.restartCompiler();
       } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Song2daBitmap.getTableName())) {
         Song2daBitmap.resetSonglist();

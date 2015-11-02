@@ -10,6 +10,8 @@ import infinity.icon.Icons;
 import infinity.resource.ResourceFactory;
 import infinity.resource.TextResource;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.Debugging;
+import infinity.util.Misc;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -23,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -36,6 +39,8 @@ import javax.swing.ProgressMonitor;
 
 public final class TextResourceSearcher implements Runnable, ActionListener
 {
+  private static final String FMT_PROGRESS = "Processing resource %d/%d";
+
   private final ChildFrame inputFrame;
   private final Component parent;
   private final JButton bsearch = new JButton("Search", Icons.getIcon("FindAgain16.gif"));
@@ -44,6 +49,11 @@ public final class TextResourceSearcher implements Runnable, ActionListener
   private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
+
+  private ProgressMonitor progress;
+  private int progressIndex;
+  private Pattern regPattern;
+  private TextHitFrame resultFrame;
 
   public TextResourceSearcher(List<ResourceEntry> files, Container parent)
   {
@@ -129,7 +139,6 @@ public final class TextResourceSearcher implements Runnable, ActionListener
   public void run()
   {
     String term = tfinput.getText();
-    TextHitFrame resultFrame = new TextHitFrame(term, parent);
     if (!cbregex.isSelected()) {
       term = term.replaceAll("(\\W)", "\\\\$1");
     }
@@ -138,7 +147,7 @@ public final class TextResourceSearcher implements Runnable, ActionListener
     } else {
       term = ".*" + term + ".*";
     }
-    Pattern regPattern;
+
     try {
       if (cbcase.isSelected()) {
         regPattern = Pattern.compile(term, Pattern.DOTALL);
@@ -147,43 +156,133 @@ public final class TextResourceSearcher implements Runnable, ActionListener
       }
     } catch (PatternSyntaxException e) {
       JOptionPane.showMessageDialog(parent, "Syntax error in search string.", "Error", JOptionPane.ERROR_MESSAGE);
+      regPattern = null;
       return;
     }
-    inputFrame.setVisible(false);
-    ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, files.size());
-    progress.setMillisToDecideToPopup(100);
-    for (int i = 0; i < files.size(); i++) {
-      ResourceEntry entry = files.get(i);
-      TextResource resource = (TextResource)ResourceFactory.getResource(entry);
-      if (resource != null) {
-        BufferedReader br = new BufferedReader(new StringReader(resource.getText()));
-        try {
+
+    try {
+      // executing multithreaded search
+      boolean isCancelled = false;
+      inputFrame.setVisible(false);
+      resultFrame = new TextHitFrame(term, parent);
+      ThreadPoolExecutor executor = Misc.createThreadPool();
+      progressIndex = 0;
+      progress = new ProgressMonitor(parent, "Searching...",
+                                     String.format(FMT_PROGRESS, files.size(), files.size()),
+                                     0, files.size());
+      progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
+      progress.setMillisToDecideToPopup(100);
+      Debugging.timerReset();
+      for (int i = 0; i < files.size(); i++) {
+        Misc.isQueueReady(executor, true, -1);
+        executor.execute(new Worker(files.get(i)));
+        if (progress.isCanceled()) {
+          isCancelled = true;
+          break;
+        }
+      }
+
+      // enforcing thread termination if process has been cancelled
+      if (isCancelled) {
+        executor.shutdownNow();
+      } else {
+        executor.shutdown();
+      }
+
+      // waiting for pending threads to terminate
+      while (!executor.isTerminated()) {
+        if (!isCancelled && progress.isCanceled()) {
+          executor.shutdownNow();
+          isCancelled = true;
+        }
+        try { Thread.sleep(1); } catch (InterruptedException e) {}
+      }
+
+      if (isCancelled) {
+        resultFrame.close();
+        JOptionPane.showMessageDialog(parent, "Search cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);
+      } else {
+        resultFrame.setVisible(true);
+      }
+    } finally {
+      advanceProgress(true);
+      regPattern = null;
+      resultFrame = null;
+    }
+    Debugging.timerShow("Search completed", Debugging.TimeFormat.MILLISECONDS);
+  }
+
+// --------------------- End Interface Runnable ---------------------
+
+  private synchronized void advanceProgress(boolean finished)
+  {
+    if (progress != null) {
+      if (finished) {
+        progressIndex = 0;
+        progress.close();
+        progress = null;
+      } else {
+        progressIndex++;
+        if (progressIndex % 100 == 0) {
+          progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
+        }
+        progress.setProgress(progressIndex);
+      }
+    }
+  }
+
+  private synchronized void addHit(ResourceEntry entry, String line, int lineNr)
+  {
+    if (resultFrame != null) {
+      resultFrame.addHit(entry, line, lineNr);
+    }
+  }
+
+  private Pattern getPattern()
+  {
+    return regPattern;
+  }
+
+//-------------------------- INNER CLASSES --------------------------
+
+  private class Worker implements Runnable
+  {
+    private final ResourceEntry entry;
+
+    public Worker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        TextResource resource = (TextResource)ResourceFactory.getResource(entry);
+        if (resource != null) {
+          BufferedReader br = new BufferedReader(new StringReader(resource.getText()));
           try {
             String line;
             int linenr = 0;
             while ((line = br.readLine()) != null) {
               linenr++;
-              if (regPattern.matcher(line).matches()) {
-                resultFrame.addHit(entry, line, linenr);
+              if (getPattern().matcher(line).matches()) {
+                addHit(entry, line, linenr);
               }
             }
           } catch (IOException e) {
             e.printStackTrace();
+          } finally {
+            try {
+              br.close();
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
           }
-          br.close();
-        } catch (IOException e) {
-          e.printStackTrace();
         }
-      }
-      progress.setProgress(i + 1);
-      if (progress.isCanceled()) {
-        JOptionPane.showMessageDialog(parent, "Search canceled", "Info", JOptionPane.INFORMATION_MESSAGE);
-        return;
+        advanceProgress(false);
       }
     }
-    resultFrame.setVisible(true);
   }
-
-// --------------------- End Interface Runnable ---------------------
 }
 
