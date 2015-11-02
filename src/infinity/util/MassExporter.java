@@ -47,9 +47,15 @@ import java.awt.image.RenderedImage;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -69,6 +75,7 @@ import javax.swing.event.ListSelectionListener;
 public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener,
                                                               Runnable
 {
+  private static final String FMT_PROGRESS = "Processing resource %d/%d";
   private static final String TYPES[] = {"2DA", "ARE", "BAM", "BCS", "BS", "BIO", "BMP",
                                          "CHU", "CHR", "CRE", "DLG", "EFF", "FNT", "GAM",
                                          "GLSL", "GUI", "IDS", "INI", "ITM", "MOS", "MVE",
@@ -96,6 +103,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final byte[] buffer = new byte[65536];
   private File outputDir;
   private Object[] selectedTypes;
+  private ProgressMonitor progress;
+  private int progressIndex;
+  private List<ResourceEntry> selectedFiles;
 
   public MassExporter()
   {
@@ -251,35 +261,86 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   @Override
   public void run()
   {
-    final String fmtProgress = "Processing resource %1$d/%2$d";
-    java.util.List<ResourceEntry> selectedFiles = new ArrayList<ResourceEntry>(1000);
-    for (final Object newVar : selectedTypes) {
-      selectedFiles.addAll(ResourceFactory.getResources((String)newVar));
-    }
-    final int count = selectedFiles.size();
-    ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
-                                                   String.format(fmtProgress, 0, count),
-                                                   0, selectedFiles.size());
-    progress.setMillisToDecideToPopup(0);
-    progress.setMillisToPopup(0);
-    progress.setProgress(0);
-    for (int i = 0; i < count; i++) {
-      ResourceEntry resourceEntry = selectedFiles.get(i);
-      export(resourceEntry);
-      progress.setProgress(i);
-      if (count < 50 || i % 10 == 0) {
-        progress.setNote(String.format(fmtProgress, i, count));
+    try {
+      selectedFiles = new ArrayList<ResourceEntry>(1000);
+      for (final Object newVar : selectedTypes) {
+        selectedFiles.addAll(ResourceFactory.getResources((String)newVar));
       }
-      if (progress.isCanceled()) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted");
-        return;
+
+      // executing multithreaded search
+      boolean isCancelled = false;
+      ThreadPoolExecutor executor = Misc.createThreadPool();
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
+                                     String.format(FMT_PROGRESS, getResourceCount(), getResourceCount()),
+                                     0, selectedFiles.size());
+      progress.setMillisToDecideToPopup(0);
+      progress.setMillisToPopup(0);
+      progress.setProgress(0);
+      progress.setNote(String.format(FMT_PROGRESS, 0, getResourceCount()));
+      Debugging.timerReset();
+      for (int i = 0, count = getResourceCount(); i < count; i++) {
+        Misc.isQueueReady(executor, true, -1);
+        executor.execute(new Worker(selectedFiles.get(i)));
+        if (progress.isCanceled()) {
+          isCancelled = true;
+          break;
+        }
       }
+
+      // enforcing thread termination if process has been cancelled
+      if (isCancelled) {
+        executor.shutdownNow();
+      } else {
+        executor.shutdown();
+      }
+
+      // waiting for pending threads to terminate
+      while (!executor.isTerminated()) {
+        if (!isCancelled && progress.isCanceled()) {
+          executor.shutdownNow();
+          isCancelled = true;
+        }
+        try { Thread.sleep(1); } catch (InterruptedException e) {}
+      }
+
+      if (isCancelled) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted", "Info", JOptionPane.INFORMATION_MESSAGE);
+      } else {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export completed", "Info", JOptionPane.INFORMATION_MESSAGE);
+      }
+    } finally {
+      advanceProgress(true);
+      if (selectedFiles != null) {
+        selectedFiles.clear();
+      }
+      selectedFiles = null;
     }
-    progress.close();
-    JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export completed");
+    Debugging.timerShow("Mass export completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
+
+  private int getResourceCount()
+  {
+    return (selectedFiles != null) ? selectedFiles.size() : 0;
+  }
+
+  private synchronized void advanceProgress(boolean finished)
+  {
+    if (progress != null) {
+      if (finished) {
+        progressIndex = 0;
+        progress.close();
+        progress = null;
+      } else {
+        progressIndex++;
+        if (getResourceCount() < 50 || progressIndex % 10 == 0) {
+          progress.setNote(String.format(FMT_PROGRESS, progressIndex, getResourceCount()));
+        }
+        progress.setProgress(progressIndex);
+      }
+    }
+  }
 
   private void exportText(ResourceEntry entry, File output) throws Exception
   {
@@ -287,9 +348,18 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     if (data[0] == -1) {
       data = Decryptor.decrypt(data, 2, data.length).getBytes();
     }
-    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-    FileWriterNI.writeBytes(bos, data);
-    bos.close();
+    OutputStream os = null;
+    try {
+      // Keep trying. File may be in use by another thread.
+      os = tryOpenOutputStream(output, 10, 100);
+      FileWriterNI.writeBytes(os, data);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (os != null) {
+        os.close();
+      }
+    }
   }
 
   private void exportDecompiledScript(ResourceEntry entry, File output) throws Exception
@@ -305,9 +375,19 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       Decompiler decompiler = new Decompiler(new String(data), false);
       String script = decompiler.getSource();
-      PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-      pw.println(script);
-      pw.close();
+      PrintWriter pw = null;
+      try {
+        // Keep trying. File may be in use by another thread.
+        Writer w = tryOpenOutputWriter(output, 10, 100);
+        pw = new PrintWriterNI(w);
+        pw.println(script);
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        if (pw != null) {
+          pw.close();
+        }
+      }
     }
   }
 
@@ -318,19 +398,37 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     if (signature.equalsIgnoreCase("BAMC") || signature.equalsIgnoreCase("MOSC")) {
       data = Compressor.decompress(data);
     }
-    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-    FileWriterNI.writeBytes(bos, data);
-    bos.close();
+    OutputStream os = null;
+    try {
+      // Keep trying. File may be in use by another thread.
+      os = tryOpenOutputStream(output, 10, 100);
+      FileWriterNI.writeBytes(os, data);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (os != null) {
+        os.close();
+      }
+    }
   }
 
   private void decompressWav(ResourceEntry entry, File output) throws Exception
   {
     byte[] buffer = AudioFactory.convertAudio(entry);
     if (buffer != null) {
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-      FileWriterNI.writeBytes(bos, buffer);
-      bos.close();
-      buffer = null;
+      OutputStream os = null;
+      try {
+        // Keep trying. File may be in use by another thread.
+        os = tryOpenOutputStream(output, 10, 100);
+        FileWriterNI.writeBytes(os, buffer);
+      } catch (IOException e) {
+        e.printStackTrace();
+      } finally {
+        if (os != null) {
+          os.close();
+        }
+        buffer = null;
+      }
     }
   }
 
@@ -467,52 +565,77 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     while (!flatList.get(0).toString().equals("CRE ")) {
       flatList.remove(0);
     }
-    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-    for (int i = 0; i < flatList.size(); i++) {
-      ((Writeable)flatList.get(i)).write(bos);
+    OutputStream os = null;
+    try {
+      // Keep trying. File may be in use by another thread.
+      os = tryOpenOutputStream(output, 10, 100);
+      for (int i = 0; i < flatList.size(); i++) {
+        ((Writeable)flatList.get(i)).write(os);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (os != null) {
+        os.close();
+      }
     }
-    bos.close();
   }
 
   private void exportResource(ResourceEntry entry, File output) throws Exception
   {
     if (entry != null && output != null) {
-      InputStream is = entry.getResourceDataAsStream();
-      int[] info = entry.getResourceInfo();
-      int size = info[0];
-      byte[] tileheader = null;
-      boolean isTis = false, isTisV2 = false;
-      if (entry.getExtension().equalsIgnoreCase("TIS")) {
-        isTis = true;
-        size *= info[1];
-        if (!entry.hasOverride()) {
-          tileheader = BIFFArchive.getTisHeader(info[0], info[1]);
-        } else {
-          tileheader = new byte[24];
-          is.read(tileheader);
+      InputStream is = null;
+      try {
+        is = entry.getResourceDataAsStream();
+        int[] info = entry.getResourceInfo();
+        int size = info[0];
+        byte[] tileheader = null;
+        boolean isTis = false, isTisV2 = false;
+        if (entry.getExtension().equalsIgnoreCase("TIS")) {
+          isTis = true;
+          size *= info[1];
+          if (!entry.hasOverride()) {
+            tileheader = BIFFArchive.getTisHeader(info[0], info[1]);
+          } else {
+            tileheader = new byte[24];
+            is.read(tileheader);
+          }
+          isTisV2 = (DynamicArray.getInt(tileheader, 12) == 0x0c);
         }
-        isTisV2 = (DynamicArray.getInt(tileheader, 12) == 0x0c);
-      }
 
-      if (isTis && cbConvertTisVersion.isSelected() &&
-          isTisV2 == false && cbConvertTisList.getSelectedIndex() == 1) {
-        TisResource tis = new TisResource(entry);
-        tis.convertToPvrzTis(TisResource.makeTisFileNameValid(output), false);
-      } else if (isTis && cbConvertTisVersion.isSelected() &&
-                 isTisV2 == true && cbConvertTisList.getSelectedIndex() == 0) {
-        TisResource tis = new TisResource(entry);
-        tis.convertToPaletteTis(output, false);
-      } else if (size >= 0) {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-        if (tileheader != null)
-          bos.write(tileheader);
-        while (size > 0) {
-          int bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
-          bos.write(buffer, 0, bytesRead);
-          size -= bytesRead;
+        if (isTis && cbConvertTisVersion.isSelected() &&
+            isTisV2 == false && cbConvertTisList.getSelectedIndex() == 1) {
+          TisResource tis = new TisResource(entry);
+          tis.convertToPvrzTis(TisResource.makeTisFileNameValid(output), false);
+        } else if (isTis && cbConvertTisVersion.isSelected() &&
+                   isTisV2 == true && cbConvertTisList.getSelectedIndex() == 0) {
+          TisResource tis = new TisResource(entry);
+          tis.convertToPaletteTis(output, false);
+        } else if (size >= 0) {
+          OutputStream os = null;
+          try {
+            // Keep trying. File may be in use by another thread.
+            os = tryOpenOutputStream(output, 10, 100);
+            if (tileheader != null) {
+              os.write(tileheader);
+            }
+            while (size > 0) {
+              int bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
+              os.write(buffer, 0, bytesRead);
+              size -= bytesRead;
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          } finally {
+            if (os != null) {
+              os.close();
+            }
+          }
         }
-        is.close();
-        bos.close();
+      } finally {
+        if (is != null) {
+          is.close();
+        }
       }
     }
   }
@@ -586,5 +709,72 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
+  // Attempts to open "output" as stream to the specified file "numAttempts' time with "delayAttempts" ms delay inbetween.
+  private OutputStream tryOpenOutputStream(File output, int numAttempts, int delayAttempts) throws Exception
+  {
+    if (output != null) {
+      numAttempts = Math.max(1, numAttempts);
+      delayAttempts = Math.max(0, delayAttempts);
+      OutputStream os = null;
+      while (os == null) {
+        try {
+          os = new BufferedOutputStream(new FileOutputStreamNI(output));
+        } catch (FileNotFoundException fnfe) {
+          os = null;
+          if (--numAttempts == 0) {
+            throw fnfe;
+          }
+          try { Thread.sleep(delayAttempts); } catch (InterruptedException ie) {}
+        }
+      }
+      return os;
+    }
+    return null;
+  }
+
+  // Attempts to open "output" as writer to the specified file "numAttempts' time with "delayAttempts" ms delay inbetween.
+  private Writer tryOpenOutputWriter(File output, int numAttempts, int delayAttempts) throws Exception
+  {
+    if (output != null) {
+      numAttempts = Math.max(1, numAttempts);
+      delayAttempts = Math.max(0, delayAttempts);
+      Writer w = null;
+      while (w == null) {
+        try {
+          w = new BufferedWriter(new FileWriterNI(output));
+        } catch (FileNotFoundException fnfe) {
+          w = null;
+          if (--numAttempts == 0) {
+            throw fnfe;
+          }
+          try { Thread.sleep(delayAttempts); } catch (InterruptedException ie) {}
+        }
+      }
+      return w;
+    }
+    return null;
+  }
+
+
+//-------------------------- INNER CLASSES --------------------------
+
+  private class Worker implements Runnable
+  {
+    private final ResourceEntry entry;
+
+    public Worker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        export(entry);
+      }
+      advanceProgress(false);
+    }
+  }
 }
 

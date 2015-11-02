@@ -16,7 +16,7 @@ public class Debugging
   /**
    * Resets timer to current time.
    */
-  public static void timerReset()
+  public static synchronized void timerReset()
   {
     timeBase = System.nanoTime();
   }
@@ -26,7 +26,7 @@ public class Debugging
    * @param msg Display an optional message
    * @param fmt The temporaral resolution of the elapsed time
    */
-  public static void timerShow(String msg, TimeFormat fmt)
+  public static synchronized void timerShow(String msg, TimeFormat fmt)
   {
     if (msg != null && !msg.isEmpty())
       System.out.println("[" + msg + "] " + toTimeFormatString(fmt, System.nanoTime() - timeBase));
@@ -40,7 +40,7 @@ public class Debugging
    * @param fmt The temporal resolution of the elapsed time
    * @return The elapsed time in the specified resolution
    */
-  public static long timerGet(TimeFormat fmt)
+  public static synchronized long timerGet(TimeFormat fmt)
   {
     long time = toTimeFormat(fmt, System.nanoTime() - timeBase);
     timerReset();

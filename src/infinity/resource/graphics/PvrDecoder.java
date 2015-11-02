@@ -64,8 +64,7 @@ public class PvrDecoder
   }
 
   // The global cache list for PVR objects. The "key" has to be a unique String (e.g. filename or integer as string)
-  private static final Map<String, PvrDecoder> pvrCache =
-      Collections.synchronizedMap(new LinkedHashMap<String, PvrDecoder>());
+  private static final Map<String, PvrDecoder> pvrCache = new LinkedHashMap<String, PvrDecoder>();
   // The max. number of cache entries to hold
   private static int MaxCacheEntries = 32;
 
@@ -178,7 +177,7 @@ public class PvrDecoder
   }
 
   /** Specify the new max. number of PvrDecoder objects to cache. Specifying 0 disables the cache. */
-  public static void setMaxCacheEntries(int maxValue)
+  public static synchronized void setMaxCacheEntries(int maxValue)
   {
     if (maxValue < 0) maxValue = 0; else if (maxValue > 65535) maxValue = 65535;
     if (maxValue != MaxCacheEntries) {
@@ -190,7 +189,7 @@ public class PvrDecoder
   }
 
   /** Clears all available caches. */
-  public static void flushCache()
+  public static synchronized void flushCache()
   {
     pvrCache.clear();
     DecodePVRT.flushCache();
@@ -207,7 +206,7 @@ public class PvrDecoder
   }
 
   // Returns a PvrDecoder object only if it already exists in the cache.
-  private static PvrDecoder getCachedPvrDecoder(String key)
+  private static synchronized PvrDecoder getCachedPvrDecoder(String key)
   {
     PvrDecoder retVal = null;
     if (key != null && !key.isEmpty()) {
@@ -222,7 +221,7 @@ public class PvrDecoder
   }
 
   // Returns a PvrDecoder object of the specified key if available, or creates and returns a new one otherwise.
-  private static PvrDecoder createPvrDecoder(String key, InputStream input)
+  private static synchronized PvrDecoder createPvrDecoder(String key, InputStream input)
   {
     PvrDecoder retVal = getCachedPvrDecoder(key);
     if (retVal == null && input != null) {
