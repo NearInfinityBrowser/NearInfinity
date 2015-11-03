@@ -136,7 +136,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
             sb.append(Character.toLowerCase((char)b));
           }
         }
-        scriptNames.add(sb.toString());
+        synchronized (scriptNames) {
+          scriptNames.add(sb.toString());
+        }
       }
     }
   }

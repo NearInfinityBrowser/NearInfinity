@@ -15,6 +15,7 @@ import infinity.resource.key.ResourceEntry;
 import infinity.util.IdsMap;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
+import infinity.util.Misc;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,8 +26,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-
-import javax.swing.SwingWorker;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public final class Compiler
 {
@@ -332,48 +333,49 @@ public final class Compiler
       return;
     }
 
-    final StatusBar statusBar = NearInfinity.getInstance().getStatusBar();
-    final String oldMessage = statusBar.getMessage();
-    final String notification = "Gathering creature and area names ...";
-
-    // This can take some time, so its moved into a background job
-    SwingWorker<Object, Object> task = new SwingWorker<Object, Object>() {
+    Runnable worker = new Runnable() {
       @Override
-      protected Object doInBackground() {
+      public void run()
+      {
+        StatusBar statusBar = NearInfinity.getInstance().getStatusBar();
+        String notification = "Gathering creature and area names ...";
+        String oldMessage = null;
+        if (statusBar != null) {
+          oldMessage = statusBar.getMessage();
+          statusBar.setMessage(notification);
+        }
+
+        ThreadPoolExecutor executor = Misc.createThreadPool();
         List<ResourceEntry> files = ResourceFactory.getResources("CRE");
         for (int i = 0; i < files.size(); i++) {
-          ResourceEntry resourceEntry = files.get(i);
-          try {
-            CreResource.addScriptName(scriptNamesCre, resourceEntry);
-          }
-          catch (Exception e) {}
-
+          Misc.isQueueReady(executor, true, -1);
+          executor.execute(new CreWorker(files.get(i)));
         }
 
-        scriptNamesAre.add("none");   // default script name for many CRE resources
+        files.clear();
         files = ResourceFactory.getResources("ARE");
+        scriptNamesAre.add("none");   // default script name for many CRE resources
         for (int i = 0; i < files.size(); i++) {
-          ResourceEntry resourceEntry = files.get(i);
-          try {
-            AreResource.addScriptNames(scriptNamesAre, resourceEntry.getResourceData());
-          }
-          catch (Exception e) {}
+          Misc.isQueueReady(executor, true, -1);
+          executor.execute(new AreWorker(files.get(i)));
         }
 
-        return null;
-      }
+        executor.shutdown();
+        try {
+          executor.awaitTermination(60, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
 
-      @Override
-      protected void done() {
-        if (statusBar.getMessage().startsWith(notification)) {
-          statusBar.setMessage(oldMessage.trim());
+        if (statusBar != null) {
+          if (statusBar.getMessage().startsWith(notification)) {
+            statusBar.setMessage(oldMessage.trim());
+          }
         }
         scriptNamesValid = true;
       }
     };
-
-    statusBar.setMessage(notification);
-    task.execute();
+    new Thread(worker).start();
   }
 
   private void reset()
@@ -1224,6 +1226,52 @@ public final class Compiler
       return sb.toString();
     } else {
       return null;
+    }
+  }
+
+//-------------------------- INNER CLASSES --------------------------
+
+  private static class CreWorker implements Runnable
+  {
+    final ResourceEntry entry;
+
+    public CreWorker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        try {
+          CreResource.addScriptName(scriptNamesCre, entry);
+        }
+        catch (Exception e) {
+        }
+      }
+    }
+  }
+
+  private static class AreWorker implements Runnable
+  {
+    final ResourceEntry entry;
+
+    public AreWorker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        try {
+          AreResource.addScriptNames(scriptNamesAre, entry.getResourceData());
+        }
+        catch (Exception e) {
+        }
+      }
     }
   }
 }

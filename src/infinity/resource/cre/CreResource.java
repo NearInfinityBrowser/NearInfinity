@@ -187,13 +187,17 @@ public final class CreResource extends AbstractStruct
         else {
           scriptName = scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
           if (scriptNames.containsKey(scriptName)) {
-            Set<ResourceEntry> entries = scriptNames.get(scriptName);
-            entries.add(entry);
+            synchronized (scriptNames) {
+              Set<ResourceEntry> entries = scriptNames.get(scriptName);
+              entries.add(entry);
+            }
           }
           else {
             Set<ResourceEntry> entries = new HashSet<ResourceEntry>();
             entries.add(entry);
-            scriptNames.put(scriptName, entries);
+            synchronized (scriptNames) {
+              scriptNames.put(scriptName, entries);
+            }
           }
         }
       }
