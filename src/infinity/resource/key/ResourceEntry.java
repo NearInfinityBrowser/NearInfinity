@@ -44,23 +44,31 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   static int[] getLocalFileInfo(File file)
   {
-    if (file.getName().toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
+    try {
+      InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
+      byte[] data = null;
       try {
-        InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
-        byte data[] = FileReaderNI.readBytes(is, 24);
+        data = FileReaderNI.readBytes(is, 16);
+      } finally {
         is.close();
-        if (!new String(data, 0, 4).equalsIgnoreCase("TIS ")) {
-          int tilesize = 64 * 64 + 4 * 256;
-          int tilecount = (int)file.length() / tilesize;
-          return new int[]{tilecount, tilesize};
-        }
-        return new int[]{DynamicArray.getInt(data, 8), DynamicArray.getInt(data, 12)};
-      } catch (IOException e) {
-        e.printStackTrace();
       }
-      return null;
+      if (data != null) {
+        String sig = new String(data, 0, 4);
+        String ver = new String(data, 4, 4);
+        if ("TIS ".equals(sig) && "V1  ".equals(ver)) {
+          return new int[]{ DynamicArray.getInt(data, 8), DynamicArray.getInt(data, 12) };
+        } else if (file.getName().toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
+          int tileSize = 64 * 64 + 4 * 256;
+          int tileCount = (int)file.length() / tileSize;
+          return new int[]{ tileCount, tileSize };
+        } else {
+          return new int[]{ (int)file.length() };
+        }
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-    return new int[]{(int)file.length()};
+    return null;
   }
 
 // --------------------- Begin Interface Comparable ---------------------
