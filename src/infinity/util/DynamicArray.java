@@ -22,6 +22,8 @@ import java.nio.charset.Charset;
  */
 public class DynamicArray
 {
+  private static final Charset DefaultCharset = Charset.forName("windows-1252");
+
   /**
    * Supported data type sizes.
    */
@@ -313,30 +315,48 @@ public class DynamicArray
   }
 
   /**
-   *
+  * Converts a byte sequence of a buffer into a string using the "windows-1252" charset.
+  * @param buffer The buffer to read the byte sequence from.
+  * @param offset Buffer offset.
+  * @param length The number of bytes to convert.
+  * @return A string representation of the byte sequence or an empty string on error.
+  */
+  public static String getString(byte[] buffer, int offset, int length)
+  {
+    return getString(buffer, offset, length, DefaultCharset);
+  }
+
+  /**
    * Converts a byte sequence of a buffer into a string.
    * @param buffer The buffer to read the byte sequence from.
    * @param offset Buffer offset.
    * @param length The number of bytes to convert.
+   * @param charset The charset to be used to decode the bytes.
+   *                Specify <code>null</code> to use "windows-1252" charset.
    * @return A string representation of the byte sequence or an empty string on error.
    */
-  public static String getString(byte[] buffer, int offset, int length)
+  public static String getString(byte[] buffer, int offset, int length, Charset charset)
   {
     if (buffer != null && offset >= 0 && offset < buffer.length && length >= 0) {
+      if (charset == null) charset = DefaultCharset;
       if (offset + length > buffer.length)
         length = buffer.length - offset;
       for (int i = 0; i < length; i++) {
         if (buffer[offset+i] == 0x00) {
-          return new String(buffer, offset, i);
+          length = i;
+          break;
         }
       }
-      return new String(buffer, offset, length);
+      // XXX: Work around a bug in Java 6: String(buffer, ofs, len, charset) creates an internal copy of the whole buffer before proceeding
+      byte[] temp = new byte[length];
+      System.arraycopy(buffer, offset, temp, 0, length);
+      return new String(temp, charset);
     }
     return new String();
   }
 
   /**
-   * Writes a text string into the specified buffer.
+   * Writes a text string into the specified buffer using the "windows-1252" charset for conversion.
    * @param buffer The buffer to write the value to.
    * @param offset Buffer offset.
    * @param length The max. length of the string to write.
@@ -345,7 +365,7 @@ public class DynamicArray
    */
   public static boolean putString(byte[] buffer, int offset, int length, String s)
   {
-    return putString(buffer, offset, length, s, null);
+    return putString(buffer, offset, length, s, DefaultCharset);
   }
 
   /**
@@ -360,7 +380,7 @@ public class DynamicArray
   public static boolean putString(byte[] buffer, int offset, int length, String s, Charset cs)
   {
     if (buffer != null && offset >= 0 && length >= 0 && offset+length <= buffer.length && s != null) {
-      if (cs == null) cs = Charset.forName("windows-1252"); // TODO: Using "US-ASCII" instead?
+      if (cs == null) cs = DefaultCharset;
       byte[] buf = s.getBytes(cs);
       int len = Math.min(buffer.length - offset, buf.length);
       System.arraycopy(buf, 0, buffer, offset, len);
@@ -368,9 +388,8 @@ public class DynamicArray
         buffer[offset+len] = 0; // writing string termination byte
       }
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   /**

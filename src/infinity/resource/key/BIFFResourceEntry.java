@@ -19,9 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 public final class BIFFResourceEntry extends ResourceEntry implements Writeable
 {
+  private static final Charset DefaultCharset = Charset.forName("windows-1252");
+
   private final String resourceName;
   private final int type;
   private boolean hasOverride = false;
@@ -41,7 +44,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
 
   public BIFFResourceEntry(byte buffer[], int offset, int stringLength)
   {
-    StringBuffer sb = new StringBuffer(DynamicArray.getString(buffer, offset, stringLength));
+    StringBuffer sb = new StringBuffer(DynamicArray.getString(buffer, offset, stringLength, DefaultCharset));
     type = (int)DynamicArray.getShort(buffer, offset + stringLength);
     locator = DynamicArray.getInt(buffer, offset + stringLength + 2);
     resourceName = sb.append('.').append(getExtension()).toString();
