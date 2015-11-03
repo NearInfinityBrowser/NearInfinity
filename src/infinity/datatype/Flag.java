@@ -93,6 +93,9 @@ public class Flag extends Datatype implements Editable, ActionListener
     toolTable = new String[8 * length];
     if (stable != null) {
       for (int i = 1; i < stable.length; i++) {
+        if (stable[i] == null) {
+          stable[i] = "";
+        }
         String[] s = null;
         try {
           s = stable[i].split(String.valueOf(separator));
