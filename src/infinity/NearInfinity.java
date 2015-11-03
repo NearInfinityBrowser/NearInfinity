@@ -405,6 +405,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
     tablePanelHeight = Math.max(50, prefs.getInt(TABLE_PANEL_HEIGHT, 250));
 
+    Compiler.restartCompiler();
+
     // Checking for updates
     if (Updater.getInstance().isAutoUpdateCheckEnabled() &&
         Updater.getInstance().hasAutoUpdateCheckDateExpired()) {
