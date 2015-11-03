@@ -46,6 +46,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -100,7 +101,6 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JComboBox cbExtractFramesBAMFormat = new JComboBox(new String[]{"PNG", "BMP"});
   private final JList listTypes = new JList(TYPES);
   private final JTextField tfDirectory = new JTextField(20);
-  private final byte[] buffer = new byte[65536];
   private File outputDir;
   private Object[] selectedTypes;
   private ProgressMonitor progress;
@@ -619,8 +619,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
             if (tileheader != null) {
               os.write(tileheader);
             }
+            byte[] buffer = new byte[65536];
             while (size > 0) {
               int bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
+              if (bytesRead < 0) {
+                throw new EOFException();
+              }
               os.write(buffer, 0, bytesRead);
               size -= bytesRead;
             }
