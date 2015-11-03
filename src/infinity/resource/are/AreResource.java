@@ -649,8 +649,16 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     int endoffset = offset;
     for (int i = 0; i < getFieldCount(); i++) {
       StructEntry entry = getField(i);
-      if (entry.getOffset() + entry.getSize() > endoffset) {
-        endoffset = entry.getOffset() + entry.getSize();
+      if (entry instanceof HasVertices) {
+        // may contain additional elements
+        for (int j = 0, count = ((AbstractStruct)entry).getFieldCount(); j < count; j++) {
+          StructEntry subEntry = ((AbstractStruct)entry).getField(j);
+          endoffset = Math.max(endoffset, subEntry.getOffset() + subEntry.getSize());
+        }
+      } else {
+        if (entry.getOffset() + entry.getSize() > endoffset) {
+          endoffset = Math.max(endoffset, entry.getOffset() + entry.getSize());
+        }
       }
     }
     return endoffset;
