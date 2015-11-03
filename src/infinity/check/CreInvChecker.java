@@ -23,6 +23,8 @@ import infinity.resource.StructEntry;
 import infinity.resource.cre.CreResource;
 import infinity.resource.cre.Item;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.Debugging;
+import infinity.util.Misc;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
@@ -40,6 +42,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -54,11 +57,14 @@ import javax.swing.event.ListSelectionListener;
 
 public final class CreInvChecker implements Runnable, ActionListener, ListSelectionListener
 {
-  private final List<StructEntry> items = new ArrayList<StructEntry>();
-  private final List<StructEntry> slots = new ArrayList<StructEntry>();
+  private static final String FMT_PROGRESS = "Checking resource %d/%d";
+
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   private SortableTable table;
+  private ProgressMonitor progress;
+  private int progressIndex;
+  private List<ResourceEntry> creFiles;
 
   public CreInvChecker()
   {
@@ -140,100 +146,126 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> creFiles = ResourceFactory.getResources("CRE");
-    creFiles.addAll(ResourceFactory.getResources("CHR"));
-    ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
-                                                   "Checking inventories...", null, 0, creFiles.size());
+    try {
+      ThreadPoolExecutor executor = Misc.createThreadPool();
+      creFiles = ResourceFactory.getResources("CRE");
+      creFiles.addAll(ResourceFactory.getResources("CHR"));
+      progressIndex = 0;
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking inventories...",
+                                     String.format(FMT_PROGRESS, creFiles.size(), creFiles.size()),
+                                     0, creFiles.size());
+      progress.setNote(String.format(FMT_PROGRESS, 0, creFiles.size()));
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(Arrays.asList(new String[]{"File", "Name", "Item"}),
-                              colClasses, Arrays.asList(new Integer[]{100, 100, 200}));
+      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
+      table = new SortableTable(Arrays.asList(new String[]{"File", "Name", "Item"}),
+                                colClasses, Arrays.asList(new Integer[]{100, 100, 200}));
 
-    for (int i = 0; i < creFiles.size(); i++) {
-      ResourceEntry entry = creFiles.get(i);
-      try {
-        checkCreature(new CreResource(entry));
-      } catch (Exception e) {
-        e.printStackTrace();
+      boolean isCancelled = false;
+      Debugging.timerReset();
+      for (int i = 0; i < creFiles.size(); i++) {
+        Misc.isQueueReady(executor, true, -1);
+        executor.execute(new Worker(creFiles.get(i)));
+        if (progress.isCanceled()) {
+          isCancelled = true;
+          break;
+        }
       }
-      progress.setProgress(i + 1);
-      if (progress.isCanceled()) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation canceled",
+
+      // enforcing thread termination if process has been cancelled
+      if (isCancelled) {
+        executor.shutdownNow();
+      } else {
+        executor.shutdown();
+      }
+
+      // waiting for pending threads to terminate
+      while (!executor.isTerminated()) {
+        if (!isCancelled && progress.isCanceled()) {
+          executor.shutdownNow();
+          isCancelled = true;
+        }
+        try { Thread.sleep(1); } catch (InterruptedException e) {}
+      }
+
+      if (isCancelled) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
-        blocker.setBlocked(false);
         return;
       }
-    }
 
-    if (table.getRowCount() == 0)
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No hits found",
-                                    "Info", JOptionPane.INFORMATION_MESSAGE);
-    else {
-      resultFrame = new ChildFrame("Result of CRE inventory check", true);
-      resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
-      bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
-      bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
-      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
-      JLabel count = new JLabel(table.getRowCount() + " hit(s) found", JLabel.CENTER);
-      count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
-      bopen.setMnemonic('o');
-      bopennew.setMnemonic('n');
-      bsave.setMnemonic('s');
-      resultFrame.getRootPane().setDefaultButton(bopennew);
-      JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-      panel.add(bopen);
-      panel.add(bopennew);
-      panel.add(bsave);
-      JScrollPane scrollTable = new JScrollPane(table);
-      scrollTable.getViewport().setBackground(table.getBackground());
-      JPanel pane = (JPanel)resultFrame.getContentPane();
-      pane.setLayout(new BorderLayout(0, 3));
-      pane.add(count, BorderLayout.NORTH);
-      pane.add(scrollTable, BorderLayout.CENTER);
-      pane.add(panel, BorderLayout.SOUTH);
-      bopen.setEnabled(false);
-      bopennew.setEnabled(false);
-      table.setFont(BrowserMenuBar.getInstance().getScriptFont());
-      table.getSelectionModel().addListSelectionListener(this);
-      table.addMouseListener(new MouseAdapter()
-      {
-        @Override
-        public void mouseReleased(MouseEvent event)
+      if (table.getRowCount() == 0)
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No hits found",
+                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      else {
+        resultFrame = new ChildFrame("Result of CRE inventory check", true);
+        resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
+        bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
+        bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+        bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
+        JLabel count = new JLabel(table.getRowCount() + " hit(s) found", JLabel.CENTER);
+        count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+        bopen.setMnemonic('o');
+        bopennew.setMnemonic('n');
+        bsave.setMnemonic('s');
+        resultFrame.getRootPane().setDefaultButton(bopennew);
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panel.add(bopen);
+        panel.add(bopennew);
+        panel.add(bsave);
+        JScrollPane scrollTable = new JScrollPane(table);
+        scrollTable.getViewport().setBackground(table.getBackground());
+        JPanel pane = (JPanel)resultFrame.getContentPane();
+        pane.setLayout(new BorderLayout(0, 3));
+        pane.add(count, BorderLayout.NORTH);
+        pane.add(scrollTable, BorderLayout.CENTER);
+        pane.add(panel, BorderLayout.SOUTH);
+        bopen.setEnabled(false);
+        bopennew.setEnabled(false);
+        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        table.getSelectionModel().addListSelectionListener(this);
+        table.addMouseListener(new MouseAdapter()
         {
-          if (event.getClickCount() == 2) {
-            int row = table.getSelectedRow();
-            if (row != -1) {
-              ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
-              Resource resource = ResourceFactory.getResource(resourceEntry);
-              new ViewFrame(resultFrame, resource);
-              ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+          @Override
+          public void mouseReleased(MouseEvent event)
+          {
+            if (event.getClickCount() == 2) {
+              int row = table.getSelectedRow();
+              if (row != -1) {
+                ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+                Resource resource = ResourceFactory.getResource(resourceEntry);
+                new ViewFrame(resultFrame, resource);
+                ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+              }
             }
           }
-        }
-      });
-      bopen.addActionListener(this);
-      bopennew.addActionListener(this);
-      bsave.addActionListener(this);
-      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      resultFrame.pack();
-      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-      resultFrame.setVisible(true);
+        });
+        bopen.addActionListener(this);
+        bopennew.addActionListener(this);
+        bsave.addActionListener(this);
+        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        resultFrame.pack();
+        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+        resultFrame.setVisible(true);
+      }
+    } finally {
+      advanceProgress(true);
+      blocker.setBlocked(false);
+      if (creFiles != null) {
+        creFiles.clear();
+        creFiles = null;
+      }
     }
-    blocker.setBlocked(false);
-//    for (int i = 0; i < table.getRowCount(); i++) {
-//      CreInvError error = (CreInvError)table.getTableItemAt(i);
-//      System.out.println(error.resourceEntry + " (" + error.resourceEntry.getSearchString() + ") -> " + error.itemRef.getAttribute("Item"));
-//    }
+    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
   private void checkCreature(CreResource cre)
   {
+    final List<StructEntry> items = new ArrayList<StructEntry>();
+    final List<StructEntry> slots = new ArrayList<StructEntry>();
     HexNumber slots_offset = (HexNumber)cre.getAttribute("Item slots offset");
-    items.clear();
-    slots.clear();
     for (int i = 0; i < cre.getFieldCount(); i++) {
       StructEntry entry = cre.getField(i);
       if (entry instanceof Item)
@@ -252,7 +284,26 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     for (int i = 0; i < items.size(); i++) {
       if (items.get(i) != slots_offset) {
         Item item = (Item)items.get(i);
-        table.addTableItem(new CreInvError(cre.getResourceEntry(), item));
+        synchronized (table) {
+          table.addTableItem(new CreInvError(cre.getResourceEntry(), item));
+        }
+      }
+    }
+  }
+
+  private synchronized void advanceProgress(boolean finished)
+  {
+    if (progress != null) {
+      if (finished) {
+        progressIndex = 0;
+        progress.close();
+        progress = null;
+      } else {
+        progressIndex++;
+        if (progressIndex % 100 == 0) {
+          progress.setNote(String.format(FMT_PROGRESS, progressIndex, creFiles.size()));
+        }
+        progress.setProgress(progressIndex);
       }
     }
   }
@@ -286,6 +337,31 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     {
       return String.format("File: %1$s  Name: %2$s  %3$s",
                            resourceEntry.toString(), resourceEntry.getSearchString(), itemRef.toString());
+    }
+  }
+
+  private class Worker implements Runnable
+  {
+    private final ResourceEntry entry;
+
+    public Worker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        try {
+          checkCreature(new CreResource(entry));
+        } catch (Exception e) {
+          synchronized (System.err) {
+            e.printStackTrace();
+          }
+        }
+      }
+      advanceProgress(false);
     }
   }
 }

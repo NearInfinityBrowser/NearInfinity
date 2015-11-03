@@ -20,6 +20,8 @@ import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.Debugging;
+import infinity.util.Misc;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -55,10 +58,15 @@ import javax.swing.event.ListSelectionListener;
 
 public final class ScriptChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
+  private static final String FMT_PROGRESS = "Checking resource %d/%d";
+
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
   private SortableTable errorTable, warningTable;
+  private ProgressMonitor progress;
+  private int progressIndex;
+  private List<ResourceEntry> scriptFiles;
 
   public ScriptChecker()
   {
@@ -166,117 +174,149 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> scriptFiles = ResourceFactory.getResources("BCS");
-    scriptFiles.addAll(ResourceFactory.getResources("BS"));
-    ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
-                                                   "Checking scripts...", null, 0, scriptFiles.size());
+    try {
+      ThreadPoolExecutor executor = Misc.createThreadPool();
+      scriptFiles = ResourceFactory.getResources("BCS");
+      scriptFiles.addAll(ResourceFactory.getResources("BS"));
+      progressIndex = 0;
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking scripts...",
+                                     String.format(FMT_PROGRESS, scriptFiles.size(), scriptFiles.size()),
+                                     0, scriptFiles.size());
+      progress.setNote(String.format(FMT_PROGRESS, 0, scriptFiles.size()));
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-    errorTable = new SortableTable(Arrays.asList(new String[]{"Script", "Error message", "Line"}),
-                                   colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
-    warningTable = new SortableTable(Arrays.asList(new String[]{"Script", "Warning", "Line"}),
+      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
+      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
+      errorTable = new SortableTable(Arrays.asList(new String[]{"Script", "Error message", "Line"}),
                                      colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
+      warningTable = new SortableTable(Arrays.asList(new String[]{"Script", "Warning", "Line"}),
+                                       colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
 
-    for (int i = 0; i < scriptFiles.size(); i++) {
-      ResourceEntry entry = scriptFiles.get(i);
-      try {
-        BcsResource script = new BcsResource(entry);
-        Decompiler decompiler = new Decompiler(script.getCode(), true);
-        String decompiled = decompiler.getSource();
-        Compiler compiler = new Compiler(decompiled);
-        compiler.compile();
-        SortedMap<Integer, String> errorMap = compiler.getErrors();
-        for (final Integer lineNr : errorMap.keySet()) {
-          String error = errorMap.get(lineNr);
-          errorTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, error));
+      boolean isCancelled = false;
+      Debugging.timerReset();
+      for (int i = 0; i < scriptFiles.size(); i++) {
+        Misc.isQueueReady(executor, true, -1);
+        executor.execute(new Worker(scriptFiles.get(i)));
+        if (progress.isCanceled()) {
+          isCancelled = true;
+          break;
         }
-        SortedMap<Integer, String> warningMap = compiler.getWarnings();
-        for (final Integer lineNr : warningMap.keySet()) {
-          String warning = warningMap.get(lineNr);
-          warningTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, warning));
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        errorTable.addTableItem(new ScriptErrorsTableLine(entry, new Integer(0), "Fatal compile error"));
       }
-      progress.setProgress(i + 1);
-      if (progress.isCanceled()) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation canceled",
+
+      // enforcing thread termination if process has been cancelled
+      if (isCancelled) {
+        executor.shutdownNow();
+      } else {
+        executor.shutdown();
+      }
+
+      // waiting for pending threads to terminate
+      while (!executor.isTerminated()) {
+        if (!isCancelled && progress.isCanceled()) {
+          executor.shutdownNow();
+          isCancelled = true;
+        }
+        try { Thread.sleep(1); } catch (InterruptedException e) {}
+      }
+
+      if (isCancelled) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
-        blocker.setBlocked(false);
         return;
       }
-    }
-    if (errorTable.getRowCount() + warningTable.getRowCount() == 0)
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found",
-                                    "Info", JOptionPane.INFORMATION_MESSAGE);
-    else {
-      errorTable.tableComplete();
-      warningTable.tableComplete();
-      resultFrame = new ChildFrame("Result of script check", true);
-      resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
-      JScrollPane scrollErrorTable = new JScrollPane(errorTable);
-      scrollErrorTable.getViewport().setBackground(errorTable.getBackground());
-      JScrollPane scrollWarningTable = new JScrollPane(warningTable);
-      scrollWarningTable.getViewport().setBackground(warningTable.getBackground());
-      tabbedPane = new JTabbedPane();
-      tabbedPane.addTab("Errors (" + errorTable.getRowCount() + ')', scrollErrorTable);
-      tabbedPane.addTab("Warnings (" + warningTable.getRowCount() + ')', scrollWarningTable);
-      tabbedPane.addChangeListener(this);
-      bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
-      bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
-      bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
-      bopen.setMnemonic('o');
-      bopennew.setMnemonic('n');
-      bsave.setMnemonic('s');
-      resultFrame.getRootPane().setDefaultButton(bopennew);
-      JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-      panel.add(bopen);
-      panel.add(bopennew);
-      panel.add(bsave);
-      JPanel pane = (JPanel)resultFrame.getContentPane();
-      pane.setLayout(new BorderLayout(0, 3));
-      pane.add(tabbedPane, BorderLayout.CENTER);
-      pane.add(panel, BorderLayout.SOUTH);
-      bopen.setEnabled(false);
-      bopennew.setEnabled(false);
-      errorTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
-      errorTable.getSelectionModel().addListSelectionListener(this);
-      warningTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
-      warningTable.getSelectionModel().addListSelectionListener(this);
-      MouseListener listener = new MouseAdapter()
-      {
-        @Override
-        public void mouseReleased(MouseEvent event)
+
+      if (errorTable.getRowCount() + warningTable.getRowCount() == 0)
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found",
+                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      else {
+        errorTable.tableComplete();
+        warningTable.tableComplete();
+        resultFrame = new ChildFrame("Result of script check", true);
+        resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
+        JScrollPane scrollErrorTable = new JScrollPane(errorTable);
+        scrollErrorTable.getViewport().setBackground(errorTable.getBackground());
+        JScrollPane scrollWarningTable = new JScrollPane(warningTable);
+        scrollWarningTable.getViewport().setBackground(warningTable.getBackground());
+        tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Errors (" + errorTable.getRowCount() + ')', scrollErrorTable);
+        tabbedPane.addTab("Warnings (" + warningTable.getRowCount() + ')', scrollWarningTable);
+        tabbedPane.addChangeListener(this);
+        bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
+        bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+        bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
+        bopen.setMnemonic('o');
+        bopennew.setMnemonic('n');
+        bsave.setMnemonic('s');
+        resultFrame.getRootPane().setDefaultButton(bopennew);
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panel.add(bopen);
+        panel.add(bopennew);
+        panel.add(bsave);
+        JPanel pane = (JPanel)resultFrame.getContentPane();
+        pane.setLayout(new BorderLayout(0, 3));
+        pane.add(tabbedPane, BorderLayout.CENTER);
+        pane.add(panel, BorderLayout.SOUTH);
+        bopen.setEnabled(false);
+        bopennew.setEnabled(false);
+        errorTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        errorTable.getSelectionModel().addListSelectionListener(this);
+        warningTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        warningTable.getSelectionModel().addListSelectionListener(this);
+        MouseListener listener = new MouseAdapter()
         {
-          if (event.getClickCount() == 2) {
-            SortableTable table = (SortableTable)event.getSource();
-            int row = table.getSelectedRow();
-            if (row != -1) {
-              ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
-              Resource resource = ResourceFactory.getResource(resourceEntry);
-              new ViewFrame(resultFrame, resource);
-              ((BcsResource)resource).highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
+          @Override
+          public void mouseReleased(MouseEvent event)
+          {
+            if (event.getClickCount() == 2) {
+              SortableTable table = (SortableTable)event.getSource();
+              int row = table.getSelectedRow();
+              if (row != -1) {
+                ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+                Resource resource = ResourceFactory.getResource(resourceEntry);
+                new ViewFrame(resultFrame, resource);
+                ((BcsResource)resource).highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
+              }
             }
           }
-        }
-      };
-      errorTable.addMouseListener(listener);
-      warningTable.addMouseListener(listener);
-      bopen.addActionListener(this);
-      bopennew.addActionListener(this);
-      bsave.addActionListener(this);
-      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      resultFrame.pack();
-      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-      resultFrame.setVisible(true);
+        };
+        errorTable.addMouseListener(listener);
+        warningTable.addMouseListener(listener);
+        bopen.addActionListener(this);
+        bopennew.addActionListener(this);
+        bsave.addActionListener(this);
+        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        resultFrame.pack();
+        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+        resultFrame.setVisible(true);
+      }
+    } finally {
+      advanceProgress(true);
+      blocker.setBlocked(false);
+      if (scriptFiles != null) {
+        scriptFiles.clear();
+        scriptFiles = null;
+      }
     }
-    blocker.setBlocked(false);
+    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
+  private synchronized void advanceProgress(boolean finished)
+  {
+    if (progress != null) {
+      if (finished) {
+        progressIndex = 0;
+        progress.close();
+        progress = null;
+      } else {
+        progressIndex++;
+        if (progressIndex % 100 == 0) {
+          progress.setNote(String.format(FMT_PROGRESS, progressIndex, scriptFiles.size()));
+        }
+        progress.setProgress(progressIndex);
+      }
+    }
+  }
 
 // -------------------------- INNER CLASSES --------------------------
 
@@ -308,6 +348,49 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
     {
       return String.format("File: %1$s  Error: %2$s  Line: %3$d",
                            resourceEntry.toString(), error, lineNr);
+    }
+  }
+
+  private class Worker implements Runnable
+  {
+    private final ResourceEntry entry;
+
+    public Worker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        try {
+          BcsResource script = new BcsResource(entry);
+          Decompiler decompiler = new Decompiler(script.getCode(), true);
+          String decompiled = decompiler.getSource();
+          Compiler compiler = new Compiler(decompiled);
+          compiler.compile();
+          SortedMap<Integer, String> errorMap = compiler.getErrors();
+          for (final Integer lineNr : errorMap.keySet()) {
+            String error = errorMap.get(lineNr);
+            synchronized (errorTable) {
+              errorTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, error));
+            }
+          }
+          SortedMap<Integer, String> warningMap = compiler.getWarnings();
+          for (final Integer lineNr : warningMap.keySet()) {
+            String warning = warningMap.get(lineNr);
+            synchronized (warningTable) {
+              warningTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, warning));
+            }
+          }
+        } catch (Exception e) {
+          synchronized (System.err) {
+            e.printStackTrace();
+          }
+        }
+      }
+      advanceProgress(false);
     }
   }
 }
