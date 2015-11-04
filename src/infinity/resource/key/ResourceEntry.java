@@ -71,6 +71,15 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     return null;
   }
 
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o instanceof ResourceEntry) {
+      return getResourceName().equalsIgnoreCase(((ResourceEntry)o).getResourceName());
+    }
+    return false;
+  }
+
 // --------------------- Begin Interface Comparable ---------------------
 
   @Override
