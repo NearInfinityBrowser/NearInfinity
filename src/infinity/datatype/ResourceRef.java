@@ -153,11 +153,11 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
     ResourceEntry entry = null;
     for (int i = 0; i < type.length && entry == null; i++) {
-      entry = ResourceFactory.getResourceEntry(resname + '.' + type[i]);
+      entry = ResourceFactory.getResourceEntry(resname + '.' + type[i], true);
       if (entry != null) {
         for (int j = 0; j < values.size(); j++) {
           Object o = values.get(j);
-          if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).entry == entry) {
+          if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).entry.equals(entry)) {
             list.setSelectedValue(o, true);
             break;
           }
@@ -312,7 +312,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     // determine the correct file extension
     if (!resname.equals(NONE)) {
       for (int i = 0; i < this.type.length; i++) {
-        if (null != ResourceFactory.getResourceEntry(resname + "." + this.type[i])) {
+        if (null != ResourceFactory.getResourceEntry(resname + "." + this.type[i], true)) {
           curtype = this.type[i];
           break;
         }
@@ -350,7 +350,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getSearchName()
   {
-    ResourceEntry entry = ResourceFactory.getResourceEntry(getResourceName());
+    ResourceEntry entry = ResourceFactory.getResourceEntry(getResourceName(), true);
     if (entry != null)
       return entry.getSearchString();
     return null;
