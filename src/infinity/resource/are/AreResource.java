@@ -505,7 +505,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
       addField(count_protrap);
-      final String movieExt = (Profile.isEnhancedEdition()) ? "WBM" : "MVE";
+      final String[] movieExt = (Profile.isEnhancedEdition()) ? new String[]{"MVE", "WBM"} : new String[]{"MVE"};
       addField(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
       addField(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
       addField(new Unknown(buffer, offset + 228, 56));
