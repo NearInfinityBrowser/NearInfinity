@@ -284,6 +284,9 @@ public final class ResourceFactory
               if ((Arrays.equals(new byte[]{0x53, 0x43, 0x0a}, Arrays.copyOfRange(data, 0, 3)) ||  // == "SC\n"
                    Arrays.equals(new byte[]{0x53, 0x43, 0x0d, 0x0a}, Arrays.copyOfRange(data, 0, 4)))) { // == "SC\r\n"
                 res = getResource(entry, "BCS");
+              } else if (data.length > 6 && "BM".equals(new String(data, 0, 2)) && 
+                         DynamicArray.getInt(data, 2) == info[0]) {
+                res = getResource(entry, "BMP");
               } else if (data.length > 18 && "Interplay MVE File".equals(new String(data, 0, 18))) {
                 res = getResource(entry, "MVE");
               } else if (Arrays.equals(new byte[]{(byte)0x1a, (byte)0x45, (byte)0xdf, (byte)0xa3},
