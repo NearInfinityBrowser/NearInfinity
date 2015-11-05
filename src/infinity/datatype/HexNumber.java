@@ -23,18 +23,10 @@ public class HexNumber extends DecNumber
   @Override
   public boolean update(Object value)
   {
-    String string = (String)value;
-    int i = string.indexOf("h");
-    if (i != -1)
-      string = string.substring(0, i);
-    string = string.trim();
-    if (string.length() > 8)
-      return false;
     try {
-      int newnumber = (int)Long.parseLong(string, 16);
-      setValue(newnumber);
+      setValue((int)DecNumber.parseNumber(value, getSize(), true, true));
       return true;
-    } catch (NumberFormatException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return false;

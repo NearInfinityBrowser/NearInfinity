@@ -32,12 +32,9 @@ public final class UnsignDecNumber extends Datatype implements InlineEditable
   public boolean update(Object value)
   {
     try {
-      long newnumber = Long.parseLong(value.toString());
-      if (newnumber > Math.pow((double)2, (double)(8 * getSize())))
-        return false;
-      number = newnumber;
+      number = DecNumber.parseNumber(value, getSize(), false, true);
       return true;
-    } catch (NumberFormatException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return false;

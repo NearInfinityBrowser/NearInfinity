@@ -9,6 +9,7 @@ import infinity.util.DynamicArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Locale;
 
 public class DecNumber extends Datatype implements InlineEditable
 {
@@ -32,12 +33,9 @@ public class DecNumber extends Datatype implements InlineEditable
   public boolean update(Object value)
   {
     try {
-      int newnumber = Integer.parseInt(value.toString());
-      if (newnumber > Math.pow((double)2, (double)(8 * getSize() - 1)))
-        return false;
-      number = newnumber;
+      number = (int)parseNumber(value, getSize(), true, true);
       return true;
-    } catch (NumberFormatException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return false;
@@ -99,6 +97,31 @@ public class DecNumber extends Datatype implements InlineEditable
   public void setValue(int value)
   {
     number = value;
+  }
+
+  /** Attempts to parse the specified string into a decimal or, optionally, hexadecimal number. */
+  static long parseNumber(Object value, int size, boolean negativeAllowed, boolean hexAllowed) throws Exception
+  {
+    if (value == null) {
+      throw new NullPointerException();
+    }
+    String s = value.toString().trim().toLowerCase(Locale.ENGLISH);
+    int radix = 10;
+    if (hexAllowed && s.startsWith("0x")) {
+      s = s.substring(2);
+      radix = 16;
+    } else if (hexAllowed && s.endsWith("h")) {
+      s = s.substring(0, s.length() - 1).trim();
+      radix = 16;
+    }
+    long newNumber = Long.parseLong(s, radix);
+    long discard = negativeAllowed ? 1L : 0L;
+    long maxNum = (1L << ((long)size*8L - discard)) - 1L;
+    long minNum = negativeAllowed ? -(maxNum+1L) : 0;
+    if (newNumber > maxNum || newNumber < minNum) {
+      throw new NumberFormatException("Number out of range: " + newNumber);
+    }
+    return newNumber;
   }
 }
 
