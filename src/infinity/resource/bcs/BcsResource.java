@@ -365,12 +365,12 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       } else if (bpmExport.getSelectedItem() == iexportscript) {
         ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       }
-    } else if (bpCompiled.getControlByType(CtrlErrors) == event.getSource()) {
+    } else if (bpDecompile.getControlByType(CtrlErrors) == event.getSource()) {
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)event.getSource();
       String selected = bpmErrors.getSelectedItem().getText();
       int linenr = Integer.parseInt(selected.substring(0, selected.indexOf(": ")));
       highlightText(linenr, null);
-    } else if (bpCompiled.getControlByType(CtrlWarnings) == event.getSource()) {
+    } else if (bpDecompile.getControlByType(CtrlWarnings) == event.getSource()) {
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)event.getSource();
       String selected = bpmWarnings.getSelectedItem().getText();
       int linenr = Integer.parseInt(selected.substring(0, selected.indexOf(": ")));
