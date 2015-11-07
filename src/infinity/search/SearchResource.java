@@ -3542,13 +3542,20 @@ public class SearchResource extends ChildFrame
       int rowCount = bits >>> 2;
       JPanel pBits = new JPanel(new GridBagLayout());
       for (int row = 0, col = 0, i = 0; i < bits; i++, row++) {
-        String label;
+        String label = null, desc = null;
         if (i+1 >= table.length || table[i+1] == null || table[i+1].trim().isEmpty()) {
           label = String.format("%1$s (%2$d)", "Unknown", i);
         } else {
-          label = String.format("%1$s (%2$d)", table[i+1], i);
+          String[] s = table[i+1].split(";");
+          label = String.format("%1$s (%2$d)", s[0], i);
+          if (s.length > 1) {
+            desc = s[1];
+          }
         }
         cbFlags[i] = new JCheckBox(label, false);
+        if (desc != null) {
+          cbFlags[i].setToolTipText(desc);
+        }
 
         if (row == rowCount)
         {
