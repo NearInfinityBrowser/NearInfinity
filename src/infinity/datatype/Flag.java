@@ -88,28 +88,8 @@ public class Flag extends Datatype implements Editable, ActionListener
               char separator)
   {
     this(parent, buffer, offset, length, name);
-    nodesc = (stable != null && stable.length > 0 && stable[0] != null) ? stable[0] : DESC_NONE;
-    table = new String[8 * length];
-    toolTable = new String[8 * length];
-    if (stable != null) {
-      for (int i = 1; i < stable.length; i++) {
-        if (stable[i] == null) {
-          stable[i] = "";
-        }
-        String[] s = null;
-        try {
-          s = stable[i].split(String.valueOf(separator));
-        } catch (PatternSyntaxException pse) {
-        }
-        if (s == null || s.length == 0) {
-          table[i - 1] = stable[i];
-          toolTable[i - 1] = null;
-        } else {
-          table[i - 1] = s[0];
-          toolTable[i - 1] = (s.length > 1) ? s[1] : null;
-        }
-      }
-    }
+    setEmptyDesc((stable == null || stable.length == 0) ? null : stable[0]);
+    setFlagDescriptions(length, stable, 1, separator);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -285,6 +265,39 @@ public class Flag extends Datatype implements Editable, ActionListener
   {
     long bitnr = (long)Math.pow((double)2, (double)i);
     value |= bitnr;
+  }
+
+  // Sets description for empty flags
+  protected void setEmptyDesc(String desc)
+  {
+    nodesc = (desc != null) ? desc : DESC_NONE;
+  }
+
+  // Sets labels and optional tooltips for each flag
+  protected void setFlagDescriptions(int size, String[] stable, int startOfs, char separator)
+  {
+    table = new String[8*size];
+    toolTable = new String[8*size];
+    if (stable != null) {
+      for (int i = startOfs; i < stable.length; i++) {
+        if (stable[i] == null) {
+          stable[i] = "";
+        }
+        String[] s = null;
+        try {
+          s = stable[i].split(String.valueOf(separator));
+        } catch (PatternSyntaxException pse) {
+          pse.printStackTrace();
+        }
+        if (s == null || s.length == 0) {
+          table[i - startOfs] = stable[i];
+          toolTable[i - startOfs] = null;
+        } else {
+          table[i - startOfs] = s[0];
+          toolTable[i - startOfs] = (s.length > 1) ? s[1] : null;
+        }
+      }
+    }
   }
 }
 
