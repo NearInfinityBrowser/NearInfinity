@@ -358,13 +358,13 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
     addField(new DecNumber(buffer, offset + 16, 4, "Last saved"));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false)));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_torment, null, 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_torment, null, 4, false)));
     } else if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false)));
     } else {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4, false)));
     }
     addField(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
     addField(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
@@ -375,9 +375,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
     addField(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
     if (Profile.getGame() == Profile.Game.PST) {
-      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag_torment, null, 2)));
+      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag_torment, null, 2, false)));
     } else {
-      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2)));
+      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false)));
     }
     addField(new DecNumber(buffer, offset + 74, 2, "Rain probability"));
     addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
@@ -708,35 +708,46 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     ((DecNumber)getAttribute("# vertices")).setValue(count);
   }
 
-  // Uses static array and IDS resource to construct an array of flag labels
-  private static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size)
+  /**
+   * Returns a String array for Flag datatypes, that has been updated or overwritten with entries
+   * from the specified IDS resource.
+   * @param flags A static String array used as basis for Flag labels.
+   * @param idsFile IDS resource to take entries from.
+   * @param size Size of flags field in bytes. (Range: 1..4)
+   * @param overwrite If <code>true</code>, then static flag label will be overwritten with entries
+   *                  from the IDS resource.
+   *                  If <code>false</code>, then entries from IDS resource will be used only for
+   *                  missing or empty entries in the <code>flags</code> array.
+   * @return
+   */
+  public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite)
   {
     ArrayList<String> list = new ArrayList<String>(32);
+    size = Math.max(1, Math.min(4, size));
 
     // adding static labels
     if (flags != null && flags.length > 1) {
-      for (int i = 0; i < flags.length; i++) {
-        list.add(flags[i]);
+      for (final String f: flags) {
+        list.add(f);
       }
     } else {
       list.add(null); // empty flags label
     }
 
-    // cleaning up trailing null labels
-    while (list.size() > 1 && list.get(list.size() - 1) == null) {
-      list.remove(list.size() - 1);
-    }
-
-    // getting remaining labels from IDS entries
+    // updating list with labels from IDS entries
     if (ResourceFactory.resourceExists(idsFile)) {
       IdsMap map = IdsMapCache.get(idsFile);
       if (map != null) {
-        for (int i = list.size() - 1, count = size*8; i < count; i++) {
+        int numBits = size * 8;
+        for (int i = 0; i < numBits; i++) {
           IdsMapEntry entry = map.getValue((long)(1 << i));
-          if (entry != null) {
-            list.add(entry.getString());
+          String s = (entry != null) ? entry.getString() : null;
+          if (i < list.size() - 1) {
+            if (overwrite || list.get(i+1) == null) {
+              list.set(i+1, s);
+            }
           } else {
-            list.add(null);
+            list.add(s);
           }
         }
       }
