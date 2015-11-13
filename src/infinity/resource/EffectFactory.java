@@ -2458,7 +2458,7 @@ public final class EffectFactory
 
       case 58: // Dispel effects
         s.add(new DecNumber(buffer, offset, 4, "Level"));
-        if (isTobEx) {
+        if (isTobEx || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 2, "Dispel type", new String[]{
               "Always dispel", "Use caster level", "Use specific level"}));
           s.add(new Bitmap(buffer, offset + 6, 2, "Magic weapon dispel type", new String[]{
