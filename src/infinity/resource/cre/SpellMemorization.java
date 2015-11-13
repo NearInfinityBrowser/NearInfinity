@@ -12,7 +12,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.StructEntry;
 
-final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
+public final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
   private static final String[] s_spelltype = {"Priest", "Wizard", "Innate"};
 
