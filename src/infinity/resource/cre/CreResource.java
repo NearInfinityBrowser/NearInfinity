@@ -816,7 +816,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 614, 2, "Morale recovery"));
     addField(new KitIdsBitmap(buffer, offset + 616, "Kit"));
     addField(new ResourceRef(buffer, offset + 620, "Override script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 628, "Special script 2", "BCS"));
+    addField(new ResourceRef(buffer, offset + 628, "Special script 2", new String[]{"BCS", "BS"}));
     addField(new ResourceRef(buffer, offset + 636, "Combat script", "BCS"));
     addField(new ResourceRef(buffer, offset + 644, "Special script 3", "BCS"));
     addField(new ResourceRef(buffer, offset + 652, "Movement script", "BCS"));
@@ -1309,7 +1309,7 @@ public final class CreResource extends AbstractStruct
       }
     }
     addField(new ResourceRef(buffer, offset + 576, "Override script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 584, "Class script", "BCS"));
+    addField(new ResourceRef(buffer, offset + 584, "Class script", new String[]{"BCS", "BS"}));
     addField(new ResourceRef(buffer, offset + 592, "Race script", "BCS"));
     addField(new ResourceRef(buffer, offset + 600, "General script", "BCS"));
     addField(new ResourceRef(buffer, offset + 608, "Default script", "BCS"));
