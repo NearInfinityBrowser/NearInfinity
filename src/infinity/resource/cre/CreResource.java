@@ -812,7 +812,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 612, 1, "Morale"));
     addField(new DecNumber(buffer, offset + 613, 1, "Morale break"));
     addField(new DecNumber(buffer, offset + 614, 2, "Morale recovery"));
-    addField(new IdsBitmap(buffer, offset + 616, 4, "Kit", "KIT.IDS"));
+    addField(new KitIdsBitmap(buffer, offset + 616, "Kit"));
     addField(new ResourceRef(buffer, offset + 620, "Override script", "BCS"));
     addField(new ResourceRef(buffer, offset + 628, "Special script 2", "BCS"));
     addField(new ResourceRef(buffer, offset + 636, "Combat script", "BCS"));
