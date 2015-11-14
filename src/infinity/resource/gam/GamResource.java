@@ -33,13 +33,34 @@ import javax.swing.JScrollPane;
 
 public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  public static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
-  public static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
+  public static final String[] s_formation = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
+  public static final String[] s_weather = {"No weather", "Raining", "Snowing", "Light weather",
                                             "Medium weather", "Light wind", "Medium wind", "Rare lightning",
                                             "Regular lightning", "Storm increasing"};
-  public static final String s_torment[] = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
+  public static final String[] s_torment = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
                                             "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
                                             "Line", "None"};
+  public static final String[] s_configuration = {
+      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", "",
+      "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Automap notes hidden"};
+  public static final String[] s_configuration_bg1 = {
+      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window"};
+  public static final String[] s_configuration_iwd = {
+      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", "",
+      "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Unsupported"};
+  public static final String[] s_configuration_iwd2 = {
+      "Normal windows", "Party AI disabled", "", "", "", "Fullscreen mode", "",
+      "Console hidden", "Automap notes hidden"};
+  public static final String[] s_version_bg1 = {"Restrict XP to BG1 limit", "Restrict XP to TotSC limit"};
+  public static final String[] s_version = {
+      "Restrict XP to BG1 limit", "Restrict XP to TotSC limit", "Restrict XP to SoA limit",
+      "Unknown", "SoA active", "ToB active"};
+  public static final String[] s_version_iwdee = {
+      "Restrict XP to BG1 limit", "Restrict XP to TotSC limit", "Restrict XP to SoA limit",
+      "Icewind Dale", "SoA active", "ToB active"};
+  public static final String[] s_familiar_owner = {
+      "Party member 0", "Party member 1", "Party member 2", "Party member 3",
+      "Party member 4", "Party member 5"};
 
   private HexViewer hexViewer;
 
@@ -225,20 +246,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (Profile.getEngine() == Profile.Engine.BG1) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration",
-               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-                            "Largest text window"}));
-      addField(new Bitmap(buffer, offset + 100, 4, "Save version",
-                          new String[]{"Restrict XP to BG1 limit", "Restrict XP to TotSC limit"}));
+      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration_bg1));
+      addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version_bg1));
       addField(new Unknown(buffer, offset + 104, 76));
     }
     else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration",
-               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-                            "Largest text window", "", "Fullscreen mode", "Left pane hidden",
-                            "Right pane hidden", "Unsupported"}));
+      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration_iwd));
       numIWD = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
       addField(numIWD);
       offIWD = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
@@ -262,17 +277,13 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
       addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration",
-               new String[]{"Normal windows", "Party AI disabled", "Larger text window",
-                            "Largest text window", "", "Fullscreen mode", "Left pane hidden",
-                            "Right pane hidden", "Automap notes hidden"}));
+      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration));
 
-      final String[] s_version = {"Restrict XP to BG1 limit", "Restrict XP to TotSC limit",
-                                  "Restrict XP to SoA limit", "Unknown", "SoA active", "ToB active"};
       if (Profile.getGame() == Profile.Game.IWDEE) {
-        s_version[3] = "Icewind Dale";  // to be confirmed
+        addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version_iwdee));   // to be confirmed
+      } else {
+        addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version));
       }
-      addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version));
 
       offFamiliar = new SectionOffset(buffer, offset + 104, "Familiar info offset", Familiar.class);
       addField(offFamiliar);
@@ -291,9 +302,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         addField(new ResourceRef(buffer, offset + 140, "Worldmap", "WMP"));
         if (Profile.getGame() == Profile.Game.IWDEE) {
           addField(new Unknown(buffer, offset + 148, 8));
-          addField(new Bitmap(buffer, offset + 156, 4, "Familiar owner",
-                              new String[]{"Party member 0", "Party member 1", "Party member 2",
-                                           "Party member 3", "Party member 4", "Party member 5"}));
+          addField(new Bitmap(buffer, offset + 156, 4, "Familiar owner", s_familiar_owner));
           addField(new Unknown(buffer, offset + 160, 20));
         } else {
           addField(new Unknown(buffer, offset + 148, 32));
@@ -305,10 +314,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
       addField(new Unknown(buffer, offset + 84, 4));
       addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration",
-                        new String[]{"Normal windows", "Party AI disabled", "",
-                                     "", "", "Fullscreen mode", "",
-                                     "Console hidden", "Automap notes hidden"}));
+      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration_iwd2));
       numIWD2 = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
       addField(numIWD2);
       offIWD2 = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
