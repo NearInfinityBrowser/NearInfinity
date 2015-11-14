@@ -15,7 +15,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.Profile;
 import infinity.util.LongIntegerHashMap;
 
-final class JournalEntry extends AbstractStruct implements AddRemovable
+public final class JournalEntry extends AbstractStruct implements AddRemovable
 {
   private static final LongIntegerHashMap<String> chapter = new LongIntegerHashMap<String>();
   private static final String s_section[] = new String[]{"User notes", "Quests", "Done quests",

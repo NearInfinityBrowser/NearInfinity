@@ -13,7 +13,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.StructEntry;
 
-class Variable extends AbstractStruct implements AddRemovable
+public class Variable extends AbstractStruct implements AddRemovable
 {
   private static final String s_type[] = {"Integer", "Float", "Script name", "Resource reference",
                                           "String reference", "Double word"};
