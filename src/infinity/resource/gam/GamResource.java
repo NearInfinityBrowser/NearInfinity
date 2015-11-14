@@ -209,7 +209,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_global = new SectionCount(buffer, offset + 60, 4, "# global variables",
                                                  Variable.class);
     addField(count_global);
-    addField(new ResourceRef(buffer, offset + 64, "Current area", "ARE"));
+    addField(new ResourceRef(buffer, offset + 64, "Master area", "ARE"));
     addField(new DecNumber(buffer, offset + 72, 4, "Current link"));
     SectionCount count_journal = new SectionCount(buffer, offset + 76, 4, "# journal entries",
                                                   JournalEntry.class);
@@ -224,7 +224,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     if (Profile.getEngine() == Profile.Engine.BG1) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
                new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                             "Largest text window"}));
@@ -234,7 +234,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
     else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
                new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                             "Largest text window", "", "Fullscreen mode", "Left pane hidden",
@@ -249,7 +249,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       offRubikon = new SectionOffset(buffer, offset + 84, "Modron maze offset", Unknown.class);
       addField(offRubikon);
       addField(new DecNumber(buffer, offset + 88, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 92, "Master area", "ARE"));
+      addField(new ResourceRef(buffer, offset + 92, "Current area", "ARE"));
       offKillvariable = new SectionOffset(buffer, offset + 100, "Kill variables offset", KillVariable.class);
       addField(offKillvariable);
       numKillVariable = new SectionCount(buffer, offset + 104, 4, "# kill variables", KillVariable.class);
@@ -261,7 +261,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
     else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0
       addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
                new String[]{"Normal windows", "Party AI disabled", "Larger text window",
                             "Largest text window", "", "Fullscreen mode", "Left pane hidden",
@@ -304,7 +304,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
     else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
       addField(new Unknown(buffer, offset + 84, 4));
-      addField(new ResourceRef(buffer, offset + 88, "Master area", "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
       addField(new Flag(buffer, offset + 96, 4, "Configuration",
                         new String[]{"Normal windows", "Party AI disabled", "",
                                      "", "", "Fullscreen mode", "",
