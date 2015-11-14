@@ -125,7 +125,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   {
     for (int i = 0; i < count; i++) {
       int curOfs = offset + i*size;
-      // Bit 3 of "Loading" flag determines whether to override the actor's script name
+      // Bit 3 of "Flags" field determines whether to override the actor's script name
       if (!checkOverride || ((buffer[curOfs + 40] & 8) == 8)) {
         StringBuilder sb = new StringBuilder(32);
         for (int j = 0; j < 32; j++) {
