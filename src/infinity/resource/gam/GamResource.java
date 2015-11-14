@@ -33,13 +33,13 @@ import javax.swing.JScrollPane;
 
 public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  private static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
-  private static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
-                                             "Medium weather", "Light wind", "Medium wind", "Rare lightning",
-                                             "Regular lightning", "Storm increasing"};
-  private static final String s_torment[] = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
-                                             "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
-                                             "Line", "None"};
+  public static final String s_formation[] = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
+  public static final String s_weather[] = {"No weather", "Raining", "Snowing", "Light weather",
+                                            "Medium weather", "Light wind", "Medium wind", "Rare lightning",
+                                            "Regular lightning", "Storm increasing"};
+  public static final String s_torment[] = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
+                                            "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
+                                            "Line", "None"};
 
   private HexViewer hexViewer;
 
