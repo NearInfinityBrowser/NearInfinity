@@ -16,7 +16,7 @@ import java.util.List;
 
 public final class VefType extends Bitmap
 {
-  public static final String s_restype[] = {"WAV", "VVC/BAM", "VEF/VVC/BAM"};
+  public static final String[] s_restype = {"WAV", "VVC/BAM", "VEF/VVC/BAM"};
   private static int buf_size = 8;
 
   public VefType(byte buffer[], int offset, int length)

@@ -13,7 +13,7 @@ import infinity.resource.AddRemovable;
 
 public final class TiledObject extends AbstractStruct implements AddRemovable
 {
-  private static final String s_flag[] = { "No flags set", "Secondary tile", "Can be looked through" };
+  private static final String[] s_flag = { "No flags set", "Secondary tile", "Can be looked through" };
 
   TiledObject() throws Exception
   {

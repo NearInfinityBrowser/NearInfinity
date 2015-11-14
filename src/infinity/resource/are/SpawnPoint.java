@@ -15,7 +15,7 @@ import infinity.resource.AddRemovable;
 
 public final class SpawnPoint extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_active = { "No", "Yes" };
+  private static final String[] s_noyes = { "No", "Yes" };
 
   SpawnPoint() throws Exception
   {
@@ -56,7 +56,7 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 128, 2, "Creature wander distance"));
     addField(new DecNumber(buffer, offset + 130, 2, "Creature follow distance"));
     addField(new DecNumber(buffer, offset + 132, 2, "Maximum spawned creatures"));
-    addField(new Bitmap(buffer, offset + 134, 2, "Is active?", s_active));
+    addField(new Bitmap(buffer, offset + 134, 2, "Is active?", s_noyes));
     addField(new Flag(buffer, offset + 136, 4, "Active at", Actor.s_schedule));
     addField(new DecNumber(buffer, offset + 140, 2, "Probability (day)"));
     addField(new DecNumber(buffer, offset + 142, 2, "Probability (night)"));

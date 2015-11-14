@@ -19,7 +19,7 @@ import javax.swing.JComponent;
 
 final class AreaEntry extends AbstractStruct implements HasViewerTabs
 {
-  private static final String s_flag[] = {"No flags set", "Visible", "Reveal from linked area",
+  private static final String[] s_flag = {"No flags set", "Visible", "Reveal from linked area",
                                           "Can be visited", "Has been visited"};
 
   AreaEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception

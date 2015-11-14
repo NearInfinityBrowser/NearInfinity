@@ -45,22 +45,22 @@ import javax.swing.JScrollPane;
 
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  public static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
+  public static final String[] s_flag = {"No flags set", "Outdoor", "Day/Night",
                                          "Weather", "City", "Forest", "Dungeon",
                                          "Extended night", "Can rest"};
-  public static final String s_flag_torment[] = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
+  public static final String[] s_flag_torment = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
                                                  "Lower ward", "Ravel's maze", "Baator", "Rubikon",
                                                  "Negative material plane", "Curst", "Carceri",
                                                  "Allow day/night"};
-  public static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String[] s_atype = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
-  public static final String s_atype_ee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String[] s_atype_ee = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                              "Dream area", "Player1 can die;Allows death of party leader without ending the game"};
-  public static final String s_atype_torment[] = {"Can rest", "Cannot save",
+  public static final String[] s_atype_torment = {"Can rest", "Cannot save",
                                                   "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                   "Cannot save", "Can rest with permission"};
-  public static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
-  public static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
+  public static final String[] s_atype_iwd2 = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
+  public static final String[] s_edge = {"No flags set", "Party required", "Party enabled"};
 
   private HexViewer hexViewer;
   private AreaViewer areaViewer;

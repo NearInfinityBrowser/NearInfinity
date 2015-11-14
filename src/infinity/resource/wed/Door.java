@@ -17,7 +17,7 @@ import infinity.resource.HasAddRemovable;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
-  private static final String[] s_yesno = {"No", "Yes"};
+  private static final String[] s_noyes = {"No", "Yes"};
 
   public Door() throws Exception
   {
@@ -105,7 +105,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   public int read(byte buffer[], int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 8, "Name"));
-    addField(new Bitmap(buffer, offset + 8, 2, "Is door?", s_yesno));
+    addField(new Bitmap(buffer, offset + 8, 2, "Is door?", s_noyes));
     DecNumber indexTileCell = new DecNumber(buffer, offset + 10, 2, "Tilemap lookup index");
     addField(indexTileCell);
     SectionCount countTileCell = new SectionCount(buffer, offset + 12, 2, "# tilemap indexes",

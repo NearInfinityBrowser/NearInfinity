@@ -28,7 +28,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   public static final String[] s_orientation = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                  "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
   private static final String[] s_noyes = {"No", "Yes"};
-  private static final String[] s_yesno = {"CRE attached", "CRE not attached", "Has seen party",
+  private static final String[] s_flags = {"CRE attached", "CRE not attached", "Has seen party",
                                            "Toggle invulnerability", "Override script name"};
   static final String[] s_schedule = {"Not active", "00:30-01:29", "01:30-02:29", "02:30-03:29",
                                       "03:30-04:29", "04:30-05:29", "05:30-06:29", "06:30-07:29",
@@ -141,7 +141,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     addField(new DecNumber(buffer, offset + 38, 2, "Destination: Y"));
 //    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
 //        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB)
-    addField(new Flag(buffer, offset + 40, 4, "Loading", s_yesno));
+    addField(new Flag(buffer, offset + 40, 4, "Flags", s_flags));
 //    else
 //      addField(new Bitmap(buffer, offset + 40, 4, "Is visible?", s_noyes));
     addField(new Bitmap(buffer, offset + 44, 2, "Is spawned?", s_noyes));

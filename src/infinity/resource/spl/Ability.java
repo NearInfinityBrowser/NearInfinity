@@ -25,8 +25,8 @@ import javax.swing.JComponent;
 
 public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
-  public static final String s_hostility[] = {"Hostile", "", "", "", "Non-hostile"};
-  public static final String s_abilityuse[] = {"", "", "Spell slots", "", "Innate slots"};
+  public static final String[] s_hostility = {"Hostile", "", "", "", "Non-hostile"};
+  public static final String[] s_abilityuse = {"", "", "Spell slots", "", "Innate slots"};
 
   Ability() throws Exception
   {

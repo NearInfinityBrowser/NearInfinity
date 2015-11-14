@@ -13,9 +13,9 @@ import infinity.resource.AddRemovable;
 
 public final class AutomapNote extends AbstractStruct implements AddRemovable
 {
-  private static final String s_flag[] = {"Gray", "Violet", "Green", "Orange", "Red", "Blue",
+  private static final String[] s_flag = {"Gray", "Violet", "Green", "Orange", "Red", "Blue",
                                           "Dark blue", "Light gray"};
-  private static final String s_source[] = {"Talk override", "Dialog.tlk"};
+  private static final String[] s_source = {"Talk override", "Dialog.tlk"};
 
   AutomapNote() throws Exception
   {

@@ -13,7 +13,7 @@ import infinity.resource.AddRemovable;
 
 public final class Item extends AbstractStruct implements AddRemovable
 {
-  private static final String s_flags[] = {"No flags set", "Identified", "Not stealable", "Stolen",
+  private static final String[] s_flags = {"No flags set", "Identified", "Not stealable", "Stolen",
                                            "Undroppable"};
   private int nr = -1;
 
