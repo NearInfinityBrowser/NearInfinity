@@ -17,7 +17,7 @@ import infinity.resource.HasAddRemovable;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
-  private static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_noyes = {"No", "Yes"};
 
   public Door() throws Exception
   {

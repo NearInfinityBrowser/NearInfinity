@@ -15,6 +15,8 @@ import infinity.resource.Profile;
 
 public final class Overlay extends AbstractStruct // implements AddRemovable, HasAddRemovable
 {
+  public static final String[] s_movement = {"Default", "Disable rendering", "Alternate rendering"};
+
   public Overlay(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
     super(superStruct, "Overlay " + number, buffer, offset);
@@ -42,8 +44,7 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
     addField(tileset);
     if (Profile.isEnhancedEdition()) {
       addField(new DecNumber(buffer, offset + 12, 2, "# unique tiles"));
-      addField(new Bitmap(buffer, offset + 14, 2, "Movement type",
-                          new String[]{"Default", "Disable rendering", "Alternate rendering"}));
+      addField(new Bitmap(buffer, offset + 14, 2, "Movement type", s_movement));
     } else {
       addField(new Unknown(buffer, offset + 12, 4));
     }
