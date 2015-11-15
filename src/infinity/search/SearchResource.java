@@ -2338,8 +2338,8 @@ public class SearchResource extends ChildFrame
       cbType = new AutoComboBox(IndexedString.createArray(new String[]{"No BAM", "Single target",
                                                                        "Area of effect"}, 0, 1));
 
-      long[] keys = ProAreaType.s_proj.keys();
-      Object[] values = ProAreaType.s_proj.values().toArray();
+      long[] keys = ProAreaType.m_proj.keys();
+      Object[] values = ProAreaType.m_proj.values().toArray();
       String[] strings = new String[values.length];
       Integer[] objects = new Integer[keys.length];
       for (int i = 0; i < keys.length; i++) {
