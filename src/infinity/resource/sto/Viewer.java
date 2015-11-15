@@ -15,7 +15,7 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-final class Viewer extends JPanel
+public final class Viewer extends JPanel
 {
   private static JPanel makeFieldPanel(StoResource sto)
   {

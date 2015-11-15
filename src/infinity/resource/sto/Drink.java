@@ -10,7 +10,7 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Drink extends AbstractStruct implements AddRemovable
+public final class Drink extends AbstractStruct implements AddRemovable
 {
   Drink() throws Exception
   {

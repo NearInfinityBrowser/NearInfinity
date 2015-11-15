@@ -131,18 +131,11 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type_bg2));
       addField(new StringRef(buffer, offset + 12, "Name"));
-      addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
-    }
-//    else if (version.toString().equalsIgnoreCase("V9.0")) {
-//      addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
-//      addField(new StringRef(buffer, offset + 12, "Name"));
-//      addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag));
-//    }
-    else {
+    } else {
       addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
       addField(new StringRef(buffer, offset + 12, "Name"));
-      addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
     }
+    addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
     addField(new DecNumber(buffer, offset + 20, 4, "Sell markup"));
     addField(new DecNumber(buffer, offset + 24, 4, "Buy markup"));
     addField(new DecNumber(buffer, offset + 28, 4, "Depreciation rate"));
