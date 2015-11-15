@@ -14,9 +14,9 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.StructEntry;
 
-class CompBase extends AbstractStruct implements AddRemovable
+public class CompBase extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_noyes = {"No", "Yes"};
 
   CompBase(String label) throws Exception
   {

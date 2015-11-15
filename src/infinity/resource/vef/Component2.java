@@ -2,7 +2,7 @@ package infinity.resource.vef;
 
 import infinity.resource.AbstractStruct;
 
-final class Component2 extends CompBase
+public final class Component2 extends CompBase
 {
   Component2() throws Exception
   {
