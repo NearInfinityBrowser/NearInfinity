@@ -26,16 +26,16 @@ import infinity.resource.vertex.Vertex;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
 {
-  private static final String[] s_noyes = {"No", "Yes"};
-  private static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                          "Detectable trap", "Door forced", "Cannot close", "Door located",
-                                          "Door secret", "Secret door detected", "Can be looked through",
-                                          "Uses key", "Sliding door"};
-  private static final String[] s_flag_iwd2 = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                               "Detectable trap", "Door forced", "Cannot close", "Door located",
-                                               "Door secret", "Secret door detected", "Alternate lock string",
-                                               "Can be looked through", "Warn on activate", "Displayed warning",
-                                               "Door hidden", "Uses key"};
+  public static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
+                                         "Detectable trap", "Door forced", "Cannot close", "Door located",
+                                         "Door secret", "Secret door detected", "Can be looked through",
+                                         "Uses key", "Sliding door"};
+  public static final String[] s_flag_iwd2 = {"No flags set", "Door open", "Door locked", "Trap resets",
+                                              "Detectable trap", "Door forced", "Cannot close", "Door located",
+                                              "Door secret", "Secret door detected", "Alternate lock string",
+                                              "Can be looked through", "Warn on activate", "Displayed warning",
+                                              "Door hidden", "Uses key"};
 
   public Door() throws Exception
   {

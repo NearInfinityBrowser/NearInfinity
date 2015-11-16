@@ -15,7 +15,9 @@ import infinity.resource.AddRemovable;
 
 public final class SpawnPoint extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_noyes = { "No", "Yes" };
+  public static final String[] s_noyes = { "No", "Yes" };
+  public static final String[] s_method = {"No flags set", "Spawn until paused",
+                                           "Disable after spawn", "Spawn paused"};
 
   SpawnPoint() throws Exception
   {
@@ -49,9 +51,7 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 116, 2, "# creatures"));
     addField(new DecNumber(buffer, offset + 118, 2, "Encounter difficulty"));
     addField(new DecNumber(buffer, offset + 120, 2, "Spawn rate"));
-    addField(new Flag(buffer, offset + 122, 2, "Spawn method",
-                      new String[]{"No flags set", "Spawn until paused", "Disable after spawn",
-                                   "Spawn paused"}));
+    addField(new Flag(buffer, offset + 122, 2, "Spawn method", s_method));
     addField(new DecNumber(buffer, offset + 124, 4, "Creature duration"));
     addField(new DecNumber(buffer, offset + 128, 2, "Creature wander distance"));
     addField(new DecNumber(buffer, offset + 130, 2, "Creature follow distance"));

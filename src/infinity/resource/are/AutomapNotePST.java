@@ -13,7 +13,7 @@ import infinity.resource.AddRemovable;
 
 public final class AutomapNotePST extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_noyes = { "No", "Yes" };
+  public static final String[] s_noyes = { "No", "Yes" };
 
   AutomapNotePST() throws Exception
   {

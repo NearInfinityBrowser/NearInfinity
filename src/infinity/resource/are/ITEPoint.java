@@ -21,12 +21,12 @@ import infinity.resource.vertex.Vertex;
 
 public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
 {
-  private static final String[] s_type = {"Proximity trigger", "Info trigger", "Travel trigger"};
-  private static final String[] s_flag = {"No flags set", "Locked", "Trap resets", "Party required", "Trap detectable",
-                                          "Trap set off by enemy", "Tutorial trigger", "Trap set off by NPC", "Trigger silent",
-                                          "Trigger deactivated", "Cannot be passed by NPC", "Use activation point",
-                                          "Connected to door"};
-  private static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_type = {"Proximity trigger", "Info trigger", "Travel trigger"};
+  public static final String[] s_flag = {"No flags set", "Locked", "Trap resets", "Party required", "Trap detectable",
+                                         "Trap set off by enemy", "Tutorial trigger", "Trap set off by NPC", "Trigger silent",
+                                         "Trigger deactivated", "Cannot be passed by NPC", "Use activation point",
+                                         "Connected to door"};
+  public static final String[] s_noyes = {"No", "Yes"};
 
   public ITEPoint() throws Exception
   {

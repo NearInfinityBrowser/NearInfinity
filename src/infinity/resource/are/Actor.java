@@ -27,17 +27,17 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
 {
   public static final String[] s_orientation = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                  "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
-  private static final String[] s_noyes = {"No", "Yes"};
-  private static final String[] s_flags = {"CRE attached", "CRE not attached", "Has seen party",
-                                           "Toggle invulnerability", "Override script name"};
-  static final String[] s_schedule = {"Not active", "00:30-01:29", "01:30-02:29", "02:30-03:29",
-                                      "03:30-04:29", "04:30-05:29", "05:30-06:29", "06:30-07:29",
-                                      "07:30-08:29", "08:30-09:29", "09:30-10:29", "10:30-11:29",
-                                      "11:30-12:29", "12:30-13:29", "13:30-14:29", "14:30-15:29",
-                                      "15:30-16:29", "16:30-17:29", "17:30-18:29", "18:30-19:29",
-                                      "19:30-20:29", "20:30-21:29", "21:30-22:29", "22:30-23:29",
-                                      "23:30-00:29"};
-  private static final String[] s_diff = {"None", "Level 1", "Level 2", "Level 3"};
+  public static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_flags = {"CRE attached", "CRE not attached", "Has seen party",
+                                          "Toggle invulnerability", "Override script name"};
+  public static final String[] s_schedule = {"Not active", "00:30-01:29", "01:30-02:29", "02:30-03:29",
+                                             "03:30-04:29", "04:30-05:29", "05:30-06:29", "06:30-07:29",
+                                             "07:30-08:29", "08:30-09:29", "09:30-10:29", "10:30-11:29",
+                                             "11:30-12:29", "12:30-13:29", "13:30-14:29", "14:30-15:29",
+                                             "15:30-16:29", "16:30-17:29", "17:30-18:29", "18:30-19:29",
+                                             "19:30-20:29", "20:30-21:29", "21:30-22:29", "22:30-23:29",
+                                             "23:30-00:29"};
+  public  static final String[] s_diff = {"None", "Level 1", "Level 2", "Level 3"};
 
   public Actor() throws Exception
   {
@@ -139,11 +139,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     addField(new DecNumber(buffer, offset + 34, 2, "Position: Y"));
     addField(new DecNumber(buffer, offset + 36, 2, "Destination: X"));
     addField(new DecNumber(buffer, offset + 38, 2, "Destination: Y"));
-//    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-//        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB)
     addField(new Flag(buffer, offset + 40, 4, "Flags", s_flags));
-//    else
-//      addField(new Bitmap(buffer, offset + 40, 4, "Is visible?", s_noyes));
     addField(new Bitmap(buffer, offset + 44, 2, "Is spawned?", s_noyes));
     if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new Unknown(buffer, offset + 46, 1));

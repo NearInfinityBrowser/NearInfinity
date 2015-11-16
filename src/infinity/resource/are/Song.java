@@ -17,8 +17,8 @@ import infinity.resource.ResourceFactory;
 
 public final class Song extends AbstractStruct // implements AddRemovable
 {
-  private static final String[] s_reverb = {"None", "Small room", "Medium room",
-                                            "Large room", "Outside", "Dungeon"};
+  public static final String[] s_reverb = {"None", "Small room", "Medium room",
+                                           "Large room", "Outside", "Dungeon"};
 
   Song(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
