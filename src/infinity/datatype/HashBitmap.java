@@ -29,6 +29,7 @@ import javax.swing.JPanel;
 
 public class HashBitmap extends Datatype implements Editable
 {
+  private final List<UpdateListener> listeners = new ArrayList<UpdateListener>();
   private final LongIntegerHashMap<String> idsmap;
   private final boolean sortByName;
   private TextListPanel list;
@@ -123,6 +124,7 @@ public class HashBitmap extends Datatype implements Editable
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    // updating value
     String selected = list.getSelectedValue().toString();
     int i = selected.lastIndexOf(" - ");
     try {
@@ -130,6 +132,17 @@ public class HashBitmap extends Datatype implements Editable
     } catch (NumberFormatException e) {
       return false;
     }
+
+    // notifying listeners
+    if (!listeners.isEmpty()) {
+      boolean ret = false;
+      UpdateEvent event = new UpdateEvent(this, struct);
+      for (final UpdateListener l: listeners)
+        ret |= l.valueUpdated(event);
+      if (ret)
+        struct.fireTableDataChanged();
+    }
+
     return true;
   }
 
@@ -196,6 +209,40 @@ public class HashBitmap extends Datatype implements Editable
     } else {
       return null;
     }
+  }
+
+  /**
+   * Adds the specified update listener to receive update events from this object.
+   * If listener l is null, no exception is thrown and no action is performed.
+   * @param l The update listener
+   */
+  public void addUpdateListener(UpdateListener l)
+  {
+    if (l != null)
+      listeners.add(l);
+  }
+
+  /**
+   * Returns an array of all update listeners registered on this object.
+   * @return All of this object's update listener or an empty array if no listener is registered.
+   */
+  public UpdateListener[] getUpdateListeners()
+  {
+    UpdateListener[] ar = new UpdateListener[listeners.size()];
+    for (int i = 0; i < listeners.size(); i++)
+      ar[i] = listeners.get(i);
+    return ar;
+  }
+
+  /**
+   * Removes the specified update listener, so that it no longer receives update events
+   * from this object.
+   * @param l The update listener
+   */
+  public void removeUpdateListener(UpdateListener l)
+  {
+    if (l != null)
+      listeners.remove(l);
   }
 }
 

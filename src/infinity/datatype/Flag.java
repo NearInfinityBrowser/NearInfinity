@@ -17,6 +17,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
@@ -28,6 +30,7 @@ import javax.swing.JPanel;
 public class Flag extends Datatype implements Editable, ActionListener
 {
   public static final String DESC_NONE = "No flags set";
+  private final List<UpdateListener> listeners = new ArrayList<UpdateListener>();
 
   protected String nodesc;
   protected String[] table, toolTable;
@@ -177,10 +180,25 @@ public class Flag extends Datatype implements Editable, ActionListener
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    // updating value
     value = (long)0;
     for (int i = 0; i < checkBoxes.length; i++)
-      if (checkBoxes[i].isSelected())
+      if (checkBoxes[i].isSelected()) {
         setFlag(i);
+      }
+
+    // notifying listeners
+    if (!listeners.isEmpty()) {
+      boolean ret = false;
+      UpdateEvent event = new UpdateEvent(this, struct);
+      for (final UpdateListener l: listeners) {
+        ret |= l.valueUpdated(event);
+      }
+      if (ret) {
+        struct.fireTableDataChanged();
+      }
+    }
+
     return true;
   }
 
@@ -259,6 +277,40 @@ public class Flag extends Datatype implements Editable, ActionListener
   public void setValue(long newValue)
   {
     value = newValue;
+  }
+
+  /**
+   * Adds the specified update listener to receive update events from this object.
+   * If listener l is null, no exception is thrown and no action is performed.
+   * @param l The update listener
+   */
+  public void addUpdateListener(UpdateListener l)
+  {
+    if (l != null)
+      listeners.add(l);
+  }
+
+  /**
+   * Returns an array of all update listeners registered on this object.
+   * @return All of this object's update listener or an empty array if no listener is registered.
+   */
+  public UpdateListener[] getUpdateListeners()
+  {
+    UpdateListener[] ar = new UpdateListener[listeners.size()];
+    for (int i = 0; i < listeners.size(); i++)
+      ar[i] = listeners.get(i);
+    return ar;
+  }
+
+  /**
+   * Removes the specified update listener, so that it no longer receives update events
+   * from this object.
+   * @param l The update listener
+   */
+  public void removeUpdateListener(UpdateListener l)
+  {
+    if (l != null)
+      listeners.remove(l);
   }
 
   private void setFlag(int i)

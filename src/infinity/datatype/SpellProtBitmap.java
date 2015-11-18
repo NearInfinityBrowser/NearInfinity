@@ -17,7 +17,7 @@ import infinity.util.Table2daCache;
 /**
  * Specialized BitmapEx type for translating SPLPROT.2DA data into human-readable descriptions.
  */
-public class SpellProtBitmap extends BitmapEx
+public class SpellProtBitmap extends Bitmap
 {
   private static final String tableName = "SPLPROT.2DA";
   private static final String[] relation = { "<=", "=", "<", ">", ">=", "!=",

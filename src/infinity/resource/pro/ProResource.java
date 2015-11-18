@@ -12,8 +12,7 @@ import infinity.datatype.Bitmap;
 import infinity.datatype.ColorPicker;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
-import infinity.datatype.FlagEx;
-import infinity.datatype.HashBitmapEx;
+import infinity.datatype.HashBitmap;
 import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SpellProtBitmap;
@@ -84,9 +83,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
-    if (event.getSource() instanceof FlagEx &&
+    if (event.getSource() instanceof Flag &&
         ((StructEntry)event.getSource()).getName().equals("Extended flags")) {
-      boolean isIwdStyle = ((FlagEx)event.getSource()).isFlagSet(30);
+      boolean isIwdStyle = ((Flag)event.getSource()).isFlagSet(30);
       AbstractStruct struct = event.getStructure();
       boolean bRet = false;
       if (isIwdStyle) {
@@ -98,9 +97,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       }
       return bRet;
     }
-    else if (event.getSource() instanceof HashBitmapEx &&
+    else if (event.getSource() instanceof HashBitmap &&
              ((StructEntry)event.getSource()).getName().equals("Projectile type")) {
-      HashBitmapEx proType = (HashBitmapEx)event.getSource();
+      HashBitmap proType = (HashBitmap)event.getSource();
       AbstractStruct struct = event.getStructure();
       // add/remove extended sections in the parent structure depending on the current value
       if (struct instanceof Resource && struct instanceof HasAddRemovable) {
@@ -191,7 +190,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
 
     addField(new TextString(buffer, offset, 4, "Signature"));
     addField(new TextString(buffer, offset + 4, 4, "Version"));
-    HashBitmapEx projtype = new HashBitmapEx(buffer, offset + 8, 2, "Projectile type", m_projtype);
+    HashBitmap projtype = new HashBitmap(buffer, offset + 8, 2, "Projectile type", m_projtype);
     projtype.addUpdateListener(this);
     addField(projtype);
     addField(new DecNumber(buffer, offset + 10, 2, "Speed"));
@@ -202,15 +201,15 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     addField(new Bitmap(buffer, offset + 40, 2, "Particle color", s_color));
     if (Profile.isEnhancedEdition()) {
       addField(new DecNumber(buffer, offset + 42, 2, "Projectile width"));
-      FlagEx flagEx = new FlagEx(buffer, offset + 44, 4, "Extended flags", s_flagsEx);
-      addField(flagEx);
+      Flag flag = new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx);
+      addField(flag);
       addField(new StringRef(buffer, offset + 48, "String"));
       addField(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
       addField(new DecNumber(buffer, offset + 56, 2, "Color speed"));
       addField(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
       if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
-        flagEx.addUpdateListener(this);
-        if (flagEx.isFlagSet(30)) {
+        flag.addUpdateListener(this);
+        if (flag.isFlagSet(30)) {
           addField(new DecNumber(buffer, offset + 60, 2, "Creature value 1"));
           addField(new SpellProtBitmap(buffer, offset + 62, 2, "Creature type 1"));
           addField(new DecNumber(buffer, offset + 64, 2, "Creature value 2"));

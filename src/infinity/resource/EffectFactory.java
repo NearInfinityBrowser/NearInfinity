@@ -5,7 +5,6 @@
 package infinity.resource;
 
 import infinity.datatype.Bitmap;
-import infinity.datatype.BitmapEx;
 import infinity.datatype.ColorPicker;
 import infinity.datatype.ColorValue;
 import infinity.datatype.Datatype;
@@ -13,7 +12,6 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.EffectType;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
-import infinity.datatype.HashBitmapEx;
 import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
@@ -720,7 +718,7 @@ public final class EffectFactory
             case 324: // Immunity to spell and message
             case 326: // Apply effects list
             {
-              BitmapEx bitmap = (BitmapEx)getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
+              Bitmap bitmap = (Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
               if (bitmap instanceof SpellProtBitmap) {
                 SpellProtBitmap spb = (SpellProtBitmap)bitmap;
                 if (spb.useCustomValue()) {
@@ -3404,17 +3402,17 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset, 4, "Target",
                          new String[]{"Caster", "Last hit by", "Nearest enemy", "Anyone"}));
         if (Profile.isEnhancedEdition()) {
-          BitmapEx item = new BitmapEx(buffer, offset + 4, 4, "Condition",
-                                       new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                                                    "HP below 25%", "HP below 10%", "If helpless",
-                                                    "If poisoned", "Every round when attacked",
-                                                    "Target in range 4'", "Target in range 10'",
-                                                    "Every round", "Took damage", "Actor killed",
-                                                    "Time of day is 'Special'",
-                                                    "Target in 'Special' range",
-                                                    "Target's state is 'Special'", "Target dies",
-                                                    "Target died", "Target turned by",
-                                                    "Target HP < 'Special'", "Target HP % < 'Special'"});
+          Bitmap item = new Bitmap(buffer, offset + 4, 4, "Condition",
+                                   new String[]{"Target hit", "Enemy sighted", "HP below 50%",
+                                                "HP below 25%", "HP below 10%", "If helpless",
+                                                "If poisoned", "Every round when attacked",
+                                                "Target in range 4'", "Target in range 10'",
+                                                "Every round", "Took damage", "Actor killed",
+                                                "Time of day is 'Special'",
+                                                "Target in 'Special' range",
+                                                "Target's state is 'Special'", "Target dies",
+                                                "Target died", "Target turned by",
+                                                "Target HP < 'Special'", "Target HP % < 'Special'"});
           s.add(item);
           if (parent != null && parent instanceof UpdateListener) {
             item.addUpdateListener((UpdateListener)parent);
@@ -3738,7 +3736,7 @@ public final class EffectFactory
 
       case 318: // Protection from Spell, Ex: Set stat
         if (isExtended) {
-          BitmapEx bitmap = null;
+          Bitmap bitmap = null;
           if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
             bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
             SpellProtBitmap spb = (SpellProtBitmap)bitmap;
@@ -3755,7 +3753,7 @@ public final class EffectFactory
             s.add(bitmap);
           } else {
             // TODO: remove this section after all Enhanced Editions have been updated
-            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
+            bitmap = new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
             int param2 = bitmap.getValue();
             if (param2 >= 102 && param2 <= 109) {
               s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
@@ -3782,7 +3780,7 @@ public final class EffectFactory
       case 324: // Immunity to spell and message
       case 326: // Apply effects list
         if (isExtended) {
-          BitmapEx bitmap = null;
+          Bitmap bitmap = null;
           if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
             bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
             SpellProtBitmap spb = (SpellProtBitmap)bitmap;
@@ -3799,7 +3797,7 @@ public final class EffectFactory
             s.add(bitmap);
           } else {
             // TODO: remove this section after all Enhanced Editions have been updated
-            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
+            bitmap = new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
             int param2 = bitmap.getValue();
             if (param2 >= 102 && param2 <= 109) {
               s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
@@ -3828,7 +3826,7 @@ public final class EffectFactory
           } else {
             s.add(new DecNumber(buffer, offset, 4, "Unused"));
           }
-          HashBitmapEx idsFile = new HashBitmapEx(buffer, offset + 4, 4, "IDS file", m_itemids);
+          HashBitmap idsFile = new HashBitmap(buffer, offset + 4, 4, "IDS file", m_itemids);
           s.add(idsFile);
           if (parent != null && parent instanceof UpdateListener) {
             idsFile.addUpdateListener((UpdateListener)parent);
@@ -4996,7 +4994,7 @@ public final class EffectFactory
 
         case 328:   // Set state (BGEE/IWDEE)
           if (isIWDEE) {
-            BitmapEx bmp = new BitmapEx(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
+            Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
             s.add(bmp);
             if (parent != null && parent instanceof UpdateListener) {
               bmp.addUpdateListener((UpdateListener)parent);
