@@ -23,8 +23,13 @@ public final class ButtonPopupMenu extends JButton
 
   public ButtonPopupMenu(String text, JMenuItem menuItems[])
   {
+    this(text, menuItems, true);
+  }
+
+  public ButtonPopupMenu(String text, JMenuItem menuItems[], boolean sorted)
+  {
     super(text);
-    setMenuItems(menuItems);
+    setMenuItems(menuItems, sorted);
     addMouseListener(new PopupListener());
   }
 
@@ -35,27 +40,33 @@ public final class ButtonPopupMenu extends JButton
 
   public void setMenuItems(JMenuItem menuItems[])
   {
-    menu.removeAll();
-    Arrays.sort(menuItems, new Comparator<JMenuItem>()
-    {
-      @Override
-      public int compare(JMenuItem jMenuItem, JMenuItem jMenuItem1)
-      {
-        return jMenuItem.toString().compareToIgnoreCase(jMenuItem1.toString());
-      }
+    setMenuItems(menuItems, true);
+  }
 
-      @Override
-      public boolean equals(Object obj)
+  public void setMenuItems(JMenuItem menuItems[], boolean sorted)
+  {
+    menu.removeAll();
+    if (sorted) {
+      Arrays.sort(menuItems, new Comparator<JMenuItem>()
       {
-        return this == obj;
-      }
-    });
+        @Override
+        public int compare(JMenuItem jMenuItem, JMenuItem jMenuItem1)
+        {
+          return jMenuItem.toString().compareToIgnoreCase(jMenuItem1.toString());
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+          return this == obj;
+        }
+      });
+    }
     MouseListener listener = new PopupItemListener();
     for (final JMenuItem menuItem : menuItems) {
       menu.add(menuItem);
       menuItem.addMouseListener(listener);
     }
-//    menu.addSeparator();
   }
 
   private void menuItemSelected(JMenuItem item)
