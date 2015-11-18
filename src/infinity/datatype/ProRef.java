@@ -66,12 +66,12 @@ public final class ProRef extends Datatype implements Editable, ActionListener, 
 
   public ProRef(byte buffer[], int offset, String name, long minValue)
   {
-    this(null, buffer, offset, 2, name, 0L);
+    this(null, buffer, offset, 2, name, minValue);
   }
 
   public ProRef(StructEntry parent, byte buffer[], int offset, String name, long minValue)
   {
-    this(parent, buffer, offset, 2, name, 0L);
+    this(parent, buffer, offset, 2, name, minValue);
   }
 
   public ProRef(byte buffer[], int offset, int size, String name, long minValue)
