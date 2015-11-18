@@ -9,8 +9,10 @@ import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
@@ -18,15 +20,58 @@ import javax.swing.JPopupMenu;
 
 public final class ButtonPopupMenu extends JButton
 {
+  private static final Comparator<JMenuItem> menuItemComparator = new Comparator<JMenuItem>() {
+    @Override
+    public int compare(JMenuItem item1, JMenuItem item2)
+    {
+      return item1.getText().compareToIgnoreCase(item2.getText());
+    }
+  };
+
   private final JPopupMenu menu = new JPopupMenu();
+  private List<JMenuItem> items = new ArrayList<JMenuItem>();
   private JMenuItem selected;
 
-  public ButtonPopupMenu(String text, JMenuItem menuItems[])
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
+   */
+  public ButtonPopupMenu(String text, JMenuItem[] menuItems)
   {
     this(text, menuItems, true);
   }
 
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items.
+   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   */
   public ButtonPopupMenu(String text, JMenuItem menuItems[], boolean sorted)
+  {
+    super(text);
+    setMenuItems(menuItems, sorted);
+    addMouseListener(new PopupListener());
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
+   */
+  public ButtonPopupMenu(String text, List<JMenuItem> menuItems)
+  {
+    this(text, menuItems, true);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items.
+   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   */
+  public ButtonPopupMenu(String text, List<JMenuItem> menuItems, boolean sorted)
   {
     super(text);
     setMenuItems(menuItems, sorted);
@@ -38,35 +83,69 @@ public final class ButtonPopupMenu extends JButton
     return selected;
   }
 
-  public void setMenuItems(JMenuItem menuItems[])
+  /**
+   * Replaces current list of menu items with the given list.
+   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
+   */
+  public void setMenuItems(JMenuItem[] menuItems)
   {
     setMenuItems(menuItems, true);
   }
 
-  public void setMenuItems(JMenuItem menuItems[], boolean sorted)
+  /**
+   * Replaces current list of menu items with the given list.
+   * @param menuItems List of menu items.
+   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   */
+  public void setMenuItems(JMenuItem[] menuItems, boolean sorted)
+  {
+    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    if (menuItems != null) {
+      for (int i = 0; i < menuItems.length; i++) {
+        list.add(menuItems[i]);
+      }
+    }
+    setMenuItems(list, sorted);
+  }
+
+  /**
+   * Replaces current list of menu items with the given list.
+   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
+   */
+  public void setMenuItems(List<JMenuItem> menuItems)
+  {
+    setMenuItems(menuItems, true);
+  }
+
+  /**
+   * Replaces current list of menu items with the given list.
+   * @param menuItems List of menu items.
+   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   */
+  public void setMenuItems(List<JMenuItem> menuItems, boolean sorted)
   {
     menu.removeAll();
-    if (sorted) {
-      Arrays.sort(menuItems, new Comparator<JMenuItem>()
-      {
-        @Override
-        public int compare(JMenuItem jMenuItem, JMenuItem jMenuItem1)
-        {
-          return jMenuItem.toString().compareToIgnoreCase(jMenuItem1.toString());
-        }
-
-        @Override
-        public boolean equals(Object obj)
-        {
-          return this == obj;
-        }
-      });
+    items.clear();
+    if (menuItems != null) {
+      for (int i = 0, count = menuItems.size(); i < count; i++) {
+        items.add(menuItems.get(i));
+      }
+      if (sorted) {
+        Collections.sort(items, menuItemComparator);
+      }
     }
     MouseListener listener = new PopupItemListener();
-    for (final JMenuItem menuItem : menuItems) {
-      menu.add(menuItem);
-      menuItem.addMouseListener(listener);
+    for (int i = 0, count = items.size(); i < count; i++) {
+      final JMenuItem item = items.get(i);
+      menu.add(item);
+      item.addMouseListener(listener);
     }
+  }
+
+  /** Returns a read-only list of menu items. */
+  public List<JMenuItem> getItems()
+  {
+    return Collections.unmodifiableList(items);
   }
 
   private void menuItemSelected(JMenuItem item)
@@ -74,7 +153,7 @@ public final class ButtonPopupMenu extends JButton
     if (item.isEnabled()) {
       selected = item;
       // Why won't the following line work?
-      fireItemStateChanged(new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, item, ItemEvent.SELECTED));
+      fireItemStateChanged(new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, selected, ItemEvent.SELECTED));
     }
   }
 
