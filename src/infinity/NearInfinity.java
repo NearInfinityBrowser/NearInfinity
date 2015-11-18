@@ -258,6 +258,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setAppIcon();
     Preferences prefs = Preferences.userNodeForPackage(getClass());
 
+    new BrowserMenuBar();
     setJMenuBar(BrowserMenuBar.getInstance());
 
     String lastDir = null;
