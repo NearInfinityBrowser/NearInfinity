@@ -36,7 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public final class StringRef extends Datatype implements Editable, ActionListener
+public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
   private InfinityTextArea taRefText;
@@ -200,6 +200,10 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     if (newstring.equalsIgnoreCase("Error"))
       return false;
     value = newvalue;
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -211,7 +215,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, value);
+    writeInt(os, value);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -244,10 +248,31 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     return StringResource.getStringRef(value, extended, asPrefix);
   }
 
+//--------------------- Begin Interface IsNumeric ---------------------
+
+  @Override
+  public long getLongValue()
+  {
+    return (long)value & 0xffffffffL;
+  }
+
+  @Override
   public int getValue()
   {
     return value;
   }
+
+//--------------------- End Interface IsNumeric ---------------------
+
+//--------------------- Begin Interface IsTextual ---------------------
+
+  @Override
+  public String getText()
+  {
+    return StringResource.getStringRef(value);
+  }
+
+//--------------------- End Interface IsTextual ---------------------
 
   public void setValue(int newvalue)
   {

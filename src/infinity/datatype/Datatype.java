@@ -10,6 +10,7 @@ import infinity.util.io.FileWriterNI;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -18,7 +19,10 @@ public abstract class Datatype implements StructEntry
   protected static final Dimension DIM_WIDE = new Dimension(800, 100);
   protected static final Dimension DIM_BROAD = new Dimension(650, 100);
   protected static final Dimension DIM_MEDIUM = new Dimension(400, 100);
+
+  private final List<UpdateListener> listeners = new ArrayList<UpdateListener>();
   private final int length;
+
   private String name;
   private int offset;
   private StructEntry parent;
@@ -115,6 +119,60 @@ public abstract class Datatype implements StructEntry
   }
 
 // --------------------- End Interface StructEntry ---------------------
+
+  /**
+   * Adds the specified update listener to receive update events from this object.
+   * If listener l is null, no exception is thrown and no action is performed.
+   * @param l The update listener
+   */
+  public void addUpdateListener(UpdateListener l)
+  {
+    if (l != null) {
+      listeners.add(l);
+    }
+  }
+
+  /**
+   * Returns an array of all update listeners registered on this object.
+   * @return All of this object's update listener or an empty array if no listener is registered.
+   */
+  public UpdateListener[] getUpdateListeners()
+  {
+    UpdateListener[] ar = new UpdateListener[listeners.size()];
+    for (int i = 0; i < listeners.size(); i++) {
+      ar[i] = listeners.get(i);
+    }
+    return ar;
+  }
+
+  /**
+   * Removes the specified update listener, so that it no longer receives update events
+   * from this object.
+   * @param l The update listener
+   */
+  public void removeUpdateListener(UpdateListener l)
+  {
+    if (l != null) {
+      listeners.remove(l);
+    }
+  }
+
+  /**
+   * Notifies all listeners that the value of this Datatype object may have changed.
+   */
+  protected void fireValueUpdated(UpdateEvent event)
+  {
+    if (event != null) {
+      boolean retVal = false;
+      for (final UpdateListener l: listeners) {
+        retVal |= l.valueUpdated(event);
+      }
+      if (retVal) {
+        event.getStructure().fireTableDataChanged();
+      }
+    }
+  }
+
 
   void writeInt(OutputStream os, int value) throws IOException
   {

@@ -204,7 +204,7 @@ public final class ResRefChecker extends ChildFrame implements ActionListener, R
         String resourceName = ref.getResourceName();
         if (resourceName.equalsIgnoreCase("None")) {
           // ignore
-        } else if (extraValues != null && extraValues.contains(ref.getResName())) {
+        } else if (extraValues != null && extraValues.contains(ref.getText())) {
           // ignore
         } else if (!ResourceFactory.resourceExists(resourceName)) {
           synchronized (hitFrame) {

@@ -24,7 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Unknown extends Datatype implements Editable
+public class Unknown extends Datatype implements Editable, IsBinary
 {
   private static final String UNKNOWN = "Unknown";
   InfinityTextArea textArea;
@@ -49,11 +49,6 @@ public class Unknown extends Datatype implements Editable
   {
     super(parent, offset, length, name);
     read(buffer, offset);
-  }
-
-  public byte[] getData()
-  {
-    return data;
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -134,6 +129,10 @@ public class Unknown extends Datatype implements Editable
       }
     }
     data = newdata;
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -161,6 +160,16 @@ public class Unknown extends Datatype implements Editable
   }
 
 //--------------------- End Interface Readable ---------------------
+
+//--------------------- Begin Interface IsBinary ---------------------
+
+  @Override
+  public byte[] getData()
+  {
+    return Arrays.copyOf(data, data.length);
+  }
+
+//--------------------- End Interface IsBinary ---------------------
 
   @Override
   public String toString()

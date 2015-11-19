@@ -26,9 +26,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Bitmap extends Datatype implements Editable
+public class Bitmap extends Datatype implements Editable, IsNumeric
 {
-  private final List<UpdateListener> listeners = new ArrayList<UpdateListener>();
   private final String[] table;
 
   private TextListPanel list;
@@ -115,16 +114,7 @@ public class Bitmap extends Datatype implements Editable
     }
 
     // notifying listeners
-    if (!listeners.isEmpty()) {
-      boolean ret = false;
-      UpdateEvent event = new UpdateEvent(this, struct);
-      for (final UpdateListener l: listeners) {
-        ret |= l.valueUpdated(event);
-      }
-      if (ret) {
-        struct.fireTableDataChanged();
-      }
-    }
+    fireValueUpdated(new UpdateEvent(this, struct));
 
     return true;
   }
@@ -137,7 +127,7 @@ public class Bitmap extends Datatype implements Editable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, value);
+    writeInt(os, value);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -166,49 +156,26 @@ public class Bitmap extends Datatype implements Editable
 
 //--------------------- End Interface Readable ---------------------
 
+//--------------------- Begin Interface IsNumeric ---------------------
+
   @Override
-  public String toString()
+  public long getLongValue()
   {
-    return getString(value);
+    return (long)value & 0xffffffffL;
   }
 
+  @Override
   public int getValue()
   {
     return value;
   }
 
-  /**
-   * Adds the specified update listener to receive update events from this object.
-   * If listener l is null, no exception is thrown and no action is performed.
-   * @param l The update listener
-   */
-  public void addUpdateListener(UpdateListener l)
-  {
-    if (l != null)
-      listeners.add(l);
-  }
+//--------------------- End Interface IsNumeric ---------------------
 
-  /**
-   * Returns an array of all update listeners registered on this object.
-   * @return All of this object's update listener or an empty array if no listener is registered.
-   */
-  public UpdateListener[] getUpdateListeners()
+  @Override
+  public String toString()
   {
-    UpdateListener[] ar = new UpdateListener[listeners.size()];
-    for (int i = 0; i < listeners.size(); i++)
-      ar[i] = listeners.get(i);
-    return ar;
-  }
-
-  /**
-   * Removes the specified update listener, so that it no longer receives update events
-   * from this object.
-   * @param l The update listener
-   */
-  public void removeUpdateListener(UpdateListener l)
-  {
-    if (l != null)
-      listeners.remove(l);
+    return getString(value);
   }
 
   private String getString(int nr)

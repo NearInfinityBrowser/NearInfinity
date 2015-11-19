@@ -319,7 +319,7 @@ public final class DlgResource extends AbstractStruct
               if (added) {
                 dec.incValue(1);
               } else {
-                flags.setValue(flags.getValue() & ~2L);
+                flags.setValue(flags.getValue() & ~2);
                 dec.setValue(0);
               }
             } else if (dec.getValue() > idxTrigger) {
@@ -352,7 +352,7 @@ public final class DlgResource extends AbstractStruct
               if (added) {
                 dec.incValue(1);
               } else {
-                flags.setValue(flags.getValue() & ~4L);
+                flags.setValue(flags.getValue() & ~4);
                 dec.setValue(0);
               }
             } else if (dec.getValue() > idxAction) {

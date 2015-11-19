@@ -234,6 +234,10 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
         return false;
       }
     }
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -386,9 +390,14 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
       return idsFileStr + idsMap.get(idsValue).toString() + " - " + idsValue;
   }
 
-  public long getValue()
+  public long getIdsValue()
   {
     return idsValue;
+  }
+
+  public long getIdsFile()
+  {
+    return idsFile;
   }
 
   private String getString(int nr)

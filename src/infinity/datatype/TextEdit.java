@@ -32,7 +32,7 @@ import javax.swing.text.BadLocationException;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rtextarea.RTextArea;
 
-public final class TextEdit extends Datatype implements Editable
+public final class TextEdit extends Datatype implements Editable, IsTextual
 {
   public static enum EOLType {
     UNIX, WINDOWS
@@ -120,6 +120,10 @@ public final class TextEdit extends Datatype implements Editable
   public boolean updateValue(AbstractStruct struct)
   {
     text = textArea.getText();
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -148,10 +152,12 @@ public final class TextEdit extends Datatype implements Editable
 
 //--------------------- End Interface Readable ---------------------
 
+//--------------------- Begin Interface IsTextual ---------------------
+
   @Override
-  public String toString()
+  public String getText()
   {
-    if (text == null)
+    if (text == null) {
       try {
         int len = 0;
         while (len < bytes.length && bytes[len] != 0) {
@@ -162,7 +168,16 @@ public final class TextEdit extends Datatype implements Editable
         text = eolConvert(new String(bytes, 0, bytes.length), System.getProperty("line.separator"));
         e.printStackTrace();
       }
+    }
     return text;
+  }
+
+//--------------------- End Interface IsTextual ---------------------
+
+  @Override
+  public String toString()
+  {
+    return getText();
   }
 
   public byte[] toArray()

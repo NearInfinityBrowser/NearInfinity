@@ -284,7 +284,7 @@ public final class ResourceFactory
               if ((Arrays.equals(new byte[]{0x53, 0x43, 0x0a}, Arrays.copyOfRange(data, 0, 3)) ||  // == "SC\n"
                    Arrays.equals(new byte[]{0x53, 0x43, 0x0d, 0x0a}, Arrays.copyOfRange(data, 0, 4)))) { // == "SC\r\n"
                 res = getResource(entry, "BCS");
-              } else if (data.length > 6 && "BM".equals(new String(data, 0, 2)) && 
+              } else if (data.length > 6 && "BM".equals(new String(data, 0, 2)) &&
                          DynamicArray.getInt(data, 2) == info[0]) {
                 res = getResource(entry, "BMP");
               } else if (data.length > 18 && "Interplay MVE File".equals(new String(data, 0, 18))) {
@@ -355,6 +355,21 @@ public final class ResourceFactory
   }
 
   /**
+   * Returns whether the specified resource exists.
+   * @param resourceName The resource filename.
+   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
+   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @param extraDirs       A list of File entries pointing to additional folders to search, not
+   *                        covered by the default override folder list (e.g. "install:/music").
+   * @return <code>true</code> if the resource exists in BIFF archives or override folders,
+   *         <code>false</code> otherwise.
+   */
+  public static boolean resourceExists(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
+  {
+    return (getResourceEntry(resourceName, searchExtraDirs, extraDirs) != null);
+  }
+
+  /**
    * Returns a ResourceEntry instance of the given resource name.
    * @param resourceName The resource filename.
    * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
@@ -362,7 +377,7 @@ public final class ResourceFactory
    */
   public static ResourceEntry getResourceEntry(String resourceName)
   {
-    return getResourceEntry(resourceName, false);
+    return getResourceEntry(resourceName, false, null);
   }
 
   /**
@@ -375,8 +390,25 @@ public final class ResourceFactory
    */
   public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs)
   {
+    return getResourceEntry(resourceName, searchExtraDirs, null);
+  }
+
+  /**
+   * Returns a ResourceEntry instance of the given resource name.
+   * @param resourceName The resource filename.
+   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
+   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @param extraDirs       A list of File entries pointing to additional folders to search, not
+   *                        covered by the default override folder list (e.g. "install:/music").
+   * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
+   *         available.
+   */
+  public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
+  {
     if (getInstance() != null) {
       ResourceEntry entry = getInstance().treeModel.getResourceEntry(resourceName);
+
+      // checking default override folder list
       if (searchExtraDirs && (entry == null)) {
         @SuppressWarnings("unchecked")
         List<File> extraFolders = (List<File>)Profile.getProperty(Profile.GET_GAME_OVERRIDE_FOLDERS);
@@ -390,6 +422,18 @@ public final class ResourceFactory
           }
         }
       }
+
+      // checking custom folder list
+      if (extraDirs != null) {
+        for (final File folder: extraDirs) {
+          File f = new FileNI(folder, resourceName);
+          if (f.isFile()) {
+            entry = new FileResourceEntry(f);
+            break;
+          }
+        }
+      }
+
       return entry;
     } else {
       return null;

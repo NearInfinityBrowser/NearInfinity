@@ -33,7 +33,7 @@ import javax.swing.table.AbstractTableModel;
  * A Number object consisting of multiple values of a given number of bits.
  * @author argent77
  */
-public class MultiNumber extends Datatype implements Editable
+public class MultiNumber extends Datatype implements Editable, IsNumeric
 {
   private int value;
   private ValueTableModel mValues;
@@ -129,6 +129,10 @@ public class MultiNumber extends Datatype implements Editable
   public boolean updateValue(AbstractStruct struct)
   {
     value = mValues.getValue();
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -139,7 +143,7 @@ public class MultiNumber extends Datatype implements Editable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, value);
+    writeInt(os, value);
   }
 
 //--------------------- End Interface Writeable ---------------------
@@ -201,11 +205,21 @@ public class MultiNumber extends Datatype implements Editable
     return mValues.getValueName(idx);
   }
 
-  /** Returns value of the whole Number object. */
+//--------------------- Begin Interface IsNumeric ---------------------
+
+  @Override
+  public long getLongValue()
+  {
+    return (long)value & 0xffffffffL;
+  }
+
+  @Override
   public int getValue()
   {
     return value;
   }
+
+//--------------------- End Interface IsNumeric ---------------------
 
   /** Returns the specified value. */
   public int getValue(int idx)

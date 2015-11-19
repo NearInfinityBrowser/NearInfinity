@@ -534,7 +534,7 @@ public class SearchOptions
           s2 = ((ResourceRef)entry).getResourceName();
           s2 = s2.substring(0, s2.indexOf('.'));
         } else if (entry instanceof TextBitmap) {
-          s2 = ((TextBitmap)entry).getIdsValue();
+          s2 = ((TextBitmap)entry).getText();
         } else if (entry instanceof TextEdit) {
           s2 = ((TextEdit)entry).toString();
         } else if (entry instanceof TextString) {
@@ -630,7 +630,7 @@ public class SearchOptions
         } else if (number instanceof IdsBitmap) {
           n3 = (int)((IdsBitmap)number).getValue();
         } else if (number instanceof IDSTargetEffect) {
-          n3 = (int)((IDSTargetEffect)number).getValue();
+          n3 = (int)((IDSTargetEffect)number).getIdsValue();
         } else if (number instanceof IwdRef) {
           n3 = (int)((IwdRef)number).getValue();
         } else if (number instanceof ProRef) {

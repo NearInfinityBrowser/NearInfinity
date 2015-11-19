@@ -200,7 +200,7 @@ public final class IDSRefChecker extends ChildFrame implements ActionListener, R
       }
       else if (o instanceof IDSTargetEffect) {
         IDSTargetEffect effect = (IDSTargetEffect)o;
-        if (effect.toString().indexOf("Unknown value - ") != -1 && effect.getValue() != 0) {
+        if (effect.toString().indexOf("Unknown value - ") != -1 && effect.getIdsValue() != 0) {
           synchronized (hitFrame) {
             hitFrame.addHit(entry, entry.getSearchString(), effect);
           }

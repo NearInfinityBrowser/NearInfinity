@@ -5492,9 +5492,10 @@ public class SearchResource extends ChildFrame
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
-        pro = new IndexedString[proRef.getIdsMapEntryCount()];
+        pro = new IndexedString[proRef.getResourceList().size()];
         for (int i = 0; i < pro.length; i++) {
-          pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
+          long id = proRef.getResourceList().get(i).getValue();
+          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 0, 0);
@@ -5801,9 +5802,10 @@ public class SearchResource extends ChildFrame
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
-        pro = new IndexedString[proRef.getIdsMapEntryCount()];
+        pro = new IndexedString[proRef.getResourceList().size()];
         for (int i = 0; i < pro.length; i++) {
-          pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
+          long id = proRef.getResourceList().get(i).getValue();
+          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 1, 0);
@@ -6739,7 +6741,7 @@ public class SearchResource extends ChildFrame
         } else if (curItem instanceof Song2daBitmap) {
           id = Long.toString(((Song2daBitmap)curItem).getValue());
         } else if (curItem instanceof TextBitmap) {
-          id = ((TextBitmap)curItem).getIdsName();
+          id = ((TextBitmap)curItem).getDescription();
         } else {
           id = curItem.toString().toUpperCase(Locale.ENGLISH);
         }

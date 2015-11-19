@@ -11,6 +11,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.ObjectString;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -27,37 +28,36 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class HashBitmap extends Datatype implements Editable
+public class HashBitmap extends Datatype implements Editable, IsNumeric
 {
-  private final List<UpdateListener> listeners = new ArrayList<UpdateListener>();
-  private final LongIntegerHashMap<String> idsmap;
+  private final LongIntegerHashMap<? extends Object> idsmap;
   private final boolean sortByName;
   private TextListPanel list;
   private long value;
 
   public HashBitmap(byte buffer[], int offset, int length, String name,
-                    LongIntegerHashMap<String> idsmap)
+                    LongIntegerHashMap<? extends Object> idsmap)
   {
     this(null, buffer, offset, length, name, idsmap, true);
   }
 
   public HashBitmap(byte buffer[], int offset, int length, String name,
-                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+                    LongIntegerHashMap<? extends Object> idsmap, boolean sortByName)
   {
     this(null, buffer, offset, length, name, idsmap, sortByName);
   }
 
   public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
-                    LongIntegerHashMap<String> idsmap)
+                    LongIntegerHashMap<? extends Object> idsmap)
   {
     this(parent, buffer, offset, length, name, idsmap, true);
   }
 
   public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
-                    LongIntegerHashMap<String> idsmap, boolean sortByName)
+                    LongIntegerHashMap<? extends Object> idsmap, boolean sortByName)
   {
     super(parent, offset, length, name);
-    this.idsmap = new LongIntegerHashMap<String>(idsmap);
+    this.idsmap = normalizeHashMap(idsmap);
     this.sortByName = sortByName;
 
     read(buffer, offset);
@@ -70,10 +70,14 @@ public class HashBitmap extends Datatype implements Editable
   {
     if (list == null) {
       long[] keys = idsmap.keys();
-      List<String> items = new ArrayList<String>(keys.length);
-      for (long id : keys) {
-        if (idsmap.containsKey(id))
-          items.add(idsmap.get(id).toString() + " - " + id);
+      List<Object> items = new ArrayList<Object>(keys.length);
+      for (final long id : keys) {
+        if (idsmap.containsKey(id)) {
+          Object o = idsmap.get(id);
+          if (o != null) {
+            items.add(o);
+          }
+        }
       }
       list = new TextListPanel(items, sortByName);
       list.addMouseListener(new MouseAdapter()
@@ -86,9 +90,10 @@ public class HashBitmap extends Datatype implements Editable
         }
       });
     }
-    String selected = idsmap.get(value);
-    if (selected != null)
-      list.setSelectedValue(selected.toString() + " - " + value, true);
+    Object selected = idsmap.get(value);
+    if (selected != null) {
+      list.setSelectedValue(selected, true);
+    }
 
     JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
     bUpdate.addActionListener(container);
@@ -125,36 +130,32 @@ public class HashBitmap extends Datatype implements Editable
   public boolean updateValue(AbstractStruct struct)
   {
     // updating value
-    String selected = list.getSelectedValue().toString();
-    int i = selected.lastIndexOf(" - ");
-    try {
-      value = Long.parseLong(selected.substring(i + 3));
-    } catch (NumberFormatException e) {
-      return false;
+    Object selected = list.getSelectedValue();
+    if (selected instanceof ObjectString && ((ObjectString)selected).getObject() instanceof Number) {
+      value = ((Number)((ObjectString)selected).getObject()).longValue();
+    } else {
+      int i = selected.toString().lastIndexOf(" - ");
+      try {
+        value = Long.parseLong(selected.toString().substring(i + 3));
+      } catch (NumberFormatException e) {
+        return false;
+      }
     }
 
     // notifying listeners
-    if (!listeners.isEmpty()) {
-      boolean ret = false;
-      UpdateEvent event = new UpdateEvent(this, struct);
-      for (final UpdateListener l: listeners)
-        ret |= l.valueUpdated(event);
-      if (ret)
-        struct.fireTableDataChanged();
-    }
+    fireValueUpdated(new UpdateEvent(this, struct));
 
     return true;
   }
 
 // --------------------- End Interface Editable ---------------------
 
-
 // --------------------- Begin Interface Writeable ---------------------
 
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeLong(os, value);
+    writeLong(os, value);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -187,14 +188,37 @@ public class HashBitmap extends Datatype implements Editable
   public String toString()
   {
     Object o = idsmap.get(value);
-    if (o == null)
+    if (o == null) {
       return "Unknown - " + value;
-    return idsmap.get(value).toString() + " - " + value;
+    } else {
+      return o.toString();
+    }
   }
 
-  public long getValue()
+//--------------------- Begin Interface IsNumeric ---------------------
+
+  @Override
+  public long getLongValue()
   {
     return value;
+  }
+
+  @Override
+  public int getValue()
+  {
+    return (int)value;
+  }
+
+//--------------------- End Interface IsNumeric ---------------------
+
+  protected void setValue(long newValue)
+  {
+    this.value = newValue;
+  }
+
+  public int getListSize()
+  {
+    return idsmap.size();
   }
 
   public long[] getKeys()
@@ -202,47 +226,45 @@ public class HashBitmap extends Datatype implements Editable
     return idsmap.keys();
   }
 
+  public Object getValueOf(long key)
+  {
+    return idsmap.get(Long.valueOf(key));
+  }
+
   public String getSymbol(long index)
   {
-    if (idsmap.containsKey(index)) {
-      return idsmap.get(index).toString();
-    } else {
-      return null;
+    Object o = idsmap.get(index);
+    if (o != null) {
+      if (o instanceof ObjectString) {
+        return ((ObjectString)o).getString();
+      } else {
+        int i = o.toString().lastIndexOf(" - ");
+        if (i >= 0) {
+          return o.toString().substring(0, i);
+        }
+      }
     }
+    return null;
   }
 
-  /**
-   * Adds the specified update listener to receive update events from this object.
-   * If listener l is null, no exception is thrown and no action is performed.
-   * @param l The update listener
-   */
-  public void addUpdateListener(UpdateListener l)
+  protected LongIntegerHashMap<? extends Object> getHashBitmap()
   {
-    if (l != null)
-      listeners.add(l);
+    return idsmap;
   }
 
-  /**
-   * Returns an array of all update listeners registered on this object.
-   * @return All of this object's update listener or an empty array if no listener is registered.
-   */
-  public UpdateListener[] getUpdateListeners()
+  private static LongIntegerHashMap<? extends Object> normalizeHashMap(LongIntegerHashMap<? extends Object> map)
   {
-    UpdateListener[] ar = new UpdateListener[listeners.size()];
-    for (int i = 0; i < listeners.size(); i++)
-      ar[i] = listeners.get(i);
-    return ar;
-  }
-
-  /**
-   * Removes the specified update listener, so that it no longer receives update events
-   * from this object.
-   * @param l The update listener
-   */
-  public void removeUpdateListener(UpdateListener l)
-  {
-    if (l != null)
-      listeners.remove(l);
+    if (map != null && !map.isEmpty() && map.get(map.keys()[0]) instanceof String) {
+      LongIntegerHashMap<ObjectString> retVal = new LongIntegerHashMap<ObjectString>();
+      long[] keys = map.keys();
+      for (final long key: keys) {
+        retVal.put(Long.valueOf(key), new ObjectString(map.get(key).toString(), Long.valueOf(key),
+                                                       ObjectString.FMT_OBJECT_HYPHEN));
+      }
+      return retVal;
+    } else {
+      return map;
+    }
   }
 }
 

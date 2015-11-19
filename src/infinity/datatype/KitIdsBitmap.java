@@ -40,7 +40,7 @@ public class KitIdsBitmap extends IdsBitmap
  @Override
  public void write(OutputStream os) throws IOException
  {
-   super.writeLong(os, swapWords(value));
+   writeLong(os, swapWords(getValue()));
  }
 
 //--------------------- End Interface Writeable ---------------------
@@ -51,7 +51,7 @@ public class KitIdsBitmap extends IdsBitmap
     addIdsMapEntry(new IdsMapEntry(0L, "NO_KIT", null));
 
     // fixing word order of kit id value
-    value = swapWords(value);
+    setValue(swapWords(getValue()));
   }
 
   // Swaps position of the two lower words

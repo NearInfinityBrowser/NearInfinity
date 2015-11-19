@@ -11,19 +11,31 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Locale;
 
-public class DecNumber extends Datatype implements InlineEditable
+public class DecNumber extends Datatype implements InlineEditable, IsNumeric
 {
-  private int number;
+  private long number;
+  private boolean signed;
 
   public DecNumber(byte buffer[], int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name);
+    this(null, buffer, offset, length, name, true);
+  }
+
+  public DecNumber(byte buffer[], int offset, int length, String name, boolean signed)
+  {
+    this(null, buffer, offset, length, name, signed);
   }
 
   public DecNumber(StructEntry parent, byte buffer[], int offset, int length, String name)
   {
+    this(parent, buffer, offset, length, name, true);
+  }
+
+  public DecNumber(StructEntry parent, byte buffer[], int offset, int length, String name, boolean signed)
+  {
     super(parent, offset, length, name);
-    number = 0;
+    this.number = 0L;
+    this.signed = signed;
     read(buffer, offset);
   }
 
@@ -33,7 +45,7 @@ public class DecNumber extends Datatype implements InlineEditable
   public boolean update(Object value)
   {
     try {
-      number = (int)parseNumber(value, getSize(), true, true);
+      number = parseNumber(value, getSize(), signed, true);
       return true;
     } catch (Exception e) {
       e.printStackTrace();
@@ -49,7 +61,7 @@ public class DecNumber extends Datatype implements InlineEditable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, number);
+    writeLong(os, number);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -61,13 +73,25 @@ public class DecNumber extends Datatype implements InlineEditable
   {
     switch (getSize()) {
       case 1:
-        number = (int)DynamicArray.getByte(buffer, offset);
+        if (signed) {
+          number = (long)DynamicArray.getByte(buffer, offset);
+        } else {
+          number = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        }
         break;
       case 2:
-        number = (int)DynamicArray.getShort(buffer, offset);
+        if (signed) {
+          number = (long)DynamicArray.getShort(buffer, offset);
+        } else {
+          number = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        }
         break;
       case 4:
-        number = DynamicArray.getInt(buffer, offset);
+        if (signed) {
+          number = (long)DynamicArray.getInt(buffer, offset);
+        } else {
+          number = (long)DynamicArray.getUnsignedInt(buffer, offset);
+        }
         break;
       default:
         throw new IllegalArgumentException();
@@ -78,25 +102,36 @@ public class DecNumber extends Datatype implements InlineEditable
 
 // --------------------- End Interface Readable ---------------------
 
-  @Override
-  public String toString()
-  {
-    return Integer.toString(number);
-  }
+// --------------------- Begin Interface IsNumeric ---------------------
 
-  public int getValue()
+  @Override
+  public long getLongValue()
   {
     return number;
   }
 
-  public void incValue(int value)
+  @Override
+  public int getValue()
+  {
+    return (int)number;
+  }
+
+// --------------------- End Interface IsNumeric ---------------------
+
+  public void incValue(long value)
   {
     number += value;
   }
 
-  public void setValue(int value)
+  public void setValue(long value)
   {
     number = value;
+  }
+
+  @Override
+  public String toString()
+  {
+    return Long.toString(number);
   }
 
   /** Attempts to parse the specified string into a decimal or, optionally, hexadecimal number. */
