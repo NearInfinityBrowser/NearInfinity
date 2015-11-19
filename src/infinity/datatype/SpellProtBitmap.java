@@ -20,9 +20,9 @@ import infinity.util.Table2daCache;
 public class SpellProtBitmap extends Bitmap
 {
   private static final String tableName = "SPLPROT.2DA";
-  private static final String[] relation = { "<=", "=", "<", ">", ">=", "!=",
-                                             "bit_l_e", "bit_g_e", "bit_eq",
-                                             "bit_uneq", "bit_greater", "bit_less" };
+  public static final String[] relation = { "<=", "=", "<", ">", ">=", "!=",
+                                            "bit_l_e", "bit_g_e", "bit_eq",
+                                            "bit_uneq", "bit_greater", "bit_less" };
   private static final HashMap<Integer, String> statIds = new HashMap<Integer, String>();
   private static String[] creType;
 
@@ -51,6 +51,7 @@ public class SpellProtBitmap extends Bitmap
     super(parent, buffer, offset, length, name, getTypeTable());
   }
 
+  /** Returns name of the 2DA resource used as reference for the list. */
   public static String getTableName()
   {
     return tableName;
@@ -83,7 +84,8 @@ public class SpellProtBitmap extends Bitmap
     return "";
   }
 
-  private static String[] getTypeTable()
+  /** Returns an array of descriptions based on the entries in the 2DA resource. */
+  public static String[] getTypeTable()
   {
     if (creType == null) {
       if (ResourceFactory.resourceExists(tableName)) {
