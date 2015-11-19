@@ -7,6 +7,7 @@ package infinity.datatype;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
@@ -50,7 +51,7 @@ public class Song2daBitmap extends ResourceBitmap
     super(parent, buffer, offset, length, name, createSongList(), "Unknown", FormatString);
   }
 
-  private static synchronized List<RefEntry> createSongList()
+  public static synchronized List<RefEntry> createSongList()
   {
     if (SongList.isEmpty()) {
       // search "music" subfolder as well
@@ -112,8 +113,9 @@ public class Song2daBitmap extends ResourceBitmap
       long[] keys = map.keys();
       for (final long key: keys) {
         String name = map.get(key).getString();
-        String ref = name.replaceAll("_", "") + ".MUS";
-        if (!ResourceFactory.resourceExists(ref, false, searchDirs)) {
+        name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        String ref = name.replaceAll("_", "").toUpperCase(Locale.ENGLISH) + ".MUS";
+        if (key == 0L) {
           ref = name;
         }
         SongList.add(new RefEntry(key, ref, null, searchDirs));
