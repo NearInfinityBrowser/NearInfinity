@@ -721,8 +721,8 @@ public final class EffectFactory
               Bitmap bitmap = (Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
               if (bitmap instanceof SpellProtBitmap) {
                 SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-                if (spb.useCustomValue()) {
-                  String idsFile = spb.getIdsFile();
+                if (SpellProtBitmap.useCustomValue(spb.getValue())) {
+                  String idsFile = SpellProtBitmap.getIdsFile(spb.getValue());
                   if (!idsFile.isEmpty()) {
                     replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
                                  new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
@@ -3740,8 +3740,8 @@ public final class EffectFactory
           if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
             bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
             SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-            if (spb.useCustomValue()) {
-              String idsFile = spb.getIdsFile();
+            if (SpellProtBitmap.useCustomValue(spb.getValue())) {
+              String idsFile = SpellProtBitmap.getIdsFile(spb.getValue());
               if (!idsFile.isEmpty()) {
                 s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
               } else {
@@ -3784,8 +3784,8 @@ public final class EffectFactory
           if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
             bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
             SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-            if (spb.useCustomValue()) {
-              String idsFile = spb.getIdsFile();
+            if (SpellProtBitmap.useCustomValue(spb.getValue())) {
+              String idsFile = SpellProtBitmap.getIdsFile(spb.getValue());
               if (!idsFile.isEmpty()) {
                 s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
               } else {

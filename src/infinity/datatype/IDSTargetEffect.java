@@ -38,9 +38,9 @@ public final class IDSTargetEffect extends Datatype implements Editable, ListSel
   /** The default field name of this datatype. */
   public static final String DEFAULT_NAME = "IDS target";
 
-  private static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
-                                                "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
-                                                "ALIGNMEN.IDS", ""};
+  public static final String[] sIDS_default = {"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS",
+                                               "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
+                                               "ALIGNMEN.IDS", ""};
   private final String[] sIDS;
 
   private LongIntegerHashMap<IdsMapEntry> idsMap;

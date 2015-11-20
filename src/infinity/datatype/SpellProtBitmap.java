@@ -4,13 +4,12 @@
 
 package infinity.datatype;
 
-import java.util.HashMap;
-
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.util.IdsMap;
 import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
+import infinity.util.LongIntegerHashMap;
 import infinity.util.Table2da;
 import infinity.util.Table2daCache;
 
@@ -23,22 +22,22 @@ public class SpellProtBitmap extends Bitmap
   public static final String[] relation = { "<=", "=", "<", ">", ">=", "!=",
                                             "bit_l_e", "bit_g_e", "bit_eq",
                                             "bit_uneq", "bit_greater", "bit_less" };
-  private static final HashMap<Integer, String> statIds = new HashMap<Integer, String>();
+  private static final LongIntegerHashMap<String> statIds = new LongIntegerHashMap<String>();
   private static String[] creType;
 
   static {
-    statIds.put(152, "KIT.IDS");
-    statIds.put(0x106, "AREATYPE.IDS");
-//    statIds.put(0x107, "TIMEODAY.IDS");
-    statIds.put(0x10a, "EA.IDS");
-    statIds.put(0x10b, "GENERAL.IDS");
-    statIds.put(0x10c, "RACE.IDS");
-    statIds.put(0x10d, "CLASS.IDS");
-    statIds.put(0x10e, "SPECIFIC.IDS");
-    statIds.put(0x10f, "GENDER.IDS");
-    statIds.put(0x110, "ALIGNMEN.IDS");
-    statIds.put(0x111, "STATE.IDS");
-    statIds.put(0x112, "SPLSTATE.IDS");
+    statIds.put(Long.valueOf(152L), "KIT.IDS");
+    statIds.put(Long.valueOf(0x106L), "AREATYPE.IDS");
+//    statIds.put(Long.valueOf(0x107L), "TIMEODAY.IDS");
+    statIds.put(Long.valueOf(0x10aL), "EA.IDS");
+    statIds.put(Long.valueOf(0x10bL), "GENERAL.IDS");
+    statIds.put(Long.valueOf(0x10cL), "RACE.IDS");
+    statIds.put(Long.valueOf(0x10dL), "CLASS.IDS");
+    statIds.put(Long.valueOf(0x10eL), "SPECIFIC.IDS");
+    statIds.put(Long.valueOf(0x10fL), "GENDER.IDS");
+    statIds.put(Long.valueOf(0x110L), "ALIGNMEN.IDS");
+    statIds.put(Long.valueOf(0x111L), "STATE.IDS");
+    statIds.put(Long.valueOf(0x112L), "SPLSTATE.IDS");
   }
 
   public SpellProtBitmap(byte[] buffer, int offset, int length, String name)
@@ -57,25 +56,26 @@ public class SpellProtBitmap extends Bitmap
     return tableName;
   }
 
-  /** Returns true if the current creature type value depends on a user-defined value. */
-  public boolean useCustomValue()
+  /** Returns true if the specified creature type value depends on a user-defined value. */
+  public static boolean useCustomValue(int type)
   {
-    if (ResourceFactory.resourceExists(tableName)) {
-      Table2da table = Table2daCache.get(tableName);
+    if (ResourceFactory.resourceExists(getTableName())) {
+      Table2da table = Table2daCache.get(getTableName());
       if (table != null) {
-        return (-1 == toNumber(table.get(getValue(), 2), 0));
+        return (-1 == toNumber(table.get(type, 2), 0));
       }
     }
     return false;
   }
 
-  /** Returns the IDS resource name used by the current creature type. May return empty string if unused. */
-  public String getIdsFile()
+  /** Returns the IDS resource name use by the specified creature type. Returns an empty string if unused. */
+  public static String getIdsFile(int type)
   {
-    if (ResourceFactory.resourceExists(tableName)) {
-      Table2da table = Table2daCache.get(tableName);
+    if (ResourceFactory.resourceExists(getTableName())) {
+      Table2da table = Table2daCache.get(getTableName());
       if (table != null) {
-        String retVal = statIds.get(toNumber(table.get(getValue(), 1), -1));
+        int id = toNumber(table.get(type, 1), -1);
+        String retVal = statIds.get(Long.valueOf((long)id));
         if (retVal != null) {
           return retVal;
         }
