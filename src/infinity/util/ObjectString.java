@@ -108,7 +108,7 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
    */
   public ObjectString(String s, Object object, String fmt)
   {
-    this.string = (s != null && !s.isEmpty()) ? s : "Unknown";
+    this.string = (s != null) ? s : "";
     this.object = object;
     this.displayFormat = (fmt != null) ? fmt : FMT_OBJECT_BRACKETS;
   }
@@ -123,7 +123,7 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
       this.object = os.getObject();
       this.displayFormat = os.getDisplayFormat();
     } else {
-      this.string = new String();
+      this.string = "";
       this.object = null;
       this.displayFormat = FMT_OBJECT_BRACKETS;
     }
