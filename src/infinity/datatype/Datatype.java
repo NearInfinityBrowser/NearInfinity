@@ -8,6 +8,7 @@ import infinity.resource.StructEntry;
 import infinity.util.io.FileWriterNI;
 
 import java.awt.Dimension;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -119,6 +120,21 @@ public abstract class Datatype implements StructEntry
   }
 
 // --------------------- End Interface StructEntry ---------------------
+
+  /**
+   * Attempts to retrieve the data of the datatype and returns it as an unformatted byte array.
+   * @return A byte array containing data from this datatype.
+   */
+  public byte[] getBufferData()
+  {
+    ByteArrayOutputStream os = new ByteArrayOutputStream(getSize());
+    try {
+      write(os);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return os.toByteArray();
+  }
 
   /**
    * Adds the specified update listener to receive update events from this object.

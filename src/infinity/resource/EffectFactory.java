@@ -12,9 +12,9 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.EffectType;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
-import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
+import infinity.datatype.IdsTargetType;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
@@ -99,7 +99,6 @@ public final class EffectFactory
 
   // contains IDS mappings for BGEE's opcode 319 "Item Usability"
   public static final LongIntegerHashMap<String> m_duration = new LongIntegerHashMap<String>();
-  public static final LongIntegerHashMap<String> m_itemids = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<String>();
   public static final String[] s_inctype = {"Increment", "Set", "Set % of"};
@@ -295,17 +294,6 @@ public final class EffectFactory
     m_duration.put(9L, "Instant/Permanent");
     m_duration.put(10L, "Instant/Limited (ticks)");
     m_duration.put(4096L, "Absolute duration");
-
-    m_itemids.put(2L, "EA.IDS");
-    m_itemids.put(3L, "GENERAL.IDS");
-    m_itemids.put(4L, "RACE.IDS");
-    m_itemids.put(5L, "CLASS.IDS");
-    m_itemids.put(6L, "SPECIFIC.IDS");
-    m_itemids.put(7L, "GENDER.IDS");
-    m_itemids.put(8L, "ALIGN.IDS");
-    m_itemids.put(9L, "KIT.IDS");
-    m_itemids.put(10L, "Actor's name");
-    m_itemids.put(11L, "Actor's script name");
 
     m_colorloc.put(0L, "Belt/Amulet");
     m_colorloc.put(1L, "Minor color");
@@ -787,36 +775,14 @@ public final class EffectFactory
         if (map.containsKey(EffectEntry.IDX_OPCODE)) {
           int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
           if (opcode == 319) {
-            long param2 = ((HashBitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
-            // updating parameter 1 field
-            if (param2 == 10L) {
-              // Param1 = Actor's name as Strref
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                           new StringRef(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                         0, "Actor name"));
-            } else if (param2 > 1 && param2 < 10) {
-              // Param1 = IDS entry
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                         0, 4, "IDS entry", EffectFactory.m_itemids.get(param2)));
-            } else {
-              // Param1 = Unused
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                           new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                         0, 4, "Unused"));
-            }
-
             // updating resource field
-            if (param2 == 11L) {
-              // Resource = Actor's script name
-              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
-                           new TextString(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
-                                          0, 8, "Script name"));
-            } else {
-              // Resource = Unused
-              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
-                           new Unknown(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
-                                       0, 8, "Unused"));
+            StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
+            if (entry instanceof IdsTargetType) {
+              StructEntry resourceEntry =
+                  ((IdsTargetType)entry).createResourceFromType(
+                      getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)), 0);
+              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE),
+                           map.get(EffectEntry.OFS_RESOURCE), resourceEntry);
             }
             return true;
           }
@@ -2445,8 +2411,12 @@ public final class EffectFactory
       case 100: // Protection from creature type
       case 109: // Paralyze
       case 175: // Hold creature
-        s.add(new IDSTargetEffect(buffer, offset));
+      {
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         break;
+      }
 
       case 57: // Change alignment
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
@@ -2548,7 +2518,9 @@ public final class EffectFactory
         final String[] ids = new String[]{"EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
                                           "SPECIFIC.IDS", "GENDER.IDS",
                                           (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT)};
-        s.add(new IDSTargetEffect(buffer, offset, "IDS target", ids));
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4, IdsTargetType.DEFAULT_NAME_TYPE, ids);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         break;
       }
 
@@ -3053,7 +3025,9 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
-          s.add(new IDSTargetEffect(buffer, offset));
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
           restype = "EFF";
         }
         break;
@@ -3063,7 +3037,9 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
-          s.add(new IDSTargetEffect(buffer, offset));
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
         }
         break;
 
@@ -3127,7 +3103,9 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         } else {
-          s.add(new IDSTargetEffect(buffer, offset));
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
         }
         break;
 
@@ -3365,8 +3343,12 @@ public final class EffectFactory
 
       case 219: // Attack roll penalty
       case 238: // Disintegrate
-        s.add(new IDSTargetEffect(buffer, offset));
+      {
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         break;
+      }
 
       case 220: // Remove spell school protections
       case 229: // Remove protection by school
@@ -3651,9 +3633,13 @@ public final class EffectFactory
         break;
 
       case 283: // Use EFF file as curse
-        s.add(new IDSTargetEffect(buffer, offset));
+      {
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         restype = "EFF";
         break;
+      }
 
       case 290: // Change title
         s.add(new StringRef(buffer, offset, "Title"));
@@ -3818,19 +3804,12 @@ public final class EffectFactory
       case 319: // Restrict item (BGEE)
       {
         if (Profile.isEnhancedEdition()) {
-          int param2 = DynamicArray.getInt(buffer, offset + 4);
-          if (param2 > 1 && param2 < 10) {
-            s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", m_itemids.get((long)param2)));
-          } else if (param2 == 10) {
-            s.add(new StringRef(buffer, offset, "Actor name"));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          }
-          HashBitmap idsFile = new HashBitmap(buffer, offset + 4, 4, "IDS file", m_itemids);
-          s.add(idsFile);
-          if (parent != null && parent instanceof UpdateListener) {
-            idsFile.addUpdateListener((UpdateListener)parent);
-          }
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4,
+                                                   IdsTargetType.DEFAULT_NAME_TYPE,
+                                                   IdsTargetType.DEFAULT_SECOND_IDS, true);
+          param2.addUpdateListener((UpdateListener)parent);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }

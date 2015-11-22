@@ -10,10 +10,11 @@ import javax.swing.JComponent;
 
 import infinity.datatype.Bitmap;
 import infinity.datatype.ColorPicker;
+import infinity.datatype.Datatype;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
-import infinity.datatype.IDSTargetEffect;
+import infinity.datatype.IdsTargetType;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SpellProtBitmap;
 import infinity.datatype.StringRef;
@@ -26,7 +27,6 @@ import infinity.gui.hexview.BasicColorMap;
 import infinity.gui.hexview.HexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
-import infinity.resource.EffectFactory;
 import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Profile;
@@ -215,12 +215,20 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
           addField(new DecNumber(buffer, offset + 64, 2, "Creature value 2"));
           addField(new SpellProtBitmap(buffer, offset + 66, 2, "Creature type 2"));
         } else {
-          addField(new IDSTargetEffect(buffer, offset + 60, 4, "IDS target 1"));
-          addField(new IDSTargetEffect(buffer, offset + 64, 4, "IDS target 2"));
+          IdsTargetType type = new IdsTargetType(buffer, offset + 62, 2, null, 1, null, false);
+          addField(type.createIdsValueFromType(buffer));
+          addField(type);
+          type = new IdsTargetType(buffer, offset + 66, 2, null, 2, null, false);
+          addField(type.createIdsValueFromType(buffer));
+          addField(type);
         }
       } else {
-        addField(new IDSTargetEffect(buffer, offset + 60, 4, "IDS target 1"));
-        addField(new IDSTargetEffect(buffer, offset + 64, 4, "IDS target 2"));
+        IdsTargetType type = new IdsTargetType(buffer, offset + 62, 2, null, 1, null, false);
+        addField(type.createIdsValueFromType(buffer));
+        addField(type);
+        type = new IdsTargetType(buffer, offset + 62, 2, null, 2, null, false);
+        addField(type.createIdsValueFromType(buffer));
+        addField(type);
       }
       addField(new ResourceRef(buffer, 68, "Default spell", "SPL"));
       addField(new ResourceRef(buffer, 76, "Success spell", "SPL"));
@@ -288,18 +296,17 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   private boolean setIwdStyleIdsType(AbstractStruct struct, int offset, int nr)
   {
     if (struct != null && offset >= 0) {
-      StructEntry e = struct.getAttribute(offset, false);
-      if (e instanceof IDSTargetEffect) {
-        e = removeEntry(struct, offset);
-        if (e != null) {
-          byte[] data = EffectFactory.getEntryData(e);
-          e = new DecNumber(data, 0, 2, "Creature value " + nr);
-          e.setOffset(offset);
-          addEntry(struct, offset, e);
-          e = new SpellProtBitmap(data, 2, 2, "Creature type " + nr);
-          e.setOffset(offset + 2);
-          addEntry(struct, offset + 2, e);
-        }
+      StructEntry e1 = struct.getAttribute(offset, false);
+      StructEntry e2 = struct.getAttribute(offset + 2, false);
+      if (!(e2 instanceof SpellProtBitmap)) {
+        byte[] valueBuffer = ((Datatype)e1).getBufferData();
+        e1 = new DecNumber(valueBuffer, 0, 2, "Creature value " + nr);
+        e1.setOffset(offset);
+        replaceEntry(struct, e1);
+        byte[] typeBuffer = ((Datatype)e2).getBufferData();
+        e2 = new SpellProtBitmap(typeBuffer, 0, 2, "Creature type " + nr);
+        e2.setOffset(offset + 2);
+        replaceEntry(struct, e2);
         return true;
       }
     }
@@ -310,55 +317,39 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   private boolean setOldStyleIdsType(AbstractStruct struct, int offset, int nr)
   {
     if (struct != null && offset >= 0) {
-      StructEntry e = struct.getAttribute(offset, false);
-      if (!(e instanceof IDSTargetEffect)) {
-        byte[] data = new byte[4];
-        e = removeEntry(struct, offset);
-        if (e != null) {
-          System.arraycopy(EffectFactory.getEntryData(e), 0, data, 0, 2);
-        }
-        e = removeEntry(struct, offset + 2);
-        if (e != null) {
-          System.arraycopy(EffectFactory.getEntryData(e), 0, data, 2, 2);
-        }
-        e = new IDSTargetEffect(data, 0, 4, "IDS target " + nr);
-        e.setOffset(offset);
-        addEntry(struct, offset, e);
+      StructEntry e1 = struct.getAttribute(offset, false);
+      StructEntry e2 = struct.getAttribute(offset + 2, false);
+      if (!(e2 instanceof IdsTargetType)) {
+        byte[] typeBuffer = ((Datatype)e2).getBufferData();
+        IdsTargetType newType = new IdsTargetType(typeBuffer, 0, 2, null, nr, null, false);
+        newType.setOffset(offset + 2);
+        byte[] valueBuffer = ((Datatype)e1).getBufferData();
+        StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
+        newValue.setOffset(offset);
+
+        replaceEntry(struct, newValue);
+        replaceEntry(struct, newType);
         return true;
       }
     }
     return false;
   }
 
-  // Removes the StructEntry object at the specified offset and returns it.
-  private StructEntry removeEntry(AbstractStruct struct, int offset)
+  // Replaces an old StructEntry instance by the specified instance if offset and size are equal
+  private boolean replaceEntry(AbstractStruct struct, StructEntry newEntry)
   {
-    if (struct != null && offset >= 0) {
-      List<StructEntry> list = struct.getList();
-      if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          StructEntry e = list.get(i);
-          if (offset >= e.getOffset() && offset < (e.getOffset() + e.getSize())) {
-            return list.remove(i);
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  // Adds the specified StructEntry object to the current resource structure
-  private void addEntry(AbstractStruct struct, int offset, StructEntry entry)
-  {
-    if (struct != null && offset >= 0 && entry != null) {
+    if (struct != null && newEntry != null) {
       List<StructEntry> list = getList();
       for (int i = 0, size = list.size(); i < size; i++) {
-        if (list.get(i).getOffset() > offset) {
-          list.add(i, entry);
-          return;
+        StructEntry oldEntry = list.get(i);
+        if (oldEntry.getOffset() == newEntry.getOffset() &&
+            oldEntry.getSize() == newEntry.getSize()) {
+          list.set(i, newEntry);
+          return true;
         }
       }
     }
+    return false;
   }
 
   // Called by "Extended Search"

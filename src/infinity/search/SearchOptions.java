@@ -4,28 +4,17 @@
 
 package infinity.search;
 
-import infinity.datatype.Bitmap;
-import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
-import infinity.datatype.HashBitmap;
-import infinity.datatype.IDSTargetEffect;
-import infinity.datatype.IdsBitmap;
+import infinity.datatype.IsNumeric;
+import infinity.datatype.IsTextual;
 import infinity.datatype.IwdRef;
-import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.Song2daBitmap;
-import infinity.datatype.StringRef;
-import infinity.datatype.TextBitmap;
-import infinity.datatype.TextEdit;
-import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
-import infinity.datatype.UnsignDecNumber;
 import infinity.resource.AbstractStruct;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.util.DynamicArray;
 import infinity.util.Pair;
-import infinity.util.StringResource;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -525,20 +514,11 @@ public class SearchOptions
 
         // preparing target
         String s2;
-        if (entry instanceof StringRef) {
-          s2 = StringResource.getStringRef(((StringRef)entry).getValue());
+        if (entry instanceof IsTextual) {
+          s2 = ((IsTextual)entry).getText();
         } else if (entry instanceof Unknown) {
           byte[] buf = ((Unknown)entry).getData();
           s2 = DynamicArray.getString(buf, 0, buf.length);
-        } else if (entry instanceof ResourceRef) {
-          s2 = ((ResourceRef)entry).getResourceName();
-          s2 = s2.substring(0, s2.indexOf('.'));
-        } else if (entry instanceof TextBitmap) {
-          s2 = ((TextBitmap)entry).getText();
-        } else if (entry instanceof TextEdit) {
-          s2 = ((TextEdit)entry).toString();
-        } else if (entry instanceof TextString) {
-          s2 = ((TextString)entry).toString();
         } else {
           return false;
         }
@@ -619,24 +599,8 @@ public class SearchOptions
         }
 
         // supported number-related datatypes
-        if (number instanceof DecNumber) {
-          n3 = ((DecNumber)number).getValue();
-        } else if (number instanceof UnsignDecNumber) {
-          n3 = (int)((UnsignDecNumber)number).getValue();
-        } else if (number instanceof Bitmap) {
-          n3 = ((Bitmap)number).getValue();
-        } else if (number instanceof HashBitmap) {
-          n3 = (int)((HashBitmap)number).getValue();
-        } else if (number instanceof IdsBitmap) {
-          n3 = (int)((IdsBitmap)number).getValue();
-        } else if (number instanceof IDSTargetEffect) {
-          n3 = (int)((IDSTargetEffect)number).getIdsValue();
-        } else if (number instanceof IwdRef) {
-          n3 = (int)((IwdRef)number).getValue();
-        } else if (number instanceof ProRef) {
-          n3 = (int)((ProRef)number).getValue();
-        } else if (number instanceof Song2daBitmap) {
-          n3 = (int)((Song2daBitmap)number).getValue();
+        if (number instanceof IsNumeric) {
+          n3 = ((IsNumeric)number).getValue();
         } else {
           return false;
         }

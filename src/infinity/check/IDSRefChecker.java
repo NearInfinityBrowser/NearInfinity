@@ -5,7 +5,6 @@
 package infinity.check;
 
 import infinity.NearInfinity;
-import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.gui.Center;
 import infinity.gui.ChildFrame;
@@ -195,14 +194,6 @@ public final class IDSRefChecker extends ChildFrame implements ActionListener, R
         if (ref.toString().startsWith("Unknown - ") && ref.getValue() != 0) {
           synchronized (hitFrame) {
             hitFrame.addHit(entry, entry.getSearchString(), ref);
-          }
-        }
-      }
-      else if (o instanceof IDSTargetEffect) {
-        IDSTargetEffect effect = (IDSTargetEffect)o;
-        if (effect.toString().indexOf("Unknown value - ") != -1 && effect.getIdsValue() != 0) {
-          synchronized (hitFrame) {
-            hitFrame.addHit(entry, entry.getSearchString(), effect);
           }
         }
       }

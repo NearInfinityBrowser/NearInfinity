@@ -52,23 +52,26 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   {
     if (list == null) {
       List<String> values = new ArrayList<String>(Math.max(table.length, value + 1));
-      for (int i = 0; i < Math.max(table.length, value + 1); i++)
-        values.add(getString(i));
+      for (int i = 0; i < Math.max(table.length, value + 1); i++) {
+        values.add(toString(i));
+      }
       list = new TextListPanel(values, false);
       list.addMouseListener(new MouseAdapter()
       {
         @Override
         public void mouseClicked(MouseEvent event)
         {
-          if (event.getClickCount() == 2)
+          if (event.getClickCount() == 2) {
             container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
+          }
         }
       });
     }
     if (value >= 0 && value < list.getModel().getSize()) {
       int index = 0;
-      while (!list.getModel().getElementAt(index).equals(getString(value)))
+      while (!list.getModel().getElementAt(index).equals(toString(value))) {
         index++;
+      }
       list.setSelectedIndex(index);
     }
 
@@ -109,7 +112,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     // updating value
     String svalue = (String)list.getSelectedValue();
     value = 0;
-    while (!svalue.equals(getString(value))) {
+    while (!svalue.equals(toString(value))) {
       value++;
     }
 
@@ -175,10 +178,20 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   @Override
   public String toString()
   {
-    return getString(value);
+    return toString(value);
   }
 
-  private String getString(int nr)
+  /** Returns the unformatted description of the specified value. */
+  protected String getString(int nr)
+  {
+    if (nr >= 0 && nr < table.length) {
+      return table[nr];
+    }
+    return null;
+  }
+
+  // Returns a formatted description of the specified value.
+  private String toString(int nr)
   {
     if (nr >= table.length) {
       return "Unknown (" + nr + ')';
