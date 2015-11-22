@@ -113,7 +113,7 @@ public class IdsTargetType extends Bitmap
     super(parent, buffer, offset, size, createFieldName(name, idx, DEFAULT_NAME_TYPE),
           createIdsTypeTable(secondIds, targetActor));
     this.index = idx;
-    read(buffer, offset);
+    this.updateIdsValues = true;
   }
 
   /** Constructs an IDS type field with the specified list of IDS resource names. */
@@ -122,7 +122,7 @@ public class IdsTargetType extends Bitmap
     super(buffer, offset, size, createFieldName(name, -1, DEFAULT_NAME_TYPE),
           (ids != null) ? ids : createIdsTypeTable(null, false));
     this.index = -1;
-    read(buffer, offset);
+    this.updateIdsValues = true;
   }
 
 //--------------------- Begin Interface Editable ---------------------
