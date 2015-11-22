@@ -62,11 +62,11 @@ public class Variable extends AbstractStruct implements AddRemovable
       addField(new Unknown(buffer, offset + 44, 40));
     } else {
       addField(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
-      addField(new DecNumber(buffer, offset + 34, 2, "Reference value"));
-      addField(new DecNumber(buffer, offset + 36, 4, "Dword value"));
+      addField(new DecNumber(buffer, offset + 34, 2, "Reference value (unused)"));
+      addField(new DecNumber(buffer, offset + 36, 4, "Dword value (unused)"));
       addField(new DecNumber(buffer, offset + 40, 4, "Integer value"));
-      addField(new FloatNumber(buffer, offset + 44, 8, "Double value"));
-      addField(new TextString(buffer, offset + 52, 32, "Script name"));
+      addField(new FloatNumber(buffer, offset + 44, 8, "Double value (unused)"));
+      addField(new TextString(buffer, offset + 52, 32, "Script name (unused)"));
     }
     return offset + 84;
   }
