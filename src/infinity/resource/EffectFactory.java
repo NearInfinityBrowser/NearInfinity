@@ -19,7 +19,7 @@ import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SecTypeBitmap;
-import infinity.datatype.SpellProtBitmap;
+import infinity.datatype.SpellProtType;
 import infinity.datatype.StringRef;
 import infinity.datatype.Summon2daBitmap;
 import infinity.datatype.TextString;
@@ -192,38 +192,6 @@ public final class EffectFactory
     "Daytime", "Not daytime", "Outdoor", "Not outdoor",
     // 90..
     "Keg", "Not keg", "Outsider", "Not outsider"};
-  // TODO: remove this array after all Enhanced Editions have been updated
-  public static final String[] s_cretype_ee = {
-    // 0..9
-    "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
-    "Not humanoid", "Animal", "Not animal", "Elemental",
-    // 10..19
-    "Not elemental", "Fungus", "Not fungus", "Huge creature", "Not huge creature", "Elf", "Not elf",
-    "Umber hulk", "Not umber hulk", "Half-elf",
-    // 20..29
-    "Not half-elf", "Humanoid or animal", "Not humanoid or animal", "Blind", "Not blind",
-    "Cold-dwelling", "Not cold-dwelling", "Golem", "Not golem", "Minotaur",
-    // 30..39
-    "Not minotaur", "Undead or fungus", "Not undead or fungus", "Good", "Not good", "Neutral",
-    "Not neutral", "Evil", "Not evil", "Paladin",
-    // 40..49
-    "Not paladin", "Same moral alignment as source", "Not same moral alignment as source", "Source",
-    "Not source", "Water-dwelling", "Not water-dwelling", "Breathing", "Not breathing", "Allies",
-    // 50..59
-    "Not allies", "Enemies", "Not enemies", "Fire or cold dwelling", "Not fire or cold dwelling",
-    "Unnatural", "Not unnatural", "Male", "Not male", "Lawful",
-    // 60..69
-    "Not lawful", "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf", "Not deaf",
-    "", "",
-    // 70..79
-    "", "", "", "", "", "", "", "", "", "",
-    // 80..89
-    "", "", "", "", "", "", "", "", "", "",
-    // 90..99
-    "", "", "", "", "", "", "", "", "", "",
-    // 100..109
-    "", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
-    "ALIGN.IDS", "KIT.IDS" };
   public static final String[] s_sumanim = {"No animation", "Monster summoning circle",
                                             "Animal summoning circle", "Earth summoning circle",
                                             "Fire summoning circle", "Water summoning circle", "",
@@ -644,10 +612,6 @@ public final class EffectFactory
         switch (opcode) {
           case 232:     // Cast spell on condition
             return updateOpcode232(struct);
-          case 318: // Protection from Spell
-          case 324: // Immunity to spell and message
-          case 326: // Apply effects list
-            return updateOpcode318(struct);
           case 319:     // Item Usability
             return updateOpcode319(struct);
           case 328:     // Set state
@@ -687,79 +651,6 @@ public final class EffectFactory
             }
             return true;
           }
-        }
-      }
-    }
-    return false;
-  }
-
-  // Effect types using extended creature types for param2 (IWDEE only)
-  private static boolean updateOpcode318(AbstractStruct struct) throws Exception
-  {
-    if (struct != null) {
-      if (Profile.isEnhancedEdition()) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          switch (opcode) {
-            case 318: // Protection from Spell
-            case 324: // Immunity to spell and message
-            case 326: // Apply effects list
-            {
-              Bitmap bitmap = (Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
-              if (bitmap instanceof SpellProtBitmap) {
-                SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-                if (SpellProtBitmap.useCustomValue(spb.getValue())) {
-                  String idsFile = SpellProtBitmap.getIdsFile(spb.getValue());
-                  if (!idsFile.isEmpty()) {
-                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                 new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                               0, 4, "Creature value", idsFile));
-                  } else {
-                    StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                    if (entry instanceof DecNumber && entry.getName().equals("Creature value")) {
-                      // no replace action needed
-                      return false;
-                    } else {
-                      replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                   new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                                 0, 4, "Creature value"));
-                    }
-                  }
-                } else {
-                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                  if (entry.getName().equals("Unused")) {
-                    // no replace action needed
-                    return false;
-                  } else {
-                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                               0, 4, "Unused"));
-                  }
-                }
-              } else {
-                // TODO: remove this section after all Enhanced Editions have been updated
-                int param2 = bitmap.getValue();
-                if (param2 >= 102 && param2 <= 109) {
-                  replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                               new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                             0, 4, "Creature value", s_cretype_ee[param2]));
-                } else {
-                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                  if (entry.getName().equals("Unused")) {
-                    // no replace action needed
-                    return false;
-                  } else {
-                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                               0, 4, "Unused"));
-                  }
-                }
-              }
-              break;
-            }
-          }
-          return true;
         }
       }
     }
@@ -3722,35 +3613,9 @@ public final class EffectFactory
 
       case 318: // Protection from Spell, Ex: Set stat
         if (isExtended) {
-          Bitmap bitmap = null;
-          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
-            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
-            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-            if (SpellProtBitmap.useCustomValue(spb.getValue())) {
-              String idsFile = SpellProtBitmap.getIdsFile(spb.getValue());
-              if (!idsFile.isEmpty()) {
-                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
-              } else {
-                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
-              }
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          } else {
-            // TODO: remove this section after all Enhanced Editions have been updated
-            bitmap = new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-            int param2 = bitmap.getValue();
-            if (param2 >= 102 && param2 <= 109) {
-              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          }
-          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
-            bitmap.addUpdateListener((UpdateListener)parent);
-          }
+          SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
+          s.add(param2.createCreatureValueFromType(buffer, offset));
+          s.add(param2);
           restype = "SPL";
         } else if (isTobEx) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
@@ -3766,35 +3631,9 @@ public final class EffectFactory
       case 324: // Immunity to spell and message
       case 326: // Apply effects list
         if (isExtended) {
-          Bitmap bitmap = null;
-          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
-            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
-            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-            if (SpellProtBitmap.useCustomValue(spb.getValue())) {
-              String idsFile = SpellProtBitmap.getIdsFile(spb.getValue());
-              if (!idsFile.isEmpty()) {
-                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
-              } else {
-                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
-              }
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          } else {
-            // TODO: remove this section after all Enhanced Editions have been updated
-            bitmap = new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-            int param2 = bitmap.getValue();
-            if (param2 >= 102 && param2 <= 109) {
-              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          }
-          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
-            bitmap.addUpdateListener((UpdateListener)parent);
-          }
+          SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
+          s.add(param2.createCreatureValueFromType(buffer, offset));
+          s.add(param2);
           restype = "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);

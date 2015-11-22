@@ -16,7 +16,7 @@ import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
 import infinity.datatype.IdsTargetType;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.SpellProtBitmap;
+import infinity.datatype.SpellProtType;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
@@ -31,7 +31,6 @@ import infinity.resource.HasAddRemovable;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Profile;
 import infinity.resource.Resource;
-import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.SearchOptions;
@@ -207,13 +206,15 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       addField(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
       addField(new DecNumber(buffer, offset + 56, 2, "Color speed"));
       addField(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
-      if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
+      if (SpellProtType.isTableExternalized()) {
         flag.addUpdateListener(this);
         if (flag.isFlagSet(30)) {
-          addField(new DecNumber(buffer, offset + 60, 2, "Creature value 1"));
-          addField(new SpellProtBitmap(buffer, offset + 62, 2, "Creature type 1"));
-          addField(new DecNumber(buffer, offset + 64, 2, "Creature value 2"));
-          addField(new SpellProtBitmap(buffer, offset + 66, 2, "Creature type 2"));
+          SpellProtType type = new SpellProtType(buffer, offset + 62, 2, "Creature type", 1);
+          addField(type.createCreatureValueFromType(buffer, offset + 60));
+          addField(type);
+          type = new SpellProtType(buffer, offset + 66, 2, "Creature type", 2);
+          addField(type.createCreatureValueFromType(buffer, offset + 64));
+          addField(type);
         } else {
           IdsTargetType type = new IdsTargetType(buffer, offset + 62, 2, null, 1, null, false);
           addField(type.createIdsValueFromType(buffer));
@@ -298,15 +299,16 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     if (struct != null && offset >= 0) {
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
-      if (!(e2 instanceof SpellProtBitmap)) {
-        byte[] valueBuffer = ((Datatype)e1).getBufferData();
-        e1 = new DecNumber(valueBuffer, 0, 2, "Creature value " + nr);
-        e1.setOffset(offset);
-        replaceEntry(struct, e1);
+      if (!(e2 instanceof SpellProtType)) {
         byte[] typeBuffer = ((Datatype)e2).getBufferData();
-        e2 = new SpellProtBitmap(typeBuffer, 0, 2, "Creature type " + nr);
-        e2.setOffset(offset + 2);
-        replaceEntry(struct, e2);
+        SpellProtType newType = new SpellProtType(typeBuffer, 0, 2, null, nr);
+        newType.setOffset(offset + 2);
+        byte[] valueBuffer = ((Datatype)e1).getBufferData();
+        StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
+        newValue.setOffset(offset);
+
+        replaceEntry(struct, newValue);
+        replaceEntry(struct, newType);
         return true;
       }
     }
