@@ -137,7 +137,7 @@ public class IdsTargetType extends Bitmap
       for (int i = 0, size = list.size(); i < size; i++) {
         StructEntry entry = list.get(i);
         if (entry.getOffset() == valueOffset && entry instanceof Datatype) {
-          byte[] buffer = ((Datatype)entry).getBufferData();
+          byte[] buffer = ((Datatype)entry).getDataBuffer();
           StructEntry newEntry = createIdsValueFromType(buffer, 0);
           newEntry.setOffset(valueOffset);
           list.set(i, newEntry);

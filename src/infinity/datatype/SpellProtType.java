@@ -130,7 +130,7 @@ public class SpellProtType extends Bitmap
       for (int i = 0, size = list.size(); i < size; i++) {
         StructEntry entry = list.get(i);
         if (entry.getOffset() == valueOffset && entry instanceof Datatype) {
-          byte[] buffer = ((Datatype)entry).getBufferData();
+          byte[] buffer = ((Datatype)entry).getDataBuffer();
           StructEntry newEntry = createCreatureValueFromType(buffer, 0);
           newEntry.setOffset(valueOffset);
           list.set(i, newEntry);
@@ -240,6 +240,45 @@ public class SpellProtType extends Bitmap
   public static String getTableName()
   {
     return tableName;
+  }
+
+  /** Returns true if the specified creature type value depends on a user-defined value. */
+  public static boolean useCustomValue(int value)
+  {
+    if (isTableExternalized()) {
+      Table2da table = Table2daCache.get(tableName);
+      if (table != null) {
+        return (-1 == toNumber(table.get(value, 2), 0));
+      }
+    } else {
+      if (value >= 0 && value < s_cretype_ee.length) {
+        return s_cretype_ee[value].endsWith(".IDS");
+      }
+    }
+    return false;
+  }
+
+  /** Returns the IDS resource name use by the specified creature type. Returns an empty string if unused. */
+  public static String getIdsFile(int value)
+  {
+    if (isTableExternalized()) {
+      Table2da table = Table2daCache.get(tableName);
+      if (table != null) {
+        boolean isCustom = (-1 == toNumber(table.get(value, 2), 0));
+        if (isCustom) {
+          int id = toNumber(table.get(value, 1), -1);
+          String retVal = statIds.get(Long.valueOf((long)id));
+          if (retVal != null) {
+            return retVal;
+          }
+        }
+      }
+    } else if (value >= 0 && value < s_cretype_ee.length) {
+      if (s_cretype_ee[value].endsWith(".IDS")) {
+        return s_cretype_ee[value];
+      }
+    }
+    return "";
   }
 
   public static String[] getTypeTable()

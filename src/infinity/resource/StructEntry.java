@@ -22,6 +22,9 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
 
   int getSize();
 
+  /** Attempts to retrieve the data of this datatype and returns it as byte array. */
+  byte[] getDataBuffer();
+
   /** Creates a list of StructEntry object, starting from root up to this object. */
   List<StructEntry> getStructChain();
 

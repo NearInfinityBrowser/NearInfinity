@@ -300,10 +300,10 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
       if (!(e2 instanceof SpellProtType)) {
-        byte[] typeBuffer = ((Datatype)e2).getBufferData();
+        byte[] typeBuffer = ((Datatype)e2).getDataBuffer();
         SpellProtType newType = new SpellProtType(typeBuffer, 0, 2, null, nr);
         newType.setOffset(offset + 2);
-        byte[] valueBuffer = ((Datatype)e1).getBufferData();
+        byte[] valueBuffer = ((Datatype)e1).getDataBuffer();
         StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
@@ -322,10 +322,10 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
       if (!(e2 instanceof IdsTargetType)) {
-        byte[] typeBuffer = ((Datatype)e2).getBufferData();
+        byte[] typeBuffer = ((Datatype)e2).getDataBuffer();
         IdsTargetType newType = new IdsTargetType(typeBuffer, 0, 2, null, nr, null, false);
         newType.setOffset(offset + 2);
-        byte[] valueBuffer = ((Datatype)e1).getBufferData();
+        byte[] valueBuffer = ((Datatype)e1).getDataBuffer();
         StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 

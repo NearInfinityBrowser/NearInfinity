@@ -119,13 +119,8 @@ public abstract class Datatype implements StructEntry
     this.parent = parent;
   }
 
-// --------------------- End Interface StructEntry ---------------------
-
-  /**
-   * Attempts to retrieve the data of the datatype and returns it as an unformatted byte array.
-   * @return A byte array containing data from this datatype.
-   */
-  public byte[] getBufferData()
+  @Override
+  public byte[] getDataBuffer()
   {
     ByteArrayOutputStream os = new ByteArrayOutputStream(getSize());
     try {
@@ -135,6 +130,8 @@ public abstract class Datatype implements StructEntry
     }
     return os.toByteArray();
   }
+
+// --------------------- End Interface StructEntry ---------------------
 
   /**
    * Adds the specified update listener to receive update events from this object.
