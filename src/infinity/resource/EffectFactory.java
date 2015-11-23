@@ -523,13 +523,30 @@ public final class EffectFactory
   }
 
   /**
+   * Returns the StructEntry object, specified by the EffectEntry argument.
+   * @param struct The structure that contains the requested entry.
+   * @param id Indicates which effect field to return.
+   * @return The StructEntry instance specified by the id.
+   * @throws Exception If one or more arguments are invalid.
+   */
+  public static StructEntry getEntry(AbstractStruct struct, EffectEntry id) throws Exception
+  {
+    StructEntry retVal = null;
+    EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+    if (map != null && map.containsKey(id)) {
+      retVal = getEntryByIndex(struct, map.get(id));
+    }
+    return retVal;
+  }
+
+  /**
    * Returns the StructEntry object at the specified index. Use in conjunction with getEffectStructure.
    * @param struct The structure that contains the requested entry.
    * @param entryIndex The index of the requested entry.
    * @return The entry at the specified index
    * @throws Exception If one or more arguments are invalid.
    */
-  public static StructEntry getEntry(AbstractStruct struct, int entryIndex) throws Exception
+  public static StructEntry getEntryByIndex(AbstractStruct struct, int entryIndex) throws Exception
   {
     if (struct != null) {
       if (entryIndex >= 0 && entryIndex < struct.getList().size()) {
@@ -561,39 +578,54 @@ public final class EffectFactory
   /**
    * Convenience function to retrieve data associated with a structure entry within struct.
    * @param struct The structure that contains the structure entry
-   * @param entryIndex The index of the structure entry within struct
+   * @param id Indicates which effect field to process.
    * @return Data as byte array
    */
-  public static byte[] getEntryData(AbstractStruct struct, int entryIndex)
+  public static byte[] getEntryData(AbstractStruct struct, EffectEntry id)
   {
-    StructEntry entry = null;
-    if (struct != null && entryIndex >= 0 && entryIndex < struct.getList().size())
-      entry = struct.getList().get(entryIndex);
-
-    return getEntryData(entry);
+    if (struct != null) {
+      try {
+        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+        if (map != null && map.containsKey(id)) {
+          int idx = map.get(id);
+          if (idx >= 0 && idx < struct.getList().size()) {
+            return getEntryData(struct.getList().get(idx));
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
   }
 
   /**
    * Replaces a data entry in struct with the specified new entry.
    * @param struct The struct which contains the entry specified by entryIndex and entryOffset.
-   * @param entryIndex The index of the entry within struct.
-   * @param entryOffset The absolute offset of the data entry.
+   * @param index The index key for the entry within struct.
+   * @param offset The offset key for the data entry.
    * @param newEntry The new entry which replaces the old one.
    */
-  public static void replaceEntry(AbstractStruct struct, int entryIndex, int entryOffset,
-                           StructEntry newEntry) throws Exception
+  public static void replaceEntry(AbstractStruct struct, EffectEntry index, EffectEntry offset,
+                                  StructEntry newEntry) throws Exception
   {
-    if (struct != null && newEntry != null) {
+    EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+    if (struct != null && newEntry != null &&
+        map != null && map.containsKey(index) && map.containsKey(offset)) {
+      int idx = map.get(index);
+      int ofs = map.get(offset);
       List<StructEntry> list = struct.getList();
-      if (list != null && entryIndex >= 0 && entryIndex < list.size() &&
-          entryOffset >= struct.getOffset() && entryOffset < struct.getOffset() + struct.getSize()) {
-        newEntry.setOffset(entryOffset);
-        list.remove(entryIndex);
-        list.add(entryIndex, newEntry);
-      } else
+      if (list != null &&
+          idx >= 0 && idx < list.size() &&
+          ofs >= struct.getOffset() && ofs < struct.getOffset() + struct.getSize()) {
+        newEntry.setOffset(ofs);
+        list.set(idx, newEntry);
+      } else{
         throw new Exception("Index or offset are out of bounds");
-    } else
+      }
+    } else {
       throw new Exception("Invalid arguments specified");
+    }
   }
 
   /**
@@ -605,10 +637,9 @@ public final class EffectFactory
   public static boolean updateOpcode(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
-      EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-      EffectType effType = (EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE));
+      EffectType effType = (EffectType)getEntry(struct, EffectEntry.IDX_OPCODE);
       if (effType != null) {
-        int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         switch (opcode) {
           case 232:     // Cast spell on condition
             return updateOpcode232(struct);
@@ -628,29 +659,25 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          if (opcode == 232) {   // effect type "Cast spell on condition" (232)
-            int param2 = ((Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
-            switch (param2) {
-              case 13: // Time of day
-                replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
-                             new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
-                                           0, 4, "Special", "TIMEODAY.IDS"));
-                break;
-              case 15: // State
-                replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
-                             new IdsFlag(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
-                                         0, 4, "Special", "STATE.IDS"));
-                break;
-              default:
-                replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
-                             new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
-                                           0, 4, "Special"));
-            }
-            return true;
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 232) {   // effect type "Cast spell on condition" (232)
+          int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          switch (param2) {
+            case 13: // Time of day
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new IdsBitmap(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
+                                         "Special", "TIMEODAY.IDS"));
+              break;
+            case 15: // State
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new IdsFlag(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
+                                       "Special", "STATE.IDS"));
+              break;
+            default:
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, "Special"));
           }
+          return true;
         }
       }
     }
@@ -662,19 +689,14 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          if (opcode == 319) {
-            // updating resource field
-            StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
-            if (entry instanceof IdsTargetType) {
-              StructEntry resourceEntry =
-                  ((IdsTargetType)entry).createResourceFromType(
-                      getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)), 0);
-              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE),
-                           map.get(EffectEntry.OFS_RESOURCE), resourceEntry);
-            }
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 319) {
+          // updating resource field
+          StructEntry entry = getEntry(struct, EffectEntry.IDX_PARAM2);
+          if (entry instanceof IdsTargetType) {
+            StructEntry resourceEntry =
+                ((IdsTargetType)entry).createResourceFromType(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0);
+            replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE, resourceEntry);
             return true;
           }
         }
@@ -688,24 +710,19 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.getGame() == Profile.Game.IWDEE) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          if (opcode == 328) {   // effect type "Set State" (328)
-            int special = ((Bitmap)getEntry(struct, map.get(EffectEntry.IDX_SPECIAL))).getValue();
-            if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
-              // Activate IWD2 mode
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM2), map.get(EffectEntry.OFS_PARAM2),
-                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM2)),
-                                         0, 4, "State", "SPLSTATE.IDS"));
-            } else {
-              // Activate IWD1 mode
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM2), map.get(EffectEntry.OFS_PARAM2),
-                  new Bitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM2)),
-                             0, 4, "State", s_spellstate));
-            }
-            return true;
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 328) {   // effect type "Set State" (328)
+          int special = ((Bitmap)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
+          if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
+            // Activate IWD2 mode
+            replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
+                         new IdsBitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", "SPLSTATE.IDS"));
+          } else {
+            // Activate IWD1 mode
+            replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
+                         new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", s_spellstate));
           }
+          return true;
         }
       }
     }
