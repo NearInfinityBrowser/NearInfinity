@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
@@ -93,6 +95,7 @@ import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.Misc;
 import infinity.util.Pair;
 import infinity.util.io.FileNI;
 
@@ -242,12 +245,19 @@ public class SearchResource extends ChildFrame
         if (panel != null) {
           SearchOptions so = panel.getOptions();
 
+          // using parallel jobs to speed up search
+          ThreadPoolExecutor executor = Misc.createThreadPool();
           for (int i = 0; i < resources.size(); i++) {
-            ResourceEntry entry = resources.get(i);
-            if (entry.matchSearchOptions(so)) {
-              found.add(new NamedResourceEntry(entry));
-            }
-            pbProgress.setValue(i + 1);
+            Misc.isQueueReady(executor, true, -1);
+            executor.execute(new SearchWorker(found, so, resources.get(i)));
+          }
+
+          // waiting for threads to finish
+          executor.shutdown();
+          try {
+            executor.awaitTermination(60, TimeUnit.SECONDS);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
           }
 
           // preparing results for output
@@ -536,6 +546,38 @@ public class SearchResource extends ChildFrame
 
 
 //-------------------------- INNER CLASSES --------------------------
+
+  // Worker class for threaded searching resources
+  private class SearchWorker implements Runnable
+  {
+    private final List<NamedResourceEntry> list;
+    private final SearchOptions so;
+    private final ResourceEntry entry;
+
+    /**
+     * @param list List containing matching resources
+     * @param so SearchOptions instance
+     * @param entry The resource to search
+     */
+    public SearchWorker(List<NamedResourceEntry> list, SearchOptions so, ResourceEntry entry)
+    {
+      this.list = list;
+      this.so = so;
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry.matchSearchOptions(so)) {
+        list.add(new NamedResourceEntry(entry));
+      }
+      synchronized (pbProgress) {
+        pbProgress.setValue(pbProgress.getValue() + 1);
+      }
+    }
+  }
+
 
   private static abstract class OptionsBasePanel extends JPanel implements ActionListener
   {
