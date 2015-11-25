@@ -20,6 +20,13 @@ import javax.swing.JPopupMenu;
 
 public final class ButtonPopupMenu extends JButton
 {
+  public enum Align {
+    /** Show the menu below the button. */
+    Top,
+    /** Show the menu on top of the button. */
+    Bottom,
+  }
+
   private static final Comparator<JMenuItem> menuItemComparator = new Comparator<JMenuItem>() {
     @Override
     public int compare(JMenuItem item1, JMenuItem item2)
@@ -31,6 +38,7 @@ public final class ButtonPopupMenu extends JButton
   private final JPopupMenu menu = new JPopupMenu();
   private List<JMenuItem> items = new ArrayList<JMenuItem>();
   private JMenuItem selected;
+  private Align menuAlign;
 
   /**
    * Constructs a new ButtonPopupMenu control with the given menu items.
@@ -39,7 +47,7 @@ public final class ButtonPopupMenu extends JButton
    */
   public ButtonPopupMenu(String text, JMenuItem[] menuItems)
   {
-    this(text, menuItems, true);
+    this(text, menuItems, true, Align.Top);
   }
 
   /**
@@ -48,9 +56,10 @@ public final class ButtonPopupMenu extends JButton
    * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
    */
-  public ButtonPopupMenu(String text, JMenuItem menuItems[], boolean sorted)
+  public ButtonPopupMenu(String text, JMenuItem menuItems[], boolean sorted, Align align)
   {
     super(text);
+    this.menuAlign = align;
     setMenuItems(menuItems, sorted);
     addMouseListener(new PopupListener());
   }
@@ -62,7 +71,7 @@ public final class ButtonPopupMenu extends JButton
    */
   public ButtonPopupMenu(String text, List<JMenuItem> menuItems)
   {
-    this(text, menuItems, true);
+    this(text, menuItems, true, Align.Top);
   }
 
   /**
@@ -71,9 +80,10 @@ public final class ButtonPopupMenu extends JButton
    * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
    */
-  public ButtonPopupMenu(String text, List<JMenuItem> menuItems, boolean sorted)
+  public ButtonPopupMenu(String text, List<JMenuItem> menuItems, boolean sorted, Align align)
   {
     super(text);
+    this.menuAlign = align;
     setMenuItems(menuItems, sorted);
     addMouseListener(new PopupListener());
   }
@@ -148,6 +158,18 @@ public final class ButtonPopupMenu extends JButton
     return Collections.unmodifiableList(items);
   }
 
+  /** Returns the alignment of the menu relative to the button. */
+  public Align getMenuAlignment()
+  {
+    return menuAlign;
+  }
+
+  /** Sets how the menu should be aligned relative to the button. */
+  public void setMenuAlignment(Align align)
+  {
+    this.menuAlign = align;
+  }
+
   private void menuItemSelected(JMenuItem item)
   {
     if (item.isEnabled()) {
@@ -191,17 +213,26 @@ public final class ButtonPopupMenu extends JButton
     @Override
     public void mousePressed(MouseEvent e)
     {
-      if (!e.isPopupTrigger() && e.getComponent().isEnabled())
-        menu.show(e.getComponent(), 0, -(int)menu.getPreferredSize().getHeight());
+      if (!e.isPopupTrigger() && e.getComponent().isEnabled()) {
+        if (getMenuAlignment() == Align.Bottom) {
+          menu.show(e.getComponent(), 0, e.getComponent().getSize().height);
+        } else {
+          menu.show(e.getComponent(), 0, -menu.getPreferredSize().height);
+        }
+      }
     }
 
     @Override
     public void mouseReleased(MouseEvent e)
     {
       if (!e.isPopupTrigger() && ((JButton)e.getSource()).contains(e.getX(), e.getY()) &&
-          e.getComponent().isEnabled())
-        menu.show(e.getComponent(), 0, -(int)menu.getPreferredSize().getHeight());
-      else {
+          e.getComponent().isEnabled()) {
+        if (getMenuAlignment() == Align.Bottom) {
+          menu.show(e.getComponent(), 0, e.getComponent().getSize().height);
+        } else {
+          menu.show(e.getComponent(), 0, -menu.getPreferredSize().height);
+        }
+      } else {
         menu.setVisible(false);
         Component components[] = menu.getComponents();
         for (final Component component : components) {
