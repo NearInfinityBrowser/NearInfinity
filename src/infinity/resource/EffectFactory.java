@@ -3143,7 +3143,6 @@ public final class EffectFactory
       case 291: // Disable visual effects
       case 292: // Immunity to backstab
       case 293: // Set persistent AI
-      case 294: // Set existence delay
       case 295: // Disable permanent death
       case 297: // Immunity to turn undead
       case 302: // Can use any item
@@ -3553,6 +3552,11 @@ public final class EffectFactory
         s.add(new StringRef(buffer, offset, "Title"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Change where?",
                          new String[]{"Records screen", "Class name"}));
+        break;
+
+      case 294: // Set existence delay
+        s.add(new DecNumber(buffer, offset, 4, "Stat value"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         break;
 
       case 296: // Immunity to specific animation
