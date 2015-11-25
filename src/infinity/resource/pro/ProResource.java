@@ -206,7 +206,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       addField(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
       addField(new DecNumber(buffer, offset + 56, 2, "Color speed"));
       addField(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
-      if (SpellProtType.isTableExternalized()) {
+      if (Profile.isEnhancedEdition()) {
         flag.addUpdateListener(this);
         if (flag.isFlagSet(30)) {
           SpellProtType type = new SpellProtType(buffer, offset + 62, 2, "Creature type", 1);
