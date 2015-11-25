@@ -165,7 +165,7 @@ public class SpellProtType extends Bitmap
         return new DecNumber(buffer, offset, size, createFieldName(name, index, DEFAULT_NAME_VALUE));
       }
     }
-    return new DecNumber(buffer, offset, size, createFieldName(name, -1, DEFAULT_NAME_UNUSED));
+    return new DecNumber(buffer, offset, size, createFieldName(name, index, DEFAULT_NAME_UNUSED));
   }
 
   /** Returns whether this SpellProtType instance automatically updates the associated creature value field. */

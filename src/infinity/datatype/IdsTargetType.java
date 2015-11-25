@@ -186,7 +186,7 @@ public class IdsTargetType extends Bitmap
         return new StringRef(buffer, offset, createFieldName(name, index, DEFAULT_ACTOR_NAME));
       }
     }
-    return new DecNumber(buffer, offset, size, createFieldName(name, -1, DEFAULT_NAME_UNUSED));
+    return new DecNumber(buffer, offset, size, createFieldName(name, index, DEFAULT_NAME_UNUSED));
   }
 
   public StructEntry createResourceFromType(byte[] buffer, int offset)
@@ -211,7 +211,7 @@ public class IdsTargetType extends Bitmap
         return new TextString(buffer, offset, 8, createFieldName(name, index, DEFAULT_ACTOR_SCRIPTNAME));
       }
     }
-    return new Unknown(buffer, offset, 8, createFieldName(name, -1, DEFAULT_NAME_UNUSED));
+    return new Unknown(buffer, offset, 8, createFieldName(name, index, DEFAULT_NAME_UNUSED));
   }
 
   /** Returns whether this IdsTargetType instance automatically updates the associated IDS value field. */
