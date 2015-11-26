@@ -1297,7 +1297,7 @@ public class AreaViewer extends ChildFrame
                   } else {
                     sb.append(items[k].getMessage());
                   }
-                  DataMenuItem<AbstractLayerItem> dmi = new DataMenuItem<AbstractLayerItem>(sb.toString(), null, items[k]);
+                  DataMenuItem dmi = new DataMenuItem(sb.toString(), null, items[k]);
                   if (lenPrefix + lenMsg > MaxLen) {
                     dmi.setToolTipText(items[k].getMessage());
                   }
@@ -2114,10 +2114,9 @@ public class AreaViewer extends ChildFrame
       } else if (event.getSource() instanceof AbstractLayerItem) {
         AbstractLayerItem item = (AbstractLayerItem)event.getSource();
         showTable(item);
-      } else if (event.getSource() instanceof DataMenuItem<?>) {
-        @SuppressWarnings("unchecked")
-        DataMenuItem<AbstractLayerItem> lmi = (DataMenuItem<AbstractLayerItem>)event.getSource();
-        AbstractLayerItem item = lmi.getData();
+      } else if (event.getSource() instanceof DataMenuItem) {
+        DataMenuItem lmi = (DataMenuItem)event.getSource();
+        AbstractLayerItem item = (AbstractLayerItem)lmi.getData();
         showTable(item);
       } else if (event.getSource() == tbAre) {
         showTable(map.getAreItem());

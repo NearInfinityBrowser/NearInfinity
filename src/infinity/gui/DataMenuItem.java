@@ -10,12 +10,10 @@ import javax.swing.JMenuItem;
 
 /**
  * Adds support of user-defined data to the JMenuItem class.
- *
- * @param <E> Specifies the type of the user-defined data that can be assigned.
  */
-public class DataMenuItem<E> extends JMenuItem
+public class DataMenuItem extends JMenuItem
 {
-  private E data;
+  private Object data;
 
   /** Creates a JMenuItem with no set text, icon or user-defined data. */
   public DataMenuItem()
@@ -53,7 +51,7 @@ public class DataMenuItem<E> extends JMenuItem
   }
 
   /** Creates a JMenuItem with the specified text, icon and user-defined data. */
-  public DataMenuItem(String text, Icon icon, E data)
+  public DataMenuItem(String text, Icon icon, Object data)
   {
     super(text, icon);
     this.data = data;
@@ -67,20 +65,20 @@ public class DataMenuItem<E> extends JMenuItem
   }
 
   /** Creates a JMenuItem with the specified text, keyboard mnemonic and user-defined data. */
-  public DataMenuItem(String text, int mnemonic, E data)
+  public DataMenuItem(String text, int mnemonic, Object data)
   {
     super(text, mnemonic);
     this.data = data;
   }
 
   /** Returns the attached data object. */
-  public E getData()
+  public Object getData()
   {
     return data;
   }
 
   /** Assigns a new data object to the JMenuItem instance. */
-  public void setData(E data)
+  public void setData(Object data)
   {
     this.data = data;
   }

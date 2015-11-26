@@ -1,3 +1,7 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
 package infinity.gui;
 
 import javax.swing.Action;
@@ -6,8 +10,6 @@ import javax.swing.JRadioButtonMenuItem;
 
 /**
  * Adds support of user-defined data to the JRadioButtonMenuItem class.
- *
- * @param <E> Specifies the type of the user-defined data that can be assigned.
  */
 public class DataRadioButtonMenuItem extends JRadioButtonMenuItem
 {

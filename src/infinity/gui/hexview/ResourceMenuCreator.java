@@ -127,10 +127,9 @@ public class ResourceMenuCreator implements IMenuCreator, ActionListener
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    if (e.getSource() instanceof DataMenuItem<?>) {
-      @SuppressWarnings("unchecked")
-      DataMenuItem<StructEntry> mi = (DataMenuItem<StructEntry>)e.getSource();
-      StructEntry entry = mi.getData();
+    if (e.getSource() instanceof DataMenuItem) {
+      DataMenuItem mi = (DataMenuItem)e.getSource();
+      StructEntry entry = (StructEntry)mi.getData();
       if (entry != null) {
         List<StructEntry> listEntries = entry.getStructChain();
         StructViewer curViewer = null;
@@ -201,8 +200,7 @@ public class ResourceMenuCreator implements IMenuCreator, ActionListener
         }
         for (int i = 0; i < listEntries.size(); i++) {
           StructEntry e = listEntries.get(i);
-          JMenuItem mi = new DataMenuItem<StructEntry>(String.format("Go to \"%1$s\"", e.getName()),
-                                                       null, e);
+          JMenuItem mi = new DataMenuItem(String.format("Go to \"%1$s\"", e.getName()), null, e);
           list.add(mi);
         }
       }
