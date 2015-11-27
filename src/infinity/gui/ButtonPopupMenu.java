@@ -8,7 +8,6 @@ import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,12 +17,11 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
 
 /**
  * Provides a button component that pops up an associated menu when the button is pressed.
  */
-public final class ButtonPopupMenu extends JButton
+public class ButtonPopupMenu extends JButton
 {
   public enum Align {
     /** Show the menu below the button. */
@@ -45,60 +43,69 @@ public final class ButtonPopupMenu extends JButton
   };
 
   private final JPopupMenu menu = new JPopupMenu();
+  private final PopupListener listener = new PopupListener();
+  private final PopupItemListener itemListener = new PopupItemListener();
   private List<JComponent> items = new ArrayList<JComponent>();
   private JMenuItem selected;
   private Align menuAlign;
 
   /**
+   * Constructs a new ButtonPopupMenu control without menu items. Use this constructor in conjunction
+   * with {@link #addItem(JMenuItem)} or {@link #addSeparator()}, if you want to have full control over the
+   * popup menu creation.
+   * @param text Text label for the button.
+   */
+  public ButtonPopupMenu(String text)
+  {
+    this(text, (List<JMenuItem>)null, true, Align.Top);
+  }
+
+  /**
    * Constructs a new ButtonPopupMenu control with the given menu items.
-   * <b>Note:</b> Only JMenuItem and JSeparator instances are supported.
    * @param text Text label for the button.
    * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
    */
-  public ButtonPopupMenu(String text, JComponent[] menuItems)
+  public ButtonPopupMenu(String text, JMenuItem[] menuItems)
   {
     this(text, menuItems, true, Align.Top);
   }
 
   /**
    * Constructs a new ButtonPopupMenu control with the given menu items.
-   * <b>Note:</b> Only JMenuItem and JSeparator instances are supported.
-   * @param text Text label for the button.
-   * @param menuItems List of menu items or separators.
-   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
-   */
-  public ButtonPopupMenu(String text, JComponent menuItems[], boolean sorted, Align align)
-  {
-    super(text);
-    this.menuAlign = align;
-    setMenuItems(menuItems, sorted);
-    addMouseListener(new PopupListener());
-  }
-
-  /**
-   * Constructs a new ButtonPopupMenu control with the given menu items.
-   * <b>Note:</b> Only JMenuItem and JSeparator instances are supported.
-   * @param text Text label for the button.
-   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
-   */
-  public ButtonPopupMenu(String text, List<? extends JComponent> menuItems)
-  {
-    this(text, menuItems, true, Align.Top);
-  }
-
-  /**
-   * Constructs a new ButtonPopupMenu control with the given menu items.
-   * <b>Note:</b> Only JMenuItem and JSeparator instances are supported.
    * @param text Text label for the button.
    * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
    */
-  public ButtonPopupMenu(String text, List<? extends JComponent> menuItems, boolean sorted, Align align)
+  public ButtonPopupMenu(String text, JMenuItem[] menuItems, boolean sorted, Align align)
   {
     super(text);
     this.menuAlign = align;
     setMenuItems(menuItems, sorted);
-    addMouseListener(new PopupListener());
+    addMouseListener(listener);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
+   */
+  public ButtonPopupMenu(String text, List<JMenuItem> menuItems)
+  {
+    this(text, menuItems, true, Align.Top);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items.
+   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   */
+  public ButtonPopupMenu(String text, List<JMenuItem> menuItems, boolean sorted, Align align)
+  {
+    super(text);
+    this.menuAlign = align;
+    setMenuItems(menuItems, sorted);
+    addMouseListener(listener);
   }
 
   public JMenuItem getSelectedItem()
@@ -108,23 +115,21 @@ public final class ButtonPopupMenu extends JButton
 
   /**
    * Replaces current list of menu items with the given list.
-   * <b>Note:</b> Only JMenuItem and JSeparator instances are supported.
    * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
    */
-  public void setMenuItems(JComponent[] menuItems)
+  public void setMenuItems(JMenuItem[] menuItems)
   {
     setMenuItems(menuItems, true);
   }
 
   /**
    * Replaces current list of menu items with the given list.
-   * <b>Note:</b> Only JMenuItem and JSeparator instances are supported.
-   * @param menuItems List of menu items or separators.
+   * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
    */
-  public void setMenuItems(JComponent[] menuItems, boolean sorted)
+  public void setMenuItems(JMenuItem[] menuItems, boolean sorted)
   {
-    List<JComponent> list = new ArrayList<JComponent>();
+    List<JMenuItem> list = new ArrayList<JMenuItem>();
     if (menuItems != null) {
       for (int i = 0; i < menuItems.length; i++) {
         list.add(menuItems[i]);
@@ -137,48 +142,45 @@ public final class ButtonPopupMenu extends JButton
    * Replaces current list of menu items with the given list.
    * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
    */
-  public void setMenuItems(List<? extends JComponent> menuItems)
+  public void setMenuItems(List<JMenuItem> menuItems)
   {
     setMenuItems(menuItems, true);
   }
 
   /**
    * Replaces current list of menu items with the given list.
-   * <b>Note:</b> Only JMenuItem and JSeparator instances are supported.
-   * @param menuItems List of menu items or separators.
+   * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
    */
-  public void setMenuItems(List<? extends JComponent> menuItems, boolean sorted)
+  public void setMenuItems(List<JMenuItem> menuItems, boolean sorted)
   {
-    menu.removeAll();
-    items.clear();
+    removeAll();
     if (menuItems != null) {
-      for (int i = 0, count = menuItems.size(); i < count; i++) {
-        items.add(menuItems.get(i));
-      }
+      List<JMenuItem> preparedList;
       if (sorted) {
-        Collections.sort(items, menuItemComparator);
+        preparedList = new ArrayList<JMenuItem>(menuItems);
+        Collections.sort(preparedList, menuItemComparator);
+      } else {
+        preparedList = menuItems;
       }
-    }
-    MouseListener listener = new PopupItemListener();
-    for (int i = 0, count = items.size(); i < count; i++) {
-      final JComponent item = items.get(i);
-      if (item instanceof JMenuItem || item instanceof JSeparator) {
-        menu.add(item);
-        if (item instanceof JMenuItem) {
-          item.addMouseListener(listener);
-        }
+      for (final JMenuItem mi: preparedList) {
+        addItem(mi);
       }
     }
   }
 
-  /** Returns an unfiltered read-only list of menu items and separators. */
+  /**
+   * Returns an unfiltered read-only list of menu items of any class type.
+   */
   public List<? extends JComponent> getItems()
   {
     return Collections.unmodifiableList(items);
   }
 
-  /** Returns a filtered read-only list of menu items. JSeparator instances will be filtered out. */
+  /**
+   * Returns a filtered list of JMenuItem instances. Instances of JSeparator or other class types
+   * will be filtered out.
+   */
   public List<JMenuItem> getMenuItems()
   {
     List<JMenuItem> list = new ArrayList<JMenuItem>(items.size());
@@ -200,6 +202,89 @@ public final class ButtonPopupMenu extends JButton
   public void setMenuAlignment(Align align)
   {
     this.menuAlign = align;
+  }
+
+  /**
+   * Returns the JPopupMenu associated with this button.
+   */
+  public JPopupMenu getPopupMenu()
+  {
+    return menu;
+  }
+
+  /**
+   * Appends the specified menu item to the end of the popup menu.
+   * @param item The JMenuItem to add.
+   * @return The JMenuItem added.
+   */
+  public JMenuItem addItem(JMenuItem item)
+  {
+    if (item != null) {
+      items.add(item);
+      menu.add(item);
+      item.addMouseListener(itemListener);
+      return item;
+    }
+    return null;
+  }
+
+  /**
+   * Appends a new separator to the end of the popup menu.
+   */
+  public void addSeparator()
+  {
+    JPopupMenu.Separator sep = new JPopupMenu.Separator();
+    items.add(sep);
+    menu.add(sep);
+  }
+
+  /**
+   * Removes the menu item at the specified index from the popup menu.
+   */
+  public void remove(int pos)
+  {
+    if (pos < 0 || pos >= items.size()) {
+      throw new IllegalArgumentException();
+    }
+    JComponent c = items.remove(pos);
+    c.removeMouseListener(itemListener);
+    menu.remove(pos);
+  }
+
+  /**
+   * Removes all items from the popup menu.
+   */
+  public void removeAll()
+  {
+    for (int i = items.size() - 1; i >= 0; i--) {
+      remove(i);
+    }
+  }
+
+  /**
+   * Returns the menu item at the specified index.
+   * @param pos Index of the menu item
+   * @return The menu item as JComponent.
+   */
+  public JComponent getItemAt(int pos)
+  {
+    if (pos < 0 || pos >= items.size()) {
+      throw new IllegalArgumentException();
+    }
+    return items.get(pos);
+  }
+
+  /**
+   * Returns the position of the item in the popup menu. Returns -1 if not found.
+   * @param item The menu item.
+   * @return The position of the item in the popup menu, or -1 if not found.
+   */
+  public int getItemIndex(JMenuItem item)
+  {
+    if (item != null) {
+      return items.indexOf(item);
+    }
+    return -1;
   }
 
   private void menuItemSelected(JMenuItem item)
