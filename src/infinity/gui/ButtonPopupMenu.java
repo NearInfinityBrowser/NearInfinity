@@ -61,6 +61,18 @@ public class ButtonPopupMenu extends JButton
   }
 
   /**
+   * Constructs a new ButtonPopupMenu control without menu items. Use this constructor in conjunction
+   * with {@link #addItem(JMenuItem)} or {@link #addSeparator()}, if you want to have full control over the
+   * popup menu creation.
+   * @param text Text label for the button.
+   * @param align Indicates where to pop up the menu.
+   */
+  public ButtonPopupMenu(String text, Align align)
+  {
+    this(text, (List<JMenuItem>)null, true, align);
+  }
+
+  /**
    * Constructs a new ButtonPopupMenu control with the given menu items.
    * @param text Text label for the button.
    * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
@@ -75,6 +87,7 @@ public class ButtonPopupMenu extends JButton
    * @param text Text label for the button.
    * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   * @param align Indicates where to pop up the menu.
    */
   public ButtonPopupMenu(String text, JMenuItem[] menuItems, boolean sorted, Align align)
   {
@@ -99,6 +112,7 @@ public class ButtonPopupMenu extends JButton
    * @param text Text label for the button.
    * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   * @param align Indicates where to pop up the menu.
    */
   public ButtonPopupMenu(String text, List<JMenuItem> menuItems, boolean sorted, Align align)
   {
