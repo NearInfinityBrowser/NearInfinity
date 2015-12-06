@@ -42,12 +42,18 @@ public class ResourceBitmap extends Datatype
 {
   /** Print resource reference together with search name in parentheses and value after hyphen. */
   public static final String FMT_REF_NAME_VALUE   = "%1$s (%2$s) - %3$s";
+  /** Print search name together with resource reference in parentheses and value after hyphen. */
+  public static final String FMT_NAME_REF_VALUE   = "%2$s (%1$s) - %3$s";
   /** Print resource reference together with its search name after hyphen. */
   public static final String FMT_REF_HYPHEN_NAME  = "%1$s - %2$s";
+  /** Print search name together with its resource reference after hyphen. */
+  public static final String FMT_NAME_HYPHEN_REF  = "%2$s - %1$s";
   /** Print resource reference together with value after hyphen. */
   public static final String FMT_REF_HYPHEN_VALUE = "%1$s - %3$s";
   /** Print resource reference together with its search name. */
   public static final String FMT_REF_NAME         = "%1$s (%2$s)";
+  /** Print search name together with its resource reference. */
+  public static final String FMT_NAME_REF         = "%2$s (%1$s)";
   /** Print resource reference together with value in parentheses. */
   public static final String FMT_REF_VALUE        = "%1$s (%3$s)";
   /** Print resource reference only. */

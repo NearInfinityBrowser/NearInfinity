@@ -30,7 +30,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   public static final String[] s_areaflagsEx = {
     "No flags set", "Paletted ring", "Random speed", "Start scattered", "Paletted center",
     "Repeat scattering", "Paletted animation", "", "", "", "Oriented fireball puffs",
-    "Use hit dice lookup", "", "", "Blend are/ring anim", "Glow area/ring anim",
+    "Use hit dice lookup", "", "", "Blend are/ring anim", "Glow area/ring anim", "Hit point limit",
   };
 
   static {
@@ -53,6 +53,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     m_proj.put(16L, "Storm of vengeance");
     m_proj.put(17L, "Purple fireball");
     m_proj.put(18L, "Green dragon blast");
+    m_proj.put(254L, "Custom");
     m_proj.put(255L, "None");
   }
 
@@ -84,13 +85,14 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
                                                          : new String[]{"VEF", "VVC", "BAM"};
 
-    addField(new Flag(buffer, offset, 4, "Area flags", s_areaflags));
+    addField(new Flag(buffer, offset, 2, "Area flags", s_areaflags));
+    addField(new DecNumber(buffer, offset + 2, 2, "Ray count"));
     addField(new DecNumber(buffer, offset + 4, 2, "Trap size"));
     addField(new DecNumber(buffer, offset + 6, 2, "Explosion size"));
     addField(new ResourceRef(buffer, offset + 8, "Explosion sound", "WAV"));
     addField(new DecNumber(buffer, offset + 16, 2, "Explosion frequency (frames)"));
     addField(new IdsBitmap(buffer, offset + 18, 2, "Fragment animation", "ANIMATE.IDS"));
-    addField(new ProRef(buffer, offset + 20, "Secondary projectile"));
+    addField(new ProRef(buffer, offset + 20, "Secondary projectile", false));
     addField(new DecNumber(buffer, offset + 22, 1, "# repetitions"));
     addField(new HashBitmap(buffer, offset + 23, 1, "Explosion effect", m_proj));
     addField(new ColorValue(buffer, offset + 24, 1, "Explosion color"));
