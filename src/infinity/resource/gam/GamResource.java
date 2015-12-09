@@ -57,7 +57,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       "Unknown", "SoA active", "ToB active"};
   public static final String[] s_version_iwdee = {
       "Restrict XP to BG1 limit", "Restrict XP to TotSC limit", "Restrict XP to SoA limit",
-      "Icewind Dale", "SoA active", "ToB active"};
+      "Icewind Dale", "Icewind Dale: HoW only", "ToB active"};
   public static final String[] s_familiar_owner = {
       "Party member 0", "Party member 1", "Party member 2", "Party member 3",
       "Party member 4", "Party member 5"};
