@@ -55,7 +55,7 @@ public final class Item extends AbstractStruct implements AddRemovable
   public int read(byte buffer[], int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, "Item", "ITM"));
-    addField(new Unknown(buffer, offset + 8, 2));
+    addField(new DecNumber(buffer, offset + 8, 2, "Expiry time"));
     addField(new DecNumber(buffer, offset + 10, 2, "Quantity/Charges 1"));
     addField(new DecNumber(buffer, offset + 12, 2, "Quantity/Charges 2"));
     addField(new DecNumber(buffer, offset + 14, 2, "Quantity/Charges 3"));
