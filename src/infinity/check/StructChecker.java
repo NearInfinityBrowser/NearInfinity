@@ -66,7 +66,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
                                                                ListSelectionListener
 {
   private static final String FMT_PROGRESS = "Checking %ss...";
-  private static final String filetypes[] = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
+  private static final String[] FILETYPES = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
                                              "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
   private static final HashMap<String, StructInfo> fileInfo = new HashMap<String, StructInfo>();
   static {
@@ -94,7 +94,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   private final JButton bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
   private final JButton bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
-  private final JCheckBox[] boxes;
+  private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
   private final List<ResourceEntry> files = new ArrayList<ResourceEntry>();
   private final SortableTable table;
   private ProgressMonitor progress;
@@ -110,7 +110,6 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     table = new SortableTable(Arrays.asList(new String[]{"File", "Offset", "Error message"}),
                               colClasses, Arrays.asList(new Integer[]{50, 50, 400}));
 
-    boxes = new JCheckBox[filetypes.length];
     bstart.setMnemonic('s');
     bcancel.setMnemonic('c');
     binvert.setMnemonic('i');
@@ -121,7 +120,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
 
     JPanel boxpanel = new JPanel(new GridLayout(0, 2, 3, 3));
     for (int i = 0; i < boxes.length; i++) {
-      boxes[i] = new JCheckBox(filetypes[i], true);
+      boxes[i] = new JCheckBox(FILETYPES[i], true);
       boxpanel.add(boxes[i]);
     }
     boxpanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 0));
@@ -158,9 +157,9 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   {
     if (event.getSource() == bstart) {
       setVisible(false);
-      for (int i = 0; i < filetypes.length; i++) {
+      for (int i = 0; i < FILETYPES.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(FILETYPES[i]));
       }
       if (files.size() > 0)
         new Thread(this).start();
@@ -193,7 +192,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         File output = chooser.getSelectedFile();
         if (output.exists()) {
-          String options[] = {"Overwrite", "Cancel"};
+          String[] options = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)

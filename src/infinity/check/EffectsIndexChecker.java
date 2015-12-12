@@ -40,11 +40,11 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
 {
   private static final String FMT_PROGRESS = "Checking %ss...";
 
-  private static final String filetypes[] = {"ITM", "SPL"};
+  private static final String[] FILETYPES = {"ITM", "SPL"};
   private final JButton bstart = new JButton("Check", Icons.getIcon("Find16.gif"));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
   private final JButton binvert = new JButton("Invert", Icons.getIcon("Refresh16.gif"));
-  private final JCheckBox[] boxes;
+  private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
   private final ReferenceHitFrame hitFrame;
   private List<ResourceEntry> files;
   private ProgressMonitor progress;
@@ -56,7 +56,6 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
     setIconImage(Icons.getIcon("Refresh16.gif").getImage());
     hitFrame = new ReferenceHitFrame("Mis-indexed Effects", NearInfinity.getInstance());
 
-    boxes = new JCheckBox[filetypes.length];
     bstart.setMnemonic('s');
     bcancel.setMnemonic('c');
     binvert.setMnemonic('i');
@@ -67,7 +66,7 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
 
     JPanel boxpanel = new JPanel(new GridLayout(0, 2, 3, 3));
     for (int i = 0; i < boxes.length; i++) {
-      boxes[i] = new JCheckBox(filetypes[i], true);
+      boxes[i] = new JCheckBox(FILETYPES[i], true);
       boxpanel.add(boxes[i]);
     }
     boxpanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 0));
@@ -104,9 +103,9 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
     if (event.getSource() == bstart) {
       setVisible(false);
       files = new ArrayList<ResourceEntry>();
-      for (int i = 0; i < filetypes.length; i++) {
+      for (int i = 0; i < FILETYPES.length; i++) {
         if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getResources(filetypes[i]));
+          files.addAll(ResourceFactory.getResources(FILETYPES[i]));
       }
       if (files.size() > 0)
         new Thread(this).start();

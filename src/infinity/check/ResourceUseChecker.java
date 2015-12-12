@@ -75,15 +75,15 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 {
   private static final String FMT_PROGRESS = "Checking resource %d/%d";
   private static final Pattern RESREFPATTERN = Pattern.compile("\\w{3,8}");
-  private static final String FILETYPES[] = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE",
+  private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE",
                                              "DLG", "EFF", "INI", "ITM", "PRO", "SPL", "STO",
                                              "VEF", "VVC", "WED", "WMP"};
-  private static final String CHECKTYPES[] = {"ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
+  private static final String[] CHECKTYPES = {"ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
                                               "TIS", "VEF", "VVC", "WAV", "WED"};
   private final ChildFrame selectframe = new ChildFrame("Find unused files", true);
   private final JButton bstart = new JButton("Search", Icons.getIcon("Find16.gif"));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
-  private final JRadioButton[] typeButtons;
+  private final JRadioButton[] typeButtons = new JRadioButton[CHECKTYPES.length];
   private final List<ResourceEntry> checkList = new ArrayList<ResourceEntry>();
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
@@ -95,7 +95,6 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
   public ResourceUseChecker(Component parent)
   {
-    typeButtons = new JRadioButton[CHECKTYPES.length];
     ButtonGroup bg = new ButtonGroup();
     JPanel radioPanel = new JPanel(new GridLayout(0, 1));
     for (int i = 0; i < typeButtons.length; i++) {

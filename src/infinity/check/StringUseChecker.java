@@ -68,12 +68,12 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   private static final String FMT_PROGRESS = "Checking %ss...";
 
   private static final Pattern NUMBERPATTERN = Pattern.compile("\\d+", Pattern.DOTALL);
-  private static final String FILETYPES[] = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
+  private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
                                              "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
   private ChildFrame resultFrame;
   private JTextArea textArea;
   private SortableTable table;
-  private boolean strUsed[];
+  private boolean[] strUsed;
   private JMenuItem save;
   private List<ResourceEntry> files;
   private ProgressMonitor progress;
@@ -345,7 +345,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   private void checkStruct(AbstractStruct struct)
   {
     List<StructEntry> flatList = struct.getFlatList();
-    for (int i = 0; i < flatList.size(); i++) {
+    for (int i = 0, size = flatList.size(); i < size; i++) {
       if (flatList.get(i) instanceof StringRef) {
         StringRef ref = (StringRef)flatList.get(i);
         if (ref.getValue() >= 0 && ref.getValue() < strUsed.length) {

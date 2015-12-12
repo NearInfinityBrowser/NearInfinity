@@ -99,7 +99,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
         File output = fc.getSelectedFile();
         if (output.exists()) {
-          String options[] = {"Overwrite", "Cancel"};
+          String[] options = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
