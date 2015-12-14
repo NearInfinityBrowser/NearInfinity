@@ -86,14 +86,17 @@ public class ResourceBitmap extends Datatype
                         List<RefEntry> resources, String defLabel, String fmt)
   {
     super(parent, offset, length, name);
-    this.resources = (resources != null) ? resources : new ArrayList<RefEntry>();
     this.formatString = (fmt != null) ? fmt : FMT_REF_VALUE;
     this.defaultLabel = (defLabel != null) ? defLabel : "Unknown";
 
-    for (final RefEntry entry: this.resources) {
-      entry.setFormatString(this.formatString);
+    this.resources = new ArrayList<RefEntry>((resources != null) ? resources.size() : 10);
+    if (resources != null) {
+      for (final RefEntry entry: resources) {
+        entry.setFormatString(this.formatString);
+        this.resources.add(entry);
+      }
     }
-    Collections.sort(resources);
+    Collections.sort(this.resources);
 
     read(buffer, offset);
   }

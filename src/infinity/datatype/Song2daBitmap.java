@@ -88,6 +88,7 @@ public class Song2daBitmap extends ResourceBitmap
   {
     if (SongList.isEmpty()) {
       Table2da table = Table2daCache.get(TableName);
+      String defValue = table.getDefaultValue();
       SongList.ensureCapacity(2 + table.getRowCount());
       SongList.add(new RefEntry(0xfffffffeL, "Special", "Continue area music"));
       SongList.add(new RefEntry(0xffffffffL, "Special", "Continue outside music"));
@@ -95,6 +96,9 @@ public class Song2daBitmap extends ResourceBitmap
       for (int i = 0, size = table.getRowCount(); i < size; i++) {
         String name = table.get(i, 1);
         String ref = table.get(i, 2);
+        if (defValue.equalsIgnoreCase(ref)) {
+          ref = "None";
+        }
         SongList.add(new RefEntry((long)i, ref, name, searchDirs));
       }
     }
