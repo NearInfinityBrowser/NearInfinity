@@ -447,10 +447,13 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
           int pos = matcher.start();
           int len = matcher.end() - pos;
           try {
-            int strref = Integer.parseInt(lines[line].substring(pos, pos + len));
-            if (strref < -1 || strref > strrefCount) {
-              synchronized (table) {
-                table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, len, strref));
+            long strref = Long.parseLong(lines[line].substring(pos, pos + len));
+            // skip values out of integer range
+            if (strref >= Integer.MIN_VALUE && strref <= Integer.MAX_VALUE) {
+              if (strref < -1 || strref > strrefCount) {
+                synchronized (table) {
+                  table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, len, (int)strref));
+                }
               }
             }
           } catch (NumberFormatException e) {
