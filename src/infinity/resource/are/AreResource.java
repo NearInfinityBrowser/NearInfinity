@@ -383,7 +383,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
     addField(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
     addField(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
-    if (Profile.getGame() == Profile.Game.BG2EE) {
+    if (Profile.isEnhancedEdition()) {
       addField(new UnsignDecNumber(buffer, offset + 82, 1, "Overlay transparency"));
       addField(new Unknown(buffer, offset + 83, 1));
     } else {
