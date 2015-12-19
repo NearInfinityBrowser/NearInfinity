@@ -18,6 +18,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.search.SongReferenceSearcher;
 import infinity.search.TextResourceSearcher;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
@@ -55,7 +56,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private JTabbedPane tabbedPane;
-  private JMenuItem ifindall, ifindthis;
+  private JMenuItem ifindall, ifindthis, ifindreference;
   private JPanel panel;
   private InfinityTextArea editor;
   private Viewer viewer;
@@ -158,6 +159,8 @@ public final class MusResource implements Closeable, TextResource, ActionListene
         List<ResourceEntry> files = new ArrayList<ResourceEntry>();
         files.add(entry);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
+      } else if (bpmFind.getSelectedItem() == ifindreference) {
+        new SongReferenceSearcher(entry, panel.getTopLevelAncestor());
       }
     }
   }
@@ -257,8 +260,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     ifindall =
         new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
     ifindthis = new JMenuItem("in this file only");
+    ifindreference = new JMenuItem("references to this file");
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
-    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
+    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis, ifindreference});
     bpmFind.addItemListener(this);
     editor = new InfinityTextArea(text, true);
     editor.discardAllEdits();
