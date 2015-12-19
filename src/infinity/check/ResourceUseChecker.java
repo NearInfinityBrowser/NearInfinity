@@ -382,8 +382,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
           if (subList.get(j) instanceof StringRef) {
             StringRef ref = (StringRef)subList.get(j);
             if (ref.getValue() >= 0) {
-              String wav = StringResource.getWavResource(ref.getValue()) + ".WAV";
+              String wav = StringResource.getWavResource(ref.getValue());
               if (wav != null) {
+                wav += ".WAV";
                 synchronized (checkList) {
                   for (Iterator<ResourceEntry> k = checkList.iterator(); k.hasNext();) {
                     if (wav.equalsIgnoreCase(k.next().toString())) {
@@ -432,8 +433,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       else if (checkType.equalsIgnoreCase("WAV") && flatList.get(i) instanceof StringRef) {
         StringRef ref = (StringRef)flatList.get(i);
         if (ref.getValue() >= 0) {
-          String wav = StringResource.getWavResource(ref.getValue()) + ".WAV";
+          String wav = StringResource.getWavResource(ref.getValue());
           if (wav != null) {
+            wav += ".WAV";
             synchronized (checkList) {
               for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
                 if (wav.equalsIgnoreCase(j.next().toString())) {

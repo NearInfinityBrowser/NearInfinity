@@ -66,12 +66,26 @@ public final class StringResource
     return maxnr;
   }
 
+  /** Returns whether the specified strref entry contains a sound resource. */
+  public static boolean hasWavResource(int index)
+  {
+    try {
+      StringEntry entry = fetchStringEntry(index);
+      return (entry.soundRes != null && !entry.soundRes.isEmpty());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
   /** Returns the resource name of the sound file associated with the specified strref entry. */
   public static String getWavResource(int index)
   {
     try {
       StringEntry entry = fetchStringEntry(index);
-      return entry.soundRes;
+      if (entry.soundRes != null && !entry.soundRes.isEmpty()) {
+        return entry.soundRes;
+      }
     } catch (IOException e) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),

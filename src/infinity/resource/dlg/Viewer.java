@@ -677,9 +677,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           text = ((Transition)struct).getAssociatedText();
         }
         if (text != null) {
-          String resourceName = StringResource.getWavResource(text.getValue()) + ".WAV";
+          String resourceName = StringResource.getWavResource(text.getValue());
           if (resourceName != null) {
-            ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName);
+            ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName + ".WAV");
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
           }
         }
