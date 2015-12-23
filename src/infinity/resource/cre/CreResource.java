@@ -73,7 +73,7 @@ public final class CreResource extends AbstractStruct
 {
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
-  public static final String s_flag[] = {
+  public static final String[] s_flag = {
     "No flags set", "Identified", "No corpse", "Permanent corpse",
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
@@ -81,14 +81,14 @@ public final class CreResource extends AbstractStruct
     "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
     "General tracking", "Race tracking", "Class tracking", "Specifics tracking", "Gender tracking",
     "Alignment tracking", "Uninterruptible"};
-  public static final String s_feats1[] = {
+  public static final String[] s_feats1 = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
     "Dash", "Deflect arrows", "Dirty fighting", "Discipline", "Dodge", "Envenom weapon", "Exotic bastard",
     "Expertise", "Extra rage", "Extra shapeshifting", "Extra smiting", "Extra turning", "Fiendslayer",
     "Forester", "Great fortitude", "Hamstring", "Heretic's bane", "Heroic inspiration", "Improved critical",
     "Improved evasion"};
-  public static final String s_feats2[] = {
+  public static final String[] s_feats2 = {
     "No feats selected", "Improved initiative", "Improved turning", "Iron will", "Lightning reflexes",
     "Lingering song", "Luck of heroes", "Martial axe", "Martial bow", "Martial flail", "Martial greatsword",
     "Martial hammer", "Martial large sword", "Martial polearm", "Maximized attacks", "Mercantile background",
@@ -96,22 +96,26 @@ public final class CreResource extends AbstractStruct
     "Simple crossbow", "Simple mace", "Simple missile", "Simple quarterstaff", "Simple small blade",
     "Slippery mind", "Snake blood", "Spell focus enchantment", "Spell focus evocation", "Spell focus necromancy",
     "Spell focus transmutation"};
-  public static final String s_feats3[] = {
+  public static final String[] s_feats3 = {
     "No feats selected", "Spell penetration", "Spirit of flame", "Strong back", "Stunning fist",
     "Subvocal casting",
     "Toughness", "Two-weapon fighting", "Weapon finesse", "Wild shape boar", "Wild shape panther",
     "Wild shape shambler"};
-  public static final String s_attributes_pst[] = {
+  public static final String[] s_subraces = {
+      "Pureblood",
+      "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome",
+      "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling"};
+  public static final String[] s_attributes_pst = {
     "No flags set", "", "Transparent", "", "", "Increment death variable", "Increment kill count",
     "Script name only", "Increment faction kills", "Increment team kills", "Invulnerable",
     "Good increment on death", "Law increment on death", "Lady increment on death", "Murder increment on death",
     "Don't face speaker", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Died"};
-  public static final String s_attributes_iwd2[] = {"No flags set", "Mental fortitude", "Critical hit immunity",
+  public static final String[] s_attributes_iwd2 = {"No flags set", "Mental fortitude", "Critical hit immunity",
                                                     "Cannot be paladin", "Cannot be monk"};
-  public static final String s_attacks[] = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
-  public static final String s_noyes[] = {"No", "Yes"};
-  public static final String s_visible[] = {"Shown", "Hidden"};
-  public static final String s_profLabels[] = {"Active class", "Original class"};
+  public static final String[] s_attacks = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
+  public static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_visible = {"Shown", "Hidden"};
+  public static final String[] s_profLabels = {"Active class", "Original class"};
 
   static
   {
@@ -187,13 +191,17 @@ public final class CreResource extends AbstractStruct
         else {
           scriptName = scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
           if (scriptNames.containsKey(scriptName)) {
-            Set<ResourceEntry> entries = scriptNames.get(scriptName);
-            entries.add(entry);
+            synchronized (scriptNames) {
+              Set<ResourceEntry> entries = scriptNames.get(scriptName);
+              entries.add(entry);
+            }
           }
           else {
             Set<ResourceEntry> entries = new HashSet<ResourceEntry>();
             entries.add(entry);
-            scriptNames.put(scriptName, entries);
+            synchronized (scriptNames) {
+              scriptNames.put(scriptName, entries);
+            }
           }
         }
       }
@@ -794,9 +802,7 @@ public final class CreResource extends AbstractStruct
     addField(new IdsBitmap(buffer, offset + 600, 1, "Favored enemy 6", "RACE.IDS"));
     addField(new IdsBitmap(buffer, offset + 601, 1, "Favored enemy 7", "RACE.IDS"));
     addField(new IdsBitmap(buffer, offset + 602, 1, "Favored enemy 8", "RACE.IDS"));
-    addField(new Bitmap(buffer, offset + 603, 1, "Subrace",
-                        new String[]{"Pureblood", "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome",
-                                     "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling"}));
+    addField(new Bitmap(buffer, offset + 603, 1, "Subrace", s_subraces));
     addField(new Unknown(buffer, offset + 604, 1));
     addField(new IdsBitmap(buffer, offset + 605, 1, "Sex", "GENDER.IDS"));
     addField(new DecNumber(buffer, offset + 606, 1, "Strength"));
@@ -808,9 +814,9 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 612, 1, "Morale"));
     addField(new DecNumber(buffer, offset + 613, 1, "Morale break"));
     addField(new DecNumber(buffer, offset + 614, 2, "Morale recovery"));
-    addField(new IdsBitmap(buffer, offset + 616, 4, "Kit", "KIT.IDS"));
+    addField(new KitIdsBitmap(buffer, offset + 616, "Kit"));
     addField(new ResourceRef(buffer, offset + 620, "Override script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 628, "Special script 2", "BCS"));
+    addField(new ResourceRef(buffer, offset + 628, "Special script 2", new String[]{"BCS", "BS"}));
     addField(new ResourceRef(buffer, offset + 636, "Combat script", "BCS"));
     addField(new ResourceRef(buffer, offset + 644, "Special script 3", "BCS"));
     addField(new ResourceRef(buffer, offset + 652, "Movement script", "BCS"));
@@ -1303,7 +1309,7 @@ public final class CreResource extends AbstractStruct
       }
     }
     addField(new ResourceRef(buffer, offset + 576, "Override script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 584, "Class script", "BCS"));
+    addField(new ResourceRef(buffer, offset + 584, "Class script", new String[]{"BCS", "BS"}));
     addField(new ResourceRef(buffer, offset + 592, "Race script", "BCS"));
     addField(new ResourceRef(buffer, offset + 600, "General script", "BCS"));
     addField(new ResourceRef(buffer, offset + 608, "Default script", "BCS"));

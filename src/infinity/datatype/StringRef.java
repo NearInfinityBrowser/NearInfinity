@@ -36,7 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public final class StringRef extends Datatype implements Editable, ActionListener
+public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener
 {
   private JButton bPlay, bEdit, bUpdate, bSearch;
   private InfinityTextArea taRefText;
@@ -72,7 +72,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
   {
     if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
       taRefText.setText(StringResource.getStringRef(Integer.parseInt(tfRefNr.getText())));
-      String resname = StringResource.getResource(Integer.parseInt(tfRefNr.getText()));
+      String resname = StringResource.getWavResource(Integer.parseInt(tfRefNr.getText()));
       bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     }
     else if (event.getSource() == bEdit) {
@@ -92,7 +92,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     }
     else if (event.getSource() == bPlay) {
       int newvalue = Integer.parseInt(tfRefNr.getText());
-      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getResource(newvalue) + ".WAV");
+      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getWavResource(newvalue) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch)
@@ -127,7 +127,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
       bSearch.addActionListener(this);
       bSearch.setMnemonic('f');
     }
-    String resname = StringResource.getResource(value);
+    String resname = StringResource.getWavResource(value);
     bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
     taRefText.setText(StringResource.getStringRef(value));
     taRefText.setCaretPosition(0);
@@ -200,6 +200,10 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     if (newstring.equalsIgnoreCase("Error"))
       return false;
     value = newvalue;
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -211,7 +215,7 @@ public final class StringRef extends Datatype implements Editable, ActionListene
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, value);
+    writeInt(os, value);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -244,17 +248,38 @@ public final class StringRef extends Datatype implements Editable, ActionListene
     return StringResource.getStringRef(value, extended, asPrefix);
   }
 
+//--------------------- Begin Interface IsNumeric ---------------------
+
+  @Override
+  public long getLongValue()
+  {
+    return (long)value & 0xffffffffL;
+  }
+
+  @Override
   public int getValue()
   {
     return value;
   }
+
+//--------------------- End Interface IsNumeric ---------------------
+
+//--------------------- Begin Interface IsTextual ---------------------
+
+  @Override
+  public String getText()
+  {
+    return StringResource.getStringRef(value);
+  }
+
+//--------------------- End Interface IsTextual ---------------------
 
   public void setValue(int newvalue)
   {
     value = newvalue;
     taRefText.setText(StringResource.getStringRef(value));
     tfRefNr.setText(String.valueOf(value));
-    String resname = StringResource.getResource(value);
+    String resname = StringResource.getWavResource(value);
     bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
   }
 }

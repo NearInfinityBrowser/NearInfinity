@@ -37,8 +37,6 @@ import javax.swing.JScrollPane;
 
 public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-//  private static final LongIntegerHashMap<String> m_wizardtype = new LongIntegerHashMap<String>();
-//  private static final LongIntegerHashMap<String> m_priesttype = new LongIntegerHashMap<String>();
   public static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate", "Bard song"};
   public static final String[] s_anim = {"None", "Fire aqua", "Fire blue", "Fire gold", "Fire green",
                                          "Fire magenta", "Fire purple", "Fire red", "Fire white",
@@ -67,23 +65,6 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                              "Generalist", "", "", "", "", "", "", "", "", "Elf",
                                              "Dwarf", "Half-elf", "Halfling", "Human", "Gnome", "",
                                              "Cleric", "Druid"};
-
-  static
-  {
-//    m_wizardtype.put((long)0x0000, "Schoolless");
-//    m_wizardtype.put((long)0x0040, "Alteration");
-//    m_wizardtype.put((long)0x0080, "Divination");
-//    m_wizardtype.put((long)0x0200, "Invocation");
-//    m_wizardtype.put((long)0x0800, "Enchantment");
-//    m_wizardtype.put((long)0x0900, "Conjuration");
-//    m_wizardtype.put((long)0x1000, "Illusion");
-//    m_wizardtype.put((long)0x2000, "Abjuration");
-//    m_wizardtype.put((long)0x2400, "Necromancy");
-
-//    m_priesttype.put((long)0x0000, "All priests");
-//    m_priesttype.put((long)0x4000, "Druid/Ranger");
-//    m_priesttype.put((long)0x8000, "Cleric/Paladin");
-  }
 
   private HexViewer hexViewer;
 

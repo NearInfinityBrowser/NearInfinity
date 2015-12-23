@@ -15,7 +15,9 @@ import infinity.resource.AddRemovable;
 
 public final class SpawnPoint extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_active = { "No", "Yes" };
+  public static final String[] s_noyes = { "No", "Yes" };
+  public static final String[] s_method = {"No flags set", "Spawn until paused",
+                                           "Disable after spawn", "Spawn paused"};
 
   SpawnPoint() throws Exception
   {
@@ -49,14 +51,12 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 116, 2, "# creatures"));
     addField(new DecNumber(buffer, offset + 118, 2, "Encounter difficulty"));
     addField(new DecNumber(buffer, offset + 120, 2, "Spawn rate"));
-    addField(new Flag(buffer, offset + 122, 2, "Spawn method",
-                      new String[]{"No flags set", "Spawn until paused", "Disable after spawn",
-                                   "Spawn paused"}));
+    addField(new Flag(buffer, offset + 122, 2, "Spawn method", s_method));
     addField(new DecNumber(buffer, offset + 124, 4, "Creature duration"));
     addField(new DecNumber(buffer, offset + 128, 2, "Creature wander distance"));
     addField(new DecNumber(buffer, offset + 130, 2, "Creature follow distance"));
     addField(new DecNumber(buffer, offset + 132, 2, "Maximum spawned creatures"));
-    addField(new Bitmap(buffer, offset + 134, 2, "Is active?", s_active));
+    addField(new Bitmap(buffer, offset + 134, 2, "Is active?", s_noyes));
     addField(new Flag(buffer, offset + 136, 4, "Active at", Actor.s_schedule));
     addField(new DecNumber(buffer, offset + 140, 2, "Probability (day)"));
     addField(new DecNumber(buffer, offset + 142, 2, "Probability (night)"));

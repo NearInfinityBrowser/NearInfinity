@@ -5,7 +5,6 @@
 package infinity.resource;
 
 import infinity.datatype.Bitmap;
-import infinity.datatype.BitmapEx;
 import infinity.datatype.ColorPicker;
 import infinity.datatype.ColorValue;
 import infinity.datatype.Datatype;
@@ -13,15 +12,14 @@ import infinity.datatype.DecNumber;
 import infinity.datatype.EffectType;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
-import infinity.datatype.HashBitmapEx;
-import infinity.datatype.IDSTargetEffect;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
+import infinity.datatype.IdsTargetType;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SecTypeBitmap;
-import infinity.datatype.SpellProtBitmap;
+import infinity.datatype.SpellProtType;
 import infinity.datatype.StringRef;
 import infinity.datatype.Summon2daBitmap;
 import infinity.datatype.TextString;
@@ -101,7 +99,6 @@ public final class EffectFactory
 
   // contains IDS mappings for BGEE's opcode 319 "Item Usability"
   public static final LongIntegerHashMap<String> m_duration = new LongIntegerHashMap<String>();
-  public static final LongIntegerHashMap<String> m_itemids = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<String>();
   public static final String[] s_inctype = {"Increment", "Set", "Set % of"};
@@ -195,38 +192,6 @@ public final class EffectFactory
     "Daytime", "Not daytime", "Outdoor", "Not outdoor",
     // 90..
     "Keg", "Not keg", "Outsider", "Not outsider"};
-  // TODO: remove this array after all Enhanced Editions have been updated
-  public static final String[] s_cretype_ee = {
-    // 0..9
-    "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
-    "Not humanoid", "Animal", "Not animal", "Elemental",
-    // 10..19
-    "Not elemental", "Fungus", "Not fungus", "Huge creature", "Not huge creature", "Elf", "Not elf",
-    "Umber hulk", "Not umber hulk", "Half-elf",
-    // 20..29
-    "Not half-elf", "Humanoid or animal", "Not humanoid or animal", "Blind", "Not blind",
-    "Cold-dwelling", "Not cold-dwelling", "Golem", "Not golem", "Minotaur",
-    // 30..39
-    "Not minotaur", "Undead or fungus", "Not undead or fungus", "Good", "Not good", "Neutral",
-    "Not neutral", "Evil", "Not evil", "Paladin",
-    // 40..49
-    "Not paladin", "Same moral alignment as source", "Not same moral alignment as source", "Source",
-    "Not source", "Water-dwelling", "Not water-dwelling", "Breathing", "Not breathing", "Allies",
-    // 50..59
-    "Not allies", "Enemies", "Not enemies", "Fire or cold dwelling", "Not fire or cold dwelling",
-    "Unnatural", "Not unnatural", "Male", "Not male", "Lawful",
-    // 60..69
-    "Not lawful", "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf", "Not deaf",
-    "", "",
-    // 70..79
-    "", "", "", "", "", "", "", "", "", "",
-    // 80..89
-    "", "", "", "", "", "", "", "", "", "",
-    // 90..99
-    "", "", "", "", "", "", "", "", "", "",
-    // 100..109
-    "", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
-    "ALIGN.IDS", "KIT.IDS" };
   public static final String[] s_sumanim = {"No animation", "Monster summoning circle",
                                             "Animal summoning circle", "Earth summoning circle",
                                             "Fire summoning circle", "Water summoning circle", "",
@@ -297,17 +262,6 @@ public final class EffectFactory
     m_duration.put(9L, "Instant/Permanent");
     m_duration.put(10L, "Instant/Limited (ticks)");
     m_duration.put(4096L, "Absolute duration");
-
-    m_itemids.put(2L, "EA.IDS");
-    m_itemids.put(3L, "GENERAL.IDS");
-    m_itemids.put(4L, "RACE.IDS");
-    m_itemids.put(5L, "CLASS.IDS");
-    m_itemids.put(6L, "SPECIFIC.IDS");
-    m_itemids.put(7L, "GENDER.IDS");
-    m_itemids.put(8L, "ALIGN.IDS");
-    m_itemids.put(9L, "KIT.IDS");
-    m_itemids.put(10L, "Actor's name");
-    m_itemids.put(11L, "Actor's script name");
 
     m_colorloc.put(0L, "Belt/Amulet");
     m_colorloc.put(1L, "Minor color");
@@ -569,13 +523,30 @@ public final class EffectFactory
   }
 
   /**
+   * Returns the StructEntry object, specified by the EffectEntry argument.
+   * @param struct The structure that contains the requested entry.
+   * @param id Indicates which effect field to return.
+   * @return The StructEntry instance specified by the id.
+   * @throws Exception If one or more arguments are invalid.
+   */
+  public static StructEntry getEntry(AbstractStruct struct, EffectEntry id) throws Exception
+  {
+    StructEntry retVal = null;
+    EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+    if (map != null && map.containsKey(id)) {
+      retVal = getEntryByIndex(struct, map.get(id));
+    }
+    return retVal;
+  }
+
+  /**
    * Returns the StructEntry object at the specified index. Use in conjunction with getEffectStructure.
    * @param struct The structure that contains the requested entry.
    * @param entryIndex The index of the requested entry.
    * @return The entry at the specified index
    * @throws Exception If one or more arguments are invalid.
    */
-  public static StructEntry getEntry(AbstractStruct struct, int entryIndex) throws Exception
+  public static StructEntry getEntryByIndex(AbstractStruct struct, int entryIndex) throws Exception
   {
     if (struct != null) {
       if (entryIndex >= 0 && entryIndex < struct.getList().size()) {
@@ -607,39 +578,54 @@ public final class EffectFactory
   /**
    * Convenience function to retrieve data associated with a structure entry within struct.
    * @param struct The structure that contains the structure entry
-   * @param entryIndex The index of the structure entry within struct
+   * @param id Indicates which effect field to process.
    * @return Data as byte array
    */
-  public static byte[] getEntryData(AbstractStruct struct, int entryIndex)
+  public static byte[] getEntryData(AbstractStruct struct, EffectEntry id)
   {
-    StructEntry entry = null;
-    if (struct != null && entryIndex >= 0 && entryIndex < struct.getList().size())
-      entry = struct.getList().get(entryIndex);
-
-    return getEntryData(entry);
+    if (struct != null) {
+      try {
+        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+        if (map != null && map.containsKey(id)) {
+          int idx = map.get(id);
+          if (idx >= 0 && idx < struct.getList().size()) {
+            return getEntryData(struct.getList().get(idx));
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
   }
 
   /**
    * Replaces a data entry in struct with the specified new entry.
    * @param struct The struct which contains the entry specified by entryIndex and entryOffset.
-   * @param entryIndex The index of the entry within struct.
-   * @param entryOffset The absolute offset of the data entry.
+   * @param index The index key for the entry within struct.
+   * @param offset The offset key for the data entry.
    * @param newEntry The new entry which replaces the old one.
    */
-  public static void replaceEntry(AbstractStruct struct, int entryIndex, int entryOffset,
-                           StructEntry newEntry) throws Exception
+  public static void replaceEntry(AbstractStruct struct, EffectEntry index, EffectEntry offset,
+                                  StructEntry newEntry) throws Exception
   {
-    if (struct != null && newEntry != null) {
+    EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
+    if (struct != null && newEntry != null &&
+        map != null && map.containsKey(index) && map.containsKey(offset)) {
+      int idx = map.get(index);
+      int ofs = map.get(offset);
       List<StructEntry> list = struct.getList();
-      if (list != null && entryIndex >= 0 && entryIndex < list.size() &&
-          entryOffset >= struct.getOffset() && entryOffset < struct.getOffset() + struct.getSize()) {
-        newEntry.setOffset(entryOffset);
-        list.remove(entryIndex);
-        list.add(entryIndex, newEntry);
-      } else
+      if (list != null &&
+          idx >= 0 && idx < list.size() &&
+          ofs >= struct.getOffset() && ofs < struct.getOffset() + struct.getSize()) {
+        newEntry.setOffset(ofs);
+        list.set(idx, newEntry);
+      } else{
         throw new Exception("Index or offset are out of bounds");
-    } else
+      }
+    } else {
       throw new Exception("Invalid arguments specified");
+    }
   }
 
   /**
@@ -651,17 +637,12 @@ public final class EffectFactory
   public static boolean updateOpcode(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
-      EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-      EffectType effType = (EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE));
+      EffectType effType = (EffectType)getEntry(struct, EffectEntry.IDX_OPCODE);
       if (effType != null) {
-        int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         switch (opcode) {
           case 232:     // Cast spell on condition
             return updateOpcode232(struct);
-          case 318: // Protection from Spell
-          case 324: // Immunity to spell and message
-          case 326: // Apply effects list
-            return updateOpcode318(struct);
           case 319:     // Item Usability
             return updateOpcode319(struct);
           case 328:     // Set state
@@ -678,100 +659,23 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          if (opcode == 232) {   // effect type "Cast spell on condition" (232)
-            int param2 = ((Bitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
-            switch (param2) {
-              case 13: // Time of day
-                replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
-                             new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
-                                           0, 4, "Special", "TIMEODAY.IDS"));
-                break;
-              case 15: // State
-                replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
-                             new IdsFlag(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
-                                         0, 4, "Special", "STATE.IDS"));
-                break;
-              default:
-                replaceEntry(struct, map.get(EffectEntry.IDX_SPECIAL), map.get(EffectEntry.OFS_SPECIAL),
-                             new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_SPECIAL)),
-                                           0, 4, "Special"));
-            }
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  // Effect types using extended creature types for param2 (IWDEE only)
-  private static boolean updateOpcode318(AbstractStruct struct) throws Exception
-  {
-    if (struct != null) {
-      if (Profile.isEnhancedEdition()) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          switch (opcode) {
-            case 318: // Protection from Spell
-            case 324: // Immunity to spell and message
-            case 326: // Apply effects list
-            {
-              BitmapEx bitmap = (BitmapEx)getEntry(struct, map.get(EffectEntry.IDX_PARAM2));
-              if (bitmap instanceof SpellProtBitmap) {
-                SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-                if (spb.useCustomValue()) {
-                  String idsFile = spb.getIdsFile();
-                  if (!idsFile.isEmpty()) {
-                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                 new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                               0, 4, "Creature value", idsFile));
-                  } else {
-                    StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                    if (entry instanceof DecNumber && entry.getName().equals("Creature value")) {
-                      // no replace action needed
-                      return false;
-                    } else {
-                      replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                   new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                                 0, 4, "Creature value"));
-                    }
-                  }
-                } else {
-                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                  if (entry.getName().equals("Unused")) {
-                    // no replace action needed
-                    return false;
-                  } else {
-                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                               0, 4, "Unused"));
-                  }
-                }
-              } else {
-                // TODO: remove this section after all Enhanced Editions have been updated
-                int param2 = bitmap.getValue();
-                if (param2 >= 102 && param2 <= 109) {
-                  replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                               new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                             0, 4, "Creature value", s_cretype_ee[param2]));
-                } else {
-                  StructEntry entry = getEntry(struct, map.get(EffectEntry.IDX_PARAM1));
-                  if (entry.getName().equals("Unused")) {
-                    // no replace action needed
-                    return false;
-                  } else {
-                    replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                                 new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                               0, 4, "Unused"));
-                  }
-                }
-              }
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 232) {   // effect type "Cast spell on condition" (232)
+          int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          switch (param2) {
+            case 13: // Time of day
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new IdsBitmap(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
+                                         "Special", "TIMEODAY.IDS"));
               break;
-            }
+            case 15: // State
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new IdsFlag(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
+                                       "Special", "STATE.IDS"));
+              break;
+            default:
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, "Special"));
           }
           return true;
         }
@@ -785,41 +689,14 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          if (opcode == 319) {
-            long param2 = ((HashBitmap)getEntry(struct, map.get(EffectEntry.IDX_PARAM2))).getValue();
-            // updating parameter 1 field
-            if (param2 == 10L) {
-              // Param1 = Actor's name as Strref
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                           new StringRef(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                         0, "Actor name"));
-            } else if (param2 > 1 && param2 < 10) {
-              // Param1 = IDS entry
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                         0, 4, "IDS entry", EffectFactory.m_itemids.get(param2)));
-            } else {
-              // Param1 = Unused
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM1), map.get(EffectEntry.OFS_PARAM1),
-                           new DecNumber(getEntryData(struct, map.get(EffectEntry.IDX_PARAM1)),
-                                         0, 4, "Unused"));
-            }
-
-            // updating resource field
-            if (param2 == 11L) {
-              // Resource = Actor's script name
-              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
-                           new TextString(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
-                                          0, 8, "Script name"));
-            } else {
-              // Resource = Unused
-              replaceEntry(struct, map.get(EffectEntry.IDX_RESOURCE), map.get(EffectEntry.OFS_RESOURCE),
-                           new Unknown(getEntryData(struct, map.get(EffectEntry.IDX_RESOURCE)),
-                                       0, 8, "Unused"));
-            }
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 319) {
+          // updating resource field
+          StructEntry entry = getEntry(struct, EffectEntry.IDX_PARAM2);
+          if (entry instanceof IdsTargetType) {
+            StructEntry resourceEntry =
+                ((IdsTargetType)entry).createResourceFromType(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0);
+            replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE, resourceEntry);
             return true;
           }
         }
@@ -833,24 +710,19 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.getGame() == Profile.Game.IWDEE) {
-        EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map.containsKey(EffectEntry.IDX_OPCODE)) {
-          int opcode = ((EffectType)getEntry(struct, map.get(EffectEntry.IDX_OPCODE))).getValue();
-          if (opcode == 328) {   // effect type "Set State" (328)
-            int special = ((Bitmap)getEntry(struct, map.get(EffectEntry.IDX_SPECIAL))).getValue();
-            if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
-              // Activate IWD2 mode
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM2), map.get(EffectEntry.OFS_PARAM2),
-                           new IdsBitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM2)),
-                                         0, 4, "State", "SPLSTATE.IDS"));
-            } else {
-              // Activate IWD1 mode
-              replaceEntry(struct, map.get(EffectEntry.IDX_PARAM2), map.get(EffectEntry.OFS_PARAM2),
-                  new Bitmap(getEntryData(struct, map.get(EffectEntry.IDX_PARAM2)),
-                             0, 4, "State", s_spellstate));
-            }
-            return true;
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 328) {   // effect type "Set State" (328)
+          int special = ((Bitmap)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
+          if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
+            // Activate IWD2 mode
+            replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
+                         new IdsBitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", "SPLSTATE.IDS"));
+          } else {
+            // Activate IWD1 mode
+            replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
+                         new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", s_spellstate));
           }
+          return true;
         }
       }
     }
@@ -2447,8 +2319,12 @@ public final class EffectFactory
       case 100: // Protection from creature type
       case 109: // Paralyze
       case 175: // Hold creature
-        s.add(new IDSTargetEffect(buffer, offset));
+      {
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         break;
+      }
 
       case 57: // Change alignment
         s.add(new DecNumber(buffer, offset, 4, "Unused"));
@@ -2458,7 +2334,7 @@ public final class EffectFactory
 
       case 58: // Dispel effects
         s.add(new DecNumber(buffer, offset, 4, "Level"));
-        if (isTobEx) {
+        if (isTobEx || isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 2, "Dispel type", new String[]{
               "Always dispel", "Use caster level", "Use specific level"}));
           s.add(new Bitmap(buffer, offset + 6, 2, "Magic weapon dispel type", new String[]{
@@ -2550,7 +2426,9 @@ public final class EffectFactory
         final String[] ids = new String[]{"EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
                                           "SPECIFIC.IDS", "GENDER.IDS",
                                           (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT)};
-        s.add(new IDSTargetEffect(buffer, offset, "IDS target", ids));
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4, IdsTargetType.DEFAULT_NAME_TYPE, ids);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         break;
       }
 
@@ -3055,7 +2933,9 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
-          s.add(new IDSTargetEffect(buffer, offset));
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
           restype = "EFF";
         }
         break;
@@ -3065,7 +2945,9 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
-          s.add(new IDSTargetEffect(buffer, offset));
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
         }
         break;
 
@@ -3129,7 +3011,9 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Unused"));
           s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         } else {
-          s.add(new IDSTargetEffect(buffer, offset));
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
         }
         break;
 
@@ -3259,7 +3143,6 @@ public final class EffectFactory
       case 291: // Disable visual effects
       case 292: // Immunity to backstab
       case 293: // Set persistent AI
-      case 294: // Set existence delay
       case 295: // Disable permanent death
       case 297: // Immunity to turn undead
       case 302: // Can use any item
@@ -3367,8 +3250,12 @@ public final class EffectFactory
 
       case 219: // Attack roll penalty
       case 238: // Disintegrate
-        s.add(new IDSTargetEffect(buffer, offset));
+      {
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         break;
+      }
 
       case 220: // Remove spell school protections
       case 229: // Remove protection by school
@@ -3404,17 +3291,17 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset, 4, "Target",
                          new String[]{"Caster", "Last hit by", "Nearest enemy", "Anyone"}));
         if (Profile.isEnhancedEdition()) {
-          BitmapEx item = new BitmapEx(buffer, offset + 4, 4, "Condition",
-                                       new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                                                    "HP below 25%", "HP below 10%", "If helpless",
-                                                    "If poisoned", "Every round when attacked",
-                                                    "Target in range 4'", "Target in range 10'",
-                                                    "Every round", "Took damage", "Actor killed",
-                                                    "Time of day is 'Special'",
-                                                    "Target in 'Special' range",
-                                                    "Target's state is 'Special'", "Target dies",
-                                                    "Target died", "Target turned by",
-                                                    "Target HP < 'Special'", "Target HP % < 'Special'"});
+          Bitmap item = new Bitmap(buffer, offset + 4, 4, "Condition",
+                                   new String[]{"Target hit", "Enemy sighted", "HP below 50%",
+                                                "HP below 25%", "HP below 10%", "If helpless",
+                                                "If poisoned", "Every round when attacked",
+                                                "Target in range 4'", "Target in range 10'",
+                                                "Every round", "Took damage", "Actor killed",
+                                                "Time of day is 'Special'",
+                                                "Target in 'Special' range",
+                                                "Target's state is 'Special'", "Target dies",
+                                                "Target died", "Target turned by",
+                                                "Target HP < 'Special'", "Target HP % < 'Special'"});
           s.add(item);
           if (parent != null && parent instanceof UpdateListener) {
             item.addUpdateListener((UpdateListener)parent);
@@ -3653,14 +3540,23 @@ public final class EffectFactory
         break;
 
       case 283: // Use EFF file as curse
-        s.add(new IDSTargetEffect(buffer, offset));
+      {
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         restype = "EFF";
         break;
+      }
 
       case 290: // Change title
         s.add(new StringRef(buffer, offset, "Title"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Change where?",
                          new String[]{"Records screen", "Class name"}));
+        break;
+
+      case 294: // Set existence delay
+        s.add(new DecNumber(buffer, offset, 4, "Stat value"));
+        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
         break;
 
       case 296: // Immunity to specific animation
@@ -3738,35 +3634,9 @@ public final class EffectFactory
 
       case 318: // Protection from Spell, Ex: Set stat
         if (isExtended) {
-          BitmapEx bitmap = null;
-          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
-            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
-            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-            if (spb.useCustomValue()) {
-              String idsFile = spb.getIdsFile();
-              if (!idsFile.isEmpty()) {
-                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
-              } else {
-                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
-              }
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          } else {
-            // TODO: remove this section after all Enhanced Editions have been updated
-            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-            int param2 = bitmap.getValue();
-            if (param2 >= 102 && param2 <= 109) {
-              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          }
-          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
-            bitmap.addUpdateListener((UpdateListener)parent);
-          }
+          SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
+          s.add(param2.createCreatureValueFromType(buffer, offset));
+          s.add(param2);
           restype = "SPL";
         } else if (isTobEx) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
@@ -3782,35 +3652,9 @@ public final class EffectFactory
       case 324: // Immunity to spell and message
       case 326: // Apply effects list
         if (isExtended) {
-          BitmapEx bitmap = null;
-          if (ResourceFactory.resourceExists(SpellProtBitmap.getTableName())) {
-            bitmap = new SpellProtBitmap(buffer, offset + 4, 4, "Creature type");
-            SpellProtBitmap spb = (SpellProtBitmap)bitmap;
-            if (spb.useCustomValue()) {
-              String idsFile = spb.getIdsFile();
-              if (!idsFile.isEmpty()) {
-                s.add(new IdsBitmap(buffer, offset, 4, "Creature value", idsFile));
-              } else {
-                s.add(new DecNumber(buffer, offset, 4, "Creature value"));
-              }
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          } else {
-            // TODO: remove this section after all Enhanced Editions have been updated
-            bitmap = new BitmapEx(buffer, offset + 4, 4, "Creature type", s_cretype_ee);
-            int param2 = bitmap.getValue();
-            if (param2 >= 102 && param2 <= 109) {
-              s.add(new IdsBitmap(buffer, offset, 4, "Creature value", s_cretype_ee[param2]));
-            } else {
-              s.add(new DecNumber(buffer, offset, 4, "Unused"));
-            }
-            s.add(bitmap);
-          }
-          if (bitmap != null && parent != null && parent instanceof UpdateListener) {
-            bitmap.addUpdateListener((UpdateListener)parent);
-          }
+          SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
+          s.add(param2.createCreatureValueFromType(buffer, offset));
+          s.add(param2);
           restype = "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -3820,19 +3664,12 @@ public final class EffectFactory
       case 319: // Restrict item (BGEE)
       {
         if (Profile.isEnhancedEdition()) {
-          int param2 = DynamicArray.getInt(buffer, offset + 4);
-          if (param2 > 1 && param2 < 10) {
-            s.add(new IdsBitmap(buffer, offset, 4, "IDS entry", m_itemids.get((long)param2)));
-          } else if (param2 == 10) {
-            s.add(new StringRef(buffer, offset, "Actor name"));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          }
-          HashBitmapEx idsFile = new HashBitmapEx(buffer, offset + 4, 4, "IDS file", m_itemids);
-          s.add(idsFile);
-          if (parent != null && parent instanceof UpdateListener) {
-            idsFile.addUpdateListener((UpdateListener)parent);
-          }
+          IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4,
+                                                   IdsTargetType.DEFAULT_NAME_TYPE,
+                                                   IdsTargetType.DEFAULT_SECOND_IDS, true);
+          param2.addUpdateListener((UpdateListener)parent);
+          s.add(param2.createIdsValueFromType(buffer));
+          s.add(param2);
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4996,7 +4833,7 @@ public final class EffectFactory
 
         case 328:   // Set state (BGEE/IWDEE)
           if (isIWDEE) {
-            BitmapEx bmp = new BitmapEx(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
+            Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
             s.add(bmp);
             if (parent != null && parent instanceof UpdateListener) {
               bmp.addUpdateListener((UpdateListener)parent);

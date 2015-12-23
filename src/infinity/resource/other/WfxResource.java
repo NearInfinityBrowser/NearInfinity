@@ -20,7 +20,7 @@ import infinity.resource.key.ResourceEntry;
 
 public final class WfxResource extends AbstractStruct implements Resource, HasViewerTabs
 {
-  private static final String s_flag[] = {"No flags set", "Cutscene audio", "Alternate SR curve",
+  private static final String[] s_flag = {"No flags set", "Cutscene audio", "Alternate SR curve",
                                           "Pitch variance", "Volume variance", "Disable environmental effects"};
 
   private HexViewer hexViewer;

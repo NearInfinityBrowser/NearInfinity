@@ -60,7 +60,7 @@ public class PriTypeBitmap extends HashBitmap
     return retVal;
   }
 
-  private static LongIntegerHashMap<String> getTypeTable()
+  private static synchronized LongIntegerHashMap<String> getTypeTable()
   {
     if (typeMap.isEmpty()) {
       if (ResourceFactory.resourceExists(TableName) && TableName.endsWith(".2DA")) {
@@ -93,7 +93,7 @@ public class PriTypeBitmap extends HashBitmap
     return typeMap;
   }
 
-  public static void resetTypeTable()
+  public static synchronized void resetTypeTable()
   {
     typeMap.clear();
     if (TableName.endsWith(".2DA")) {

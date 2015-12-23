@@ -9,7 +9,7 @@ import infinity.resource.AddRemovable;
 import infinity.resource.Profile;
 import infinity.resource.itm.ItmResource;
 
-final class Purchases extends Bitmap implements AddRemovable
+public final class Purchases extends Bitmap implements AddRemovable
 {
   Purchases()
   {

@@ -291,7 +291,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
                                                             showStrrefs));
 
       // updating state WAV Res
-      String responseText = StringResource.getResource(state.getResponse().getValue());
+      String responseText = StringResource.getWavResource(state.getResponse().getValue());
       if (responseText != null) {
         dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
         dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");

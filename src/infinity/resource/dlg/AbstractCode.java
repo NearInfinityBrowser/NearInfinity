@@ -7,7 +7,9 @@ package infinity.resource.dlg;
 import infinity.datatype.Datatype;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Editable;
+import infinity.datatype.IsTextual;
 import infinity.datatype.TextString;
+import infinity.datatype.UpdateEvent;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
@@ -41,8 +43,8 @@ import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public abstract class AbstractCode extends Datatype implements Editable, AddRemovable, ActionListener,
-                                                               DocumentListener, ItemListener
+public abstract class AbstractCode extends Datatype
+    implements Editable, IsTextual, AddRemovable, ActionListener, DocumentListener, ItemListener
 {
   private static final ButtonPanel.Control CtrlUpdate   = ButtonPanel.Control.Custom1;
   private static final ButtonPanel.Control CtrlCheck    = ButtonPanel.Control.Custom2;
@@ -79,9 +81,11 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
       JButton bCheck = (JButton)event.getSource();
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlErrors);
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlWarnings);
-      Compiler.getInstance().compileDialogCode(textArea.getText(), this instanceof Action);
-      errors = Compiler.getInstance().getErrors();
-      warnings = Compiler.getInstance().getWarnings();
+      Compiler compiler = new Compiler(textArea.getText(),
+                                       (this instanceof Action) ? Compiler.ScriptType.Action :
+                                                                  Compiler.ScriptType.Trigger);
+      errors = compiler.getErrors();
+      warnings = compiler.getWarnings();
       if (errors.size() > 0) {
         JMenuItem errorItems[] = new JMenuItem[errors.size()];
         int count = 0;
@@ -222,8 +226,13 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
       String options[] = {"Update", "Cancel"};
       if (JOptionPane.showOptionDialog(textArea.getTopLevelAncestor(), "Errors exist. Update anyway?", "Update value",
                                        JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+
+        // notifying listeners
+        fireValueUpdated(new UpdateEvent(this, struct));
+
         return true;
+      }
     }
     text = textArea.getText();
     int index = text.indexOf((int)'\n');
@@ -232,6 +241,10 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
       index = text.indexOf((int)'\n', index + 2);
     }
     bUpdate.setEnabled(false);
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -292,10 +305,20 @@ public abstract class AbstractCode extends Datatype implements Editable, AddRemo
 
 // --------------------- End Interface Readable ---------------------
 
+// --------------------- Begin Interface IsTextual ---------------------
+
+  @Override
+  public String getText()
+  {
+    return text;
+  }
+
+// --------------------- End Interface IsTextual ---------------------
+
   @Override
   public String toString()
   {
-    return text;
+    return getText();
   }
 
   public void addFlatList(List<StructEntry> flatList)

@@ -9,7 +9,7 @@ import infinity.datatype.HexNumber;
 import infinity.datatype.ResourceRef;
 import infinity.resource.AbstractStruct;
 
-final class Familiar extends AbstractStruct
+public final class Familiar extends AbstractStruct
 {
   Familiar(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {

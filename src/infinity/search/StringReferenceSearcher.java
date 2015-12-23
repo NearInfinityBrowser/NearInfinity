@@ -60,14 +60,19 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
       else if (o instanceof AbstractCode) {
         AbstractCode sourceCode = (AbstractCode)o;
         try {
-          String code = Compiler.getInstance().compileDialogCode(sourceCode.toString(),
-                                                                 sourceCode instanceof Action);
-          if (Compiler.getInstance().getErrors().size() == 0) {
-            if (o instanceof Action)
-              Decompiler.decompileDialogAction(code, true);
-            else
-              Decompiler.decompileDialogTrigger(code, true);
-            for (final Integer stringRef : Decompiler.getStringRefsUsed()) {
+          Compiler compiler = new Compiler(sourceCode.toString(),
+                                           (sourceCode instanceof Action) ? Compiler.ScriptType.Action :
+                                                                            Compiler.ScriptType.Trigger);
+          String code = compiler.getCode();
+          if (compiler.getErrors().size() == 0) {
+            Decompiler decompiler = new Decompiler(code, true);
+            if (o instanceof Action) {
+              decompiler.setScriptType(Decompiler.ScriptType.Action);
+            } else {
+              decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+            }
+            decompiler.decompile();
+            for (final Integer stringRef : decompiler.getStringRefsUsed()) {
               if (stringRef.intValue() == searchvalue)
                 addHit(entry, entry.getSearchString(), sourceCode);
             }
@@ -106,8 +111,9 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchScript(ResourceEntry entry, BcsResource bcsfile)
   {
-    Decompiler.decompile(bcsfile.getCode(), true);
-    for (final Integer stringRef : Decompiler.getStringRefsUsed()) {
+    Decompiler decompiler = new Decompiler(bcsfile.getCode(), true);
+    decompiler.decompile();
+    for (final Integer stringRef : decompiler.getStringRefsUsed()) {
       if (stringRef.intValue() == searchvalue)
         addHit(entry, null, null);
     }

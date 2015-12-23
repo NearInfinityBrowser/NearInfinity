@@ -341,6 +341,9 @@ public class StructuredDataProvider implements IDataProvider
     public int getSize() { return 0; }
 
     @Override
+    public byte[] getDataBuffer() { return new byte[0]; }
+
+    @Override
     public List<StructEntry> getStructChain() { return null; }
 
     @Override

@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-public final class TextString extends Datatype implements InlineEditable
+public final class TextString extends Datatype implements InlineEditable, IsTextual
 {
   private final byte bytes[];
   private String text;
@@ -75,12 +75,23 @@ public final class TextString extends Datatype implements InlineEditable
 
 //--------------------- End Interface Readable ---------------------
 
+//--------------------- Begin Interface IsTextual ---------------------
+
+  @Override
+  public String getText()
+  {
+    if (text == null) {
+      text = DynamicArray.getString(bytes, 0, bytes.length);
+    }
+    return text;
+  }
+
+//--------------------- End Interface IsTextual ---------------------
+
   @Override
   public String toString()
   {
-    if (text == null)
-      text = DynamicArray.getString(bytes, 0, bytes.length);
-    return text;
+    return getText();
   }
 }
 

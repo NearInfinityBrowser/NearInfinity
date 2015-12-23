@@ -7,7 +7,7 @@ package infinity.resource.gam;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Profile;
 
-final class NonPartyNPC extends PartyNPC
+public final class NonPartyNPC extends PartyNPC
 {
   NonPartyNPC() throws Exception
   {

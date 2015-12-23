@@ -11,9 +11,9 @@ import infinity.resource.AbstractStruct;
 
 public final class Tilemap extends AbstractStruct // implements AddRemovable
 {
-  private static final String s_flags[] = { "Primary overlay only", "Unused", "Overlay 1",
+  private static final String[] s_flags = {"Primary overlay only", "Unused", "Overlay 1",
                                            "Overlay 2", "Overlay 3", "Overlay 4", "Overlay 5",
-                                           "Overlay 6", "Overlay 7" };
+                                           "Overlay 6", "Overlay 7"};
 
   public Tilemap(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {

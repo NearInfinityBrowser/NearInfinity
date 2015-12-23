@@ -7,7 +7,7 @@ package infinity.resource.gam;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class KillVariable extends Variable implements AddRemovable
+public final class KillVariable extends Variable implements AddRemovable
 {
   KillVariable() throws Exception
   {

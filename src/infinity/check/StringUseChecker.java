@@ -19,6 +19,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.bcs.BcsResource;
+import infinity.resource.bcs.Compiler;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
@@ -27,6 +28,8 @@ import infinity.resource.key.ResourceEntry;
 import infinity.resource.text.PlainTextResource;
 import infinity.search.SearchClient;
 import infinity.search.SearchMaster;
+import infinity.util.Debugging;
+import infinity.util.Misc;
 import infinity.util.StringResource;
 import infinity.util.io.FileWriterNI;
 import infinity.util.io.PrintWriterNI;
@@ -42,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,14 +65,19 @@ import javax.swing.event.ListSelectionListener;
 
 public final class StringUseChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
+  private static final String FMT_PROGRESS = "Checking %ss...";
+
   private static final Pattern NUMBERPATTERN = Pattern.compile("\\d+", Pattern.DOTALL);
-  private static final String FILETYPES[] = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
+  private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
                                              "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
   private ChildFrame resultFrame;
   private JTextArea textArea;
   private SortableTable table;
-  private boolean strUsed[];
+  private boolean[] strUsed;
   private JMenuItem save;
+  private List<ResourceEntry> files;
+  private ProgressMonitor progress;
+  private int progressIndex;
 
   public StringUseChecker()
   {
@@ -99,81 +108,119 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
-    List<ResourceEntry> files = new ArrayList<ResourceEntry>();
-    for (final String fileType : FILETYPES)
-      files.addAll(ResourceFactory.getResources(fileType));
-    ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
-                                                   "Searching...", null, 0, files.size());
+    try {
+      ThreadPoolExecutor executor = Misc.createThreadPool();
+      files = new ArrayList<ResourceEntry>();
+      for (final String fileType : FILETYPES)
+        files.addAll(ResourceFactory.getResources(fileType));
+      String type = "WWWW";
+      progressIndex = 0;
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching...",
+                                     String.format(FMT_PROGRESS, type),
+                                     0, files.size());
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
-    colClasses.add(Object.class); colClasses.add(Integer.class);
-    table = new SortableTable(Arrays.asList(new String[]{"String", "StrRef"}),
-                              colClasses, Arrays.asList(new Integer[]{450, 20}));
+      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
+      colClasses.add(Object.class); colClasses.add(Integer.class);
+      table = new SortableTable(Arrays.asList(new String[]{"String", "StrRef"}),
+                                colClasses, Arrays.asList(new Integer[]{450, 20}));
 
-    StringResource.getStringRef(0);
-    strUsed = new boolean[StringResource.getMaxIndex() + 1];
-    for (int i = 0; i < files.size(); i++) {
-      ResourceEntry entry = files.get(i);
-      Resource resource = ResourceFactory.getResource(entry);
-      if (resource instanceof DlgResource)
-        checkDialog((DlgResource)resource);
-      else if (resource instanceof BcsResource)
-        checkScript((BcsResource)resource);
-      else if (resource instanceof PlainTextResource)
-        checkTextfile((PlainTextResource)resource);
-      else if (resource != null)
-        checkStruct((AbstractStruct)resource);
-      progress.setProgress(i + 1);
-      if (progress.isCanceled()) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation canceled",
+      StringResource.getStringRef(0);
+      strUsed = new boolean[StringResource.getMaxIndex() + 1];
+      boolean isCancelled = false;
+      Debugging.timerReset();
+      for (int i = 0; i < files.size(); i++) {
+        ResourceEntry entry = files.get(i);
+        if (i % 10 == 0) {
+          String ext = entry.getExtension();
+          if (ext != null && !type.equalsIgnoreCase(ext)) {
+            type = ext;
+            progress.setNote(String.format(FMT_PROGRESS, type));
+          }
+        }
+        Misc.isQueueReady(executor, true, -1);
+        executor.execute(new Worker(entry));
+        if (progress.isCanceled()) {
+          isCancelled = true;
+          break;
+        }
+      }
+
+      // enforcing thread termination if process has been cancelled
+      if (isCancelled) {
+        executor.shutdownNow();
+      } else {
+        executor.shutdown();
+      }
+
+      // waiting for pending threads to terminate
+      while (!executor.isTerminated()) {
+        if (!isCancelled && progress.isCanceled()) {
+          executor.shutdownNow();
+          isCancelled = true;
+        }
+        try { Thread.sleep(1); } catch (InterruptedException e) {}
+      }
+
+      if (isCancelled) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
-        blocker.setBlocked(false);
         return;
       }
+
+      for (int i = 0; i < strUsed.length; i++) {
+        if (!strUsed[i]) {
+          table.addTableItem(new UnusedStringTableItem(new Integer(i)));
+        }
+      }
+      if (table.getRowCount() == 0) {
+        resultFrame.close();
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused strings found",
+                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      } else {
+        table.tableComplete(1);
+        textArea = new JTextArea(10, 40);
+        textArea.setEditable(false);
+        textArea.setWrapStyleWord(true);
+        textArea.setLineWrap(true);
+        JScrollPane scrollText = new JScrollPane(textArea);
+        resultFrame = new ChildFrame("Result", true);
+        save = new JMenuItem("Save");
+        save.addActionListener(this);
+        JMenu fileMenu = new JMenu("File");
+        fileMenu.add(save);
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(fileMenu);
+        resultFrame.setJMenuBar(menuBar);
+        resultFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
+        JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", JLabel.CENTER);
+        count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+        JScrollPane scrollTable = new JScrollPane(table);
+        scrollTable.getViewport().setBackground(table.getBackground());
+        JPanel pane = (JPanel)resultFrame.getContentPane();
+        pane.setLayout(new BorderLayout(0, 3));
+        pane.add(count, BorderLayout.NORTH);
+        pane.add(scrollTable, BorderLayout.CENTER);
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        JPanel searchPanel = SearchMaster.createAsPanel(this, resultFrame);
+        bottomPanel.add(scrollText, BorderLayout.CENTER);
+        bottomPanel.add(searchPanel, BorderLayout.EAST);
+        pane.add(bottomPanel, BorderLayout.SOUTH);
+        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        table.getSelectionModel().addListSelectionListener(this);
+        resultFrame.pack();
+        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+        resultFrame.setVisible(true);
+      }
+    } finally {
+      advanceProgress(true);
+      blocker.setBlocked(false);
+      if (files != null) {
+        files.clear();
+        files = null;
+      }
     }
-    for (int i = 0; i < strUsed.length; i++)
-      if (!strUsed[i])
-        table.addTableItem(new UnusedStringTableItem(new Integer(i)));
-    if (table.getRowCount() == 0)
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused strings found",
-                                    "Info", JOptionPane.INFORMATION_MESSAGE);
-    else {
-      table.tableComplete(1);
-      textArea = new JTextArea(10, 40);
-      textArea.setEditable(false);
-      textArea.setWrapStyleWord(true);
-      textArea.setLineWrap(true);
-      JScrollPane scrollText = new JScrollPane(textArea);
-      resultFrame = new ChildFrame("Result", true);
-      save = new JMenuItem("Save");
-      save.addActionListener(this);
-      JMenu fileMenu = new JMenu("File");
-      fileMenu.add(save);
-      JMenuBar menuBar = new JMenuBar();
-      menuBar.add(fileMenu);
-      resultFrame.setJMenuBar(menuBar);
-      resultFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
-      JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", JLabel.CENTER);
-      count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
-      JScrollPane scrollTable = new JScrollPane(table);
-      scrollTable.getViewport().setBackground(table.getBackground());
-      JPanel pane = (JPanel)resultFrame.getContentPane();
-      pane.setLayout(new BorderLayout(0, 3));
-      pane.add(count, BorderLayout.NORTH);
-      pane.add(scrollTable, BorderLayout.CENTER);
-      JPanel bottomPanel = new JPanel(new BorderLayout());
-      JPanel searchPanel = SearchMaster.createAsPanel(this, resultFrame);
-      bottomPanel.add(scrollText, BorderLayout.CENTER);
-      bottomPanel.add(searchPanel, BorderLayout.EAST);
-      pane.add(bottomPanel, BorderLayout.SOUTH);
-      table.setFont(BrowserMenuBar.getInstance().getScriptFont());
-      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      table.getSelectionModel().addListSelectionListener(this);
-      resultFrame.pack();
-      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-      resultFrame.setVisible(true);
-    }
-    blocker.setBlocked(false);
+    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
@@ -244,23 +291,34 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
     for (int i = 0; i < flatList.size(); i++) {
       if (flatList.get(i) instanceof StringRef) {
         StringRef ref = (StringRef)flatList.get(i);
-        if (ref.getValue() >= 0 && ref.getValue() < strUsed.length)
-          strUsed[ref.getValue()] = true;
+        if (ref.getValue() >= 0 && ref.getValue() < strUsed.length) {
+          synchronized (strUsed) {
+            strUsed[ref.getValue()] = true;
+          }
+        }
       }
       else if (flatList.get(i) instanceof AbstractCode) {
         AbstractCode code = (AbstractCode)flatList.get(i);
         try {
-          String compiled = infinity.resource.bcs.Compiler.getInstance().compileDialogCode(code.toString(),
-                                                                                           code instanceof Action);
-          if (code instanceof Action)
-            Decompiler.decompileDialogAction(compiled, true);
-          else
-            Decompiler.decompileDialogTrigger(compiled, true);
-          Set<Integer> used = Decompiler.getStringRefsUsed();
+          Compiler compiler = new Compiler(code.toString(),
+                                           (code instanceof Action) ? Compiler.ScriptType.Action :
+                                                                      Compiler.ScriptType.Trigger);
+          String compiled = compiler.getCode();
+          Decompiler decompiler = new Decompiler(compiled, true);
+          if (code instanceof Action) {
+            decompiler.setScriptType(Decompiler.ScriptType.Action);
+          } else {
+            decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+          }
+          decompiler.decompile();
+          Set<Integer> used = decompiler.getStringRefsUsed();
           for (final Integer stringRef : used) {
             int u = stringRef.intValue();
-            if (u >= 0 && u < strUsed.length)
-              strUsed[u] = true;
+            if (u >= 0 && u < strUsed.length) {
+              synchronized (strUsed) {
+                strUsed[u] = true;
+              }
+            }
           }
         } catch (Exception e) {
           e.printStackTrace();
@@ -271,23 +329,30 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
   private void checkScript(BcsResource script)
   {
-    Decompiler.decompile(script.getCode(), true);
-    Set<Integer> used = Decompiler.getStringRefsUsed();
+    Decompiler decompiler = new Decompiler(script.getCode(), true);
+    decompiler.decompile();
+    Set<Integer> used = decompiler.getStringRefsUsed();
     for (final Integer stringRef : used) {
       int u = stringRef.intValue();
-      if (u >= 0 && u < strUsed.length)
-        strUsed[u] = true;
+      if (u >= 0 && u < strUsed.length) {
+        synchronized (strUsed) {
+          strUsed[u] = true;
+        }
+      }
     }
   }
 
   private void checkStruct(AbstractStruct struct)
   {
     List<StructEntry> flatList = struct.getFlatList();
-    for (int i = 0; i < flatList.size(); i++) {
+    for (int i = 0, size = flatList.size(); i < size; i++) {
       if (flatList.get(i) instanceof StringRef) {
         StringRef ref = (StringRef)flatList.get(i);
-        if (ref.getValue() >= 0 && ref.getValue() < strUsed.length)
-          strUsed[ref.getValue()] = true;
+        if (ref.getValue() >= 0 && ref.getValue() < strUsed.length) {
+          synchronized (strUsed) {
+            strUsed[ref.getValue()] = true;
+          }
+        }
       }
     }
   }
@@ -297,8 +362,25 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
     Matcher m = NUMBERPATTERN.matcher(text.getText());
     while (m.find()) {
       long nr = Long.parseLong(text.getText().substring(m.start(), m.end()));
-      if (nr >= 0 && nr < strUsed.length)
-        strUsed[(int)nr] = true;
+      if (nr >= 0 && nr < strUsed.length) {
+        synchronized (strUsed) {
+          strUsed[(int)nr] = true;
+        }
+      }
+    }
+  }
+
+  private synchronized void advanceProgress(boolean finished)
+  {
+    if (progress != null) {
+      if (finished) {
+        progressIndex = 0;
+        progress.close();
+        progress = null;
+      } else {
+        progressIndex++;
+        progress.setProgress(progressIndex);
+      }
     }
   }
 
@@ -327,6 +409,34 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
     public String toString()
     {
       return string;
+    }
+  }
+
+  private class Worker implements Runnable
+  {
+    private final ResourceEntry entry;
+
+    public Worker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        Resource resource = ResourceFactory.getResource(entry);
+        if (resource instanceof DlgResource) {
+          checkDialog((DlgResource)resource);
+        } else if (resource instanceof BcsResource) {
+          checkScript((BcsResource)resource);
+        } else if (resource instanceof PlainTextResource) {
+          checkTextfile((PlainTextResource)resource);
+        } else if (resource != null) {
+          checkStruct((AbstractStruct)resource);
+        }
+      }
+      advanceProgress(false);
     }
   }
 }

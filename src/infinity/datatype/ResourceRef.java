@@ -38,54 +38,56 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public class ResourceRef extends Datatype implements Editable, ActionListener, ListSelectionListener
+public class ResourceRef extends Datatype
+    implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener
 {
+  private static final Comparator<Object> ignoreCaseExtComparator = new IgnoreCaseExtComparator();
+
   private static final String NONE = "None";
-  private final String type[];
+  private final String[] type;
   private String curtype;
-  String resname;
+  private String resname;
   private JButton bView;
   private TextListPanel list;
-  private byte buffer[];
-  private final Comparator<Object> ignorecaseextcomparator = new IgnoreCaseExtComparator<Object>();
+  private byte[] buffer;
 
-  public ResourceRef(byte h_buffer[], int offset, String name, String type)
+  public ResourceRef(byte[] h_buffer, int offset, String name, String type)
   {
     this(null, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, String type)
+  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, String name, String type)
   {
     this(parent, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(byte h_buffer[], int offset, int length, String name, String type)
+  public ResourceRef(byte[] h_buffer, int offset, int length, String name, String type)
   {
     this(null, h_buffer, offset, length, name, new String[]{type});
   }
 
-  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, int length, String name,
+  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, int length, String name,
                      String type)
   {
     this(parent, h_buffer, offset, length, name, new String[]{type});
   }
 
-  public ResourceRef(byte h_buffer[], int offset, String name, String[] type)
+  public ResourceRef(byte[] h_buffer, int offset, String name, String[] type)
   {
     this(null, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, String[] type)
+  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, String name, String[] type)
   {
     this(parent, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(byte h_buffer[], int offset, int length, String name, String[] type)
+  public ResourceRef(byte[] h_buffer, int offset, int length, String name, String[] type)
   {
     this(null, h_buffer, offset, length, name, type);
   }
 
-  public ResourceRef(StructEntry parent, byte h_buffer[], int offset, int length, String name,
+  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, int length, String name,
                      String[] type)
   {
     super(parent, offset, length, name);
@@ -104,18 +106,18 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
   {
     if (event.getSource() == bView) {
       Object selected = list.getSelectedValue();
-      if (selected == NONE)
+      if (selected == NONE) {
         new ViewFrame(list.getTopLevelAncestor(), null);
-      else {
+      } else {
         ResourceEntry entry = ((ResourceRefEntry)selected).entry;
-        if (entry != null)
+        if (entry != null) {
           new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(entry));
+        }
       }
     }
   }
 
 // --------------------- End Interface ActionListener ---------------------
-
 
 // --------------------- Begin Interface Editable ---------------------
 
@@ -139,7 +141,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
       }
       addExtraEntries(values);
     }
-    Collections.sort(values, ignorecaseextcomparator);
+    Collections.sort(values, ignoreCaseExtComparator);
     list = new TextListPanel(values, false);
     list.addMouseListener(new MouseAdapter()
     {
@@ -153,11 +155,11 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
     ResourceEntry entry = null;
     for (int i = 0; i < type.length && entry == null; i++) {
-      entry = ResourceFactory.getResourceEntry(resname + '.' + type[i]);
+      entry = ResourceFactory.getResourceEntry(resname + '.' + type[i], true);
       if (entry != null) {
         for (int j = 0; j < values.size(); j++) {
           Object o = values.get(j);
-          if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).entry == entry) {
+          if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).entry.equals(entry)) {
             list.setSelectedValue(o, true);
             break;
           }
@@ -227,8 +229,13 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     Object selected = list.getSelectedValue();
     if (selected == NONE) {
       resname = NONE;
+
+      // notifying listeners
+      fireValueUpdated(new UpdateEvent(this, struct));
+
       return true;
     }
+
     ResourceEntry entry = ((ResourceRefEntry)selected).entry;
     if (entry == null) {
       resname = ((ResourceRefEntry)selected).name;
@@ -241,9 +248,14 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
           curtype = type[j];
         }
       }
-      if (i == -1)
+      if (i == -1) {
         return false;
+      }
     }
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -312,7 +324,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     // determine the correct file extension
     if (!resname.equals(NONE)) {
       for (int i = 0; i < this.type.length; i++) {
-        if (null != ResourceFactory.getResourceEntry(resname + "." + this.type[i])) {
+        if (null != ResourceFactory.getResourceEntry(resname + "." + this.type[i], true)) {
           curtype = this.type[i];
           break;
         }
@@ -335,13 +347,29 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     return getResourceName();
   }
 
+//--------------------- Begin Interface IsTextual ---------------------
+
+  @Override
+  public String getText()
+  {
+    return resname;
+  }
+
+//--------------------- End Interface IsTextual ---------------------
+
+//--------------------- Begin Interface IsReference ---------------------
+
+  @Override
   public String getResourceName()
   {
-    if (resname.equals(NONE))
+    if (resname.equals(NONE)) {
       return resname;
-    else
+    } else {
       return new StringBuffer(resname).append('.').append(curtype).toString();
+    }
   }
+
+//--------------------- End Interface IsReference ---------------------
 
   public boolean isEmpty()
   {
@@ -350,7 +378,7 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
 
   public String getSearchName()
   {
-    ResourceEntry entry = ResourceFactory.getResourceEntry(getResourceName());
+    ResourceEntry entry = ResourceFactory.getResourceEntry(getResourceName(), true);
     if (entry != null)
       return entry.getSearchString();
     return null;
@@ -403,10 +431,10 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
     }
   }
 
-  final class IgnoreCaseExtComparator<T> implements Comparator<T>
+  private static class IgnoreCaseExtComparator implements Comparator<Object>
   {
     @Override
-    public int compare(T o1, T o2)
+    public int compare(Object o1, Object o2)
     {
       if (o1 != null && o2 != null) {
         String s1 = o1.toString();
@@ -414,8 +442,9 @@ public class ResourceRef extends Datatype implements Editable, ActionListener, L
         int i1 = s1.lastIndexOf('.') > 0 ? s1.lastIndexOf('.') : s1.length();
         int i2 = s2.lastIndexOf('.') > 0 ? s2.lastIndexOf('.') : s2.length();
         return s1.substring(0, i1).compareToIgnoreCase(s2.substring(0, i2));
-      } else
+      } else {
         return 0;
+      }
     }
 
     @Override

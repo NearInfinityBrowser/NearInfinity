@@ -105,8 +105,10 @@ public class FileReaderNI extends FileReader
 
   public static short readShort(RandomAccessFile ranfile) throws IOException
   {
-    ranfile.readFully(buffer2);
-    return DynamicArray.getShort(buffer2, 0);
+    synchronized (buffer2) {
+      ranfile.readFully(buffer2);
+      return DynamicArray.getShort(buffer2, 0);
+    }
   }
 
   /**
@@ -140,8 +142,10 @@ public class FileReaderNI extends FileReader
 
   public static int readInt(RandomAccessFile ranfile) throws IOException
   {
-    ranfile.readFully(buffer4);
-    return DynamicArray.getInt(buffer4, 0);
+    synchronized (buffer4) {
+      ranfile.readFully(buffer4);
+      return DynamicArray.getInt(buffer4, 0);
+    }
   }
 
   /**

@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
@@ -93,6 +95,7 @@ import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
+import infinity.util.Misc;
 import infinity.util.Pair;
 import infinity.util.io.FileNI;
 
@@ -242,12 +245,19 @@ public class SearchResource extends ChildFrame
         if (panel != null) {
           SearchOptions so = panel.getOptions();
 
+          // using parallel jobs to speed up search
+          ThreadPoolExecutor executor = Misc.createThreadPool();
           for (int i = 0; i < resources.size(); i++) {
-            ResourceEntry entry = resources.get(i);
-            if (entry.matchSearchOptions(so)) {
-              found.add(new NamedResourceEntry(entry));
-            }
-            pbProgress.setValue(i + 1);
+            Misc.isQueueReady(executor, true, -1);
+            executor.execute(new SearchWorker(found, so, resources.get(i)));
+          }
+
+          // waiting for threads to finish
+          executor.shutdown();
+          try {
+            executor.awaitTermination(60, TimeUnit.SECONDS);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
           }
 
           // preparing results for output
@@ -536,6 +546,38 @@ public class SearchResource extends ChildFrame
 
 
 //-------------------------- INNER CLASSES --------------------------
+
+  // Worker class for threaded searching resources
+  private class SearchWorker implements Runnable
+  {
+    private final List<NamedResourceEntry> list;
+    private final SearchOptions so;
+    private final ResourceEntry entry;
+
+    /**
+     * @param list List containing matching resources
+     * @param so SearchOptions instance
+     * @param entry The resource to search
+     */
+    public SearchWorker(List<NamedResourceEntry> list, SearchOptions so, ResourceEntry entry)
+    {
+      this.list = list;
+      this.so = so;
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry.matchSearchOptions(so)) {
+        list.add(new NamedResourceEntry(entry));
+      }
+      synchronized (pbProgress) {
+        pbProgress.setValue(pbProgress.getValue() + 1);
+      }
+    }
+  }
+
 
   private static abstract class OptionsBasePanel extends JPanel implements ActionListener
   {
@@ -2338,8 +2380,8 @@ public class SearchResource extends ChildFrame
       cbType = new AutoComboBox(IndexedString.createArray(new String[]{"No BAM", "Single target",
                                                                        "Area of effect"}, 0, 1));
 
-      long[] keys = ProAreaType.s_proj.keys();
-      Object[] values = ProAreaType.s_proj.values().toArray();
+      long[] keys = ProAreaType.m_proj.keys();
+      Object[] values = ProAreaType.m_proj.values().toArray();
       String[] strings = new String[values.length];
       Integer[] objects = new Integer[keys.length];
       for (int i = 0; i < keys.length; i++) {
@@ -3542,13 +3584,20 @@ public class SearchResource extends ChildFrame
       int rowCount = bits >>> 2;
       JPanel pBits = new JPanel(new GridBagLayout());
       for (int row = 0, col = 0, i = 0; i < bits; i++, row++) {
-        String label;
+        String label = null, desc = null;
         if (i+1 >= table.length || table[i+1] == null || table[i+1].trim().isEmpty()) {
           label = String.format("%1$s (%2$d)", "Unknown", i);
         } else {
-          label = String.format("%1$s (%2$d)", table[i+1], i);
+          String[] s = table[i+1].split(";");
+          label = String.format("%1$s (%2$d)", s[0], i);
+          if (s.length > 1) {
+            desc = s[1];
+          }
         }
         cbFlags[i] = new JCheckBox(label, false);
+        if (desc != null) {
+          cbFlags[i].setToolTipText(desc);
+        }
 
         if (row == rowCount)
         {
@@ -5485,9 +5534,10 @@ public class SearchResource extends ChildFrame
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
-        pro = new IndexedString[proRef.getIdsMapEntryCount()];
+        pro = new IndexedString[proRef.getResourceList().size()];
         for (int i = 0; i < pro.length; i++) {
-          pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
+          long id = proRef.getResourceList().get(i).getValue();
+          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 0, 0);
@@ -5794,9 +5844,10 @@ public class SearchResource extends ChildFrame
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
-        pro = new IndexedString[proRef.getIdsMapEntryCount()];
+        pro = new IndexedString[proRef.getResourceList().size()];
         for (int i = 0; i < pro.length; i++) {
-          pro[i] = new IndexedString(proRef.getIdsMapEntry(i).getString(), (int)proRef.getIdsMapEntry(i).getID());
+          long id = proRef.getResourceList().get(i).getValue();
+          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 1, 0);
@@ -6732,7 +6783,7 @@ public class SearchResource extends ChildFrame
         } else if (curItem instanceof Song2daBitmap) {
           id = Long.toString(((Song2daBitmap)curItem).getValue());
         } else if (curItem instanceof TextBitmap) {
-          id = ((TextBitmap)curItem).getIdsName();
+          id = ((TextBitmap)curItem).getDescription();
         } else {
           id = curItem.toString().toUpperCase(Locale.ENGLISH);
         }

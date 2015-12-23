@@ -25,7 +25,7 @@ public final class IdsMapCache
     common.clear();
   }
 
-  public static IdsMap get(String name) // name must be in UPPER CASE
+  public static synchronized IdsMap get(String name) // name must be in UPPER CASE
   {
     IdsMap map = common.get(name);
     if (map == null) {

@@ -14,8 +14,8 @@ import infinity.resource.AddRemovable;
 
 public final class Ambient extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_flag = {"Disabled", "Enabled", "Looping",
-                                          "Ignore radius", "Play in random order", "High memory ambient"};
+  public static final String[] s_flag = {"Disabled", "Enabled", "Looping",
+                                         "Ignore radius", "Play in random order", "High memory ambient"};
 
   Ambient() throws Exception
   {

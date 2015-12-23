@@ -95,19 +95,20 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("AREAFLAG.IDS");  idsFile.add("ATTSTYL.IDS");   idsFile.add("BARDSONG.IDS");
       idsFile.add("BITMODE.IDS");   idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");
       idsFile.add("CLASSMSK.IDS");  idsFile.add("CREAREFL.IDS");  idsFile.add("DAMAGES.IDS");
-      idsFile.add("DIFFMODE.IDS");  idsFile.add("DIR.IDS");       idsFile.add("DOORFLAG.IDS");
-      idsFile.add("EA.IDS");        idsFile.add("FEATS.IDS");     idsFile.add("GENDER.IDS");
-      idsFile.add("GENERAL.IDS");   idsFile.add("GTIMES.IDS");    idsFile.add("HAPPY.IDS");
-      idsFile.add("HELPTYPE.IDS");  idsFile.add("HOTKEY.IDS");    idsFile.add("HPFLAGS.IDS");
-      idsFile.add("KIT.IDS");       idsFile.add("MFLAGS.IDS");    idsFile.add("MODAL.IDS");
-      idsFile.add("MUSIC.IDS");     idsFile.add("RACE.IDS");      idsFile.add("REACTION.IDS");
-      idsFile.add("SCEFFECT.IDS");  idsFile.add("SCHOOL.IDS");    idsFile.add("SCRLEV.IDS");
-      idsFile.add("SCROLL.IDS");    idsFile.add("SEQUENCE.IDS");  idsFile.add("SHEFFECT.IDS");
-      idsFile.add("SKILLS.IDS");    idsFile.add("SLOTS.IDS");     idsFile.add("SOUNDOFF.IDS");
-      idsFile.add("SPECIFIC.IDS");  idsFile.add("SPELL.IDS");     idsFile.add("SPLCAST.IDS");
-      idsFile.add("SPLSTATE.IDS");  idsFile.add("STATE.IDS");     idsFile.add("STATMOD.IDS");
-      idsFile.add("STATS.IDS");     idsFile.add("SUBRACE.IDS");   idsFile.add("TEAMBIT.IDS");
-      idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
+      idsFile.add("DIFFLEVL.IDS");  idsFile.add("DIFFMODE.IDS");  idsFile.add("DIR.IDS");
+      idsFile.add("DOORFLAG.IDS");  idsFile.add("EA.IDS");        idsFile.add("FEATS.IDS");
+      idsFile.add("GENDER.IDS");    idsFile.add("GENERAL.IDS");   idsFile.add("GTIMES.IDS");
+      idsFile.add("HAPPY.IDS");     idsFile.add("HELPTYPE.IDS");  idsFile.add("HOTKEY.IDS");
+      idsFile.add("HPFLAGS.IDS");   idsFile.add("KIT.IDS");       idsFile.add("MFLAGS.IDS");
+      idsFile.add("MODAL.IDS");     idsFile.add("MUSIC.IDS");     idsFile.add("MUSICS.IDS");
+      idsFile.add("RACE.IDS");      idsFile.add("REACTION.IDS");  idsFile.add("SCEFFECT.IDS");
+      idsFile.add("SCHOOL.IDS");    idsFile.add("SCRLEV.IDS");    idsFile.add("SCROLL.IDS");
+      idsFile.add("SEQUENCE.IDS");  idsFile.add("SHEFFECT.IDS");  idsFile.add("SKILLS.IDS");
+      idsFile.add("SLOTS.IDS");     idsFile.add("SOUNDOFF.IDS");  idsFile.add("SPECIFIC.IDS");
+      idsFile.add("SPELL.IDS");     idsFile.add("SPLCAST.IDS");   idsFile.add("SPLSTATE.IDS");
+      idsFile.add("STATE.IDS");     idsFile.add("STATMOD.IDS");   idsFile.add("STATS.IDS");
+      idsFile.add("SUBRACE.IDS");   idsFile.add("TEAMBIT.IDS");   idsFile.add("TIME.IDS");
+      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       idsFile.add("AITIME.IDS");    idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");
       idsFile.add("ANIMSTAT.IDS");  idsFile.add("ASTYLES.IDS");   idsFile.add("BITS.IDS");
@@ -139,8 +140,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
       idsFile.add("WEATHER.IDS");
       if (Profile.isEnhancedEdition()) {
         idsFile.add("BUTTON.IDS");    idsFile.add("DIR.IDS");       idsFile.add("EXTSTATE.IDS");
-        idsFile.add("ITEMFLAG.IDS");  idsFile.add("SPLSTATE.IDS");  idsFile.add("STATMOD.IDS");
-        idsFile.add("SONGLIST.IDS");
+        idsFile.add("ITEMFLAG.IDS");  idsFile.add("MAPNOTES.IDS");  idsFile.add("MUSIC.IDS");
+        idsFile.add("SONGLIST.IDS");  idsFile.add("SPLSTATE.IDS");  idsFile.add("STATMOD.IDS");
+        idsFile.add("WMPFLAG.IDS");
       }
     }
     for (Iterator<String> iterIDS = idsFile.iterator(); iterIDS.hasNext();) {

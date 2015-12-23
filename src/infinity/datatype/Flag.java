@@ -25,7 +25,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class Flag extends Datatype implements Editable, ActionListener
+public class Flag extends Datatype implements Editable, IsNumeric, ActionListener
 {
   public static final String DESC_NONE = "No flags set";
 
@@ -88,25 +88,8 @@ public class Flag extends Datatype implements Editable, ActionListener
               char separator)
   {
     this(parent, buffer, offset, length, name);
-    nodesc = (stable != null && stable.length > 0 && stable[0] != null) ? stable[0] : DESC_NONE;
-    table = new String[8 * length];
-    toolTable = new String[8 * length];
-    if (stable != null) {
-      for (int i = 1; i < stable.length; i++) {
-        String[] s = null;
-        try {
-          s = stable[i].split(String.valueOf(separator));
-        } catch (PatternSyntaxException pse) {
-        }
-        if (s == null || s.length == 0) {
-          table[i - 1] = stable[i];
-          toolTable[i - 1] = null;
-        } else {
-          table[i - 1] = s[0];
-          toolTable[i - 1] = (s.length > 1) ? s[1] : null;
-        }
-      }
-    }
+    setEmptyDesc((stable == null || stable.length == 0) ? null : stable[0]);
+    setFlagDescriptions(length, stable, 1, separator);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -194,10 +177,16 @@ public class Flag extends Datatype implements Editable, ActionListener
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    value = (long)0;
+    // updating value
+    value = 0L;
     for (int i = 0; i < checkBoxes.length; i++)
-      if (checkBoxes[i].isSelected())
+      if (checkBoxes[i].isSelected()) {
         setFlag(i);
+      }
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -209,7 +198,7 @@ public class Flag extends Datatype implements Editable, ActionListener
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeLong(os, value);
+    writeLong(os, value);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -221,10 +210,10 @@ public class Flag extends Datatype implements Editable, ActionListener
   {
     switch (getSize()) {
       case 1:
-        value = DynamicArray.getUnsignedByte(buffer, offset);
+        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
         break;
       case 2:
-        value = DynamicArray.getUnsignedShort(buffer, offset);
+        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
         break;
       case 4:
         value = DynamicArray.getUnsignedInt(buffer, offset);
@@ -268,10 +257,21 @@ public class Flag extends Datatype implements Editable, ActionListener
     return (value & bitnr) == bitnr;
   }
 
-  public long getValue()
+//--------------------- Begin Interface IsNumeric ---------------------
+
+  @Override
+  public long getLongValue()
   {
     return value;
   }
+
+  @Override
+  public int getValue()
+  {
+    return (int)value;
+  }
+
+//--------------------- End Interface IsNumeric ---------------------
 
   public void setValue(long newValue)
   {
@@ -280,8 +280,41 @@ public class Flag extends Datatype implements Editable, ActionListener
 
   private void setFlag(int i)
   {
-    long bitnr = (long)Math.pow((double)2, (double)i);
-    value |= bitnr;
+    long mask = 1L << i;
+    value |= mask;
+  }
+
+  // Sets description for empty flags
+  protected void setEmptyDesc(String desc)
+  {
+    nodesc = (desc != null) ? desc : DESC_NONE;
+  }
+
+  // Sets labels and optional tooltips for each flag
+  protected void setFlagDescriptions(int size, String[] stable, int startOfs, char separator)
+  {
+    table = new String[8*size];
+    toolTable = new String[8*size];
+    if (stable != null) {
+      for (int i = startOfs; i < stable.length; i++) {
+        if (stable[i] == null) {
+          stable[i] = "";
+        }
+        String[] s = null;
+        try {
+          s = stable[i].split(String.valueOf(separator));
+        } catch (PatternSyntaxException pse) {
+          pse.printStackTrace();
+        }
+        if (s == null || s.length == 0) {
+          table[i - startOfs] = stable[i];
+          toolTable[i - startOfs] = null;
+        } else {
+          table[i - startOfs] = s[0];
+          toolTable[i - startOfs] = (s.length > 1) ? s[1] : null;
+        }
+      }
+    }
   }
 }
 

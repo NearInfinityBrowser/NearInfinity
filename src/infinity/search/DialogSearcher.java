@@ -17,6 +17,8 @@ import infinity.resource.bcs.Decompiler;
 import infinity.resource.dlg.AbstractCode;
 import infinity.resource.dlg.Action;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.Debugging;
+import infinity.util.Misc;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -44,6 +47,8 @@ import javax.swing.ProgressMonitor;
 
 public final class DialogSearcher implements Runnable, ActionListener
 {
+  private static final String FMT_PROGRESS = "Processing resource %d/%d";
+
   private final ChildFrame inputFrame;
   private final Component parent;
   private final JButton bsearch = new JButton("Search", Icons.getIcon("FindAgain16.gif"));
@@ -53,6 +58,11 @@ public final class DialogSearcher implements Runnable, ActionListener
   private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
+
+  private ProgressMonitor progress;
+  private int progressIndex;
+  private Pattern regPattern;
+  private ReferenceHitFrame resultFrame;
 
   public DialogSearcher(List<ResourceEntry> files, Component parent)
   {
@@ -134,7 +144,6 @@ public final class DialogSearcher implements Runnable, ActionListener
   public void run()
   {
     String term = tfinput.getText();
-    ReferenceHitFrame resultFrame = new ReferenceHitFrame(term, parent);
     if (!cbregex.isSelected()) {
       term = term.replaceAll("(\\W)", "\\\\$1");
     }
@@ -143,7 +152,7 @@ public final class DialogSearcher implements Runnable, ActionListener
     } else {
       term = ".*" + term + ".*";
     }
-    Pattern regPattern;
+
     try {
       if (cbcase.isSelected()) {
         regPattern = Pattern.compile(term, Pattern.DOTALL);
@@ -152,51 +161,61 @@ public final class DialogSearcher implements Runnable, ActionListener
       }
     } catch (PatternSyntaxException e) {
       JOptionPane.showMessageDialog(parent, "Syntax error in search string.", "Error", JOptionPane.ERROR_MESSAGE);
+      regPattern = null;
       return;
     }
-    inputFrame.setVisible(false);
-    ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, files.size());
-    progress.setMillisToDecideToPopup(100);
-    for (int i = 0; i < files.size(); i++) {
-      ResourceEntry entry = files.get(i);
-      Resource resource = ResourceFactory.getResource(entry);
-      if (resource != null) {
-        Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct)resource);
-        for (final StructEntry searchEntry : searchMap.keySet()) {
-          String s = null;
-          if (searchEntry instanceof StringRef)
-            s = searchEntry.toString();
-          else if (searchEntry instanceof AbstractCode) {
-            try {
-              String code = Compiler.getInstance().compileDialogCode(searchEntry.toString(),
-                                                                     searchEntry instanceof Action);
-              if (Compiler.getInstance().getErrors().size() == 0) {
-                if (searchEntry instanceof Action)
-                  s = Decompiler.decompileDialogAction(code, false);
-                else
-                  s = Decompiler.decompileDialogTrigger(code, false);
-              }
-              else
-                System.out.println("Error(s) compiling " + entry.toString() + " - " + searchEntry.getName());
-            } catch (Exception e) {
-              System.out.println("Exception (de)compiling " + entry.toString() + " - " + searchEntry.getName());
-              e.printStackTrace();
-            }
-            if (s == null)
-              s = "";
-          }
-          Matcher matcher = regPattern.matcher(s);
-          if (matcher.matches())
-            resultFrame.addHit(entry, searchMap.get(searchEntry).getName(), searchEntry);
+
+    try {
+      // executing multithreaded search
+      boolean isCancelled = false;
+      inputFrame.setVisible(false);
+      resultFrame = new ReferenceHitFrame(term, parent);
+      ThreadPoolExecutor executor = Misc.createThreadPool();
+      progressIndex = 0;
+      progress = new ProgressMonitor(parent, "Searching...",
+                                     String.format(FMT_PROGRESS, files.size(), files.size()),
+                                     0, files.size());
+      progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
+      progress.setMillisToDecideToPopup(100);
+      Debugging.timerReset();
+      for (int i = 0; i < files.size(); i++) {
+        Misc.isQueueReady(executor, true, -1);
+        executor.execute(new Worker(files.get(i)));
+        if (progress.isCanceled()) {
+          isCancelled = true;
+  //        JOptionPane.showMessageDialog(parent, "Search canceled", "Info", JOptionPane.INFORMATION_MESSAGE);
+          break;
         }
       }
-      progress.setProgress(i + 1);
-      if (progress.isCanceled()) {
-        JOptionPane.showMessageDialog(parent, "Search canceled", "Info", JOptionPane.INFORMATION_MESSAGE);
-        return;
+
+      // enforcing thread termination if process has been cancelled
+      if (isCancelled) {
+        executor.shutdownNow();
+      } else {
+        executor.shutdown();
       }
+
+      // waiting for pending threads to terminate
+      while (!executor.isTerminated()) {
+        if (!isCancelled && progress.isCanceled()) {
+          executor.shutdownNow();
+          isCancelled = true;
+        }
+        try { Thread.sleep(1); } catch (InterruptedException e) {}
+      }
+
+      if (isCancelled) {
+        resultFrame.close();
+        JOptionPane.showMessageDialog(parent, "Search cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);
+      } else {
+        resultFrame.setVisible(true);
+      }
+    } finally {
+      advanceProgress(true);
+      regPattern = null;
+      resultFrame = null;
     }
-    resultFrame.setVisible(true);
+    Debugging.timerShow("Search completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
@@ -214,6 +233,97 @@ public final class DialogSearcher implements Runnable, ActionListener
         map.put(entry, struct);
     }
     return map;
+  }
+
+  private synchronized void advanceProgress(boolean finished)
+  {
+    if (progress != null) {
+      if (finished) {
+        progressIndex = 0;
+        progress.close();
+        progress = null;
+      } else {
+        progressIndex++;
+        if (progressIndex % 100 == 0) {
+          progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
+        }
+        progress.setProgress(progressIndex);
+      }
+    }
+  }
+
+  private synchronized void addResult(ResourceEntry entry, String line, StructEntry ref)
+  {
+    if (resultFrame != null) {
+      resultFrame.addHit(entry, line, ref);
+    }
+  }
+
+  private Pattern getPattern()
+  {
+    return regPattern;
+  }
+
+//-------------------------- INNER CLASSES --------------------------
+
+  private class Worker implements Runnable
+  {
+    private final ResourceEntry entry;
+
+    public Worker(ResourceEntry entry)
+    {
+      this.entry = entry;
+    }
+
+    @Override
+    public void run()
+    {
+      if (entry != null) {
+        Resource resource = ResourceFactory.getResource(entry);
+        if (resource != null) {
+          Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct)resource);
+          for (final StructEntry searchEntry : searchMap.keySet()) {
+            String s = null;
+            if (searchEntry instanceof StringRef) {
+              s = searchEntry.toString();
+            } else if (searchEntry instanceof AbstractCode) {
+              try {
+                Compiler compiler = new Compiler(searchEntry.toString(),
+                                                 (searchEntry instanceof Action) ? Compiler.ScriptType.Action :
+                                                                                   Compiler.ScriptType.Trigger);
+                String code = compiler.getCode();
+                if (compiler.getErrors().size() == 0) {
+                  Decompiler decompiler = new Decompiler(code, false);
+                  if (searchEntry instanceof Action) {
+                    decompiler.setScriptType(Decompiler.ScriptType.Action);
+                  } else {
+                    decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+                  }
+                  s = decompiler.getSource();
+                } else {
+                  synchronized (System.out) {
+                    System.out.println("Error(s) compiling " + entry.toString() + " - " + searchEntry.getName());
+                  }
+                }
+              } catch (Exception e) {
+                synchronized (System.out) {
+                  System.out.println("Exception (de)compiling " + entry.toString() + " - " + searchEntry.getName());
+                }
+                e.printStackTrace();
+              }
+              if (s == null) {
+                s = "";
+              }
+            }
+            Matcher matcher = getPattern().matcher(s);
+            if (matcher.matches()) {
+              addResult(entry, searchMap.get(searchEntry).getName(), searchEntry);
+            }
+          }
+        }
+      }
+      advanceProgress(false);
+    }
   }
 }
 

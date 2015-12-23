@@ -12,11 +12,11 @@ import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class ItemSale extends AbstractStruct implements AddRemovable
+public final class ItemSale extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_itemflag = {"No flags set", "Identified", "Not stealable", "Stolen",
-                                              "Undroppable"};
-  private static final String[] s_noyes = { "No", "Yes" };
+  public static final String[] s_itemflag = {"No flags set", "Identified", "Not stealable", "Stolen",
+                                             "Undroppable"};
+  public static final String[] s_noyes = { "No", "Yes" };
 
   ItemSale() throws Exception
   {

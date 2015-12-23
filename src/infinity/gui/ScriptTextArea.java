@@ -1,3 +1,7 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
 package infinity.gui;
 
 import infinity.NearInfinity;
@@ -275,7 +279,7 @@ public class ScriptTextArea extends InfinityTextArea
            || function.equalsIgnoreCase("NumDead")
            || function.equalsIgnoreCase("NumDeadGT")
            || function.equalsIgnoreCase("NumDeadLT")))) {
-          Compiler bcscomp = Compiler.getInstance();
+          Compiler bcscomp = new Compiler();
           if (bcscomp.hasScriptName(token)) {
             Set<ResourceEntry> entries = bcscomp.getResForScriptName(token);
             for (ResourceEntry entry : entries) {

@@ -17,17 +17,17 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProSingleType extends AbstractStruct implements AddRemovable
 {
-  public static final LongIntegerHashMap<String> s_facetarget = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_facetarget = new LongIntegerHashMap<String>();
   public static final String[] s_flags = {"No flags set", "Colored BAM", "Creates smoke", "Colored smoke",
                                           "Not light source", "Modify for height", "Casts shadow",
                                           "Light spot enabled", "Translucent", "Mid-level brighten", "Blended"};
   public static final String[] s_trail = {"No flags set", "Draw at target", "Draw at source"};
 
   static {
-    s_facetarget.put(new Long(1), "Do not face target");
-    s_facetarget.put(new Long(5), "Mirrored east (reduced)");
-    s_facetarget.put(new Long(9), "Mirrored east (full)");
-    s_facetarget.put(new Long(16), "Not mirrored (full)");
+    m_facetarget.put(new Long(1), "Do not face target");
+    m_facetarget.put(new Long(5), "Mirrored east (reduced)");
+    m_facetarget.put(new Long(9), "Mirrored east (full)");
+    m_facetarget.put(new Long(16), "Not mirrored (full)");
   }
 
 
@@ -79,7 +79,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
     addField(new ColorValue(buffer, offset + 48, 1, "Smoke color 5"));
     addField(new ColorValue(buffer, offset + 49, 1, "Smoke color 6"));
     addField(new ColorValue(buffer, offset + 50, 1, "Smoke color 7"));
-    addField(new HashBitmap(buffer, offset + 51, 1, "Face target granularity", s_facetarget));
+    addField(new HashBitmap(buffer, offset + 51, 1, "Face target granularity", m_facetarget));
     addField(new IdsBitmap(buffer, offset + 52, 2, "Smoke animation", "ANIMATE.IDS"));
     addField(new ResourceRef(buffer, offset + 54, "Trailing animation 1", "BAM"));
     addField(new ResourceRef(buffer, offset + 62, "Trailing animation 2", "BAM"));

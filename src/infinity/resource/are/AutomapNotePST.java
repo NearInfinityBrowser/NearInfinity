@@ -13,7 +13,7 @@ import infinity.resource.AddRemovable;
 
 public final class AutomapNotePST extends AbstractStruct implements AddRemovable
 {
-  private static final String[] s_yesno = new String[] { "No", "Yes" };
+  public static final String[] s_noyes = { "No", "Yes" };
 
   AutomapNotePST() throws Exception
   {
@@ -41,7 +41,7 @@ public final class AutomapNotePST extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset, 4, "Coordinate: X"));
     addField(new DecNumber(buffer, offset + 4, 4, "Coordinate: Y"));
     addField(new TextString(buffer, offset + 8, 500, "Text"));
-    addField(new Bitmap(buffer, offset + 508, 4, "Is read only?", s_yesno));
+    addField(new Bitmap(buffer, offset + 508, 4, "Is read only?", s_noyes));
     addField(new Unknown(buffer, offset + 512, 20));
     return offset + 532;
   }

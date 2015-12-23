@@ -213,11 +213,12 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
                                       "Warning", JOptionPane.WARNING_MESSAGE);
         try {
           BIFFArchive file = ResourceFactory.getKeyfile().getBIFFFile(entry);
-          int form = BIFFEditor.BIFF;
-          if (file.getSignature().equals("BIF "))
-            form = BIFFEditor.BIF;
-          else if (file.getSignature().equals("BIFC"))
-            form = BIFFEditor.BIFC;
+          int form;
+          switch (file.getType()) {
+            case BIF:   form = BIFFEditor.BIF; break;
+            case BIFC:  form = BIFFEditor.BIFC; break;
+            default:    form = BIFFEditor.BIFF; break;
+          }
           close();
           editor.makeEditor(entry, form);
         } catch (IOException e) {

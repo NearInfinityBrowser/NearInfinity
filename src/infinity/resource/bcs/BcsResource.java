@@ -86,47 +86,6 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   private String text;
   private boolean sourceChanged = false, codeChanged = false;
 
-//  public static void main(String args[]) throws IOException
-//  {
-//    new ResourceFactory(new File("CHITIN.KEY"));
-//    List<ResourceEntry> bcsfiles = ResourceFactory.getInstance().getResources("BCS");
-//    bcsfiles.addAll(ResourceFactory.getInstance().getResources("BS"));
-//    PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter("diff.txt")));
-//    long start = System.currentTimeMillis();
-//    for (int i = bcsfiles.size() - 1; i >= 0; i--) {
-//      try {
-//        BcsResource bcs = new BcsResource(bcsfiles.get(i));
-//        String recompiled = Compiler.getInstance().compile(Decompiler.decompile(bcs.text, true));
-//        if (Compiler.getInstance().getErrors().size() > 0) {
-//          System.out.println("Errors in " + bcs.entry.toString());
-//          pw.println(bcs.entry.toString());
-//          for (final String error : Compiler.getInstance().getErrors().values())
-//            pw.println(error);
-//        }
-//        else if (!recompiled.equals(bcs.text)) {
-//          int index = bcs.text.indexOf("\r\n");
-//          while (index != -1) {
-//            bcs.text = bcs.text.substring(0, index) + '\n' + bcs.text.substring(index + 2);
-//            index = bcs.text.indexOf("\r\n");
-//          }
-//          if (!recompiled.equals(bcs.text)) {
-//            System.out.println("Difference in " + bcs.entry.toString());
-//            pw.println(bcs.entry.toString());
-//          }
-//        }
-//      } catch (Exception e) {
-//        System.out.println("Exception in " + bcsfiles.get(i).toString());
-//        pw.println(bcsfiles.get(i).toString());
-//        e.printStackTrace(pw);
-//      }
-//      if (i == 10 * (i / 10))
-//        System.out.println(i + " scripts left");
-//    }
-//    pw.close();
-//    System.out.println("Test took " + (System.currentTimeMillis() - start) + " ms");
-//    System.exit(0);
-//  }
-
   public BcsResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
@@ -149,13 +108,14 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       JButton bDecompile = (JButton)bpCompiled.getControlByType(CtrlDecompile);
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpDecompile.getControlByType(CtrlErrors);
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)bpDecompile.getControlByType(CtrlWarnings);
+      Compiler compiler = new Compiler(sourceText.getText());
       try {
         if (DEBUG) {
           BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI("bcs_org.txt"));
           write(bos);
           bos.close();
         }
-        codeText.setText(Compiler.getInstance().compile(sourceText.getText()));
+        codeText.setText(compiler.getCode());
         codeText.setCaretPosition(0);
         bCompile.setEnabled(false);
         bDecompile.setEnabled(false);
@@ -169,9 +129,9 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       } catch (IOException e) {
         e.printStackTrace();
       }
-      iexportscript.setEnabled(Compiler.getInstance().getErrors().size() == 0);
-      SortedMap<Integer, String> errorMap = Compiler.getInstance().getErrors();
-      SortedMap<Integer, String> warningMap = Compiler.getInstance().getWarnings();
+      iexportscript.setEnabled(compiler.getErrors().size() == 0);
+      SortedMap<Integer, String> errorMap = compiler.getErrors();
+      SortedMap<Integer, String> warningMap = compiler.getWarnings();
       bpmErrors.setText("Errors (" + errorMap.size() + ")...");
       bpmWarnings.setText("Warnings (" + warningMap.size() + ")...");
       if (errorMap.size() == 0) {
@@ -203,9 +163,10 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       JButton bCompile = (JButton)bpDecompile.getControlByType(CtrlCompile);
       ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
 
-      sourceText.setText(Decompiler.decompile(codeText.getText(), true));
+      Decompiler decompiler = new Decompiler(codeText.getText(), true);
+      sourceText.setText(decompiler.getSource());
       sourceText.setCaretPosition(0);
-      Set<ResourceEntry> uses = Decompiler.getResourcesUsed();
+      Set<ResourceEntry> uses = decompiler.getResourcesUsed();
       JMenuItem usesItems[] = new JMenuItem[uses.size()];
       int usesIndex = 0;
       for (final ResourceEntry usesEntry : uses) {
@@ -404,12 +365,12 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       } else if (bpmExport.getSelectedItem() == iexportscript) {
         ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       }
-    } else if (bpCompiled.getControlByType(CtrlErrors) == event.getSource()) {
+    } else if (bpDecompile.getControlByType(CtrlErrors) == event.getSource()) {
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)event.getSource();
       String selected = bpmErrors.getSelectedItem().getText();
       int linenr = Integer.parseInt(selected.substring(0, selected.indexOf(": ")));
       highlightText(linenr, null);
-    } else if (bpCompiled.getControlByType(CtrlWarnings) == event.getSource()) {
+    } else if (bpDecompile.getControlByType(CtrlWarnings) == event.getSource()) {
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)event.getSource();
       String selected = bpmWarnings.getSelectedItem().getText();
       int linenr = Integer.parseInt(selected.substring(0, selected.indexOf(": ")));
@@ -436,9 +397,11 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   @Override
   public String getText()
   {
-    if (sourceText != null)
+    if (sourceText != null) {
       return sourceText.getText();
-    return Decompiler.decompile(text, false);
+    }
+    Decompiler decompiler = new Decompiler(text, false);
+    return decompiler.getSource();
   }
 
   @Override

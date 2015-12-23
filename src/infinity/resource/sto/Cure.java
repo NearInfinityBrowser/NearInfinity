@@ -9,7 +9,7 @@ import infinity.datatype.ResourceRef;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class Cure extends AbstractStruct implements AddRemovable
+public final class Cure extends AbstractStruct implements AddRemovable
 {
   Cure() throws Exception
   {

@@ -26,13 +26,13 @@ import javax.swing.JComponent;
 public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasViewerTabs,
                                                                HasAddRemovable
 {
-  private static final String s_type[] = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
-                                           "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
-  private static final String s_yesno[] = {"No", "Yes"};
-  private static final String s_flag[] = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
-                                           "", "Disabled" };
-  private static final String s_flag_ee[] = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
-                                              "", "Disabled", "Don't clear" };
+  public static final String[] s_type = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
+                                          "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
+  public static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_flag = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
+                                          "", "Disabled" };
+  public static final String[] s_flag_ee = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
+                                             "", "Disabled", "Don't clear" };
 
   public Container() throws Exception
   {
@@ -190,8 +190,8 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     }
     addField(new DecNumber(buffer, offset + 44, 2, "Trap detection difficulty"));
     addField(new DecNumber(buffer, offset + 46, 2, "Trap removal difficulty"));
-    addField(new Bitmap(buffer, offset + 48, 2, "Is trapped?", s_yesno));
-    addField(new Bitmap(buffer, offset + 50, 2, "Is trap detected?", s_yesno));
+    addField(new Bitmap(buffer, offset + 48, 2, "Is trapped?", s_noyes));
+    addField(new Bitmap(buffer, offset + 50, 2, "Is trap detected?", s_noyes));
     addField(new DecNumber(buffer, offset + 52, 2, "Launch point: X"));
     addField(new DecNumber(buffer, offset + 54, 2, "Launch point: Y"));
     addField(new DecNumber(buffer, offset + 56, 2, "Bounding box: Left"));

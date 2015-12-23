@@ -247,6 +247,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   @Override
+  public byte[] getDataBuffer()
+  {
+    ByteArrayOutputStream os = new ByteArrayOutputStream(getSize());
+    try {
+      writeFlatList(os);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return os.toByteArray();
+  }
+
+  @Override
   public List<StructEntry> getStructChain()
   {
     List<StructEntry> list = new Vector<StructEntry>();

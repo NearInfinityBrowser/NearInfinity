@@ -248,9 +248,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
         line = br.readLine();
       }
       br.close();
-      String compiled = Compiler.getInstance().compile(source.toString());
-      SortedMap<Integer, String> errors = Compiler.getInstance().getErrors();
-      SortedMap<Integer, String> warnings = Compiler.getInstance().getWarnings();
+      Compiler compiler = new Compiler(source.toString());
+      String compiled = compiler.getCode();
+      SortedMap<Integer, String> errors = compiler.getErrors();
+      SortedMap<Integer, String> warnings = compiler.getWarnings();
       if (!cbIgnoreWarnings.isSelected())
         errors.putAll(warnings);
       if (errors.size() == 0) {
@@ -295,7 +296,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       else
         output = new FileNI(tfOtherDir.getText(), filename);
       PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-      pw.println(Decompiler.decompile(code.toString(), true));
+      Decompiler decompiler = new Decompiler(code.toString(), Decompiler.ScriptType.BCS, true);
+      pw.println(decompiler.getSource());
       pw.close();
     } catch (IOException e) {
       e.printStackTrace();

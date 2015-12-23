@@ -26,7 +26,7 @@ public final class StructClipboard
   private Class<? extends StructEntry> contentsClass;
   private boolean hasValues = true;
 
-  public static StructClipboard getInstance()
+  public static synchronized StructClipboard getInstance()
   {
     if (clip == null)
       clip = new StructClipboard();

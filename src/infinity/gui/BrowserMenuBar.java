@@ -14,6 +14,7 @@ import infinity.check.ResRefChecker;
 import infinity.check.ResourceUseChecker;
 import infinity.check.ScriptChecker;
 import infinity.check.StringUseChecker;
+import infinity.check.StrrefIndexChecker;
 import infinity.check.StructChecker;
 import infinity.gui.converter.ConvertToBam;
 import infinity.gui.converter.ConvertToBmp;
@@ -93,7 +94,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.36-20151023";
+  public static final String VERSION = "v1.36-20151216";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -1200,7 +1201,7 @@ public final class BrowserMenuBar extends JMenuBar
     private final JMenuItem toolInfinityAmp, toolCleanKeyfile, toolCheckAllDialog, toolCheckOverrideDialog;
     private final JMenuItem toolCheckResRef, toolIDSBrowser, toolDropZone, toolCheckCREInv;
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
-    private final JMenuItem toolCheckStringUse, toolCheckFileUse, toolMassExport;
+    private final JMenuItem toolCheckStringUse, toolCheckStringIndex, toolCheckFileUse, toolMassExport;
     private final JMenuItem toolCheckEffectsIndex;
     private final JMenuItem toolConvImageToBam, toolConvImageToBmp, toolConvImageToMos, toolConvImageToTis,
                             toolConvImageToPvrz;
@@ -1275,6 +1276,11 @@ public final class BrowserMenuBar extends JMenuBar
       toolCheckStringUse =
           makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.getIcon("Find16.gif"), -1, this);
       checkMenu.add(toolCheckStringUse);
+
+      toolCheckStringIndex =
+          makeMenuItem("For Illegal Strrefs...", KeyEvent.VK_S, Icons.getIcon("Find16.gif"), -1, this);
+      toolCheckStringIndex.setToolTipText("Reports resources with out-of-range string references");
+      checkMenu.add(toolCheckStringIndex);
 
       toolCheckFileUse = makeMenuItem("For Unused Files...", -1, Icons.getIcon("Find16.gif"), -1, this);
       checkMenu.add(toolCheckFileUse);
@@ -1439,6 +1445,8 @@ public final class BrowserMenuBar extends JMenuBar
         new StructChecker();
       else if (event.getSource() == toolCheckStringUse)
         new StringUseChecker();
+      else if (event.getSource() == toolCheckStringIndex)
+        new StrrefIndexChecker();
       else if (event.getSource() == toolCheckFileUse)
         new ResourceUseChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolMassExport)

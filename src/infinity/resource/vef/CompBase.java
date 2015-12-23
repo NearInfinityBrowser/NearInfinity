@@ -14,9 +14,9 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.StructEntry;
 
-class CompBase extends AbstractStruct implements AddRemovable
+public class CompBase extends AbstractStruct implements AddRemovable
 {
-  private static final String s_bool[] = {"No", "Yes"};
+  public static final String[] s_noyes = {"No", "Yes"};
 
   CompBase(String label) throws Exception
   {
@@ -51,7 +51,7 @@ class CompBase extends AbstractStruct implements AddRemovable
     offset = type.readAttributes(buffer, offset + 16, list);
     addToList(getList().size() - 1, list);
 
-    addField(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_bool));
+    addField(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_noyes));
     addField(new Unknown(buffer, offset + 4, 196));
     offset += 200;
     return offset;

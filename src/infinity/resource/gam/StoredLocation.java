@@ -9,7 +9,7 @@ import infinity.datatype.ResourceRef;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-class StoredLocation extends AbstractStruct implements AddRemovable
+public class StoredLocation extends AbstractStruct implements AddRemovable
 {
   StoredLocation() throws Exception
   {

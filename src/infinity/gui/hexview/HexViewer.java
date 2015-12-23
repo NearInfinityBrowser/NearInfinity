@@ -34,20 +34,17 @@ import infinity.datatype.ColorValue;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HashBitmap;
-import infinity.datatype.IDSTargetEffect;
-import infinity.datatype.IdsBitmap;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
+import infinity.datatype.ResourceBitmap;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
-import infinity.datatype.Song2daBitmap;
 import infinity.datatype.StringRef;
 import infinity.datatype.TextBitmap;
 import infinity.datatype.TextEdit;
 import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
-import infinity.datatype.UnsignDecNumber;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StatusBar;
@@ -143,9 +140,6 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       return "Nested structure";
     } else if (type instanceof AbstractCode) {
       return "Script code";
-    } else if (type instanceof Bitmap || type instanceof HashBitmap || type instanceof IdsBitmap ||
-               type instanceof Song2daBitmap) {
-      return "Numeric type or identifier";
     } else if (type instanceof ColorPicker) {
       return "RGB Color";
     } else if (type instanceof ColorValue) {
@@ -154,19 +148,19 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       return "Count of a structure type";
     } else if (type instanceof SectionOffset) {
       return "Start offset of a structure type";
-    } else if (type instanceof DecNumber || type instanceof MultiNumber ||
-               type instanceof UnsignDecNumber) {
-      return "Number";
     } else if (type instanceof Flag) {
       return "Flags/Bitfield";
-    } else if (type instanceof IDSTargetEffect) {
-      return "IDS file/entry";
     } else if (type instanceof ProRef) {
       return "Projectile";
     } else if (type instanceof ResourceRef) {
       return "Resource reference";
     } else if (type instanceof StringRef) {
       return "String reference";
+    } else if (type instanceof DecNumber || type instanceof MultiNumber) {
+      return "Number";
+    } else if (type instanceof Bitmap || type instanceof HashBitmap ||
+               type instanceof ResourceBitmap) {
+      return "Numeric type or identifier";
     } else if (type instanceof TextBitmap || type instanceof TextEdit ||
                type instanceof TextString) {
       return "Text field";

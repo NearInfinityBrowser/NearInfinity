@@ -26,18 +26,19 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class Bitmap extends Datatype implements Editable
+public class Bitmap extends Datatype implements Editable, IsNumeric
 {
-  private final String table[];
+  private final String[] table;
+
   private TextListPanel list;
   private int value;
 
-  public Bitmap(byte buffer[], int offset, int length, String name, String[] table)
+  public Bitmap(byte[] buffer, int offset, int length, String name, String[] table)
   {
     this(null, buffer, offset, length, name, table);
   }
 
-  public Bitmap(StructEntry parent, byte buffer[], int offset, int length, String name, String[] table)
+  public Bitmap(StructEntry parent, byte[] buffer, int offset, int length, String name, String[] table)
   {
     super(parent, offset, length, name);
     this.table = table;
@@ -51,23 +52,26 @@ public class Bitmap extends Datatype implements Editable
   {
     if (list == null) {
       List<String> values = new ArrayList<String>(Math.max(table.length, value + 1));
-      for (int i = 0; i < Math.max(table.length, value + 1); i++)
-        values.add(getString(i));
+      for (int i = 0; i < Math.max(table.length, value + 1); i++) {
+        values.add(toString(i));
+      }
       list = new TextListPanel(values, false);
       list.addMouseListener(new MouseAdapter()
       {
         @Override
         public void mouseClicked(MouseEvent event)
         {
-          if (event.getClickCount() == 2)
+          if (event.getClickCount() == 2) {
             container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
+          }
         }
       });
     }
     if (value >= 0 && value < list.getModel().getSize()) {
       int index = 0;
-      while (!list.getModel().getElementAt(index).equals(getString(value)))
+      while (!list.getModel().getElementAt(index).equals(toString(value))) {
         index++;
+      }
       list.setSelectedIndex(index);
     }
 
@@ -105,10 +109,16 @@ public class Bitmap extends Datatype implements Editable
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    // updating value
     String svalue = (String)list.getSelectedValue();
     value = 0;
-    while (!svalue.equals(getString(value)))
+    while (!svalue.equals(toString(value))) {
       value++;
+    }
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -120,7 +130,7 @@ public class Bitmap extends Datatype implements Editable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, value);
+    writeInt(os, value);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -149,18 +159,39 @@ public class Bitmap extends Datatype implements Editable
 
 //--------------------- End Interface Readable ---------------------
 
+//--------------------- Begin Interface IsNumeric ---------------------
+
   @Override
-  public String toString()
+  public long getLongValue()
   {
-    return getString(value);
+    return (long)value & 0xffffffffL;
   }
 
+  @Override
   public int getValue()
   {
     return value;
   }
 
-  private String getString(int nr)
+//--------------------- End Interface IsNumeric ---------------------
+
+  @Override
+  public String toString()
+  {
+    return toString(value);
+  }
+
+  /** Returns the unformatted description of the specified value. */
+  protected String getString(int nr)
+  {
+    if (nr >= 0 && nr < table.length) {
+      return table[nr];
+    }
+    return null;
+  }
+
+  // Returns a formatted description of the specified value.
+  private String toString(int nr)
   {
     if (nr >= table.length) {
       return "Unknown (" + nr + ')';

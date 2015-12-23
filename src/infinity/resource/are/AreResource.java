@@ -45,22 +45,22 @@ import javax.swing.JScrollPane;
 
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  public static final String s_flag[] = {"No flags set", "Outdoor", "Day/Night",
+  public static final String[] s_flag = {"No flags set", "Outdoor", "Day/Night",
                                          "Weather", "City", "Forest", "Dungeon",
                                          "Extended night", "Can rest"};
-  public static final String s_flag_torment[] = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
+  public static final String[] s_flag_torment = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
                                                  "Lower ward", "Ravel's maze", "Baator", "Rubikon",
                                                  "Negative material plane", "Curst", "Carceri",
                                                  "Allow day/night"};
-  public static final String s_atype[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String[] s_atype = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
-  public static final String s_atype_ee[] = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String[] s_atype_ee = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                              "Dream area", "Player1 can die;Allows death of party leader without ending the game"};
-  public static final String s_atype_torment[] = {"Can rest", "Cannot save",
+  public static final String[] s_atype_torment = {"Can rest", "Cannot save",
                                                   "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                   "Cannot save", "Can rest with permission"};
-  public static final String s_atype_iwd2[] = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
-  public static final String s_edge[] = {"No flags set", "Party required", "Party enabled"};
+  public static final String[] s_atype_iwd2 = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
+  public static final String[] s_edge = {"No flags set", "Party required", "Party enabled"};
 
   private HexViewer hexViewer;
   private AreaViewer areaViewer;
@@ -125,7 +125,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   {
     for (int i = 0; i < count; i++) {
       int curOfs = offset + i*size;
-      // Bit 3 of "Loading" flag determines whether to override the actor's script name
+      // Bit 3 of "Flags" field determines whether to override the actor's script name
       if (!checkOverride || ((buffer[curOfs + 40] & 8) == 8)) {
         StringBuilder sb = new StringBuilder(32);
         for (int j = 0; j < 32; j++) {
@@ -136,7 +136,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
             sb.append(Character.toLowerCase((char)b));
           }
         }
-        scriptNames.add(sb.toString());
+        synchronized (scriptNames) {
+          scriptNames.add(sb.toString());
+        }
       }
     }
   }
@@ -356,13 +358,13 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
     addField(new DecNumber(buffer, offset + 16, 4, "Last saved"));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false)));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_torment, null, 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_torment, null, 4, false)));
     } else if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false)));
     } else {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4)));
+      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4, false)));
     }
     addField(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
     addField(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
@@ -373,15 +375,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
     addField(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
     if (Profile.getGame() == Profile.Game.PST) {
-      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag_torment, null, 2)));
+      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag_torment, null, 2, false)));
     } else {
-      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2)));
+      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false)));
     }
     addField(new DecNumber(buffer, offset + 74, 2, "Rain probability"));
     addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
     addField(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
     addField(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
-    if (Profile.getGame() == Profile.Game.BG2EE) {
+    if (Profile.isEnhancedEdition()) {
       addField(new UnsignDecNumber(buffer, offset + 82, 1, "Overlay transparency"));
       addField(new Unknown(buffer, offset + 83, 1));
     } else {
@@ -503,7 +505,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
                                        ProTrap.class);
       addField(count_protrap);
-      final String movieExt = (Profile.isEnhancedEdition()) ? "WBM" : "MVE";
+      final String[] movieExt = (Profile.isEnhancedEdition()) ? new String[]{"MVE", "WBM"} : new String[]{"MVE"};
       addField(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
       addField(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
       addField(new Unknown(buffer, offset + 228, 56));
@@ -647,8 +649,16 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     int endoffset = offset;
     for (int i = 0; i < getFieldCount(); i++) {
       StructEntry entry = getField(i);
-      if (entry.getOffset() + entry.getSize() > endoffset) {
-        endoffset = entry.getOffset() + entry.getSize();
+      if (entry instanceof HasVertices) {
+        // may contain additional elements
+        for (int j = 0, count = ((AbstractStruct)entry).getFieldCount(); j < count; j++) {
+          StructEntry subEntry = ((AbstractStruct)entry).getField(j);
+          endoffset = Math.max(endoffset, subEntry.getOffset() + subEntry.getSize());
+        }
+      } else {
+        if (entry.getOffset() + entry.getSize() > endoffset) {
+          endoffset = Math.max(endoffset, entry.getOffset() + entry.getSize());
+        }
       }
     }
     return endoffset;
@@ -698,35 +708,46 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     ((DecNumber)getAttribute("# vertices")).setValue(count);
   }
 
-  // Uses static array and IDS resource to construct an array of flag labels
-  private static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size)
+  /**
+   * Returns a String array for Flag datatypes, that has been updated or overwritten with entries
+   * from the specified IDS resource.
+   * @param flags A static String array used as basis for Flag labels.
+   * @param idsFile IDS resource to take entries from.
+   * @param size Size of flags field in bytes. (Range: 1..4)
+   * @param overwrite If <code>true</code>, then static flag label will be overwritten with entries
+   *                  from the IDS resource.
+   *                  If <code>false</code>, then entries from IDS resource will be used only for
+   *                  missing or empty entries in the <code>flags</code> array.
+   * @return
+   */
+  public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite)
   {
     ArrayList<String> list = new ArrayList<String>(32);
+    size = Math.max(1, Math.min(4, size));
 
     // adding static labels
     if (flags != null && flags.length > 1) {
-      for (int i = 0; i < flags.length; i++) {
-        list.add(flags[i]);
+      for (final String f: flags) {
+        list.add(f);
       }
     } else {
       list.add(null); // empty flags label
     }
 
-    // cleaning up trailing null labels
-    while (list.size() > 1 && list.get(list.size() - 1) == null) {
-      list.remove(list.size() - 1);
-    }
-
-    // getting remaining labels from IDS entries
+    // updating list with labels from IDS entries
     if (ResourceFactory.resourceExists(idsFile)) {
       IdsMap map = IdsMapCache.get(idsFile);
       if (map != null) {
-        for (int i = list.size() - 1, count = size*8; i < count; i++) {
+        int numBits = size * 8;
+        for (int i = 0; i < numBits; i++) {
           IdsMapEntry entry = map.getValue((long)(1 << i));
-          if (entry != null) {
-            list.add(entry.getString());
+          String s = (entry != null) ? entry.getString() : null;
+          if (i < list.size() - 1) {
+            if (overwrite || list.get(i+1) == null) {
+              list.set(i+1, s);
+            }
           } else {
-            list.add(null);
+            list.add(s);
           }
         }
       }

@@ -32,7 +32,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public final class ColorValue extends Datatype implements Editable, ChangeListener, ActionListener
+public final class ColorValue extends Datatype implements Editable, IsNumeric, ChangeListener, ActionListener
 {
   private static BufferedImage image;
   private JLabel colors[], infolabel;
@@ -203,6 +203,10 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
       number = newnumber;
       shownnumber = number;
       setColors();
+
+      // notifying listeners
+      fireValueUpdated(new UpdateEvent(this, struct));
+
       return true;
     } catch (NumberFormatException e) {
       e.printStackTrace();
@@ -218,7 +222,7 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, number);
+    writeInt(os, number);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -246,6 +250,22 @@ public final class ColorValue extends Datatype implements Editable, ChangeListen
   }
 
 //--------------------- End Interface Readable ---------------------
+
+//--------------------- Begin Interface IsNumeric ---------------------
+
+  @Override
+  public long getLongValue()
+  {
+    return (long)number & 0xffffffffL;
+  }
+
+  @Override
+  public int getValue()
+  {
+    return number;
+  }
+
+//--------------------- End Interface IsNumeric ---------------------
 
   @Override
   public String toString()

@@ -25,8 +25,9 @@ import javax.swing.event.ListSelectionListener;
 
 public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
 {
+  private static final Comparator<Object> ignoreCaseComparator = new IgnoreCaseComparator();
+
   private boolean sortValues = true;
-  private final Comparator<Object> ignorecasecomparator = new IgnoreCaseComparator();
   private final DefaultListModel listmodel = new DefaultListModel();
   private final JList list;
   private final JTextField tfield = new JTextField(10);
@@ -81,8 +82,9 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
   @Override
   public void valueChanged(ListSelectionEvent event)
   {
-    if (list.hasFocus() && list.getSelectedValue() != null)
+    if (list.hasFocus() && list.getSelectedValue() != null) {
       tfield.setText(list.getSelectedValue().toString());
+    }
   }
 
 // --------------------- End Interface ListSelectionListener ---------------------
@@ -142,11 +144,12 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
   public void setValues(List<? extends Object> values)
   {
     if (this.sortValues) {
-      Collections.sort(values, ignorecasecomparator);
+      Collections.sort(values, ignoreCaseComparator);
     }
     listmodel.clear();
-    for (int i = 0; i < values.size(); i++)
+    for (int i = 0; i < values.size(); i++) {
       listmodel.addElement(values.get(i));
+    }
     tfield.setText("");
     if (list != null) {
       list.setSelectedIndex(0);
@@ -158,10 +161,12 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
   {
     ListModel lm = list.getModel();
     int selected = 0;
-    while (selected < lm.getSize() && text.compareToIgnoreCase(lm.getElementAt(selected).toString()) > 0)
+    while (selected < lm.getSize() && text.compareToIgnoreCase(lm.getElementAt(selected).toString()) > 0) {
       selected++;
-    if (selected == lm.getSize())
+    }
+    if (selected == lm.getSize()) {
       selected--;
+    }
     list.setSelectedIndex(selected);
     list.ensureIndexIsVisible(selected);
   }

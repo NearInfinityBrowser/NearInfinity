@@ -26,16 +26,16 @@ import infinity.resource.vertex.Vertex;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
 {
-  private static final String[] s_yesno = {"No", "Yes"};
-  private static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                          "Detectable trap", "Door forced", "Cannot close", "Door located",
-                                          "Door secret", "Secret door detected", "Can be looked through",
-                                          "Uses key", "Sliding door"};
-  private static final String[] s_flag_iwd2 = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                               "Detectable trap", "Door forced", "Cannot close", "Door located",
-                                               "Door secret", "Secret door detected", "Alternate lock string",
-                                               "Can be looked through", "Warn on activate", "Displayed warning",
-                                               "Door hidden", "Uses key"};
+  public static final String[] s_noyes = {"No", "Yes"};
+  public static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
+                                         "Detectable trap", "Door forced", "Cannot close", "Door located",
+                                         "Door secret", "Secret door detected", "Can be looked through",
+                                         "Uses key", "Sliding door"};
+  public static final String[] s_flag_iwd2 = {"No flags set", "Door open", "Door locked", "Trap resets",
+                                              "Detectable trap", "Door forced", "Cannot close", "Door located",
+                                              "Door secret", "Secret door detected", "Alternate lock string",
+                                              "Can be looked through", "Warn on activate", "Displayed warning",
+                                              "Door hidden", "Uses key"};
 
   public Door() throws Exception
   {
@@ -187,8 +187,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new DecNumber(buffer, offset + 104, 4, "Cursor number"));
     addField(new DecNumber(buffer, offset + 108, 2, "Trap detection difficulty"));
     addField(new DecNumber(buffer, offset + 110, 2, "Trap removal difficulty"));
-    addField(new Bitmap(buffer, offset + 112, 2, "Is trapped?", s_yesno));
-    addField(new Bitmap(buffer, offset + 114, 2, "Is trap detected?", s_yesno));
+    addField(new Bitmap(buffer, offset + 112, 2, "Is trapped?", s_noyes));
+    addField(new Bitmap(buffer, offset + 114, 2, "Is trap detected?", s_noyes));
     addField(new DecNumber(buffer, offset + 116, 2, "Launch point: X"));
     addField(new DecNumber(buffer, offset + 118, 2, "Launch point: Y"));
     addField(new ResourceRef(buffer, offset + 120, "Key", "ITM"));

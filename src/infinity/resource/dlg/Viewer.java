@@ -600,7 +600,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       structEntry = state;
       StringRef response = state.getResponse();
       textArea.setText(response.toString() + "\n(StrRef: " + response.getValue() + ')');
-      bPlay.setEnabled(StringResource.getResource(response.getValue()) != null);
+      bPlay.setEnabled(StringResource.getWavResource(response.getValue()) != null);
       textArea.setCaretPosition(0);
     }
 
@@ -618,7 +618,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         text = assText.toString() + "\n(StrRef: " + assText.getValue() + ")\n";
       if (trans.getFlag().isFlagSet(4))
         text += "\nJournal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
-      bPlay.setEnabled(StringResource.getResource(assText.getValue()) != null);
+      bPlay.setEnabled(StringResource.getWavResource(assText.getValue()) != null);
       textArea.setText(text);
       textArea.setCaretPosition(0);
     }
@@ -630,14 +630,19 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bPlay.setEnabled(false);
       bGoto.setEnabled(true);
       structEntry = trigger;
-      String code = Compiler.getInstance().compileDialogCode(trigger.toString(), trigger instanceof Action);
+      Compiler compiler = new Compiler(trigger.toString(),
+                                       (trigger instanceof Action) ? Compiler.ScriptType.Action :
+                                                                     Compiler.ScriptType.Trigger);
+      String code = compiler.getCode();
       try {
-        if (Compiler.getInstance().getErrors().size() == 0) {
+        if (compiler.getErrors().size() == 0) {
+          Decompiler decompiler = new Decompiler(code, true);
           if (trigger instanceof Action) {
-            textArea.setText(Decompiler.decompileDialogAction(code, true));
+            decompiler.setScriptType(Decompiler.ScriptType.Action);
           } else {
-            textArea.setText(Decompiler.decompileDialogTrigger(code, true));
+            decompiler.setScriptType(Decompiler.ScriptType.Trigger);
           }
+          textArea.setText(decompiler.getSource());
         } else {
           textArea.setText(trigger.toString());
         }
@@ -672,9 +677,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           text = ((Transition)struct).getAssociatedText();
         }
         if (text != null) {
-          String resourceName = StringResource.getResource(text.getValue()) + ".WAV";
+          String resourceName = StringResource.getWavResource(text.getValue());
           if (resourceName != null) {
-            ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName);
+            ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName + ".WAV");
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
           }
         }

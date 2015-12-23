@@ -1,3 +1,7 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
 package infinity.datatype;
 
 import java.io.IOException;
@@ -40,7 +44,7 @@ public class KitIdsBitmap extends IdsBitmap
  @Override
  public void write(OutputStream os) throws IOException
  {
-   super.writeLong(os, swapWords(value));
+   writeLong(os, swapWords(getValue()));
  }
 
 //--------------------- End Interface Writeable ---------------------
@@ -51,7 +55,7 @@ public class KitIdsBitmap extends IdsBitmap
     addIdsMapEntry(new IdsMapEntry(0L, "NO_KIT", null));
 
     // fixing word order of kit id value
-    value = swapWords(value);
+    setValue(swapWords(getValue()));
   }
 
   // Swaps position of the two lower words

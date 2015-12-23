@@ -16,6 +16,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -25,7 +26,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
-public final class TextBitmap extends Datatype implements Editable
+public final class TextBitmap extends Datatype implements Editable, IsTextual
 {
   private final String[] ids;
   private final String[] names;
@@ -57,9 +58,11 @@ public final class TextBitmap extends Datatype implements Editable
       table.setDragEnabled(false);
       table.setTableHeader(null);
     }
-    for (int i = 0; i < ids.length; i++)
-      if (ids[i].equalsIgnoreCase(text))
+    for (int i = 0; i < ids.length; i++) {
+      if (ids[i].equalsIgnoreCase(text)) {
         table.getSelectionModel().setSelectionInterval(i, i);
+      }
+    }
 
     JScrollPane scroll = new JScrollPane(table);
     JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
@@ -97,14 +100,18 @@ public final class TextBitmap extends Datatype implements Editable
   public boolean updateValue(AbstractStruct struct)
   {
     int index = table.getSelectedRow();
-    if (index == -1)
+    if (index == -1) {
       return false;
+    }
     text = ids[index];
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
 // --------------------- End Interface Editable ---------------------
-
 
 // --------------------- Begin Interface Writeable ---------------------
 
@@ -121,7 +128,16 @@ public final class TextBitmap extends Datatype implements Editable
   @Override
   public int read(byte[] buffer, int offset)
   {
-    text = DynamicArray.getString(buffer, offset, getSize());
+    text = DynamicArray.getString(buffer, offset, getSize(), Charset.forName("US-ASCII"));
+
+    // filling missing characters with spaces
+    if (text.length() < getSize()) {
+      StringBuilder sb = new StringBuilder();
+      while (sb.length() < getSize() - text.length()) {
+        sb.append(' ');
+      }
+      text = text + sb.toString();
+    }
 
     return offset + getSize();
   }
@@ -132,30 +148,36 @@ public final class TextBitmap extends Datatype implements Editable
   public String toString()
   {
     for (int i = 0; i < ids.length; i++)
-      if (ids[i].equalsIgnoreCase(text))
+      if (ids[i].equalsIgnoreCase(text)) {
         return text + " - " + names[i];
+      }
     return text;
   }
 
-  public String getIdsName()
+//--------------------- Begin Interface IsTextual ---------------------
+
+  /** Returns the unprocessed textual symbol of fixed number of characters. */
+  @Override
+  public String getText()
   {
-    if (text != null) {
-      for (int i = 0; i < ids.length; i++) {
-        if (text.equals(ids[i])) {
-          if (i < names.length) {
-            return names[i];
-          } else {
-            break;
-          }
+    return text;
+  }
+
+//--------------------- End Interface IsTextual ---------------------
+
+  /** Returns the textual description of the symbol. */
+  public String getDescription()
+  {
+    for (int i = 0; i < ids.length; i++) {
+      if (text.equals(ids[i])) {
+        if (i < names.length) {
+          return names[i];
+        } else {
+          break;
         }
       }
     }
     return "";
-  }
-
-  public String getIdsValue()
-  {
-    return (text != null) ? text : "";
   }
 
 // -------------------------- INNER CLASSES --------------------------

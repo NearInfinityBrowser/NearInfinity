@@ -25,15 +25,15 @@ final class Control extends AbstractStruct // implements AddRemovable
 {
   public static final String FMT_NAME = "Control %1$d";
 
-  private static final String s_type[] = {"Button", "", "Slider", "Text field", "",
+  private static final String[] s_type = {"Button", "", "Slider", "Text field", "",
                                           "Text area", "Label", "Scroll bar"};
-  private static final String s_button[] = {"Center", "Left justify", "Right justify",
+  private static final String[] s_button = {"Center", "Left justify", "Right justify",
                                             "Top justify", "Bottom justify", "Anchor",
                                             "Reduce size", "Don't wrap"};
-  private static final String s_label[] = {"Center", "Use color", "Truecolor", "Center justify",
+  private static final String[] s_label = {"Center", "Use color", "Truecolor", "Center justify",
                                            "Left justify", "Right justify", "Top justify",
                                            "Middle justify", "Bottom justify", "Word wrap"};
-  private static final String s_case[] = {"Normal case", "Upper case only", "Lower case only"};
+  private static final String[] s_case = {"Normal case", "Upper case only", "Lower case only"};
 
   private final int size;
 

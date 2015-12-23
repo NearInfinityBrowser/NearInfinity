@@ -181,18 +181,20 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static boolean reloadFactory(boolean refreshonly)
   {
+    boolean retVal = false;
     FileLookup.getInstance().clearCache();
     IdsMapCache.clearCache();
     SearchFrame.clearCache();
     StringResource.close();
-    Compiler.restartCompiler();
     File keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
       EffectFactory.init();
-      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
-      return true;
+      retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      if (retVal) {
+        Compiler.restartCompiler();
+      }
     }
-    return false;
+    return retVal;
   }
 
   public static void main(String args[])
@@ -256,8 +258,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setAppIcon();
     Preferences prefs = Preferences.userNodeForPackage(getClass());
 
-    BrowserMenuBar menuBar = new BrowserMenuBar();
-    setJMenuBar(menuBar);
+    new BrowserMenuBar();
+    setJMenuBar(BrowserMenuBar.getInstance());
 
     String lastDir = null;
     if (gameOverride != null && gameOverride.isDirectory()) {
@@ -279,7 +281,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
     }
 
-    menuBar.gameLoaded(Profile.Game.Unknown, null);
+    BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
+    Compiler.restartCompiler();
 
     addWindowListener(new WindowAdapter()
     {
@@ -575,28 +578,32 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public void openGame(File keyFile)
   {
     blocker.setBlocked(true);
-    Profile.Game oldGame = Profile.getGame();
-    String oldFile = Profile.getChitinKey().toString();
-    IdsMapCache.clearCache();
-    SearchFrame.clearCache();
-    StringResource.close();
-    Compiler.restartCompiler();
-    EffectFactory.init();
-    Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
-    removeViewable();
-    ChildFrame.closeWindows();
-    ResourceTreeModel treemodel = ResourceFactory.getResources();
-    updateWindowTitle();
-    final String msg = String.format(STATUSBAR_TEXT_FMT,
-                                     Profile.getProperty(Profile.GET_GAME_TITLE),
-                                     Profile.getGameRoot(), treemodel.size());
-    statusBar.setMessage(msg);
-    BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
-    tree.setModel(treemodel);
-    containerpanel.removeAll();
-    containerpanel.revalidate();
-    containerpanel.repaint();
-    blocker.setBlocked(false);
+    try {
+      Profile.Game oldGame = Profile.getGame();
+      String oldFile = Profile.getChitinKey().toString();
+      FileLookup.getInstance().clearCache();
+      IdsMapCache.clearCache();
+      SearchFrame.clearCache();
+      StringResource.close();
+      EffectFactory.init();
+      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      Compiler.restartCompiler();
+      removeViewable();
+      ChildFrame.closeWindows();
+      ResourceTreeModel treemodel = ResourceFactory.getResources();
+      updateWindowTitle();
+      final String msg = String.format(STATUSBAR_TEXT_FMT,
+                                       Profile.getProperty(Profile.GET_GAME_TITLE),
+                                       Profile.getGameRoot(), treemodel.size());
+      statusBar.setMessage(msg);
+      BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
+      tree.setModel(treemodel);
+      containerpanel.removeAll();
+      containerpanel.revalidate();
+      containerpanel.repaint();
+    } finally {
+      blocker.setBlocked(false);
+    }
   }
 
   public boolean removeViewable()

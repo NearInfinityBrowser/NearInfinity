@@ -20,7 +20,7 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable
 {
-  public static final LongIntegerHashMap<String> s_proj = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_proj = new LongIntegerHashMap<String>();
   public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
                                               "Fragments", "Not affecting allies", "Not affecting enemies",
@@ -30,30 +30,31 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   public static final String[] s_areaflagsEx = {
     "No flags set", "Paletted ring", "Random speed", "Start scattered", "Paletted center",
     "Repeat scattering", "Paletted animation", "", "", "", "Oriented fireball puffs",
-    "Use hit dice lookup", "", "", "Blend are/ring anim", "Glow area/ring anim",
+    "Use hit dice lookup", "", "", "Blend are/ring anim", "Glow area/ring anim", "Hit point limit",
   };
 
   static {
-    s_proj.put(0L, "Fireball");
-    s_proj.put(1L, "Stinking cloud");
-    s_proj.put(2L, "Cloudkill");
-    s_proj.put(3L, "Ice storm");
-    s_proj.put(4L, "Grease");
-    s_proj.put(5L, "Web");
-    s_proj.put(6L, "Meteor");
-    s_proj.put(7L, "Horrid wilting");
-    s_proj.put(8L, "Teleport field");
-    s_proj.put(9L, "Entangle");
-    s_proj.put(10L, "Color spray");
-    s_proj.put(11L, "Cone of cold");
-    s_proj.put(12L, "Holy smite");
-    s_proj.put(13L, "Unholy blight");
-    s_proj.put(14L, "Prismatic spray");
-    s_proj.put(15L, "Red dragon blast");
-    s_proj.put(16L, "Storm of vengeance");
-    s_proj.put(17L, "Purple fireball");
-    s_proj.put(18L, "Green dragon blast");
-    s_proj.put(255L, "None");
+    m_proj.put(0L, "Fireball");
+    m_proj.put(1L, "Stinking cloud");
+    m_proj.put(2L, "Cloudkill");
+    m_proj.put(3L, "Ice storm");
+    m_proj.put(4L, "Grease");
+    m_proj.put(5L, "Web");
+    m_proj.put(6L, "Meteor");
+    m_proj.put(7L, "Horrid wilting");
+    m_proj.put(8L, "Teleport field");
+    m_proj.put(9L, "Entangle");
+    m_proj.put(10L, "Color spray");
+    m_proj.put(11L, "Cone of cold");
+    m_proj.put(12L, "Holy smite");
+    m_proj.put(13L, "Unholy blight");
+    m_proj.put(14L, "Prismatic spray");
+    m_proj.put(15L, "Red dragon blast");
+    m_proj.put(16L, "Storm of vengeance");
+    m_proj.put(17L, "Purple fireball");
+    m_proj.put(18L, "Green dragon blast");
+    m_proj.put(254L, "Custom");
+    m_proj.put(255L, "None");
   }
 
 
@@ -84,15 +85,16 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
                                                          : new String[]{"VEF", "VVC", "BAM"};
 
-    addField(new Flag(buffer, offset, 4, "Area flags", s_areaflags));
+    addField(new Flag(buffer, offset, 2, "Area flags", s_areaflags));
+    addField(new DecNumber(buffer, offset + 2, 2, "Ray count"));
     addField(new DecNumber(buffer, offset + 4, 2, "Trap size"));
     addField(new DecNumber(buffer, offset + 6, 2, "Explosion size"));
     addField(new ResourceRef(buffer, offset + 8, "Explosion sound", "WAV"));
     addField(new DecNumber(buffer, offset + 16, 2, "Explosion frequency (frames)"));
     addField(new IdsBitmap(buffer, offset + 18, 2, "Fragment animation", "ANIMATE.IDS"));
-    addField(new ProRef(buffer, offset + 20, "Secondary projectile"));
+    addField(new ProRef(buffer, offset + 20, "Secondary projectile", false));
     addField(new DecNumber(buffer, offset + 22, 1, "# repetitions"));
-    addField(new HashBitmap(buffer, offset + 23, 1, "Explosion effect", s_proj));
+    addField(new HashBitmap(buffer, offset + 23, 1, "Explosion effect", m_proj));
     addField(new ColorValue(buffer, offset + 24, 1, "Explosion color"));
     addField(new Unknown(buffer, offset + 25, 1, "Unused"));
     addField(new ProRef(buffer, offset + 26, "Explosion projectile"));

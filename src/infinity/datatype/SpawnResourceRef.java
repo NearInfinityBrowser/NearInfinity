@@ -35,10 +35,5 @@ public final class SpawnResourceRef extends ResourceRef
       }
     }
   }
-
-  public String getResName()
-  {
-    return resname;
-  }
 }
 

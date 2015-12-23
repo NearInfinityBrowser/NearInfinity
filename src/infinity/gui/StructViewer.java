@@ -36,6 +36,7 @@ import infinity.search.AttributeSearcher;
 import infinity.search.DialogItemRefSearcher;
 import infinity.search.DialogStateReferenceSearcher;
 import infinity.search.ReferenceSearcher;
+import infinity.util.Pair;
 import infinity.util.StructClipboard;
 
 import java.awt.BorderLayout;
@@ -150,6 +151,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private JSplitPane splitv;
   private boolean splitterSet;
   private int oldSplitterHeight;
+  private Pair<Integer> storedSelection;
 
   private static JMenuItem createMenuItem(String cmd, String text, Icon icon, ActionListener l)
   {
@@ -440,8 +442,17 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (editable.updateValue(struct)) {
         struct.setStructChanged(true);
         struct.fireTableRowsUpdated(struct.getIndexOf(editable), struct.getIndexOf(editable));
-        if (editable instanceof EffectType) // Updates multiple lines - could be done better?
+        if (editable instanceof EffectType) {
+          // don't lose current selection
+          if (struct.getViewer() != null) {
+            struct.getViewer().storeCurrentSelection();
+          }
+          // Updates multiple lines - could be done better?
           struct.fireTableDataChanged();
+          if (struct.getViewer() != null) {
+            struct.getViewer().restoreCurrentSelection();
+          }
+        }
       }
       else
         JOptionPane.showMessageDialog(this, "Error updating value", "Error", JOptionPane.ERROR_MESSAGE);
@@ -788,6 +799,34 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   }
 
 // --------------------- End Interface ComponentListener ---------------------
+
+  /**
+   * Stores the currently selected list items internally.
+   * Intended to be used with {@link #restoreCurrentSelection()}.
+   */
+  public void storeCurrentSelection()
+  {
+    if (storedSelection == null) {
+      int[] selection = table.getSelectedRows();
+      if (selection.length > 0) {
+        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+        for (final int idx: selection) {
+          min = Math.min(min, idx);
+          max = Math.max(max, idx);
+        }
+        storedSelection = new Pair<Integer>(min, max);
+      }
+    }
+  }
+
+  /** Restores the selection state saved by the method {@link #storeCurrentSelection()}. */
+  public void restoreCurrentSelection()
+  {
+    if (storedSelection != null) {
+      table.setRowSelectionInterval(storedSelection.getFirst(), storedSelection.getSecond());
+      storedSelection = null;
+    }
+  }
 
   public ButtonPanel getButtonPanel()
   {

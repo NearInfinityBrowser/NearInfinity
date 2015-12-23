@@ -39,7 +39,7 @@ import javax.swing.JScrollPane;
 
 public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  public static final String s_categories[] =
+  public static final String[] s_categories =
           {"Miscellaneous", "Amulets and necklaces", "Armor", "Belts and girdles",
            "Boots", "Arrows", "Bracers and gauntlets", "Headgear",
            "Keys", "Potions", "Rings", "Scrolls", "Shields", "Food",
@@ -56,7 +56,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Furs and pelts", "Leather armor", "Studded leather", "Chain mail",
            "Splint mail", "Plate mail", "Full plate", "Hide armor", "Robes",
            "Scale mail", "Bastard swords", "Scarves", "Rations", "Hats", "Gloves"};
-  public static final String s_categories11[] =
+  public static final String[] s_categories11 =
           {"Miscellaneous", "Amulets and necklaces", "Armor", "Belts and girdles",
            "Boots", "Arrows", "Bracers and gauntlets", "Headgear",
            "Keys", "Potions", "Rings", "Scrolls", "Shields", "Spells",
@@ -69,8 +69,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_flags =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed",
-           "Conversable", "", "EE: Forbid off-hand weapon", "", "", "", "", "", "", "", "", "", "",
-           "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
+           "Conversable", "EE: Fake two-handed", "EE: Forbid off-hand weapon", "", "", "", "", "",
+           "", "", "", "", "", "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
   public static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",

@@ -1,3 +1,7 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
 package infinity.datatype;
 
 import infinity.gui.RenderCanvas;
@@ -35,7 +39,7 @@ import javax.swing.JTextField;
 
 
 /** Implements a RGB color picker control. */
-public class ColorPicker extends Datatype implements Editable, MouseListener, FocusListener
+public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseListener, FocusListener
 {
   /** Supported color formats. */
   public enum Format {
@@ -269,6 +273,10 @@ public class ColorPicker extends Datatype implements Editable, MouseListener, Fo
   public boolean updateValue(AbstractStruct struct)
   {
     value = getInputRgbValue();
+
+    // notifying listeners
+    fireValueUpdated(new UpdateEvent(this, struct));
+
     return true;
   }
 
@@ -279,7 +287,7 @@ public class ColorPicker extends Datatype implements Editable, MouseListener, Fo
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeInt(os, value);
+    writeInt(os, value);
   }
 
 //--------------------- End Interface Writeable ---------------------
@@ -415,10 +423,21 @@ public class ColorPicker extends Datatype implements Editable, MouseListener, Fo
                          getRed(value), getGreen(value), getBlue(value));
   }
 
+//--------------------- Begin Interface IsNumeric ---------------------
+
+  @Override
+  public long getLongValue()
+  {
+    return (long)value & 0xffffffffL;
+  }
+
+  @Override
   public int getValue()
   {
     return value;
   }
+
+//--------------------- End Interface IsNumeric ---------------------
 
   // r, g, b in range [0..255]
   private int getRgbValue(int r, int g, int b)

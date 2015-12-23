@@ -33,7 +33,7 @@ public class Summon2daBitmap extends HashBitmap
     return TableName;
   }
 
-  private static LongIntegerHashMap<String> getSummonTable()
+  private static synchronized LongIntegerHashMap<String> getSummonTable()
   {
     if (summonMap.isEmpty()) {
       if (ResourceFactory.resourceExists(TableName)) {
@@ -60,7 +60,7 @@ public class Summon2daBitmap extends HashBitmap
     return summonMap;
   }
 
-  public static void resetSummonTable()
+  public static synchronized void resetSummonTable()
   {
     summonMap.clear();
     Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));

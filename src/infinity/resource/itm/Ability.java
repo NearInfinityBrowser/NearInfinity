@@ -27,7 +27,7 @@ import javax.swing.JComponent;
 
 public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
-  public static final String[] s_yesno = {"No", "Yes"};
+  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
   public static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
   public static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
@@ -102,7 +102,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   {
     if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new Bitmap(buffer, offset, 1, "Type", s_type));
-      addField(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
+      addField(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_noyes));
       addField(new Bitmap(buffer, offset + 2, 1, "Ability location", s_abilityuse));
       addField(new DecNumber(buffer, offset + 3, 1, "Alternate dice size"));
       addField(new ResourceRef(buffer, offset + 4, "Icon", "BAM"));
@@ -121,7 +121,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     }
     else {
       addField(new Bitmap(buffer, offset, 1, "Type", s_type));
-      addField(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_yesno));
+      addField(new Bitmap(buffer, offset + 1, 1, "Identify to use?", s_noyes));
       addField(new Bitmap(buffer, offset + 2, 2, "Ability location", s_abilityuse));
       addField(new ResourceRef(buffer, offset + 4, "Icon", "BAM"));
       addField(new Bitmap(buffer, offset + 12, 2, "Target", s_targettype));
@@ -151,9 +151,9 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new DecNumber(buffer, offset + 44, 2, "Animation: Overhand swing %"));
     addField(new DecNumber(buffer, offset + 46, 2, "Animation: Backhand swing %"));
     addField(new DecNumber(buffer, offset + 48, 2, "Animation: Thrust %"));
-    addField(new Bitmap(buffer, offset + 50, 2, "Is arrow?", s_yesno));
-    addField(new Bitmap(buffer, offset + 52, 2, "Is bolt?", s_yesno));
-    addField(new Bitmap(buffer, offset + 54, 2, "Is bullet?", s_yesno));
+    addField(new Bitmap(buffer, offset + 50, 2, "Is arrow?", s_noyes));
+    addField(new Bitmap(buffer, offset + 52, 2, "Is bolt?", s_noyes));
+    addField(new Bitmap(buffer, offset + 54, 2, "Is bullet?", s_noyes));
 
     return offset + 56;
   }

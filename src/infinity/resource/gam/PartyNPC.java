@@ -27,7 +27,7 @@ import infinity.util.LongIntegerHashMap;
 
 import javax.swing.JComponent;
 
-class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable, AddRemovable
+public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable, AddRemovable
 {
   private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();

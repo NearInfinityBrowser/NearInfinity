@@ -13,7 +13,7 @@ import infinity.resource.key.ResourceEntry;
 
 public final class AreResourceRef extends ResourceRef
 {
-  private final String legalBIFs[];
+  private final String[] legalBIFs;
   // BG1: SFXSound.BIF, CRESound.BIF
   // BG2: AMBSound.BIF 25AmbSnd.BIF
   // IDW1: SNDgen.BIF eSFXamb.BIF

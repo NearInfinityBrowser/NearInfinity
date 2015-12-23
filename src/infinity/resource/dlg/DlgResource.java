@@ -32,7 +32,7 @@ public final class DlgResource extends AbstractStruct
     implements Resource, HasAddRemovable, HasViewerTabs, ChangeListener
 {
   private static final String TAB_TREE  = "Tree";
-  private static final String sNonInt[] = {"Pausing dialogue", "Turn hostile",
+  public static final String s_NonInt[] = {"Pausing dialogue", "Turn hostile",
                                            "Escape area", "Ignore attack"};
   private SectionCount countState, countTrans, countStaTri, countTranTri, countAction;
   private SectionOffset offsetState, offsetTrans, offsetStaTri, offsetTranTri, offsetAction;
@@ -207,7 +207,7 @@ public final class DlgResource extends AbstractStruct
     addField(countAction);
 
     if (offsetState.getValue() > 0x30) {
-      addField(new Flag(buffer, offset + 48, 4, "Threat response", sNonInt));
+      addField(new Flag(buffer, offset + 48, 4, "Threat response", s_NonInt));
     }
 
     offset = offsetState.getValue();
@@ -319,7 +319,7 @@ public final class DlgResource extends AbstractStruct
               if (added) {
                 dec.incValue(1);
               } else {
-                flags.setValue(flags.getValue() & ~2L);
+                flags.setValue(flags.getValue() & ~2);
                 dec.setValue(0);
               }
             } else if (dec.getValue() > idxTrigger) {
@@ -352,7 +352,7 @@ public final class DlgResource extends AbstractStruct
               if (added) {
                 dec.incValue(1);
               } else {
-                flags.setValue(flags.getValue() & ~4L);
+                flags.setValue(flags.getValue() & ~4);
                 dec.setValue(0);
               }
             } else if (dec.getValue() > idxAction) {

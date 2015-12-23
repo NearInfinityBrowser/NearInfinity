@@ -10,7 +10,7 @@ import infinity.datatype.ResourceRef;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 
-final class KnownSpells extends AbstractStruct implements AddRemovable
+public final class KnownSpells extends AbstractStruct implements AddRemovable
 {
   private static final String[] s_spelltype = {"Priest", "Wizard", "Innate"};
 

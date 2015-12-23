@@ -12,6 +12,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -68,6 +69,7 @@ import infinity.resource.video.WbmResource;
 import infinity.resource.wed.WedResource;
 import infinity.resource.wmp.WmpResource;
 import infinity.util.Decryptor;
+import infinity.util.DynamicArray;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
 import infinity.util.io.FileLookup;
@@ -102,9 +104,16 @@ public final class ResourceFactory
 
   public static Resource getResource(ResourceEntry entry)
   {
+    return getResource(entry, null);
+  }
+
+  public static Resource getResource(ResourceEntry entry, String ext)
+  {
     Resource res = null;
     try {
-      final String ext = entry.getExtension();
+      if (ext == null || ext.isEmpty()) {
+        ext = entry.getExtension();
+      }
       if (ext.equalsIgnoreCase("BAM")) {
         res = new BamResource(entry);
       } else if (ext.equalsIgnoreCase("TIS")) {
@@ -186,7 +195,10 @@ public final class ResourceFactory
       } else if (ext.equalsIgnoreCase("FNT") && Profile.isEnhancedEdition()) {
         res = new FntResource(entry);
       } else {
-        res = new UnknownResource(entry);
+        res = detectResource(entry);
+        if (res == null) {
+          res = new UnknownResource(entry);
+        }
       }
     } catch (Exception e) {
       if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().ignoreReadErrors()) {
@@ -200,6 +212,97 @@ public final class ResourceFactory
       }
       System.err.println("Error reading " + entry);
       e.printStackTrace();
+    }
+    return res;
+  }
+
+  /**
+   * Attempts to detect the resource type from the data itself
+   * and returns the respective resource class instance, or <code>null</code> on failure.
+   */
+  public static Resource detectResource(ResourceEntry entry)
+  {
+    Resource res = null;
+    if (entry != null) {
+      try {
+        int[] info = entry.getResourceInfo();
+        if (info.length == 2) {
+          res = getResource(entry, "TIS");
+        } else if (info.length == 1) {
+          if (info[0] > 4) {
+            byte[] data = entry.getResourceData();
+            String sig = DynamicArray.getString(data, 0, 4);
+            if ("2DA ".equalsIgnoreCase(sig)) {
+              res = getResource(entry, "2DA");
+            } else if ("ARE ".equals(sig)) {
+              res = getResource(entry, "ARE");
+            } else if ("BAM ".equals(sig) || "BAMC".equals(sig)) {
+              res = getResource(entry, "BAM");
+            } else if ("CHR ".equals(sig)) {
+              res = getResource(entry, "CHR");
+            } else if ("CHUI".equals(sig)) {
+              res = getResource(entry, "CHU");
+            } else if ("CRE ".equals(sig)) {
+              res = getResource(entry, "CRE");
+            } else if ("DLG ".equals(sig)) {
+              res = getResource(entry, "DLG");
+            } else if ("EFF ".equals(sig)) {
+              res = getResource(entry, "EFF");
+            } else if ("GAME".equals(sig)) {
+              res = getResource(entry, "GAM");
+            } else if ("IDS ".equalsIgnoreCase(sig)) {
+              res = getResource(entry, "IDS");
+            } else if ("ITM ".equals(sig)) {
+              res = getResource(entry, "ITM");
+            } else if ("MOS ".equals(sig) || "MOSC".equals(sig)) {
+              res = getResource(entry, "MOS");
+            } else if ("PLT ".equals(sig)) {
+              res = getResource(entry, "PLT");
+            } else if ("PRO ".equals(sig)) {
+              res = getResource(entry, "PRO");
+            } else if ("SAV ".equals(sig)) {
+              res = getResource(entry, "SAV");
+            } else if ("SPL ".equals(sig)) {
+              res = getResource(entry, "SPL");
+            } else if ("STOR".equals(sig)) {
+              res = getResource(entry, "STO");
+            } else if ("TIS ".equals(sig)) {
+              res = getResource(entry, "TIS");
+            } else if ("VEF ".equals(sig)) {
+              res = getResource(entry, "VEF");
+            } else if ("VVC ".equals(sig)) {
+              res = getResource(entry, "VVC");
+            } else if ("WAVC".equals(sig) || "RIFF".equals(sig) || "OggS".equals(sig)) {
+              res = getResource(entry, "WAV");
+            } else if ("WED ".equals(sig)) {
+              res = getResource(entry, "WED");
+            } else if ("WFX ".equals(sig)) {
+              res = getResource(entry, "WFX");
+            } else if ("WMAP".equals(sig)) {
+              res = getResource(entry, "WMP");
+            } else {
+              if ((Arrays.equals(new byte[]{0x53, 0x43, 0x0a}, Arrays.copyOfRange(data, 0, 3)) ||  // == "SC\n"
+                   Arrays.equals(new byte[]{0x53, 0x43, 0x0d, 0x0a}, Arrays.copyOfRange(data, 0, 4)))) { // == "SC\r\n"
+                res = getResource(entry, "BCS");
+              } else if (data.length > 6 && "BM".equals(new String(data, 0, 2)) &&
+                         DynamicArray.getInt(data, 2) == info[0]) {
+                res = getResource(entry, "BMP");
+              } else if (data.length > 18 && "Interplay MVE File".equals(new String(data, 0, 18))) {
+                res = getResource(entry, "MVE");
+              } else if (Arrays.equals(new byte[]{(byte)0x1a, (byte)0x45, (byte)0xdf, (byte)0xa3},
+                                       Arrays.copyOfRange(data, 0, 4))) {
+                res = getResource(entry, "WBM");
+              } else if (data.length > 6 && data[3] == 0 && data[4] == 0x78) {  // just guessing...
+                res = getResource(entry, "PVRZ");
+              }
+            }
+          }
+        } else {
+          throw new Exception(entry.getResourceName() + ": Unable to determine resource type");
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
     return res;
   }
@@ -252,6 +355,21 @@ public final class ResourceFactory
   }
 
   /**
+   * Returns whether the specified resource exists.
+   * @param resourceName The resource filename.
+   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
+   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @param extraDirs       A list of File entries pointing to additional folders to search, not
+   *                        covered by the default override folder list (e.g. "install:/music").
+   * @return <code>true</code> if the resource exists in BIFF archives or override folders,
+   *         <code>false</code> otherwise.
+   */
+  public static boolean resourceExists(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
+  {
+    return (getResourceEntry(resourceName, searchExtraDirs, extraDirs) != null);
+  }
+
+  /**
    * Returns a ResourceEntry instance of the given resource name.
    * @param resourceName The resource filename.
    * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
@@ -259,7 +377,7 @@ public final class ResourceFactory
    */
   public static ResourceEntry getResourceEntry(String resourceName)
   {
-    return getResourceEntry(resourceName, false);
+    return getResourceEntry(resourceName, false, null);
   }
 
   /**
@@ -272,8 +390,25 @@ public final class ResourceFactory
    */
   public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs)
   {
+    return getResourceEntry(resourceName, searchExtraDirs, null);
+  }
+
+  /**
+   * Returns a ResourceEntry instance of the given resource name.
+   * @param resourceName The resource filename.
+   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
+   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @param extraDirs       A list of File entries pointing to additional folders to search, not
+   *                        covered by the default override folder list (e.g. "install:/music").
+   * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
+   *         available.
+   */
+  public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
+  {
     if (getInstance() != null) {
       ResourceEntry entry = getInstance().treeModel.getResourceEntry(resourceName);
+
+      // checking default override folder list
       if (searchExtraDirs && (entry == null)) {
         @SuppressWarnings("unchecked")
         List<File> extraFolders = (List<File>)Profile.getProperty(Profile.GET_GAME_OVERRIDE_FOLDERS);
@@ -287,6 +422,18 @@ public final class ResourceFactory
           }
         }
       }
+
+      // checking custom folder list
+      if (extraDirs != null) {
+        for (final File folder: extraDirs) {
+          File f = new FileNI(folder, resourceName);
+          if (f.isFile()) {
+            entry = new FileResourceEntry(f);
+            break;
+          }
+        }
+      }
+
       return entry;
     } else {
       return null;
@@ -852,8 +999,9 @@ public final class ResourceFactory
       if (resource.getResourceEntry().getExtension().equals("IDS")) {
         IdsMapCache.cacheInvalid(resource.getResourceEntry());
         IdsBrowser idsbrowser = (IdsBrowser)ChildFrame.getFirstFrame(IdsBrowser.class);
-        if (idsbrowser != null)
+        if (idsbrowser != null) {
           idsbrowser.refreshList();
+        }
         Compiler.restartCompiler();
       } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Song2daBitmap.getTableName())) {
         Song2daBitmap.resetSonglist();

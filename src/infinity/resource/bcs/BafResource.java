@@ -106,13 +106,14 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpSource.getControlByType(CtrlErrors);
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)bpSource.getControlByType(CtrlWarnings);
       ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
-      codeText.setText(Compiler.getInstance().compile(sourceText.getText()));
+      Compiler compiler = new Compiler(sourceText.getText());
+      codeText.setText(compiler.getCode());
       codeText.setCaretPosition(0);
       bCompile.setEnabled(false);
       bDecompile.setEnabled(false);
-      bSaveScript.setEnabled(Compiler.getInstance().getErrors().size() == 0);
-      SortedMap<Integer, String> errorMap = Compiler.getInstance().getErrors();
-      SortedMap<Integer, String> warningMap = Compiler.getInstance().getWarnings();
+      bSaveScript.setEnabled(compiler.getErrors().size() == 0);
+      SortedMap<Integer, String> errorMap = compiler.getErrors();
+      SortedMap<Integer, String> warningMap = compiler.getWarnings();
       bpmErrors.setText("Errors (" + errorMap.size() + ")...");
       bpmWarnings.setText("Warnings (" + warningMap.size() + ")...");
       if (errorMap.size() == 0) {
@@ -139,8 +140,9 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         bpmWarnings.setMenuItems(warningItems);
         bpmWarnings.setEnabled(true);
       }
-      Decompiler.decompile(codeText.getText(), true);
-      Set<ResourceEntry> uses = Decompiler.getResourcesUsed();
+      Decompiler decompiler = new Decompiler(codeText.getText(), true);
+      decompiler.decompile();
+      Set<ResourceEntry> uses = decompiler.getResourcesUsed();
       JMenuItem usesItems[] = new JMenuItem[uses.size()];
       int usesIndex = 0;
       for (final ResourceEntry usesEntry : uses) {
@@ -157,9 +159,10 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       JButton bDecompile = (JButton)event.getSource();
       JButton bCompile = (JButton)bpSource.getControlByType(CtrlCompile);
       ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
-      sourceText.setText(Decompiler.decompile(codeText.getText(), true));
+      Decompiler decompiler = new Decompiler(codeText.getText(), true);
+      sourceText.setText(decompiler.getSource());
       sourceText.setCaretPosition(0);
-      Set<ResourceEntry> uses = Decompiler.getResourcesUsed();
+      Set<ResourceEntry> uses = decompiler.getResourcesUsed();
       JMenuItem usesItems[] = new JMenuItem[uses.size()];
       int usesIndex = 0;
       for (final ResourceEntry usesEntry : uses) {
