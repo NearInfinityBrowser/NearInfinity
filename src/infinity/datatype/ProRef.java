@@ -17,6 +17,9 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProRef extends ResourceBitmap
 {
+  private static final ArrayList<RefEntry> proMissileList = new ArrayList<RefEntry>();
+  private static final ArrayList<RefEntry> proList = new ArrayList<RefEntry>();
+
   public ProRef(byte[] buffer, int offset, String name)
   {
     this(null, buffer, offset, 2, name, true);
@@ -52,6 +55,13 @@ public final class ProRef extends ResourceBitmap
     return ResourceFactory.getResourceEntry(getResourceName(), true);
   }
 
+  /** Called whenever a new game is opened. */
+  public static void clearCache()
+  {
+    proMissileList.clear();
+    proList.clear();
+  }
+
   private static List<RefEntry> createRefList(boolean useMissile)
   {
     if (useMissile) {
@@ -63,51 +73,54 @@ public final class ProRef extends ResourceBitmap
 
   private static List<RefEntry> createProMissileRefList()
   {
-    LongIntegerHashMap<IdsMapEntry> mslMap = IdsMapCache.get("MISSILE.IDS").getMap();
-    LongIntegerHashMap<IdsMapEntry> proMap = IdsMapCache.get("PROJECTL.IDS").getMap();
-    int maxSize = Math.max(mslMap.size(), proMap.size());
-    List<RefEntry> retVal = new ArrayList<RefEntry>(2 + maxSize);
+    if (proMissileList.isEmpty()) {
+      // preparing cached list
+      LongIntegerHashMap<IdsMapEntry> mslMap = IdsMapCache.get("MISSILE.IDS").getMap();
+      LongIntegerHashMap<IdsMapEntry> proMap = IdsMapCache.get("PROJECTL.IDS").getMap();
+      int maxSize = Math.max(mslMap.size(), proMap.size());
+      proMissileList.ensureCapacity(2 + maxSize);
 
-    if (!mslMap.containsKey(Long.valueOf(0L))) {
-      retVal.add(new RefEntry(0L, "None", "Default"));
-    }
-    if (!mslMap.containsKey(Long.valueOf(1L))) {
-      retVal.add(new RefEntry(1L, "None", "None"));
-    }
-
-    long[] keys = mslMap.keys();
-    for (final long key: keys) {
-      IdsMapEntry mslEntry = mslMap.get(Long.valueOf(key));
-      IdsMapEntry proEntry = proMap.get(Long.valueOf(key - 1L));
-      RefEntry entry = null;
-      if (proEntry != null) {
-        entry = new RefEntry(key, proEntry.getString().toUpperCase(Locale.ENGLISH) + ".PRO",
-                             mslEntry.getString());
-      } else {
-        entry = new RefEntry(key, "None", mslEntry.getString());
+      if (!mslMap.containsKey(Long.valueOf(0L))) {
+        proMissileList.add(new RefEntry(0L, "None", "Default"));
       }
-      retVal.add(entry);
-    }
+      if (!mslMap.containsKey(Long.valueOf(1L))) {
+        proMissileList.add(new RefEntry(1L, "None", "None"));
+      }
 
-    return retVal;
+      long[] keys = mslMap.keys();
+      for (final long key: keys) {
+        IdsMapEntry mslEntry = mslMap.get(Long.valueOf(key));
+        IdsMapEntry proEntry = proMap.get(Long.valueOf(key - 1L));
+        RefEntry entry = null;
+        if (proEntry != null) {
+          entry = new RefEntry(key, proEntry.getString().toUpperCase(Locale.ENGLISH) + ".PRO",
+                               mslEntry.getString());
+        } else {
+          entry = new RefEntry(key, "None", mslEntry.getString());
+        }
+        proMissileList.add(entry);
+      }
+    }
+    return proMissileList;
   }
 
   private static List<RefEntry> createProRefList()
   {
-    LongIntegerHashMap<IdsMapEntry> proMap = IdsMapCache.get("PROJECTL.IDS").getMap();
-    List<RefEntry> retVal = new ArrayList<RefEntry>(2 + proMap.size());
+    if (proList.isEmpty()) {
+      LongIntegerHashMap<IdsMapEntry> proMap = IdsMapCache.get("PROJECTL.IDS").getMap();
+      proList.ensureCapacity(2 + proMap.size());
 
-    if (!proMap.containsKey(Long.valueOf(0L))) {
-      retVal.add(new RefEntry(0L, "None", "None"));
+      if (!proMap.containsKey(Long.valueOf(0L))) {
+        proList.add(new RefEntry(0L, "None", "None"));
+      }
+
+      long[] keys = proMap.keys();
+      for (final long key: keys) {
+        IdsMapEntry proEntry = proMap.get(Long.valueOf(key));
+        proList.add(new RefEntry(key, proEntry.getString().toUpperCase(Locale.ENGLISH) + ".PRO"));
+      }
     }
-
-    long[] keys = proMap.keys();
-    for (final long key: keys) {
-      IdsMapEntry proEntry = proMap.get(Long.valueOf(key));
-      retVal.add(new RefEntry(key, proEntry.getString().toUpperCase(Locale.ENGLISH) + ".PRO"));
-    }
-
-    return retVal;
+    return proList;
   }
 }
 

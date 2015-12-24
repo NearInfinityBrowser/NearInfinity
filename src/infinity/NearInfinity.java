@@ -4,6 +4,7 @@
 
 package infinity;
 
+import infinity.datatype.ProRef;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
@@ -182,10 +183,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static boolean reloadFactory(boolean refreshonly)
   {
     boolean retVal = false;
-    FileLookup.getInstance().clearCache();
-    IdsMapCache.clearCache();
-    SearchFrame.clearCache();
-    StringResource.close();
+    clearCache();
     File keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
       EffectFactory.init();
@@ -581,10 +579,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     try {
       Profile.Game oldGame = Profile.getGame();
       String oldFile = Profile.getChitinKey().toString();
-      FileLookup.getInstance().clearCache();
-      IdsMapCache.clearCache();
-      SearchFrame.clearCache();
-      StringResource.close();
+      clearCache();
       EffectFactory.init();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
       Compiler.restartCompiler();
@@ -744,6 +739,16 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     int retVal = tablePanelHeight;
     tablePanelHeight = newValue;
     return retVal;
+  }
+
+  // Central method for clearing cached data
+  private static void clearCache()
+  {
+    FileLookup.getInstance().clearCache();
+    IdsMapCache.clearCache();
+    SearchFrame.clearCache();
+    StringResource.close();
+    ProRef.clearCache();
   }
 
   private void storePreferences()

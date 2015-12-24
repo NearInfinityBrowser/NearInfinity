@@ -7,7 +7,6 @@ package infinity.resource.are;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
-import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 

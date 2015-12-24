@@ -406,6 +406,7 @@ public final class ResourceFactory
   public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
   {
     if (getInstance() != null) {
+//      System.out.println(String.format("ResourceFactory.getResourceEntry(\"%s\", %s, ???)", resourceName, Boolean.toString(searchExtraDirs)));
       ResourceEntry entry = getInstance().treeModel.getResourceEntry(resourceName);
 
       // checking default override folder list
@@ -424,7 +425,7 @@ public final class ResourceFactory
       }
 
       // checking custom folder list
-      if (extraDirs != null) {
+      if (extraDirs != null && (entry == null)) {
         for (final File folder: extraDirs) {
           File f = new FileNI(folder, resourceName);
           if (f.isFile()) {
