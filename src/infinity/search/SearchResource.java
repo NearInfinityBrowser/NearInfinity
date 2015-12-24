@@ -93,6 +93,7 @@ import infinity.resource.pro.ProResource;
 import infinity.resource.pro.ProSingleType;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
+import infinity.util.Debugging;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
 import infinity.util.Misc;
@@ -241,6 +242,7 @@ public class SearchResource extends ChildFrame
 
       // executing search
       try {
+        Debugging.timerReset();
         OptionsBasePanel panel = mapOptionsPanel.get(type);
         if (panel != null) {
           SearchOptions so = panel.getOptions();
@@ -277,6 +279,7 @@ public class SearchResource extends ChildFrame
           }
         }
       } finally {
+        Debugging.timerShow("Extended Search", Debugging.TimeFormat.MILLISECONDS);
         blocker.setBlocked(false);
         bSearch.setEnabled(true);
         clBottomBar.show(pBottomBar, "buttons");
