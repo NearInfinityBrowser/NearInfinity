@@ -20,11 +20,14 @@ public final class IdsFlag extends Flag
   {
     super(parent, buffer, offset, length, name);
     LongIntegerHashMap<IdsMapEntry> idsmap = IdsMapCache.get(resource).getMap();
-    setEmptyDesc(idsmap.get(0L).getString());
+    IdsMapEntry entry = idsmap.get(0L);
+    setEmptyDesc((entry != null) ? entry.getString() : null);
+
     // fetching flag labels from IDS
     String[] stable = new String[8 * length];
     for (int i = 0; i < stable.length; i++) {
-      stable[i] = idsmap.get(Long.valueOf(1L << i)).getString();
+      entry = idsmap.get(Long.valueOf(1L << i));
+      stable[i] = (entry != null) ? entry.getString() : null;
     }
     setFlagDescriptions(length, stable, 0, ';');
   }
