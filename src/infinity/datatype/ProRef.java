@@ -56,7 +56,7 @@ public final class ProRef extends ResourceBitmap
   }
 
   /** Called whenever a new game is opened. */
-  public static void clearCache()
+  public static synchronized void clearCache()
   {
     proMissileList.clear();
     proList.clear();
@@ -71,7 +71,7 @@ public final class ProRef extends ResourceBitmap
     }
   }
 
-  private static List<RefEntry> createProMissileRefList()
+  private static synchronized List<RefEntry> createProMissileRefList()
   {
     if (proMissileList.isEmpty()) {
       // preparing cached list
@@ -104,7 +104,7 @@ public final class ProRef extends ResourceBitmap
     return proMissileList;
   }
 
-  private static List<RefEntry> createProRefList()
+  private static synchronized List<RefEntry> createProRefList()
   {
     if (proList.isEmpty()) {
       LongIntegerHashMap<IdsMapEntry> proMap = IdsMapCache.get("PROJECTL.IDS").getMap();
