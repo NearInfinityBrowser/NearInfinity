@@ -56,10 +56,9 @@ public final class UnknownBinary extends Unknown
       StringBuffer sb = new StringBuffer(9 * data.length + 1);
       for (final byte d : data) {
         String text = Integer.toBinaryString((int)d & 0xff);
-        for (int j = 0; j < 8 - text.length(); j++)
+        for (int j = 0, count = 8 - text.length(); j < count; j++) {
           sb.append('0');
-        if (text.length() > 8)
-          text = text.substring(text.length() - 8);
+        }
         sb.append(text).append(' ');
       }
       sb.append('b');

@@ -177,7 +177,11 @@ public class Unknown extends Datatype implements Editable, IsBinary
     if (data != null && data.length > 0) {
       StringBuffer sb = new StringBuffer(3 * data.length + 1);
       for (final byte d : data) {
-        sb.append(String.format("%1$02x ", (int)d & 0xff));
+        String text = Integer.toHexString((int)d & 0xff);
+        if (text.length() < 2) {
+          sb.append('0');
+        }
+        sb.append(text).append(' ');
       }
       sb.append('h');
       return sb.toString();
