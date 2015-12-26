@@ -861,6 +861,23 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         event.dropComplete(false);
       }
       event.dropComplete(true);
+      if (files != null && files.size() == 1) {
+        File file = files.get(0);
+        if (file != null && file.isFile() &&
+            file.getName().toUpperCase(Locale.ENGLISH).endsWith(".KEY")) {
+          File curFile = (File)Profile.getProperty(Profile.GET_GAME_CHITIN_KEY);
+          if (!file.equals(curFile)) {
+            int ret = JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
+                                                    "Open game \"" + file.getPath() + "\"?",
+                                                    "Open game", JOptionPane.YES_NO_OPTION,
+                                                    JOptionPane.QUESTION_MESSAGE);
+            if (ret == JOptionPane.YES_OPTION) {
+              NearInfinity.getInstance().openGame(file);
+            }
+          }
+          return;
+        }
+      }
       new Thread(this).start();
     }
 

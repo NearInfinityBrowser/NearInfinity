@@ -294,9 +294,11 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     @Override
     public void run()
     {
-      for (final File file: files) {
-        if (file != null && !file.isDirectory()) {
-          openExternalFile(OpenFileFrame.this, file);
+      if (files != null) {
+        for (final File file: files) {
+          if (file != null && !file.isDirectory()) {
+            openExternalFile(OpenFileFrame.this, file);
+          }
         }
       }
     }
