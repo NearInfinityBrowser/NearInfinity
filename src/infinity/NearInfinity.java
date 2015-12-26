@@ -9,6 +9,7 @@ import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
 import infinity.gui.InfinityTextArea;
+import infinity.gui.OpenFileFrame;
 import infinity.gui.PopupWindowEvent;
 import infinity.gui.PopupWindowListener;
 import infinity.gui.QuickSearch;
@@ -46,6 +47,13 @@ import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -405,6 +413,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tableColumnWidth[1] = 0;
     tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
     tablePanelHeight = Math.max(50, prefs.getInt(TABLE_PANEL_HEIGHT, 250));
+
+    // enabling file drag and drop for whole window
+    new DropTarget(getRootPane(), new FileDropTargetListener());
 
     // Checking for updates
     if (Updater.getInstance().isAutoUpdateCheckEnabled() &&
@@ -802,6 +813,66 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         text.append(new String(buf, off, len));
       } catch (Exception e) {
         e.printStackTrace();
+      }
+    }
+  }
+
+
+  private class FileDropTargetListener implements DropTargetListener, Runnable
+  {
+    private List<File> files;
+
+    private FileDropTargetListener()
+    {
+    }
+
+    @Override
+    public void dragEnter(DropTargetDragEvent event)
+    {
+    }
+
+    @Override
+    public void dragOver(DropTargetDragEvent event)
+    {
+    }
+
+    @Override
+    public void dropActionChanged(DropTargetDragEvent event)
+    {
+    }
+
+    @Override
+    public void dragExit(DropTargetEvent event)
+    {
+    }
+
+    @Override
+    public void drop(DropTargetDropEvent event)
+    {
+      if (event.isLocalTransfer() || !event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+        event.rejectDrop();
+        return;
+      }
+      try {
+        event.acceptDrop(DnDConstants.ACTION_COPY);
+        files = (List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+      } catch (Exception e) {
+        e.printStackTrace();
+        event.dropComplete(false);
+      }
+      event.dropComplete(true);
+      new Thread(this).start();
+    }
+
+    @Override
+    public void run()
+    {
+      if (files != null) {
+        for (final File file: files) {
+          if (file != null && !file.isDirectory()) {
+            OpenFileFrame.openExternalFile(NearInfinity.getInstance(), file);
+          }
+        }
       }
     }
   }
