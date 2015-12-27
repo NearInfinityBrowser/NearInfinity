@@ -988,8 +988,13 @@ public class TilesetRenderer extends RenderCanvas
       for (int i = 0, size = listDoorTileIndices.size(); i < size; i++) {
         DoorInfo di = listDoorTileIndices.get(i);
         for (int j = 0, iCount = di.getIndicesCount(); j < iCount; j++) {
-          if (di.getIndex(j) == tileIdx) {
-            return true;
+          try {
+            int idx = listTilesets.get(0).listTiles.get(di.getIndex(j)).getPrimaryIndex();
+            if (idx == tileIdx) {
+              return true;
+            }
+          } catch (Exception e) {
+            // ignore invalid tile indices
           }
         }
       }
