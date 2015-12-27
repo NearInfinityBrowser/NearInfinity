@@ -17,7 +17,9 @@ public final class IdsMapCache
 
   public static void cacheInvalid(ResourceEntry entry)
   {
-    common.remove(entry.toString().toUpperCase(Locale.ENGLISH));
+    if (entry != null) {
+      common.remove(entry.toString().toUpperCase(Locale.ENGLISH));
+    }
   }
 
   public static void clearCache()
@@ -25,21 +27,26 @@ public final class IdsMapCache
     common.clear();
   }
 
-  public static synchronized IdsMap get(String name) // name must be in UPPER CASE
+  public static synchronized IdsMap get(String name)
   {
-    IdsMap map = common.get(name);
-    if (map == null) {
-      ResourceEntry resEntry = ResourceFactory.getResourceEntry(name);
-      if (resEntry == null && name.equalsIgnoreCase("ATTSTYLE.IDS"))
-        resEntry = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
-      if (resEntry == null)
-        System.err.println("Could not find " + name);
-      else {
-        map = new IdsMap(resEntry);
-        common.put(name, map);
+    IdsMap retVal = null;
+    if (name != null) {
+      name = name.trim().toUpperCase(Locale.ENGLISH);
+      retVal = common.get(name);
+      if (retVal == null) {
+        ResourceEntry resEntry = ResourceFactory.getResourceEntry(name);
+        if (resEntry == null && name.equals("ATTSTYLE.IDS")) {
+          resEntry = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
+        }
+        if (resEntry == null) {
+          System.err.println("Could not find " + name);
+        } else {
+          retVal = new IdsMap(resEntry);
+          common.put(name, retVal);
+        }
       }
     }
-    return map;
+    return retVal;
   }
 
   private IdsMapCache(){}

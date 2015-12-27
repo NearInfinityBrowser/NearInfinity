@@ -36,6 +36,7 @@ import infinity.updater.UpdateInfo;
 import infinity.updater.Updater;
 import infinity.util.IdsMapCache;
 import infinity.util.StringResource;
+import infinity.util.Table2daCache;
 import infinity.util.io.FileLookup;
 import infinity.util.io.FileNI;
 
@@ -757,6 +758,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     FileLookup.getInstance().clearCache();
     IdsMapCache.clearCache();
+    Table2daCache.clearCache();
     SearchFrame.clearCache();
     StringResource.close();
     ProRef.clearCache();
