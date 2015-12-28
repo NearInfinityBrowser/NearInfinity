@@ -757,7 +757,13 @@ public final class Profile
       game = Game.IWDEE;
       addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/pocketzz.wbm").isFile()) {
-      game = Game.BG2EE;
+      if (new FileNI(gameRoot, "override/EET.flag").isFile() ||
+          new FileNI(gameRoot, "data/eetTU00.bif").isFile()) {
+        // REMEMBER: EET is still in development
+        game = Game.EET;
+      } else {
+        game = Game.BG2EE;
+      }
       addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/bgenter.wbm").isFile()) {
       game = Game.BG1EE;
@@ -804,10 +810,10 @@ public final class Profile
     // determining game engine
     initGameEngine();
 
-    boolean isEE = (game == Game.BG1EE || game == Game.BG2EE || game == Game.IWDEE);
-    addEntry(IS_ENHANCED_EDITION, Type.Boolean, Boolean.valueOf(isEE));
+    // initializing method isEnhancedEdition()
+    addEntry(IS_ENHANCED_EDITION, Type.Boolean, Boolean.valueOf(getEngine() == Engine.EE));
 
-    if (isEE) {
+    if (isEnhancedEdition()) {
       File langDir = new FileNI(gameRoot, "lang");
       if (langDir.isDirectory()) {
         addEntry(GET_GAME_LANG_FOLDER_BASE, Type.File, langDir);
@@ -852,9 +858,6 @@ public final class Profile
       }
     } else if (game == Game.BG1 && ResourceFactory.resourceExists("DURLAG.MVE")) {
       game = Game.BG1TotSC;
-    } else if (game == Game.BG2EE && ResourceFactory.resourceExists("FH2600.ARE")) {
-      // Note: EET is still in development
-      game = Game.EET;
     }
 
     // updating game type
