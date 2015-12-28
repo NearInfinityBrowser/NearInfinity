@@ -42,6 +42,7 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -56,15 +57,23 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   private JPanel panel;
   private InfinityTextArea editor;
   private boolean resourceChanged;
+  private int highlightedLine;
 
   public PlainTextResource(ResourceEntry entry) throws Exception
   {
+    this(entry, -1);
+  }
+
+  public PlainTextResource(ResourceEntry entry, int highlightedLine) throws Exception
+  {
     this.entry = entry;
     byte data[] = entry.getResourceData();
-    if (data != null && data.length > 1 && data[0] == -1)
+    if (data != null && data.length > 1 && data[0] == -1) {
       text = Decryptor.decrypt(data, 2, data.length);
-    else
+    } else {
       text = new String(data);
+    }
+    this.highlightedLine = highlightedLine;
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -187,14 +196,27 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   {
     String s = editor.getText();
     int startpos = 0;
-    for (int i = 1; i < linenr; i++)
+    int i = (s.charAt(0) == '\n') ? 2 : 1;
+    for (; i < linenr; i++) {
       startpos = s.indexOf("\n", startpos + 1);
+    }
     if (startpos == -1) return;
-    int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
-    if (wordpos != -1)
-      editor.select(wordpos, wordpos + text.length());
-    else
-      editor.select(startpos, s.indexOf("\n", startpos + 1));
+    if (text != null) {
+      // try to select specified text string
+      int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
+      if (wordpos != -1) {
+        editor.select(wordpos, wordpos + text.length());
+      } else {
+        editor.select(startpos, s.indexOf("\n", startpos + 1));
+      }
+    } else {
+      // select whole line
+      int endpos = s.indexOf("\n", startpos + 1);
+      if (endpos < 0) {
+        endpos = s.length();
+      }
+      editor.select(startpos, endpos);
+    }
     editor.getCaret().setSelectionVisible(true);
   }
 
@@ -236,6 +258,16 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     panel.add(pane, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run()
+      {
+        if (highlightedLine >= 0) {
+          highlightText(highlightedLine, null);
+        }
+      }
+    });
+
     return panel;
   }
 
@@ -255,6 +287,19 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+  public void setHighlightedLine(int highlightedLine)
+  {
+    this.highlightedLine = highlightedLine;
+    if (panel != null) {
+      highlightText(highlightedLine, null);
+    }
+  }
+
+  public int getHighlightedLine()
+  {
+    return highlightedLine;
+  }
 
   public List<String> extract2DAHeaders()
   {

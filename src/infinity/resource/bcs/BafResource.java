@@ -371,16 +371,30 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   {
     String s = sourceText.getText();
     int startpos = 0;
-    for (int i = 1; i < linenr; i++)
+    int i = (s.charAt(0) == '\n') ? 2 : 1;
+    for (; i < linenr; i++) {
       startpos = s.indexOf("\n", startpos + 1);
+    }
     if (startpos == -1) return;
-    int wordpos = -1;
-    if (highlightText != null)
-      wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(highlightText.toUpperCase(Locale.ENGLISH), startpos);
-    if (wordpos != -1)
-      sourceText.select(wordpos, wordpos + highlightText.length());
-    else
-      sourceText.select(startpos, s.indexOf("\n", startpos + 1));
+    if (highlightText != null) {
+      // try to select specified text string
+      int wordpos = -1;
+      if (highlightText != null) {
+        wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(highlightText.toUpperCase(Locale.ENGLISH), startpos);
+      }
+      if (wordpos != -1) {
+        sourceText.select(wordpos, wordpos + highlightText.length());
+      } else {
+        sourceText.select(startpos, s.indexOf("\n", startpos + 1));
+      }
+    } else {
+      // select whole line
+      int endpos = s.indexOf("\n", startpos + 1);
+      if (endpos < 0) {
+        endpos = s.length();
+      }
+      sourceText.select(startpos, endpos);
+    }
     sourceText.getCaret().setSelectionVisible(true);
   }
 

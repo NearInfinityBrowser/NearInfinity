@@ -195,14 +195,27 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   {
     String s = editor.getText();
     int startpos = 0;
-    for (int i = 1; i < linenr; i++)
+    int i = (s.charAt(0) == '\n') ? 2 : 1;
+    for (; i < linenr; i++) {
       startpos = s.indexOf("\n", startpos + 1);
+    }
     if (startpos == -1) return;
-    int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
-    if (wordpos != -1)
-      editor.select(wordpos, wordpos + text.length());
-    else
-      editor.select(startpos, s.indexOf("\n", startpos + 1));
+    if (text != null) {
+      // try to select specified text string
+      int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
+      if (wordpos != -1) {
+        editor.select(wordpos, wordpos + text.length());
+      } else {
+        editor.select(startpos, s.indexOf("\n", startpos + 1));
+      }
+    } else {
+      // select whole line
+      int endpos = s.indexOf("\n", startpos + 1);
+      if (endpos < 0) {
+        endpos = s.length();
+      }
+      editor.select(startpos, endpos);
+    }
     editor.getCaret().setSelectionVisible(true);
   }
 
