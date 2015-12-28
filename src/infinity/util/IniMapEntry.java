@@ -8,9 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class IniMapEntry
 {
+  /** Regular expression that can be used to split position values in {@link #splitValues(String, String)}. */
+  public static final String REGEX_POSITION = "\\[[-0-9]+\\.[-0-9]+(:[0-9]+)?\\]";
+  /** Regular expression that can be used to split object values in {@link #splitValues(String, String)}. */
+  public static final String REGEX_OBJECT = "\\[(-?\\d+\\.?)+\\]";
+
   private String key, value;
   private int line;   // line number of ini entry
 
@@ -50,6 +56,33 @@ public class IniMapEntry
     String[] retVal = null;
     if (value != null) {
       retVal = value.split(Character.toString(separator));
+    } else {
+      retVal = new String[0];
+    }
+    return retVal;
+  }
+
+  /**
+   * Helper routine: Splits values matching the specified regular expression pattern
+   * and returns them as array of individual values.
+   */
+  public static String[] splitValues(String value, String pattern)
+  {
+    String[] retVal = null;
+    if (value != null) {
+      List<String> results = new ArrayList<String>();
+      try {
+        Matcher matcher = Pattern.compile(pattern).matcher(value);
+        while (matcher.find()) {
+          results.add(value.substring(matcher.start(), matcher.end()));
+        }
+      } catch (PatternSyntaxException e) {
+        e.printStackTrace();
+      }
+      retVal = new String[results.size()];
+      for (int i = 0; i < results.size(); i++) {
+        retVal[i] = results.get(i);
+      }
     } else {
       retVal = new String[0];
     }
