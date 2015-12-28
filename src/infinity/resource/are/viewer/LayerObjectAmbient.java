@@ -18,7 +18,7 @@ import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.Ambient;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -55,18 +55,18 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return ambient;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
     if (isLocal()) {
-      return new AbstractStruct[]{ambient, ambient};
+      return new Viewable[]{ambient, ambient};
     } else {
-      return new AbstractStruct[]{ambient};
+      return new Viewable[]{ambient};
     }
   }
 

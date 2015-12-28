@@ -20,6 +20,7 @@ import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Profile;
 import infinity.resource.StructEntry;
+import infinity.resource.Viewable;
 import infinity.resource.vertex.Vertex;
 import infinity.resource.wed.Door;
 import infinity.resource.wed.WedResource;
@@ -48,15 +49,15 @@ public class LayerObjectDoorPoly extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return door;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{door};
+    return new Viewable[]{door};
   }
 
   @Override

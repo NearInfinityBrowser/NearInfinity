@@ -15,7 +15,7 @@ import infinity.datatype.HexNumber;
 import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.ShapedLayerItem;
-import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.Container;
 import infinity.resource.vertex.Vertex;
@@ -46,15 +46,15 @@ public class LayerObjectContainer extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return container;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{container};
+    return new Viewable[]{container};
   }
 
   @Override

@@ -70,8 +70,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
         public int compare(LayerObjectAnimation o1, LayerObjectAnimation o2) {
           boolean isBackground1, isBackground2;
           try {
-            isBackground1 = ((Flag)((Animation)o1.getStructure()).getAttribute("Appearance")).isFlagSet(8);
-            isBackground2 = ((Flag)((Animation)o2.getStructure()).getAttribute("Appearance")).isFlagSet(8);
+            isBackground1 = ((Flag)((Animation)o1.getViewable()).getAttribute("Appearance")).isFlagSet(8);
+            isBackground2 = ((Flag)((Animation)o2.getViewable()).getAttribute("Appearance")).isFlagSet(8);
           } catch (Exception e) {
             isBackground1 = false;
             isBackground2 = false;

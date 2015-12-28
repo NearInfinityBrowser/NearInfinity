@@ -13,7 +13,7 @@ import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.Actor;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.Entrance;
@@ -42,15 +42,15 @@ public class LayerObjectEntrance extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return entrance;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{entrance};
+    return new Viewable[]{entrance};
   }
 
   @Override

@@ -5,12 +5,19 @@
 package infinity.resource.are.viewer;
 
 import java.util.List;
+import java.util.Locale;
 
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
+import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.are.Actor;
 import infinity.resource.are.AreResource;
+import infinity.resource.text.PlainTextResource;
+import infinity.util.IniMap;
+import infinity.util.IniMapCache;
+import infinity.util.IniMapEntry;
+import infinity.util.IniMapSection;
 
 /**
  * Manages actor layer objects.
@@ -33,6 +40,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
       close();
       List<LayerObjectActor> list = getLayerObjects();
       if (hasAre()) {
+        // loading actors from ARE
         AreResource are = getAre();
         SectionOffset so = (SectionOffset)are.getAttribute("Actors offset");
         SectionCount sc = (SectionCount)are.getAttribute("# actors");
@@ -41,11 +49,35 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
           int count = sc.getValue();
           List<StructEntry> listStruct = getStructures(ofs, count, Actor.class);
           for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectActor obj = new LayerObjectActor(are, (Actor)listStruct.get(i));
+            LayerObjectActor obj = new LayerObjectAreActor(are, (Actor)listStruct.get(i));
             setListeners(obj);
             list.add(obj);
           }
           setInitialized(true);
+        }
+
+        // loading actors from associated INI
+        String iniFile = are.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".ARE", ".INI");
+        IniMap ini = ResourceFactory.resourceExists(iniFile) ? IniMapCache.get(iniFile) : null;
+        if (ini != null) {
+          for (int i = 0, count = ini.getSectionCount(); i < count; i++) {
+            IniMapSection section = ini.getSection(i);
+            IniMapEntry creFile = section.getEntry("cre_file");
+            IniMapEntry spawnPoint = section.getEntry("spawn_point");
+            if (creFile != null && spawnPoint != null) {
+              String[] position = IniMapEntry.splitValues(spawnPoint.getValue(), IniMapEntry.REGEX_POSITION);
+              for (int j = 0; j < position.length; j++) {
+                try {
+                  PlainTextResource iniRes = new PlainTextResource(ResourceFactory.getResourceEntry(iniFile));
+                  LayerObjectActor obj = new LayerObjectIniActor(iniRes, section, j);
+                  setListeners(obj);
+                  list.add(obj);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+              }
+            }
+          }
         }
       }
       return list.size();

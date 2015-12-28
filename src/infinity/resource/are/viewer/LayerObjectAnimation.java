@@ -17,9 +17,9 @@ import infinity.gui.layeritem.AnimatedLayerItem;
 import infinity.gui.layeritem.BasicAnimationProvider;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
 import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
+import infinity.resource.Viewable;
 import infinity.resource.are.Animation;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -88,15 +88,15 @@ public class LayerObjectAnimation extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return anim;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{anim};
+    return new Viewable[]{anim};
   }
 
   @Override

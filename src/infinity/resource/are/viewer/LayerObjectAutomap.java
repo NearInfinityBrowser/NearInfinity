@@ -18,8 +18,8 @@ import infinity.datatype.TextEdit;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
 import infinity.resource.Profile;
+import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.AutomapNote;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -56,15 +56,15 @@ public class LayerObjectAutomap extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return note;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{note};
+    return new Viewable[]{note};
   }
 
   @Override

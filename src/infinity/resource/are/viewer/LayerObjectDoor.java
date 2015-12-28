@@ -14,8 +14,8 @@ import infinity.datatype.HexNumber;
 import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.ShapedLayerItem;
-import infinity.resource.AbstractStruct;
 import infinity.resource.Profile;
+import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.Door;
 import infinity.resource.vertex.ClosedVertex;
@@ -43,15 +43,15 @@ public class LayerObjectDoor extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return door;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{door};
+    return new Viewable[]{door};
   }
 
   @Override
