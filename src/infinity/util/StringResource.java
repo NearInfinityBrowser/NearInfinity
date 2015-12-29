@@ -52,6 +52,7 @@ public final class StringResource
       }
       file = null;
     }
+    cachedEntry.clear();
   }
 
   /** Returns the File instance of the dialog.tlk */
