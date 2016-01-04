@@ -28,6 +28,11 @@ import javax.swing.JComponent;
 
 public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs //, HasAddRemovable
 {
+  // CHU-specific field labels
+  public static final String CHU_NUM_PANELS       = "# panels";
+  public static final String CHU_OFFSET_CONTROLS  = "Controls offset";
+  public static final String CHU_OFFSET_PANELS    = "Panels offset";
+
   private List<Pair<Integer>> listControls;
   private int ofsPanels, numPanels, sizePanels, ofsControls, numControls;
   private Viewer detailViewer;
@@ -176,7 +181,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   public Window getPanel(int index)
   {
     if (index >= 0 && index < getPanelCount()) {
-      return (Window)getAttribute(String.format(Window.FMT_NAME, index));
+      return (Window)getAttribute(Window.CHU_WINDOW_PANEL + " " + index);
     } else {
       return null;
     }
@@ -187,17 +192,17 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   {
     initData(buffer, offset);
 
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    addField(new SectionCount(buffer, offset + 8, 4, "# panels", Window.class));
-    addField(new SectionOffset(buffer, offset + 12, "Controls offset", Control.class));
-    addField(new SectionOffset(buffer, offset + 16, "Panels offset", Window.class));
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    addField(new SectionCount(buffer, offset + 8, 4, CHU_NUM_PANELS, Window.class));
+    addField(new SectionOffset(buffer, offset + 12, CHU_OFFSET_CONTROLS, Control.class));
+    addField(new SectionOffset(buffer, offset + 16, CHU_OFFSET_PANELS, Window.class));
     offset += 20;
 
     // handling optional gap between header and panels section
     int endoffset = Math.min(getPanelsOffset(), getControlsOffset());
     if (offset < endoffset) {
-      addField(new Unknown(buffer, offset, endoffset - offset, "Unused"));
+      addField(new Unknown(buffer, offset, endoffset - offset, COMMON_UNUSED));
     }
 
     offset = endoffset;
@@ -210,7 +215,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
 
     // handling optional gap between panels section and controls section
     if (offset < ofsControls) {
-      addField(new Unknown(buffer, offset, ofsControls - offset, "Unused"));
+      addField(new Unknown(buffer, offset, ofsControls - offset, COMMON_UNUSED));
     }
 
     return Math.max(offset, endoffset);

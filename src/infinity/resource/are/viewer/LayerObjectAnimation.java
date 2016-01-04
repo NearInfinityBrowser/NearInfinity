@@ -201,9 +201,9 @@ public class LayerObjectAnimation extends LayerObject
         boolean isTorment = (Profile.getEngine() == Profile.Engine.PST);
         boolean isEE = Profile.isEnhancedEdition();
 
-        location.x = ((DecNumber)anim.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)anim.getAttribute("Location: Y")).getValue();
-        Flag flags = (Flag)anim.getAttribute("Appearance");
+        location.x = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_X)).getValue();
+        location.y = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_Y)).getValue();
+        Flag flags = (Flag)anim.getAttribute(Animation.ARE_ANIMATION_APPEARANCE);
         isActive = flags.isFlagSet(0);
         isBlended = flags.isFlagSet(1) || isTorment;
         isMirrored = flags.isFlagSet(11);
@@ -226,10 +226,10 @@ public class LayerObjectAnimation extends LayerObject
           iconIdx += 4;   // adjusting to display inactive versions of the icons
         }
 
-        msg = ((TextString)anim.getAttribute("Name")).toString();
-        scheduleFlags = ((Flag)anim.getAttribute("Active at"));
+        msg = ((TextString)anim.getAttribute(Animation.ARE_ANIMATION_NAME)).toString();
+        scheduleFlags = ((Flag)anim.getAttribute(Animation.ARE_ANIMATION_ACTIVE_AT));
 
-        int baseAlpha = ((DecNumber)anim.getAttribute("Translucency")).getValue();
+        int baseAlpha = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_TRANSLUCENCY)).getValue();
         if (baseAlpha < 0) baseAlpha = 0; else if (baseAlpha > 255) baseAlpha = 255;
         baseAlpha = 255 - baseAlpha;
 
@@ -268,7 +268,7 @@ public class LayerObjectAnimation extends LayerObject
           animation.setActiveIgnored(Settings.OverrideAnimVisibility);
         } else {
           // setting up BAM frames
-          String animFile = ((ResourceRef)anim.getAttribute("Animation")).getResourceName();
+          String animFile = ((ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_RESREF)).getResourceName();
           if (animFile == null || animFile.isEmpty() || "None".equalsIgnoreCase(animFile)) {
             animFile = "";
           }
@@ -276,9 +276,9 @@ public class LayerObjectAnimation extends LayerObject
 //          boolean isRandom = flags.isFlagSet(5);
           boolean playAllFrames = flags.isFlagSet(9);   // play all cycles simultaneously
           boolean hasExternalPalette = flags.isFlagSet(10);
-          int cycle = ((DecNumber)anim.getAttribute("Animation number")).getValue();
-          int frameCount = ((DecNumber)anim.getAttribute("Frame number")).getValue();
-          skippedFrames = ((DecNumber)anim.getAttribute("Start delay (frames)")).getValue();
+          int cycle = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_ANIMATION_INDEX)).getValue();
+          int frameCount = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_FRAME_INDEX)).getValue();
+          skippedFrames = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_START_DELAY)).getValue();
           if (isSynchronized || isTorment) {
             skippedFrames = 0;
           }
@@ -287,7 +287,7 @@ public class LayerObjectAnimation extends LayerObject
           int[] palette = null;
           String paletteFile = null;
           if (hasExternalPalette) {
-            ResourceRef ref = (ResourceRef)anim.getAttribute("Palette");
+            ResourceRef ref = (ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_PALETTE);
             if (ref != null) {
               paletteFile = ref.getResourceName();
               if (paletteFile == null || paletteFile.isEmpty() || "None".equalsIgnoreCase(paletteFile)) {

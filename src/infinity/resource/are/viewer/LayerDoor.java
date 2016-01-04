@@ -37,8 +37,8 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
       List<LayerObjectDoor> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Doors offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# doors");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_DOORS);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_DOORS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

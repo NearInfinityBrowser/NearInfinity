@@ -171,14 +171,14 @@ public class AreaViewer extends ChildFrame
   public static boolean isValid(AreResource are)
   {
     if (are != null) {
-      ResourceRef wedRef = (ResourceRef)are.getAttribute("WED resource");
+      ResourceRef wedRef = (ResourceRef)are.getAttribute(AreResource.ARE_WED_RESOURCE);
       ResourceEntry wedEntry = ResourceFactory.getResourceEntry(wedRef.getResourceName());
       if (wedEntry != null) {
         try {
           WedResource wedFile = new WedResource(wedEntry);
-          int ofs = ((SectionOffset)wedFile.getAttribute("Overlays offset")).getValue();
+          int ofs = ((SectionOffset)wedFile.getAttribute(WedResource.WED_OFFSET_OVERLAYS)).getValue();
           Overlay overlay = (Overlay)wedFile.getAttribute(ofs, false);
-          ResourceRef tisRef = (ResourceRef)overlay.getAttribute("Tileset");
+          ResourceRef tisRef = (ResourceRef)overlay.getAttribute(Overlay.WED_OVERLAY_TILESET);
           ResourceEntry tisEntry = ResourceFactory.getResourceEntry(tisRef.getResourceName());
           if (tisEntry != null)
             return true;
@@ -2564,7 +2564,7 @@ public class AreaViewer extends ChildFrame
       if (are != null) {
         dayNight = (dayNight == ViewerConstants.AREA_NIGHT) ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
         String wedName = "";
-        ResourceRef wedRef = (ResourceRef)are.getAttribute("WED resource");
+        ResourceRef wedRef = (ResourceRef)are.getAttribute(AreResource.ARE_WED_RESOURCE);
         if (wedRef != null) {
           wedName = wedRef.getResourceName();
           if ("None".equalsIgnoreCase(wedName)) {
@@ -2708,7 +2708,7 @@ public class AreaViewer extends ChildFrame
     {
       if (are != null) {
         // fetching important flags
-        Flag flags = (Flag)are.getAttribute("Location");
+        Flag flags = (Flag)are.getAttribute(AreResource.ARE_LOCATION);
         if (flags != null) {
           if (Profile.getEngine() == Profile.Engine.PST) {
             hasDayNight = flags.isFlagSet(10);
@@ -2723,13 +2723,13 @@ public class AreaViewer extends ChildFrame
         areItem = new IconLayerItem(new Point(), are, are.getName());
         areItem.setVisible(false);
 
-        Song song = (Song)are.getAttribute("Songs");
+        Song song = (Song)are.getAttribute(Song.ARE_SONGS);
         if (song != null) {
           songItem = new IconLayerItem(new Point(), song, "");
           songItem.setVisible(false);
         }
 
-        RestSpawn rest = (RestSpawn)are.getAttribute("Rest encounters");
+        RestSpawn rest = (RestSpawn)are.getAttribute(RestSpawn.ARE_RESTSPAWN);
         if (rest != null) {
           restItem = new IconLayerItem(new Point(), rest, "");
         }

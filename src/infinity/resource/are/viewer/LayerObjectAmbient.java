@@ -184,20 +184,20 @@ public class LayerObjectAmbient extends LayerObject
       Shape circle = null;
       Color[] color = new Color[ColorRange.length];
       try {
-        location.x = ((DecNumber)ambient.getAttribute("Origin: X")).getValue();
-        location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
-        radiusLocal = ((DecNumber)ambient.getAttribute("Radius")).getValue();
-        volume = ((DecNumber)ambient.getAttribute("Volume")).getValue();
-        if (((Flag)ambient.getAttribute("Flags")).isFlagSet(2)) {
+        location.x = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
+        location.y = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
+        radiusLocal = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
+        volume = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
+        if (((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2)) {
           icon = IconGlobal;
           radiusLocal = 0;
         } else {
           icon = IconLocal;
         }
 
-        scheduleFlags = ((Flag)ambient.getAttribute("Active at"));
+        scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
 
-        msg = ((TextString)ambient.getAttribute("Name")).toString();
+        msg = ((TextString)ambient.getAttribute(Ambient.ARE_AMBIENT_NAME)).toString();
         if (icon == IconLocal) {
           circle = createShape(1.0);
           double minAlpha = 0.0, maxAlpha = 64.0;

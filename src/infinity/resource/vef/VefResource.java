@@ -22,6 +22,11 @@ import infinity.resource.key.ResourceEntry;
 
 public final class VefResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  // VEF-specific field labels
+  public static final String VEF_OFFSET_COMPONENT_PRI = "Primary component offset";
+  public static final String VEF_NUM_COMPONENT_PRI    = "Primary component count";
+  public static final String VEF_OFFSET_COMPONENT_SEC = "Secondary component offset";
+  public static final String VEF_NUM_COMPONENT_SEC    = "Secondary component count";
 
   private HexViewer hexViewer;
 
@@ -36,7 +41,7 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
   public AddRemovable[] getAddRemovables() throws Exception
 
   {
-    return new AddRemovable[]{new Component1(), new Component2()};
+    return new AddRemovable[]{new PrimaryComponent(), new SecondaryComponent()};
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -75,27 +80,31 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    SectionOffset offset_component1 = new SectionOffset(buffer, offset + 8, "Component1 offset", Component1.class);
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    SectionOffset offset_component1 = new SectionOffset(buffer, offset + 8, VEF_OFFSET_COMPONENT_PRI,
+                                                        PrimaryComponent.class);
     addField(offset_component1);
-    SectionCount count_component1 = new SectionCount(buffer, offset + 12, 4, "Component1 count", Component1.class);
+    SectionCount count_component1 = new SectionCount(buffer, offset + 12, 4, VEF_NUM_COMPONENT_PRI,
+                                                     PrimaryComponent.class);
     addField(count_component1);
-    SectionOffset offset_component2 = new SectionOffset(buffer, offset + 16, "Component2 offset", Component2.class);
+    SectionOffset offset_component2 = new SectionOffset(buffer, offset + 16, VEF_OFFSET_COMPONENT_SEC,
+                                                        SecondaryComponent.class);
     addField(offset_component2);
-    SectionCount count_component2 = new SectionCount(buffer, offset + 20, 4, "Component2 count", Component2.class);
+    SectionCount count_component2 = new SectionCount(buffer, offset + 20, 4, VEF_NUM_COMPONENT_SEC,
+                                                     SecondaryComponent.class);
     addField(count_component2);
 
     offset = offset_component1.getValue();
     for (int i = 0; i < count_component1.getValue(); i++) {
-      Component1 comp1 = new Component1(this, buffer, offset);
+      PrimaryComponent comp1 = new PrimaryComponent(this, buffer, offset);
       offset = comp1.getEndOffset();
       addField(comp1);
     }
 
     offset = offset_component2.getValue();
     for (int i = 0; i < count_component2.getValue(); i++) {
-      Component2 comp2 = new Component2(this, buffer, offset);
+      SecondaryComponent comp2 = new SecondaryComponent(this, buffer, offset);
       offset = comp2.getEndOffset();
       addField(comp2);
     }

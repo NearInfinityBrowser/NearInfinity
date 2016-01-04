@@ -18,6 +18,7 @@ import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
 import infinity.gui.hexview.HexViewer;
+import infinity.resource.AbstractAbility;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
@@ -37,6 +38,30 @@ import javax.swing.JScrollPane;
 
 public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  // SPL-specific field labels
+  public static final String SPL_NAME                             = "Spell name";
+  public static final String SPL_NAME_IDENTIFIED                  = infinity.resource.itm.ItmResource.ITM_NAME_IDENTIFIED;
+  public static final String SPL_CASTING_SOUND                    = "Casting sound";
+  public static final String SPL_FLAGS                            = "Flags";
+  public static final String SPL_TYPE                             = "Spell type";
+  public static final String SPL_EXCLUSION_FLAGS                  = "Exclusion flags";
+  public static final String SPL_CASTING_ANIMATION                = "Casting animation";
+  public static final String SPL_PRIMARY_TYPE                     = "Primary type (school)";
+  public static final String SPL_SECONDARY_TYPE                   = "Secondary type";
+  public static final String SPL_LEVEL                            = "Spell level";
+  public static final String SPL_ICON                             = "Spell icon";
+  public static final String SPL_ICON_GROUND                      = "Ground icon";
+  public static final String SPL_DESCRIPTION                      = "Spell description";
+  public static final String SPL_DESCRIPTION_IDENTIFIED           = infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IDENTIFIED;
+  public static final String SPL_DESCRIPTION_IMAGE                = infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IMAGE;
+  public static final String SPL_OFFSET_ABILITIES                 = infinity.resource.itm.ItmResource.ITM_OFFSET_ABILITIES;
+  public static final String SPL_NUM_ABILITIES                    = infinity.resource.itm.ItmResource.ITM_NUM_ABILITIES;
+  public static final String SPL_OFFSET_EFFECTS                   = infinity.resource.itm.ItmResource.ITM_OFFSET_EFFECTS;
+  public static final String SPL_FIRST_EFFECT_INDEX               = infinity.resource.itm.ItmResource.ITM_FIRST_EFFECT_INDEX;
+  public static final String SPL_NUM_GLOBAL_EFFECTS               = infinity.resource.itm.ItmResource.ITM_NUM_GLOBAL_EFFECTS;
+  public static final String SPL_SPELL_DURATION_ROUNDS_PER_LEVEL  = "Spell duration rounds/level";
+  public static final String SPL_SPELL_DURATION_BASE              = "Spell duration rounds base";
+
   public static final String[] s_spelltype = {"Special", "Wizard", "Priest", "Psionic", "Innate", "Bard song"};
   public static final String[] s_anim = {"None", "Fire aqua", "Fire blue", "Fire gold", "Fire green",
                                          "Fire magenta", "Fire purple", "Fire red", "Fire white",
@@ -173,7 +198,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute("# global effects")).getValue();
+      int effect_count = ((SectionCount)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
       for (int i = 0; i < getFieldCount(); i++) {
         Object o = getField(i);
         if (o instanceof Ability) {
@@ -216,7 +241,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute("# global effects")).getValue();
+      int effect_count = ((SectionCount)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
       for (int i = 0; i < getFieldCount(); i++) {
         Object o = getField(i);
         if (o instanceof Ability) {
@@ -251,49 +276,48 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    TextString version = new TextString(buffer, offset + 4, 4, "Version");
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
-    addField(new StringRef(buffer, offset + 8, "Spell name"));
-    addField(new StringRef(buffer, offset + 12, "Identified name"));
-    addField(new ResourceRef(buffer, offset + 16, "Casting sound", "WAV"));
-    addField(new Flag(buffer, offset + 24, 4, "Flags", s_spellflag));
-    addField(new Bitmap(buffer, offset + 28, 2, "Spell type", s_spelltype));
-    addField(new Flag(buffer, offset + 30, 4, "Exclusion flags", s_exclude));   // 0x1e
-//    addField(new HashBitmap(buffer, offset + 32, 2, "Priest type", m_priesttype));     // 0x20
-    addField(new Bitmap(buffer, offset + 34, 2, "Casting animation", s_anim));  // 0x22
+    addField(new StringRef(buffer, offset + 8, SPL_NAME));
+    addField(new StringRef(buffer, offset + 12, SPL_NAME_IDENTIFIED));
+    addField(new ResourceRef(buffer, offset + 16, SPL_CASTING_SOUND, "WAV"));
+    addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag));
+    addField(new Bitmap(buffer, offset + 28, 2, SPL_TYPE, s_spelltype));
+    addField(new Flag(buffer, offset + 30, 4, SPL_EXCLUSION_FLAGS, s_exclude));   // 0x1e
+    addField(new Bitmap(buffer, offset + 34, 2, SPL_CASTING_ANIMATION, s_anim));  // 0x22
     addField(new Unknown(buffer, offset + 36, 1));                                    // 0x23
-    addField(new PriTypeBitmap(buffer, offset + 37, 1, "Primary type (school)")); // 0x25
+    addField(new PriTypeBitmap(buffer, offset + 37, 1, SPL_PRIMARY_TYPE)); // 0x25
     addField(new Unknown(buffer, offset + 38, 1));
-    addField(new SecTypeBitmap(buffer, offset + 39, 1, "Secondary type"));       // 0x27
+    addField(new SecTypeBitmap(buffer, offset + 39, 1, SPL_SECONDARY_TYPE));       // 0x27
     addField(new Unknown(buffer, offset + 40, 12));
-    addField(new DecNumber(buffer, offset + 52, 4, "Spell level"));
+    addField(new DecNumber(buffer, offset + 52, 4, SPL_LEVEL));
     addField(new Unknown(buffer, offset + 56, 2));
-    addField(new ResourceRef(buffer, offset + 58, "Spell icon", "BAM"));
+    addField(new ResourceRef(buffer, offset + 58, SPL_ICON, "BAM"));
     addField(new Unknown(buffer, offset + 66, 2));
-    addField(new ResourceRef(buffer, offset + 68, "Ground icon", "BAM"));
+    addField(new ResourceRef(buffer, offset + 68, SPL_ICON_GROUND, "BAM"));
     addField(new Unknown(buffer, offset + 76, 4));
-    addField(new StringRef(buffer, offset + 80, "Spell description"));
-    addField(new StringRef(buffer, offset + 84, "Identified description"));
-    addField(new ResourceRef(buffer, offset + 88, "Description image", "BAM"));
+    addField(new StringRef(buffer, offset + 80, SPL_DESCRIPTION));
+    addField(new StringRef(buffer, offset + 84, SPL_DESCRIPTION_IDENTIFIED));
+    addField(new ResourceRef(buffer, offset + 88, SPL_DESCRIPTION_IMAGE, "BAM"));
     addField(new Unknown(buffer, offset + 96, 4));
-    SectionOffset abil_offset = new SectionOffset(buffer, offset + 100, "Abilities offset",
+    SectionOffset abil_offset = new SectionOffset(buffer, offset + 100, SPL_OFFSET_ABILITIES,
                                                   Ability.class);
     addField(abil_offset);
-    SectionCount abil_count = new SectionCount(buffer, offset + 104, 2, "# abilities",
+    SectionCount abil_count = new SectionCount(buffer, offset + 104, 2, SPL_NUM_ABILITIES,
                                                Ability.class);
     addField(abil_count);
-    SectionOffset global_offset = new SectionOffset(buffer, offset + 106, "Effects offset",
+    SectionOffset global_offset = new SectionOffset(buffer, offset + 106, SPL_OFFSET_EFFECTS,
                                                     Effect.class);
     addField(global_offset);
-    addField(new DecNumber(buffer, offset + 110, 2, "First effect index"));
-    SectionCount global_count = new SectionCount(buffer, offset + 112, 2, "# global effects",
+    addField(new DecNumber(buffer, offset + 110, 2, SPL_FIRST_EFFECT_INDEX));
+    SectionCount global_count = new SectionCount(buffer, offset + 112, 2, SPL_NUM_GLOBAL_EFFECTS,
                                                  Effect.class);
     addField(global_count);
 
     if (version.toString().equalsIgnoreCase("V2.0")) {
-      addField(new DecNumber(buffer, offset + 114, 1, "Spell duration rounds/level"));
-      addField(new DecNumber(buffer, offset + 115, 1, "Spell duration rounds base"));
+      addField(new DecNumber(buffer, offset + 114, 1, SPL_SPELL_DURATION_ROUNDS_PER_LEVEL));
+      addField(new DecNumber(buffer, offset + 115, 1, SPL_SPELL_DURATION_BASE));
       addField(new Unknown(buffer, offset + 116, 14));
     }
 
@@ -334,8 +358,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)spl.getAttribute("Effects offset", false);
-        DecNumber cnt = (DecNumber)spl.getAttribute("# global effects", false);
+        DecNumber ofs = (DecNumber)spl.getAttribute(SPL_OFFSET_EFFECTS, false);
+        DecNumber cnt = (DecNumber)spl.getAttribute(SPL_NUM_GLOBAL_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -346,8 +370,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)spl.getAttribute("Abilities offset", false);
-        cnt = (DecNumber)spl.getAttribute("# abilities", false);
+        ofs = (DecNumber)spl.getAttribute(SPL_OFFSET_ABILITIES, false);
+        cnt = (DecNumber)spl.getAttribute(SPL_NUM_ABILITIES, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -361,7 +385,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute("# effects", false);
+            cnt = (DecNumber)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {

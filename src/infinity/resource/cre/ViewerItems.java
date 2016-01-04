@@ -45,22 +45,22 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
   {
     super(new BorderLayout(0, 3));
     List<Item> items = new ArrayList<Item>();
-    HexNumber slots_offset = (HexNumber)cre.getAttribute("Item slots offset");
+    HexNumber slots_offset = (HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
     for (int i = 0; i < cre.getFieldCount(); i++) {
       StructEntry entry = cre.getField(i);
       if (entry instanceof Item)
         items.add((Item)entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
                entry instanceof DecNumber
-               && !entry.getName().equals("Weapon slot selected")
-               && !entry.getName().equals("Weapon ability selected"))
+               && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_SLOT)
+               && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_ABILITY))
         slots.add(entry);
     }
     for (int i = 0; i < slots.size(); i++) {
       DecNumber slot = (DecNumber)slots.get(i);
       if (slot.getValue() >= 0 && slot.getValue() < items.size()) {
         Item item = items.get(slot.getValue());
-        ResourceRef itemRef = (ResourceRef)item.getAttribute("Item");
+        ResourceRef itemRef = (ResourceRef)item.getAttribute(Item.CRE_ITEM_RESREF);
         tableModel.addEntry(slot.getName(), itemRef);
       }
       else
@@ -150,7 +150,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
           DecNumber slot = (DecNumber)slots.get(i);
           if (slot.getValue() >= 0 && slot.getValue() < items.size()) {
             Item item = items.get(slot.getValue());
-            ResourceRef itemRef = (ResourceRef)item.getAttribute("Item");
+            ResourceRef itemRef = (ResourceRef)item.getAttribute(Item.CRE_ITEM_RESREF);
             tableModel.addEntry(slot.getName(), itemRef);
           }
           else
@@ -195,9 +195,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       InventoryTableEntry entry = list.get(rowIndex);
-      if (columnIndex == 0)
-        return entry.slot;
-      return entry.item;
+      return (columnIndex == 0) ? entry.slot : entry.item;
     }
 
     @Override
@@ -209,9 +207,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     @Override
     public String getColumnName(int column)
     {
-      if (column == 0)
-        return "Slot";
-      return "Item";
+      return (column == 0) ? "Slot" : "Item";
     }
   }
 

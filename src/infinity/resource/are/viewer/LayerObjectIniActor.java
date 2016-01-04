@@ -121,8 +121,8 @@ public class LayerObjectIniActor extends LayerObjectActor
 
       // initializations
       Image[] icon;
-      String msg = ((StringRef)cre.getAttribute("Name")).toString() + " [" + sectionName + "]";
-      int ea = (int)((IdsBitmap)cre.getAttribute("Allegiance")).getValue();
+      String msg = ((StringRef)cre.getAttribute(CreResource.CRE_NAME)).toString() + " [" + sectionName + "]";
+      int ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
       location.x = pos[0];
       location.y = pos[1];
 

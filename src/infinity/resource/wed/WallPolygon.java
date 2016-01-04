@@ -8,14 +8,17 @@ import infinity.resource.AbstractStruct;
 
 public final class WallPolygon extends Polygon
 {
+  // WED/WallPolygon-specific field labels
+  public static final String WED_POLY_WALL  = "Wall polygon";
+
   public WallPolygon() throws Exception
   {
-    super(null, "Wall polygon", new byte[18], 0);
+    super(null, WED_POLY_WALL, new byte[18], 0);
   }
 
   public WallPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Wall polygon " + nr, buffer, offset);
+    super(superStruct, WED_POLY_WALL + " " + nr, buffer, offset);
   }
 }
 

@@ -4,8 +4,10 @@
 
 package infinity.resource.spl;
 
+import infinity.datatype.EffectType;
 import infinity.datatype.ResourceRef;
 import infinity.gui.ViewerUtil;
+import infinity.resource.AbstractAbility;
 import infinity.resource.Effect;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
@@ -112,26 +114,24 @@ public final class Viewer extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Spell name"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_NAME), gbl, gbc, true);
     String s = getSymbolicName(spl.getResourceEntry(), true);
     ViewerUtil.addLabelFieldPair(fieldPanel, "Symbolic name", (s != null) ? s : "n/a", gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Spell type"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Casting animation"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Primary type (school)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Secondary type"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute("Spell level"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_TYPE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_CASTING_ANIMATION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_PRIMARY_TYPE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_SECONDARY_TYPE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_LEVEL), gbl, gbc, true);
 
     return fieldPanel;
   }
 
   Viewer(SplResource spl)
   {
-    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)spl.getAttribute("Spell icon"), 0);
-    JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", spl,
-                                                         Effect.class, "Type");
-    JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", spl, Ability.class,
-                                                     "Type");
-    JPanel descPanel = ViewerUtil.makeTextAreaPanel(spl.getAttribute("Spell description"));
+    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)spl.getAttribute(SplResource.SPL_ICON), 0);
+    JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", spl, Effect.class, EffectType.EFFECT_TYPE);
+    JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", spl, Ability.class, AbstractAbility.ABILITY_TYPE);
+    JPanel descPanel = ViewerUtil.makeTextAreaPanel(spl.getAttribute(SplResource.SPL_DESCRIPTION));
     JPanel fieldPanel = makeFieldPanel(spl);
 
     JPanel infoPanel = new JPanel(new BorderLayout());

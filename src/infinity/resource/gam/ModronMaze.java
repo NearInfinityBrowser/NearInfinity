@@ -11,11 +11,26 @@ import infinity.resource.AbstractStruct;
 
 public final class ModronMaze extends AbstractStruct
 {
+  // GAM/ModronMaze-specific field labels
+  public static final String GAM_MAZE               = "Modron maze state";
+  public static final String GAM_MAZE_SIZE_X        = "Size: X";
+  public static final String GAM_MAZE_SIZE_Y        = "Size: Y";
+  public static final String GAM_MAZE_NORDOM_X      = "Nordom position: X";
+  public static final String GAM_MAZE_NORDOM_Y      = "Nordom position: Y";
+  public static final String GAM_MAZE_MAIN_HALL_X   = "Main hall position: X";
+  public static final String GAM_MAZE_MAIN_HALL_Y   = "Main hall position: Y";
+  public static final String GAM_MAZE_FOYER_X       = "Foyer position: X";
+  public static final String GAM_MAZE_FOYER_Y       = "Foyer position: Y";
+  public static final String GAM_MAZE_ENGINE_ROOM_X = "Engine room position: X";
+  public static final String GAM_MAZE_ENGINE_ROOM_Y = "Engine room position: Y";
+  public static final String GAM_MAZE_NUM_TRAPS     = "# traps";
+  public static final String GAM_MAZE_INITIALIZED   = "Initialized";
+
   private static final String[] s_noyes = {"No", "Yes"};
 
   public ModronMaze(AbstractStruct superStruct, byte[] buffer, int offset) throws Exception
   {
-    super(superStruct, "Modron maze state", buffer, offset);
+    super(superStruct, GAM_MAZE, buffer, offset);
   }
 
   @Override
@@ -31,29 +46,29 @@ public final class ModronMaze extends AbstractStruct
     }
 
     // adding header data
-    addField(new DecNumber(buffer, curOfs, 4, "Size: X"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_SIZE_X));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Size: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_SIZE_Y));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Nordom position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_NORDOM_X));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Nordom position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_NORDOM_Y));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Main hall position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_MAIN_HALL_X));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Main hall position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_MAIN_HALL_Y));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Foyer position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_FOYER_X));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Foyer position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_FOYER_Y));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Engine room position: X"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_ENGINE_ROOM_X));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "Engine room position: Y"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_ENGINE_ROOM_Y));
     curOfs += 4;
-    addField(new DecNumber(buffer, curOfs, 4, "# traps"));
+    addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_NUM_TRAPS));
     curOfs += 4;
-    addField(new Bitmap(buffer, curOfs, 4, "Initialized", s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, GAM_MAZE_INITIALIZED, s_noyes));
     curOfs += 4;
     addField(new Unknown(buffer, curOfs, 8));
     curOfs += 8;

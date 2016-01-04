@@ -7,12 +7,31 @@ package infinity.resource;
 import infinity.datatype.DecNumber;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
+import infinity.resource.spl.Ability;
+import infinity.resource.spl.SplResource;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 public abstract class AbstractAbility extends AbstractStruct
 {
+  // Ability-specific field labels
+  public static final String ABILITY_TYPE               = "Type";
+  public static final String ABILITY_LOCATION           = "Ability location";
+  public static final String ABILITY_ICON               = "Icon";
+  public static final String ABILITY_TARGET             = "Target";
+  public static final String ABILITY_NUM_TARGETS        = "# targets";
+  public static final String ABILITY_RANGE              = "Range (feet)";
+  public static final String ABILITY_HIT_BONUS          = "Bonus to hit";
+  public static final String ABILITY_DICE_SIZE          = "Dice size";
+  public static final String ABILITY_DICE_COUNT         = "# dice thrown";
+  public static final String ABILITY_DAMAGE_BONUS       = "Damage bonus";
+  public static final String ABILITY_DAMAGE_TYPE        = "Damage type";
+  public static final String ABILITY_NUM_EFFECTS        = "# effects";
+  public static final String ABILITY_FIRST_EFFECT_INDEX = "First effect index";
+  public static final String ABILITY_NUM_CHARGES        = "# charges";
+  public static final String ABILITY_PROJECTILE         = "Projectile";
+
   public static final String[] s_type = {"", "Melee", "Ranged", "Magical", "Launcher"};
   public static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
                                                "Any point within range", "Caster", "",
@@ -336,25 +355,25 @@ public abstract class AbstractAbility extends AbstractStruct
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Effect && getEffectsCount() >= 1) {
-      SectionOffset effectOffset = (SectionOffset)getSuperStruct().getAttribute("Effects offset");
-      int effectIndex = ((DecNumber)getAttribute("First effect index")).getValue() + getEffectsCount() - 1;
+      SectionOffset effectOffset = (SectionOffset)getSuperStruct().getAttribute(SplResource.SPL_OFFSET_EFFECTS);
+      int effectIndex = ((DecNumber)getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX)).getValue() + getEffectsCount() - 1;
       datatype.setOffset(effectOffset.getValue() + effectIndex * 48);
     }
   }
 
   public int getEffectsCount()
   {
-    return ((SectionCount)getAttribute("# effects")).getValue();
+    return ((SectionCount)getAttribute(Ability.ABILITY_NUM_EFFECTS)).getValue();
   }
 
   public void incEffectsIndex(int value)
   {
-    ((DecNumber)getAttribute("First effect index")).incValue(value);
+    ((DecNumber)getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX)).incValue(value);
   }
 
   public int readEffects(byte buffer[], int off) throws Exception
   {
-    int effect_count = ((SectionCount)getAttribute("# effects")).getValue();
+    int effect_count = ((SectionCount)getAttribute(Ability.ABILITY_NUM_EFFECTS)).getValue();
     for (int i = 0; i < effect_count; i++) {
       Effect eff = new Effect(this, buffer, off, i);
       off = eff.getEndOffset();
@@ -365,7 +384,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public void setEffectsIndex(int value)
   {
-    ((DecNumber)getAttribute("First effect index")).setValue(value);
+    ((DecNumber)getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX)).setValue(value);
   }
 
   public void writeEffects(OutputStream os) throws IOException

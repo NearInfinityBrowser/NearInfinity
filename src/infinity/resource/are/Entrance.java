@@ -13,14 +13,21 @@ import infinity.resource.AddRemovable;
 
 public final class Entrance extends AbstractStruct implements AddRemovable
 {
+  // ARE/Entrance-specific field labels
+  public static final String ARE_ENTRANCE             = "Entrance";
+  public static final String ARE_ENTRANCE_NAME        = "Name";
+  public static final String ARE_ENTRANCE_LOCATION_X  = "Location: X";
+  public static final String ARE_ENTRANCE_LOCATION_Y  = "Location: Y";
+  public static final String ARE_ENTRANCE_ORIENTATION = "Orientation";
+
   Entrance() throws Exception
   {
-    super(null, "Entrance", new byte[104], 0);
+    super(null, ARE_ENTRANCE, new byte[104], 0);
   }
 
   Entrance(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Entrance " + number, buffer, offset);
+    super(superStruct, ARE_ENTRANCE + " " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -36,10 +43,10 @@ public final class Entrance extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 32, "Name"));
-    addField(new DecNumber(buffer, offset + 32, 2, "Location: X"));
-    addField(new DecNumber(buffer, offset + 34, 2, "Location: Y"));
-    addField(new Bitmap(buffer, offset + 36, 4, "Orientation", Actor.s_orientation));
+    addField(new TextString(buffer, offset, 32, ARE_ENTRANCE_NAME));
+    addField(new DecNumber(buffer, offset + 32, 2, ARE_ENTRANCE_LOCATION_X));
+    addField(new DecNumber(buffer, offset + 34, 2, ARE_ENTRANCE_LOCATION_Y));
+    addField(new Bitmap(buffer, offset + 36, 4, ARE_ENTRANCE_ORIENTATION, Actor.s_orientation));
     addField(new Unknown(buffer, offset + 40, 64));
     return offset + 104;
   }

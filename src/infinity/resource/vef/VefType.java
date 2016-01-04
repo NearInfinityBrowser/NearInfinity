@@ -16,6 +16,10 @@ import java.util.List;
 
 public final class VefType extends Bitmap
 {
+  // VEF/VefType-specific field labels
+  public static final String VEF_TYPE           = "Resource type";
+  public static final String VEF_TYPE_RESOURCE  = "Resource";
+
   public static final String[] s_restype = {"WAV", "VVC/BAM", "VEF/VVC/BAM"};
   private static int buf_size = 8;
 
@@ -26,7 +30,7 @@ public final class VefType extends Bitmap
 
   public VefType(StructEntry parent, byte buffer[], int offset, int length)
   {
-    super(parent, buffer, offset, length, "Resource type", s_restype);
+    super(parent, buffer, offset, length, VEF_TYPE, s_restype);
   }
 
   // --------------------- Begin Interface Editable ---------------------
@@ -56,16 +60,16 @@ public final class VefType extends Bitmap
   {
     switch (getValue()) {
     case 0:
-      list.add(new ResourceRef(buffer, off, 8, "Resource", "WAV"));
+      list.add(new ResourceRef(buffer, off, 8, VEF_TYPE_RESOURCE, "WAV"));
       break;
     case 1:
-      list.add(new ResourceRef(buffer, off, 8, "Resource", new String[]{"VVC", "BAM"}));
+      list.add(new ResourceRef(buffer, off, 8, VEF_TYPE_RESOURCE, new String[]{"VVC", "BAM"}));
       break;
     case 2:
-      list.add(new ResourceRef(buffer, off, 8, "Resource", new String[]{"VEF", "VVC", "BAM"}));
+      list.add(new ResourceRef(buffer, off, 8, VEF_TYPE_RESOURCE, new String[]{"VEF", "VVC", "BAM"}));
       break;
     default:
-      list.add(new TextString(buffer, off, 8, "Resource"));
+      list.add(new TextString(buffer, off, 8, VEF_TYPE_RESOURCE));
       break;
     }
     return off + buf_size;

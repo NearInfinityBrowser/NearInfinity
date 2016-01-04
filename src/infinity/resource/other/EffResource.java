@@ -24,6 +24,10 @@ import infinity.search.SearchOptions;
 
 public final class EffResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  // EFF-specific field labels
+  public static final String EFF_SIGNATURE_2  = "Signature 2";
+  public static final String EFF_VERSION_2    = "Version 2";
+
   private HexViewer hexViewer;
 
   public EffResource(ResourceEntry entry) throws Exception
@@ -34,10 +38,10 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    addField(new TextString(buffer, offset + 8, 4, "Signature 2"));
-    addField(new TextString(buffer, offset + 12, 4, "Version 2"));
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    addField(new TextString(buffer, offset + 8, 4, EFF_SIGNATURE_2));
+    addField(new TextString(buffer, offset + 12, 4, EFF_VERSION_2));
     EffectType type = new EffectType(buffer, offset + 16, 4);
     addField(type);
     List<StructEntry> list = new ArrayList<StructEntry>();

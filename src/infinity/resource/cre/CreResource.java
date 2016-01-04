@@ -14,6 +14,7 @@ import infinity.datatype.HashBitmap;
 import infinity.datatype.HexNumber;
 import infinity.datatype.IdsBitmap;
 import infinity.datatype.IdsFlag;
+import infinity.datatype.IsNumeric;
 import infinity.datatype.KitIdsBitmap;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ResourceRef;
@@ -71,6 +72,326 @@ import javax.swing.JOptionPane;
 public final class CreResource extends AbstractStruct
   implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener
 {
+  // CHR-specific field labels
+  public static final String CHR_NAME                         = "Character name";
+  public static final String CHR_OFFSET_CRE                   = "CRE structure offset";
+  public static final String CHR_CRE_SIZE                     = "CRE structure size";
+  public static final String CHR_QUICK_WEAPON_SLOT_FMT        = "Quick weapon slot %d";
+  public static final String CHR_QUICK_SHIELD_SLOT_FMT        = "Quick shield slot %d";
+  public static final String CHR_QUICK_WEAPON_ABILITY_FMT     = "Quick weapon %d ability";
+  public static final String CHR_QUICK_SHIELD_ABILITY_FMT     = "Quick shield %d ability";
+  public static final String CHR_QUICK_SPELL_FMT              = "Quick spell %d";
+  public static final String CHR_QUICK_SPELL_CLASS_FMT        = "Quick spell %d class";
+  public static final String CHR_QUICK_ITEM_SLOT_FMT          = "Quick item slot %d";
+  public static final String CHR_QUICK_ITEM_ABILITY_FMT       = "Quick item %d ability";
+  public static final String CHR_QUICK_ABILITY_FMT            = "Quick ability %d";
+  public static final String CHR_QUICK_SONG_FMT               = "Quick song %d";
+  public static final String CHR_QUICK_BUTTON_FMT             = "Quick button %d";
+  public static final String CHR_VOICE_SET_PREFIX             = "Voice set prefix";
+  public static final String CHR_VOICE_SET                    = "Voice set";
+  public static final String CHR_SIGNATURE_2                  = "Signature 2";
+  public static final String CHR_VERSION_2                    = "Version 2";
+  // CRE-specific field labels
+  public static final String CRE_NAME                         = "Name";
+  public static final String CRE_TOOLTIP                      = "Tooltip";
+  public static final String CRE_FLAGS                        = "Flags";
+  public static final String CRE_XP_VALUE                     = "XP value";
+  public static final String CRE_XP                           = "XP/Power level";
+  public static final String CRE_GOLD                         = "Gold";
+  public static final String CRE_STATUS                       = "Status";
+  public static final String CRE_HP_CURRENT                   = "Current HP";
+  public static final String CRE_HP_MAX                       = "Maximum HP";
+  public static final String CRE_ANIMATION                    = "Animation";
+  public static final String CRE_COLOR_METAL                  = "Metal color";
+  public static final String CRE_COLOR_MINOR                  = "Minor color";
+  public static final String CRE_COLOR_MAJOR                  = "Major color";
+  public static final String CRE_COLOR_SKIN                   = "Skin color";
+  public static final String CRE_COLOR_LEATHER                = "Leather color";
+  public static final String CRE_COLOR_ARMOR                  = "Armor color";
+  public static final String CRE_COLOR_HAIR                   = "Hair color";
+  public static final String CRE_EFFECT_VERSION               = "Effect version";
+  public static final String CRE_PORTRAIT_SMALL               = "Small portrait";
+  public static final String CRE_PORTRAIT_LARGE               = "Large portrait";
+  public static final String CRE_REPUTATION                   = "Reputation";
+  public static final String CRE_ARMOR_CLASS                  = "Armor class";
+  public static final String CRE_AC_MOD_BLUDGEONING           = "Bludgeoning AC modifier";
+  public static final String CRE_AC_MOD_CRUSHING              = "Crushing AC modifier";
+  public static final String CRE_AC_MOD_MISSILE               = "Missile AC modifier";
+  public static final String CRE_AC_MOD_PIERCING              = "Piercing AC modifier";
+  public static final String CRE_AC_MOD_SLASHING              = "Slashing AC modifier";
+  public static final String CRE_AC_NATURAL                   = "Natural AC";
+  public static final String CRE_AC_EFFECTIVE                 = "Effective AC";
+  public static final String CRE_THAC0                        = "THAC0";
+  public static final String CRE_BASE_ATTACK_BONUS            = "Base attack bonus";
+  public static final String CRE_ATTACKS_PER_ROUND            = "# attacks/round";
+  public static final String CRE_SAVE_FORTITUDE               = "Fortitude save";
+  public static final String CRE_SAVE_REFLEX                  = "Reflex save";
+  public static final String CRE_SAVE_WILL                    = "Will save";
+  public static final String CRE_SAVE_DEATH                   = "Save vs. death";
+  public static final String CRE_SAVE_WAND                    = "Save vs. wand";
+  public static final String CRE_SAVE_POLYMORPH               = "Save vs. polymorph";
+  public static final String CRE_SAVE_BREATH                  = "Save vs. breath";
+  public static final String CRE_SAVE_SPELL                   = "Save vs. spell";
+  public static final String CRE_RESISTANCE_FIRE              = "Fire resistance";
+  public static final String CRE_RESISTANCE_COLD              = "Cold resistance";
+  public static final String CRE_RESISTANCE_ELECTRICITY       = "Electricity resistance";
+  public static final String CRE_RESISTANCE_ACID              = "Acid resistance";
+  public static final String CRE_RESISTANCE_SPELL             = "Spell resistance";
+  public static final String CRE_RESISTANCE_MAGIC             = "Magic resistance";
+  public static final String CRE_RESISTANCE_MAGIC_FIRE        = "Magic fire resistance";
+  public static final String CRE_RESISTANCE_MAGIC_COLD        = "Magic cold resistance";
+  public static final String CRE_RESISTANCE_SLASHING          = "Slashing resistance";
+  public static final String CRE_RESISTANCE_BLUDGEONING       = "Bludgeoning resistance";
+  public static final String CRE_RESISTANCE_CRUSHING          = "Crushing resistance";
+  public static final String CRE_RESISTANCE_PIERCING          = "Piercing resistance";
+  public static final String CRE_RESISTANCE_MISSILE           = "Missile resistance";
+  public static final String CRE_RESISTANCE_MAGIC_DAMAGE      = "Magic damage resistance";
+  public static final String CRE_FATIGUE                      = "Fatigue";
+  public static final String CRE_INTOXICATION                 = "Intoxication";
+  public static final String CRE_LUCK                         = "Luck";
+  public static final String CRE_TURN_UNDEAD_LEVEL            = "Turn undead level";
+  public static final String CRE_LEVELS_TOTAL                 = "Total level";
+  public static final String CRE_LEVEL_BARBARIAN              = "Barbarian level";
+  public static final String CRE_LEVEL_BARD                   = "Bard level";
+  public static final String CRE_LEVEL_CLERIC                 = "Cleric level";
+  public static final String CRE_LEVEL_DRUID                  = "Druid level";
+  public static final String CRE_LEVEL_FIGHTER                = "Fighter level";
+  public static final String CRE_LEVEL_MONK                   = "Monk level";
+  public static final String CRE_LEVEL_PALADIN                = "Paladin level";
+  public static final String CRE_LEVEL_RANGER                 = "Ranger level";
+  public static final String CRE_LEVEL_ROGUE                  = "Rogue level";
+  public static final String CRE_LEVEL_SORCERER               = "Sorcerer level";
+  public static final String CRE_LEVEL_WIZARD                 = "Wizard level";
+  public static final String CRE_SOUND_SLOT_FMT               = "Sound: %s";
+  public static final String CRE_SOUND_SLOT_GENERIC           = "Soundset string";
+  public static final String CRE_FEATS_1                      = "Feats (1/3)";
+  public static final String CRE_FEATS_2                      = "Feats (2/3)";
+  public static final String CRE_FEATS_3                      = "Feats (3/3)";
+  public static final String CRE_PROFICIENCY_LARGE_SWORD      = "Large sword proficiency";
+  public static final String CRE_PROFICIENCY_SMALL_SWORD      = "Small sword proficiency";
+  public static final String CRE_PROFICIENCY_BOW              = "Bow proficiency";
+  public static final String CRE_PROFICIENCY_SPEAR            = "Spear proficiency";
+  public static final String CRE_PROFICIENCY_BLUNT            = "Blunt proficiency";
+  public static final String CRE_PROFICIENCY_SPIKED           = "Spiked proficiency";
+  public static final String CRE_PROFICIENCY_AXE              = "Axe proficiency";
+  public static final String CRE_PROFICIENCY_MISSILE          = "Missile proficiency";
+  public static final String CRE_PROFICIENCY_FIST             = "Fist proficiency";
+  public static final String CRE_PROFICIENCY_EDGED_WEAPON     = "Edged-weapon proficiency";
+  public static final String CRE_PROFICIENCY_HAMMER           = "Hammer proficiency";
+  public static final String CRE_PROFICIENCY_CLUB             = "Club proficiency";
+  public static final String CRE_PROFICIENCY_GREATSWORD       = "Greatsword proficiency";
+  public static final String CRE_PROFICIENCY_DAGGER           = "Dagger proficiency";
+  public static final String CRE_PROFICIENCY_HALBERD          = "Halberd proficiency";
+  public static final String CRE_PROFICIENCY_MACE             = "Mace proficiency";
+  public static final String CRE_PROFICIENCY_FLAIL            = "Flail proficiency";
+  public static final String CRE_PROFICIENCY_QUARTERSTAFF     = "Quarterstaff proficiency";
+  public static final String CRE_PROFICIENCY_CROSSBOW         = "Crossbow proficiency";
+  public static final String CRE_MW_BOW                       = "MW: Bow";
+  public static final String CRE_SW_CROSSBOW                  = "SW: Crossbow";
+  public static final String CRE_SW_MISSILE                   = "SW: Missile";
+  public static final String CRE_MW_AXE                       = "MW: Axe";
+  public static final String CRE_SW_MACE                      = "SW: Mace";
+  public static final String CRE_MW_FLAIL                     = "MW: Flail";
+  public static final String CRE_MW_POLEARM                   = "MW: Polearm";
+  public static final String CRE_MW_HAMMER                    = "MW: Hammer";
+  public static final String CRE_SW_QUARTERSTAFF              = "SW: Quarterstaff";
+  public static final String CRE_MW_GREATSWORD                = "MW: Greatsword";
+  public static final String CRE_MW_LARGE_SWORD               = "MW: Large sword";
+  public static final String CRE_SW_SMALL_BLADE               = "SW: Small blade";
+  public static final String CRE_TOUGHNESS                    = "Toughness";
+  public static final String CRE_ARMORED_ARCANA               = "Armored arcana";
+  public static final String CRE_CLEAVE                       = "Cleave";
+  public static final String CRE_ARMOR_PROFICIENCY            = "Armor proficiency";
+  public static final String CRE_SF_ENCHANTMENT               = "SF: Enchantment";
+  public static final String CRE_SF_EVOCATION                 = "SF: Evocation";
+  public static final String CRE_SF_NECROMANCY                = "SF: Necromancy";
+  public static final String CRE_SF_TRANSMUTATION             = "SF: Transmutation";
+  public static final String CRE_SPELL_PENETRATION            = "Spell penetration";
+  public static final String CRE_EXTRA_RAGE                   = "Extra rage";
+  public static final String CRE_EXTRA_WILD_SHAPE             = "Extra wild shape";
+  public static final String CRE_EXTRA_SMITING                = "Extra smiting";
+  public static final String CRE_EXTRA_TURNING                = "Extra turning";
+  public static final String CRE_EW_BASTARD_SWORD             = "EW: Bastard sword";
+  public static final String CRE_NIGHTMARE_MODE               = "Nightmare mode";
+  public static final String CRE_TRANSLUCENCY                 = "Translucency";
+  public static final String CRE_REPUTATION_MOD_KILLED        = "Reputation gain/loss when killed";
+  public static final String CRE_REPUTATION_MOD_JOIN          = "Reputation gain/loss when joining party";
+  public static final String CRE_REPUTATION_MOD_LEAVE         = "Reputation gain/loss when leaving party";
+  public static final String CRE_ALCHEMY                      = "Alchemy";
+  public static final String CRE_ANIMAL_EMPATHY               = "Animal empathy";
+  public static final String CRE_BLUFF                        = "Bluff";
+  public static final String CRE_CONCENTRATION                = "Concentration";
+  public static final String CRE_DIPLOMACY                    = "Diplomacy";
+  public static final String CRE_DISABLE_DEVICE               = "Disable device";
+  public static final String CRE_HIDE                         = "Hide";
+  public static final String CRE_HIDE_IN_SHADOWS              = "Hide in shadows";
+  public static final String CRE_INTIMIDATE                   = "Intimidate";
+  public static final String CRE_KNOWLEDGE_ARCANA             = "Knowledge (arcana)";
+  public static final String CRE_DETECT_ILLUSIONS             = "Detect illusions";
+  public static final String CRE_SET_TRAPS                    = "Set traps";
+  public static final String CRE_MOVE_SILENTLY                = "Move silently";
+  public static final String CRE_OPEN_LOCKS                   = "Open locks";
+  public static final String CRE_PICK_POCKETS                 = "Pick pockets";
+  public static final String CRE_FIND_TRAPS                   = "Find traps";
+  public static final String CRE_SEARCH                       = "Search";
+  public static final String CRE_LORE                         = "Lore";
+  public static final String CRE_SPELLCRAFT                   = "Spellcraft";
+  public static final String CRE_USE_MAGIC_DEVICE             = "Use magic device";
+  public static final String CRE_WILDERNESS_LORE              = "Wilderness lore";
+  public static final String CRE_CHALLENGE_RATING             = "Challenge rating";
+  public static final String CRE_FAVORED_ENEMY_FMT            = "Favored enemy %d";
+  public static final String CRE_RACIAL_ENEMY                 = "Racial enemy";
+  public static final String CRE_SUBRACE                      = "Subrace";
+  public static final String CRE_UNDEAD_LEVEL                 = "Undead level";
+  public static final String CRE_TRACKING                     = "Tracking";
+  public static final String CRE_TARGET                       = "Target";
+  public static final String CRE_LEVEL_FIRST_CLASS            = "Level first class";
+  public static final String CRE_LEVEL_SECOND_CLASS           = "Level second class";
+  public static final String CRE_LEVEL_THIRD_CLASS            = "Level third class";
+  public static final String CRE_SEX                          = "Sex";
+  public static final String CRE_STRENGTH                     = "Strength";
+  public static final String CRE_STRENGTH_BONUS               = "Strength bonus";
+  public static final String CRE_INTELLIGENCE                 = "Intelligence";
+  public static final String CRE_WISDOM                       = "Wisdom";
+  public static final String CRE_DEXTERITY                    = "Dexterity";
+  public static final String CRE_CONSTITUTION                 = "Constitution";
+  public static final String CRE_CHARISMA                     = "Charisma";
+  public static final String CRE_MORALE                       = "Morale";
+  public static final String CRE_MORALE_BREAK                 = "Morale break";
+  public static final String CRE_MORALE_RECOVERY              = "Morale recovery";
+  public static final String CRE_KIT                          = "Kit";
+  public static final String CRE_DEITY                        = "Deity";
+  public static final String CRE_MAGE_TYPE                    = "Mage type";
+  public static final String CRE_SCRIPT_TEAM                  = "Team script";
+  public static final String CRE_SCRIPT_SPECIAL_1             = "Special script 1";
+  public static final String CRE_SCRIPT_OVERRIDE              = "Override script";
+  public static final String CRE_SCRIPT_CLASS                 = "Class script";
+  public static final String CRE_SCRIPT_RACE                  = "Race script";
+  public static final String CRE_SCRIPT_GENERAL               = "General script";
+  public static final String CRE_SCRIPT_DEFAULT               = "Default script";
+  public static final String CRE_SCRIPT_SPECIAL_2             = "Special script 2";
+  public static final String CRE_SCRIPT_COMBAT                = "Combat script";
+  public static final String CRE_SCRIPT_SPECIAL_3             = "Special script 3";
+  public static final String CRE_SCRIPT_MOVEMENT              = "Movement script";
+  public static final String CRE_DEFAULT_VISIBILITY           = "Default visibility";
+  public static final String CRE_OFFSET_OVERLAYS              = "Overlays offset";
+  public static final String CRE_OVERLAYS_SIZE                = "Overlays size";
+  public static final String CRE_XP_SECOND_CLASS              = "XP second class";
+  public static final String CRE_XP_THIRD_CLASS               = "XP third class";
+  public static final String CRE_GOOD_INC                     = "Good increment by";
+  public static final String CRE_LAW_INC                      = "Law increment by";
+  public static final String CRE_LADY_INC                     = "Lady increment by";
+  public static final String CRE_MURDER_INC                   = "Murder increment by";
+  public static final String CRE_CHARACTER_TYPE               = "Character type";
+  public static final String CRE_DIALOG_ACTIVATION_RADIUS     = "Dialogue activation radius";
+  public static final String CRE_COLLISION_RADIUS             = "Collision radius";
+  public static final String CRE_NUM_COLORS                   = "# colors";
+  public static final String CRE_COLOR_FMT                    = "Color %d";
+  public static final String CRE_COLOR_PLACEMENT_FMT          = "Color %d placement";
+  public static final String CRE_SPECIES                      = "Species";
+  public static final String CRE_TEAM                         = "Team";
+  public static final String CRE_FACTION                      = "Faction";
+  public static final String CRE_SET_EXTRA_DEATH_VAR          = "Set extra death variable?";
+  public static final String CRE_INCREMENT_KILL_COUNT         = "Increment kill count?";
+  public static final String CRE_INTERNAL_FMT                 = "Internal %d";
+  public static final String CRE_DEATH_VAR_SET                = "Death variable (set)";
+  public static final String CRE_DEATH_VAR_INC                = "Death variable (increment)";
+  public static final String CRE_LOCATION_SAVED               = "Location saved?";
+  public static final String CRE_SAVED_LOCATION_X             = "Saved location: X";
+  public static final String CRE_SAVED_LOCATION_Y             = "Saved location: Y";
+  public static final String CRE_SAVED_ORIENTATION            = "Saved orientation";
+  public static final String CRE_FADE_AMOUNT                  = "Fade amount";
+  public static final String CRE_FADE_SPEED                   = "Fade speed";
+  public static final String CRE_ATTRIBUTES                   = "Attributes";
+  public static final String CRE_VISIBILITY                   = "Visibility";
+  public static final String CRE_SKILL_POINTS_UNUSED          = "Unused skill points";
+  public static final String CRE_PROFICIENCIES_UNSPENT        = "Unspent proficiencies";
+  public static final String CRE_ALLEGIANCE                   = "Allegiance";
+  public static final String CRE_GENERAL                      = "General";
+  public static final String CRE_RACE                         = "Race";
+  public static final String CRE_CLASS                        = "Class";
+  public static final String CRE_SPECIFICS                    = "Specifics";
+  public static final String CRE_GENDER                       = "Gender";
+  public static final String CRE_OBJECT_FMT                   = "Object spec %d";
+  public static final String CRE_ALIGNMENT                    = "Alignment";
+  public static final String CRE_IDENTIFIER_GLOBAL            = "Global identifier";
+  public static final String CRE_IDENTIFIER_LOCAL             = "Local identifier";
+  public static final String CRE_SCRIPT_NAME                  = "Script name";
+  public static final String CRE_CLASS_2                      = "Class 2";
+  public static final String CRE_CLASS_MASK                   = "Class mask";
+  public static final String CRE_OFFSET_SPELLS_BARD_FMT       = "Bard spells %d offset";
+  public static final String CRE_OFFSET_SPELLS_CLERIC_FMT     = "Cleric spells %d offset";
+  public static final String CRE_OFFSET_SPELLS_DRUID_FMT      = "Druid spells %d offset";
+  public static final String CRE_OFFSET_SPELLS_PALADIN_FMT    = "Paladin spells %d offset";
+  public static final String CRE_OFFSET_SPELLS_RANGER_FMT     = "Ranger spells %d offset";
+  public static final String CRE_OFFSET_SPELLS_SORCERER_FMT   = "Sorcerer spells %d offset";
+  public static final String CRE_OFFSET_SPELLS_WIZARD_FMT     = "Wizard spells %d offset";
+  public static final String CRE_OFFSET_SPELLS_DOMAIN_FMT     = "Domain spells %d offset";
+  public static final String CRE_OFFSET_ABILITIES             = "Abilities offset";
+  public static final String CRE_NUM_SPELLS_BARD_FMT          = "Bard spells %d count";
+  public static final String CRE_NUM_SPELLS_CLERIC_FMT        = "Cleric spells %d count";
+  public static final String CRE_NUM_SPELLS_DRUID_FMT         = "Druid spells %d count";
+  public static final String CRE_NUM_SPELLS_PALADIN_FMT       = "Paladin spells %d count";
+  public static final String CRE_NUM_SPELLS_RANGER_FMT        = "Ranger spells %d count";
+  public static final String CRE_NUM_SPELLS_SORCERER_FMT      = "Sorcerer spells %d count";
+  public static final String CRE_NUM_SPELLS_WIZARD_FMT        = "Wizard spells %d count";
+  public static final String CRE_NUM_SPELLS_DOMAIN_FMT        = "Domain spells %d count";
+  public static final String CRE_NUM_ABILITIES                = "Abilities count";
+  public static final String CRE_SPELLS_BARD_FMT              = "Bard spells %d";
+  public static final String CRE_SPELLS_CLERIC_FMT            = "Cleric spells %d";
+  public static final String CRE_SPELLS_DRUID_FMT             = "Druid spells %d";
+  public static final String CRE_SPELLS_PALADIN_FMT           = "Paladin spells %d";
+  public static final String CRE_SPELLS_RANGER_FMT            = "Ranger spells %d";
+  public static final String CRE_SPELLS_SORCERER_FMT          = "Sorcerer spells %d";
+  public static final String CRE_SPELLS_WIZARD_FMT            = "Wizard spells %d";
+  public static final String CRE_SPELLS_DOMAIN_FMT            = "Domain spells %d";
+  public static final String CRE_ABILITIES                    = "Abilities";
+  public static final String CRE_OFFSET_KNOWN_SPELLS          = "Known spells offset";
+  public static final String CRE_OFFSET_MEMORIZATION_INFO     = "Memorization info offset";
+  public static final String CRE_OFFSET_MEMORIZED_SPELLS      = "Memorized spells offset";
+  public static final String CRE_OFFSET_SONGS                 = "Songs offset";
+  public static final String CRE_OFFSET_SHAPES                = "Shapes offset";
+  public static final String CRE_OFFSET_ITEM_SLOTS            = "Item slots offset";
+  public static final String CRE_OFFSET_ITEMS                 = "Items offset";
+  public static final String CRE_OFFSET_EFFECTS               = "Effects offset";
+  public static final String CRE_NUM_KNOWN_SPELLS             = "# known spells";
+  public static final String CRE_NUM_MEMORIZATION_INFO        = "# memorization info";
+  public static final String CRE_NUM_MEMORIZED_SPELLS         = "# memorized spells";
+  public static final String CRE_NUM_SONGS                    = "Songs count";
+  public static final String CRE_NUM_SHAPES                   = "Shapes count";
+  public static final String CRE_NUM_ITEMS                    = "# items";
+  public static final String CRE_NUM_EFFECTS                  = "# effects";
+  public static final String CRE_SONGS                        = "Songs";
+  public static final String CRE_SHAPES                       = "Shapes";
+  public static final String CRE_DIALOG                       = "Dialogue";
+  public static final String CRE_ITEM_SLOT_HELMET             = "Helmet";
+  public static final String CRE_ITEM_SLOT_ARMOR              = "Armor";
+  public static final String CRE_ITEM_SLOT_SHIELD             = "Shield";
+  public static final String CRE_ITEM_SLOT_GAUNTLETS          = "Gauntlets";
+  public static final String CRE_ITEM_SLOT_GLOVES             = "Gloves";
+  public static final String CRE_ITEM_SLOT_LEFT_RING          = "Left ring";
+  public static final String CRE_ITEM_SLOT_RIGHT_RING         = "Right ring";
+  public static final String CRE_ITEM_SLOT_AMULET             = "Amulet";
+  public static final String CRE_ITEM_SLOT_BELT               = "Belt";
+  public static final String CRE_ITEM_SLOT_BOOTS              = "Boots";
+  public static final String CRE_ITEM_SLOT_WEAPON_FMT         = "Weapon %d";
+  public static final String CRE_ITEM_SLOT_SHIELD_FMT         = "Shield %d";
+  public static final String CRE_ITEM_SLOT_QUIVER_FMT         = "Quiver %d";
+  public static final String CRE_ITEM_SLOT_CLOAK              = "Cloak";
+  public static final String CRE_ITEM_SLOT_RIGHT_EARRING      = "Right earring";
+  public static final String CRE_ITEM_SLOT_CHEST              = "Chest";
+  public static final String CRE_ITEM_SLOT_LEFT_TATTOO        = "Left tattoo";
+  public static final String CRE_ITEM_SLOT_HAND               = "Hand";
+  public static final String CRE_ITEM_SLOT_LEFT_EARRING       = "Left earring";
+  public static final String CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER = "Right tattoo (lower)";
+  public static final String CRE_ITEM_SLOT_WRIST              = "Wrist";
+  public static final String CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER = "Right tattoo (upper)";
+  public static final String CRE_ITEM_SLOT_QUICK_FMT          = "Quick item %d";
+  public static final String CRE_ITEM_SLOT_INVENTORY_FMT      = "Inventory %d";
+  public static final String CRE_ITEM_SLOT_MAGIC_WEAPON       = "Magically created weapon";
+  public static final String CRE_SELECTED_WEAPON_SLOT         = "Weapon slot selected";
+  public static final String CRE_SELECTED_WEAPON_ABILITY      = "Weapon ability selected";
+
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
   public static final String[] s_flag = {
@@ -116,6 +437,7 @@ public final class CreResource extends AbstractStruct
   public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_visible = {"Shown", "Hidden"};
   public static final String[] s_profLabels = {"Active class", "Original class"};
+  public static final String[] s_effversion = {"Version 1", "Version 2"};
 
   static
   {
@@ -272,12 +594,12 @@ public final class CreResource extends AbstractStruct
     // Adjust offsets first - Size of CHR header = 0x64
     adjustEntryOffsets(crefile, -0x64);
 
-    SectionOffset knownspells_offset = (SectionOffset)crefile.getAttribute("Known spells offset");
-    SectionOffset memspellinfo_offset = (SectionOffset)crefile.getAttribute("Memorization info offset");
-    SectionOffset memspells_offset = (SectionOffset)crefile.getAttribute("Memorized spells offset");
-    SectionOffset itemslots_offset = (SectionOffset)crefile.getAttribute("Item slots offset");
-    SectionOffset items_offset = (SectionOffset)crefile.getAttribute("Items offset");
-    SectionOffset effects_offset = (SectionOffset)crefile.getAttribute("Effects offset");
+    SectionOffset knownspells_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_KNOWN_SPELLS);
+    SectionOffset memspellinfo_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_MEMORIZATION_INFO);
+    SectionOffset memspells_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_MEMORIZED_SPELLS);
+    SectionOffset itemslots_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_ITEM_SLOTS);
+    SectionOffset items_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_ITEMS);
+    SectionOffset effects_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_EFFECTS);
 
     int indexStructs = crefile.getIndexOf(effects_offset) + 3; // Start of non-permanent section
     List<StructEntry> newlist = new ArrayList<StructEntry>(crefile.getFieldCount());
@@ -363,15 +685,15 @@ public final class CreResource extends AbstractStruct
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
-    DecNumber effectFlag = (DecNumber)getAttribute("Effect flag");
+    IsNumeric effectVersion = (IsNumeric)getAttribute(CRE_EFFECT_VERSION);
     if (Profile.getEngine() == Profile.Engine.IWD2) {
-      if (effectFlag.getValue() == 1) {
+      if (effectVersion.getValue() == 1) {
         return new AddRemovable[]{new Item(), new Effect2()};
       } else {
         return new AddRemovable[]{new Item(), new Effect()};
       }
     } else {
-      if (effectFlag.getValue() == 1) {
+      if (effectVersion.getValue() == 1) {
         return new AddRemovable[]{new Item(), new Effect2(), new KnownSpells(), new SpellMemorization()};
       } else {
         return new AddRemovable[]{new Item(), new Effect(), new KnownSpells(), new SpellMemorization()};
@@ -530,122 +852,99 @@ public final class CreResource extends AbstractStruct
   public int read(byte buffer[], int offset) throws Exception
   {
     setExtraOffset(getExtraOffset() + offset);
-    TextString signature = new TextString(buffer, offset, 4, "Signature");
+    TextString signature = new TextString(buffer, offset, 4, COMMON_SIGNATURE);
     addField(signature);
-    TextString version = new TextString(buffer, offset + 4, 4, "Version");
+    TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
     if (signature.toString().equalsIgnoreCase("CHR ")) {
-      addField(new TextString(buffer, offset + 8, 32, "Character name"));
-      HexNumber structOffset = new HexNumber(buffer, offset + 40, 4, "CRE structure offset");
+      addField(new TextString(buffer, offset + 8, 32, CHR_NAME));
+      HexNumber structOffset = new HexNumber(buffer, offset + 40, 4, CHR_OFFSET_CRE);
       addField(structOffset);
-      addField(new HexNumber(buffer, offset + 44, 4, "CRE structure length"));
+      addField(new HexNumber(buffer, offset + 44, 4, CHR_CRE_SIZE));
       if (version.toString().equalsIgnoreCase("V2.2")) {
-        addField(new IdsBitmap(buffer, offset + 48, 2, "Quick weapon slot 1", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 50, 2, "Quick shield slot 1", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 52, 2, "Quick weapon slot 2", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 54, 2, "Quick shield slot 2", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 56, 2, "Quick weapon slot 3", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 58, 2, "Quick shield slot 3", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 60, 2, "Quick weapon slot 4", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 62, 2, "Quick shield slot 4", "SLOTS.IDS"));
-        addField(new DecNumber(buffer, offset + 64, 2, "Quick weapon 1 ability"));
-        addField(new DecNumber(buffer, offset + 66, 2, "Quick shield 1 ability"));
-        addField(new DecNumber(buffer, offset + 68, 2, "Quick weapon 2 ability"));
-        addField(new DecNumber(buffer, offset + 70, 2, "Quick shield 2 ability"));
-        addField(new DecNumber(buffer, offset + 72, 2, "Quick weapon 3 ability"));
-        addField(new DecNumber(buffer, offset + 74, 2, "Quick shield 3 ability"));
-        addField(new DecNumber(buffer, offset + 76, 2, "Quick weapon 4 ability"));
-        addField(new DecNumber(buffer, offset + 78, 2, "Quick shield 4 ability"));
-        addField(new ResourceRef(buffer, offset + 80, "Quick spell 1", "SPL"));
-        addField(new ResourceRef(buffer, offset + 88, "Quick spell 2", "SPL"));
-        addField(new ResourceRef(buffer, offset + 96, "Quick spell 3", "SPL"));
-        addField(new ResourceRef(buffer, offset + 104, "Quick spell 4", "SPL"));
-        addField(new ResourceRef(buffer, offset + 112, "Quick spell 5", "SPL"));
-        addField(new ResourceRef(buffer, offset + 120, "Quick spell 6", "SPL"));
-        addField(new ResourceRef(buffer, offset + 128, "Quick spell 7", "SPL"));
-        addField(new ResourceRef(buffer, offset + 136, "Quick spell 8", "SPL"));
-        addField(new ResourceRef(buffer, offset + 144, "Quick spell 9", "SPL"));
-        addField(new IdsBitmap(buffer, offset + 152, 1, "Quick spell 1 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 153, 1, "Quick spell 2 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 154, 1, "Quick spell 3 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 155, 1, "Quick spell 4 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 156, 1, "Quick spell 5 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 157, 1, "Quick spell 6 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 158, 1, "Quick spell 7 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 159, 1, "Quick spell 8 class", "CLASS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 160, 1, "Quick spell 9 class", "CLASS.IDS"));
+        for (int i = 0; i < 4; i++) {
+          addField(new IdsBitmap(buffer, offset + 48 + (i * 4), 2,
+                                 String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
+          addField(new IdsBitmap(buffer, offset + 50 + (i * 4), 2,
+                                 String.format(CHR_QUICK_SHIELD_SLOT_FMT, i+1), "SLOTS.IDS"));
+        }
+        for (int i = 0; i < 4; i++) {
+          addField(new DecNumber(buffer, offset + 64 + (i * 4), 2,
+                                 String.format(CHR_QUICK_WEAPON_ABILITY_FMT, i+1)));
+          addField(new DecNumber(buffer, offset + 66 + (i * 4), 2,
+                                 String.format(CHR_QUICK_SHIELD_ABILITY_FMT, i+1)));
+        }
+        for (int i = 0; i < 9; i++) {
+          addField(new ResourceRef(buffer, offset + 80 + (i * 8),
+                                   String.format(CHR_QUICK_SPELL_FMT, i+1), "SPL"));
+        }
+        for (int i = 0; i < 9; i++) {
+          addField(new IdsBitmap(buffer, offset + 152 + i, 1,
+                                 String.format(CHR_QUICK_SPELL_CLASS_FMT, i+1), "CLASS.IDS"));
+        }
         addField(new Unknown(buffer, offset + 161, 1));
-        addField(new IdsBitmap(buffer, offset + 162, 2, "Quick item slot 1", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 164, 2, "Quick item slot 2", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 166, 2, "Quick item slot 3", "SLOTS.IDS"));
-        addField(new DecNumber(buffer, offset + 168, 2, "Quick item 1 ability"));
-        addField(new DecNumber(buffer, offset + 170, 2, "Quick item 2 ability"));
-        addField(new DecNumber(buffer, offset + 172, 2, "Quick item 3 ability"));
-        addField(new ResourceRef(buffer, offset + 174, "Quick ability 1", "SPL"));
-        addField(new ResourceRef(buffer, offset + 182, "Quick ability 2", "SPL"));
-        addField(new ResourceRef(buffer, offset + 190, "Quick ability 3", "SPL"));
-        addField(new ResourceRef(buffer, offset + 198, "Quick ability 4", "SPL"));
-        addField(new ResourceRef(buffer, offset + 206, "Quick ability 5", "SPL"));
-        addField(new ResourceRef(buffer, offset + 214, "Quick ability 6", "SPL"));
-        addField(new ResourceRef(buffer, offset + 222, "Quick ability 7", "SPL"));
-        addField(new ResourceRef(buffer, offset + 230, "Quick ability 8", "SPL"));
-        addField(new ResourceRef(buffer, offset + 238, "Quick ability 9", "SPL"));
-        addField(new ResourceRef(buffer, offset + 246, "Quick song 1", "SPL"));
-        addField(new ResourceRef(buffer, offset + 254, "Quick song 2", "SPL"));
-        addField(new ResourceRef(buffer, offset + 262, "Quick song 3", "SPL"));
-        addField(new ResourceRef(buffer, offset + 270, "Quick song 4", "SPL"));
-        addField(new ResourceRef(buffer, offset + 278, "Quick song 5", "SPL"));
-        addField(new ResourceRef(buffer, offset + 286, "Quick song 6", "SPL"));
-        addField(new ResourceRef(buffer, offset + 294, "Quick song 7", "SPL"));
-        addField(new ResourceRef(buffer, offset + 302, "Quick song 8", "SPL"));
-        addField(new ResourceRef(buffer, offset + 310, "Quick song 9", "SPL"));
-        addField(new DecNumber(buffer, offset + 318, 4, "Quick button 1"));
-        addField(new DecNumber(buffer, offset + 322, 4, "Quick button 2"));
-        addField(new DecNumber(buffer, offset + 326, 4, "Quick button 3"));
-        addField(new DecNumber(buffer, offset + 330, 4, "Quick button 4"));
-        addField(new DecNumber(buffer, offset + 334, 4, "Quick button 5"));
-        addField(new DecNumber(buffer, offset + 338, 4, "Quick button 6"));
-        addField(new DecNumber(buffer, offset + 342, 4, "Quick button 7"));
-        addField(new DecNumber(buffer, offset + 346, 4, "Quick button 8"));
-        addField(new DecNumber(buffer, offset + 350, 4, "Quick button 9"));
+        for (int i = 0; i < 3; i++) {
+          addField(new IdsBitmap(buffer, offset + 162 + (i * 2), 2,
+                                 String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+        }
+        for (int i = 0; i < 3; i++) {
+          addField(new DecNumber(buffer, offset + 168 + (i * 2), 2,
+                                 String.format(CHR_QUICK_ITEM_ABILITY_FMT, i+1)));
+        }
+        for (int i = 0; i < 9; i++) {
+          addField(new ResourceRef(buffer, offset + 174 + (i * 8),
+                                   String.format(CHR_QUICK_ABILITY_FMT, i+1), "SPL"));
+        }
+        for (int i = 0; i < 9; i++) {
+          addField(new ResourceRef(buffer, offset + 246 + (i * 8),
+                                   String.format(CHR_QUICK_SONG_FMT, i+1), "SPL"));
+        }
+        for (int i = 0; i < 9; i++) {
+          addField(new DecNumber(buffer, offset + 318 + (i * 4), 4,
+                                 String.format(CHR_QUICK_BUTTON_FMT, i+1)));
+        }
         addField(new Unknown(buffer, offset + 354, 26));
-        addField(new TextString(buffer, offset + 380, 8, "Voice set prefix"));
-        addField(new TextString(buffer, offset + 388, 32, "Voice set"));
+        addField(new TextString(buffer, offset + 380, 8, CHR_VOICE_SET_PREFIX));
+        addField(new TextString(buffer, offset + 388, 32, CHR_VOICE_SET));
         addField(new Unknown(buffer, offset + 420, 128));
       }
       else if (version.toString().equalsIgnoreCase("V1.0") ||
                version.toString().equalsIgnoreCase("V2.0") ||
                version.toString().equalsIgnoreCase("V2.1")) {
-        addField(new IdsBitmap(buffer, offset + 48, 2, "Quick weapon slot 1", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 50, 2, "Quick weapon slot 2", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 52, 2, "Quick weapon slot 3", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 54, 2, "Quick weapon slot 4", "SLOTS.IDS"));
-        addField(new DecNumber(buffer, offset + 56, 2, "Quick weapon 1 ability"));
-        addField(new DecNumber(buffer, offset + 58, 2, "Quick weapon 2 ability"));
-        addField(new DecNumber(buffer, offset + 60, 2, "Quick weapon 3 ability"));
-        addField(new DecNumber(buffer, offset + 62, 2, "Quick weapon 4 ability"));
-        addField(new ResourceRef(buffer, offset + 64, "Quick spell 1", "SPL"));
-        addField(new ResourceRef(buffer, offset + 72, "Quick spell 2", "SPL"));
-        addField(new ResourceRef(buffer, offset + 80, "Quick spell 3", "SPL"));
-        addField(new IdsBitmap(buffer, offset + 88, 2, "Quick item slot 1", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 90, 2, "Quick item slot 2", "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 92, 2, "Quick item slot 3", "SLOTS.IDS"));
-        addField(new DecNumber(buffer, offset + 94, 2, "Quick item 1 ability"));
-        addField(new DecNumber(buffer, offset + 96, 2, "Quick item 2 ability"));
-        addField(new DecNumber(buffer, offset + 98, 2, "Quick item 3 ability"));
+        for (int i = 0; i < 4; i++) {
+          addField(new IdsBitmap(buffer, offset + 48 + (i * 2), 2,
+                                 String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
+        }
+        for (int i = 0; i < 4; i++) {
+          addField(new DecNumber(buffer, offset + 56 + (i * 2), 2,
+                                 String.format(CHR_QUICK_WEAPON_ABILITY_FMT, i+1)));
+        }
+        for (int i = 0; i < 3; i++) {
+          addField(new ResourceRef(buffer, offset + 64 + (i * 8),
+                                   String.format(CHR_QUICK_SPELL_FMT, i+1), "SPL"));
+        }
+        for (int i = 0; i < 3; i++) {
+          addField(new IdsBitmap(buffer, offset + 88 + (i * 2), 2,
+                                 String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+        }
+        for (int i = 0; i < 3; i++) {
+          addField(new DecNumber(buffer, offset + 94 + (i * 2), 2,
+                                 String.format(CHR_QUICK_ITEM_ABILITY_FMT, i+1)));
+        }
       }
       else {
         addField(new Unknown(buffer, offset + 48, structOffset.getValue() - 48));
       }
       offset = structOffset.getValue();
-      addField(new TextString(buffer, offset, 4, "Signature 2"));
-      version = new TextString(buffer, offset + 4, 4, "Version 2");
+      addField(new TextString(buffer, offset, 4, CHR_SIGNATURE_2));
+      version = new TextString(buffer, offset + 4, 4, CHR_VERSION_2);
       addField(version);
       setExtraOffset(getExtraOffset() + structOffset.getValue());
     }
     offset += 8;
-    if (version.toString().equalsIgnoreCase("V2.2"))
+    if (version.toString().equalsIgnoreCase("V2.2")) {
       return readIWD2(buffer, offset);
+    }
     return readOther(version.toString(), buffer, offset);
   }
 
@@ -655,71 +954,70 @@ public final class CreResource extends AbstractStruct
 
   private int readIWD2(byte buffer[], int offset) throws Exception
   {
-    addField(new StringRef(buffer, offset, "Name"));
-    addField(new StringRef(buffer, offset + 4, "Tooltip"));
-    addField(new Flag(buffer, offset + 8, 4, "Flags", s_flag)); // ToDo: figure these out whenever
-    addField(new DecNumber(buffer, offset + 12, 4, "XP value"));
-    addField(new DecNumber(buffer, offset + 16, 4, "XP"));
-    addField(new DecNumber(buffer, offset + 20, 4, "Gold"));
-    addField(new IdsFlag(buffer, offset + 24, 4, "Status", "STATE.IDS"));
-    addField(new DecNumber(buffer, offset + 28, 2, "Current HP"));
-    addField(new DecNumber(buffer, offset + 30, 2, "Maximum HP"));
-    addField(new IdsBitmap(buffer, offset + 32, 4, "Animation", "ANIMATE.IDS"));
-//    addField(new Unknown(buffer, offset + 34, 2));
-    addField(new ColorValue(buffer, offset + 36, 1, "Metal color"));
-    addField(new ColorValue(buffer, offset + 37, 1, "Minor color"));
-    addField(new ColorValue(buffer, offset + 38, 1, "Major color"));
-    addField(new ColorValue(buffer, offset + 39, 1, "Skin color"));
-    addField(new ColorValue(buffer, offset + 40, 1, "Leather color"));
-    addField(new ColorValue(buffer, offset + 41, 1, "Armor color"));
-    addField(new ColorValue(buffer, offset + 42, 1, "Hair color"));
-    DecNumber effect_flag = (DecNumber)addField(new DecNumber(buffer, offset + 43, 1, "Effect flag"));
-    addField(new ResourceRef(buffer, offset + 44, "Small portrait", "BMP"));
-    addField(new ResourceRef(buffer, offset + 52, "Large portrait", "BMP"));
-    addField(new DecNumber(buffer, offset + 60, 1, "Reputation"));
+    addField(new StringRef(buffer, offset, CRE_NAME));
+    addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));
+    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag)); // ToDo: figure these out whenever
+    addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
+    addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
+    addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
+    addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
+    addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
+    addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
+    addField(new IdsBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
+    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
+    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
+    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
+    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN));
+    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
+    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
+    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
+    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
+    addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
+    addField(new DecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
     addField(new Unknown(buffer, offset + 61, 1));
-    addField(new DecNumber(buffer, offset + 62, 2, "Armor class"));
-    addField(new DecNumber(buffer, offset + 64, 2, "Bludgeoning AC modifier"));
-    addField(new DecNumber(buffer, offset + 66, 2, "Missile AC modifier"));
-    addField(new DecNumber(buffer, offset + 68, 2, "Piercing AC modifier"));
-    addField(new DecNumber(buffer, offset + 70, 2, "Slashing AC modifier"));
-    addField(new DecNumber(buffer, offset + 72, 1, "Base attack bonus"));
-    addField(new DecNumber(buffer, offset + 73, 1, "# attacks/round"));
-    addField(new DecNumber(buffer, offset + 74, 1, "Fortitude save"));
-    addField(new DecNumber(buffer, offset + 75, 1, "Reflex save"));
-    addField(new DecNumber(buffer, offset + 76, 1, "Will save"));
-    addField(new DecNumber(buffer, offset + 77, 1, "Fire resistance"));
-    addField(new DecNumber(buffer, offset + 78, 1, "Cold resistance"));
-    addField(new DecNumber(buffer, offset + 79, 1, "Electricity resistance"));
-    addField(new DecNumber(buffer, offset + 80, 1, "Acid resistance"));
-    addField(new DecNumber(buffer, offset + 81, 1, "Spell resistance"));
-    addField(new DecNumber(buffer, offset + 82, 1, "Magic fire resistance"));
-    addField(new DecNumber(buffer, offset + 83, 1, "Magic cold resistance"));
-    addField(new DecNumber(buffer, offset + 84, 1, "Slashing resistance"));
-    addField(new DecNumber(buffer, offset + 85, 1, "Bludgeoning resistance"));
-    addField(new DecNumber(buffer, offset + 86, 1, "Piercing resistance"));
-    addField(new DecNumber(buffer, offset + 87, 1, "Missile resistance"));
-    addField(new DecNumber(buffer, offset + 88, 1, "Magic damage resistance"));
+    addField(new DecNumber(buffer, offset + 62, 2, CRE_ARMOR_CLASS));
+    addField(new DecNumber(buffer, offset + 64, 2, CRE_AC_MOD_BLUDGEONING));
+    addField(new DecNumber(buffer, offset + 66, 2, CRE_AC_MOD_MISSILE));
+    addField(new DecNumber(buffer, offset + 68, 2, CRE_AC_MOD_PIERCING));
+    addField(new DecNumber(buffer, offset + 70, 2, CRE_AC_MOD_SLASHING));
+    addField(new DecNumber(buffer, offset + 72, 1, CRE_BASE_ATTACK_BONUS));
+    addField(new DecNumber(buffer, offset + 73, 1, CRE_ATTACKS_PER_ROUND));
+    addField(new DecNumber(buffer, offset + 74, 1, CRE_SAVE_FORTITUDE));
+    addField(new DecNumber(buffer, offset + 75, 1, CRE_SAVE_REFLEX));
+    addField(new DecNumber(buffer, offset + 76, 1, CRE_SAVE_WILL));
+    addField(new DecNumber(buffer, offset + 77, 1, CRE_RESISTANCE_FIRE));
+    addField(new DecNumber(buffer, offset + 78, 1, CRE_RESISTANCE_COLD));
+    addField(new DecNumber(buffer, offset + 79, 1, CRE_RESISTANCE_ELECTRICITY));
+    addField(new DecNumber(buffer, offset + 80, 1, CRE_RESISTANCE_ACID));
+    addField(new DecNumber(buffer, offset + 81, 1, CRE_RESISTANCE_SPELL));
+    addField(new DecNumber(buffer, offset + 82, 1, CRE_RESISTANCE_MAGIC_FIRE));
+    addField(new DecNumber(buffer, offset + 83, 1, CRE_RESISTANCE_MAGIC_COLD));
+    addField(new DecNumber(buffer, offset + 84, 1, CRE_RESISTANCE_SLASHING));
+    addField(new DecNumber(buffer, offset + 85, 1, CRE_RESISTANCE_BLUDGEONING));
+    addField(new DecNumber(buffer, offset + 86, 1, CRE_RESISTANCE_PIERCING));
+    addField(new DecNumber(buffer, offset + 87, 1, CRE_RESISTANCE_MISSILE));
+    addField(new DecNumber(buffer, offset + 88, 1, CRE_RESISTANCE_MAGIC_DAMAGE));
 
     addField(new Unknown(buffer, offset + 89, 4));
-    addField(new DecNumber(buffer, offset + 93, 1, "Fatigue"));
-    addField(new DecNumber(buffer, offset + 94, 1, "Intoxication"));
-    addField(new DecNumber(buffer, offset + 95, 1, "Luck"));
-    addField(new DecNumber(buffer, offset + 96, 1, "Turn undead level"));
+    addField(new DecNumber(buffer, offset + 93, 1, CRE_FATIGUE));
+    addField(new DecNumber(buffer, offset + 94, 1, CRE_INTOXICATION));
+    addField(new DecNumber(buffer, offset + 95, 1, CRE_LUCK));
+    addField(new DecNumber(buffer, offset + 96, 1, CRE_TURN_UNDEAD_LEVEL));
     addField(new Unknown(buffer, offset + 97, 33));
 
-    addField(new DecNumber(buffer, offset + 130, 1, "Total level"));
-    addField(new DecNumber(buffer, offset + 131, 1, "Barbarian level"));
-    addField(new DecNumber(buffer, offset + 132, 1, "Bard level"));
-    addField(new DecNumber(buffer, offset + 133, 1, "Cleric level"));
-    addField(new DecNumber(buffer, offset + 134, 1, "Druid level"));
-    addField(new DecNumber(buffer, offset + 135, 1, "Fighter level"));
-    addField(new DecNumber(buffer, offset + 136, 1, "Monk level"));
-    addField(new DecNumber(buffer, offset + 137, 1, "Paladin level"));
-    addField(new DecNumber(buffer, offset + 138, 1, "Ranger level"));
-    addField(new DecNumber(buffer, offset + 139, 1, "Rogue level"));
-    addField(new DecNumber(buffer, offset + 140, 1, "Sorcerer level"));
-    addField(new DecNumber(buffer, offset + 141, 1, "Wizard level"));
+    addField(new DecNumber(buffer, offset + 130, 1, CRE_LEVELS_TOTAL));
+    addField(new DecNumber(buffer, offset + 131, 1, CRE_LEVEL_BARBARIAN));
+    addField(new DecNumber(buffer, offset + 132, 1, CRE_LEVEL_BARD));
+    addField(new DecNumber(buffer, offset + 133, 1, CRE_LEVEL_CLERIC));
+    addField(new DecNumber(buffer, offset + 134, 1, CRE_LEVEL_DRUID));
+    addField(new DecNumber(buffer, offset + 135, 1, CRE_LEVEL_FIGHTER));
+    addField(new DecNumber(buffer, offset + 136, 1, CRE_LEVEL_MONK));
+    addField(new DecNumber(buffer, offset + 137, 1, CRE_LEVEL_PALADIN));
+    addField(new DecNumber(buffer, offset + 138, 1, CRE_LEVEL_RANGER));
+    addField(new DecNumber(buffer, offset + 139, 1, CRE_LEVEL_ROGUE));
+    addField(new DecNumber(buffer, offset + 140, 1, CRE_LEVEL_SORCERER));
+    addField(new DecNumber(buffer, offset + 141, 1, CRE_LEVEL_WIZARD));
     addField(new Unknown(buffer, offset + 142, 22));
 
     LongIntegerHashMap<IdsMapEntry> sndmap = null;
@@ -728,310 +1026,283 @@ public final class CreResource extends AbstractStruct
     }
     if (sndmap != null) {
       for (int i = 0; i < 64; i++) {
-        if (sndmap.containsKey((long)i)) {
-          addField(new StringRef(buffer, offset + 164 + 4 * i,
-                                "Sound: " + ((IdsMapEntry)sndmap.get((long)i)).getString()));
-        } else {
-          addField(new StringRef(buffer, offset + 164 + 4 * i, "Sound: Unknown"));
-        }
+        String label = sndmap.containsKey((long)i) ? sndmap.get((long)i).getString() : "Unknown";
+        addField(new StringRef(buffer, offset + 164 + (i * 4), String.format(CRE_SOUND_SLOT_FMT, label)));
       }
     }
     else {
       for (int i = 0; i < 64; i++) {
-        addField(new StringRef(buffer, offset + 164 + 4 * i, "Soundset string"));
+        addField(new StringRef(buffer, offset + 164 + (i * 4), CRE_SOUND_SLOT_GENERIC));
       }
     }
 
-    addField(new ResourceRef(buffer, offset + 420, "Team script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 428, "Special script 1", "BCS"));
+    addField(new ResourceRef(buffer, offset + 420, CRE_SCRIPT_TEAM, "BCS"));
+    addField(new ResourceRef(buffer, offset + 428, CRE_SCRIPT_SPECIAL_1, "BCS"));
     addField(new Unknown(buffer, offset + 436, 4));
-    addField(new Flag(buffer, offset + 440, 4, "Feats (1/3)", s_feats1));
-    addField(new Flag(buffer, offset + 444, 4, "Feats (2/3)", s_feats2));
-    addField(new Flag(buffer, offset + 448, 4, "Feats (3/3)", s_feats3));
+    addField(new Flag(buffer, offset + 440, 4, CRE_FEATS_1, s_feats1));
+    addField(new Flag(buffer, offset + 444, 4, CRE_FEATS_2, s_feats2));
+    addField(new Flag(buffer, offset + 448, 4, CRE_FEATS_3, s_feats3));
     addField(new Unknown(buffer, offset + 452, 12));
-    addField(new DecNumber(buffer, offset + 464, 1, "MW: Bow"));
-    addField(new DecNumber(buffer, offset + 465, 1, "SW: Crossbow"));
-    addField(new DecNumber(buffer, offset + 466, 1, "SW: Missile"));
-    addField(new DecNumber(buffer, offset + 467, 1, "MW: Axe"));
-    addField(new DecNumber(buffer, offset + 468, 1, "SW: Mace"));
-    addField(new DecNumber(buffer, offset + 469, 1, "MW: Flail"));
-    addField(new DecNumber(buffer, offset + 470, 1, "MW: Polearm"));
-    addField(new DecNumber(buffer, offset + 471, 1, "MW: Hammer"));
-    addField(new DecNumber(buffer, offset + 472, 1, "SW: Quarterstaff"));
-    addField(new DecNumber(buffer, offset + 473, 1, "MW: Greatsword"));
-    addField(new DecNumber(buffer, offset + 474, 1, "MW: Large sword"));
-    addField(new DecNumber(buffer, offset + 475, 1, "SW: Small blade"));
-    addField(new DecNumber(buffer, offset + 476, 1, "Toughness"));
-    addField(new DecNumber(buffer, offset + 477, 1, "Armored arcana"));
-    addField(new DecNumber(buffer, offset + 478, 1, "Cleave"));
-    addField(new DecNumber(buffer, offset + 479, 1, "Armor proficiency"));
-    addField(new DecNumber(buffer, offset + 480, 1, "SF: Enchantment"));
-    addField(new DecNumber(buffer, offset + 481, 1, "SF: Evocation"));
-    addField(new DecNumber(buffer, offset + 482, 1, "SF: Necromancy"));
-    addField(new DecNumber(buffer, offset + 483, 1, "SF: Transmutation"));
-    addField(new DecNumber(buffer, offset + 484, 1, "Spell penetration"));
-    addField(new DecNumber(buffer, offset + 485, 1, "Extra rage"));
-    addField(new DecNumber(buffer, offset + 486, 1, "Extra wild shape"));
-    addField(new DecNumber(buffer, offset + 487, 1, "Extra smiting"));
-    addField(new DecNumber(buffer, offset + 488, 1, "Extra turning"));
-    addField(new DecNumber(buffer, offset + 489, 1, "EW: Bastard sword"));
+    addField(new DecNumber(buffer, offset + 464, 1, CRE_MW_BOW));
+    addField(new DecNumber(buffer, offset + 465, 1, CRE_SW_CROSSBOW));
+    addField(new DecNumber(buffer, offset + 466, 1, CRE_SW_MISSILE));
+    addField(new DecNumber(buffer, offset + 467, 1, CRE_MW_AXE));
+    addField(new DecNumber(buffer, offset + 468, 1, CRE_SW_MACE));
+    addField(new DecNumber(buffer, offset + 469, 1, CRE_MW_FLAIL));
+    addField(new DecNumber(buffer, offset + 470, 1, CRE_MW_POLEARM));
+    addField(new DecNumber(buffer, offset + 471, 1, CRE_MW_HAMMER));
+    addField(new DecNumber(buffer, offset + 472, 1, CRE_SW_QUARTERSTAFF));
+    addField(new DecNumber(buffer, offset + 473, 1, CRE_MW_GREATSWORD));
+    addField(new DecNumber(buffer, offset + 474, 1, CRE_MW_LARGE_SWORD));
+    addField(new DecNumber(buffer, offset + 475, 1, CRE_SW_SMALL_BLADE));
+    addField(new DecNumber(buffer, offset + 476, 1, CRE_TOUGHNESS));
+    addField(new DecNumber(buffer, offset + 477, 1, CRE_ARMORED_ARCANA));
+    addField(new DecNumber(buffer, offset + 478, 1, CRE_CLEAVE));
+    addField(new DecNumber(buffer, offset + 479, 1, CRE_ARMOR_PROFICIENCY));
+    addField(new DecNumber(buffer, offset + 480, 1, CRE_SF_ENCHANTMENT));
+    addField(new DecNumber(buffer, offset + 481, 1, CRE_SF_EVOCATION));
+    addField(new DecNumber(buffer, offset + 482, 1, CRE_SF_NECROMANCY));
+    addField(new DecNumber(buffer, offset + 483, 1, CRE_SF_TRANSMUTATION));
+    addField(new DecNumber(buffer, offset + 484, 1, CRE_SPELL_PENETRATION));
+    addField(new DecNumber(buffer, offset + 485, 1, CRE_EXTRA_RAGE));
+    addField(new DecNumber(buffer, offset + 486, 1, CRE_EXTRA_WILD_SHAPE));
+    addField(new DecNumber(buffer, offset + 487, 1, CRE_EXTRA_SMITING));
+    addField(new DecNumber(buffer, offset + 488, 1, CRE_EXTRA_TURNING));
+    addField(new DecNumber(buffer, offset + 489, 1, CRE_EW_BASTARD_SWORD));
     addField(new Unknown(buffer, offset + 490, 38));
-    addField(new DecNumber(buffer, offset + 528, 1, "Alchemy"));
-    addField(new DecNumber(buffer, offset + 529, 1, "Animal empathy"));
-    addField(new DecNumber(buffer, offset + 530, 1, "Bluff"));
-    addField(new DecNumber(buffer, offset + 531, 1, "Concentration"));
-    addField(new DecNumber(buffer, offset + 532, 1, "Diplomacy"));
-    addField(new DecNumber(buffer, offset + 533, 1, "Disable device"));
-    addField(new DecNumber(buffer, offset + 534, 1, "Hide"));
-    addField(new DecNumber(buffer, offset + 535, 1, "Intimidate"));
-    addField(new DecNumber(buffer, offset + 536, 1, "Knowledge (arcana)"));
-    addField(new DecNumber(buffer, offset + 537, 1, "Move silently"));
-    addField(new DecNumber(buffer, offset + 538, 1, "Open lock"));
-    addField(new DecNumber(buffer, offset + 539, 1, "Pick pocket"));
-    addField(new DecNumber(buffer, offset + 540, 1, "Search"));
-    addField(new DecNumber(buffer, offset + 541, 1, "Spellcraft"));
-    addField(new DecNumber(buffer, offset + 542, 1, "Use magic device"));
-    addField(new DecNumber(buffer, offset + 543, 1, "Wilderness lore"));
+    addField(new DecNumber(buffer, offset + 528, 1, CRE_ALCHEMY));
+    addField(new DecNumber(buffer, offset + 529, 1, CRE_ANIMAL_EMPATHY));
+    addField(new DecNumber(buffer, offset + 530, 1, CRE_BLUFF));
+    addField(new DecNumber(buffer, offset + 531, 1, CRE_CONCENTRATION));
+    addField(new DecNumber(buffer, offset + 532, 1, CRE_DIPLOMACY));
+    addField(new DecNumber(buffer, offset + 533, 1, CRE_DISABLE_DEVICE));
+    addField(new DecNumber(buffer, offset + 534, 1, CRE_HIDE));
+    addField(new DecNumber(buffer, offset + 535, 1, CRE_INTIMIDATE));
+    addField(new DecNumber(buffer, offset + 536, 1, CRE_KNOWLEDGE_ARCANA));
+    addField(new DecNumber(buffer, offset + 537, 1, CRE_MOVE_SILENTLY));
+    addField(new DecNumber(buffer, offset + 538, 1, CRE_OPEN_LOCKS));
+    addField(new DecNumber(buffer, offset + 539, 1, CRE_PICK_POCKETS));
+    addField(new DecNumber(buffer, offset + 540, 1, CRE_SEARCH));
+    addField(new DecNumber(buffer, offset + 541, 1, CRE_SPELLCRAFT));
+    addField(new DecNumber(buffer, offset + 542, 1, CRE_USE_MAGIC_DEVICE));
+    addField(new DecNumber(buffer, offset + 543, 1, CRE_WILDERNESS_LORE));
     addField(new Unknown(buffer, offset + 544, 50));
-    addField(new DecNumber(buffer, offset + 594, 1, "Challenge rating"));
-    addField(new IdsBitmap(buffer, offset + 595, 1, "Favored enemy 1", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 596, 1, "Favored enemy 2", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 597, 1, "Favored enemy 3", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 598, 1, "Favored enemy 4", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 599, 1, "Favored enemy 5", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 600, 1, "Favored enemy 6", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 601, 1, "Favored enemy 7", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 602, 1, "Favored enemy 8", "RACE.IDS"));
-    addField(new Bitmap(buffer, offset + 603, 1, "Subrace", s_subraces));
+    addField(new DecNumber(buffer, offset + 594, 1, CRE_CHALLENGE_RATING));
+    for (int i = 0; i < 8; i++) {
+      addField(new IdsBitmap(buffer, offset + 595 + i, 1,
+                             String.format(CRE_FAVORED_ENEMY_FMT, i+1), "RACE.IDS"));
+    }
+    addField(new Bitmap(buffer, offset + 603, 1, CRE_SUBRACE, s_subraces));
     addField(new Unknown(buffer, offset + 604, 1));
-    addField(new IdsBitmap(buffer, offset + 605, 1, "Sex", "GENDER.IDS"));
-    addField(new DecNumber(buffer, offset + 606, 1, "Strength"));
-    addField(new DecNumber(buffer, offset + 607, 1, "Intelligence"));
-    addField(new DecNumber(buffer, offset + 608, 1, "Wisdom"));
-    addField(new DecNumber(buffer, offset + 609, 1, "Dexterity"));
-    addField(new DecNumber(buffer, offset + 610, 1, "Constitution"));
-    addField(new DecNumber(buffer, offset + 611, 1, "Charisma"));
-    addField(new DecNumber(buffer, offset + 612, 1, "Morale"));
-    addField(new DecNumber(buffer, offset + 613, 1, "Morale break"));
-    addField(new DecNumber(buffer, offset + 614, 2, "Morale recovery"));
-    addField(new KitIdsBitmap(buffer, offset + 616, "Kit"));
-    addField(new ResourceRef(buffer, offset + 620, "Override script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 628, "Special script 2", new String[]{"BCS", "BS"}));
-    addField(new ResourceRef(buffer, offset + 636, "Combat script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 644, "Special script 3", "BCS"));
-    addField(new ResourceRef(buffer, offset + 652, "Movement script", "BCS"));
-    addField(new Bitmap(buffer, offset + 660, 1, "Default visibility", s_visible));
-    addField(new Bitmap(buffer, offset + 661, 1, "Set extra death variable?", s_noyes));
-    addField(new Bitmap(buffer, offset + 662, 1, "Increment kill count?", s_noyes));
+    addField(new IdsBitmap(buffer, offset + 605, 1, CRE_SEX, "GENDER.IDS"));
+    addField(new DecNumber(buffer, offset + 606, 1, CRE_STRENGTH));
+    addField(new DecNumber(buffer, offset + 607, 1, CRE_INTELLIGENCE));
+    addField(new DecNumber(buffer, offset + 608, 1, CRE_WISDOM));
+    addField(new DecNumber(buffer, offset + 609, 1, CRE_DEXTERITY));
+    addField(new DecNumber(buffer, offset + 610, 1, CRE_CONSTITUTION));
+    addField(new DecNumber(buffer, offset + 611, 1, CRE_CHARISMA));
+    addField(new DecNumber(buffer, offset + 612, 1, CRE_MORALE));
+    addField(new DecNumber(buffer, offset + 613, 1, CRE_MORALE_BREAK));
+    addField(new DecNumber(buffer, offset + 614, 2, CRE_MORALE_RECOVERY));
+    addField(new KitIdsBitmap(buffer, offset + 616, CRE_KIT));
+    addField(new ResourceRef(buffer, offset + 620, CRE_SCRIPT_OVERRIDE, "BCS"));
+    addField(new ResourceRef(buffer, offset + 628, CRE_SCRIPT_SPECIAL_2, new String[]{"BCS", "BS"}));
+    addField(new ResourceRef(buffer, offset + 636, CRE_SCRIPT_COMBAT, "BCS"));
+    addField(new ResourceRef(buffer, offset + 644, CRE_SCRIPT_SPECIAL_3, "BCS"));
+    addField(new ResourceRef(buffer, offset + 652, CRE_SCRIPT_MOVEMENT, "BCS"));
+    addField(new Bitmap(buffer, offset + 660, 1, CRE_DEFAULT_VISIBILITY, s_visible));
+    addField(new Bitmap(buffer, offset + 661, 1, CRE_SET_EXTRA_DEATH_VAR, s_noyes));
+    addField(new Bitmap(buffer, offset + 662, 1, CRE_INCREMENT_KILL_COUNT, s_noyes));
     addField(new Unknown(buffer, offset + 663, 1));
-    addField(new DecNumber(buffer, offset + 664, 2, "Internal 1"));
-    addField(new DecNumber(buffer, offset + 666, 2, "Internal 2"));
-    addField(new DecNumber(buffer, offset + 668, 2, "Internal 3"));
-    addField(new DecNumber(buffer, offset + 670, 2, "Internal 4"));
-    addField(new DecNumber(buffer, offset + 672, 2, "Internal 5"));
-    addField(new TextString(buffer, offset + 674, 32, "Death variable (set)"));
-    addField(new TextString(buffer, offset + 706, 32, "Death variable (increment)"));
-    addField(new Bitmap(buffer, offset + 738, 2, "Location saved?", s_noyes));
-    addField(new DecNumber(buffer, offset + 740, 2, "Saved location: X"));
-    addField(new DecNumber(buffer, offset + 742, 2, "Saved location: Y"));
-    addField(new DecNumber(buffer, offset + 744, 2, "Saved orientation"));
+    for (int i = 0; i < 5; i++) {
+      addField(new DecNumber(buffer, offset + 664 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i+1)));
+    }
+    addField(new TextString(buffer, offset + 674, 32, CRE_DEATH_VAR_SET));
+    addField(new TextString(buffer, offset + 706, 32, CRE_DEATH_VAR_INC));
+    addField(new Bitmap(buffer, offset + 738, 2, CRE_LOCATION_SAVED, s_noyes));
+    addField(new DecNumber(buffer, offset + 740, 2, CRE_SAVED_LOCATION_X));
+    addField(new DecNumber(buffer, offset + 742, 2, CRE_SAVED_LOCATION_Y));
+    addField(new DecNumber(buffer, offset + 744, 2, CRE_SAVED_ORIENTATION));
     addField(new Unknown(buffer, offset + 746, 15));
-    addField(new DecNumber(buffer, offset + 761, 1, "Fade amount"));
-    addField(new DecNumber(buffer, offset + 762, 1, "Fade speed"));
-    addField(new Flag(buffer, offset + 763, 1, "Attributes", s_attributes_iwd2));
-    addField(new DecNumber(buffer, offset + 764, 1, "Visibility"));
+    addField(new DecNumber(buffer, offset + 761, 1, CRE_FADE_AMOUNT));
+    addField(new DecNumber(buffer, offset + 762, 1, CRE_FADE_SPEED));
+    addField(new Flag(buffer, offset + 763, 1, CRE_ATTRIBUTES, s_attributes_iwd2));
+    addField(new DecNumber(buffer, offset + 764, 1, CRE_VISIBILITY));
     addField(new Unknown(buffer, offset + 765, 2));
-    addField(new DecNumber(buffer, offset + 767, 1, "Unused skill points"));
+    addField(new DecNumber(buffer, offset + 767, 1, CRE_SKILL_POINTS_UNUSED));
     addField(new Unknown(buffer, offset + 768, 124));
-    addField(new IdsBitmap(buffer, offset + 892, 1, "Allegiance", "EA.IDS"));
-    addField(new IdsBitmap(buffer, offset + 893, 1, "General", "GENERAL.IDS"));
-    addField(new IdsBitmap(buffer, offset + 894, 1, "Race", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 895, 1, "Class", "CLASS.IDS"));
-    addField(new IdsBitmap(buffer, offset + 896, 1, "Specifics", "SPECIFIC.IDS"));
-    addField(new IdsBitmap(buffer, offset + 897, 1, "Gender", "GENDER.IDS"));
-    addField(new IdsBitmap(buffer, offset + 898, 1, "Object spec 1", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 899, 1, "Object spec 2", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 900, 1, "Object spec 3", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 901, 1, "Object spec 4", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 902, 1, "Object spec 5", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 903, 1, "Alignment", "ALIGNMNT.IDS"));
-    addField(new DecNumber(buffer, offset + 904, 2, "Global identifier"));
-    addField(new DecNumber(buffer, offset + 906, 2, "Local identifier"));
-    addField(new TextString(buffer, offset + 908, 32, "Script name"));
-    addField(new IdsBitmap(buffer, offset + 940, 2, "Class 2", "CLASS.IDS"));
-    addField(new IdsBitmap(buffer, offset + 942, 4, "Class mask", "CLASSMSK.IDS"));
+    addField(new IdsBitmap(buffer, offset + 892, 1, CRE_ALLEGIANCE, "EA.IDS"));
+    addField(new IdsBitmap(buffer, offset + 893, 1, CRE_GENERAL, "GENERAL.IDS"));
+    addField(new IdsBitmap(buffer, offset + 894, 1, CRE_RACE, "RACE.IDS"));
+    addField(new IdsBitmap(buffer, offset + 895, 1, CRE_CLASS, "CLASS.IDS"));
+    addField(new IdsBitmap(buffer, offset + 896, 1, CRE_SPECIFICS, "SPECIFIC.IDS"));
+    addField(new IdsBitmap(buffer, offset + 897, 1, CRE_GENDER, "GENDER.IDS"));
+    for (int i = 0; i < 5; i++) {
+      addField(new IdsBitmap(buffer, offset + 898 + i, 1, String.format(CRE_OBJECT_FMT, i+1), "OBJECT.IDS"));
+    }
+    addField(new IdsBitmap(buffer, offset + 903, 1, CRE_ALIGNMENT, "ALIGNMNT.IDS"));
+    addField(new DecNumber(buffer, offset + 904, 2, CRE_IDENTIFIER_GLOBAL));
+    addField(new DecNumber(buffer, offset + 906, 2, CRE_IDENTIFIER_LOCAL));
+    addField(new TextString(buffer, offset + 908, 32, CRE_SCRIPT_NAME));
+    addField(new IdsBitmap(buffer, offset + 940, 2, CRE_CLASS_2, "CLASS.IDS"));
+    addField(new IdsBitmap(buffer, offset + 942, 4, CRE_CLASS_MASK, "CLASSMSK.IDS"));
 
     // Bard spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 946 + 4 * i,
-                                              "Bard spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1198 + 4 * i, 4,
-                                        "Bard spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 946 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_BARD_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1198 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_BARD_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Bard spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_BARD_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Cleric spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 982 + 4 * i,
-                                              "Cleric spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1234 + 4 * i, 4,
-                                        "Cleric spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 982 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_CLERIC_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1234 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_CLERIC_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Cleric spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_CLERIC_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Druid spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1018 + 4 * i,
-                                              "Druid spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1270 + 4 * i, 4,
-                                        "Druid spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 1018 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_DRUID_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1270 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_DRUID_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Druid spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_DRUID_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Paladin spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1054 + 4 * i,
-                                              "Paladin spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1306 + 4 * i, 4,
-                                        "Paladin spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 1054 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_PALADIN_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1306 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_PALADIN_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Paladin spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_PALADIN_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Ranger spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1090 + 4 * i,
-                                              "Ranger spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1342 + 4 * i, 4,
-                                        "Ranger spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 1090 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_RANGER_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1342 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_RANGER_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Ranger spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_RANGER_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Sorcerer spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1126 + 4 * i,
-                                              "Sorcerer spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1378 + 4 * i, 4,
-                                        "Sorcerer spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 1126 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_SORCERER_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1378 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_SORCERER_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Sorcerer spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_SORCERER_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Wizard spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1162 + 4 * i,
-                                              "Wizard spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1414 + 4 * i, 4,
-                                        "Wizard spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 1162 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_WIZARD_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1414 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_WIZARD_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Wizard spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_WIZARD_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Domain spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1450 + 4 * i,
-                                              "Domain spells " + (i + 1) + " offset", null);
-      DecNumber s_count = new DecNumber(buffer, offset + 1486 + 4 * i, 4,
-                                        "Domain spells " + (i + 1) + " count");
+      SectionOffset s_off = new SectionOffset(buffer, offset + 1450 + (i * 4),
+                                              String.format(CRE_OFFSET_SPELLS_DOMAIN_FMT, i+1), null);
+      DecNumber s_count = new DecNumber(buffer, offset + 1486 + (i * 4), 4,
+                                        String.format(CRE_NUM_SPELLS_DOMAIN_FMT, i+1));
       addField(s_off);
       addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(),
-                                        s_count, "Domain spells " + (i + 1), Iwd2Struct.TYPE_SPELL);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
+                                        String.format(CRE_SPELLS_DOMAIN_FMT, i+1), Iwd2Struct.TYPE_SPELL);
       addField(s);
-//      s_off.setStaticStruct(s);
     }
 
     // Innate abilities
-    SectionOffset inn_off = new SectionOffset(buffer, offset + 1522, "Abilities offset", null);
-    DecNumber inn_num = new DecNumber(buffer, offset + 1526, 4, "Abilities count");
+    SectionOffset inn_off = new SectionOffset(buffer, offset + 1522, CRE_OFFSET_ABILITIES, null);
+    DecNumber inn_num = new DecNumber(buffer, offset + 1526, 4, CRE_NUM_ABILITIES);
     addField(inn_off);
     addField(inn_num);
     AbstractStruct inn_str = new Iwd2Struct(this, buffer, getExtraOffset() + inn_off.getValue(),
-                                            inn_num, "Abilities", Iwd2Struct.TYPE_ABILITY);
+                                            inn_num, CRE_ABILITIES, Iwd2Struct.TYPE_ABILITY);
     addField(inn_str);
-//    inn_off.setStaticStruct(inn_str);
 
     // Songs
-    SectionOffset song_off = new SectionOffset(buffer, offset + 1530, "Songs offset", null);
-    DecNumber song_num = new DecNumber(buffer, offset + 1534, 4, "Songs count");
+    SectionOffset song_off = new SectionOffset(buffer, offset + 1530, CRE_OFFSET_SONGS, null);
+    DecNumber song_num = new DecNumber(buffer, offset + 1534, 4, CRE_NUM_SONGS);
     addField(song_off);
     addField(song_num);
     AbstractStruct song_str = new Iwd2Struct(this, buffer, getExtraOffset() + song_off.getValue(),
-                                             song_num, "Songs", Iwd2Struct.TYPE_SONG);
+                                             song_num, CRE_SONGS, Iwd2Struct.TYPE_SONG);
     addField(song_str);
-//    song_off.setStaticStruct(song_str);
 
     // Shapes
-    SectionOffset shape_off = new SectionOffset(buffer, offset + 1538, "Shapes offset", null);
-    DecNumber shape_num = new DecNumber(buffer, offset + 1542, 4, "Shapes count");
+    SectionOffset shape_off = new SectionOffset(buffer, offset + 1538, CRE_OFFSET_SHAPES, null);
+    DecNumber shape_num = new DecNumber(buffer, offset + 1542, 4, CRE_NUM_SHAPES);
     addField(shape_off);
     addField(shape_num);
     AbstractStruct shape_str = new Iwd2Struct(this, buffer, getExtraOffset() + shape_off.getValue(),
-                                              shape_num, "Shapes", Iwd2Struct.TYPE_SHAPE);
+                                              shape_num, CRE_SHAPES, Iwd2Struct.TYPE_SHAPE);
     addField(shape_str);
-//    shape_off.setStaticStruct(shape_str);
 
-    SectionOffset itemslots_offset = new SectionOffset(buffer, offset + 1546, "Item slots offset", null);
+    SectionOffset itemslots_offset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, null);
     addField(itemslots_offset);
-    SectionOffset items_offset = new SectionOffset(buffer, offset + 1550, "Items offset",
+    SectionOffset items_offset = new SectionOffset(buffer, offset + 1550, CRE_OFFSET_ITEMS,
                                                    Item.class);
     addField(items_offset);
-    SectionCount items_count = new SectionCount(buffer, offset + 1554, 4, "# items",
+    SectionCount items_count = new SectionCount(buffer, offset + 1554, 4, CRE_NUM_ITEMS,
                                                 Item.class);
     addField(items_count);
 
     SectionOffset effects_offset;
     SectionCount effects_count;
-    if (effect_flag.getValue() == 1) {
-      effects_offset = new SectionOffset(buffer, offset + 1558, "Effects offset",
-                                         Effect2.class);
-      effects_count = new SectionCount(buffer, offset + 1562, 4, "# effects",
-                                       Effect2.class);
+    if (effect_version.getValue() == 1) {
+      effects_offset = new SectionOffset(buffer, offset + 1558, CRE_OFFSET_EFFECTS, Effect2.class);
+      effects_count = new SectionCount(buffer, offset + 1562, 4, CRE_NUM_EFFECTS, Effect2.class);
     }
     else {
-      effects_offset = new SectionOffset(buffer, offset + 1558, "Effects offset",
-                                         Effect.class);
-      effects_count = new SectionCount(buffer, offset + 1562, 4, "# effects",
-                                       Effect.class);
+      effects_offset = new SectionOffset(buffer, offset + 1558, CRE_OFFSET_EFFECTS, Effect.class);
+      effects_count = new SectionCount(buffer, offset + 1562, 4, CRE_NUM_EFFECTS, Effect.class);
     }
     addField(effects_offset);
     addField(effects_count);
-    addField(new ResourceRef(buffer, offset + 1566, "Dialogue", "DLG"));
+    addField(new ResourceRef(buffer, offset + 1566, CRE_DIALOG, "DLG"));
 
     offset = getExtraOffset() + effects_offset.getValue();
-    if (effect_flag.getValue() == 1)
+    if (effect_version.getValue() == 1)
       for (int i = 0; i < effects_count.getValue(); i++) {
         Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
@@ -1052,58 +1323,33 @@ public final class CreResource extends AbstractStruct
     }
 
     offset = getExtraOffset() + itemslots_offset.getValue();
-    addField(new DecNumber(buffer, offset, 2, "Helmet"));
-    addField(new DecNumber(buffer, offset + 2, 2, "Armor"));
-    addField(new DecNumber(buffer, offset + 4, 2, "Shield"));
-    addField(new DecNumber(buffer, offset + 6, 2, "Gauntlets"));
-    addField(new DecNumber(buffer, offset + 8, 2, "Left ring"));
-    addField(new DecNumber(buffer, offset + 10, 2, "Right ring"));
-    addField(new DecNumber(buffer, offset + 12, 2, "Amulet"));
-    addField(new DecNumber(buffer, offset + 14, 2, "Belt"));
-    addField(new DecNumber(buffer, offset + 16, 2, "Boots"));
-    addField(new DecNumber(buffer, offset + 18, 2, "Weapon 1"));
-    addField(new DecNumber(buffer, offset + 20, 2, "Shield 1"));
-    addField(new DecNumber(buffer, offset + 22, 2, "Weapon 2"));
-    addField(new DecNumber(buffer, offset + 24, 2, "Shield 2"));
-    addField(new DecNumber(buffer, offset + 26, 2, "Weapon 3"));
-    addField(new DecNumber(buffer, offset + 28, 2, "Shield 3"));
-    addField(new DecNumber(buffer, offset + 30, 2, "Weapon 4"));
-    addField(new DecNumber(buffer, offset + 32, 2, "Shield 4"));
-    addField(new DecNumber(buffer, offset + 34, 2, "Quiver 1"));
-    addField(new DecNumber(buffer, offset + 36, 2, "Quiver 2"));
-    addField(new DecNumber(buffer, offset + 38, 2, "Quiver 3"));
-    addField(new DecNumber(buffer, offset + 40, 2, "Quiver 4"));
-    addField(new DecNumber(buffer, offset + 42, 2, "Cloak"));
-    addField(new DecNumber(buffer, offset + 44, 2, "Quick item 1"));
-    addField(new DecNumber(buffer, offset + 46, 2, "Quick item 2"));
-    addField(new DecNumber(buffer, offset + 48, 2, "Quick item 3"));
-    addField(new DecNumber(buffer, offset + 50, 2, "Inventory 1"));
-    addField(new DecNumber(buffer, offset + 52, 2, "Inventory 2"));
-    addField(new DecNumber(buffer, offset + 54, 2, "Inventory 3"));
-    addField(new DecNumber(buffer, offset + 56, 2, "Inventory 4"));
-    addField(new DecNumber(buffer, offset + 58, 2, "Inventory 5"));
-    addField(new DecNumber(buffer, offset + 60, 2, "Inventory 6"));
-    addField(new DecNumber(buffer, offset + 62, 2, "Inventory 7"));
-    addField(new DecNumber(buffer, offset + 64, 2, "Inventory 8"));
-    addField(new DecNumber(buffer, offset + 66, 2, "Inventory 9"));
-    addField(new DecNumber(buffer, offset + 68, 2, "Inventory 10"));
-    addField(new DecNumber(buffer, offset + 70, 2, "Inventory 11"));
-    addField(new DecNumber(buffer, offset + 72, 2, "Inventory 12"));
-    addField(new DecNumber(buffer, offset + 74, 2, "Inventory 13"));
-    addField(new DecNumber(buffer, offset + 76, 2, "Inventory 14"));
-    addField(new DecNumber(buffer, offset + 78, 2, "Inventory 15"));
-    addField(new DecNumber(buffer, offset + 80, 2, "Inventory 16"));
-    addField(new DecNumber(buffer, offset + 82, 2, "Inventory 17"));
-    addField(new DecNumber(buffer, offset + 84, 2, "Inventory 18"));
-    addField(new DecNumber(buffer, offset + 86, 2, "Inventory 19"));
-    addField(new DecNumber(buffer, offset + 88, 2, "Inventory 20"));
-    addField(new DecNumber(buffer, offset + 90, 2, "Inventory 21"));
-    addField(new DecNumber(buffer, offset + 92, 2, "Inventory 22"));
-    addField(new DecNumber(buffer, offset + 94, 2, "Inventory 23"));
-    addField(new DecNumber(buffer, offset + 96, 2, "Inventory 24"));
-    addField(new DecNumber(buffer, offset + 98, 2, "Magically created weapon"));
-    addField(new DecNumber(buffer, offset + 100, 2, "Weapon slot selected"));
-    addField(new DecNumber(buffer, offset + 102, 2, "Weapon ability selected"));
+    addField(new DecNumber(buffer, offset, 2, CRE_ITEM_SLOT_HELMET));
+    addField(new DecNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR));
+    addField(new DecNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD));
+    addField(new DecNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_GAUNTLETS));
+    addField(new DecNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
+    addField(new DecNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
+    addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET));
+    addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT));
+    addField(new DecNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS));
+    for (int i = 0; i < 4; i++) {
+      addField(new DecNumber(buffer, offset + 18 + (i * 4), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
+      addField(new DecNumber(buffer, offset + 20 + (i * 4), 2, String.format(CRE_ITEM_SLOT_SHIELD_FMT, i+1)));
+    }
+    for (int i = 0; i < 4; i++) {
+      addField(new DecNumber(buffer, offset + 34 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
+    }
+    addField(new DecNumber(buffer, offset + 42, 2, CRE_ITEM_SLOT_CLOAK));
+    for (int i = 0; i < 3; i++) {
+      addField(new DecNumber(buffer, offset + 44 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
+    }
+    for (int i = 0; i < 24; i++) {
+      addField(new DecNumber(buffer, offset + 50 + (i * 2), 2,
+                             String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
+    }
+    addField(new DecNumber(buffer, offset + 98, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
+    addField(new DecNumber(buffer, offset + 100, 2, CRE_SELECTED_WEAPON_SLOT));
+    addField(new DecNumber(buffer, offset + 102, 2, CRE_SELECTED_WEAPON_ABILITY));
 
     int endoffset = offset;
     for (int i = 0; i < getFieldCount(); i++) {
@@ -1121,139 +1367,136 @@ public final class CreResource extends AbstractStruct
 
   private int readOther(String version, byte buffer[], int offset) throws Exception
   {
-    addField(new StringRef(buffer, offset, "Name"));
-    addField(new StringRef(buffer, offset + 4, "Tooltip"));
-    addField(new Flag(buffer, offset + 8, 4, "Flags", s_flag));
-    addField(new DecNumber(buffer, offset + 12, 4, "XP value"));
-    addField(new DecNumber(buffer, offset + 16, 4, "XP"));
-    addField(new DecNumber(buffer, offset + 20, 4, "Gold"));
-    addField(new IdsFlag(buffer, offset + 24, 4, "Status", "STATE.IDS"));
-    addField(new DecNumber(buffer, offset + 28, 2, "Current HP"));
-    addField(new DecNumber(buffer, offset + 30, 2, "Maximum HP"));
-    addField(new IdsBitmap(buffer, offset + 32, 4, "Animation", "ANIMATE.IDS"));
+    addField(new StringRef(buffer, offset, CRE_NAME));
+    addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));
+    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag));
+    addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
+    addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
+    addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
+    addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
+    addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
+    addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
+    addField(new IdsBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
 //    addField(new Unknown(buffer, offset + 34, 2));
 //    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1"))
 //      addField(new Unknown(buffer, offset + 36, 7));
 //    else {
-    addField(new ColorValue(buffer, offset + 36, 1, "Metal color"));
-    addField(new ColorValue(buffer, offset + 37, 1, "Minor color"));
-    addField(new ColorValue(buffer, offset + 38, 1, "Major color"));
-    addField(new ColorValue(buffer, offset + 39, 1, "Skin color"));
-    addField(new ColorValue(buffer, offset + 40, 1, "Leather color"));
-    addField(new ColorValue(buffer, offset + 41, 1, "Armor color"));
-    addField(new ColorValue(buffer, offset + 42, 1, "Hair color"));
+    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
+    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
+    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
+    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN));
+    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
+    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
+    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
 //    }
-    DecNumber effect_flag = new DecNumber(buffer, offset + 43, 1, "Effect flag");
-    addField(effect_flag);
-    addField(new ResourceRef(buffer, offset + 44, "Small portrait", "BMP"));
+    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-      addField(new ResourceRef(buffer, offset + 52, "Large portrait", "BAM"));
+      addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));
     } else {
-      addField(new ResourceRef(buffer, offset + 52, "Large portrait", "BMP"));
+      addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     }
-    addField(new UnsignDecNumber(buffer, offset + 60, 1, "Reputation"));
-    addField(new UnsignDecNumber(buffer, offset + 61, 1, "Hide in shadows"));
-    addField(new DecNumber(buffer, offset + 62, 2, "Natural AC"));
-    addField(new DecNumber(buffer, offset + 64, 2, "Effective AC"));
-    addField(new DecNumber(buffer, offset + 66, 2, "Crushing AC modifier"));
-    addField(new DecNumber(buffer, offset + 68, 2, "Missile AC modifier"));
-    addField(new DecNumber(buffer, offset + 70, 2, "Piercing AC modifier"));
-    addField(new DecNumber(buffer, offset + 72, 2, "Slashing AC modifier"));
-    addField(new DecNumber(buffer, offset + 74, 1, "THAC0"));
+    addField(new UnsignDecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
+    addField(new UnsignDecNumber(buffer, offset + 61, 1, CRE_HIDE_IN_SHADOWS));
+    addField(new DecNumber(buffer, offset + 62, 2, CRE_AC_NATURAL));
+    addField(new DecNumber(buffer, offset + 64, 2, CRE_AC_EFFECTIVE));
+    addField(new DecNumber(buffer, offset + 66, 2, CRE_AC_MOD_CRUSHING));
+    addField(new DecNumber(buffer, offset + 68, 2, CRE_AC_MOD_MISSILE));
+    addField(new DecNumber(buffer, offset + 70, 2, CRE_AC_MOD_PIERCING));
+    addField(new DecNumber(buffer, offset + 72, 2, CRE_AC_MOD_SLASHING));
+    addField(new DecNumber(buffer, offset + 74, 1, CRE_THAC0));
 //    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1"))
-    addField(new Bitmap(buffer, offset + 75, 1, "# attacks", s_attacks));
+    addField(new Bitmap(buffer, offset + 75, 1, CRE_ATTACKS_PER_ROUND, s_attacks));
 //    else
 //      addField(new DecNumber(buffer, offset + 75, 1, "# attacks"));
-    addField(new DecNumber(buffer, offset + 76, 1, "Save vs. death"));
-    addField(new DecNumber(buffer, offset + 77, 1, "Save vs. wand"));
-    addField(new DecNumber(buffer, offset + 78, 1, "Save vs. polymorph"));
-    addField(new DecNumber(buffer, offset + 79, 1, "Save vs. breath"));
-    addField(new DecNumber(buffer, offset + 80, 1, "Save vs. spell"));
-    addField(new DecNumber(buffer, offset + 81, 1, "Resist fire"));
-    addField(new DecNumber(buffer, offset + 82, 1, "Resist cold"));
-    addField(new DecNumber(buffer, offset + 83, 1, "Resist electricity"));
-    addField(new DecNumber(buffer, offset + 84, 1, "Resist acid"));
-    addField(new DecNumber(buffer, offset + 85, 1, "Resist magic"));
-    addField(new DecNumber(buffer, offset + 86, 1, "Resist magic fire"));
-    addField(new DecNumber(buffer, offset + 87, 1, "Resist magic cold"));
-    addField(new DecNumber(buffer, offset + 88, 1, "Resist slashing"));
-    addField(new DecNumber(buffer, offset + 89, 1, "Resist crushing"));
-    addField(new DecNumber(buffer, offset + 90, 1, "Resist piercing"));
-    addField(new DecNumber(buffer, offset + 91, 1, "Resist missile"));
+    addField(new DecNumber(buffer, offset + 76, 1, CRE_SAVE_DEATH));
+    addField(new DecNumber(buffer, offset + 77, 1, CRE_SAVE_WAND));
+    addField(new DecNumber(buffer, offset + 78, 1, CRE_SAVE_POLYMORPH));
+    addField(new DecNumber(buffer, offset + 79, 1, CRE_SAVE_BREATH));
+    addField(new DecNumber(buffer, offset + 80, 1, CRE_SAVE_SPELL));
+    addField(new DecNumber(buffer, offset + 81, 1, CRE_RESISTANCE_FIRE));
+    addField(new DecNumber(buffer, offset + 82, 1, CRE_RESISTANCE_COLD));
+    addField(new DecNumber(buffer, offset + 83, 1, CRE_RESISTANCE_ELECTRICITY));
+    addField(new DecNumber(buffer, offset + 84, 1, CRE_RESISTANCE_ACID));
+    addField(new DecNumber(buffer, offset + 85, 1, CRE_RESISTANCE_MAGIC));
+    addField(new DecNumber(buffer, offset + 86, 1, CRE_RESISTANCE_MAGIC_FIRE));
+    addField(new DecNumber(buffer, offset + 87, 1, CRE_RESISTANCE_MAGIC_COLD));
+    addField(new DecNumber(buffer, offset + 88, 1, CRE_RESISTANCE_SLASHING));
+    addField(new DecNumber(buffer, offset + 89, 1, CRE_RESISTANCE_CRUSHING));
+    addField(new DecNumber(buffer, offset + 90, 1, CRE_RESISTANCE_PIERCING));
+    addField(new DecNumber(buffer, offset + 91, 1, CRE_RESISTANCE_MISSILE));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-      addField(new DecNumber(buffer, offset + 92, 1, "Unspent proficiencies"));
-//      addField(new Unknown(buffer, offset + 93, 1));
+      addField(new DecNumber(buffer, offset + 92, 1, CRE_PROFICIENCIES_UNSPENT));
+    } else {
+      addField(new UnsignDecNumber(buffer, offset + 92, 1, CRE_DETECT_ILLUSIONS));
     }
-    else {
-      addField(new UnsignDecNumber(buffer, offset + 92, 1, "Detect illusions"));
-    }
-    addField(new UnsignDecNumber(buffer, offset + 93, 1, "Set traps"));
-    addField(new DecNumber(buffer, offset + 94, 1, "Lore"));
-    addField(new UnsignDecNumber(buffer, offset + 95, 1, "Open locks"));
-    addField(new UnsignDecNumber(buffer, offset + 96, 1, "Move silently"));
-    addField(new UnsignDecNumber(buffer, offset + 97, 1, "Find traps"));
-    addField(new UnsignDecNumber(buffer, offset + 98, 1, "Pick pockets"));
-    addField(new DecNumber(buffer, offset + 99, 1, "Fatigue"));
-    addField(new DecNumber(buffer, offset + 100, 1, "Intoxication"));
-    addField(new DecNumber(buffer, offset + 101, 1, "Luck"));
+    addField(new UnsignDecNumber(buffer, offset + 93, 1, CRE_SET_TRAPS));
+    addField(new DecNumber(buffer, offset + 94, 1, CRE_LORE));
+    addField(new UnsignDecNumber(buffer, offset + 95, 1, CRE_OPEN_LOCKS));
+    addField(new UnsignDecNumber(buffer, offset + 96, 1, CRE_MOVE_SILENTLY));
+    addField(new UnsignDecNumber(buffer, offset + 97, 1, CRE_FIND_TRAPS));
+    addField(new UnsignDecNumber(buffer, offset + 98, 1, CRE_PICK_POCKETS));
+    addField(new DecNumber(buffer, offset + 99, 1, CRE_FATIGUE));
+    addField(new DecNumber(buffer, offset + 100, 1, CRE_INTOXICATION));
+    addField(new DecNumber(buffer, offset + 101, 1, CRE_LUCK));
     if (version.equals("V1.0")) {
-      addField(new MultiNumber(buffer, offset + 102, 1, "Large sword proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 103, 1, "Small sword proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 104, 1, "Bow proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 105, 1, "Spear proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 106, 1, "Blunt proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 107, 1, "Spiked proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 108, 1, "Axe proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 109, 1, "Missile proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_LARGE_SWORD, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_SMALL_SWORD, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_SPEAR, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_BLUNT, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_SPIKED, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_MISSILE, 3, 2, s_profLabels));
       if (Profile.isEnhancedEdition()) {
         if (Profile.getGame() == Profile.Game.BG2EE || Profile.getGame() == Profile.Game.IWDEE) {
           addField(new Unknown(buffer, offset + 110, 7));
-          addField(new Bitmap(buffer, offset + 117, 1, "Nightmare mode", s_noyes));
-          addField(new UnsignDecNumber(buffer, offset + 118, 1, "Translucency"));
+          addField(new Bitmap(buffer, offset + 117, 1, CRE_NIGHTMARE_MODE, s_noyes));
+          addField(new UnsignDecNumber(buffer, offset + 118, 1, CRE_TRANSLUCENCY));
         } else {
           addField(new Unknown(buffer, offset + 110, 9));
         }
-        addField(new DecNumber(buffer, offset + 119, 1, "Reputation gain/loss when killed"));
-        addField(new DecNumber(buffer, offset + 120, 1, "Reputation gain/loss when joining party"));
-        addField(new DecNumber(buffer, offset + 121, 1, "Reputation gain/loss when leaving party"));
+        addField(new DecNumber(buffer, offset + 119, 1, CRE_REPUTATION_MOD_KILLED));
+        addField(new DecNumber(buffer, offset + 120, 1, CRE_REPUTATION_MOD_JOIN));
+        addField(new DecNumber(buffer, offset + 121, 1, CRE_REPUTATION_MOD_LEAVE));
       } else {
         addField(new Unknown(buffer, offset + 110, 12));
       }
     }
     else if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-      addField(new MultiNumber(buffer, offset + 102, 1, "Fist proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 103, 1, "Edged-weapon proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 104, 1, "Hammer proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 105, 1, "Axe proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 106, 1, "Club proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 107, 1, "Bow proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_FIST, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_EDGED_WEAPON, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_HAMMER, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_CLUB, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
       addField(new Unknown(buffer, offset + 108, 14));
     }
     else if (version.equalsIgnoreCase("V9.0")) {
-      addField(new MultiNumber(buffer, offset + 102, 1, "Large sword proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 103, 1, "Small sword proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 104, 1, "Bow proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 105, 1, "Spear proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 106, 1, "Axe proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 107, 1, "Missile proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 108, 1, "Greatsword proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 109, 1, "Dagger proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 110, 1, "Halberd proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 111, 1, "Mace proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 112, 1, "Flail proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 113, 1, "Hammer proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 114, 1, "Club proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 115, 1, "Quarterstaff proficiency", 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 116, 1, "Crossbow proficiency", 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_LARGE_SWORD, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_SMALL_SWORD, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_SPEAR, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_MISSILE, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_GREATSWORD, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_DAGGER, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 110, 1, CRE_PROFICIENCY_HALBERD, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 111, 1, CRE_PROFICIENCY_MACE, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 112, 1, CRE_PROFICIENCY_FLAIL, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 113, 1, CRE_PROFICIENCY_HAMMER, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 114, 1, CRE_PROFICIENCY_CLUB, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 115, 1, CRE_PROFICIENCY_QUARTERSTAFF, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 116, 1, CRE_PROFICIENCY_CROSSBOW, 3, 2, s_profLabels));
       addField(new Unknown(buffer, offset + 117, 5));
     }
     else {
       clearFields();
       throw new Exception("Unsupported version: " + version);
     }
-    addField(new DecNumber(buffer, offset + 122, 1, "Undead level"));
-    addField(new DecNumber(buffer, offset + 123, 1, "Tracking"));
-    addField(new TextString(buffer, offset + 124, 32, "Target"));
+    addField(new DecNumber(buffer, offset + 122, 1, CRE_UNDEAD_LEVEL));
+    addField(new DecNumber(buffer, offset + 123, 1, CRE_TRACKING));
+    addField(new TextString(buffer, offset + 124, 32, CRE_TARGET));
     LongIntegerHashMap<IdsMapEntry> sndmap = null;
     if (ResourceFactory.resourceExists("SNDSLOT.IDS")) {
       sndmap = IdsMapCache.get("SNDSLOT.IDS").getMap();
@@ -1261,58 +1504,53 @@ public final class CreResource extends AbstractStruct
       sndmap = IdsMapCache.get("SOUNDOFF.IDS").getMap();
     }
     if (sndmap != null) {
-      for (int i = 0; i < 100; i++)
-        if (sndmap.containsKey((long)i)) {
-          addField(new StringRef(buffer, offset + 156 + i * 4,
-                                "Sound: " + ((IdsMapEntry)sndmap.get((long)i)).getString()));
-        } else {
-          addField(new StringRef(buffer, offset + 156 + i * 4, "Sound: Unknown"));
-        }
-    }
-    else {
       for (int i = 0; i < 100; i++) {
-        addField(new StringRef(buffer, offset + 156 + i * 4, "Soundset string"));
+        String label = sndmap.containsKey((long)i) ? sndmap.get((long)i).getString() : "Unknown";
+        addField(new StringRef(buffer, offset + 156 + (i * 4), String.format(CRE_SOUND_SLOT_FMT, label)));
+      }
+    } else {
+      for (int i = 0; i < 100; i++) {
+        addField(new StringRef(buffer, offset + 156 + i * 4, CRE_SOUND_SLOT_GENERIC));
       }
     }
-    addField(new DecNumber(buffer, offset + 556, 1, "Level first class"));
-    addField(new DecNumber(buffer, offset + 557, 1, "Level second class"));
-    addField(new DecNumber(buffer, offset + 558, 1, "Level third class"));
-    addField(new IdsBitmap(buffer, offset + 559, 1, "Sex", "GENDER.IDS"));
-//            new Bitmap(buffer, offset + 559, 1, "Sex", new String[]{"", "Male", "Female", "Neither", "Both"}));
-    addField(new DecNumber(buffer, offset + 560, 1, "Strength"));
-    addField(new DecNumber(buffer, offset + 561, 1, "Strength bonus"));
-    addField(new DecNumber(buffer, offset + 562, 1, "Intelligence"));
-    addField(new DecNumber(buffer, offset + 563, 1, "Wisdom"));
-    addField(new DecNumber(buffer, offset + 564, 1, "Dexterity"));
-    addField(new DecNumber(buffer, offset + 565, 1, "Constitution"));
-    addField(new DecNumber(buffer, offset + 566, 1, "Charisma"));
-    addField(new DecNumber(buffer, offset + 567, 1, "Morale"));
-    addField(new DecNumber(buffer, offset + 568, 1, "Morale break"));
-    addField(new IdsBitmap(buffer, offset + 569, 1, "Racial enemy", "RACE.IDS"));
-    addField(new DecNumber(buffer, offset + 570, 2, "Morale recovery"));
+    addField(new DecNumber(buffer, offset + 556, 1, CRE_LEVEL_FIRST_CLASS));
+    addField(new DecNumber(buffer, offset + 557, 1, CRE_LEVEL_SECOND_CLASS));
+    addField(new DecNumber(buffer, offset + 558, 1, CRE_LEVEL_THIRD_CLASS));
+    addField(new IdsBitmap(buffer, offset + 559, 1, CRE_SEX, "GENDER.IDS"));
+    addField(new DecNumber(buffer, offset + 560, 1, CRE_STRENGTH));
+    addField(new DecNumber(buffer, offset + 561, 1, CRE_STRENGTH_BONUS));
+    addField(new DecNumber(buffer, offset + 562, 1, CRE_INTELLIGENCE));
+    addField(new DecNumber(buffer, offset + 563, 1, CRE_WISDOM));
+    addField(new DecNumber(buffer, offset + 564, 1, CRE_DEXTERITY));
+    addField(new DecNumber(buffer, offset + 565, 1, CRE_CONSTITUTION));
+    addField(new DecNumber(buffer, offset + 566, 1, CRE_CHARISMA));
+    addField(new DecNumber(buffer, offset + 567, 1, CRE_MORALE));
+    addField(new DecNumber(buffer, offset + 568, 1, CRE_MORALE_BREAK));
+    addField(new IdsBitmap(buffer, offset + 569, 1, CRE_RACIAL_ENEMY, "RACE.IDS"));
+    addField(new DecNumber(buffer, offset + 570, 2, CRE_MORALE_RECOVERY));
 //    addField(new Unknown(buffer, offset + 571, 1));
     if (ResourceFactory.resourceExists("KIT.IDS")) {
-      addField(new KitIdsBitmap(buffer, offset + 572, "Kit"));
+      addField(new KitIdsBitmap(buffer, offset + 572, CRE_KIT));
     }
     else {
       if (ResourceFactory.resourceExists("DEITY.IDS")) {
-        addField(new IdsBitmap(buffer, offset + 572, 2, "Deity", "DEITY.IDS"));
+        addField(new IdsBitmap(buffer, offset + 572, 2, CRE_DEITY, "DEITY.IDS"));
       } else if (ResourceFactory.resourceExists("DIETY.IDS")) {
-        addField(new IdsBitmap(buffer, offset + 572, 2, "Deity", "DIETY.IDS"));
+        addField(new IdsBitmap(buffer, offset + 572, 2, CRE_DEITY, "DIETY.IDS"));
       } else {
         addField(new Unknown(buffer, offset + 572, 2));
       }
       if (ResourceFactory.resourceExists("MAGESPEC.IDS")) {
-        addField(new IdsBitmap(buffer, offset + 574, 2, "Mage type", "MAGESPEC.IDS"));
+        addField(new IdsBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, "MAGESPEC.IDS"));
       } else {
-        addField(new HashBitmap(buffer, offset + 574, 2, "Mage type", m_magetype));
+        addField(new HashBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, m_magetype));
       }
     }
-    addField(new ResourceRef(buffer, offset + 576, "Override script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 584, "Class script", new String[]{"BCS", "BS"}));
-    addField(new ResourceRef(buffer, offset + 592, "Race script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 600, "General script", "BCS"));
-    addField(new ResourceRef(buffer, offset + 608, "Default script", "BCS"));
+    addField(new ResourceRef(buffer, offset + 576, CRE_SCRIPT_OVERRIDE, "BCS"));
+    addField(new ResourceRef(buffer, offset + 584, CRE_SCRIPT_CLASS, new String[]{"BCS", "BS"}));
+    addField(new ResourceRef(buffer, offset + 592, CRE_SCRIPT_RACE, "BCS"));
+    addField(new ResourceRef(buffer, offset + 600, CRE_SCRIPT_GENERAL, "BCS"));
+    addField(new ResourceRef(buffer, offset + 608, CRE_SCRIPT_DEFAULT, "BCS"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
 //      LongIntegerHashMap<String> m_zoom = new LongIntegerHashMap<String>();
 //      m_zoom.put(0x0000L, "No");
@@ -1320,130 +1558,112 @@ public final class CreResource extends AbstractStruct
       addField(new Unknown(buffer, offset + 616, 24));
       addField(new Unknown(buffer, offset + 640, 4));
       addField(new Unknown(buffer, offset + 644, 8));
-      addField(new Unknown(buffer, offset + 652, 4, "Overlays offset"));
-      addField(new Unknown(buffer, offset + 656, 4, "Overlays size"));
-      addField(new DecNumber(buffer, offset + 660, 4, "XP second class"));
-      addField(new DecNumber(buffer, offset + 664, 4, "XP third class"));
+      addField(new Unknown(buffer, offset + 652, 4, CRE_OFFSET_OVERLAYS));
+      addField(new Unknown(buffer, offset + 656, 4, CRE_OVERLAYS_SIZE));
+      addField(new DecNumber(buffer, offset + 660, 4, CRE_XP_SECOND_CLASS));
+      addField(new DecNumber(buffer, offset + 664, 4, CRE_XP_THIRD_CLASS));
       LongIntegerHashMap<IdsMapEntry> intMap = IdsMapCache.get("INTERNAL.IDS").getMap();
       for (int i = 0; i < 10; i++) {
         if (intMap.containsKey((long)i)) {
           addField(new DecNumber(buffer, offset + 668 + i * 2, 2,
                                 ((IdsMapEntry)intMap.get((long)i)).getString()));
         } else {
-          addField(new DecNumber(buffer, offset + 668 + i * 2, 2, "Internal " + i));
+          addField(new DecNumber(buffer, offset + 668 + i * 2, 2, String.format(CRE_INTERNAL_FMT, i)));
         }
       }
-      addField(new DecNumber(buffer, offset + 688, 1, "Good increment by"));
-      addField(new DecNumber(buffer, offset + 689, 1, "Law increment by"));
-      addField(new DecNumber(buffer, offset + 690, 1, "Lady increment by"));
-      addField(new DecNumber(buffer, offset + 691, 1, "Murder increment by"));
-      addField(new TextString(buffer, offset + 692, 32, "Character type"));
-      addField(new DecNumber(buffer, offset + 724, 1, "Dialogue activation radius"));
-      addField(new DecNumber(buffer, offset + 725, 1, "Collision radius")); // 0x2dd
+      addField(new DecNumber(buffer, offset + 688, 1, CRE_GOOD_INC));
+      addField(new DecNumber(buffer, offset + 689, 1, CRE_LAW_INC));
+      addField(new DecNumber(buffer, offset + 690, 1, CRE_LADY_INC));
+      addField(new DecNumber(buffer, offset + 691, 1, CRE_MURDER_INC));
+      addField(new TextString(buffer, offset + 692, 32, CRE_CHARACTER_TYPE));
+      addField(new DecNumber(buffer, offset + 724, 1, CRE_DIALOG_ACTIVATION_RADIUS));
+      addField(new DecNumber(buffer, offset + 725, 1, CRE_COLLISION_RADIUS)); // 0x2dd
       addField(new Unknown(buffer, offset + 726, 1));
-      addField(new DecNumber(buffer, offset + 727, 1, "# colors"));
-      addField(new Flag(buffer, offset + 728, 4, "Attributes", s_attributes_pst));
-//      addField(new Flag(buffer, offset + 729, 1, "Attribute flags 2",
-//                        new String[]{"No flags set", "", "Invulnerable"}));
-//      addField(new Unknown(buffer, offset + 730, 2));
-      addField(new IdsBitmap(buffer, offset + 732, 2, "Color 1", "CLOWNCLR.IDS"));
-      addField(new IdsBitmap(buffer, offset + 734, 2, "Color 2", "CLOWNCLR.IDS"));
-      addField(new IdsBitmap(buffer, offset + 736, 2, "Color 3", "CLOWNCLR.IDS"));
-      addField(new IdsBitmap(buffer, offset + 738, 2, "Color 4", "CLOWNCLR.IDS"));
-      addField(new IdsBitmap(buffer, offset + 740, 2, "Color 5", "CLOWNCLR.IDS"));
-      addField(new IdsBitmap(buffer, offset + 742, 2, "Color 6", "CLOWNCLR.IDS"));
-      addField(new IdsBitmap(buffer, offset + 744, 2, "Color 7", "CLOWNCLR.IDS"));
+      addField(new DecNumber(buffer, offset + 727, 1, CRE_NUM_COLORS));
+      addField(new Flag(buffer, offset + 728, 4, CRE_ATTRIBUTES, s_attributes_pst));
+      for (int i = 0; i < 7; i++) {
+        addField(new IdsBitmap(buffer, offset + 732 + (i * 2), 2,
+                               String.format(CRE_COLOR_FMT, i+1), "CLOWNCLR.IDS"));
+      }
       addField(new Unknown(buffer, offset + 746, 3));
-      addField(new HashBitmap(buffer, offset + 749, 1, "Color 1 placement", m_colorPlacement));
-      addField(new HashBitmap(buffer, offset + 750, 1, "Color 2 placement", m_colorPlacement));
-      addField(new HashBitmap(buffer, offset + 751, 1, "Color 3 placement", m_colorPlacement));
-      addField(new HashBitmap(buffer, offset + 752, 1, "Color 4 placement", m_colorPlacement));
-      addField(new HashBitmap(buffer, offset + 753, 1, "Color 5 placement", m_colorPlacement));
-      addField(new HashBitmap(buffer, offset + 754, 1, "Color 6 placement", m_colorPlacement));
-      addField(new HashBitmap(buffer, offset + 755, 1, "Color 7 placement", m_colorPlacement));
+      for (int i = 0; i < 7; i++) {
+        addField(new HashBitmap(buffer, offset + 749 + i, 1,
+                                String.format(CRE_COLOR_PLACEMENT_FMT, i+1), m_colorPlacement));
+      }
       addField(new Unknown(buffer, offset + 756, 21));
-      addField(new IdsBitmap(buffer, offset + 777, 1, "Species", "RACE.IDS"));
-      addField(new IdsBitmap(buffer, offset + 778, 1, "Team", "TEAM.IDS"));
-      addField(new IdsBitmap(buffer, offset + 779, 1, "Faction", "FACTION.IDS"));
+      addField(new IdsBitmap(buffer, offset + 777, 1, CRE_SPECIES, "RACE.IDS"));
+      addField(new IdsBitmap(buffer, offset + 778, 1, CRE_TEAM, "TEAM.IDS"));
+      addField(new IdsBitmap(buffer, offset + 779, 1, CRE_FACTION, "FACTION.IDS"));
       offset += 164;
     }
     else if (version.equalsIgnoreCase("V9.0")) {
-      addField(new Bitmap(buffer, offset + 616, 1, "Default visibility", s_visible));
-      addField(new Bitmap(buffer, offset + 617, 1, "Set extra death variable?", s_noyes));
-      addField(new Bitmap(buffer, offset + 618, 1, "Increment kill count?", s_noyes));
+      addField(new Bitmap(buffer, offset + 616, 1, CRE_DEFAULT_VISIBILITY, s_visible));
+      addField(new Bitmap(buffer, offset + 617, 1, CRE_SET_EXTRA_DEATH_VAR, s_noyes));
+      addField(new Bitmap(buffer, offset + 618, 1, CRE_INCREMENT_KILL_COUNT, s_noyes));
       addField(new Unknown(buffer, offset + 619, 1));
-      addField(new DecNumber(buffer, offset + 620, 2, "Internal 1"));
-      addField(new DecNumber(buffer, offset + 622, 2, "Internal 2"));
-      addField(new DecNumber(buffer, offset + 624, 2, "Internal 3"));
-      addField(new DecNumber(buffer, offset + 626, 2, "Internal 4"));
-      addField(new DecNumber(buffer, offset + 628, 2, "Internal 5"));
-      addField(new TextString(buffer, offset + 630, 32, "Death variable (set)"));
-      addField(new TextString(buffer, offset + 662, 32, "Death variable (increment)"));
-      addField(new Bitmap(buffer, offset + 694, 2, "Location saved?", s_noyes));
-      addField(new DecNumber(buffer, offset + 696, 2, "Saved location: X"));
-      addField(new DecNumber(buffer, offset + 698, 2, "Saved location: Y"));
-      addField(new DecNumber(buffer, offset + 700, 2, "Saved orientation"));
+      for (int i = 0; i < 5; i++) {
+        addField(new DecNumber(buffer, offset + 620 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i+1)));
+      }
+      addField(new TextString(buffer, offset + 630, 32, CRE_DEATH_VAR_SET));
+      addField(new TextString(buffer, offset + 662, 32, CRE_DEATH_VAR_INC));
+      addField(new Bitmap(buffer, offset + 694, 2, CRE_LOCATION_SAVED, s_noyes));
+      addField(new DecNumber(buffer, offset + 696, 2, CRE_SAVED_LOCATION_X));
+      addField(new DecNumber(buffer, offset + 698, 2, CRE_SAVED_LOCATION_Y));
+      addField(new DecNumber(buffer, offset + 700, 2, CRE_SAVED_ORIENTATION));
       addField(new Unknown(buffer, offset + 702, 18));
       offset += 104;
     }
-    addField(new IdsBitmap(buffer, offset + 616, 1, "Allegiance", "EA.IDS"));
-    addField(new IdsBitmap(buffer, offset + 617, 1, "General", "GENERAL.IDS"));
-    addField(new IdsBitmap(buffer, offset + 618, 1, "Race", "RACE.IDS"));
-    addField(new IdsBitmap(buffer, offset + 619, 1, "Class", "CLASS.IDS"));
-    addField(new IdsBitmap(buffer, offset + 620, 1, "Specifics", "SPECIFIC.IDS"));
-    addField(new IdsBitmap(buffer, offset + 621, 1, "Gender", "GENDER.IDS"));
-    addField(new IdsBitmap(buffer, offset + 622, 1, "Object spec 1", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 623, 1, "Object spec 2", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 624, 1, "Object spec 3", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 625, 1, "Object spec 4", "OBJECT.IDS"));
-    addField(new IdsBitmap(buffer, offset + 626, 1, "Object spec 5", "OBJECT.IDS"));
-//    if (ResourceFactory.getGameID() == ResourceFactory.ID_BG2 ||
-//        ResourceFactory.getGameID() == ResourceFactory.ID_BG2TOB)
-//      addField(new IdsBitmap(buffer, offset + 627, 1, "Alignment", "ALIGN.IDS"));
-//    else
-    addField(new IdsBitmap(buffer, offset + 627, 1, "Alignment", "ALIGNMEN.IDS"));
-    addField(new DecNumber(buffer, offset + 628, 2, "Global identifier"));
-    addField(new DecNumber(buffer, offset + 630, 2, "Local identifier"));
-    addField(new TextString(buffer, offset + 632, 32, "Script name"));
-//    addField(new Unknown(buffer, offset + 650, 14));
+    addField(new IdsBitmap(buffer, offset + 616, 1, CRE_ALLEGIANCE, "EA.IDS"));
+    addField(new IdsBitmap(buffer, offset + 617, 1, CRE_GENERAL, "GENERAL.IDS"));
+    addField(new IdsBitmap(buffer, offset + 618, 1, CRE_RACE, "RACE.IDS"));
+    addField(new IdsBitmap(buffer, offset + 619, 1, CRE_CLASS, "CLASS.IDS"));
+    addField(new IdsBitmap(buffer, offset + 620, 1, CRE_SPECIFICS, "SPECIFIC.IDS"));
+    addField(new IdsBitmap(buffer, offset + 621, 1, CRE_GENDER, "GENDER.IDS"));
+    for (int i = 0; i < 5; i++) {
+      addField(new IdsBitmap(buffer, offset + 622 + i, 1, String.format(CRE_OBJECT_FMT, i+1), "OBJECT.IDS"));
+    }
+    addField(new IdsBitmap(buffer, offset + 627, 1, CRE_ALIGNMENT, "ALIGNMEN.IDS"));
+    addField(new DecNumber(buffer, offset + 628, 2, CRE_IDENTIFIER_GLOBAL));
+    addField(new DecNumber(buffer, offset + 630, 2, CRE_IDENTIFIER_LOCAL));
+    addField(new TextString(buffer, offset + 632, 32, CRE_SCRIPT_NAME));
 
-    SectionOffset offsetKnownSpells = new SectionOffset(buffer, offset + 664, "Known spells offset",
+    SectionOffset offsetKnownSpells = new SectionOffset(buffer, offset + 664, CRE_OFFSET_KNOWN_SPELLS,
                                                         KnownSpells.class);
     addField(offsetKnownSpells);
-    SectionCount countKnownSpells = new SectionCount(buffer, offset + 668, 4, "# known spells",
+    SectionCount countKnownSpells = new SectionCount(buffer, offset + 668, 4, CRE_NUM_KNOWN_SPELLS,
                                                      KnownSpells.class);
     addField(countKnownSpells);
-    SectionOffset offsetMemSpellInfo = new SectionOffset(buffer, offset + 672, "Memorization info offset",
+    SectionOffset offsetMemSpellInfo = new SectionOffset(buffer, offset + 672, CRE_OFFSET_MEMORIZATION_INFO,
                                                          SpellMemorization.class);
     addField(offsetMemSpellInfo);
-    SectionCount countMemSpellInfo = new SectionCount(buffer, offset + 676, 4, "# memorization info",
+    SectionCount countMemSpellInfo = new SectionCount(buffer, offset + 676, 4, CRE_NUM_MEMORIZATION_INFO,
                                                       SpellMemorization.class);
     addField(countMemSpellInfo);
-    SectionOffset offsetMemSpells = new SectionOffset(buffer, offset + 680, "Memorized spells offset",
+    SectionOffset offsetMemSpells = new SectionOffset(buffer, offset + 680, CRE_OFFSET_MEMORIZED_SPELLS,
                                                       MemorizedSpells.class);
     addField(offsetMemSpells);
-    SectionCount countMemSpells = new SectionCount(buffer, offset + 684, 4, "# memorized spells",
+    SectionCount countMemSpells = new SectionCount(buffer, offset + 684, 4, CRE_NUM_MEMORIZED_SPELLS,
                                                    MemorizedSpells.class);
     addField(countMemSpells);
-    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, "Item slots offset", null);
+    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, null);
     addField(offsetItemslots);
-    SectionOffset offsetItems = new SectionOffset(buffer, offset + 692, "Items offset", Item.class);
+    SectionOffset offsetItems = new SectionOffset(buffer, offset + 692, CRE_OFFSET_ITEMS, Item.class);
     addField(offsetItems);
-    SectionCount countItems = new SectionCount(buffer, offset + 696, 4, "# items", Item.class);
+    SectionCount countItems = new SectionCount(buffer, offset + 696, 4, CRE_NUM_ITEMS, Item.class);
     addField(countItems);
     SectionOffset offsetEffects;
     SectionCount countEffects;
-    if (effect_flag.getValue() == 1) {
-      offsetEffects = new SectionOffset(buffer, offset + 700, "Effects offset", Effect2.class);
-      countEffects = new SectionCount(buffer, offset + 704, 4, "# effects", Effect2.class);
+    if (effect_version.getValue() == 1) {
+      offsetEffects = new SectionOffset(buffer, offset + 700, CRE_OFFSET_EFFECTS, Effect2.class);
+      countEffects = new SectionCount(buffer, offset + 704, 4, CRE_NUM_EFFECTS, Effect2.class);
     }
     else {
-      offsetEffects = new SectionOffset(buffer, offset + 700, "Effects offset", Effect.class);
-      countEffects = new SectionCount(buffer, offset + 704, 4, "# effects", Effect.class);
+      offsetEffects = new SectionOffset(buffer, offset + 700, CRE_OFFSET_EFFECTS, Effect.class);
+      countEffects = new SectionCount(buffer, offset + 704, 4, CRE_NUM_EFFECTS, Effect.class);
     }
     addField(offsetEffects);
     addField(countEffects);
-    addField(new ResourceRef(buffer, offset + 708, "Dialogue", "DLG"));
+    addField(new ResourceRef(buffer, offset + 708, CRE_DIALOG, "DLG"));
 
     offset = getExtraOffset() + offsetKnownSpells.getValue();
     for (int i = 0; i < countKnownSpells.getValue(); i++) {
@@ -1461,7 +1681,7 @@ public final class CreResource extends AbstractStruct
     }
 
     offset = getExtraOffset() + offsetEffects.getValue();
-    if (effect_flag.getValue() == 1) {
+    if (effect_version.getValue() == 1) {
       for (int i = 0; i < countEffects.getValue(); i++) {
         Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
@@ -1484,96 +1704,59 @@ public final class CreResource extends AbstractStruct
 
     offset = getExtraOffset() + offsetItemslots.getValue();
     if (version.equalsIgnoreCase("V1.2")) {
-      addField(new DecNumber(buffer, offset, 2, "Right earring"));
-      addField(new DecNumber(buffer, offset + 2, 2, "Chest"));
-      addField(new DecNumber(buffer, offset + 4, 2, "Left tattoo"));
-      addField(new DecNumber(buffer, offset + 6, 2, "Hand"));
-      addField(new DecNumber(buffer, offset + 8, 2, "Left ring"));
-      addField(new DecNumber(buffer, offset + 10, 2, "Right ring"));
-      addField(new DecNumber(buffer, offset + 12, 2, "Left earring"));
-      addField(new DecNumber(buffer, offset + 14, 2, "Right tattoo (lower)"));
-      addField(new DecNumber(buffer, offset + 16, 2, "Wrist"));
-      addField(new DecNumber(buffer, offset + 18, 2, "Weapon 1"));
-      addField(new DecNumber(buffer, offset + 20, 2, "Weapon 2"));
-      addField(new DecNumber(buffer, offset + 22, 2, "Weapon 3"));
-      addField(new DecNumber(buffer, offset + 24, 2, "Weapon 4"));
-      addField(new DecNumber(buffer, offset + 26, 2, "Quiver 1"));
-      addField(new DecNumber(buffer, offset + 28, 2, "Quiver 2"));
-      addField(new DecNumber(buffer, offset + 30, 2, "Quiver 3"));
-      addField(new DecNumber(buffer, offset + 32, 2, "Quiver 4"));
-      addField(new DecNumber(buffer, offset + 34, 2, "Quiver 5"));
-      addField(new DecNumber(buffer, offset + 36, 2, "Quiver 6"));
-      addField(new DecNumber(buffer, offset + 38, 2, "Right tattoo (upper)"));
-      addField(new DecNumber(buffer, offset + 40, 2, "Quick item 1"));
-      addField(new DecNumber(buffer, offset + 42, 2, "Quick item 2"));
-      addField(new DecNumber(buffer, offset + 44, 2, "Quick item 3"));
-      addField(new DecNumber(buffer, offset + 46, 2, "Quick item 4"));
-      addField(new DecNumber(buffer, offset + 48, 2, "Quick item 5"));
-      addField(new DecNumber(buffer, offset + 50, 2, "Inventory 1"));
-      addField(new DecNumber(buffer, offset + 52, 2, "Inventory 2"));
-      addField(new DecNumber(buffer, offset + 54, 2, "Inventory 3"));
-      addField(new DecNumber(buffer, offset + 56, 2, "Inventory 4"));
-      addField(new DecNumber(buffer, offset + 58, 2, "Inventory 5"));
-      addField(new DecNumber(buffer, offset + 60, 2, "Inventory 6"));
-      addField(new DecNumber(buffer, offset + 62, 2, "Inventory 7"));
-      addField(new DecNumber(buffer, offset + 64, 2, "Inventory 8"));
-      addField(new DecNumber(buffer, offset + 66, 2, "Inventory 9"));
-      addField(new DecNumber(buffer, offset + 68, 2, "Inventory 10"));
-      addField(new DecNumber(buffer, offset + 70, 2, "Inventory 11"));
-      addField(new DecNumber(buffer, offset + 72, 2, "Inventory 12"));
-      addField(new DecNumber(buffer, offset + 74, 2, "Inventory 13"));
-      addField(new DecNumber(buffer, offset + 76, 2, "Inventory 14"));
-      addField(new DecNumber(buffer, offset + 78, 2, "Inventory 15"));
-      addField(new DecNumber(buffer, offset + 80, 2, "Inventory 16"));
-      addField(new DecNumber(buffer, offset + 82, 2, "Inventory 17"));
-      addField(new DecNumber(buffer, offset + 84, 2, "Inventory 18"));
-      addField(new DecNumber(buffer, offset + 86, 2, "Inventory 19"));
-      addField(new DecNumber(buffer, offset + 88, 2, "Inventory 20"));
-      addField(new DecNumber(buffer, offset + 90, 2, "Magically created weapon"));
-      addField(new DecNumber(buffer, offset + 92, 2, "Weapon slot selected"));
-      addField(new DecNumber(buffer, offset + 94, 2, "Weapon ability selected"));
+      addField(new DecNumber(buffer, offset, 2, CRE_ITEM_SLOT_RIGHT_EARRING));
+      addField(new DecNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_CHEST));
+      addField(new DecNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_LEFT_TATTOO));
+      addField(new DecNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_HAND));
+      addField(new DecNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
+      addField(new DecNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
+      addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_LEFT_EARRING));
+      addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER));
+      addField(new DecNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST));
+      for (int i = 0; i < 4; i++) {
+        addField(new DecNumber(buffer, offset + 18 + (i * 2), 2,
+                               String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
+      }
+      for (int i = 0; i < 6; i++) {
+        addField(new DecNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
+      }
+      addField(new DecNumber(buffer, offset + 38, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER));
+      for (int i = 0; i < 5; i++) {
+        addField(new DecNumber(buffer, offset + 40 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
+      }
+      for (int i = 0; i < 20; i++) {
+        addField(new DecNumber(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
+      }
+      addField(new DecNumber(buffer, offset + 90, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
+      addField(new DecNumber(buffer, offset + 92, 2, CRE_SELECTED_WEAPON_SLOT));
+      addField(new DecNumber(buffer, offset + 94, 2, CRE_SELECTED_WEAPON_ABILITY));
     }
     else {
-      addField(new DecNumber(buffer, offset, 2, "Helmet"));
-      addField(new DecNumber(buffer, offset + 2, 2, "Armor"));
-      addField(new DecNumber(buffer, offset + 4, 2, "Shield"));
-      addField(new DecNumber(buffer, offset + 6, 2, "Gloves"));
-      addField(new DecNumber(buffer, offset + 8, 2, "Left ring"));
-      addField(new DecNumber(buffer, offset + 10, 2, "Right ring"));
-      addField(new DecNumber(buffer, offset + 12, 2, "Amulet"));
-      addField(new DecNumber(buffer, offset + 14, 2, "Belt"));
-      addField(new DecNumber(buffer, offset + 16, 2, "Boots"));
-      addField(new DecNumber(buffer, offset + 18, 2, "Weapon 1"));
-      addField(new DecNumber(buffer, offset + 20, 2, "Weapon 2"));
-      addField(new DecNumber(buffer, offset + 22, 2, "Weapon 3"));
-      addField(new DecNumber(buffer, offset + 24, 2, "Weapon 4"));
-      addField(new DecNumber(buffer, offset + 26, 2, "Quiver 1"));
-      addField(new DecNumber(buffer, offset + 28, 2, "Quiver 2"));
-      addField(new DecNumber(buffer, offset + 30, 2, "Quiver 3"));
-      addField(new DecNumber(buffer, offset + 32, 2, "Quiver 4"));
-      addField(new DecNumber(buffer, offset + 34, 2, "Cloak"));
-      addField(new DecNumber(buffer, offset + 36, 2, "Quick item 1"));
-      addField(new DecNumber(buffer, offset + 38, 2, "Quick item 2"));
-      addField(new DecNumber(buffer, offset + 40, 2, "Quick item 3"));
-      addField(new DecNumber(buffer, offset + 42, 2, "Inventory 1"));
-      addField(new DecNumber(buffer, offset + 44, 2, "Inventory 2"));
-      addField(new DecNumber(buffer, offset + 46, 2, "Inventory 3"));
-      addField(new DecNumber(buffer, offset + 48, 2, "Inventory 4"));
-      addField(new DecNumber(buffer, offset + 50, 2, "Inventory 5"));
-      addField(new DecNumber(buffer, offset + 52, 2, "Inventory 6"));
-      addField(new DecNumber(buffer, offset + 54, 2, "Inventory 7"));
-      addField(new DecNumber(buffer, offset + 56, 2, "Inventory 8"));
-      addField(new DecNumber(buffer, offset + 58, 2, "Inventory 9"));
-      addField(new DecNumber(buffer, offset + 60, 2, "Inventory 10"));
-      addField(new DecNumber(buffer, offset + 62, 2, "Inventory 11"));
-      addField(new DecNumber(buffer, offset + 64, 2, "Inventory 12"));
-      addField(new DecNumber(buffer, offset + 66, 2, "Inventory 13"));
-      addField(new DecNumber(buffer, offset + 68, 2, "Inventory 14"));
-      addField(new DecNumber(buffer, offset + 70, 2, "Inventory 15"));
-      addField(new DecNumber(buffer, offset + 72, 2, "Inventory 16"));
-      addField(new DecNumber(buffer, offset + 74, 2, "Magically created weapon"));
-      addField(new DecNumber(buffer, offset + 76, 2, "Weapon slot selected"));
-      addField(new DecNumber(buffer, offset + 78, 2, "Weapon ability selected"));
+      addField(new DecNumber(buffer, offset, 2, CRE_ITEM_SLOT_HELMET));
+      addField(new DecNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR));
+      addField(new DecNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD));
+      addField(new DecNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_GLOVES));
+      addField(new DecNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
+      addField(new DecNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
+      addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET));
+      addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT));
+      addField(new DecNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS));
+      for (int i = 0; i < 4; i++) {
+        addField(new DecNumber(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
+      }
+      for (int i = 0; i < 4; i++) {
+        addField(new DecNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
+      }
+      addField(new DecNumber(buffer, offset + 34, 2, CRE_ITEM_SLOT_CLOAK));
+      for (int i = 0; i < 3; i++) {
+        addField(new DecNumber(buffer, offset + 36 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
+      }
+      for (int i = 0; i < 16; i++) {
+        addField(new DecNumber(buffer, offset + 42 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
+      }
+      addField(new DecNumber(buffer, offset + 74, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
+      addField(new DecNumber(buffer, offset + 76, 2, CRE_SELECTED_WEAPON_SLOT));
+      addField(new DecNumber(buffer, offset + 78, 2, CRE_SELECTED_WEAPON_ABILITY));
     }
     int endoffset = offset;
     for (int i = 0; i < getFieldCount(); i++) {
@@ -1588,7 +1771,7 @@ public final class CreResource extends AbstractStruct
   private void updateMemorizedSpells()
   {
     // Assumes memorized spells offset is correct
-    int offset = ((HexNumber)getAttribute("Memorized spells offset")).getValue() + getExtraOffset();
+    int offset = ((HexNumber)getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
     int count = 0;
     for (int i = 0; i < getFieldCount(); i++) {
       Object o = getField(i);
@@ -1599,13 +1782,13 @@ public final class CreResource extends AbstractStruct
         count += numSpells;
       }
     }
-    ((DecNumber)getAttribute("# memorized spells")).setValue(count);
+    ((DecNumber)getAttribute(CRE_NUM_MEMORIZED_SPELLS)).setValue(count);
   }
 
   private void updateOffsets(AddRemovable datatype, int size)
   {
     if (getField(0).toString().equalsIgnoreCase("CHR "))
-      ((HexNumber)getAttribute("CRE structure length")).incValue(size);
+      ((HexNumber)getAttribute(CHR_CRE_SIZE)).incValue(size);
 //    if (!(datatype instanceof MemorizedSpells)) {
 //      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
 //      if (datatype.getOffset() < offsetMemSpells.getValue() + getExtraOffset() ||
@@ -1647,8 +1830,8 @@ public final class CreResource extends AbstractStruct
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)cre.getAttribute("Effects offset", false);
-        DecNumber cnt = (DecNumber)cre.getAttribute("# effects", false);
+        DecNumber ofs = (DecNumber)cre.getAttribute(CRE_OFFSET_EFFECTS, false);
+        DecNumber cnt = (DecNumber)cre.getAttribute(CRE_NUM_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -1659,8 +1842,8 @@ public final class CreResource extends AbstractStruct
           effects = new AbstractStruct[0];
         }
 
-        ofs = (DecNumber)cre.getAttribute("Items offset", false);
-        cnt = (DecNumber)cre.getAttribute("# items", false);
+        ofs = (DecNumber)cre.getAttribute(CRE_OFFSET_ITEMS, false);
+        cnt = (DecNumber)cre.getAttribute(CRE_NUM_ITEMS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -1704,8 +1887,8 @@ public final class CreResource extends AbstractStruct
             spells[i] = listSpells.get(i);
           }
         } else {
-          ofs = (DecNumber)cre.getAttribute("Known spells offset", false);
-          cnt = (DecNumber)cre.getAttribute("# known spells", false);
+          ofs = (DecNumber)cre.getAttribute(CRE_OFFSET_KNOWN_SPELLS, false);
+          cnt = (DecNumber)cre.getAttribute(CRE_NUM_KNOWN_SPELLS, false);
           if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
             spells = new Datatype[cnt.getValue()];
             final String spellLabel = SearchOptions.getResourceName(SearchOptions.CRE_Spell_Spell1);
@@ -1735,12 +1918,12 @@ public final class CreResource extends AbstractStruct
         keyList = new String[]{SearchOptions.CRE_Script1, SearchOptions.CRE_Script2};
         String[] scriptFields;
         if (Profile.getEngine() == Profile.Engine.IWD2) {
-          scriptFields = new String[]{"Team script", "Special script 1", "Override script",
-                                      "Special script 2", "Combat script", "Special script 3",
-                                      "Movement script"};
+          scriptFields = new String[]{CRE_SCRIPT_TEAM, CRE_SCRIPT_SPECIAL_1, CRE_SCRIPT_OVERRIDE,
+                                      CRE_SCRIPT_SPECIAL_2, CRE_SCRIPT_COMBAT, CRE_SCRIPT_SPECIAL_3,
+                                      CRE_SCRIPT_MOVEMENT};
         } else {
-          scriptFields = new String[]{"Override script", "Class script", "Race script",
-                                      "General script", "Default script"};
+          scriptFields = new String[]{CRE_SCRIPT_OVERRIDE, CRE_SCRIPT_CLASS, CRE_SCRIPT_RACE,
+                                      CRE_SCRIPT_GENERAL, CRE_SCRIPT_DEFAULT};
         }
         for (int idx = 0; idx < keyList.length; idx++) {
           if (retVal) {

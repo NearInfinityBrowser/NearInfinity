@@ -8,15 +8,23 @@ import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.FloatNumber;
 import infinity.datatype.TextString;
-import infinity.datatype.Unknown;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
-import infinity.resource.StructEntry;
 
 public class Variable extends AbstractStruct implements AddRemovable
 {
-  private static final String s_type[] = {"Integer", "Float", "Script name", "Resource reference",
-                                          "String reference", "Double word"};
+  // GAM/Variable-specific field labels
+  public static final String GAM_VAR              = "Variable";
+  public static final String GAM_VAR_NAME         = "Name";
+  public static final String GAM_VAR_TYPE         = "Type";
+  public static final String GAM_VAR_REFERENCE    = "Reference value (unused)";
+  public static final String GAM_VAR_DWORD        = "Dword value (unused)";
+  public static final String GAM_VAR_INT          = "Integer value";
+  public static final String GAM_VAR_DOUBLE       = "Double value (unused)";
+  public static final String GAM_VAR_SCRIPT_NAME  = "Script name (unused)";
+
+  public static final String s_type[] = {"Integer", "Float", "Script name", "Resource reference",
+                                         "String reference", "Double word"};
 
   Variable() throws Exception
   {
@@ -46,28 +54,13 @@ public class Variable extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    // using simplified structure format for GAM V1.1  resources
-    boolean isV1 = true;
-    if (getParent() instanceof AbstractStruct) {
-      StructEntry field = ((AbstractStruct)getParent()).getAttribute(4, false);
-      if (field instanceof TextString) {
-        isV1 = ((TextString)field).toString().equals("V1.1");
-      }
-    }
-
-    addField(new TextString(buffer, offset, 32, "Name"));
-    if (isV1) {
-      addField(new Unknown(buffer, offset + 32, 8));
-      addField(new DecNumber(buffer, offset + 40, 4, "Value"));
-      addField(new Unknown(buffer, offset + 44, 40));
-    } else {
-      addField(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
-      addField(new DecNumber(buffer, offset + 34, 2, "Reference value (unused)"));
-      addField(new DecNumber(buffer, offset + 36, 4, "Dword value (unused)"));
-      addField(new DecNumber(buffer, offset + 40, 4, "Integer value"));
-      addField(new FloatNumber(buffer, offset + 44, 8, "Double value (unused)"));
-      addField(new TextString(buffer, offset + 52, 32, "Script name (unused)"));
-    }
+    addField(new TextString(buffer, offset, 32, GAM_VAR_NAME));
+    addField(new Bitmap(buffer, offset + 32, 2, GAM_VAR_TYPE, s_type));
+    addField(new DecNumber(buffer, offset + 34, 2, GAM_VAR_REFERENCE));
+    addField(new DecNumber(buffer, offset + 36, 4, GAM_VAR_DWORD));
+    addField(new DecNumber(buffer, offset + 40, 4, GAM_VAR_INT));
+    addField(new FloatNumber(buffer, offset + 44, 8, GAM_VAR_DOUBLE));
+    addField(new TextString(buffer, offset + 52, 32, GAM_VAR_SCRIPT_NAME));
     return offset + 84;
   }
 }

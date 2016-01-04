@@ -25,6 +25,41 @@ import javax.swing.JComponent;
 
 public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs, HasAddRemovable
 {
+  // ARE/Actor-specific field labels
+  public static final String ARE_ACTOR                      = "Actor";
+  public static final String ARE_ACTOR_NAME                 = "Name";
+  public static final String ARE_ACTOR_POS_X                = "Position: X";
+  public static final String ARE_ACTOR_POS_Y                = "Position: Y";
+  public static final String ARE_ACTOR_DEST_X               = "Destination: X";
+  public static final String ARE_ACTOR_DEST_Y               = "Destination: Y";
+  public static final String ARE_ACTOR_FLAGS                = "Flags";
+  public static final String ARE_ACTOR_IS_SPAWNED           = "Is spawned?";
+  public static final String ARE_ACTOR_DIFFICULTY           = "Difficulty";
+  public static final String ARE_ACTOR_ANIMATION            = "Animation";
+  public static final String ARE_ACTOR_ORIENTATION          = "Orientation";
+  public static final String ARE_ACTOR_EXPIRY_TIME          = "Expiry time";
+  public static final String ARE_ACTOR_WANDER_DISTANCE      = "Wander distance";
+  public static final String ARE_ACTOR_FOLLOW_DISTANCE      = "Follow distance";
+  public static final String ARE_ACTOR_PRESENT_AT           = "Present at";
+  public static final String ARE_ACTOR_NUM_TIMES_TALKED_TO  = "# times talked to";
+  public static final String ARE_ACTOR_DIALOG               = "Dialogue";
+  public static final String ARE_ACTOR_SCRIPT_OVERRIDE      = "Override script";
+  public static final String ARE_ACTOR_SCRIPT_SPECIAL_1     = "Special 1 script";
+  public static final String ARE_ACTOR_SCRIPT_SPECIAL_2     = "Special 2 script";
+  public static final String ARE_ACTOR_SCRIPT_SPECIAL_3     = "Special 3 script";
+  public static final String ARE_ACTOR_SCRIPT_COMBAT        = "Combat script";
+  public static final String ARE_ACTOR_SCRIPT_MOVEMENT      = "Movement script";
+  public static final String ARE_ACTOR_SCRIPT_TEAM          = "Team script";
+  public static final String ARE_ACTOR_SCRIPT_GENERAL       = "General script";
+  public static final String ARE_ACTOR_SCRIPT_CLASS         = "Class script";
+  public static final String ARE_ACTOR_SCRIPT_RACE          = "Race script";
+  public static final String ARE_ACTOR_SCRIPT_DEFAULT       = "Default script";
+  public static final String ARE_ACTOR_SCRIPT_SPECIFICS     = "Specifics script";
+  public static final String ARE_ACTOR_CHARACTER            = "Character";
+  public static final String ARE_ACTOR_OFFSET_CRE_STRUCTURE = "CRE structure offset";
+  public static final String ARE_ACTOR_SIZE_CRE_STRUCTURE   = "CRE structure size";
+  public static final String ARE_ACTOR_CRE_FILE             = "CRE file";
+
   public static final String[] s_orientation = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                  "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
   public static final String[] s_noyes = {"No", "Yes"};
@@ -41,12 +76,12 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
 
   public Actor() throws Exception
   {
-    super(null, "Actor", new byte[272], 0);
+    super(null, ARE_ACTOR, new byte[272], 0);
   }
 
   public Actor(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Actor " + nr, buffer, offset);
+    super(superStruct, ARE_ACTOR + " " + nr, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -104,15 +139,15 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   {
     super.datatypeAddedInChild(child, datatype);
     if (child instanceof CreResource)
-      ((DecNumber)getAttribute("CRE structure size")).setValue(child.getSize());
+      ((DecNumber)getAttribute(ARE_ACTOR_SIZE_CRE_STRUCTURE)).setValue(child.getSize());
   }
 
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof CreResource) {
-      ((DecNumber)getAttribute("CRE structure size")).setValue(0);
-      ((HexNumber)getAttribute("CRE structure offset")).setValue(0);
+      ((DecNumber)getAttribute(ARE_ACTOR_SIZE_CRE_STRUCTURE)).setValue(0);
+      ((HexNumber)getAttribute(ARE_ACTOR_OFFSET_CRE_STRUCTURE)).setValue(0);
     }
   }
 
@@ -121,69 +156,69 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   {
     super.datatypeRemovedInChild(child, datatype);
     if (child instanceof CreResource)
-      ((DecNumber)getAttribute("CRE structure size")).setValue(child.getSize());
+      ((DecNumber)getAttribute(ARE_ACTOR_SIZE_CRE_STRUCTURE)).setValue(child.getSize());
   }
 
   void updateCREOffset()
   {
     StructEntry entry = getField(getFieldCount() - 1);
     if (entry instanceof CreResource)
-      ((HexNumber)getAttribute("CRE structure offset")).setValue(entry.getOffset());
+      ((HexNumber)getAttribute(ARE_ACTOR_OFFSET_CRE_STRUCTURE)).setValue(entry.getOffset());
   }
 
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 32, "Name"));
-    addField(new DecNumber(buffer, offset + 32, 2, "Position: X"));
-    addField(new DecNumber(buffer, offset + 34, 2, "Position: Y"));
-    addField(new DecNumber(buffer, offset + 36, 2, "Destination: X"));
-    addField(new DecNumber(buffer, offset + 38, 2, "Destination: Y"));
-    addField(new Flag(buffer, offset + 40, 4, "Flags", s_flags));
-    addField(new Bitmap(buffer, offset + 44, 2, "Is spawned?", s_noyes));
+    addField(new TextString(buffer, offset, 32, ARE_ACTOR_NAME));
+    addField(new DecNumber(buffer, offset + 32, 2, ARE_ACTOR_POS_X));
+    addField(new DecNumber(buffer, offset + 34, 2, ARE_ACTOR_POS_Y));
+    addField(new DecNumber(buffer, offset + 36, 2, ARE_ACTOR_DEST_X));
+    addField(new DecNumber(buffer, offset + 38, 2, ARE_ACTOR_DEST_Y));
+    addField(new Flag(buffer, offset + 40, 4, ARE_ACTOR_FLAGS, s_flags));
+    addField(new Bitmap(buffer, offset + 44, 2, ARE_ACTOR_IS_SPAWNED, s_noyes));
     if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new Unknown(buffer, offset + 46, 1));
-      addField(new Flag(buffer, offset + 47, 1, "Difficulty", s_diff));
+      addField(new Flag(buffer, offset + 47, 1, ARE_ACTOR_DIFFICULTY, s_diff));
     }
     else {
       addField(new Unknown(buffer, offset + 46, 2));
     }
-    addField(new IdsBitmap(buffer, offset + 48, 4, "Animation", "ANIMATE.IDS"));
-    addField(new Bitmap(buffer, offset + 52, 2, "Orientation", s_orientation));
+    addField(new IdsBitmap(buffer, offset + 48, 4, ARE_ACTOR_ANIMATION, "ANIMATE.IDS"));
+    addField(new Bitmap(buffer, offset + 52, 2, ARE_ACTOR_ORIENTATION, s_orientation));
     addField(new Unknown(buffer, offset + 54, 2));
-    addField(new DecNumber(buffer, offset + 56, 4, "Expiry time"));
-    addField(new DecNumber(buffer, offset + 60, 2, "Wander distance"));
-    addField(new DecNumber(buffer, offset + 62, 2, "Follow distance"));
-    addField(new Flag(buffer, offset + 64, 4, "Present at", s_schedule));
-    addField(new DecNumber(buffer, offset + 68, 4, "# times talked to"));
-    addField(new ResourceRef(buffer, offset + 72, "Dialogue", "DLG"));
-    addField(new ResourceRef(buffer, offset + 80, "Override script", "BCS"));
+    addField(new DecNumber(buffer, offset + 56, 4, ARE_ACTOR_EXPIRY_TIME));
+    addField(new DecNumber(buffer, offset + 60, 2, ARE_ACTOR_WANDER_DISTANCE));
+    addField(new DecNumber(buffer, offset + 62, 2, ARE_ACTOR_FOLLOW_DISTANCE));
+    addField(new Flag(buffer, offset + 64, 4, ARE_ACTOR_PRESENT_AT, s_schedule));
+    addField(new DecNumber(buffer, offset + 68, 4, ARE_ACTOR_NUM_TIMES_TALKED_TO));
+    addField(new ResourceRef(buffer, offset + 72, ARE_ACTOR_DIALOG, "DLG"));
+    addField(new ResourceRef(buffer, offset + 80, ARE_ACTOR_SCRIPT_OVERRIDE, "BCS"));
     if (Profile.getEngine() == Profile.Engine.IWD2) {
-      addField(new ResourceRef(buffer, offset + 88, "Special 3 script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 96, "Special 2 script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 104, "Combat script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 112, "Movement script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 120, "Team script", "BCS"));
+      addField(new ResourceRef(buffer, offset + 88, ARE_ACTOR_SCRIPT_SPECIAL_3, "BCS"));
+      addField(new ResourceRef(buffer, offset + 96, ARE_ACTOR_SCRIPT_SPECIAL_2, "BCS"));
+      addField(new ResourceRef(buffer, offset + 104, ARE_ACTOR_SCRIPT_COMBAT, "BCS"));
+      addField(new ResourceRef(buffer, offset + 112, ARE_ACTOR_SCRIPT_MOVEMENT, "BCS"));
+      addField(new ResourceRef(buffer, offset + 120, ARE_ACTOR_SCRIPT_TEAM, "BCS"));
     }
     else {
-      addField(new ResourceRef(buffer, offset + 88, "General script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 96, "Class script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 104, "Race script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 112, "Default script", "BCS"));
-      addField(new ResourceRef(buffer, offset + 120, "Specifics script", "BCS"));
+      addField(new ResourceRef(buffer, offset + 88, ARE_ACTOR_SCRIPT_GENERAL, "BCS"));
+      addField(new ResourceRef(buffer, offset + 96, ARE_ACTOR_SCRIPT_CLASS, "BCS"));
+      addField(new ResourceRef(buffer, offset + 104, ARE_ACTOR_SCRIPT_RACE, "BCS"));
+      addField(new ResourceRef(buffer, offset + 112, ARE_ACTOR_SCRIPT_DEFAULT, "BCS"));
+      addField(new ResourceRef(buffer, offset + 120, ARE_ACTOR_SCRIPT_SPECIFICS, "BCS"));
     }
     if (buffer[offset + 128] == 0x2a) { // *
-      addField(new TextString(buffer, offset + 128, 8, "Character"));
+      addField(new TextString(buffer, offset + 128, 8, ARE_ACTOR_CHARACTER));
     }
     else {
-      addField(new ResourceRef(buffer, offset + 128, "Character", "CRE"));
+      addField(new ResourceRef(buffer, offset + 128, ARE_ACTOR_CHARACTER, "CRE"));
     }
-    HexNumber creOffset = new HexNumber(buffer, offset + 136, 4, "CRE structure offset");
+    HexNumber creOffset = new HexNumber(buffer, offset + 136, 4, ARE_ACTOR_OFFSET_CRE_STRUCTURE);
     addField(creOffset);
-    DecNumber creSize = new DecNumber(buffer, offset + 140, 4, "CRE structure size");
+    DecNumber creSize = new DecNumber(buffer, offset + 140, 4, ARE_ACTOR_SIZE_CRE_STRUCTURE);
     addField(creSize);
     if (Profile.getEngine() == Profile.Engine.IWD2) {
-      addField(new ResourceRef(buffer, offset + 144, "Special 1 script", "BCS"));
+      addField(new ResourceRef(buffer, offset + 144, ARE_ACTOR_SCRIPT_SPECIAL_1, "BCS"));
       addField(new Unknown(buffer, offset + 152, 120));
     }
     else {
@@ -191,7 +226,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     }
 
     if (creOffset.getValue() > 0 && creSize.getValue() >= 0x2d4) {
-      addField(new CreResource(this, "CRE file", buffer, creOffset.getValue()));
+      addField(new CreResource(this, ARE_ACTOR_CRE_FILE, buffer, creOffset.getValue()));
     }
 
     return offset + 272;

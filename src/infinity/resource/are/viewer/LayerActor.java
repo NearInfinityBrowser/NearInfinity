@@ -42,8 +42,8 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
       if (hasAre()) {
         // loading actors from ARE
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Actors offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# actors");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ACTORS);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ACTORS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

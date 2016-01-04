@@ -141,11 +141,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
               item.getDialog().getViewer().selectEntry(0);
             } else if (node.getUserObject() instanceof StateItem) {
               int stateIdx = ((StateItem)item).getState().getNumber();
-              item.getDialog().getViewer().selectEntry(String.format(State.FMT_NAME, stateIdx));
+              item.getDialog().getViewer().selectEntry(State.DLG_STATE + " " + stateIdx);
               viewer.showStateWithStructEntry(((StateItem)item).getState());
             } else if (node.getUserObject() instanceof TransitionItem) {
               int transIdx = ((TransitionItem)item).getTransition().getNumber();
-              item.getDialog().getViewer().selectEntry(String.format(Transition.FMT_NAME, transIdx));
+              item.getDialog().getViewer().selectEntry(Transition.DLG_TRANS + " " + transIdx);
               viewer.showStateWithStructEntry(((TransitionItem)item).getTransition());
             }
             item.getDialog().selectEditTab();
@@ -302,7 +302,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       // updating state triggers
       if (state.getTriggerIndex() >= 0) {
         dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
-        StructEntry entry = curDlg.getAttribute(String.format(StateTrigger.FMT_NAME, state.getTriggerIndex()));
+        StructEntry entry = curDlg.getAttribute(StateTrigger.DLG_STATETRIGGER + " " + state.getTriggerIndex());
         if (entry instanceof StateTrigger) {
           dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, ((StateTrigger)entry).toString());
         } else {
@@ -366,7 +366,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       // updating response trigger
       if (trans.getFlag().isFlagSet(1)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, true);
-        entry = curDlg.getAttribute(String.format(ResponseTrigger.FMT_NAME, trans.getTriggerIndex()));
+        entry = curDlg.getAttribute(ResponseTrigger.DLG_RESPONSETRIGGER + " " + trans.getTriggerIndex());
         if (entry instanceof ResponseTrigger) {
           dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, ((ResponseTrigger)entry).toString());
         } else {
@@ -379,7 +379,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       // updating action
       if (trans.getFlag().isFlagSet(2)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, true);
-        entry = curDlg.getAttribute(String.format(Action.FMT_NAME, trans.getActionIndex()));
+        entry = curDlg.getAttribute(Action.DLG_ACTION + " " + trans.getActionIndex());
         if (entry instanceof Action) {
           dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, ((Action)entry).toString());
         } else {
@@ -797,34 +797,34 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       super(dlg);
 
       if (getDialog() != null) {
-        StructEntry entry = getDialog().getAttribute("# states");
+        StructEntry entry = getDialog().getAttribute(DlgResource.DLG_NUM_STATES);
         if (entry instanceof SectionCount) {
           numStates = ((SectionCount)entry).getValue();
         }
-        entry = getDialog().getAttribute("# responses");
+        entry = getDialog().getAttribute(DlgResource.DLG_NUM_RESPONSES);
         if (entry instanceof SectionCount) {
           numTransitions = ((SectionCount)entry).getValue();
         }
-        entry = getDialog().getAttribute("# state triggers");
+        entry = getDialog().getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
         if (entry instanceof SectionCount) {
           numStateTriggers = ((SectionCount)entry).getValue();
         }
-        entry = getDialog().getAttribute("# response triggers");
+        entry = getDialog().getAttribute(DlgResource.DLG_NUM_RESPONSE_TRIGGERS);
         if (entry instanceof SectionCount) {
           numResponseTriggers = ((SectionCount)entry).getValue();
         }
-        entry = getDialog().getAttribute("# actions");
+        entry = getDialog().getAttribute(DlgResource.DLG_NUM_ACTIONS);
         if (entry instanceof SectionCount) {
           numActions = ((SectionCount)entry).getValue();
         }
-        entry = getDialog().getAttribute("Threat response");
+        entry = getDialog().getAttribute(DlgResource.DLG_THREAT_RESPONSE);
         if (entry instanceof Flag) {
           flags = ((Flag)entry).toString();
         }
 
         // finding and storing initial states (sorted by trigger index in ascending order)
         for (int i = 0; i < numStates; i++) {
-          entry = getDialog().getAttribute(String.format(State.FMT_NAME, i));
+          entry = getDialog().getAttribute(State.DLG_STATE + " " +  i);
           if (entry instanceof State) {
             int triggerIndex = ((State)entry).getTriggerIndex();
             if (triggerIndex >= 0) {
@@ -1341,7 +1341,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
           for (int i = 0; i < state.getState().getTransCount(); i++) {
             int transIdx = state.getState().getFirstTrans() + i;
-            StructEntry entry = dlg.getAttribute(String.format(Transition.FMT_NAME, transIdx));
+            StructEntry entry = dlg.getAttribute(Transition.DLG_TRANS + " " + transIdx);
             if (entry instanceof Transition) {
               initTransition(new TransitionItem(dlg, (Transition)entry));
             }
@@ -1369,7 +1369,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
             int stateIdx = trans.getTransition().getNextDialogState();
             dlg = getDialogResource(dlgRef.getResourceName());
             if (dlg != null && stateIdx >= 0) {
-              StructEntry entry = dlg.getAttribute(String.format(State.FMT_NAME, stateIdx));
+              StructEntry entry = dlg.getAttribute(State.DLG_STATE + " " + stateIdx);
               if (entry instanceof State) {
                 initState(new StateItem(dlg, (State)entry));
               }

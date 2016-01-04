@@ -12,14 +12,20 @@ import infinity.resource.AddRemovable;
 
 public final class Iwd2Ability extends AbstractStruct implements AddRemovable
 {
+  // CRE/Iwd2Ability-specific field labels
+  public static final String CRE_ABILITY    = "Ability";
+  public static final String CRE_ABILITY_RESREF = "ResRef";
+  public static final String CRE_ABILITY_NUM_MEMORIZABLE = "# memorizable";
+  public static final String CRE_ABILITY_NUM_REMAINING = "# remaining";
+
   public Iwd2Ability() throws Exception
   {
-    super(null, "Ability", new byte[16], 0);
+    super(null, CRE_ABILITY, new byte[16], 0);
   }
 
   public Iwd2Ability(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
-    super(superStruct, "Ability", buffer, offset);
+    super(superStruct, CRE_ABILITY, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -35,9 +41,9 @@ public final class Iwd2Ability extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new IwdRef(buffer, offset, "ResRef", "LISTINNT.2DA"));
-    addField(new DecNumber(buffer, offset + 4, 4, "# memorizable"));
-    addField(new DecNumber(buffer, offset + 8, 4, "# remaining"));
+    addField(new IwdRef(buffer, offset, CRE_ABILITY_RESREF, "LISTINNT.2DA"));
+    addField(new DecNumber(buffer, offset + 4, 4, CRE_ABILITY_NUM_MEMORIZABLE));
+    addField(new DecNumber(buffer, offset + 8, 4, CRE_ABILITY_NUM_REMAINING));
     addField(new Unknown(buffer, offset + 12, 4));
     return offset + 16;
   }

@@ -115,12 +115,12 @@ public class LayerObjectSpawnPoint extends LayerObject
     if (sp != null) {
       String msg = "";
       try {
-        location.x = ((DecNumber)sp.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)sp.getAttribute("Location: Y")).getValue();
+        location.x = ((DecNumber)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_X)).getValue();
+        location.y = ((DecNumber)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_Y)).getValue();
 
-        scheduleFlags = ((Flag)sp.getAttribute("Active at"));
+        scheduleFlags = ((Flag)sp.getAttribute(SpawnPoint.ARE_SPAWN_ACTIVE_AT));
 
-        msg = ((TextString)sp.getAttribute("Name")).toString();
+        msg = ((TextString)sp.getAttribute(SpawnPoint.ARE_SPAWN_NAME)).toString();
       } catch (Exception e) {
         e.printStackTrace();
       }

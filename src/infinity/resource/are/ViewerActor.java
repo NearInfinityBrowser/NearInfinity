@@ -6,6 +6,7 @@ package infinity.resource.are;
 
 import infinity.datatype.Flag;
 import infinity.gui.ViewerUtil;
+import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
 
 import java.awt.Font;
@@ -21,7 +22,7 @@ public final class ViewerActor extends JPanel
 {
   ViewerActor(Actor actor)
   {
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)actor.getAttribute("Present at"), 2);
+    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT), 2);
     JPanel fieldPanel = makeFieldPanel(actor);
 
     JPanel mainPanel = new JPanel(new GridLayout(1, 2, 3, 3));
@@ -47,11 +48,11 @@ public final class ViewerActor extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Name"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Character"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_CHARACTER), gbl, gbc, true);
 
-    StructEntry s1 = actor.getAttribute("Position: X");
-    StructEntry s2 = actor.getAttribute("Position: Y");
+    StructEntry s1 = actor.getAttribute(Actor.ARE_ACTOR_POS_X);
+    StructEntry s2 = actor.getAttribute(Actor.ARE_ACTOR_POS_Y);
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -66,8 +67,8 @@ public final class ViewerActor extends JPanel
     gbl.setConstraints(tf1, gbc);
     fieldPanel.add(tf1);
 
-    StructEntry s3 = actor.getAttribute("Destination: X");
-    StructEntry s4 = actor.getAttribute("Destination: Y");
+    StructEntry s3 = actor.getAttribute(Actor.ARE_ACTOR_DEST_X);
+    StructEntry s4 = actor.getAttribute(Actor.ARE_ACTOR_DEST_Y);
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -82,25 +83,25 @@ public final class ViewerActor extends JPanel
     gbl.setConstraints(tf2, gbc);
     fieldPanel.add(tf2);
 
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Orientation"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Override script"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_ORIENTATION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_OVERRIDE), gbl, gbc, true);
     if (actor.getSuperStruct() != null &&
-        actor.getSuperStruct().getAttribute("Version").toString().equalsIgnoreCase("V9.1")) {
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Special 1 script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Team script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Special 2 script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Combat script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Special 3 script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Movement script"), gbl, gbc, true);
+        actor.getSuperStruct().getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V9.1")) {
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIAL_1), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_TEAM), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIAL_2), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_COMBAT), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIAL_3), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_MOVEMENT), gbl, gbc, true);
     }
     else {
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Specifics script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Class script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Race script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("General script"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Default script"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIFICS), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_CLASS), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_RACE), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_GENERAL), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_DEFAULT), gbl, gbc, true);
     }
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute("Dialogue"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_DIALOG), gbl, gbc, true);
 
     return fieldPanel;
   }

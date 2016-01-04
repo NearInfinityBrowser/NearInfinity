@@ -34,8 +34,8 @@ public class LayerContainer extends BasicLayer<LayerObjectContainer>
       List<LayerObjectContainer> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Containers offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# containers");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_CONTAINERS);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_CONTAINERS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

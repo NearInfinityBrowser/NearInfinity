@@ -14,6 +14,11 @@ import java.util.List;
 
 public final class EffectType extends Bitmap implements UpdateListener
 {
+  // EffectType-specific field labels
+  public static final String EFFECT_TYPE        = "Type";
+  public static final String EFFECT_TYPE_TARGET = "Target";
+  public static final String EFFECT_TYPE_POWER  = "Power";
+
   public static final String s_dispel[] = {"No dispel/bypass resistance", "Dispel/Not bypass resistance",
                                            "Not dispel/bypass resistance", "Dispel/Bypass resistance"};
   private static final String s_target[] = {"None", "Self", "Preset target",
@@ -28,7 +33,7 @@ public final class EffectType extends Bitmap implements UpdateListener
 
   public EffectType(StructEntry parent, byte buffer[], int offset, int length)
   {
-    super(parent, buffer, offset, length, "Type", EffectFactory.getFactory().getEffectNameArray());
+    super(parent, buffer, offset, length, EFFECT_TYPE, EffectFactory.getFactory().getEffectNameArray());
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -75,14 +80,14 @@ public final class EffectType extends Bitmap implements UpdateListener
     boolean isV1 = (getSize() == 2);
     if (isV1) {
       // EFF V1.0
-      list.add(new Bitmap(buffer, off, 1, "Target", s_target));
-      list.add(new DecNumber(buffer, off + 1, 1, "Power"));
+      list.add(new Bitmap(buffer, off, 1, EFFECT_TYPE_TARGET, s_target));
+      list.add(new DecNumber(buffer, off + 1, 1, EFFECT_TYPE_POWER));
       off += 2;
     }
     else {
       // EFF V2.0
-      list.add(new Bitmap(buffer, off, 4, "Target", s_target));
-      list.add(new DecNumber(buffer, off + 4, 4, "Power"));
+      list.add(new Bitmap(buffer, off, 4, EFFECT_TYPE_TARGET, s_target));
+      list.add(new DecNumber(buffer, off + 4, 4, EFFECT_TYPE_POWER));
       off += 8;
     }
     try {

@@ -130,17 +130,17 @@ public class LayerObjectDoor extends LayerObject
       Rectangle[] bounds = new Rectangle[]{null, null};
       try {
         // processing opened state door
-        msg[0] = String.format("%1$s (Open)", ((TextString)door.getAttribute("Name")).toString());
-        int vNum = ((DecNumber)door.getAttribute("# vertices (open)")).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
+        msg[0] = String.format("%1$s (Open)", ((TextString)door.getAttribute(Door.ARE_DOOR_NAME)).toString());
+        int vNum = ((DecNumber)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
+        int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords[ViewerConstants.DOOR_OPEN] = loadVertices(door, vOfs, 0, vNum, OpenVertex.class);
         poly[ViewerConstants.DOOR_OPEN] = createPolygon(shapeCoords[ViewerConstants.DOOR_OPEN], 1.0);
         bounds[ViewerConstants.DOOR_OPEN] = normalizePolygon(poly[ViewerConstants.DOOR_OPEN]);
 
         // processing closed state door
-        msg[1] = String.format("%1$s (Closed)", ((TextString)door.getAttribute("Name")).toString());
-        vNum = ((DecNumber)door.getAttribute("# vertices (closed)")).getValue();
-        vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
+        msg[1] = String.format("%1$s (Closed)", ((TextString)door.getAttribute(Door.ARE_DOOR_NAME)).toString());
+        vNum = ((DecNumber)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
+        vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords[ViewerConstants.DOOR_CLOSED] = loadVertices(door, vOfs, 0, vNum, ClosedVertex.class);
         poly[ViewerConstants.DOOR_CLOSED] = createPolygon(shapeCoords[ViewerConstants.DOOR_CLOSED], 1.0);
         bounds[ViewerConstants.DOOR_CLOSED] = normalizePolygon(poly[ViewerConstants.DOOR_CLOSED]);

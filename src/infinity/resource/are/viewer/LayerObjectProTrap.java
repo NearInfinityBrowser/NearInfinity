@@ -102,10 +102,10 @@ public class LayerObjectProTrap extends LayerObject
     if (trap != null) {
       String msg = "";
       try {
-        location.x = ((DecNumber)trap.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)trap.getAttribute("Location: Y")).getValue();
-        msg = ((ResourceRef)trap.getAttribute("Trap")).toString();
-        int target = (int)((IdsBitmap)trap.getAttribute("Target")).getValue();
+        location.x = ((DecNumber)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_X)).getValue();
+        location.y = ((DecNumber)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_Y)).getValue();
+        msg = ((ResourceRef)trap.getAttribute(ProTrap.ARE_PROTRAP_TRAP)).toString();
+        int target = (int)((IdsBitmap)trap.getAttribute(ProTrap.ARE_PROTRAP_TARGET)).getValue();
         if (target < 0) target = 0; else if (target > 255) target = 255;
         if (target >= 2 && target <= 30) {
           msg += " (hostile)";

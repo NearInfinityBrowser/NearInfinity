@@ -36,16 +36,16 @@ final class Viewer extends JPanel implements ActionListener
     fieldBasePanel.add(fieldPanel, BorderLayout.CENTER);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area north"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area east"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area south"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area west"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("WED resource"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Rain probability"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Snow probability"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Fog probability"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Lightning probability"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute("Area script"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_NORTH), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_EAST), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_SOUTH), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_WEST), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_WED_RESOURCE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_RAIN), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_SNOW), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_FOG), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_LIGHTNING), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_SCRIPT), gbl, gbc, true);
 
     JButton bView = new JButton("View Area", Icons.getIcon("Volume16.gif"));
     bView.setActionCommand(CMD_VIEWAREA);
@@ -60,14 +60,14 @@ final class Viewer extends JPanel implements ActionListener
   {
     this.are = are;
 
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)are.getAttribute("Location"), 1);
+    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)are.getAttribute(AreResource.ARE_LOCATION), 1);
     JPanel fieldPanel = makeFieldPanel();
-    JPanel actorPanel = ViewerUtil.makeListPanel("Actors", are, Actor.class, "Name");
+    JPanel actorPanel = ViewerUtil.makeListPanel("Actors", are, Actor.class, Actor.ARE_ACTOR_NAME);
     JPanel containerPanel = ViewerUtil.makeListPanel("Containers", are,
-                                                     Container.class, "Name");
-    JPanel doorPanel = ViewerUtil.makeListPanel("Doors", are, Door.class, "Name");
+                                                     Container.class, Container.ARE_CONTAINER_NAME);
+    JPanel doorPanel = ViewerUtil.makeListPanel("Doors", are, Door.class, Door.ARE_DOOR_NAME);
     JPanel itePanel = ViewerUtil.makeListPanel("Points of interest", are,
-                                               ITEPoint.class, "Name");
+                                               ITEPoint.class, ITEPoint.ARE_TRIGGER_NAME);
 
     setLayout(new GridLayout(2, 3, 3, 3));
     add(fieldPanel);

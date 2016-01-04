@@ -6,18 +6,19 @@ package infinity.resource.dlg;
 
 public final class Action extends AbstractCode
 {
-  public static final String FMT_NAME = "Action %1$d";
+  // DLG/Action-specific field labels
+  public static final String DLG_ACTION = "Action";
 
   private int nr;
 
   public Action()
   {
-    super("Action");
+    super(DLG_ACTION);
   }
 
   public Action(byte buffer[], int offset, int count)
   {
-    super(buffer, offset, String.format(FMT_NAME, count));
+    super(buffer, offset, DLG_ACTION + " " + count);
     this.nr = count;
   }
 

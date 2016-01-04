@@ -19,12 +19,33 @@ import javax.swing.JComponent;
 
 final class AreaEntry extends AbstractStruct implements HasViewerTabs
 {
+  // WMP/AreaEntry-specific field labels
+  public static final String WMP_AREA                   = "Area";
+  public static final String WMP_AREA_CURRENT           = "Current area";
+  public static final String WMP_AREA_ORIGINAL          = "Original area";
+  public static final String WMP_AREA_SCRIPT_NAME       = "Script name";
+  public static final String WMP_AREA_FLAGS             = "Flags";
+  public static final String WMP_AREA_ICON_INDEX        = "Icon number";
+  public static final String WMP_AREA_COORDINATE_X      = "Coordinate: X";
+  public static final String WMP_AREA_COORDINATE_Y      = "Coordinate: Y";
+  public static final String WMP_AREA_NAME              = "Name";
+  public static final String WMP_AREA_TOOLTIP           = "Tooltip";
+  public static final String WMP_AREA_LOADING_IMAGE     = "Loading image";
+  public static final String WMP_AREA_FIRST_LINK_NORTH  = "First link (north)";
+  public static final String WMP_AREA_FIRST_LINK_WEST   = "First link (west)";
+  public static final String WMP_AREA_FIRST_LINK_SOUTH  = "First link (south)";
+  public static final String WMP_AREA_FIRST_LINK_EAST   = "First link (east)";
+  public static final String WMP_AREA_NUM_LINKS_NORTH   = "# links (north)";
+  public static final String WMP_AREA_NUM_LINKS_WEST    = "# links (west)";
+  public static final String WMP_AREA_NUM_LINKS_SOUTH   = "# links (south)";
+  public static final String WMP_AREA_NUM_LINKS_EAST    = "# links (east)";
+
   private static final String[] s_flag = {"No flags set", "Visible", "Reveal from linked area",
                                           "Can be visited", "Has been visited"};
 
   AreaEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Area " + nr, buffer, offset);
+    super(superStruct, WMP_AREA + " " + nr, buffer, offset);
   }
 
 // --------------------- Begin Interface HasViewerTabs ---------------------
@@ -58,53 +79,53 @@ final class AreaEntry extends AbstractStruct implements HasViewerTabs
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new ResourceRef(buffer, offset, "Current area", "ARE"));
-    addField(new ResourceRef(buffer, offset + 8, "Original area", "ARE"));
-    addField(new TextString(buffer, offset + 16, 32, "Script name"));
-    addField(new Flag(buffer, offset + 48, 4, "Flags", s_flag));
-    addField(new DecNumber(buffer, offset + 52, 4, "Icon number"));
-    addField(new DecNumber(buffer, offset + 56, 4, "Coordinate: X"));
-    addField(new DecNumber(buffer, offset + 60, 4, "Coordinate: Y"));
-    addField(new StringRef(buffer, offset + 64, "Name"));
-    addField(new StringRef(buffer, offset + 68, "Tooltip"));
-    addField(new ResourceRef(buffer, offset + 72, "Loading image", "MOS"));
-    addField(new DecNumber(buffer, offset + 80, 4, "First link (north)"));
-    addField(new SectionCount(buffer, offset + 84, 4, "# links (north)", AreaLinkNorth.class));
-    addField(new DecNumber(buffer, offset + 88, 4, "First link (west)"));
-    addField(new SectionCount(buffer, offset + 92, 4, "# links (west)", AreaLinkWest.class));
-    addField(new DecNumber(buffer, offset + 96, 4, "First link (south)"));
-    addField(new SectionCount(buffer, offset + 100, 4, "# links (south)", AreaLinkSouth.class));
-    addField(new DecNumber(buffer, offset + 104, 4, "First link (east)"));
-    addField(new SectionCount(buffer, offset + 108, 4, "# links (east)", AreaLinkEast.class));
+    addField(new ResourceRef(buffer, offset, WMP_AREA_CURRENT, "ARE"));
+    addField(new ResourceRef(buffer, offset + 8, WMP_AREA_ORIGINAL, "ARE"));
+    addField(new TextString(buffer, offset + 16, 32, WMP_AREA_SCRIPT_NAME));
+    addField(new Flag(buffer, offset + 48, 4, WMP_AREA_FLAGS, s_flag));
+    addField(new DecNumber(buffer, offset + 52, 4, WMP_AREA_ICON_INDEX));
+    addField(new DecNumber(buffer, offset + 56, 4, WMP_AREA_COORDINATE_X));
+    addField(new DecNumber(buffer, offset + 60, 4, WMP_AREA_COORDINATE_Y));
+    addField(new StringRef(buffer, offset + 64, WMP_AREA_NAME));
+    addField(new StringRef(buffer, offset + 68, WMP_AREA_TOOLTIP));
+    addField(new ResourceRef(buffer, offset + 72, WMP_AREA_LOADING_IMAGE, "MOS"));
+    addField(new DecNumber(buffer, offset + 80, 4, WMP_AREA_FIRST_LINK_NORTH));
+    addField(new SectionCount(buffer, offset + 84, 4, WMP_AREA_NUM_LINKS_NORTH, AreaLinkNorth.class));
+    addField(new DecNumber(buffer, offset + 88, 4, WMP_AREA_FIRST_LINK_WEST));
+    addField(new SectionCount(buffer, offset + 92, 4, WMP_AREA_NUM_LINKS_WEST, AreaLinkWest.class));
+    addField(new DecNumber(buffer, offset + 96, 4, WMP_AREA_FIRST_LINK_SOUTH));
+    addField(new SectionCount(buffer, offset + 100, 4, WMP_AREA_NUM_LINKS_SOUTH, AreaLinkSouth.class));
+    addField(new DecNumber(buffer, offset + 104, 4, WMP_AREA_FIRST_LINK_EAST));
+    addField(new SectionCount(buffer, offset + 108, 4, WMP_AREA_NUM_LINKS_EAST, AreaLinkEast.class));
     addField(new Unknown(buffer, offset + 112, 128));
     return offset + 240;
   }
 
   void readLinks(byte[] buffer, DecNumber linkOffset) throws Exception
   {
-    DecNumber northStart = (DecNumber)getAttribute("First link (north)");
-    DecNumber northCount = (DecNumber)getAttribute("# links (north)");
+    DecNumber northStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_NORTH);
+    DecNumber northCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_NORTH);
     int offset = linkOffset.getValue() + northStart.getValue() * 216;
     for (int i = 0; i < northCount.getValue(); i++) {
       addField(new AreaLinkNorth(this, buffer, offset + i * 216, i));
     }
 
-    DecNumber westStart = (DecNumber)getAttribute("First link (west)");
-    DecNumber westCount = (DecNumber)getAttribute("# links (west)");
+    DecNumber westStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_WEST);
+    DecNumber westCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_WEST);
     offset = linkOffset.getValue() + westStart.getValue() * 216;
     for (int i = 0; i < westCount.getValue(); i++) {
       addField(new AreaLinkWest(this, buffer, offset + i * 216, i));
     }
 
-    DecNumber southStart = (DecNumber)getAttribute("First link (south)");
-    DecNumber southCount = (DecNumber)getAttribute("# links (south)");
+    DecNumber southStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_SOUTH);
+    DecNumber southCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_SOUTH);
     offset = linkOffset.getValue() + southStart.getValue() * 216;
     for (int i = 0; i < southCount.getValue(); i++) {
       addField(new AreaLinkSouth(this, buffer, offset + i * 216, i));
     }
 
-    DecNumber eastStart = (DecNumber)getAttribute("First link (east)");
-    DecNumber eastCount = (DecNumber)getAttribute("# links (east)");
+    DecNumber eastStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_EAST);
+    DecNumber eastCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_EAST);
     offset = linkOffset.getValue() + eastStart.getValue() * 216;
     for (int i = 0; i < eastCount.getValue(); i++) {
       addField(new AreaLinkEast(this, buffer, offset + i * 216, i));

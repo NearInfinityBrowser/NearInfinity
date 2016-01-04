@@ -48,8 +48,8 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
       List<LayerObjectAmbient> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Ambients offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# ambients");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AMBIENTS);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AMBIENTS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

@@ -242,8 +242,8 @@ public abstract class LayerObject
           if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
             if (idx >= index) {
               Vertex vertex = (Vertex)list.get(i);
-              coords[cnt] = new Point(((DecNumber)vertex.getAttribute("X")).getValue(),
-                                      ((DecNumber)vertex.getAttribute("Y")).getValue());
+              coords[cnt] = new Point(((DecNumber)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
+                                      ((DecNumber)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
               cnt++;
               if (cnt >= count) {
                 break;

@@ -34,8 +34,8 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
       List<LayerObjectSpawnPoint> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Spawn points offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# spawn points");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_SPAWN_POINTS);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_SPAWN_POINTS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

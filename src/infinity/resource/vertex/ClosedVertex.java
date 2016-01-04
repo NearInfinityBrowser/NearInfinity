@@ -8,14 +8,17 @@ import infinity.resource.AbstractStruct;
 
 public final class ClosedVertex extends Vertex
 {
+  // ClosedVertex-specific field labels
+  public static final String VERTEX_CLOSED  = "Closed vertex";
+
   public ClosedVertex() throws Exception
   {
-    super(null, "Closed vertex", new byte[4], 0);
+    super(null, VERTEX_CLOSED, new byte[4], 0);
   }
 
   public ClosedVertex(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Closed vertex " + nr, buffer, offset);
+    super(superStruct, VERTEX_CLOSED + " " + nr, buffer, offset);
   }
 }
 

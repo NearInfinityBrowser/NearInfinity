@@ -45,6 +45,66 @@ import javax.swing.JScrollPane;
 
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  // ARE-specific field labels
+  public static final String ARE_WED_RESOURCE             = "WED resource";
+  public static final String ARE_LAST_SAVED               = "Last saved";
+  public static final String ARE_AREA_TYPE                = "Area type";
+  public static final String ARE_AREA_NORTH               = "Area north";
+  public static final String ARE_AREA_EAST                = "Area east";
+  public static final String ARE_AREA_SOUTH               = "Area south";
+  public static final String ARE_AREA_WEST                = "Area west";
+  public static final String ARE_EDGE_FLAGS_NORTH         = "Edge flags north";
+  public static final String ARE_EDGE_FLAGS_EAST          = "Edge flags east";
+  public static final String ARE_EDGE_FLAGS_SOUTH         = "Edge flags south";
+  public static final String ARE_EDGE_FLAGS_WEST          = "Edge flags west";
+  public static final String ARE_LOCATION                 = "Location";
+  public static final String ARE_PROBABILITY_RAIN         = "Rain probability";
+  public static final String ARE_PROBABILITY_SNOW         = "Snow probability";
+  public static final String ARE_PROBABILITY_FOG          = "Fog probability";
+  public static final String ARE_PROBABILITY_LIGHTNING    = "Lightning probability";
+  public static final String ARE_WIND_SPEED               = "Wind speed";
+  public static final String ARE_OVERLAY_TRANSPARENCY     = "Overlay transparency";
+  public static final String ARE_AREA_DIFFICULTY_2        = "Area difficulty 2";
+  public static final String ARE_AREA_DIFFICULTY_3        = "Area difficulty 3";
+  public static final String ARE_OFFSET_ACTORS            = "Actors offset";
+  public static final String ARE_OFFSET_TRIGGERS          = "Triggers offset";
+  public static final String ARE_OFFSET_SPAWN_POINTS      = "Spawn points offset";
+  public static final String ARE_OFFSET_ENTRANCES         = "Entrances offset";
+  public static final String ARE_OFFSET_CONTAINERS        = "Containers offset";
+  public static final String ARE_OFFSET_ITEMS             = "Items offset";
+  public static final String ARE_OFFSET_VERTICES          = "Vertices offset";
+  public static final String ARE_OFFSET_AMBIENTS          = "Ambients offset";
+  public static final String ARE_OFFSET_VARIABLES         = "Variables offset";
+  public static final String ARE_OFFSET_OBJECT_FLAGS      = "Object flags offset";
+  public static final String ARE_OFFSET_EXPLORED_BITMAP   = "Explored bitmap offset";
+  public static final String ARE_OFFSET_DOORS             = "Doors offset";
+  public static final String ARE_OFFSET_ANIMATIONS        = "Animations offset";
+  public static final String ARE_OFFSET_TILED_OBJECTS     = "Tiled objects offset";
+  public static final String ARE_OFFSET_SONGS             = "Songs offset";
+  public static final String ARE_OFFSET_REST_ENCOUNTERS   = "Rest encounters offset";
+  public static final String ARE_OFFSET_AUTOMAP_NOTES     = "Automap notes offset";
+  public static final String ARE_OFFSET_PROJECTILE_TRAPS  = "Projectile traps offset";
+  public static final String ARE_NUM_ACTORS               = "# actors";
+  public static final String ARE_NUM_TRIGGERS             = "# triggers";
+  public static final String ARE_NUM_SPAWN_POINTS         = "# spawn points";
+  public static final String ARE_NUM_ENTRANCES            = "# entrances";
+  public static final String ARE_NUM_CONTAINERS           = "# containers";
+  public static final String ARE_NUM_ITEMS                = "# items";
+  public static final String ARE_NUM_VERTICES             = "# vertices";
+  public static final String ARE_NUM_AMBIENTS             = "# ambients";
+  public static final String ARE_NUM_VARIABLES            = "# variables";
+  public static final String ARE_NUM_OBJECT_FLAGS         = "# object flags";
+  public static final String ARE_NUM_DOORS                = "# doors";
+  public static final String ARE_NUM_ANIMATIONS           = "# animations";
+  public static final String ARE_NUM_TILED_OBJECTS        = "# tiled objects";
+  public static final String ARE_NUM_AUTOMAP_NOTES        = "# automap notes";
+  public static final String ARE_NUM_PROJECTILE_TRAPS     = "# projectile traps";
+  public static final String ARE_SIZE_EXPLORED_BITMAP     = "Explored bitmap size";
+  public static final String ARE_AREA_SCRIPT              = "Area script";
+  public static final String ARE_REST_MOVIE_DAY           = "Rest movie (day)";
+  public static final String ARE_REST_MOVIE_NIGHT         = "Rest movie (night)";
+  public static final String ARE_EXPLORED_BITMAP          = "Explored bitmap";
+
   public static final String[] s_flag = {"No flags set", "Outdoor", "Day/Night",
                                          "Weather", "City", "Forest", "Dungeon",
                                          "Extended night", "Can rest"};
@@ -258,10 +318,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
-    HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
+    HexNumber offset_vertices = (HexNumber)getAttribute(ARE_OFFSET_VERTICES);
     if (datatype.getOffset() <= offset_vertices.getValue())
       offset_vertices.incValue(datatype.getSize());
-    HexNumber offset_items = (HexNumber)getAttribute("Items offset");
+    HexNumber offset_items = (HexNumber)getAttribute(ARE_OFFSET_ITEMS);
     if (datatype.getOffset() <= offset_items.getValue())
       offset_items.incValue(datatype.getSize());
 
@@ -281,7 +341,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Vertex)
       updateVertices();
     else {
-      HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
+      HexNumber offset_vertices = (HexNumber)getAttribute(ARE_OFFSET_VERTICES);
       if (datatype.getOffset() <= offset_vertices.getValue()) {
         offset_vertices.incValue(datatype.getSize());
         updateVertices();
@@ -290,7 +350,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Item)
       updateItems();
     else {
-      HexNumber offset_items = (HexNumber)getAttribute("Items offset");
+      HexNumber offset_items = (HexNumber)getAttribute(ARE_OFFSET_ITEMS);
       if (datatype.getOffset() <= offset_items.getValue()) {
         offset_items.incValue(datatype.getSize());
         updateItems();
@@ -305,10 +365,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
-    HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
+    HexNumber offset_vertices = (HexNumber)getAttribute(ARE_OFFSET_VERTICES);
     if (datatype.getOffset() < offset_vertices.getValue())
       offset_vertices.incValue(-datatype.getSize());
-    HexNumber offset_items = (HexNumber)getAttribute("Items offset");
+    HexNumber offset_items = (HexNumber)getAttribute(ARE_OFFSET_ITEMS);
     if (datatype.getOffset() < offset_items.getValue())
       offset_items.incValue(-datatype.getSize());
 
@@ -328,7 +388,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Vertex)
       updateVertices();
     else {
-      HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
+      HexNumber offset_vertices = (HexNumber)getAttribute(ARE_OFFSET_VERTICES);
       if (datatype.getOffset() < offset_vertices.getValue()) {
         offset_vertices.incValue(-datatype.getSize());
         updateVertices();
@@ -337,7 +397,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (datatype instanceof Item)
       updateItems();
     else {
-      HexNumber offset_items = (HexNumber)getAttribute("Items offset");
+      HexNumber offset_items = (HexNumber)getAttribute(ARE_OFFSET_ITEMS);
       if (datatype.getOffset() < offset_items.getValue()) {
         offset_items.incValue(-datatype.getSize());
         updateItems();
@@ -352,131 +412,131 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    TextString version = new TextString(buffer, offset + 4, 4, "Version");
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
-    addField(new ResourceRef(buffer, offset + 8, "WED resource", "WED"));
-    addField(new DecNumber(buffer, offset + 16, 4, "Last saved"));
+    addField(new ResourceRef(buffer, offset + 8, ARE_WED_RESOURCE, "WED"));
+    addField(new DecNumber(buffer, offset + 16, 4, ARE_LAST_SAVED));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false)));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_torment, null, 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_torment, null, 4, false)));
     } else if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false)));
     } else {
-      addField(new Flag(buffer, offset + 20, 4, "Area type", getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4, false)));
     }
-    addField(new ResourceRef(buffer, offset + 24, "Area north", "ARE"));
-    addField(new Flag(buffer, offset + 32, 4, "Edge flags north", s_edge));
-    addField(new ResourceRef(buffer, offset + 36, "Area east", "ARE"));
-    addField(new Flag(buffer, offset + 44, 4, "Edge flags east", s_edge));
-    addField(new ResourceRef(buffer, offset + 48, "Area south", "ARE"));
-    addField(new Flag(buffer, offset + 56, 4, "Edge flags south", s_edge));
-    addField(new ResourceRef(buffer, offset + 60, "Area west", "ARE"));
-    addField(new Flag(buffer, offset + 68, 4, "Edge flags west", s_edge));
+    addField(new ResourceRef(buffer, offset + 24, ARE_AREA_NORTH, "ARE"));
+    addField(new Flag(buffer, offset + 32, 4, ARE_EDGE_FLAGS_NORTH, s_edge));
+    addField(new ResourceRef(buffer, offset + 36, ARE_AREA_EAST, "ARE"));
+    addField(new Flag(buffer, offset + 44, 4, ARE_EDGE_FLAGS_EAST, s_edge));
+    addField(new ResourceRef(buffer, offset + 48, ARE_AREA_SOUTH, "ARE"));
+    addField(new Flag(buffer, offset + 56, 4, ARE_EDGE_FLAGS_SOUTH, s_edge));
+    addField(new ResourceRef(buffer, offset + 60, ARE_AREA_WEST, "ARE"));
+    addField(new Flag(buffer, offset + 68, 4, ARE_EDGE_FLAGS_WEST, s_edge));
     if (Profile.getGame() == Profile.Game.PST) {
-      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag_torment, null, 2, false)));
+      addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag_torment, null, 2, false)));
     } else {
-      addField(new Flag(buffer, offset + 72, 2, "Location", getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false)));
+      addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false)));
     }
-    addField(new DecNumber(buffer, offset + 74, 2, "Rain probability"));
-    addField(new DecNumber(buffer, offset + 76, 2, "Snow probability"));
-    addField(new DecNumber(buffer, offset + 78, 2, "Fog probability"));
-    addField(new DecNumber(buffer, offset + 80, 2, "Lightning probability"));
+    addField(new DecNumber(buffer, offset + 74, 2, ARE_PROBABILITY_RAIN));
+    addField(new DecNumber(buffer, offset + 76, 2, ARE_PROBABILITY_SNOW));
+    addField(new DecNumber(buffer, offset + 78, 2, ARE_PROBABILITY_FOG));
+    addField(new DecNumber(buffer, offset + 80, 2, ARE_PROBABILITY_LIGHTNING));
     if (Profile.isEnhancedEdition()) {
-      addField(new UnsignDecNumber(buffer, offset + 82, 1, "Overlay transparency"));
+      addField(new UnsignDecNumber(buffer, offset + 82, 1, ARE_OVERLAY_TRANSPARENCY));
       addField(new Unknown(buffer, offset + 83, 1));
     } else {
-      addField(new DecNumber(buffer, offset + 82, 2, "Wind speed"));
+      addField(new DecNumber(buffer, offset + 82, 2, ARE_WIND_SPEED));
     }
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      addField(new DecNumber(buffer, offset + 84, 1, "Area difficulty 2"));
-      addField(new DecNumber(buffer, offset + 85, 1, "Area difficulty 3"));
+      addField(new DecNumber(buffer, offset + 84, 1, ARE_AREA_DIFFICULTY_2));
+      addField(new DecNumber(buffer, offset + 85, 1, ARE_AREA_DIFFICULTY_3));
       addField(new Unknown(buffer, offset + 86, 14));
       offset += 16;
     }
-    SectionOffset offset_actors = new SectionOffset(buffer, offset + 84, "Actors offset",
+    SectionOffset offset_actors = new SectionOffset(buffer, offset + 84, ARE_OFFSET_ACTORS,
                                                     Actor.class);
     addField(offset_actors);
-    SectionCount count_actors = new SectionCount(buffer, offset + 88, 2, "# actors",
+    SectionCount count_actors = new SectionCount(buffer, offset + 88, 2, ARE_NUM_ACTORS,
                                                  Actor.class);
     addField(count_actors);
-    SectionCount count_itepoints = new SectionCount(buffer, offset + 90, 2, "# triggers",
+    SectionCount count_itepoints = new SectionCount(buffer, offset + 90, 2, ARE_NUM_TRIGGERS,
                                                     ITEPoint.class);
     addField(count_itepoints);
     SectionOffset offset_itepoints = new SectionOffset(buffer, offset + 92,
-                                                       "Triggers offset",
+                                                       ARE_OFFSET_TRIGGERS,
                                                        ITEPoint.class);
     addField(offset_itepoints);
-    SectionOffset offset_spoints = new SectionOffset(buffer, offset + 96, "Spawn points offset",
+    SectionOffset offset_spoints = new SectionOffset(buffer, offset + 96, ARE_OFFSET_SPAWN_POINTS,
                                                      SpawnPoint.class);
     addField(offset_spoints);
-    SectionCount count_spoints = new SectionCount(buffer, offset + 100, 4, "# spawn points",
+    SectionCount count_spoints = new SectionCount(buffer, offset + 100, 4, ARE_NUM_SPAWN_POINTS,
                                                   SpawnPoint.class);
     addField(count_spoints);
-    SectionOffset offset_entrances = new SectionOffset(buffer, offset + 104, "Entrances offset",
+    SectionOffset offset_entrances = new SectionOffset(buffer, offset + 104, ARE_OFFSET_ENTRANCES,
                                                        Entrance.class);
     addField(offset_entrances);
-    SectionCount count_entrances = new SectionCount(buffer, offset + 108, 4, "# entrances",
+    SectionCount count_entrances = new SectionCount(buffer, offset + 108, 4, ARE_NUM_ENTRANCES,
                                                     Entrance.class);
     addField(count_entrances);
-    SectionOffset offset_containers = new SectionOffset(buffer, offset + 112, "Containers offset",
+    SectionOffset offset_containers = new SectionOffset(buffer, offset + 112, ARE_OFFSET_CONTAINERS,
                                                         Container.class);
     addField(offset_containers);
-    SectionCount count_containers = new SectionCount(buffer, offset + 116, 2, "# containers",
+    SectionCount count_containers = new SectionCount(buffer, offset + 116, 2, ARE_NUM_CONTAINERS,
                                                      Container.class);
     addField(count_containers);
-    DecNumber count_items = new DecNumber(buffer, offset + 118, 2, "# items");
+    DecNumber count_items = new DecNumber(buffer, offset + 118, 2, ARE_NUM_ITEMS);
     addField(count_items);
-    HexNumber offset_items = new HexNumber(buffer, offset + 120, 4, "Items offset");
+    HexNumber offset_items = new HexNumber(buffer, offset + 120, 4, ARE_OFFSET_ITEMS);
     addField(offset_items);
-    HexNumber offset_vertices = new HexNumber(buffer, offset + 124, 4, "Vertices offset");
+    HexNumber offset_vertices = new HexNumber(buffer, offset + 124, 4, ARE_OFFSET_VERTICES);
     addField(offset_vertices);
-    DecNumber count_vertices = new DecNumber(buffer, offset + 128, 2, "# vertices");
+    DecNumber count_vertices = new DecNumber(buffer, offset + 128, 2, ARE_NUM_VERTICES);
     addField(count_vertices);
-    SectionCount count_ambients = new SectionCount(buffer, offset + 130, 2, "# ambients",
+    SectionCount count_ambients = new SectionCount(buffer, offset + 130, 2, ARE_NUM_AMBIENTS,
                                                    Ambient.class);
     addField(count_ambients);
-    SectionOffset offset_ambients = new SectionOffset(buffer, offset + 132, "Ambients offset",
+    SectionOffset offset_ambients = new SectionOffset(buffer, offset + 132, ARE_OFFSET_AMBIENTS,
                                                       Ambient.class);
     addField(offset_ambients);
-    SectionOffset offset_variables = new SectionOffset(buffer, offset + 136, "Variables offset",
+    SectionOffset offset_variables = new SectionOffset(buffer, offset + 136, ARE_OFFSET_VARIABLES,
                                                        Variable.class);
     addField(offset_variables);
-    SectionCount count_variables = new SectionCount(buffer, offset + 140, 2, "# variables",
+    SectionCount count_variables = new SectionCount(buffer, offset + 140, 2, ARE_NUM_VARIABLES,
                                                     Variable.class);
     addField(count_variables);
-    addField(new HexNumber(buffer, offset + 142, 2, "# object flags"));
-    addField(new HexNumber(buffer, offset + 144, 4, "Object flags offset"));
-    addField(new ResourceRef(buffer, offset + 148, "Area script", "BCS"));
-    SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, "Explored bitmap size",
+    addField(new HexNumber(buffer, offset + 142, 2, ARE_NUM_OBJECT_FLAGS));
+    addField(new HexNumber(buffer, offset + 144, 4, ARE_OFFSET_OBJECT_FLAGS));
+    addField(new ResourceRef(buffer, offset + 148, ARE_AREA_SCRIPT, "BCS"));
+    SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, ARE_SIZE_EXPLORED_BITMAP,
                                                         Unknown.class);
     addField(size_exploredbitmap);
-    SectionOffset offset_exploredbitmap = new SectionOffset(buffer, offset + 160, "Explored bitmap offset",
+    SectionOffset offset_exploredbitmap = new SectionOffset(buffer, offset + 160, ARE_OFFSET_EXPLORED_BITMAP,
                                                             Unknown.class);
     addField(offset_exploredbitmap);
-    SectionCount count_doors = new SectionCount(buffer, offset + 164, 4, "# doors",
+    SectionCount count_doors = new SectionCount(buffer, offset + 164, 4, ARE_NUM_DOORS,
                                                 Door.class);
     addField(count_doors);
-    SectionOffset offset_doors = new SectionOffset(buffer, offset + 168, "Doors offset",
+    SectionOffset offset_doors = new SectionOffset(buffer, offset + 168, ARE_OFFSET_DOORS,
                                                    Door.class);
     addField(offset_doors);
-    SectionCount count_animations = new SectionCount(buffer, offset + 172, 4, "# animations",
+    SectionCount count_animations = new SectionCount(buffer, offset + 172, 4, ARE_NUM_ANIMATIONS,
                                                      Animation.class);
     addField(count_animations);
-    SectionOffset offset_animations = new SectionOffset(buffer, offset + 176, "Animations offset",
+    SectionOffset offset_animations = new SectionOffset(buffer, offset + 176, ARE_OFFSET_ANIMATIONS,
                                                         Animation.class);
     addField(offset_animations);
-    SectionCount count_tiledobjects = new SectionCount(buffer, offset + 180, 4, "# tiled objects",
+    SectionCount count_tiledobjects = new SectionCount(buffer, offset + 180, 4, ARE_NUM_TILED_OBJECTS,
                                                        TiledObject.class);
     addField(count_tiledobjects);
-    SectionOffset offset_tiledobjects = new SectionOffset(buffer, offset + 184, "Tiled objects offset",
+    SectionOffset offset_tiledobjects = new SectionOffset(buffer, offset + 184, ARE_OFFSET_TILED_OBJECTS,
                                                           TiledObject.class);
     addField(offset_tiledobjects);
-    SectionOffset offset_songs = new SectionOffset(buffer, offset + 188, "Songs offset",
+    SectionOffset offset_songs = new SectionOffset(buffer, offset + 188, ARE_OFFSET_SONGS,
                                                    Song.class);
     addField(offset_songs);
-    SectionOffset offset_rest = new SectionOffset(buffer, offset + 192, "Rest encounters offset",
+    SectionOffset offset_rest = new SectionOffset(buffer, offset + 192, ARE_OFFSET_REST_ENCOUNTERS,
                                                   RestSpawn.class);
     addField(offset_rest);
 
@@ -484,37 +544,37 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_automapnote = null, count_protrap = null;
     if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Unknown(buffer, offset + 196, 4));
-      offset_automapnote = new SectionOffset(buffer, offset + 200, "Automap notes offset",
+      offset_automapnote = new SectionOffset(buffer, offset + 200, ARE_OFFSET_AUTOMAP_NOTES,
                                              AutomapNotePST.class);
       addField(offset_automapnote);
-      count_automapnote = new SectionCount(buffer, offset + 204, 4, "# automap notes",
+      count_automapnote = new SectionCount(buffer, offset + 204, 4, ARE_NUM_AUTOMAP_NOTES,
                                            AutomapNotePST.class);
       addField(count_automapnote);
       addField(new Unknown(buffer, offset + 208, 76));
     }
     else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-      offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
+      offset_automapnote = new SectionOffset(buffer, offset + 196, ARE_OFFSET_AUTOMAP_NOTES,
                                              AutomapNote.class);
       addField(offset_automapnote);
-      count_automapnote = new SectionCount(buffer, offset + 200, 4, "# automap notes",
+      count_automapnote = new SectionCount(buffer, offset + 200, 4, ARE_NUM_AUTOMAP_NOTES,
                                            AutomapNote.class);
       addField(count_automapnote);
-      offset_protrap = new SectionOffset(buffer, offset + 204, "Projectile traps offset",
+      offset_protrap = new SectionOffset(buffer, offset + 204, ARE_OFFSET_PROJECTILE_TRAPS,
                                          ProTrap.class);
       addField(offset_protrap);
-      count_protrap = new SectionCount(buffer, offset + 208, 4, "# projectile traps",
+      count_protrap = new SectionCount(buffer, offset + 208, 4, ARE_NUM_PROJECTILE_TRAPS,
                                        ProTrap.class);
       addField(count_protrap);
       final String[] movieExt = (Profile.isEnhancedEdition()) ? new String[]{"MVE", "WBM"} : new String[]{"MVE"};
-      addField(new ResourceRef(buffer, offset + 212, "Rest movie (day)", movieExt));
-      addField(new ResourceRef(buffer, offset + 220, "Rest movie (night)", movieExt));
+      addField(new ResourceRef(buffer, offset + 212, ARE_REST_MOVIE_DAY, movieExt));
+      addField(new ResourceRef(buffer, offset + 220, ARE_REST_MOVIE_NIGHT, movieExt));
       addField(new Unknown(buffer, offset + 228, 56));
     }
     else if (Profile.getEngine() == Profile.Engine.IWD2) {
-      offset_automapnote = new SectionOffset(buffer, offset + 196, "Automap notes offset",
+      offset_automapnote = new SectionOffset(buffer, offset + 196, ARE_OFFSET_AUTOMAP_NOTES,
                                              AutomapNote.class);
       addField(offset_automapnote);
-      count_automapnote = new SectionCount(buffer, offset + 200, 4, "# automap notes",
+      count_automapnote = new SectionCount(buffer, offset + 200, 4, ARE_NUM_AUTOMAP_NOTES,
                                            AutomapNote.class);
       addField(count_automapnote);
       addField(new Unknown(buffer, offset + 204, 80));
@@ -574,7 +634,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_exploredbitmap.getValue();
     if (size_exploredbitmap.getValue() > 0) {
-      addField(new Unknown(buffer, offset, size_exploredbitmap.getValue(), "Explored bitmap"));
+      addField(new Unknown(buffer, offset, size_exploredbitmap.getValue(), ARE_EXPLORED_BITMAP));
     }
 
     offset = offset_doors.getValue();
@@ -677,7 +737,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   private void updateItems()
   {
     // Assumes items offset is correct
-    int offset = ((HexNumber)getAttribute("Items offset")).getValue();
+    int offset = ((HexNumber)getAttribute(ARE_OFFSET_ITEMS)).getValue();
     int count = 0;
     for (int i = 0; i < getFieldCount(); i++) {
       Object o = getField(i);
@@ -688,13 +748,13 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         count += itemNum;
       }
     }
-    ((DecNumber)getAttribute("# items")).setValue(count);
+    ((DecNumber)getAttribute(ARE_NUM_ITEMS)).setValue(count);
   }
 
   private void updateVertices()
   {
     // Assumes vertices offset is correct
-    int offset = ((HexNumber)getAttribute("Vertices offset")).getValue();
+    int offset = ((HexNumber)getAttribute(ARE_OFFSET_VERTICES)).getValue();
     int count = 0;
     for (int i = 0; i < getFieldCount(); i++) {
       Object o = getField(i);
@@ -705,7 +765,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         count += vertNum;
       }
     }
-    ((DecNumber)getAttribute("# vertices")).setValue(count);
+    ((DecNumber)getAttribute(ARE_NUM_VERTICES)).setValue(count);
   }
 
   /**
@@ -796,8 +856,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)are.getAttribute("Actors offset", false);
-        DecNumber cnt = (DecNumber)are.getAttribute("# actors", false);
+        DecNumber ofs = (DecNumber)are.getAttribute(ARE_OFFSET_ACTORS, false);
+        DecNumber cnt = (DecNumber)are.getAttribute(ARE_NUM_ACTORS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           actors = new Actor[cnt.getValue()];
           for (int idx = 0; idx < actors.length; idx++) {
@@ -807,8 +867,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
           actors = new Actor[0];
         }
 
-        ofs = (DecNumber)are.getAttribute("Animations offset", false);
-        cnt = (DecNumber)are.getAttribute("# animations", false);
+        ofs = (DecNumber)are.getAttribute(ARE_OFFSET_ANIMATIONS, false);
+        cnt = (DecNumber)are.getAttribute(ARE_NUM_ANIMATIONS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           animations = new Animation[cnt.getValue()];
           for (int idx = 0; idx < animations.length; idx++) {
@@ -818,15 +878,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
           animations = new Animation[0];
         }
 
-        ofs = (DecNumber)are.getAttribute("Containers offset", false);
-        cnt = (DecNumber)are.getAttribute("# containers", false);
+        ofs = (DecNumber)are.getAttribute(ARE_OFFSET_CONTAINERS, false);
+        cnt = (DecNumber)are.getAttribute(ARE_NUM_CONTAINERS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new Item[cnt.getValue()][];
           for (int i = 0; i < cnt.getValue(); i++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container), i);
             Container container = (Container)are.getAttribute(label, false);
             if (container != null) {
-              DecNumber cnt2 = (DecNumber)container.getAttribute("# items", false);
+              DecNumber cnt2 = (DecNumber)container.getAttribute(ARE_NUM_ITEMS, false);
               if (cnt2 != null && cnt2.getValue() > 0) {
                 items[i] = new Item[cnt2.getValue()];
                 for (int j = 0; j < cnt2.getValue(); j++) {

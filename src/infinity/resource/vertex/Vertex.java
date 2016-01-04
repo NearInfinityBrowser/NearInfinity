@@ -12,9 +12,14 @@ import infinity.resource.AddRemovable;
 
 public class Vertex extends AbstractStruct implements AddRemovable
 {
+  // Vertex-specific field labels
+  public static final String VERTEX   = "Vertex";
+  public static final String VERTEX_X = "X";
+  public static final String VERTEX_Y = "Y";
+
   public Vertex() throws Exception
   {
-    super(null, "Vertex", new byte[4], 0, 2);
+    super(null, VERTEX, new byte[4], 0, 2);
   }
 
   Vertex(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
@@ -24,7 +29,7 @@ public class Vertex extends AbstractStruct implements AddRemovable
 
   public Vertex(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Vertex " + nr, buffer, offset, 2);
+    super(superStruct, VERTEX + " " + nr, buffer, offset, 2);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -40,8 +45,8 @@ public class Vertex extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset)
   {
-    addField(new DecNumber(buffer, offset, 2, "X"));
-    addField(new DecNumber(buffer, offset + 2, 2, "Y"));
+    addField(new DecNumber(buffer, offset, 2, VERTEX_X));
+    addField(new DecNumber(buffer, offset + 2, 2, VERTEX_Y));
     return offset + 4;
   }
 

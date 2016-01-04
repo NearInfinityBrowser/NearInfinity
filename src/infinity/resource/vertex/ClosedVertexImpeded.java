@@ -8,14 +8,17 @@ import infinity.resource.AbstractStruct;
 
 public final class ClosedVertexImpeded extends Vertex
 {
+  // ClosedVertexImpeded-specific field labels
+  public static final String VERTEX_CLOSED_IMPEDED  = "Closed vertex, impeded";
+
   public ClosedVertexImpeded() throws Exception
   {
-    super(null, "Closed vertex, impeded", new byte[4], 0);
+    super(null, VERTEX_CLOSED_IMPEDED, new byte[4], 0);
   }
 
   public ClosedVertexImpeded(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Closed vertex, impeded " + nr, buffer, offset);
+    super(superStruct, VERTEX_CLOSED_IMPEDED + " " + nr, buffer, offset);
   }
 }
 

@@ -13,17 +13,24 @@ import infinity.resource.AddRemovable;
 
 public final class Variable extends AbstractStruct implements AddRemovable
 {
-  public static final String[] s_type = {"Integer", "Float", "Script name", "Resource reference",
-                                         "String reference", "Double word"};
+  // ARE/Variable-specific field labels
+  public static final String ARE_VAR              = "Variable";
+  public static final String ARE_VAR_NAME         = infinity.resource.gam.Variable.GAM_VAR_NAME;
+  public static final String ARE_VAR_TYPE         = infinity.resource.gam.Variable.GAM_VAR_TYPE;
+  public static final String ARE_VAR_REFERENCE    = infinity.resource.gam.Variable.GAM_VAR_REFERENCE;
+  public static final String ARE_VAR_DWORD        = infinity.resource.gam.Variable.GAM_VAR_DWORD;
+  public static final String ARE_VAR_INT          = infinity.resource.gam.Variable.GAM_VAR_INT;
+  public static final String ARE_VAR_DOUBLE       = infinity.resource.gam.Variable.GAM_VAR_DOUBLE;
+  public static final String ARE_VAR_SCRIPT_NAME  = infinity.resource.gam.Variable.GAM_VAR_SCRIPT_NAME;
 
   Variable() throws Exception
   {
-    super(null, "Variable", new byte[84], 0);
+    super(null, ARE_VAR, new byte[84], 0);
   }
 
   Variable(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Variable " + number, buffer, offset);
+    super(superStruct, ARE_VAR + " " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -39,13 +46,13 @@ public final class Variable extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 32, "Name"));
-    addField(new Bitmap(buffer, offset + 32, 2, "Type", s_type));
-    addField(new DecNumber(buffer, offset + 34, 2, "Reference value"));
-    addField(new DecNumber(buffer, offset + 36, 4, "Dword value"));
-    addField(new DecNumber(buffer, offset + 40, 4, "Integer value"));
-    addField(new FloatNumber(buffer, offset + 44, 8, "Double value"));
-    addField(new TextString(buffer, offset + 52, 32, "Script name"));
+    addField(new TextString(buffer, offset, 32, ARE_VAR_NAME));
+    addField(new Bitmap(buffer, offset + 32, 2, ARE_VAR_TYPE, infinity.resource.gam.Variable.s_type));
+    addField(new DecNumber(buffer, offset + 34, 2, ARE_VAR_REFERENCE));
+    addField(new DecNumber(buffer, offset + 36, 4, ARE_VAR_DWORD));
+    addField(new DecNumber(buffer, offset + 40, 4, ARE_VAR_INT));
+    addField(new FloatNumber(buffer, offset + 44, 8, ARE_VAR_DOUBLE));
+    addField(new TextString(buffer, offset + 52, 32, ARE_VAR_SCRIPT_NAME));
     return offset + 84;
   }
 }

@@ -26,18 +26,17 @@ import javax.swing.JPanel;
 
 public class Unknown extends Datatype implements Editable, IsBinary
 {
-  private static final String UNKNOWN = "Unknown";
-  InfinityTextArea textArea;
-  byte[] data;
+  protected InfinityTextArea textArea;
+  protected byte[] data;
 
   public Unknown(byte[] buffer, int offset, int length)
   {
-    this(null, buffer, offset, length, UNKNOWN);
+    this(null, buffer, offset, length, AbstractStruct.COMMON_UNKNOWN);
   }
 
   public Unknown(StructEntry parent, byte[] buffer, int offset, int length)
   {
-    this(parent, buffer, offset, length, UNKNOWN);
+    this(parent, buffer, offset, length, AbstractStruct.COMMON_UNKNOWN);
   }
 
   public Unknown(byte[] buffer, int offset, int length, String name)

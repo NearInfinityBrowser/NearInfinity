@@ -83,16 +83,16 @@ public class LayerObjectAreActor extends LayerObjectActor
       Image[] icon = IconNeutral;
       int ea = 128;   // default: neutral
       try {
-        location.x = ((DecNumber)actor.getAttribute("Position: X")).getValue();
-        location.y = ((DecNumber)actor.getAttribute("Position: Y")).getValue();
+        location.x = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
+        location.y = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
 
-        scheduleFlags = ((Flag)actor.getAttribute("Present at"));
+        scheduleFlags = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
 
-        StructEntry obj = actor.getAttribute("Character");
+        StructEntry obj = actor.getAttribute(Actor.ARE_ACTOR_CHARACTER);
         CreResource cre = null;
         if (obj instanceof TextString) {
           // ARE in saved game
-          cre = (CreResource)actor.getAttribute("CRE file");
+          cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
         } else if (obj instanceof ResourceRef) {
           String creName = ((ResourceRef)obj).getResourceName();
           if (creName.lastIndexOf('.') > 0) {
@@ -100,8 +100,8 @@ public class LayerObjectAreActor extends LayerObjectActor
           }
         }
         if (cre != null) {
-          msg = ((StringRef)cre.getAttribute("Name")).toString();
-          ea = (int)((IdsBitmap)cre.getAttribute("Allegiance")).getValue();
+          msg = ((StringRef)cre.getAttribute(Actor.ARE_ACTOR_NAME)).toString();
+          ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
         }
         if (ea >= 2 && ea <= 30) {
           icon = IconGood;

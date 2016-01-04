@@ -12,14 +12,20 @@ import infinity.resource.AddRemovable;
 
 public final class Iwd2Song extends AbstractStruct implements AddRemovable
 {
+  // CRE/Iwd2Song-specific field labels
+  public static final String CRE_SONG                 = "Song";
+  public static final String CRE_SONG_RESREF          = "ResRef";
+  public static final String CRE_SONG_NUM_MEMORIZABLE = "# memorizable";
+  public static final String CRE_SONG_NUM_REMAINING   = "# remaining";
+
   public Iwd2Song() throws Exception
   {
-    super(null, "Song", new byte[16], 0);
+    super(null, CRE_SONG, new byte[16], 0);
   }
 
   public Iwd2Song(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
-    super(superStruct, "Song", buffer, offset);
+    super(superStruct, CRE_SONG, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -35,9 +41,9 @@ public final class Iwd2Song extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new IwdRef(buffer, offset, "ResRef", "LISTSONG.2DA"));
-    addField(new DecNumber(buffer, offset + 4, 4, "# memorizable"));
-    addField(new DecNumber(buffer, offset + 8, 4, "# remaining"));
+    addField(new IwdRef(buffer, offset, CRE_SONG_RESREF, "LISTSONG.2DA"));
+    addField(new DecNumber(buffer, offset + 4, 4, CRE_SONG_NUM_MEMORIZABLE));
+    addField(new DecNumber(buffer, offset + 8, 4, CRE_SONG_NUM_REMAINING));
     addField(new Unknown(buffer, offset + 12, 4));
     return offset + 16;
   }

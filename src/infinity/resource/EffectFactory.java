@@ -42,6 +42,25 @@ import java.util.List;
 
 public final class EffectFactory
 {
+  // Effect-specific field labels
+  public static final String EFFECT_PARAMETER_1           = "Parameter 1";
+  public static final String EFFECT_PARAMETER_2           = "Parameter 2";
+  public static final String EFFECT_SPECIAL               = "Special";
+  public static final String EFFECT_TIMING_MODE           = "Timing mode";
+  public static final String EFFECT_DURATION              = "Duration";
+  public static final String EFFECT_PROBABILITY_1         = "Probability 1";
+  public static final String EFFECT_PROBABILITY_2         = "Probability 2";
+  public static final String EFFECT_STRING                = "String";
+  public static final String EFFECT_RESOURCE              = "Resource";
+  public static final String EFFECT_DICE_COUNT_MAX_LEVEL  = "# dice thrown/maximum level";
+  public static final String EFFECT_DICE_SIZE_MIN_LEVEL   = "Dice size/minimum level";
+  public static final String EFFECT_SAVE_TYPE             = "Save type";
+  public static final String EFFECT_SAVE_PENALTY          = "Save penalty";
+  public static final String EFFECT_SAVE_BONUS            = "Save bonus";
+  public static final String EFFECT_PARAMETER             = "Parameter?";
+  public static final String EFFECT_DICE_COUNT            = "# dice thrown";
+  public static final String EFFECT_DICE_SIZE             = "Dice size";
+
   private static EffectFactory efactory;
   private String[] s_poricon;
   private String[] s_effname;
@@ -392,7 +411,7 @@ public final class EffectFactory
   public static EnumMap<EffectEntry, Integer> getEffectStructure(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
-      EffectType effType = (EffectType)struct.getAttribute("Type");
+      EffectType effType = (EffectType)struct.getAttribute(EffectType.EFFECT_TYPE);
       if (effType != null) {
         EnumMap<EffectEntry, Integer> map = new EnumMap<EffectFactory.EffectEntry, Integer>(EffectEntry.class);
         boolean isV1 = (effType.getSize() == 2);
@@ -666,16 +685,16 @@ public final class EffectFactory
             case 13: // Time of day
               replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
                            new IdsBitmap(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
-                                         "Special", "TIMEODAY.IDS"));
+                                         EFFECT_SPECIAL, "TIMEODAY.IDS"));
               break;
             case 15: // State
               replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
                            new IdsFlag(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
-                                       "Special", "STATE.IDS"));
+                                       EFFECT_SPECIAL, "STATE.IDS"));
               break;
             default:
               replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
-                           new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, "Special"));
+                           new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, EFFECT_SPECIAL));
           }
           return true;
         }
@@ -1941,18 +1960,18 @@ public final class EffectFactory
       case 164: // Remove intoxication
       case 165: // Pause target
       case 168: // Remove creature
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 3: // Berserk
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
             isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Berserk type",
                            new String[]{"Normal", "Constant", "Blood rage"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -1960,7 +1979,7 @@ public final class EffectFactory
       {
         s.add(new IdsBitmap(buffer, offset, 4, "Creature type", "GENERAL.IDS"));
         if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD2) {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           final LongIntegerHashMap<String> idsmap = new LongIntegerHashMap<String>();
           idsmap.put(0L, "Charmed (neutral)");
@@ -2053,7 +2072,7 @@ public final class EffectFactory
       case 13: // Kill target
       {
         if (Profile.getEngine() == Profile.Engine.PST) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           s.add(new Bitmap(buffer, offset, 4, "Display text?", s_yesno));
         }
@@ -2091,12 +2110,12 @@ public final class EffectFactory
         break;
 
       case 16: // Haste
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Haste type",
                            new String[]{"Normal", "Improved", "Movement rate only"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2130,9 +2149,9 @@ public final class EffectFactory
         break;
 
       case 20: // Invisibility
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.PST) {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Invisibility type",
                            new String[]{"Normal", "Improved", "Weak"}));
@@ -2152,7 +2171,7 @@ public final class EffectFactory
       case 22: // Luck bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         if (Profile.getEngine() == Profile.Engine.BG1) {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
                            new String[]{"Increment", "Lucky streak", "Fortune's favorite"}));
@@ -2167,8 +2186,8 @@ public final class EffectFactory
       case 23: // Reset morale
         if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition() ||
             Profile.getEngine() == Profile.Engine.PST) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
@@ -2176,11 +2195,11 @@ public final class EffectFactory
         break;
 
       case 24: // Panic
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Panic type", new String[]{"Normal", "Harpy wail"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2207,12 +2226,12 @@ public final class EffectFactory
       }
 
       case 26: // Remove Curse
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.PST) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Curse type",
                            new String[]{"Normal", "Jumble curse"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2244,12 +2263,12 @@ public final class EffectFactory
         break;
 
       case 39: // Sleep
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
             isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2287,24 +2306,24 @@ public final class EffectFactory
         break;
 
       case 45: // Stun
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Stun type",
                            new String[]{"Normal", "Unstun on damage", "Power word, stun"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
       case 50: // Character color pulse
         s.add(new ColorPicker(buffer, offset, "Color"));
         if (Profile.getEngine() == Profile.Engine.IWD2) {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           s.add(new HashBitmap(buffer, offset + 4, 1, "Location", m_colorloc));
-          s.add(new DecNumber(buffer, offset + 5, 1, "Unused"));
+          s.add(new DecNumber(buffer, offset + 5, 1, AbstractStruct.COMMON_UNUSED));
           s.add(new UnsignDecNumber(buffer, offset + 6, 1, "Cycle speed"));
-          s.add(new DecNumber(buffer, offset + 7, 1, "Unused"));
+          s.add(new DecNumber(buffer, offset + 7, 1, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2327,7 +2346,7 @@ public final class EffectFactory
       }
 
       case 57: // Change alignment
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment",
                             (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT)));
         break;
@@ -2389,7 +2408,7 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Visual effect",
                            new String[]{"Draw instantly", "Fade in", "Fade out"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2397,7 +2416,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new DecNumber(buffer, offset, 4, "# creatures"));
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         }
         if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition() ||
             Profile.getEngine() == Profile.Engine.IWD) {
@@ -2405,14 +2424,14 @@ public final class EffectFactory
         } else if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Summon animation", s_sumanim));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         restype = "CRE";
         break;
 
       case 68: // Unsummon creature
         s.add(new Bitmap(buffer, offset, 4, "Display text?", s_noyes));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 71: // Change gender
@@ -2448,7 +2467,7 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
         }
         if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.PST) {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           String[] s_type;
           if (Profile.getEngine() == Profile.Engine.IWD) {
@@ -2473,14 +2492,14 @@ public final class EffectFactory
         break;
 
       case 82: // Set AI script
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
         restype = "BCS";
         break;
 
       case 83: // Immunity to projectile
       {
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
           IdsBitmap ids = new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS");
           ids.addIdsMapEntry(new IdsMapEntry(0L, "None", null));
@@ -2539,36 +2558,36 @@ public final class EffectFactory
         break;
 
       case 101: // Immunity to effect
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
         break;
 
       case 102: // Immunity to spell level
         s.add(new DecNumber(buffer, offset, 4, "Spell level"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 103: // Change name
         s.add(new StringRef(buffer, offset, "Name"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 107: // Change portrait
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Which portrait?", new String[]{"Small", "Large"}));
         restype = "BMP";
         break;
 
       case 111: // Create weapon
         s.add(new DecNumber(buffer, offset, 4, "# to create"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "ITM";
         break;
 
       case 112: // Remove item
       case 123: // Remove inventory item
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "ITM";
         break;
 
@@ -2579,13 +2598,13 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.IWD) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
       case 115: // Detect alignment
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Alignment mask",
                          new String[]{"Evil", "Neutral", "Good"}));
         break;
@@ -2595,7 +2614,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Image type", new String[]{"Normal", "Reflected image"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2614,20 +2633,20 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Type", new String[]{"Group", "Slot"}));
         } else {
           s.add(new DecNumber(buffer, offset, 4, "# to create"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         restype = "ITM";
         break;
 
       case 124: // Teleport
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
             isExtended) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Behavior",
                            new String[]{"Normal", "Source to target", "Return to start",
                                         "Exchange with target"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2654,7 +2673,7 @@ public final class EffectFactory
       case 132: // Draw upon holy might (non-cumulative)
       case 133: // Luck (non-cumulative)
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 137: // Bad chant (non-cumulative)
@@ -2662,18 +2681,18 @@ public final class EffectFactory
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
       case 131: // Chant (non-cumulative)
         if (Profile.getEngine() == Profile.Engine.IWD2) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new Bitmap(buffer, offset + 4, 4, "Prayer type",
                            new String[]{"Beneficial", "Detrimental"}));
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2686,7 +2705,7 @@ public final class EffectFactory
         break;
 
       case 138: // Set animation sequence
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.IWD) {
         s.add(new Bitmap(buffer, offset + 4, 4, "Sequence",
                          new String[]{"", "Lay down (short)", "Move hands (short)", "Move hands (long)",
@@ -2707,7 +2726,7 @@ public final class EffectFactory
 
       case 139: // Display string
         s.add(new StringRef(buffer, offset, "String"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 140: // Casting glow
@@ -2726,9 +2745,9 @@ public final class EffectFactory
         m_castglow.put(16L, "Divination");
         if (isExtended) {
           s.add(new ProRef(buffer, offset, "Projectile"));
-          s.add(new DecNumber(buffer, offset + 2, 2, "Unused"));
+          s.add(new DecNumber(buffer, offset + 2, 2, AbstractStruct.COMMON_UNUSED));
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         }
         s.add(new HashBitmap(buffer, offset + 4, 4, "Glow", m_castglow));
         break;
@@ -2738,14 +2757,14 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Spell target", "Target point"}));
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         }
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_lighting));
         break;
 
       case 142: // Display portrait icon
       case 169: // Prevent portrait icon
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Icon", getIconDescArray()));
         break;
 
@@ -2767,12 +2786,12 @@ public final class EffectFactory
         } else {
           s.add(new IdsBitmap(buffer, offset, 4, "Slot", "SLOTS.IDS"));
         }
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "ITM";
         break;
 
       case 144: // Disable button
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (isTobEx) {
           String[] buttons = new String[15];
           for (int i = 0; i < 14; i++) { buttons[i] = s_button[i]; }
@@ -2786,7 +2805,7 @@ public final class EffectFactory
         break;
 
       case 145: // Disable spellcasting
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
                            new String[]{"All spells", "Non-innate", "Arcane", "Divine", "Innate"}));
@@ -2805,13 +2824,13 @@ public final class EffectFactory
 
       case 147: // Learn spell
         if (isTobEx) {
-          s.add(new DecNumber(buffer, offset, 2, "Unused"));
+          s.add(new DecNumber(buffer, offset, 2, AbstractStruct.COMMON_UNUSED));
           s.add(new Flag(buffer, offset + 2, 2, "Behavior", new String[]{
               "Default", "No XP", null, "Always successful", null, "No XP if already learned",
               "Exclude spell schools", "Exclude sorcerer", "Fail if max. spells learned"
           }));
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         }
         if (Profile.getEngine() == Profile.Engine.PST) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell type",
@@ -2820,15 +2839,15 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell type",
                            new String[]{"Arcane", "Divine", "Innate"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         restype = "SPL";
         break;
 
       case 151: // Replace self
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.PST) {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Replacement method",
                            new String[]{"Remove silently", "Remove via chunked death",
@@ -2838,8 +2857,8 @@ public final class EffectFactory
         break;
 
       case 152: // Play movie
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = Profile.isEnhancedEdition() ? "WBM" : "MVE";
         break;
 
@@ -2847,12 +2866,12 @@ public final class EffectFactory
       case 154: // Entangle overlay
       case 157: // Web effect
       case 158: // Grease overlay
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Mode", new String[]{"Default overlay", "Custom overlay"}));
           restype = "VVC";
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -2861,12 +2880,12 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           if (Profile.isEnhancedEdition()) {
             s.add(new Bitmap(buffer, offset + 4, 4, "Mode", new String[]{"Default overlay", "Custom overlay"}));
             restype = "VVC";
           } else {
-            s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+            s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
           }
         }
         break;
@@ -2874,7 +2893,7 @@ public final class EffectFactory
 
       case 159: // Mirror image effect
         s.add(new DecNumber(buffer, offset, 4, "# images"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 166: // Magic resistance bonus
@@ -2888,7 +2907,7 @@ public final class EffectFactory
         break;
 
       case 170: // Play damage animation
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Animation",
                          new String[]{"Blood (behind)", "Blood (front)", "Blood (left)",
                                       "Blood (right)", "Fire 1", "Fire 2", "Fire 3",
@@ -2897,8 +2916,8 @@ public final class EffectFactory
 
       case 171: // Give innate ability
       case 172: // Remove spell / Remove innate ability
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "SPL";
         break;
 
@@ -2910,13 +2929,13 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
               s_inctype[1], s_inctype[0], s_inctype[2], "Instantaneous"}));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
       case 174: // Play sound
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "WAV";
         break;
 
@@ -2959,7 +2978,7 @@ public final class EffectFactory
           if (Profile.isEnhancedEdition()) {
             s.add(new Bitmap(buffer, offset + 4, 4, "Restriction", new String[]{"Equip", "Use"}));
           } else {
-            s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+            s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
           }
           restype = "ITM";
         }
@@ -2975,8 +2994,8 @@ public final class EffectFactory
         break;
 
       case 182: // Apply effect on equip item
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() != Profile.Engine.PST) {
           restype = "ITM";
         }
@@ -2989,7 +3008,7 @@ public final class EffectFactory
           if (Profile.getEngine() == Profile.Engine.IWD2) {
             s.add(new StringRef(buffer, offset, "String"));
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Unused"));
+            s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           }
           s.add(new Bitmap(buffer, offset + 4, 4, "Item type", ItmResource.s_categories));
         }
@@ -2999,7 +3018,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls", s_yesno));
         }
         break;
@@ -3008,8 +3027,8 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           makeEffectParamsDefault(buffer, offset, s);
         } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
           s.add(param2.createIdsValueFromType(buffer));
@@ -3025,7 +3044,7 @@ public final class EffectFactory
           restype = "BAM";
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -3040,19 +3059,19 @@ public final class EffectFactory
     String restype = null;
     switch (effectType) {
       case 186: // DestroySelf() on target
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 188: // Increase spells cast per round
         s.add(new DecNumber(buffer, offset, 4, "Spells per round"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 189: // Increase casting speed factor
       case 190: // Increase attack speed factor
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 191: // Casting level bonus
@@ -3097,14 +3116,14 @@ public final class EffectFactory
         break;
 
       case 188: // Increase spells cast per round
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
         break;
 
       case 189: // Increase casting speed factor
       case 190: // Increase attack speed factor
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 191: // Casting level bonus
@@ -3130,8 +3149,8 @@ public final class EffectFactory
       case 304: // Mass raise dead
       case 311: // Wish
       case 316: // Rest
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 193: // Invisibility detection
@@ -3150,31 +3169,31 @@ public final class EffectFactory
       case 310: // Immunity to time stop
       case 312: // Immunity to sequester
       case 315: // Remove animation
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
         break;
 
       case 195: // Drain CON and HP on death
       case 208: // Minimum HP
         s.add(new DecNumber(buffer, offset, 4, "HP amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 197: // Physical mirror
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         IdsBitmap ids = new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS");
         ids.addIdsMapEntry(new IdsMapEntry(0L, "None", null));
         s.add(ids);
         break;
 
       case 198: // Reflect specified effect
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
         break;
 
       case 199: // Reflect spell level
         s.add(new DecNumber(buffer, offset, 4, "Spell level"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 200: // Spell turning
@@ -3185,19 +3204,19 @@ public final class EffectFactory
 
       case 202: // Reflect spell school
       case 204: // Protection from spell school
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
         break;
 
       case 203: // Reflect spell type
       case 205: // Protection from spell type
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new SecTypeBitmap(buffer, offset + 4, 4, "Spell type"));
         break;
 
       case 206: // Protection from spell
         s.add(new StringRef(buffer, offset, "String"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "SPL";
         break;
 
@@ -3209,25 +3228,25 @@ public final class EffectFactory
       case 260: // Activate spell sequencer at point
       case 266: // Remove protection from spell
       case 313: // High-level ability
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "SPL";
         break;
 
       case 213: // Maze
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Mode",
                          new String[]{"Use INTMOD.2DA", "Use duration"}));
         break;
 
       case 214: // Select spell
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Show", new String[]{"From 2DA", "Known spells"}));
         restype = "2DA";
         break;
 
       case 215: // Play visual effect
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Play where?",
                          new String[]{"Over target (unattached)", "Over target (attached)",
                                       "At target point"}));
@@ -3236,7 +3255,7 @@ public final class EffectFactory
 
       case 216: // Level drain
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 218: // Stoneskin effect
@@ -3244,7 +3263,7 @@ public final class EffectFactory
         if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Use dice", s_noyes));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
@@ -3271,7 +3290,7 @@ public final class EffectFactory
 
       case 222: // Teleport field
         s.add(new DecNumber(buffer, offset, 4, "Maximum range"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 223: // Spell school deflection
@@ -3349,7 +3368,7 @@ public final class EffectFactory
         break;
 
       case 236: // Project image
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Image type",
                          new String[]{"Talkative, uncontrollable", "Mislead", "Project image",
                                       "Simulacrum"}));
@@ -3373,12 +3392,12 @@ public final class EffectFactory
       }
 
       case 239: // Farsight
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Can view unexplored?", s_noyes));
         break;
 
       case 240: // Remove portrait icon
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Icon", getIconDescArray()));
         break;
 
@@ -3407,37 +3426,37 @@ public final class EffectFactory
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
         break;
 
       case 244: // Drain wizard spells
         s.add(new DecNumber(buffer, offset, 4, "# spells"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 248: // Melee hit effect
       case 249: // Ranged hit effect
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "EFF";
         break;
 
       case 250: // Maximum damage each hit
         s.add(new DecNumber(buffer, offset, 4, "Damage value"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 253: // Set automap note
       case 254: // Remove automap note
       case 267: // Disable display string
         s.add(new StringRef(buffer, offset, "String"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 255: // Create item (days)
         s.add(new DecNumber(buffer, offset, 4, "# items in stack"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "ITM";
         break;
 
@@ -3479,19 +3498,19 @@ public final class EffectFactory
         break;
 
       case 264: // Drop item
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Only quick weapons?", s_noyes));
         break;
 
       case 265: // Set global variable
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{"Set", "Increment"}));
-        restype = "String";
+        restype = EFFECT_STRING;
         break;
 
       case 269: // Shake screen
         s.add(new DecNumber(buffer, offset, 4, "Strength"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 272: // Use EFF file on condition
@@ -3509,14 +3528,14 @@ public final class EffectFactory
               "Remove CLEARAIR.2DA only", "Remove CLEARAIR.2DA and resource"}));
           restype = "2DA";
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         }
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
       }
 
       case 279: // Enable button
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (isTobEx) {
           String[] buttons = new String[15];
           for (int i = 0; i < 14; i++) { buttons[i] = s_button[i]; }
@@ -3529,7 +3548,7 @@ public final class EffectFactory
         break;
 
       case 280: // Wild magic
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Affect",
                          new String[]{"", "Next spell only", "Use duration"}));
         break;
@@ -3556,12 +3575,12 @@ public final class EffectFactory
 
       case 294: // Set existence delay
         s.add(new DecNumber(buffer, offset, 4, "Stat value"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 296: // Immunity to specific animation
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "VEF:VVC:BAM";
         break;
 
@@ -3573,7 +3592,7 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Use custom script?", s_noyes));
           restype = "BCS";
         } else {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
         }
         break;
@@ -3585,7 +3604,7 @@ public final class EffectFactory
         break;
 
       case 300: // Modify collision behavior
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Flag(buffer, offset + 4, 4, "Behavior",
                        new String[]{"None", "NPC bumps PCs", "NPC can't be bumped"}));
         break;
@@ -3597,7 +3616,7 @@ public final class EffectFactory
         break;
 
       case 303: // Backstab every hit
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (isTobEx) {
           LongIntegerHashMap<String> idsmap = new LongIntegerHashMap<String>();
           idsmap.put(0L, "Normal conditions");
@@ -3612,22 +3631,22 @@ public final class EffectFactory
 
       case 307: // Tracking
         s.add(new DecNumber(buffer, offset, 4, "Range"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 309: // Set local variable
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{"Set", "Increment"}));
-        restype = "String";
+        restype = EFFECT_STRING;
         break;
 
       case 314: // Stoneskin protection
         s.add(new DecNumber(buffer, offset, 4, "# skins"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 317: // Haste 2
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Haste type",
                          new String[]{"Normal", "Improved", "Movement rate only"}));
         break;
@@ -3680,7 +3699,7 @@ public final class EffectFactory
         if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset, 4, "Type",
                            new String[]{"Normal", "Rain", "Snow", "Nothing"}));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3688,7 +3707,7 @@ public final class EffectFactory
 
       case 321: // Remove effects by resource (BGEE)
         if (Profile.isEnhancedEdition()) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new Bitmap(buffer, offset + 4, 4, "Type",
                            new String[]{"Default", "Equipped effects list only",
                                         "Timed effects list only"}));
@@ -3701,7 +3720,7 @@ public final class EffectFactory
       case 322: // Protection from area of effect spell
         if (Profile.isEnhancedEdition()) {
           // TODO: need more info
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new DecNumber(buffer, offset + 4, 4, "Type"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -3729,7 +3748,7 @@ public final class EffectFactory
 
       case 328: // Set state
         if (isExtended) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           int special = DynamicArray.getInt(buffer, offset + 0x28);
           if (special == 1) {
             s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "SPLSTATE.IDS"));
@@ -3744,7 +3763,7 @@ public final class EffectFactory
       case 329: // Slow poison
         if (isExtended) {
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3791,8 +3810,8 @@ public final class EffectFactory
 
       case 334: // Turn undead
         if (isExtended) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3845,7 +3864,7 @@ public final class EffectFactory
                                         "AND NOT value"}));
           s.add(new DecNumber(buffer, offset + 2, 2, "Value"));
           s.add(new ProRef(buffer, offset + 4, 4, "Projectile"));
-          restype = "String";
+          restype = EFFECT_STRING;
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3853,8 +3872,8 @@ public final class EffectFactory
 
       case 340: // Backstab hit effect
         if (isExtended) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
           restype = "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -3863,7 +3882,7 @@ public final class EffectFactory
 
       case 341: // Critical hit effect
         if (isExtended) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new Bitmap(buffer, offset + 4, 4, "Condition",
                            new String[]{"Always", "By this weapon only"}));
           restype = "SPL";
@@ -3883,7 +3902,7 @@ public final class EffectFactory
 
       case 343: // HP swap
         if (isExtended) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new Bitmap(buffer, offset + 4, 4, "Mode",
                 new String[]{"Swap if caster HP > target HP", "Always swap"}));
         } else {
@@ -3894,8 +3913,8 @@ public final class EffectFactory
       case 360: // Ignore reputation breaking point
         if (Profile.getGame() == Profile.Game.BG2EE ||
             Profile.getGame() == Profile.Game.EET) {
-          s.add(new DecNumber(buffer, offset, 4, "Unused"));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3915,7 +3934,7 @@ public final class EffectFactory
     String restype = null;
     switch (effectType) {
       case 110: // Retreat from
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Type",
                          new String[]{"Run", "Run", "Run", "Run", "Run", "Run", "Run",
                                       "Weak", "Walk"}));
@@ -3960,12 +3979,12 @@ public final class EffectFactory
 
       case 193: // Shake screen
         s.add(new DecNumber(buffer, offset, 4, "Strength"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 194: // Flash screen
         s.add(new ColorPicker(buffer, offset, "Color", ColorPicker.Format.RGBX));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 195: // Tint screen
@@ -3990,13 +4009,13 @@ public final class EffectFactory
       }
 
       case 196: // Special spell hit
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
                          new String[]{"Adder's kiss", "Ball lightning", "Fizzle"}));
         break;
 
       case 201: // Play BAM with effects
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
                          new String[]{"Cloak of warding", "Shield", "Black-barbed shield",
                                       "Pain mirror", "Guardian mantle", "", "Enoll eva's duplication",
@@ -4009,16 +4028,16 @@ public final class EffectFactory
       case 203: // Curse
       case 204: // Prayer
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 205: // Move view to target
         s.add(new IdsBitmap(buffer, offset, 4, "Speed", "SCROLL.IDS"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 206: // Embalm
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Embalming type",
                          new String[]{"Normal", "Greater"}));
         break;
@@ -4034,8 +4053,8 @@ public final class EffectFactory
       case 210: // Detect evil
       case 211: // Induce hiccups
       case 212: // Speak with dead
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       default:
@@ -4058,7 +4077,7 @@ public final class EffectFactory
         break;
 
       case 188: // Increase spells cast per round
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
         break;
 
@@ -4076,7 +4095,7 @@ public final class EffectFactory
       case 277: // Soul eater
       case 281: // Vitriolic sphere
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 191: // Casting level bonus
@@ -4109,30 +4128,30 @@ public final class EffectFactory
       case 293: // Beholder dispel magic
       case 294: // Harpy wail
       case 295: // Jackalwere gaze
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 193: // Invisibility detection
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
         break;
 
       case 206: // Protection from spell
       case 290: // Display spell immunity string
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
         restype = "SPL";
         break;
 
       case 208: // Minimum HP
         s.add(new DecNumber(buffer, offset, 4, "HP amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 218: // Stoneskin effect
         s.add(new DecNumber(buffer, offset, 4, "# skins"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 232: // Creature RGB color fade
@@ -4142,12 +4161,12 @@ public final class EffectFactory
         break;
 
       case 233: // Show visual effect
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
         break;
 
       case 235: // Show casting glow
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
                          new String[]{"None", "Abjuration", "Conjuration", "Divination",
                                       "Enchantment", "Illusion", "Invocation", "Necromancy",
@@ -4178,7 +4197,7 @@ public final class EffectFactory
         break;
 
       case 242: // Show visual overlay
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Overlay",
                          new String[]{"Globe of invulnerability", "Shroud of flame",
                                       "Antimagic shell", "Otiluke's resilient sphere",
@@ -4189,7 +4208,7 @@ public final class EffectFactory
         break;
 
       case 243: // Animate dead
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Undead type", new String[]{"Normal", "Lich"}));
         break;
 
@@ -4207,7 +4226,7 @@ public final class EffectFactory
       case 264: // Static charge
       case 265: // Cloak of fear
         s.add(new DecNumber(buffer, offset, 4, "# hits"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 248: // Summon shadow
@@ -4219,7 +4238,7 @@ public final class EffectFactory
       case 251: // Lich touch
       case 256: // Umber hulk gaze
         s.add(new DecNumber(buffer, offset, 4, "# seconds"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 253: // Bonus AC vs. weapons
@@ -4231,7 +4250,7 @@ public final class EffectFactory
         break;
 
       case 254: // Dispel specific spell
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
                          new String[]{"All effects", "Equipped effects only",
                                       "Limited effects only"}));
@@ -4244,7 +4263,7 @@ public final class EffectFactory
         break;
 
       case 258: // Immunity to specific resource
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Type", new String[]{"Default", "Test and set to 0"}));
         break;
 
@@ -4257,7 +4276,7 @@ public final class EffectFactory
 
       case 261: // Immunity to effect and string
       case 276: // Remove effect by type
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
         break;
 
@@ -4281,7 +4300,7 @@ public final class EffectFactory
         break;
 
       case 280: // Turn undead
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Turn type",
                          new String[]{"Command", "Rebuke", "Destroy", "Panic", "Depend on caster"}));
         break;
@@ -4293,12 +4312,12 @@ public final class EffectFactory
         break;
 
       case 285: // Force sleep
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
         break;
 
       case 288: // Set state
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "State", s_spellstate));
         break;
 
@@ -4333,7 +4352,7 @@ public final class EffectFactory
         break;
 
       case 188: // Increase spells cast per round
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
         break;
 
@@ -4342,7 +4361,7 @@ public final class EffectFactory
       case 239: // Slow poison
       case 281: // Vitriolic sphere
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 191: // Casting level bonus
@@ -4404,12 +4423,12 @@ public final class EffectFactory
       case 455: // Arterial strike
       case 456: // Hamstring
       case 457: // Rapid shot
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 193: // Invisibility detection
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Ignore visibility?", s_noyes));
         break;
 
@@ -4423,7 +4442,7 @@ public final class EffectFactory
       case 208: // Minimum HP
       case 432: // Tortoise shell
         s.add(new DecNumber(buffer, offset, 4, "HP amount"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 218: // Stoneskin effect
@@ -4433,16 +4452,16 @@ public final class EffectFactory
 
       case 232: // Creature RGB color fade
         s.add(new ColorPicker(buffer, offset, "Color"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 233: // Show visual effect
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_visuals));
         break;
 
       case 235: // Show casting glow
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
                          new String[]{"None", "Abjuration", "Conjuration", "Divination",
                                       "Enchantment", "Illusion", "Invocation", "Necromancy",
@@ -4466,14 +4485,14 @@ public final class EffectFactory
 
       case 244: // Prayer
       case 249: // Recitation
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Prayer type",
                          new String[]{"Beneficial", "Detrimental"}));
         break;
 
       case 247: // Beltyn's burning blood
         s.add(new DecNumber(buffer, offset, 4, "# hits"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 248: // Summon shadow
@@ -4484,11 +4503,11 @@ public final class EffectFactory
 
       case 256: // Umber hulk gaze
         s.add(new DecNumber(buffer, offset, 4, "# seconds"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 254: // Dispel specific spell
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
                          new String[]{"All effects", "Equipped effects only", "Limited effects only"}));
         restype = "SPL";
@@ -4500,7 +4519,7 @@ public final class EffectFactory
         break;
 
       case 261: // Immunity to effect and resource
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
         restype = "SPL";
         break;
@@ -4522,12 +4541,12 @@ public final class EffectFactory
       case 265: // Cloak of fear
       case 449: // Call lightning
         s.add(new DecNumber(buffer, offset, 4, "# hits"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "SPL";
         break;
 
       case 276: // Remove effect by type
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
         break;
 
@@ -4538,7 +4557,7 @@ public final class EffectFactory
         break;
 
       case 280: // Turn undead
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Turn type",
                          new String[]{"Command", "Rebuke", "Destroy", "Panic", "Depend on caster"}));
         break;
@@ -4551,12 +4570,12 @@ public final class EffectFactory
 
       case 285: // Force sleep
       case 419: // Unconsciousness
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
         break;
 
       case 288: // Set state
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "SPLSTATE.IDS"));
         break;
 
@@ -4566,25 +4585,25 @@ public final class EffectFactory
         break;
 
       case 402: // Apply effects list
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
         restype = "SPL";
         break;
 
       case 404: // Nausea
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Nausea type",
                          new String[]{"Stinking cloud", "Ghoul touch"}));
         break;
 
       case 406: // Fire shield
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Shield type", new String[]{"Red", "Blue"}));
         restype = "SPL";
         break;
 
       case 409: // Righteous wrath of the faithful
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Affect",
                          new String[]{"Allies", "Allies and same alignment"}));
         break;
@@ -4597,13 +4616,13 @@ public final class EffectFactory
         break;
 
       case 412: // Control creature
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Control type",
                          new String[]{"", "Default", "Mental domination"}));
         break;
 
       case 413: // Run visual effect
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Animation",
                          new String[]{"Sanctuary", "Entangle", "Wisp", "Shield", "Grease",
                                       "Web", "Minor globe of invulnerability",
@@ -4632,37 +4651,37 @@ public final class EffectFactory
         break;
 
       case 420: // Death magic
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Flag(buffer, offset + 4, 4, "Death type",
                        new String[]{"Acid", "Burning", "Crushing", "Normal", "Exploding", "Stoned",
                                     "Freezing", "", "", "", "Permanent", "Destruction"}));
         break;
 
       case 429: // Apply effects list on hit
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "SPL";
         break;
 
       case 430: // Projectile type using effects list
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new DecNumber(buffer, offset + 4, 4, "Projectile"));
         restype = "SPL";
         break;
 
       case 431: // Energy drain
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 433: // Blink
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Blink type", new String[]{"Normal", "Empty body"}));
         break;
 
       case 434: // Persistent using effects list
         s.add(new DecNumber(buffer, offset, 4, "Interval"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "SPL";
         break;
 
@@ -4673,22 +4692,22 @@ public final class EffectFactory
 
       case 437: // Disguise
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
       case 439: // Prevent AI slowdown
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new DecNumber(buffer, offset + 4, 4, "Stat value"));
         break;
 
       case 443: // Protection from arrows
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Damage reduction",
                          new String[]{"None", "10/+1", "10/+2", "10/+3", "10/+4", "10/+5"}));
         break;
 
       case 450: // Globe of invulnerability
-        s.add(new DecNumber(buffer, offset, 4, "Unused"));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Globe type",
                          new String[]{"Minor globe of invulnerability", "Globe of invulnerability"}));
         break;
@@ -4704,32 +4723,32 @@ public final class EffectFactory
   private void makeEffectParamsDefault(byte[] buffer, int offset, List<StructEntry> s)
   {
     if (s != null) {
-      s.add(new DecNumber(buffer, offset, 4, "Parameter 1"));
-      s.add(new DecNumber(buffer, offset + 4, 4, "Parameter 2"));
+      s.add(new DecNumber(buffer, offset, 4, EFFECT_PARAMETER_1));
+      s.add(new DecNumber(buffer, offset + 4, 4, EFFECT_PARAMETER_2));
     }
   }
 
   private int makeEffectCommon1(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
   {
     if (isV1) {
-      s.add(new HashBitmap(buffer, offset, 1, "Timing mode", m_duration, false));
-      s.add(new Bitmap(buffer, offset + 1, 1, "Dispel/Resistance", EffectType.s_dispel));
+      s.add(new HashBitmap(buffer, offset, 1, EFFECT_TIMING_MODE, m_duration, false));
+      s.add(new Bitmap(buffer, offset + 1, 1, Effect2.EFFECT_DISPEL_TYPE, EffectType.s_dispel));
       offset += 2;
     } else {
-      s.add(new HashBitmap(buffer, offset, 4, "Timing mode", m_duration, false));
+      s.add(new HashBitmap(buffer, offset, 4, EFFECT_TIMING_MODE, m_duration, false));
       offset += 4;
     }
 
-    s.add(new DecNumber(buffer, offset, 4, "Duration"));
+    s.add(new DecNumber(buffer, offset, 4, EFFECT_DURATION));
     offset += 4;
 
     if (isV1) {
-      s.add(new DecNumber(buffer, offset, 1, "Probability 1"));
-      s.add(new DecNumber(buffer, offset + 1, 1, "Probability 2"));
+      s.add(new DecNumber(buffer, offset, 1, EFFECT_PROBABILITY_1));
+      s.add(new DecNumber(buffer, offset + 1, 1, EFFECT_PROBABILITY_2));
       offset += 2;
     } else {
-      s.add(new DecNumber(buffer, offset, 2, "Probability 1"));
-      s.add(new DecNumber(buffer, offset + 2, 2, "Probability 2"));
+      s.add(new DecNumber(buffer, offset, 2, EFFECT_PROBABILITY_1));
+      s.add(new DecNumber(buffer, offset + 2, 2, EFFECT_PROBABILITY_2));
       offset += 4;
     }
 
@@ -4744,12 +4763,12 @@ public final class EffectFactory
           effectType == 319 && param2 == 11) {    // Restrict item (BGEE)
         s.add(new TextString(buffer, offset, 8, "Script name"));
       } else {
-        s.add(new Unknown(buffer, offset, 8, "Unused"));
+        s.add(new Unknown(buffer, offset, 8, AbstractStruct.COMMON_UNUSED));
       }
-    } else if (resourceType.equalsIgnoreCase("String")) {
-      s.add(new TextString(buffer, offset, 8, "String"));
+    } else if (resourceType.equalsIgnoreCase(EFFECT_STRING)) {
+      s.add(new TextString(buffer, offset, 8, EFFECT_STRING));
     } else {
-      s.add(new ResourceRef(buffer, offset, "Resource", resourceType.split(":")));
+      s.add(new ResourceRef(buffer, offset, EFFECT_RESOURCE, resourceType.split(":")));
     }
     offset += 8;
 
@@ -4759,28 +4778,28 @@ public final class EffectFactory
   private int makeEffectCommon2(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
   {
     if (isV1) {
-      s.add(new DecNumber(buffer, offset, 4, "# dice thrown/maximum level"));
-      s.add(new DecNumber(buffer, offset + 4, 4, "Dice size/minimum level"));
+      s.add(new DecNumber(buffer, offset, 4, EFFECT_DICE_COUNT_MAX_LEVEL));
+      s.add(new DecNumber(buffer, offset + 4, 4, EFFECT_DICE_SIZE_MIN_LEVEL));
       if (Profile.getEngine() == Profile.Engine.IWD2) {
-        s.add(new Flag(buffer, offset + 8, 4, "Save type", s_savetype2));
-        s.add(new DecNumber(buffer, offset + 12, 4, "Save penalty"));
+        s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, s_savetype2));
+        s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_PENALTY));
       }
       else {
-        s.add(new Flag(buffer, offset + 8, 4, "Save type", s_savetype));
-        s.add(new DecNumber(buffer, offset + 12, 4, "Save bonus"));
+        s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, s_savetype));
+        s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_BONUS));
       }
     } else {
       if (Profile.getEngine() == Profile.Engine.IWD2) {
-        s.add(new Flag(buffer, offset, 4, "Save type", s_savetype2));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Save penalty"));
-        s.add(new DecNumber(buffer, offset + 8, 4, "Parameter?"));
-        s.add(new DecNumber(buffer, offset + 12, 4, "Parameter?"));
+        s.add(new Flag(buffer, offset, 4, EFFECT_SAVE_TYPE, s_savetype2));
+        s.add(new DecNumber(buffer, offset + 4, 4, EFFECT_SAVE_PENALTY));
+        s.add(new DecNumber(buffer, offset + 8, 4, EFFECT_PARAMETER));
+        s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_PARAMETER));
       }
       else {
-        s.add(new DecNumber(buffer, offset, 4, "# dice thrown"));
-        s.add(new DecNumber(buffer, offset + 4, 4, "Dice size"));
-        s.add(new Flag(buffer, offset + 8 , 4, "Save type", s_savetype));
-        s.add(new DecNumber(buffer, offset + 12, 4, "Save bonus"));
+        s.add(new DecNumber(buffer, offset, 4, EFFECT_DICE_COUNT));
+        s.add(new DecNumber(buffer, offset + 4, 4, EFFECT_DICE_SIZE));
+        s.add(new Flag(buffer, offset + 8 , 4, EFFECT_SAVE_TYPE, s_savetype));
+        s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_BONUS));
       }
     }
     offset += 16;
@@ -4796,7 +4815,7 @@ public final class EffectFactory
     if (Profile.isEnhancedEdition()) {
       switch (effectType) {
         case 12:    // Damage
-          s.add(new Flag(buffer, offset, 4, "Special",
+          s.add(new Flag(buffer, offset, 4, EFFECT_SPECIAL,
                          new String[]{"Default", "Drain HP to caster", "Transfer HP to target",
                                       "Fist damage only", "", "", "", "", "", "Save for half",
                                       "Made save", "Does not wake sleepers"}));
@@ -4810,20 +4829,20 @@ public final class EffectFactory
           if (isIWDEE) {
             s.add(new Bitmap(buffer, offset, 4, "Icon", getIconDescArray()));
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
         case 232:   // Cast spell on condition
           switch (param2) {
             case 13: // Time of day
-              s.add(new IdsBitmap(buffer, offset, 4, "Special", "TIMEODAY.IDS"));
+              s.add(new IdsBitmap(buffer, offset, 4, EFFECT_SPECIAL, "TIMEODAY.IDS"));
               break;
             case 15: // State check
-              s.add(new IdsFlag(buffer, offset, 4, "Special", "STATE.IDS"));
+              s.add(new IdsFlag(buffer, offset, 4, EFFECT_SPECIAL, "STATE.IDS"));
               break;
             default:
-              s.add(new DecNumber(buffer, offset, 4, "Special"));
+              s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -4839,7 +4858,7 @@ public final class EffectFactory
               bmp.addUpdateListener((UpdateListener)parent);
             }
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -4848,7 +4867,7 @@ public final class EffectFactory
             s.add(new Bitmap(buffer, offset, 4, "Mode",
                              new String[]{"Use dice", "Use dice", "Use caster level"}));
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -4856,7 +4875,7 @@ public final class EffectFactory
           if (isIWDEE) {
             s.add(new DecNumber(buffer, offset, 4, "Delay"));
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -4864,7 +4883,7 @@ public final class EffectFactory
           if (isIWDEE) {
             s.add(new DecNumber(buffer, offset, 4, "Eye group"));
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -4872,16 +4891,16 @@ public final class EffectFactory
           if (isIWDEE) {
             s.add(new DecNumber(buffer, offset, 4, "Range"));
           } else {
-            s.add(new DecNumber(buffer, offset, 4, "Special"));
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
         default:
-          s.add(new DecNumber(buffer, offset, 4, "Special"));
+          s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           break;
       }
     } else if (Profile.getEngine() == Profile.Engine.BG2) {
-      s.add(new DecNumber(buffer, offset, 4, "Special"));
+      s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {
         case 12:    // Damage

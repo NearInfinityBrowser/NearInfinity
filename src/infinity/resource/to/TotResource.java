@@ -18,6 +18,9 @@ import infinity.resource.key.ResourceEntry;
 
 public final class TotResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  // TOT-specific field labels
+  public static final String TOT_EMPTY = "(empty)";
+
   private HexViewer hexViewer;
 
   public TotResource(ResourceEntry entry) throws Exception
@@ -69,7 +72,7 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
         addField(entry);
       }
     } else {
-      addField(new Unknown(buffer, offset, 0, "(Empty)"));  // Placeholder for empty structure
+      addField(new Unknown(buffer, offset, 0, TOT_EMPTY));  // Placeholder for empty structure
     }
 
     int endoffset = offset;

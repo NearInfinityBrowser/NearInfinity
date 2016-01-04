@@ -34,8 +34,8 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
       List<LayerObjectProTrap> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Projectile traps offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# projectile traps");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_PROJECTILE_TRAPS);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_PROJECTILE_TRAPS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

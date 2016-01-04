@@ -29,9 +29,10 @@ final class ViewerNPC extends JPanel
     JScrollPane scroll = new JScrollPane(makeStatsPanel(npc));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     tabs.addTab("Game stats", scroll);
-    CreResource cre = (CreResource)npc.getAttribute("CRE file");
-    if (cre != null)
+    CreResource cre = (CreResource)npc.getAttribute(PartyNPC.GAM_NPC_CRE_RESOURCE);
+    if (cre != null) {
       tabs.add("CRE", new Viewer(cre));
+    }
     setLayout(new BorderLayout());
     add(tabs, BorderLayout.CENTER);
   }
@@ -44,12 +45,12 @@ final class ViewerNPC extends JPanel
     panel.setLayout(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    if (npc.getAttribute("Name") != null) {
-      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Name"), gbl, gbc, true);
-      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Current area"), gbl, gbc, true);
+    if (npc.getAttribute(PartyNPC.GAM_NPC_NAME) != null) {
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_NAME), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA), gbl, gbc, true);
 
-      StructEntry s1 = npc.getAttribute("Location: X");
-      StructEntry s2 = npc.getAttribute("Location: Y");
+      StructEntry s1 = npc.getAttribute(PartyNPC.GAM_NPC_LOCATION_X);
+      StructEntry s2 = npc.getAttribute(PartyNPC.GAM_NPC_LOCATION_Y);
       gbc.weightx = 0.0;
       gbc.fill = GridBagConstraints.NONE;
       gbc.gridwidth = 1;
@@ -64,26 +65,26 @@ final class ViewerNPC extends JPanel
       gbl.setConstraints(tf1, gbc);
       panel.add(tf1);
     }
-//    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Happyness"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Selection state"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Party position"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Most powerful foe vanquished"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("XP for most powerful foe"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Kill XP (chapter)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Kill XP (game)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("# kills (chapter)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("# kills (game)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Quick spell 1"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Quick spell 2"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Quick spell 3"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite spell 1"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite spell 2"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite spell 3"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite spell 4"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite weapon 1"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite weapon 2"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite weapon 3"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute("Favorite weapon 4"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_SELECTION_STATE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_PARTY_POSITION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_FOE_VANQUISHED), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_XP_FOE_VANQUISHED), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_KILLS_XP_CHAPTER), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_KILLS_XP_GAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_NUM_KILLS_CHAPTER), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_NUM_KILLS_GAME), gbl, gbc, true);
+    for (int i = 1; i < 4; i++) {
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_QUICK_SPELL_FMT, i)),
+                                   gbl, gbc, true);
+    }
+    for (int i = 1; i < 5; i++) {
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_STAT_FAV_SPELL_FMT, i)),
+                                   gbl, gbc, true);
+    }
+    for (int i = 1; i < 5; i++) {
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_STAT_FAV_WEAPON_FMT, i)),
+                                   gbl, gbc, true);
+    }
     return panel;
   }
 }

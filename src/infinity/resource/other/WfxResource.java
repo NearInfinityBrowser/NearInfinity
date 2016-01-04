@@ -20,6 +20,12 @@ import infinity.resource.key.ResourceEntry;
 
 public final class WfxResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  // WFX-specific field labels
+  public static final String WFX_CURVE_RADIUS     = "SR curve radius";
+  public static final String WFX_FLAGS            = "Flags";
+  public static final String WFX_VARIATION_PITCH  = "Pitch variation";
+  public static final String WFX_VARIATION_VOLUME = "Volume variation";
+
   private static final String[] s_flag = {"No flags set", "Cutscene audio", "Alternate SR curve",
                                           "Pitch variance", "Volume variance", "Disable environmental effects"};
 
@@ -33,12 +39,12 @@ public final class WfxResource extends AbstractStruct implements Resource, HasVi
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    addField(new DecNumber(buffer, offset + 8, 4, "SR curve radius"));
-    addField(new Flag(buffer, offset + 12, 4, "Flags", s_flag));
-    addField(new DecNumber(buffer, offset + 16, 4, "Pitch variation"));
-    addField(new DecNumber(buffer, offset + 20, 4, "Volume variation"));
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    addField(new DecNumber(buffer, offset + 8, 4, WFX_CURVE_RADIUS));
+    addField(new Flag(buffer, offset + 12, 4, WFX_FLAGS, s_flag));
+    addField(new DecNumber(buffer, offset + 16, 4, WFX_VARIATION_PITCH));
+    addField(new DecNumber(buffer, offset + 20, 4, WFX_VARIATION_VOLUME));
     addField(new Unknown(buffer, offset + 24, 240));
     return offset + 264;
   }

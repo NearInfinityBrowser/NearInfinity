@@ -4,8 +4,10 @@
 
 package infinity.resource.spl;
 
+import infinity.datatype.EffectType;
 import infinity.datatype.ResourceRef;
 import infinity.gui.ViewerUtil;
+import infinity.resource.AbstractAbility;
 import infinity.resource.Effect;
 
 import java.awt.GridBagConstraints;
@@ -25,12 +27,12 @@ final class ViewerAbility extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Type"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Ability location"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Target"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Range (feet)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Minimum level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Casting speed"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_TYPE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_LOCATION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_TARGET), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_RANGE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(Ability.SPL_ABIL_MIN_LEVEL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(Ability.SPL_ABIL_CASTING_SPEED), gbl, gbc, true);
 //    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("# charges"), gbl, gbc, true);
 
     return fieldPanel;
@@ -39,9 +41,8 @@ final class ViewerAbility extends JPanel
   ViewerAbility(Ability ability)
   {
     JPanel fieldPanel = makeFieldPanel(ability);
-    JPanel effectsPanel = ViewerUtil.makeListPanel("Effects", ability, Effect.class,
-                                                   "Type");
-    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)ability.getAttribute("Icon"), 0);
+    JPanel effectsPanel = ViewerUtil.makeListPanel("Effects", ability, Effect.class, EffectType.EFFECT_TYPE);
+    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)ability.getAttribute(AbstractAbility.ABILITY_ICON), 0);
 
     JPanel mainPanel = new JPanel(new GridLayout(1, 3, 6, 6));
     mainPanel.add(iconPanel);

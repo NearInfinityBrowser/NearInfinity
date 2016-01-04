@@ -14,16 +14,21 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.StructEntry;
 
-public class CompBase extends AbstractStruct implements AddRemovable
+public class ComponentBase extends AbstractStruct implements AddRemovable
 {
+  // VEF/Component-specific field labels
+  public static final String VEF_COMP_TICKS_START = "Ticks until start";
+  public static final String VEF_COMP_TICKS_LOOP  = "Ticks until loop";
+  public static final String VEF_COMP_CONTINUOUS  = "Continuous cycles?";
+
   public static final String[] s_noyes = {"No", "Yes"};
 
-  CompBase(String label) throws Exception
+  ComponentBase(String label) throws Exception
   {
     super(null, label, new byte[224], 0);
   }
 
-  CompBase(AbstractStruct superStruct, byte[] buffer, int offset, String label) throws Exception
+  ComponentBase(AbstractStruct superStruct, byte[] buffer, int offset, String label) throws Exception
   {
     super(superStruct, label, buffer, offset);
   }
@@ -41,9 +46,9 @@ public class CompBase extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new DecNumber(buffer, offset, 4, "Ticks until start"));
+    addField(new DecNumber(buffer, offset, 4, VEF_COMP_TICKS_START));
     addField(new Unknown(buffer, offset + 4, 4));
-    addField(new DecNumber(buffer, offset + 8, 4, "Ticks until loop"));
+    addField(new DecNumber(buffer, offset + 8, 4, VEF_COMP_TICKS_LOOP));
     VefType type = new VefType(buffer, offset + 12, 4);
     addField(type);
 
@@ -51,7 +56,7 @@ public class CompBase extends AbstractStruct implements AddRemovable
     offset = type.readAttributes(buffer, offset + 16, list);
     addToList(getList().size() - 1, list);
 
-    addField(new Bitmap(buffer, offset, 4, "Continuous cycles?", s_noyes));
+    addField(new Bitmap(buffer, offset, 4, VEF_COMP_CONTINUOUS, s_noyes));
     addField(new Unknown(buffer, offset + 4, 196));
     offset += 200;
     return offset;

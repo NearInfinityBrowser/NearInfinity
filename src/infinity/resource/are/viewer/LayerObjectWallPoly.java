@@ -112,14 +112,14 @@ public class LayerObjectWallPoly extends LayerObject
       Rectangle bounds = null;
       int count = 0;
       try {
-        int baseOfs = ((SectionOffset)getParentStructure().getAttribute("Wall polygons offset")).getValue();
+        int baseOfs = ((SectionOffset)getParentStructure().getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS)).getValue();
         int ofs = wall.getOffset();
         count = (ofs - baseOfs) / wall.getSize();
         msg = String.format("Wall polygon #%1$d %2$s", count,
-                            createFlags((Flag)wall.getAttribute("Polygon flags"),
+                            createFlags((Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS),
                                         infinity.resource.wed.Polygon.s_flags));
-        int vNum = ((DecNumber)wall.getAttribute("# vertices")).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
+        int vNum = ((DecNumber)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
+        int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(wall, vOfs, 0, vNum, Vertex.class);
         poly = createPolygon(shapeCoords, 1.0);
         bounds = normalizePolygon(poly);

@@ -29,7 +29,7 @@ public final class AreResourceRef extends ResourceRef
   {
     super(parent, h_buffer, offset, name, "WAV");
     ResourceEntry res = ResourceFactory.getResourceEntry(
-            ((ResourceRef)are.getAttribute("WED resource")).getResourceName());
+            ((ResourceRef)are.getAttribute(AreResource.ARE_WED_RESOURCE)).getResourceName());
     String wedBIFF = "_dummy";
     if (res instanceof BIFFResourceEntry)
       wedBIFF = ((BIFFResourceEntry)res).getBIFFEntry().toString();

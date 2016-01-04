@@ -19,6 +19,9 @@ import infinity.resource.key.ResourceEntry;
 
 public final class SrcResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  // SRC-specific field labels
+  public static final String SRC_NUM_ENTRIES  = "# entries";
+
   private HexViewer hexViewer;
 
   public SrcResource(ResourceEntry entry) throws Exception
@@ -72,7 +75,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    SectionCount entry_count = new SectionCount(buffer, offset, 4, "# entries", Entry.class);
+    SectionCount entry_count = new SectionCount(buffer, offset, 4, SRC_NUM_ENTRIES, Entry.class);
     addField(entry_count);
     offset += 4;
     for (int i = 0; i < entry_count.getValue(); i++) {

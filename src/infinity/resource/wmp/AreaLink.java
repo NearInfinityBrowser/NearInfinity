@@ -13,6 +13,16 @@ import infinity.resource.AbstractStruct;
 
 abstract class AreaLink extends AbstractStruct
 {
+  // WMP/AreaLink-specific field labels
+  public static final String WMP_LINK_TARGET_AREA                   = "Target area";
+  public static final String WMP_LINK_TARGET_ENTRANCE               = "Target entrance";
+  public static final String WMP_LINK_DISTANCE_SCALE                = "Distance scale";
+  public static final String WMP_LINK_DEFAULT_ENTRANCE              = "Default entrance";
+  public static final String WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT     = "Random encounter area %d";
+  public static final String WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY  = "Random encounter probability";
+
+  public static final String[] s_entrance = {"No default set", "North", "East", "South", "West"};
+
   AreaLink(String name) throws Exception
   {
     super(null, name, new byte[216], 0);
@@ -26,17 +36,15 @@ abstract class AreaLink extends AbstractStruct
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new DecNumber(buffer, offset, 4, "Target area"));
-    addField(new TextString(buffer, offset + 4, 32, "Target entrance"));
-    addField(new DecNumber(buffer, offset + 36, 4, "Distance scale"));
-    addField(new Flag(buffer, offset + 40, 4, "Default entrance",
-                      new String[]{"No default set", "North", "East", "South", "West"}));
-    addField(new ResourceRef(buffer, offset + 44, "Random encounter area 1", "ARE"));
-    addField(new ResourceRef(buffer, offset + 52, "Random encounter area 2", "ARE"));
-    addField(new ResourceRef(buffer, offset + 60, "Random encounter area 3", "ARE"));
-    addField(new ResourceRef(buffer, offset + 68, "Random encounter area 4", "ARE"));
-    addField(new ResourceRef(buffer, offset + 76, "Random encounter area 5", "ARE"));
-    addField(new DecNumber(buffer, offset + 84, 4, "Random encounter probability"));
+    addField(new DecNumber(buffer, offset, 4, WMP_LINK_TARGET_AREA));
+    addField(new TextString(buffer, offset + 4, 32, WMP_LINK_TARGET_ENTRANCE));
+    addField(new DecNumber(buffer, offset + 36, 4, WMP_LINK_DISTANCE_SCALE));
+    addField(new Flag(buffer, offset + 40, 4, WMP_LINK_DEFAULT_ENTRANCE, s_entrance));
+    for (int i = 0; i < 5; i++) {
+      addField(new ResourceRef(buffer, offset + 44 + (i * 8),
+                               String.format(WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, i+1), "ARE"));
+    }
+    addField(new DecNumber(buffer, offset + 84, 4, WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY));
     addField(new Unknown(buffer, offset + 88, 128));
     return offset + 216;
   }

@@ -22,19 +22,31 @@ import java.util.Collections;
 
 final class Window extends AbstractStruct // implements AddRemovable
 {
-  public static final String FMT_NAME = "Panel %1$d";
+  // CHU/Window-specific field labels
+  public static final String CHU_WINDOW_PANEL               = "Panel";
+  public static final String CHU_WINDOW_NAME                = "Name";
+  public static final String CHU_WINDOW_ID                  = "Panel ID";
+  public static final String CHU_WINDOW_POSITION_X          = "Position: X";
+  public static final String CHU_WINDOW_POSITION_Y          = "Position: Y";
+  public static final String CHU_WINDOW_WIDTH               = "Width";
+  public static final String CHU_WINDOW_HEIGHT              = "Height";
+  public static final String CHU_WINDOW_HAS_BACKGROUND      = "Has background?";
+  public static final String CHU_WINDOW_NUM_CONTROLS        = "# controls";
+  public static final String CHU_WINDOW_BACKGROUND          = "Background image";
+  public static final String CHU_WINDOW_FIRST_CONTROL_INDEX = "First control index";
+  public static final String CHU_WINDOW_FLAGS               = "Flags";
 
   private static final String hasb[] = {"No", "Yes"};
   private static final String s_flag[] = {"No flags set", "Don't dim background"};
 
   Window() throws Exception
   {
-    super(null, "Panel", new byte[36], 0);
+    super(null, CHU_WINDOW_PANEL, new byte[36], 0);
   }
 
   Window(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, String.format(FMT_NAME, nr), buffer, offset);
+    super(superStruct, CHU_WINDOW_PANEL + " " + nr, buffer, offset);
   }
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -66,14 +78,14 @@ final class Window extends AbstractStruct // implements AddRemovable
   /** Returns the number of controls associated with this panel. */
   public int getControlCount()
   {
-    return (int)((UnsignDecNumber)getAttribute("# controls")).getValue();
+    return (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
   }
 
   /** Returns the given control. Index is relative to the controls associated with this panel. */
   public Control getControl(int index)
   {
     if (index >= 0 && index < getControlCount()) {
-      return (Control)getAttribute(String.format(Control.FMT_NAME, index));
+      return (Control)getAttribute(Control.CHU_CONTROL + " " + index);
     } else {
       return null;
     }
@@ -82,39 +94,39 @@ final class Window extends AbstractStruct // implements AddRemovable
   /** Returns the panel id. */
   public int getWindowId()
   {
-    return ((DecNumber)getAttribute("Panel ID")).getValue();
+    return ((DecNumber)getAttribute(CHU_WINDOW_ID)).getValue();
   }
 
   /** Returns the x and y positions of the panel. */
   public Point getWindowPosition()
   {
-    return new Point(((DecNumber)getAttribute("Position: X")).getValue(),
-                     ((DecNumber)getAttribute("Position: Y")).getValue());
+    return new Point(((DecNumber)getAttribute(CHU_WINDOW_POSITION_X)).getValue(),
+                     ((DecNumber)getAttribute(CHU_WINDOW_POSITION_Y)).getValue());
   }
 
   /** Returns width and height of the panel. */
   public Dimension getWindowDimension()
   {
-    return new Dimension(((DecNumber)getAttribute("Width")).getValue(),
-                         ((DecNumber)getAttribute("Height")).getValue());
+    return new Dimension(((DecNumber)getAttribute(CHU_WINDOW_WIDTH)).getValue(),
+                         ((DecNumber)getAttribute(CHU_WINDOW_HEIGHT)).getValue());
   }
 
   /** Returns whether the panel references a background MOS. */
   public boolean hasBackgroundImage()
   {
-    return ((Bitmap)getAttribute("Has background?")).getValue() == 1;
+    return ((Bitmap)getAttribute(CHU_WINDOW_HAS_BACKGROUND)).getValue() == 1;
   }
 
   /** Returns the background MOS for the panel. */
   public String getBackgroundImage()
   {
-    return ((ResourceRef)getAttribute("Background image")).getResourceName();
+    return ((ResourceRef)getAttribute(CHU_WINDOW_BACKGROUND)).getResourceName();
   }
 
   public int readControls(byte buffer[]) throws Exception
   {
-    int numctrl = (int)((UnsignDecNumber)getAttribute("# controls")).getValue();
-    int first = (int)((UnsignDecNumber)getAttribute("First control index")).getValue();
+    int numctrl = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
+    int first = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_FIRST_CONTROL_INDEX)).getValue();
     int controlsoffset = getChu().getControlsOffset() + (first*8);
     int endoffset = controlsoffset;
     for (int i = 0; i < numctrl; i++) {
@@ -151,20 +163,20 @@ final class Window extends AbstractStruct // implements AddRemovable
   public int read(byte buffer[], int offset) throws Exception
   {
     if (getChu().getPanelSize() == 36) {
-      addField(new TextString(buffer, offset, 8, "Name"), 0);
+      addField(new TextString(buffer, offset, 8, CHU_WINDOW_NAME), 0);
       offset += 8;
     }
-    addField(new DecNumber(buffer, offset, 2, "Panel ID"));
+    addField(new DecNumber(buffer, offset, 2, CHU_WINDOW_ID));
     addField(new Unknown(buffer, offset + 2, 2));
-    addField(new DecNumber(buffer, offset + 4, 2, "Position: X"));
-    addField(new DecNumber(buffer, offset + 6, 2, "Position: Y"));
-    addField(new DecNumber(buffer, offset + 8, 2, "Width"));
-    addField(new DecNumber(buffer, offset + 10, 2, "Height"));
-    addField(new Bitmap(buffer, offset + 12, 2, "Has background?", hasb));
-    addField(new UnsignDecNumber(buffer, offset + 14, 2, "# controls"));
-    addField(new ResourceRef(buffer, offset + 16, "Background image", "MOS"));
-    addField(new UnsignDecNumber(buffer, offset + 24, 2, "First control index"));
-    addField(new Flag(buffer, offset + 26, 2, "Flags", s_flag));
+    addField(new DecNumber(buffer, offset + 4, 2, CHU_WINDOW_POSITION_X));
+    addField(new DecNumber(buffer, offset + 6, 2, CHU_WINDOW_POSITION_Y));
+    addField(new DecNumber(buffer, offset + 8, 2, CHU_WINDOW_WIDTH));
+    addField(new DecNumber(buffer, offset + 10, 2, CHU_WINDOW_HEIGHT));
+    addField(new Bitmap(buffer, offset + 12, 2, CHU_WINDOW_HAS_BACKGROUND, hasb));
+    addField(new UnsignDecNumber(buffer, offset + 14, 2, CHU_WINDOW_NUM_CONTROLS));
+    addField(new ResourceRef(buffer, offset + 16, CHU_WINDOW_BACKGROUND, "MOS"));
+    addField(new UnsignDecNumber(buffer, offset + 24, 2, CHU_WINDOW_FIRST_CONTROL_INDEX));
+    addField(new Flag(buffer, offset + 26, 2, CHU_WINDOW_FLAGS, s_flag));
     return offset + 28;
   }
 }

@@ -14,16 +14,25 @@ import infinity.resource.StructEntry;
 
 public final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
+  // CRE/SpellMemorization-specific field labels
+  public static final String CRE_MEMORIZATION                         = "Memorization info";
+  public static final String CRE_MEMORIZATION_LEVEL                   = "Spell level";
+  public static final String CRE_MEMORIZATION_NUM_MEMORIZABLE_TOTAL   = "# spells memorizable";
+  public static final String CRE_MEMORIZATION_NUM_MEMORIZABLE_CURRENT = "# currently memorizable";
+  public static final String CRE_MEMORIZATION_TYPE                    = "Type";
+  public static final String CRE_MEMORIZATION_SPELL_TABLE_INDEX       = "Spell table index";
+  public static final String CRE_MEMORIZATION_SPELL_COUNT             = "Spell count";
+
   private static final String[] s_spelltype = {"Priest", "Wizard", "Innate"};
 
   SpellMemorization() throws Exception
   {
-    super(null, "Memorization info", new byte[16], 0);
+    super(null, CRE_MEMORIZATION, new byte[16], 0);
   }
 
   SpellMemorization(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Memorization info " + nr, buffer, offset);
+    super(superStruct, CRE_MEMORIZATION + " " + nr, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -51,10 +60,10 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof MemorizedSpells) {
-      int index = ((DecNumber)getAttribute("Spell table index")).getValue();
-      index += ((DecNumber)getAttribute("Spell count")).getValue();
+      int index = ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX)).getValue();
+      index += ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_COUNT)).getValue();
       CreResource cre = (CreResource)getSuperStruct();
-      int offset = ((HexNumber)cre.getAttribute("Memorized spells offset")).getValue() +
+      int offset = ((HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_MEMORIZED_SPELLS)).getValue() +
                    cre.getExtraOffset();
       datatype.setOffset(offset + 12 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
@@ -64,19 +73,19 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   @Override
   public int read(byte buffer[], int offset)
   {
-    addField(new DecNumber(buffer, offset, 2, "Spell level"));
-    addField(new DecNumber(buffer, offset + 2, 2, "# spells memorizable"));
-    addField(new DecNumber(buffer, offset + 4, 2, "# currently memorizable"));
-    addField(new Bitmap(buffer, offset + 6, 2, "Type", s_spelltype));
-    addField(new DecNumber(buffer, offset + 8, 4, "Spell table index"));
-    addField(new DecNumber(buffer, offset + 12, 4, "Spell count"));
+    addField(new DecNumber(buffer, offset, 2, CRE_MEMORIZATION_LEVEL));
+    addField(new DecNumber(buffer, offset + 2, 2, CRE_MEMORIZATION_NUM_MEMORIZABLE_TOTAL));
+    addField(new DecNumber(buffer, offset + 4, 2, CRE_MEMORIZATION_NUM_MEMORIZABLE_CURRENT));
+    addField(new Bitmap(buffer, offset + 6, 2, CRE_MEMORIZATION_TYPE, s_spelltype));
+    addField(new DecNumber(buffer, offset + 8, 4, CRE_MEMORIZATION_SPELL_TABLE_INDEX));
+    addField(new DecNumber(buffer, offset + 12, 4, CRE_MEMORIZATION_SPELL_COUNT));
     return offset + 16;
   }
 
   public void readMemorizedSpells(byte buffer[], int offset) throws Exception
   {
-    DecNumber firstSpell = (DecNumber)getAttribute("Spell table index");
-    DecNumber numSpell = (DecNumber)getAttribute("Spell count");
+    DecNumber firstSpell = (DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX);
+    DecNumber numSpell = (DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_COUNT);
     for (int i = 0; i < numSpell.getValue(); i++) {
       addField(new MemorizedSpells(this, buffer, offset + 12 * (firstSpell.getValue() + i)));
     }
@@ -84,7 +93,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
 
   public int updateSpells(int offset, int startIndex)
   {
-    ((DecNumber)getAttribute("Spell table index")).setValue(startIndex);
+    ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX)).setValue(startIndex);
     int count = 0;
     for (int i = 0; i < getFieldCount(); i++) {
       StructEntry entry = getField(i);
@@ -95,7 +104,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
         count++;
       }
     }
-    ((DecNumber)getAttribute("Spell count")).setValue(count);
+    ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_COUNT)).setValue(count);
     return count;
   }
 }

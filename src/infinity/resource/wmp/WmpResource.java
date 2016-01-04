@@ -25,6 +25,10 @@ import javax.swing.JTabbedPane;
 
 public final class WmpResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  // WMP-specific field labels
+  public static final String WMP_NUM_MAPS     = "# maps";
+  public static final String WMP_OFFSET_MAPS  = "Maps offset";
+
   private HexViewer hexViewer;
 
   public WmpResource(ResourceEntry entry) throws Exception
@@ -59,9 +63,9 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
       case 0:
       {
         JTabbedPane tabbedPane = new JTabbedPane();
-        int count = ((DecNumber)getAttribute("# maps")).getValue();
+        int count = ((DecNumber)getAttribute(WMP_NUM_MAPS)).getValue();
         for (int i = 0; i < count; i++) {
-          MapEntry entry = (MapEntry)getAttribute("Map " + i);
+          MapEntry entry = (MapEntry)getAttribute(MapEntry.WMP_MAP + " " + i);
           tabbedPane.addTab(entry.getName(), entry.getViewerTab(0));
         }
         return tabbedPane;
@@ -99,11 +103,11 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    SectionCount entry_count = new SectionCount(buffer, offset + 8, 4, "# maps", MapEntry.class);
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    SectionCount entry_count = new SectionCount(buffer, offset + 8, 4, WMP_NUM_MAPS, MapEntry.class);
     addField(entry_count);
-    SectionOffset entry_offset = new SectionOffset(buffer, offset + 12, "Maps offset", MapEntry.class);
+    SectionOffset entry_offset = new SectionOffset(buffer, offset + 12, WMP_OFFSET_MAPS, MapEntry.class);
     addField(entry_offset);
     offset = entry_offset.getValue();
     for (int i = 0; i < entry_count.getValue(); i++) {

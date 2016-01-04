@@ -122,11 +122,11 @@ public class LayerObjectContainer extends LayerObject
       Polygon poly = null;
       Rectangle bounds = null;
       try {
-        int type = ((Bitmap)container.getAttribute("Type")).getValue();
+        int type = ((Bitmap)container.getAttribute(Container.ARE_CONTAINER_TYPE)).getValue();
         if (type < 0) type = 0; else if (type >= Type.length) type = Type.length - 1;
-        msg = String.format("%1$s (%2$s)", ((TextString)container.getAttribute("Name")).toString(), Type[type]);
-        int vNum = ((DecNumber)container.getAttribute("# vertices")).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
+        msg = String.format("%1$s (%2$s)", ((TextString)container.getAttribute(Container.ARE_CONTAINER_NAME)).toString(), Type[type]);
+        int vNum = ((DecNumber)container.getAttribute(Container.ARE_CONTAINER_NUM_VERTICES)).getValue();
+        int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(container, vOfs, 0, vNum, Vertex.class);
         poly = createPolygon(shapeCoords, 1.0);
         bounds = normalizePolygon(poly);

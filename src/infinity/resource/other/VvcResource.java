@@ -24,6 +24,36 @@ import infinity.search.SearchOptions;
 
 public final class VvcResource extends AbstractStruct implements Resource, HasViewerTabs
 {
+  // VVC-specific field labels
+  public static final String VVC_ANIMATION                = "Animation";
+  public static final String VVC_SHADOW                   = "Shadow";
+  public static final String VVC_DRAWING                  = "Drawing";
+  public static final String VVC_COLOR_ADJUSTMENT         = "Color adjustment";
+  public static final String VVC_SEQUENCING               = "Sequencing";
+  public static final String VVC_POSITION_X               = "Position: X";
+  public static final String VVC_POSITION_Y               = "Position: Y";
+  public static final String VVC_POSITION_Z               = "Position: Z";
+  public static final String VVC_DRAW_ORIENTED            = "Draw oriented";
+  public static final String VVC_FRAME_RATE               = "Frame rate";
+  public static final String VVC_NUM_ORIENTATIONS         = "# orientations";
+  public static final String VVC_PRIMARY_ORIENTATION      = "Primary orientation";
+  public static final String VVC_TRAVEL_ORIENTATION       = "Travel orientation";
+  public static final String VVC_PALETTE                  = "Palette";
+  public static final String VVC_LIGHT_SPOT_WIDTH         = "Light spot width";
+  public static final String VVC_LIGHT_SPOT_HEIGHT        = "Light spot height";
+  public static final String VVC_LIGHT_SPOT_BRIGHTNESS    = "Light spot brightness";
+  public static final String VVC_DURATION                 = "Duration (frames)";
+  public static final String VVC_RESOURCE                 = "Resource";
+  public static final String VVC_FIRST_ANIMATION_INDEX    = "First animation number";
+  public static final String VVC_SECOND_ANIMATION_INDEX   = "Second animation number";
+  public static final String VVC_CURRENT_ANIMATION_INDEX  = "Current animation number";
+  public static final String VVC_CONTINUOUS_PLAYBACK      = "Continuous playback";
+  public static final String VVC_SOUND_STARTING           = "Starting sound";
+  public static final String VVC_SOUND_DURATION           = "Duration sound";
+  public static final String VVC_ALPHA_MASK               = "Alpha mask";
+  public static final String VVC_THIRD_ANIMATION_INDEX    = "Third animation number";
+  public static final String VVC_SOUND_ENDING             = "Ending sound";
+
   public static final String[] s_transparency = {
       "No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
       "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
@@ -49,41 +79,38 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    addField(new ResourceRef(buffer, offset + 8, "Animation", "BAM"));
-    addField(new ResourceRef(buffer, offset + 16, "Shadow", "BAM"));
-    addField(new Flag(buffer, offset + 24, 2, "Drawing", s_transparency));
-    addField(new Flag(buffer, offset + 26, 2, "Color adjustment", s_tint));
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    addField(new ResourceRef(buffer, offset + 8, VVC_ANIMATION, "BAM"));
+    addField(new ResourceRef(buffer, offset + 16, VVC_SHADOW, "BAM"));
+    addField(new Flag(buffer, offset + 24, 2, VVC_DRAWING, s_transparency));
+    addField(new Flag(buffer, offset + 26, 2, VVC_COLOR_ADJUSTMENT, s_tint));
     addField(new Unknown(buffer, offset + 28, 4));
-    addField(new Flag(buffer, offset + 32, 4, "Sequencing", s_seq));
+    addField(new Flag(buffer, offset + 32, 4, VVC_SEQUENCING, s_seq));
     addField(new Unknown(buffer, offset + 36, 4));
-    addField(new DecNumber(buffer, offset + 40, 4, "Position: X"));
-    addField(new DecNumber(buffer, offset + 44, 4, "Position: Y"));
-    addField(new Bitmap(buffer, offset + 48, 4, "Draw oriented", s_noyes));
-    addField(new DecNumber(buffer, offset + 52, 4, "Frame rate"));
-    addField(new DecNumber(buffer, offset + 56, 4, "# orientations"));
-    addField(new DecNumber(buffer, offset + 60, 4, "Primary orientation"));
-    addField(new Flag(buffer, offset + 64, 4, "Travel orientation", s_face));
-    addField(new ResourceRef(buffer, offset + 68, "Palette", "BMP"));
-//    addField(new Unknown(buffer, offset + 72, 4));
-    addField(new DecNumber(buffer, offset + 76, 4, "Position: Z"));
-    addField(new DecNumber(buffer, offset + 80, 4, "Light spot width"));
-    addField(new DecNumber(buffer, offset + 84, 4, "Light spot height"));
-    addField(new DecNumber(buffer, offset + 88, 4, "Light spot brightness"));
-    addField(new DecNumber(buffer, offset + 92, 4, "Duration (frames)"));
-    addField(new ResourceRef(buffer, offset + 96, "Resource", "VVC"));
-//    addField(new Unknown(buffer, offset + 100, 4));
-    addField(new DecNumber(buffer, offset + 104, 4, "First animation number"));
-    addField(new DecNumber(buffer, offset + 108, 4, "Second animation number"));
-    addField(new DecNumber(buffer, offset + 112, 4, "Current animation number"));
-    addField(new Bitmap(buffer, offset + 116, 4, "Continuous playback", s_noyes));
-    addField(new ResourceRef(buffer, offset + 120, "Starting sound", "WAV"));
-    addField(new ResourceRef(buffer, offset + 128, "Duration sound", "WAV"));
-    addField(new ResourceRef(buffer, offset + 136, "Alpha mask", "BAM"));
-//    addField(new Unknown(buffer, offset + 136, 4));
-    addField(new DecNumber(buffer, offset + 144, 4, "Third animation number"));
-    addField(new ResourceRef(buffer, offset + 148, "Ending sound", "WAV"));
+    addField(new DecNumber(buffer, offset + 40, 4, VVC_POSITION_X));
+    addField(new DecNumber(buffer, offset + 44, 4, VVC_POSITION_Y));
+    addField(new Bitmap(buffer, offset + 48, 4, VVC_DRAW_ORIENTED, s_noyes));
+    addField(new DecNumber(buffer, offset + 52, 4, VVC_FRAME_RATE));
+    addField(new DecNumber(buffer, offset + 56, 4, VVC_NUM_ORIENTATIONS));
+    addField(new DecNumber(buffer, offset + 60, 4, VVC_PRIMARY_ORIENTATION));
+    addField(new Flag(buffer, offset + 64, 4, VVC_TRAVEL_ORIENTATION, s_face));
+    addField(new ResourceRef(buffer, offset + 68, VVC_PALETTE, "BMP"));
+    addField(new DecNumber(buffer, offset + 76, 4, VVC_POSITION_Z));
+    addField(new DecNumber(buffer, offset + 80, 4, VVC_LIGHT_SPOT_WIDTH));
+    addField(new DecNumber(buffer, offset + 84, 4, VVC_LIGHT_SPOT_HEIGHT));
+    addField(new DecNumber(buffer, offset + 88, 4, VVC_LIGHT_SPOT_BRIGHTNESS));
+    addField(new DecNumber(buffer, offset + 92, 4, VVC_DURATION));
+    addField(new ResourceRef(buffer, offset + 96, VVC_RESOURCE, "VVC"));
+    addField(new DecNumber(buffer, offset + 104, 4, VVC_FIRST_ANIMATION_INDEX));
+    addField(new DecNumber(buffer, offset + 108, 4, VVC_SECOND_ANIMATION_INDEX));
+    addField(new DecNumber(buffer, offset + 112, 4, VVC_CURRENT_ANIMATION_INDEX));
+    addField(new Bitmap(buffer, offset + 116, 4, VVC_CONTINUOUS_PLAYBACK, s_noyes));
+    addField(new ResourceRef(buffer, offset + 120, VVC_SOUND_STARTING, "WAV"));
+    addField(new ResourceRef(buffer, offset + 128, VVC_SOUND_DURATION, "WAV"));
+    addField(new ResourceRef(buffer, offset + 136, VVC_ALPHA_MASK, "BAM"));
+    addField(new DecNumber(buffer, offset + 144, 4, VVC_THIRD_ANIMATION_INDEX));
+    addField(new ResourceRef(buffer, offset + 148, VVC_SOUND_ENDING, "WAV"));
     addField(new Unknown(buffer, offset + 156, 336));
     return offset + 492;
   }

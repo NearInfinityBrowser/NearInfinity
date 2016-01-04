@@ -16,9 +16,12 @@ import infinity.resource.StructEntry;
 
 public class ProEffect extends AbstractStruct implements AddRemovable
 {
+  // ARE/Projectile Effect-specific field labels
+  public static final String ARE_PROEFFECT  = "Effect";
+
   ProEffect(AbstractStruct superStruct, byte[] buffer, int offset, int number) throws Exception
   {
-    super(superStruct, "Effect " + number, buffer, offset);
+    super(superStruct, ARE_PROEFFECT + " " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -34,8 +37,8 @@ public class ProEffect extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
     EffectType type = new EffectType(buffer, offset + 8, 4);
     addField(type);
     List<StructEntry> list = new ArrayList<StructEntry>();

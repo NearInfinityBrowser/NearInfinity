@@ -8,14 +8,17 @@ import infinity.resource.AbstractStruct;
 
 public final class OpenVertexImpeded extends Vertex
 {
+  // OpenVertexImpeded-specific field labels
+  public static final String VERTEX_OPEN_IMPEDED  = "Open vertex, impeded";
+
   public OpenVertexImpeded() throws Exception
   {
-    super(null, "Open vertex, impeded", new byte[4], 0);
+    super(null, VERTEX_OPEN_IMPEDED, new byte[4], 0);
   }
 
   public OpenVertexImpeded(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Open vertex, impeded " + nr, buffer, offset);
+    super(superStruct, VERTEX_OPEN_IMPEDED + " " + nr, buffer, offset);
   }
 }
 

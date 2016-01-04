@@ -103,11 +103,11 @@ public class LayerObjectAutomapPST extends LayerObject
     if (note != null) {
       String msg = "";
       try {
-        int v = ((DecNumber)note.getAttribute("Coordinate: X")).getValue();
+        int v = ((DecNumber)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_X)).getValue();
         location.x = (int)(v * MapScale);
-        v = ((DecNumber)note.getAttribute("Coordinate: Y")).getValue();
+        v = ((DecNumber)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_Y)).getValue();
         location.y = (int)(v * MapScale);
-        msg = ((TextString)note.getAttribute("Text")).toString();
+        msg = ((TextString)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_TEXT)).toString();
       } catch (Exception e) {
         e.printStackTrace();
       }
