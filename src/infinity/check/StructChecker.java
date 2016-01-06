@@ -348,14 +348,17 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
     List<StructEntry> flatList = struct.getFlatList();
-    if (flatList.size() < 2)
+    if (flatList.size() < 2) {
       return;
+    }
+
     StructEntry entry1 = flatList.get(0);
+    int offset = entry1.getOffset() + entry1.getSize();
     for (int i = 1; i < flatList.size(); i++) {
       StructEntry entry2 = flatList.get(i);
       if (!entry2.getName().equals(AbstractStruct.COMMON_UNUSED_BYTES)) {
-        int delta = entry2.getOffset() - entry1.getOffset() - entry1.getSize();
-        if (delta < 0) {
+        int delta = entry2.getOffset() - offset;
+        if (entry2.getSize() > 0 && delta < 0) {
           synchronized (table) {
             table.addTableItem(new Corruption(entry, entry1.getOffset(),
                                               entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) +
@@ -376,6 +379,8 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
                                               "h)"));
           }
         }
+        // Using max() as shared data regions may confuse the consistency check algorithm
+        offset = Math.max(offset, entry2.getOffset() + entry2.getSize());
         entry1 = entry2;
       }
     }

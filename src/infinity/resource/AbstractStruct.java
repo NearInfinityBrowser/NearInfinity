@@ -1008,14 +1008,15 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     for (int i = 0; i < flatList.size(); i++) {
       StructEntry se = flatList.get(i);
       int delta = se.getOffset() - offset;
-      if (delta > 0) {
+      if (se.getSize() > 0 && delta > 0) {
         Unknown hole = new Unknown(buffer, offset, delta, COMMON_UNUSED_BYTES);
         list.add(hole);
         flatList.add(i, hole);
         System.out.println("Hole: " + name + " off: " + Integer.toHexString(offset) + "h len: " + delta);
         i++;
       }
-      offset = se.getOffset() + se.getSize();
+      // Using max() as shared data regions may confuse the hole detection algorithm
+      offset = Math.max(offset, se.getOffset() + se.getSize());
     }
     if (endoffset < buffer.length) { // Does this break anything?
       list.add(new Unknown(buffer, endoffset, buffer.length - endoffset, COMMON_UNUSED_BYTES));
