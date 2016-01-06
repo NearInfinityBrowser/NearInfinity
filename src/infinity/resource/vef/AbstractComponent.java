@@ -14,7 +14,7 @@ import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.StructEntry;
 
-public class ComponentBase extends AbstractStruct implements AddRemovable
+public class AbstractComponent extends AbstractStruct implements AddRemovable
 {
   // VEF/Component-specific field labels
   public static final String VEF_COMP_TICKS_START = "Ticks until start";
@@ -23,12 +23,12 @@ public class ComponentBase extends AbstractStruct implements AddRemovable
 
   public static final String[] s_noyes = {"No", "Yes"};
 
-  ComponentBase(String label) throws Exception
+  protected AbstractComponent(String label) throws Exception
   {
     super(null, label, new byte[224], 0);
   }
 
-  ComponentBase(AbstractStruct superStruct, byte[] buffer, int offset, String label) throws Exception
+  protected AbstractComponent(AbstractStruct superStruct, byte[] buffer, int offset, String label) throws Exception
   {
     super(superStruct, label, buffer, offset);
   }

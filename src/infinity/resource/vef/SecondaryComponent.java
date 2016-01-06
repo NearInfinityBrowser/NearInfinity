@@ -6,7 +6,7 @@ package infinity.resource.vef;
 
 import infinity.resource.AbstractStruct;
 
-public final class SecondaryComponent extends ComponentBase
+public final class SecondaryComponent extends AbstractComponent
 {
   // VEF/Component2-specific field labels
   public static final String VEF_COMP_SEC = "Secondary component";
