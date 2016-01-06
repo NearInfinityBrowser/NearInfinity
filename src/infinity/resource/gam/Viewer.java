@@ -59,7 +59,7 @@ final class Viewer extends JPanel
       stats2Panel = ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, PartyNPC.GAM_NPC_CHARACTER);
     }
 
-    JPanel var1Panel = ViewerUtil.makeListPanel("Variables", gam, Variable.class, Variable.GAM_VAR_NAME,
+    JPanel var1Panel = ViewerUtil.makeListPanel("Variables", gam, Variable.class, Variable.VAR_NAME,
                                                 new VariableListRenderer());
 
     setLayout(new GridLayout(2, 3, 3, 3));
