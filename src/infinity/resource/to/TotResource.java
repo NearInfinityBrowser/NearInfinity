@@ -9,7 +9,7 @@ import javax.swing.JComponent;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
@@ -21,7 +21,7 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
   // TOT-specific field labels
   public static final String TOT_EMPTY = "(empty)";
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public TotResource(ResourceEntry entry) throws Exception
   {
@@ -48,7 +48,7 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
     if (hexViewer == null) {
       BasicColorMap colorMap = new BasicColorMap(this, false);
       colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, StringEntry.class);
-      hexViewer = new HexViewer(this, colorMap);
+      hexViewer = new StructHexViewer(this, colorMap);
     }
     return hexViewer;
   }

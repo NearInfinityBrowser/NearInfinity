@@ -28,7 +28,7 @@ import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
@@ -486,7 +486,7 @@ public final class CreResource extends AbstractStruct
   private boolean isChr;
   private JMenuItem miExport, miConvert;
   private ButtonPopupMenu bExport;
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
   private Boolean hasRawTab;
 
   public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
@@ -743,7 +743,7 @@ public final class CreResource extends AbstractStruct
         return new Viewer(this);
       case 1:
         if (showRawTab() && hexViewer == null) {
-          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
     }

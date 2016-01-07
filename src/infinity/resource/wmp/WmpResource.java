@@ -10,7 +10,7 @@ import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasViewerTabs;
@@ -29,7 +29,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   public static final String WMP_NUM_MAPS     = "# maps";
   public static final String WMP_OFFSET_MAPS  = "Maps offset";
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public WmpResource(ResourceEntry entry) throws Exception
   {
@@ -73,7 +73,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
       case 1:
       {
         if (hexViewer == null) {
-          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
       }

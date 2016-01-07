@@ -12,7 +12,7 @@ import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -48,7 +48,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   public static final String WED_OFFSET_WALL_POLYGON_LOOKUP = "Wall polygon lookup offset";
   public static final String WED_WALL_POLYGON_INDEX         = "Wall polygon index";
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public WedResource(ResourceEntry entry) throws Exception
   {
@@ -94,7 +94,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   public JComponent getViewerTab(int index)
   {
     if (hexViewer == null) {
-      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+      hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
     return hexViewer;
   }

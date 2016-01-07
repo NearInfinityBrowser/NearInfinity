@@ -15,7 +15,7 @@ import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -122,7 +122,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_atype_iwd2 = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
   public static final String[] s_edge = {"No flags set", "Party required", "Party enabled"};
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
   private AreaViewer areaViewer;
 
   public static void addScriptNames(Set<String> scriptNames, byte buffer[])
@@ -282,7 +282,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       case 1: // raw tab
       {
         if (hexViewer == null) {
-          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
       }

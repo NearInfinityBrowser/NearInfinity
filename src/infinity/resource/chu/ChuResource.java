@@ -10,7 +10,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasViewerTabs;
@@ -36,7 +36,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   private List<Pair<Integer>> listControls;
   private int ofsPanels, numPanels, sizePanels, ofsControls, numControls;
   private Viewer detailViewer;
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public ChuResource(ResourceEntry entry) throws Exception
   {
@@ -102,7 +102,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
           BasicColorMap colorMap = new BasicColorMap(this, false);
           colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, Window.class);
           colorMap.setColoredEntry(BasicColorMap.Coloring.GREEN, Control.class);
-          hexViewer = new HexViewer(this, colorMap);
+          hexViewer = new StructHexViewer(this, colorMap);
         }
         return hexViewer;
       }

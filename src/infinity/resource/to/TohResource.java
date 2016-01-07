@@ -18,7 +18,7 @@ import infinity.datatype.Unknown;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Profile;
@@ -33,7 +33,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
   public static final String TOH_NUM_ENTRIES    = "# strref entries";
   public static final String TOH_OFFSET_ENTRIES = "Strref entries offset";
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public TohResource(ResourceEntry entry) throws Exception
   {
@@ -63,7 +63,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
       colorMap.setColoredEntry(BasicColorMap.Coloring.GREEN, StrRefEntry2.class);
       colorMap.setColoredEntry(BasicColorMap.Coloring.RED, StringEntry.class);
       colorMap.setColoredEntry(BasicColorMap.Coloring.CYAN, StringEntry2.class);
-      hexViewer = new HexViewer(this, colorMap);
+      hexViewer = new StructHexViewer(this, colorMap);
     }
     return hexViewer;
   }

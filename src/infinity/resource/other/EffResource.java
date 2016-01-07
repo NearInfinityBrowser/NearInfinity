@@ -13,7 +13,7 @@ import infinity.datatype.EffectType;
 import infinity.datatype.TextString;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Effect2;
 import infinity.resource.HasViewerTabs;
@@ -28,7 +28,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
   public static final String EFF_SIGNATURE_2  = "Signature 2";
   public static final String EFF_VERSION_2    = "Version 2";
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public EffResource(ResourceEntry entry) throws Exception
   {
@@ -73,7 +73,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
   public JComponent getViewerTab(int index)
   {
     if (hexViewer == null) {
-      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+      hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
     return hexViewer;
   }

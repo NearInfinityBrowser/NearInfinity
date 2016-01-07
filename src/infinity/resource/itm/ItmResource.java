@@ -17,7 +17,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractAbility;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
@@ -223,7 +223,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Sling", "Spear", "Short sword", "War hammer", "Wings?", "Feathered wings"
           };
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public static String getSearchString(byte buffer[])
   {
@@ -283,7 +283,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       case 1:
       {
         if (hexViewer == null) {
-          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
       }

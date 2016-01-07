@@ -33,6 +33,7 @@ import infinity.datatype.ColorPicker;
 import infinity.datatype.ColorValue;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
+import infinity.datatype.FloatNumber;
 import infinity.datatype.HashBitmap;
 import infinity.datatype.MultiNumber;
 import infinity.datatype.ProRef;
@@ -109,7 +110,7 @@ import tv.porst.jhexview.JHexView;
  *
  * @author argent77
  */
-public class HexViewer extends JPanel implements IHexViewListener, IDataChangedListener,
+public class StructHexViewer extends JPanel implements IHexViewListener, IDataChangedListener,
                                                  ActionListener, ChangeListener, Closeable
 {
   private static final ButtonPanel.Control BUTTON_FIND      = ButtonPanel.Control.FindButton;
@@ -156,7 +157,8 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
       return "Resource reference";
     } else if (type instanceof StringRef) {
       return "String reference";
-    } else if (type instanceof DecNumber || type instanceof MultiNumber) {
+    } else if (type instanceof DecNumber || type instanceof MultiNumber ||
+               type instanceof FloatNumber) {
       return "Number";
     } else if (type instanceof Bitmap || type instanceof HashBitmap ||
                type instanceof ResourceBitmap) {
@@ -172,17 +174,17 @@ public class HexViewer extends JPanel implements IHexViewListener, IDataChangedL
   }
 
 
-  public HexViewer(AbstractStruct struct)
+  public StructHexViewer(AbstractStruct struct)
   {
     this(struct, null, null);
   }
 
-  public HexViewer(AbstractStruct struct, IColormap colorMap)
+  public StructHexViewer(AbstractStruct struct, IColormap colorMap)
   {
     this(struct, colorMap, null);
   }
 
-  public HexViewer(AbstractStruct struct, IColormap colorMap, IDataProvider dataProvider)
+  public StructHexViewer(AbstractStruct struct, IColormap colorMap, IDataProvider dataProvider)
   {
     super();
 

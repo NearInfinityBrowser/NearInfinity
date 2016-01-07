@@ -12,7 +12,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
@@ -29,7 +29,7 @@ public final class WfxResource extends AbstractStruct implements Resource, HasVi
   private static final String[] s_flag = {"No flags set", "Cutscene audio", "Alternate SR curve",
                                           "Pitch variance", "Volume variance", "Disable environmental effects"};
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public WfxResource(ResourceEntry entry) throws Exception
   {
@@ -67,7 +67,7 @@ public final class WfxResource extends AbstractStruct implements Resource, HasVi
   public JComponent getViewerTab(int index)
   {
     if (hexViewer == null) {
-      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+      hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
     return hexViewer;
   }
