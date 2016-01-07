@@ -50,7 +50,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
 
   public StringRef(StructEntry parent, String name, int value)
   {
-    super(parent, 0, 8, name); // OK?
+    super(parent, 0, 4, name);
     this.value = value;
   }
 
