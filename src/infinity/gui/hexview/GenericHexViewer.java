@@ -13,13 +13,11 @@ import javax.swing.JPanel;
 
 import infinity.NearInfinity;
 import infinity.gui.StatusBar;
-import infinity.gui.WindowBlocker;
 import infinity.resource.Closeable;
 import infinity.resource.key.ResourceEntry;
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.HexViewEvent;
 import tv.porst.jhexview.IDataChangedListener;
-import tv.porst.jhexview.IDataProvider;
 import tv.porst.jhexview.IHexViewListener;
 import tv.porst.jhexview.IMenuCreator;
 import tv.porst.jhexview.JHexView;
@@ -36,7 +34,6 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
   private final VariableDataProvider dataProvider;
 
   private FindDataDialog findData;
-  private int cachedSize;
   private boolean isModified;
 
   public GenericHexViewer()
@@ -209,20 +206,6 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     hexView.clearModified();
   }
 
-  /** Notify HexViewer that data has been changed and must be refreshed. */
-  public void refreshData(boolean force)
-  {
-    if (force || cachedSize != getDataProvider().getDataLength()) {
-      WindowBlocker.blockWindow(true);
-      try {
-        // TODO: reload data, preserve current position if possible
-        cachedSize = getDataProvider().getDataLength();
-      } finally {
-        WindowBlocker.blockWindow(false);
-      }
-    }
-  }
-
   /** Updates the offset information in NI's statusbar. */
   public void updateStatusBar()
   {
@@ -292,8 +275,6 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ?
         JHexView.DefinitionStatus.DEFINED : JHexView.DefinitionStatus.UNDEFINED);
     add(hexView, BorderLayout.CENTER);
-
-    cachedSize = getDataProvider().getDataLength();
   }
 
   private void setModified(boolean b)
@@ -302,11 +283,6 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     if (!isModified) {
       hexView.clearModified();
     }
-  }
-
-  private IDataProvider getDataProvider()
-  {
-    return dataProvider;
   }
 
   private void updateStatusBar(int offset)
