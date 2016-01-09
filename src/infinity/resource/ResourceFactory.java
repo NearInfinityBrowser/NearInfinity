@@ -107,13 +107,11 @@ public final class ResourceFactory
     return getResource(entry, null);
   }
 
-  public static Resource getResource(ResourceEntry entry, String ext)
+  public static Resource getResource(ResourceEntry entry, String forcedExtension)
   {
     Resource res = null;
     try {
-      if (ext == null || ext.isEmpty()) {
-        ext = entry.getExtension();
-      }
+      String ext = (forcedExtension != null) ? forcedExtension : entry.getExtension();
       if (ext.equalsIgnoreCase("BAM")) {
         res = new BamResource(entry);
       } else if (ext.equalsIgnoreCase("TIS")) {
@@ -142,7 +140,7 @@ public final class ResourceFactory
         res = new MveResource(entry);
       } else if (ext.equalsIgnoreCase("WBM")) {
         res = new WbmResource(entry);
-      } else if (ext.equalsIgnoreCase("PLT")) {
+      } else if (ext.equalsIgnoreCase("PLT") && ext.equals(forcedExtension)) {
         res = new PltResource(entry);
       } else if (ext.equalsIgnoreCase("BCS") ||
                  ext.equalsIgnoreCase("BS")) {
