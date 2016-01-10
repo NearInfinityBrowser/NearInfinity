@@ -59,9 +59,14 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   private static final int TAB_TEXT = 1;
   private static final int TAB_RAW  = 2;
 
+  private static final int MIN_SIZE_WARN        =   4 * 1024 * 1024;  // Show warning for files >= size
+  private static final int MIN_SIZE_BLOCK_TEXT  = 128 * 1024 * 1024;  // Block text edit >= size
+  private static final int MIN_SIZE_BLOCK_RAW   = 256 * 1024 * 1024;  // Block raw edit >= size
+
   private static final Charset DEFAULT_CHARSET = Charset.forName("iso-8859-1");
 
   private final ResourceEntry entry;
+  private final long entrySize;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private JTabbedPane tabbedPane;
@@ -75,6 +80,12 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   public UnknownResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
+    int[] data = this.entry.getResourceInfo();
+    if (data != null && data.length > 0) {
+      entrySize = (data.length == 1) ? data[0] : (data[0] * data[1]);
+    } else {
+      entrySize = 0L;
+    }
   }
 
 //--------------------- Begin Interface Closeable ---------------------
@@ -233,6 +244,10 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 
     // creating Raw tab (stub)
     panelRaw = new JPanel(new BorderLayout());
+    if (getEntrySize() >= MIN_SIZE_BLOCK_RAW) {
+      label = new JLabel("File is too big for the hex editor (" + getEntrySize() + " bytes).", JLabel.CENTER);
+      panelRaw.add(label, BorderLayout.CENTER);
+    }
 
     tabbedPane = new JTabbedPane();
     tabbedPane.addTab("View", panelView);
@@ -277,6 +292,12 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
       }
       tabbedPane.setEnabledAt(TAB_TEXT, activate);
     }
+  }
+
+  // Returns file size of ResourceEntry
+  private long getEntrySize()
+  {
+    return entrySize;
   }
 
   private boolean isRawActive()
@@ -349,24 +370,26 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
       case TAB_RAW:
       {
         // lazy initialization
-        if (!isRawActive()) {
-          try {
-            WindowBlocker.blockWindow(true);
-            hexViewer = new GenericHexViewer(entry);
-            hexViewer.addDataChangedListener(this);
-            hexViewer.setCurrentOffset(0L);
-            panelRaw.add(hexViewer, BorderLayout.CENTER);
-          } catch (Exception e) {
-            e.printStackTrace();
-          } finally {
-            WindowBlocker.blockWindow(false);
+        if (getEntrySize() < MIN_SIZE_BLOCK_RAW) {
+          if (!isRawActive()) {
+            try {
+              WindowBlocker.blockWindow(true);
+              hexViewer = new GenericHexViewer(entry);
+              hexViewer.addDataChangedListener(this);
+              hexViewer.setCurrentOffset(0L);
+              panelRaw.add(hexViewer, BorderLayout.CENTER);
+            } catch (Exception e) {
+              e.printStackTrace();
+            } finally {
+              WindowBlocker.blockWindow(false);
+            }
           }
+          if (!isDataInSync()) {
+            hexViewer.setText(editor.getText(), textCharset);
+            setDataInSync(true);
+          }
+          hexViewer.requestFocusInWindow();
         }
-        if (!isDataInSync()) {
-          hexViewer.setText(editor.getText(), textCharset);
-          setDataInSync(true);
-        }
-        hexViewer.requestFocusInWindow();
         break;
       }
     }
@@ -390,7 +413,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     }
   }
 
-  // Opens resource in text editor, optionally ask for confirmation if file is big
+  // Opens resource in text editor, optionally trigger safeguard mechanisms if file is big
   private void openTextEditor(boolean confirmSize)
   {
     if (isEditorActive()) {
@@ -400,18 +423,19 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 
     // Confirm loading big files
     if (confirmSize && entry instanceof FileResourceEntry) {
-      File file = ((FileResourceEntry)entry).getActualFile();
-      if (file != null) {
-        long fileSize = file.length();
-        if (fileSize > 512 * 1024) {
-          if (JOptionPane.showConfirmDialog(panelMain,
-                                            "File size is " + fileSize + " bytes. " +
-                                                "Do you really want to load the file into the text editor?",
-                                            "Show as text?",
-                                            JOptionPane.YES_NO_OPTION,
-                                            JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
-            return;
-          }
+      if (getEntrySize() >= MIN_SIZE_BLOCK_TEXT) {
+        JOptionPane.showMessageDialog(panelMain,
+                                      "File is too big for the text editor (" + getEntrySize() + " bytes).",
+                                      "File size error", JOptionPane.ERROR_MESSAGE);
+        return;
+      } else if (getEntrySize() >= MIN_SIZE_WARN) {
+        if (JOptionPane.showConfirmDialog(panelMain,
+                                          "File size is " + getEntrySize() + " bytes. " +
+                                              "Do you really want to load the file into the text editor?",
+                                          "Show as text?",
+                                          JOptionPane.YES_NO_OPTION,
+                                          JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
+          return;
         }
       }
     }
