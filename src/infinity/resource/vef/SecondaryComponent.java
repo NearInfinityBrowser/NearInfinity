@@ -16,8 +16,8 @@ public final class SecondaryComponent extends AbstractComponent
     super(VEF_COMP_SEC);
   }
 
-  SecondaryComponent(AbstractStruct superStruct, byte[] buffer, int offset) throws Exception
+  SecondaryComponent(AbstractStruct superStruct, byte[] buffer, int offset, int nr) throws Exception
   {
-    super(superStruct, buffer, offset, VEF_COMP_SEC);
+    super(superStruct, buffer, offset, VEF_COMP_SEC + " " + nr);
   }
 }

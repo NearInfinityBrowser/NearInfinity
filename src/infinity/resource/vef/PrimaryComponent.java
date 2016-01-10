@@ -16,8 +16,8 @@ public final class PrimaryComponent extends AbstractComponent
     super(VEF_COMP_PRI);
   }
 
-  PrimaryComponent(AbstractStruct superStruct, byte[] buffer, int offset) throws Exception
+  PrimaryComponent(AbstractStruct superStruct, byte[] buffer, int offset, int nr) throws Exception
   {
-    super(superStruct, buffer, offset, VEF_COMP_PRI);
+    super(superStruct, buffer, offset, VEF_COMP_PRI + " " + nr);
   }
 }

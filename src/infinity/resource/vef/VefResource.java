@@ -97,14 +97,14 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_component1.getValue();
     for (int i = 0; i < count_component1.getValue(); i++) {
-      PrimaryComponent comp1 = new PrimaryComponent(this, buffer, offset);
+      PrimaryComponent comp1 = new PrimaryComponent(this, buffer, offset, i);
       offset = comp1.getEndOffset();
       addField(comp1);
     }
 
     offset = offset_component2.getValue();
     for (int i = 0; i < count_component2.getValue(); i++) {
-      SecondaryComponent comp2 = new SecondaryComponent(this, buffer, offset);
+      SecondaryComponent comp2 = new SecondaryComponent(this, buffer, offset, i);
       offset = comp2.getEndOffset();
       addField(comp2);
     }
