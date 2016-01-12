@@ -193,6 +193,10 @@ public class ResourceChooser extends JComponent implements ActionListener
 
     JButton bAccept = new JButton(okAction);
     JButton bCancel = new JButton(cancelAction);
+    Dimension d = new Dimension(Math.max(bAccept.getPreferredSize().width, bCancel.getPreferredSize().width),
+                                Math.max(bAccept.getPreferredSize().height, bCancel.getPreferredSize().height));
+    bAccept.setPreferredSize(d);
+    bCancel.setPreferredSize(d);
 
     JPanel panelButtons = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
