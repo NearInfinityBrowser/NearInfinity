@@ -449,7 +449,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
           boolean success = false;
           try {
             // try to determine character encoding format of text data
-            final byte[] data = entry.getResourceData();
+            final byte[] data = isRawModified() ? hexViewer.getData() : entry.getResourceData();
             textCharset = null;
             if (data != null) {
               if (data.length >= 3 &&
