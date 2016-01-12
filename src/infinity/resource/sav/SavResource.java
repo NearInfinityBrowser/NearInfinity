@@ -99,7 +99,16 @@ public final class SavResource implements Resource, Closeable, Writeable,
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(CtrlDelete) == event.getSource()) {
-      removeResource(filelist.getSelectedIndex());
+      if (!filelist.isSelectionEmpty()) {
+        String fileName = filelist.getSelectedValue().toString();
+        int ret = JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(),
+                                                "Delete file " + fileName + "?",
+                                                "Delete file", JOptionPane.YES_NO_OPTION,
+                                                JOptionPane.QUESTION_MESSAGE);
+        if (ret == JOptionPane.YES_OPTION) {
+          removeResource(filelist.getSelectedIndex());
+        }
+      }
     } else if (miAddExternal == event.getSource()) {
       JFileChooser fc = new JFileChooser(Profile.getGameRoot());
       fc.setDialogTitle("Open external file");
