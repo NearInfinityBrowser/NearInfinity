@@ -7,7 +7,6 @@ package infinity.gui;
 import java.awt.BorderLayout;
 import java.awt.event.MouseListener;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -23,10 +22,10 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import infinity.util.Misc;
+
 public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
 {
-  private static final Comparator<Object> ignoreCaseComparator = new IgnoreCaseComparator();
-
   private boolean sortValues = true;
   private final DefaultListModel listmodel = new DefaultListModel();
   private final JList list;
@@ -108,6 +107,11 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     list.addListSelectionListener(listener);
   }
 
+  public void removeListSelectionListener(ListSelectionListener listener)
+  {
+    list.removeListSelectionListener(listener);
+  }
+
   public void ensureIndexIsVisible(int i)
   {
     list.ensureIndexIsVisible(i);
@@ -144,7 +148,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
   public void setValues(List<? extends Object> values)
   {
     if (this.sortValues) {
-      Collections.sort(values, ignoreCaseComparator);
+      Collections.sort(values, Misc.IgnoreCaseComparator);
     }
     listmodel.clear();
     for (int i = 0; i < values.size(); i++) {
@@ -169,27 +173,6 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     }
     list.setSelectedIndex(selected);
     list.ensureIndexIsVisible(selected);
-  }
-
-// -------------------------- INNER CLASSES --------------------------
-
-  private static final class IgnoreCaseComparator implements Comparator<Object>
-  {
-    private IgnoreCaseComparator()
-    {
-    }
-
-    @Override
-    public int compare(Object o1, Object o2)
-    {
-      return o1.toString().compareToIgnoreCase(o2.toString());
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-      return toString().equalsIgnoreCase(obj.toString());
-    }
   }
 }
 

@@ -4,6 +4,7 @@
 
 package infinity.util;
 
+import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +14,20 @@ import java.util.concurrent.TimeUnit;
  */
 public class Misc
 {
+  /** Compares the string representation of the specified objects, ignoring case considerations. */
+  public static final Comparator<Object> IgnoreCaseComparator = new Comparator<Object>() {
+    @Override
+    public int compare(Object o1, Object o2)
+    {
+      return (o1.toString().compareToIgnoreCase(o2.toString()));
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+      return toString().equalsIgnoreCase(obj.toString());
+    }
+  };
 
   /**
    * Replaces any file extension with the specified one.
