@@ -14,6 +14,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -154,15 +156,8 @@ public class ResourceChooser extends JComponent implements ActionListener
   public int showDialog(Component parent)
   {
     dialogResult = ERROR_OPTION;
-    JDialog dialog = createDialog(parent);
+    ResourceDialog dialog = new ResourceDialog(parent);
     try {
-      dialog.addWindowListener(new WindowAdapter() {
-        @Override
-        public void windowClosing(WindowEvent e)
-        {
-          dialogResult = CANCEL_OPTION;
-        }
-      });
       dialog.setVisible(true);
     } finally {
       dialog.dispose();
@@ -179,58 +174,6 @@ public class ResourceChooser extends JComponent implements ActionListener
       }
       l.actionPerformed(event);
     }
-  }
-
-  private JDialog createDialog(Component parent)
-  {
-    Frame frame = (parent instanceof Frame) ? (Frame)parent
-                                            : (Frame)SwingUtilities.getAncestorOfClass(Frame.class, parent);
-    JDialog dialog = new JDialog(frame, "Choose resource", true);
-
-    DialogOkAction okAction = new DialogOkAction(dialog);
-    addListSelectionListener(okAction);
-    DialogCancelAction cancelAction = new DialogCancelAction(dialog);
-
-    JButton bAccept = new JButton(okAction);
-    JButton bCancel = new JButton(cancelAction);
-    Dimension d = new Dimension(Math.max(bAccept.getPreferredSize().width, bCancel.getPreferredSize().width),
-                                Math.max(bAccept.getPreferredSize().height, bCancel.getPreferredSize().height));
-    bAccept.setPreferredSize(d);
-    bCancel.setPreferredSize(d);
-
-    JPanel panelButtons = new JPanel(new GridBagLayout());
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    panelButtons.add(new JPanel(), gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(8, 4, 8, 0), 0, 0);
-    panelButtons.add(bAccept, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(8, 8, 8, 4), 0, 0);
-    panelButtons.add(bCancel, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    panelButtons.add(new JPanel(), gbc);
-
-    JPanel panelMain = new JPanel(new GridBagLayout());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
-    panelMain.add(this, gbc);
-
-    ActionMap actionMap = panelButtons.getActionMap();
-    actionMap.put(cancelAction.getValue(Action.DEFAULT), cancelAction);
-    actionMap.put(okAction.getValue(Action.DEFAULT), okAction);
-    InputMap inputMap = panelButtons.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), cancelAction.getValue(Action.DEFAULT));
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), okAction.getValue(Action.DEFAULT));
-
-    dialog.getContentPane().add(panelMain, BorderLayout.CENTER);
-    dialog.getContentPane().add(panelButtons, BorderLayout.SOUTH);
-    dialog.pack();
-    dialog.setLocationRelativeTo(frame);
-
-    return dialog;
   }
 
   private void init(String initialExtension)
@@ -292,6 +235,17 @@ public class ResourceChooser extends JComponent implements ActionListener
     } else {
       // initializing new list panel (no need to block controls)
       lpResources = new TextListPanel(resources, true);
+      lpResources.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent event)
+        {
+          if (event.getClickCount() == 2) {
+            dialogResult = (lpResources.getSelectedIndex() >= 0) ? APPROVE_OPTION : CANCEL_OPTION;
+            fireActionPerformed(new ActionEvent(ResourceChooser.this, ActionEvent.ACTION_PERFORMED, null));
+          }
+        }
+      });
+
       if (lpResources.getModel().getSize() > 0) {
         lpResources.setSelectedIndex(0);
         lpResources.ensureIndexIsVisible(0);
@@ -299,7 +253,94 @@ public class ResourceChooser extends JComponent implements ActionListener
     }
   }
 
+
 //-------------------------- INNER CLASSES --------------------------
+
+  private class ResourceDialog extends JDialog implements ActionListener
+  {
+    private Action acceptAction, cancelAction;
+    private JButton bAccept, bCancel;
+
+    public ResourceDialog(Component parent)
+    {
+      super((parent instanceof Frame) ? (Frame)parent : (Frame)SwingUtilities.getAncestorOfClass(Frame.class, parent),
+            "Choose resource", true);
+      init();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      if (e.getSource() == ResourceChooser.this) {
+        dialogResult = APPROVE_OPTION;
+        setVisible(false);
+      }
+    }
+
+    @Override
+    public void dispose()
+    {
+      ResourceChooser.this.removeActionListener(this);
+      super.dispose();
+    }
+
+    private void init()
+    {
+      acceptAction = new DialogOkAction(this);
+      addListSelectionListener((DialogOkAction)acceptAction);
+      cancelAction = new DialogCancelAction(this);
+
+      bAccept = new JButton(acceptAction);
+      bCancel = new JButton(cancelAction);
+      Dimension d = new Dimension(Math.max(bAccept.getPreferredSize().width, bCancel.getPreferredSize().width),
+                                  Math.max(bAccept.getPreferredSize().height, bCancel.getPreferredSize().height));
+      bAccept.setPreferredSize(d);
+      bCancel.setPreferredSize(d);
+
+
+      JPanel panelButtons = new JPanel(new GridBagLayout());
+      GridBagConstraints gbc = new GridBagConstraints();
+      gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      panelButtons.add(new JPanel(), gbc);
+      gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets(8, 4, 8, 0), 0, 0);
+      panelButtons.add(bAccept, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.NONE, new Insets(8, 8, 8, 4), 0, 0);
+      panelButtons.add(bCancel, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      panelButtons.add(new JPanel(), gbc);
+
+      JPanel panelMain = new JPanel(new GridBagLayout());
+      gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                              GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      panelMain.add(ResourceChooser.this, gbc);
+
+      ActionMap actionMap = panelButtons.getActionMap();
+      actionMap.put(cancelAction.getValue(Action.DEFAULT), cancelAction);
+      actionMap.put(acceptAction.getValue(Action.DEFAULT), acceptAction);
+      InputMap inputMap = panelButtons.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), cancelAction.getValue(Action.DEFAULT));
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), acceptAction.getValue(Action.DEFAULT));
+
+      getContentPane().add(panelMain, BorderLayout.CENTER);
+      getContentPane().add(panelButtons, BorderLayout.SOUTH);
+      pack();
+      setLocationRelativeTo(getParent());
+
+      ResourceChooser.this.addActionListener(this);
+      addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e)
+        {
+          ResourceChooser.this.dialogResult = CANCEL_OPTION;
+        }
+      });
+    }
+  }
+
 
   private class DialogOkAction extends AbstractAction implements ListSelectionListener
   {
@@ -330,6 +371,7 @@ public class ResourceChooser extends JComponent implements ActionListener
       setEnabled(getSelectedItem() != null);
     }
   }
+
 
   private class DialogCancelAction extends AbstractAction
   {
