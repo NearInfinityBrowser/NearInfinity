@@ -94,7 +94,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.36-20151227";
+  public static final String VERSION = "v1.36-20160112";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
