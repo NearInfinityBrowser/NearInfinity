@@ -777,7 +777,8 @@ public final class ResourceFactory
                                       File output) throws Exception
   {
     // ask for output file path if needed
-    if (output == null) {
+    boolean interactive = (output == null);
+    if (interactive) {
       if (fc == null) {
         fc = new JFileChooser(Profile.getGameRoot());
         fc.setDialogTitle("Export resource");
@@ -803,8 +804,10 @@ public final class ResourceFactory
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
         bos.write(data, 0, data.length);
         bos.close();
-        JOptionPane.showMessageDialog(parent, "File exported to " + output, "Export complete",
-                                      JOptionPane.INFORMATION_MESSAGE);
+        if (interactive) {
+          JOptionPane.showMessageDialog(parent, "File exported to " + output, "Export complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        }
       } catch (IOException e) {
         throw new Exception("Error while exporting " + entry);
       }
