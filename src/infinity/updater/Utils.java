@@ -131,7 +131,7 @@ public class Utils
       final String regDate  = "(\\d{4})-?([0-1][0-9])-?([0-3][0-9])";
       final String regTime = "T([0-2][0-9]):?([0-5][0-9])?:?([0-5][0-9])?";
       final String regZone  = "(([-+])([0-2][0-9]):?([0-5][0-9])|(Z))";
-      int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, ofsHour = 0, ofsMinute = 0;
+      int year = 0, month = -1, day = 0, hour = 0, minute = 0, second = 0, ofsHour = 0, ofsMinute = 0;
       char sign = 0;
       Matcher m;
       try {
@@ -175,7 +175,7 @@ public class Utils
         e.printStackTrace();
       }
 
-      if (year > 0 && month > 0 && day > 0) {
+      if (year > 0 && month >= 0 && day > 0) {
         retVal = Calendar.getInstance();
         retVal.set(year, month, day, hour, minute, second);
 
