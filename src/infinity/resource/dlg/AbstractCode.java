@@ -74,7 +74,7 @@ public abstract class AbstractCode extends Datatype
   {
     super(offset, 8, nane);
     read(buffer, offset);
-    text = new String(buffer, off.getValue(), len.getValue());
+    text = (len.getValue() > 0) ? new String(buffer, off.getValue(), len.getValue()) : "";
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
