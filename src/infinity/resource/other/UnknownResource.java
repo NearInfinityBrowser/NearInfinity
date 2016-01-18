@@ -19,6 +19,7 @@ import infinity.resource.Writeable;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.Misc;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileWriterNI;
 import tv.porst.jhexview.DataChangedEvent;
@@ -62,8 +63,6 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   private static final int MIN_SIZE_WARN        =   4 * 1024 * 1024;  // Show warning for files >= size
   private static final int MIN_SIZE_BLOCK_TEXT  = 128 * 1024 * 1024;  // Block text edit >= size
   private static final int MIN_SIZE_BLOCK_RAW   = 256 * 1024 * 1024;  // Block raw edit >= size
-
-  private static final Charset DEFAULT_CHARSET = Charset.forName("iso-8859-1");
 
   private final ResourceEntry entry;
   private final long entrySize;
@@ -450,23 +449,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
           try {
             // try to determine character encoding format of text data
             final byte[] data = isRawModified() ? hexViewer.getData() : entry.getResourceData();
-            textCharset = null;
-            if (data != null) {
-              if (data.length >= 3 &&
-                  data[0] == -17 && data[1] == -69 && data[2] == -65) { // UTF-8 BOM (0xef, 0xbb, 0xbf)
-                textCharset = Charset.forName("utf-8");
-              } else if (data.length >= 2 &&
-                         data[0] == -2 && data[1] == -1) {  // UTF-16 BOM (0xfeff) in big-endian order
-                textCharset = Charset.forName("utf-16be");
-              } else if (data.length >= 2 &&
-                         data[0] == -1 && data[1] == -2) {  // UTF-16 BOM (0xfeff) in little-endian order
-                textCharset = Charset.forName("utf-16le");
-              }
-            }
-            if (textCharset == null) {
-              // fall back to ANSI charset
-              textCharset = DEFAULT_CHARSET;
-            }
+            textCharset = Misc.detectCharset(data);
             editor.setText(new String(data, textCharset));
             editor.setCaretPosition(0);
             editor.discardAllEdits();   // don't undo loading operation

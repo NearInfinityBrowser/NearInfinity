@@ -4,6 +4,7 @@
 
 package infinity.util;
 
+import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,6 +15,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class Misc
 {
+  public static final Charset DEFAULT_CHARSET = Charset.forName("iso-8859-1");
+
   /** Compares the string representation of the specified objects, ignoring case considerations. */
   public static final Comparator<Object> IgnoreCaseComparator = new Comparator<Object>() {
     @Override
@@ -73,6 +76,52 @@ public class Misc
       }
     }
     return fileName;
+  }
+
+  /**
+   * Attempts to detect the character set of the text data in the specified byte buffer.
+   * @param data Text data as byte array.
+   * @return The detected character set or the ANSI charset "iso-8859-1"
+   *         if autodetection was not successful.
+   */
+  public static Charset detectCharset(byte[] data)
+  {
+    return detectCharset(data, DEFAULT_CHARSET);
+  }
+
+  /**
+   * Attempts to detect the character set of the text data in the specified byte buffer.
+   * @param data Text data as byte array.
+   * @param defaultCharset The default charset to return if autodetection is not successful.
+   *                       (Default: ISO-8859-1)
+   * @return The detected character set or <code>defaultCharset</code>
+   *         if autodetection was not successful.
+   */
+  public static Charset detectCharset(byte[] data, Charset defaultCharset)
+  {
+    if (defaultCharset == null) {
+      defaultCharset = DEFAULT_CHARSET;
+    }
+
+    Charset retVal = null;
+    if (data != null) {
+      if (data.length >= 3 &&
+          data[0] == -17 && data[1] == -69 && data[2] == -65) { // UTF-8 BOM (0xef, 0xbb, 0xbf)
+        retVal = Charset.forName("utf-8");
+      } else if (data.length >= 2 &&
+                 data[0] == -2 && data[1] == -1) {  // UTF-16 BOM (0xfeff) in big-endian order
+        retVal = Charset.forName("utf-16be");
+      } else if (data.length >= 2 &&
+                 data[0] == -1 && data[1] == -2) {  // UTF-16 BOM (0xfeff) in little-endian order
+        retVal = Charset.forName("utf-16le");
+      }
+    }
+
+    if (retVal == null) {
+      retVal = defaultCharset;
+    }
+
+    return retVal;
   }
 
   /**
