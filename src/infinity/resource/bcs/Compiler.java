@@ -17,6 +17,7 @@ import infinity.util.IdsMapCache;
 import infinity.util.IdsMapEntry;
 import infinity.util.Misc;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,22 +44,41 @@ public final class Compiler
     Custom
   }
 
-  // Definition of triggers which don't use combined string and namespace arguments
-  private static final HashSet<Long> separateNsTriggers= new HashSet<Long>(20);
+  // Definition of triggers that don't use combined string and namespace arguments and supported engines (null = all engines)
+  private static final HashMap<Long, Set<Profile.Engine>> separateNsTriggers = new HashMap<Long, Set<Profile.Engine>>();
   static {
-    separateNsTriggers.add(Long.valueOf(0x403F));   // GlobalTimerExact(S:Name*,S:Area*)
-    separateNsTriggers.add(Long.valueOf(0x4040));   // GlobalTimerExpired(S:Name*,S:Area*)
-    separateNsTriggers.add(Long.valueOf(0x4041));   // GlobalTimerNotExpired(S:Name*,S:Area*)
-    separateNsTriggers.add(Long.valueOf(0x4098));   // GlobalsEqual(S:Name1*,S:Name2*)
-    separateNsTriggers.add(Long.valueOf(0x4099));   // GlobalsGT(S:Name1*,S:Name2*)
-    separateNsTriggers.add(Long.valueOf(0x409A));   // GlobalsLT(S:Name1*,S:Name2*)
-    separateNsTriggers.add(Long.valueOf(0x409B));   // LocalsEqual(S:Name1*,S:Name2*)
-    separateNsTriggers.add(Long.valueOf(0x409C));   // LocalsGT(S:Name1*,S:Name2*)
-    separateNsTriggers.add(Long.valueOf(0x409D));   // LocalsLT(S:Name1*,S:Name2*)
-    separateNsTriggers.add(Long.valueOf(0x40B5));   // RealGlobalTimerExact(S:Name*,S:Area*)
-    separateNsTriggers.add(Long.valueOf(0x40B6));   // RealGlobalTimerExpired(S:Name*,S:Area*)
-    separateNsTriggers.add(Long.valueOf(0x40B7));   // RealGlobalTimerNotExpired(S:Name*,S:Area*)
-    separateNsTriggers.add(Long.valueOf(0x40E5));   // Switch(S:Global*,S:Area*)
+    separateNsTriggers.put(Long.valueOf(0x403F), null); // GlobalTimerExact(S:Name*,S:Area*)
+    separateNsTriggers.put(Long.valueOf(0x4040), null); // GlobalTimerExpired(S:Name*,S:Area*)
+    separateNsTriggers.put(Long.valueOf(0x4041), null); // GlobalTimerNotExpired(S:Name*,S:Area*)
+    separateNsTriggers.put(Long.valueOf(0x4098),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // GlobalsEqual(S:Name1*,S:Name2*)
+    separateNsTriggers.put(Long.valueOf(0x4099),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // GlobalsGT(S:Name1*,S:Name2*)
+    separateNsTriggers.put(Long.valueOf(0x409A),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // GlobalsLT(S:Name1*,S:Name2*)
+    separateNsTriggers.put(Long.valueOf(0x409B),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // LocalsEqual(S:Name1*,S:Name2*)
+    separateNsTriggers.put(Long.valueOf(0x409C),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // LocalsGT(S:Name1*,S:Name2*)
+    separateNsTriggers.put(Long.valueOf(0x409D),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // LocalsLT(S:Name1*,S:Name2*)
+    separateNsTriggers.put(Long.valueOf(0x40B5),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // RealGlobalTimerExact(S:Name*,S:Area*)
+    separateNsTriggers.put(Long.valueOf(0x40B6),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // RealGlobalTimerExpired(S:Name*,S:Area*)
+    separateNsTriggers.put(Long.valueOf(0x40B7),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.BG2,
+                                                                     Profile.Engine.EE))); // RealGlobalTimerNotExpired(S:Name*,S:Area*)
+    separateNsTriggers.put(Long.valueOf(0x40E5),
+                           new HashSet<Profile.Engine>(Arrays.asList(Profile.Engine.EE))); // Switch(S:Global*,S:Area*)
   }
 
   private static final Map<String, Set<ResourceEntry>> scriptNamesCre =
@@ -89,7 +109,12 @@ public final class Compiler
   // Returns whether the namespace argument is stored separately from the first string argument
   static boolean useSeparateNamespaceArgument(long id)
   {
-    return separateNsTriggers.contains(Long.valueOf(id));
+    Long key = Long.valueOf(id);
+    if (separateNsTriggers.containsKey(key)) {
+      Set<Profile.Engine> set = separateNsTriggers.get(key);
+      return (set == null || set.contains(Profile.getEngine()));
+    }
+    return false;
   }
 
   static boolean isPossibleNamespace(String string)
