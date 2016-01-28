@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.event.MouseListener;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -163,16 +164,20 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
   private void selectClosest(String text)
   {
-    ListModel lm = list.getModel();
     int selected = 0;
-    while (selected < lm.getSize() && text.compareToIgnoreCase(lm.getElementAt(selected).toString()) > 0) {
-      selected++;
+    if (!text.isEmpty()) {
+      text = text.toUpperCase(Locale.ENGLISH);
+      for (int size = listmodel.getSize(); selected < size; selected++) {
+        final String s = listmodel.getElementAt(selected).toString().toUpperCase(Locale.ENGLISH);
+        if (s.startsWith(text)) {
+          break;
+        }
+      }
     }
-    if (selected == lm.getSize()) {
-      selected--;
+    if (selected < listmodel.getSize()) {
+      list.setSelectedIndex(selected);
+      list.ensureIndexIsVisible(selected);
     }
-    list.setSelectedIndex(selected);
-    list.ensureIndexIsVisible(selected);
   }
 }
 
