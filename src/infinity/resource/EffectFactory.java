@@ -948,7 +948,7 @@ public final class EffectFactory
             "Disable display string", "Clear fog of war", "Shake screen",
             // 270..279
             "Unpause target", "Disable creature", "Use EFF file on condition", "Zone of sweet air",
-            "Phase", "Hide in shadows bonus", "Detect illusions bonus", "Set traps bonus",
+            "Phase", "Hide in shadows bonus", "Detect illusion bonus", "Set traps bonus",
             "THAC0 bonus", "Enable button",
             // 280..289
             "Wild magic", "Wild surge bonus", "Modify script state", "Use EFF file as curse",
@@ -1078,7 +1078,7 @@ public final class EffectFactory
             "Disable display string", "Clear fog of war", "Shake screen",
             // 270..279
             "Unpause target", "Disable creature", "Use EFF file on condition", "Zone of sweet air",
-            "Phase", "Hide in shadows bonus", "Detect illusions bonus", "Set traps bonus",
+            "Phase", "Hide in shadows bonus", "Detect illusion bonus", "Set traps bonus",
             "THAC0 bonus", "Enable button",
             // 280..289
             "Wild magic", "Wild surge bonus", "Modify script state", "Use EFF file as curse",
@@ -1212,7 +1212,7 @@ public final class EffectFactory
             "Disable display string", "Clear fog of war", "Shake screen",
             // 270..279
             "Unpause target", "Disable creature", "Use EFF file on condition", "Zone of sweet air",
-            "Phase", "Hide in shadows bonus", "Detect illusions bonus", "Set traps bonus",
+            "Phase", "Hide in shadows bonus", "Detect illusion bonus", "Set traps bonus",
             "THAC0 bonus", "Enable button",
             // 280..289
             "Wild magic", "Wild surge bonus", "Modify script state", "Use EFF file as curse",
@@ -1361,7 +1361,7 @@ public final class EffectFactory
             "Disable display string", "Clear fog of war", "Shake screen",
             // 270..279
             "Unpause target", "Disable creature", "Use EFF file on condition", "Zone of sweet air",
-            "Phase", "Hide in shadows bonus", "Detect illusions bonus", "Set traps bonus",
+            "Phase", "Hide in shadows bonus", "Detect illusion bonus", "Set traps bonus",
             "THAC0 bonus", "Enable button",
             // 280..289
             "Wild magic", "Wild surge bonus", "Modify script state", "Use EFF file as curse",
@@ -3482,7 +3482,7 @@ public final class EffectFactory
 
       case 263: // Backstab bonus
       case 275: // Hide in shadows bonus
-      case 276: // Detect illusions bonus
+      case 276: // Detect illusion bonus
       case 277: // Set traps bonus
       case 278: // THAC0 bonus
       case 281: // Wild surge bonus

@@ -227,7 +227,7 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_HIDE_IN_SHADOWS              = "Hide in shadows";
   public static final String CRE_INTIMIDATE                   = "Intimidate";
   public static final String CRE_KNOWLEDGE_ARCANA             = "Knowledge (arcana)";
-  public static final String CRE_DETECT_ILLUSIONS             = "Detect illusions";
+  public static final String CRE_DETECT_ILLUSION              = "Detect illusion";
   public static final String CRE_SET_TRAPS                    = "Set traps";
   public static final String CRE_MOVE_SILENTLY                = "Move silently";
   public static final String CRE_OPEN_LOCKS                   = "Open locks";
@@ -1428,7 +1428,7 @@ public final class CreResource extends AbstractStruct
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       addField(new DecNumber(buffer, offset + 92, 1, CRE_PROFICIENCIES_UNSPENT));
     } else {
-      addField(new UnsignDecNumber(buffer, offset + 92, 1, CRE_DETECT_ILLUSIONS));
+      addField(new UnsignDecNumber(buffer, offset + 92, 1, CRE_DETECT_ILLUSION));
     }
     addField(new UnsignDecNumber(buffer, offset + 93, 1, CRE_SET_TRAPS));
     addField(new DecNumber(buffer, offset + 94, 1, CRE_LORE));

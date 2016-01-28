@@ -317,7 +317,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_THAC0), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ATTACKS_PER_ROUND), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_HIDE_IN_SHADOWS), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DETECT_ILLUSIONS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DETECT_ILLUSION), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SET_TRAPS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LORE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_OPEN_LOCKS), gbl, gbc, true);
