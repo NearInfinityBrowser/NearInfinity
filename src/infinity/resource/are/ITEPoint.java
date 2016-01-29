@@ -81,6 +81,18 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     return new AddRemovable[]{new Vertex()};
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
 

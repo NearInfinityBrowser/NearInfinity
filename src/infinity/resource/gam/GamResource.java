@@ -119,11 +119,25 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
-    if (Profile.getEngine() == Profile.Engine.PST)
+    if (Profile.getEngine() == Profile.Engine.PST) {
       return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
-        new NonPartyNPC()};
-    else
-      return new AddRemovable[]{new Variable(), new JournalEntry(), new NonPartyNPC()};
+                                new PartyNPC(), new NonPartyNPC()};
+    } else {
+      return new AddRemovable[]{new Variable(), new JournalEntry(), new PartyNPC(),
+                                new NonPartyNPC()};
+    }
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------

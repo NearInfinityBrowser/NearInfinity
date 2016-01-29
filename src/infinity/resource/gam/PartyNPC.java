@@ -128,6 +128,18 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     return new AddRemovable[]{};
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable struct) throws Exception
+  {
+    return struct;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
 

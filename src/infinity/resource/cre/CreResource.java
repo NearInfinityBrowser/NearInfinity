@@ -701,6 +701,18 @@ public final class CreResource extends AbstractStruct
     }
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
 

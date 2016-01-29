@@ -69,6 +69,18 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
     }
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
   @Override

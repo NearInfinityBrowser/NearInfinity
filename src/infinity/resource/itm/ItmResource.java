@@ -247,6 +247,18 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     return new AddRemovable[]{new Ability(), new Effect()};
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
 

@@ -101,6 +101,18 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
                               new OpenVertexImpeded()};
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
 

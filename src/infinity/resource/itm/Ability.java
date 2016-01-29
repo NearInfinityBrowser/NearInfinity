@@ -74,6 +74,18 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     return new AddRemovable[]{new Effect()};
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
 

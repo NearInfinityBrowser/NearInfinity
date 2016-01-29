@@ -37,6 +37,18 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
     return new AddRemovable[]{new Entry()};
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 // --------------------- End Interface HasAddRemovable ---------------------
 
 //--------------------- Begin Interface HasViewerTabs ---------------------
