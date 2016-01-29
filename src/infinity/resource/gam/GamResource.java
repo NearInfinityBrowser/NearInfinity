@@ -8,6 +8,7 @@ import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HexNumber;
+import infinity.datatype.IsNumeric;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
@@ -29,6 +30,7 @@ import java.io.OutputStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 
 public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
@@ -131,6 +133,18 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
   {
+    if (entry instanceof PartyNPC) {
+      int numPartyMembers = ((IsNumeric)getAttribute(GAM_NUM_PARTY_MEMBERS)).getValue();
+      if (numPartyMembers >= 6) {
+        int ret = JOptionPane.showConfirmDialog(getViewer(),
+                                                "This game supports only up to 6 active party members. " +
+                                                    "Do you want to add a new entry?",
+                                                "Add new party member", JOptionPane.YES_NO_OPTION);
+        if (ret != JOptionPane.YES_OPTION) {
+          entry = null;
+        }
+      }
+    }
     return entry;
   }
 
