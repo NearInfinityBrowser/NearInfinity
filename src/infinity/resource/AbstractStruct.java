@@ -913,6 +913,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     viewerComponents = list;
   }
 
+  /** Returns the SectionOffset entry linked to the specified StructEntry object if available. */
+  public SectionOffset getSectionOffset(Class<? extends StructEntry> cls)
+  {
+    return offsetmap.get(cls);
+  }
+
+  /** Returns the SectionCount entry linked to the specified StructEntry object if available. */
+  public SectionCount getSectionCount(Class<? extends StructEntry> cls)
+  {
+    return countmap.get(cls);
+  }
+
   private void addFlatList(List<StructEntry> flatList)
   {
     for (int i = 0; i < list.size(); i++) {
