@@ -122,11 +122,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public AddRemovable[] getAddRemovables() throws Exception
   {
     if (Profile.getEngine() == Profile.Engine.PST) {
-      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
-                                new PartyNPC(), new NonPartyNPC()};
+      // TODO: missing CRE resource when adding PartyNPC structures
+      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable()};
+//      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
+//                                new PartyNPC(), new NonPartyNPC()};
     } else {
-      return new AddRemovable[]{new Variable(), new JournalEntry(), new PartyNPC(),
-                                new NonPartyNPC()};
+      return new AddRemovable[]{new Variable(), new JournalEntry()};
+//      return new AddRemovable[]{new Variable(), new JournalEntry(), new PartyNPC(),
+//                                new NonPartyNPC()};
     }
   }
 
