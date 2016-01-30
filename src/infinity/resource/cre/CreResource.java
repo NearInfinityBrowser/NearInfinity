@@ -39,6 +39,7 @@ import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
+import infinity.resource.StructureFactory;
 import infinity.resource.are.AreResource;
 import infinity.resource.gam.GamResource;
 import infinity.resource.key.ResourceEntry;
@@ -666,6 +667,14 @@ public final class CreResource extends AbstractStruct
     if (name.equals(shortname))
       return name;
     return name + " - " + shortname;
+  }
+
+  public CreResource(String name) throws Exception
+  {
+    super(null, name,
+          StructureFactory.getInstance().createStructure(StructureFactory.ResType.RES_CRE,
+                                                         null, null).getBytes(),
+          0);
   }
 
   public CreResource(ResourceEntry entry) throws Exception
