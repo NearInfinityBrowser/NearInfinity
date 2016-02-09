@@ -1626,8 +1626,7 @@ public class SearchResource extends ChildFrame
       pTiming = new TimingModePanel();
       bpwTiming = new ButtonPopupWindow(setOptionsText, pTiming);
 
-      String[] saveType = (Profile.getEngine() == Profile.Engine.IWD2) ?
-                          EffectFactory.s_savetype2 : EffectFactory.s_savetype;
+      String[] saveType = EffectFactory.getSaveType();
       pSaveType = new FlagsPanel(4, saveType);
       bpwSaveType = new ButtonPopupWindow(setOptionsText, pSaveType);
 

@@ -262,6 +262,12 @@ public final class EffectFactory
                                              "", "", "EE: Ignore primary", "EE: Ignore secondary",
                                              "", "", "", "", "", "", "", "", "", "", "", "",
                                              "EE/Ex: Bypass mirror image", "EE: Ignore difficulty"};
+  public static final String[] s_savetype_tobex = {"No save", "Spell", "Breath weapon",
+                                                   "Paralyze/Poison/Death", "Rod/Staff/Wand",
+                                                   "Petrify/Polymorph", "", "", "",
+                                                   "", "", "EE: Ignore primary", "EE: Ignore secondary",
+                                                   "", "", "", "", "", "", "", "", "", "", "", "",
+                                                   "EE/Ex: Bypass mirror image", "Ex: Limit stacking"};
   public static final String[] s_savetype2 = {"No save", "", "", "Fortitude", "Reflex", "Will"};
   public static final String[] s_spellstate = {"Chaotic Command", "Miscast Magic", "Pain",
                                                "Greater Malison", "Blood Rage", "Cat's Grace",
@@ -399,6 +405,18 @@ public final class EffectFactory
   public static void init()
   {
     efactory = null;
+  }
+
+  /** Returns the save type flags description table depending on the current game. */
+  public static String[] getSaveType()
+  {
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
+      return s_savetype2;
+    } else if ((Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX)) {
+      return s_savetype_tobex;
+    } else {
+      return s_savetype;
+    }
   }
 
   /**
@@ -4777,20 +4795,24 @@ public final class EffectFactory
 
   private int makeEffectCommon2(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
   {
+    String[] save_type = getSaveType();
     if (isV1) {
       s.add(new DecNumber(buffer, offset, 4, EFFECT_DICE_COUNT_MAX_LEVEL));
       s.add(new DecNumber(buffer, offset + 4, 4, EFFECT_DICE_SIZE_MIN_LEVEL));
       if (Profile.getEngine() == Profile.Engine.IWD2) {
-        s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, s_savetype2));
+        s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, save_type));
         s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_PENALTY));
       }
       else {
-        s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, s_savetype));
+        if ((Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX)) {
+        } else {
+          s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, save_type));
+        }
         s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_BONUS));
       }
     } else {
       if (Profile.getEngine() == Profile.Engine.IWD2) {
-        s.add(new Flag(buffer, offset, 4, EFFECT_SAVE_TYPE, s_savetype2));
+        s.add(new Flag(buffer, offset, 4, EFFECT_SAVE_TYPE, save_type));
         s.add(new DecNumber(buffer, offset + 4, 4, EFFECT_SAVE_PENALTY));
         s.add(new DecNumber(buffer, offset + 8, 4, EFFECT_PARAMETER));
         s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_PARAMETER));
@@ -4798,7 +4820,7 @@ public final class EffectFactory
       else {
         s.add(new DecNumber(buffer, offset, 4, EFFECT_DICE_COUNT));
         s.add(new DecNumber(buffer, offset + 4, 4, EFFECT_DICE_SIZE));
-        s.add(new Flag(buffer, offset + 8 , 4, EFFECT_SAVE_TYPE, s_savetype));
+        s.add(new Flag(buffer, offset + 8 , 4, EFFECT_SAVE_TYPE, save_type));
         s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_BONUS));
       }
     }
