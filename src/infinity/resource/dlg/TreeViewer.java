@@ -752,11 +752,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   {
      private final DlgResource dlg;
      private final boolean showStrrefs;
+     private final boolean showIcons;
 
      public ItemBase(DlgResource dlg)
      {
        this.dlg = dlg;
        this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
+       this.showIcons = BrowserMenuBar.getInstance().showDlgTreeIcons();
      }
 
      /** Returns the dialog resource object. */
@@ -780,6 +782,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
      /** Returns whether to show the Strref value next to the string. */
      protected boolean showStrrefs() { return showStrrefs; }
+
+     /** Returns whether to display icons in front of the nodes. */
+     protected boolean showIcons() { return showIcons; }
   }
 
   // Meta class for identifying root node
@@ -788,6 +793,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private static final ImageIcon ICON = Icons.getIcon("RowInsertAfter16.gif");
 
     private final ArrayList<StateItem> states = new ArrayList<StateItem>();
+    private final ImageIcon icon;
 
     private int numStates, numTransitions, numStateTriggers, numResponseTriggers, numActions;
     private String flags;
@@ -795,6 +801,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     public RootItem(DlgResource dlg)
     {
       super(dlg);
+
+      this.icon = showIcons() ? ICON : null;
 
       if (getDialog() != null) {
         StructEntry entry = getDialog().getAttribute(DlgResource.DLG_NUM_STATES);
@@ -859,7 +867,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     @Override
     public Icon getIcon()
     {
-      return ICON;
+      return icon;
     }
 
     @Override
@@ -892,11 +900,14 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private static final ImageIcon ICON = Icons.getIcon("Stop16.gif");
     private static final int MAX_LENGTH = 100;    // max. string length to display
 
+    private final ImageIcon icon;
+
     private State state;
 
     public StateItem(DlgResource dlg, State state)
     {
       super(dlg);
+      this.icon = showIcons() ? ICON : null;
       this.state = state;
     }
 
@@ -915,7 +926,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     @Override
     public Icon getIcon()
     {
-      return ICON;
+      return icon;
     }
 
     @Override
@@ -940,11 +951,14 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private static final ImageIcon ICON = Icons.getIcon("Play16.gif");
     private static final int MAX_LENGTH = 100;    // max. string length to display
 
+    private final ImageIcon icon;
+
     private Transition trans;
 
     public TransitionItem(DlgResource dlg, Transition trans)
     {
       super(dlg);
+      this.icon = showIcons() ? ICON : null;
       this.trans = trans;
     }
 
@@ -963,7 +977,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     @Override
     public Icon getIcon()
     {
-      return ICON;
+      return icon;
     }
 
     @Override
