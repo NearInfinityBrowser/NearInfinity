@@ -124,6 +124,38 @@ public class Misc
     return retVal;
   }
 
+
+  /**
+   * Attempts to convert the specified string into a numeric value. Returns defValue of value does
+   * not contain a valid number.
+   */
+  public static int toNumber(String value, int defValue)
+  {
+    if (value != null) {
+      try {
+        return Integer.parseInt(value);
+      } catch (NumberFormatException e) {
+      }
+    }
+    return defValue;
+  }
+
+  /**
+   * Attempts to convert the specified string of given base "radix" into a numeric value.
+   * Returns defValue of value does not contain a valid number.
+   */
+  public static int toNumber(String value, int radix, int defValue)
+  {
+    if (value != null) {
+      try {
+        return Integer.parseInt(value, radix);
+      } catch (NumberFormatException e) {
+      }
+    }
+    return defValue;
+  }
+
+
   /**
    * Creates a thread pool with a pool size depending on the number of available CPU cores.<br>
    * <br>

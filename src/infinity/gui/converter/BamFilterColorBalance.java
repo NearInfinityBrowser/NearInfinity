@@ -75,6 +75,74 @@ public class BamFilterColorBalance extends BamFilterBaseColor
   }
 
   @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(sliderRed.getValue()).append(';');
+    sb.append(sliderGreen.getValue()).append(';');
+    sb.append(sliderBlue.getValue()).append(';');
+    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.trim().split(";");
+        Integer redValue = Integer.MIN_VALUE;
+        Integer greenValue = Integer.MIN_VALUE;
+        Integer blueValue = Integer.MIN_VALUE;
+        int[] indices = null;
+
+        // parsing configuration data
+        if (params.length > 0) {  // set red value
+          redValue = decodeNumber(params[0], sliderRed.getMinimum(), sliderRed.getMaximum(), Integer.MIN_VALUE);
+          if (redValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 1) {  // set green value
+          greenValue = decodeNumber(params[1], sliderGreen.getMinimum(), sliderGreen.getMaximum(), Integer.MIN_VALUE);
+          if (greenValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 2) {  // set blue value
+          blueValue = decodeNumber(params[2], sliderBlue.getMinimum(), sliderBlue.getMaximum(), Integer.MIN_VALUE);
+          if (blueValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 3) {
+          indices = decodeColorList(params[3]);
+          if (indices == null) {
+            return false;
+          }
+        }
+
+        // applying configuration data
+        if (redValue != Integer.MIN_VALUE) {
+          sliderRed.setValue(redValue);
+        }
+        if (greenValue != Integer.MIN_VALUE) {
+          sliderGreen.setValue(greenValue);
+        }
+        if (blueValue != Integer.MIN_VALUE) {
+          sliderBlue.setValue(blueValue);
+        }
+        if (indices != null) {
+          pExcludeColors.setSelectedIndices(indices);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

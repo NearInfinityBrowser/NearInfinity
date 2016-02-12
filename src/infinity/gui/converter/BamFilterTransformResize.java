@@ -6,6 +6,7 @@ package infinity.gui.converter;
 
 import infinity.gui.ViewerUtil;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import infinity.util.Misc;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
@@ -80,6 +81,65 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   {
     updateStatus();
   }
+
+  @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(cbType.getSelectedIndex()).append(';');
+    sb.append(((SpinnerNumberModel)spinnerFactor.getModel()).getNumber().doubleValue()).append(';');
+    sb.append(cbAdjustCenter.isSelected());
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.split(";");
+        int type = -1;
+        Double factor = Double.MIN_VALUE;
+        boolean adjust = true;
+
+        if (params.length > 0) {
+          type = Misc.toNumber(params[0], -1);
+          if (type < 0 || type >= cbType.getModel().getSize()) {
+            return false;
+          }
+        }
+        if (params.length > 1) {
+          double min = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMinimum()).doubleValue();
+          double max = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMaximum()).doubleValue();
+          factor = decodeDouble(params[1], min, max, Double.MIN_VALUE);
+          if (factor == Double.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 2) {
+          if (params[2].equalsIgnoreCase("true")) {
+            adjust = true;
+          } else if (params[2].equalsIgnoreCase("false")) {
+            adjust = false;
+          } else {
+            return false;
+          }
+        }
+
+        if (type >= 0) {
+          cbType.setSelectedIndex(type);
+        }
+        if (factor != Double.MIN_VALUE) {
+          spinnerFactor.setValue(factor);
+        }
+        cbAdjustCenter.setSelected(adjust);
+      }
+      return true;
+    }
+    return false;
+  }
+
 
   @Override
   protected JPanel loadControls()

@@ -107,7 +107,39 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
   public void updateControls()
   {
     // supportys BAM v1 only
-    bPalette.setEnabled(getConverter().getBamVersion() == ConvertToBam.VERSION_BAMV1);
+    bPalette.setEnabled(getConverter().isBamV1Selected());
+  }
+
+  @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.trim().split(";");
+        int[] colors = null;
+
+        if (params.length > 0) {
+          colors = decodeColorList(params[0]);
+          if (colors == null) {
+            return false;
+          }
+        }
+
+        if (colors != null) {
+          paletteDialog.loadPalette(colors);
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
 //--------------------- Begin Interface ActionListener ---------------------
@@ -259,19 +291,27 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
 
         // applying palette
         if (palette != null && palette.length > 0) {
-          int max = Math.min(cgPalette.getColorCount(), palette.length);
-          for (int i = 0; i < max; i++) {
-            cgPalette.setColor(i, new Color(palette[i], false));
-          }
-          for (int i = max; i < cgPalette.getColorCount(); i++) {
-            cgPalette.setColor(i, Color.BLACK);
-          }
-          setModified();
+          loadPalette(palette);
         } else {
           throw new Exception("No palette found in file " + paletteFile.getName());
         }
       } else {
         throw new Exception("File does not exist.");
+      }
+    }
+
+    /** Loads the palette from the specified color array into the color grid component. */
+    public void loadPalette(int[] colors)
+    {
+      if (colors != null && colors.length > 0) {
+        int max = Math.min(cgPalette.getColorCount(), colors.length);
+        for (int i = 0; i < max; i++) {
+          cgPalette.setColor(i, new Color(colors[i], false));
+        }
+        for (int i = max; i < cgPalette.getColorCount(); i++) {
+          cgPalette.setColor(i, Color.BLACK);
+        }
+        setModified();
       }
     }
 

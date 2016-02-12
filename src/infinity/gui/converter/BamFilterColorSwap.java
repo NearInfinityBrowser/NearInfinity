@@ -76,6 +76,52 @@ public class BamFilterColorSwap extends BamFilterBaseColor
   }
 
   @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(cbSwapType.getSelectedIndex()).append(';');
+    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.trim().split(";");
+        int type = -1;
+        int[] indices = null;
+
+        // parsing configuration data
+        if (params.length > 0) {  // set swap type
+          type = decodeNumber(params[0], 0, cbSwapType.getModel().getSize() - 1, -1);
+          if (type == -1) {
+            return false;
+          }
+        }
+        if (params.length > 1) {
+          indices = decodeColorList(params[1]);
+          if (indices == null) {
+            return false;
+          }
+        }
+
+        // applying configuration data
+        if (type >= 0) {
+          cbSwapType.setSelectedIndex(type);
+        }
+        if (indices != null) {
+          pExcludeColors.setSelectedIndices(indices);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

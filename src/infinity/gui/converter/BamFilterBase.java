@@ -85,6 +85,20 @@ public abstract class BamFilterBase
     // does nothing by default
   }
 
+  /**
+   * Returns the current filter configuration as string data.
+   * The format string should be in the format <pre>value1;"string1";[complex,"string2",value2];value3</pre>
+   */
+  public abstract String getConfiguration();
+
+  /**
+   * Applies the specified configuration data to the filter.
+   * @param config The configuration data as string data.
+   * @return <code>true</code> if configuration have been applied successfully,
+   *         <code>false</code> otherwise.
+   */
+  public abstract boolean setConfiguration(String config);
+
   /** Cleans up class-specific resource. Call whenever you want to release this instance from memory. */
   public void close() {}
 
@@ -151,5 +165,35 @@ public abstract class BamFilterBase
     for (int i = 0; i < listChangeListeners.size(); i++) {
       listChangeListeners.get(i).stateChanged(event);
     }
+  }
+
+  /** Parses a single numeric value from a parameter string in the given limits. Returns defValue on error. */
+  protected static int decodeNumber(String param, int min, int max, int defValue)
+  {
+    if (param != null) {
+      try {
+        int value = Integer.parseInt(param);
+        if (value >= min && value <= max) {
+          return value;
+        }
+      } catch (NumberFormatException e) {
+      }
+    }
+    return defValue;
+  }
+
+  /** Parses a single floating point value from a parameter string in the given limits. Returns defValue on error. */
+  protected static double decodeDouble(String param, double min, double max, double defValue)
+  {
+    if (param != null) {
+      try {
+        double value = Double.parseDouble(param);
+        if (value >= min && value <= max) {
+          return value;
+        }
+      } catch (NumberFormatException e) {
+      }
+    }
+    return defValue;
   }
 }

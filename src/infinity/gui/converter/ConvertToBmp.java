@@ -7,6 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
+import infinity.icon.Icons;
 import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.util.io.FileNI;
@@ -297,6 +298,7 @@ public class ConvertToBmp extends ChildFrame
 
   private void init()
   {
+    setIconImage(Icons.getImage("Application16.gif"));
     GridBagConstraints c = new GridBagConstraints();
 
     bAdd = new JButton("Add...");

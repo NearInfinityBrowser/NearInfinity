@@ -77,6 +77,76 @@ public class BamFilterColorBCG extends BamFilterBaseColor
   }
 
   @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(sliderBrightness.getValue()).append(';');
+    sb.append(sliderContrast.getValue()).append(';');
+    sb.append(((SpinnerNumberModel)spinnerGamma.getModel()).getNumber().doubleValue()).append(';');
+    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.trim().split(";");
+        Integer bValue = Integer.MIN_VALUE;
+        Integer cValue = Integer.MIN_VALUE;
+        Double gValue = Double.MIN_VALUE;
+        int[] indices = null;
+
+        // parsing configuration data
+        if (params.length > 0) {  // set brightness value
+          bValue = decodeNumber(params[0], sliderBrightness.getMinimum(), sliderBrightness.getMaximum(), Integer.MIN_VALUE);
+          if (bValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 1) {  // set contrast value
+          cValue = decodeNumber(params[1], sliderContrast.getMinimum(), sliderContrast.getMaximum(), Integer.MIN_VALUE);
+          if (cValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 2) {  // set gamma value
+          double min = ((Number)((SpinnerNumberModel)spinnerGamma.getModel()).getMinimum()).doubleValue();
+          double max = ((Number)((SpinnerNumberModel)spinnerGamma.getModel()).getMaximum()).doubleValue();
+          gValue = decodeDouble(params[2], min, max, Double.MIN_VALUE);
+          if (gValue == Double.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 3) {
+          indices = decodeColorList(params[3]);
+          if (indices == null) {
+            return false;
+          }
+        }
+
+        // applying configuration data
+        if (bValue != Integer.MIN_VALUE) {
+          sliderBrightness.setValue(bValue);
+        }
+        if (cValue != Integer.MIN_VALUE) {
+          sliderContrast.setValue(cValue);
+        }
+        if (gValue != Double.MIN_VALUE) {
+          sliderGamma.setValue((int)(gValue * GammaScaleFactor));
+        }
+        if (indices != null) {
+          pExcludeColors.setSelectedIndices(indices);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

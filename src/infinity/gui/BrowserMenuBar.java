@@ -1301,23 +1301,23 @@ public final class BrowserMenuBar extends JMenuBar
       add(convertMenu);
 
       toolConvImageToBam =
-          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToBam);
 
       toolConvImageToBmp =
-          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToBmp);
 
       toolConvImageToMos =
-          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToMos);
 
       toolConvImageToPvrz =
-          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToPvrz);
 
       toolConvImageToTis =
-          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToTis);
       // *** End Convert submenu ***
 

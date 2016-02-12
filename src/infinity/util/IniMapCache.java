@@ -28,12 +28,17 @@ public class IniMapCache
 
   public static IniMap get(String name)
   {
+    return get(name, false);
+  }
+
+  public static IniMap get(String name, boolean ignoreComments)
+  {
     IniMap retVal = null;
     if (name != null) {
       name = name.trim().toUpperCase(Locale.ENGLISH);
       ResourceEntry entry = ResourceFactory.getResourceEntry(name);
       if (entry != null) {
-        retVal = get(entry);
+        retVal = get(entry, ignoreComments);
       } else {
         System.err.println("Could not find " + name);
       }
@@ -43,11 +48,16 @@ public class IniMapCache
 
   public static synchronized IniMap get(ResourceEntry entry)
   {
+    return get(entry, false);
+  }
+
+  public static synchronized IniMap get(ResourceEntry entry, boolean ignoreComments)
+  {
     IniMap retVal = null;
     if (entry != null) {
       retVal = map.get(entry);
       if (retVal == null) {
-        retVal = new IniMap(entry);
+        retVal = new IniMap(entry, ignoreComments);
         map.put(entry, retVal);
       }
     }

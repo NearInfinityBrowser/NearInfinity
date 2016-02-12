@@ -70,6 +70,98 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
   }
 
   @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(cbEdges[EDGE_TOP].isSelected()).append(';');
+    sb.append(cbEdges[EDGE_LEFT].isSelected()).append(';');
+    sb.append(cbEdges[EDGE_BOTTOM].isSelected()).append(';');
+    sb.append(cbEdges[EDGE_RIGHT].isSelected()).append(';');
+    sb.append(((SpinnerNumberModel)spinnerMargin.getModel()).getNumber().intValue()).append(';');
+    sb.append(cbAdjustCenter.isSelected());
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.split(";");
+        boolean t = true, l = true, b = true, r = true;
+        Integer margin = Integer.MIN_VALUE;
+        boolean a = true;
+
+        if (params.length > 0) {
+          if (params[0].equalsIgnoreCase("true")) {
+            t = true;
+          } else if (params[0].equalsIgnoreCase("false")) {
+            t = false;
+          } else {
+            return false;
+          }
+        }
+        if (params.length > 1) {
+          if (params[1].equalsIgnoreCase("true")) {
+            l = true;
+          } else if (params[1].equalsIgnoreCase("false")) {
+            l = false;
+          } else {
+            return false;
+          }
+        }
+        if (params.length > 2) {
+          if (params[2].equalsIgnoreCase("true")) {
+            b = true;
+          } else if (params[2].equalsIgnoreCase("false")) {
+            b = false;
+          } else {
+            return false;
+          }
+        }
+        if (params.length > 3) {
+          if (params[3].equalsIgnoreCase("true")) {
+            r = true;
+          } else if (params[3].equalsIgnoreCase("false")) {
+            r = false;
+          } else {
+            return false;
+          }
+        }
+        if (params.length > 4) {
+          int min = ((Number)((SpinnerNumberModel)spinnerMargin.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerMargin.getModel()).getMaximum()).intValue();
+          margin = decodeNumber(params[4], min, max, Integer.MIN_VALUE);
+          if (margin == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 5) {
+          if (params[5].equalsIgnoreCase("true")) {
+            a = true;
+          } else if (params[5].equalsIgnoreCase("false")) {
+            a = false;
+          } else {
+            return false;
+          }
+        }
+
+        cbEdges[EDGE_TOP].setSelected(t);
+        cbEdges[EDGE_LEFT].setSelected(l);
+        cbEdges[EDGE_BOTTOM].setSelected(b);
+        cbEdges[EDGE_RIGHT].setSelected(r);
+        if (margin != Integer.MIN_VALUE) {
+          spinnerMargin.setValue(margin);
+        }
+        cbAdjustCenter.setSelected(a);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

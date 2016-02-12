@@ -6,6 +6,7 @@ package infinity.gui.converter;
 
 import infinity.gui.ViewerUtil;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import infinity.util.Misc;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -61,6 +62,66 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
   {
     return applyEffect(entry);
+  }
+
+  @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(rbCW.isSelected() ? 0 : 1).append(';');
+    sb.append(cbAngle.getSelectedIndex()).append(';');
+    sb.append(cbAdjustCenter.isSelected());
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.split(";");
+        int orientation = -1;
+        int angle = -1;
+        boolean adjust = true;
+
+        if (params.length > 0) {
+          orientation = Misc.toNumber(params[0], -1);
+          if (orientation < 0 || orientation > 1) {
+            return false;
+          }
+        }
+        if (params.length > 1) {
+          angle = Misc.toNumber(params[1], -1);
+          if (angle < 0 || angle >= cbAngle.getModel().getSize()) {
+            return false;
+          }
+        }
+        if (params.length > 2) {
+          if (params[2].equalsIgnoreCase("true")) {
+            adjust = true;
+          } else if (params[2].equalsIgnoreCase("false")) {
+            adjust = false;
+          } else {
+            return false;
+          }
+        }
+
+        if (orientation >= 0) {
+          if (orientation == 0) {
+            rbCW.setSelected(true);
+          } else {
+            rbCCW.setSelected(true);
+          }
+        }
+        if (angle >= 0) {
+          cbAngle.setSelectedIndex(angle);
+        }
+        cbAdjustCenter.setSelected(adjust);
+      }
+      return true;
+    }
+    return false;
   }
 
   @Override

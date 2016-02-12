@@ -24,12 +24,22 @@ public class IniMap
 
   public IniMap(String name)
   {
-    this(ResourceFactory.getResourceEntry(name));
+    this(ResourceFactory.getResourceEntry(name), false);
+  }
+
+  public IniMap(String name, boolean ignoreComments)
+  {
+    this(ResourceFactory.getResourceEntry(name), ignoreComments);
   }
 
   public IniMap(ResourceEntry entry)
   {
-    init(entry);
+    this(entry, false);
+  }
+
+  public IniMap(ResourceEntry entry, boolean ignoreComments)
+  {
+    init(entry, ignoreComments);
   }
 
   /** Returns number of available INI sections. */
@@ -82,7 +92,7 @@ public class IniMap
     return sb.toString();
   }
 
-  private void init(ResourceEntry entry)
+  private void init(ResourceEntry entry, boolean ignoreComments)
   {
     // reading and storing unprocessed lines of text
     List<String> lines = new ArrayList<String>();
@@ -130,7 +140,7 @@ public class IniMap
         curSectionLine = i;
         section.clear();
       } else {    // potential section entry
-        IniMapEntry e = parseEntry(line, i);
+        IniMapEntry e = parseEntry(line, i, ignoreComments);
         if (e != null) {
           section.add(e);
         }
@@ -143,7 +153,7 @@ public class IniMap
     }
   }
 
-  private IniMapEntry parseEntry(String line, int lineNr)
+  private IniMapEntry parseEntry(String line, int lineNr, boolean ignoreComments)
   {
     IniMapEntry retVal = null;
     if (line != null && !line.isEmpty()) {
@@ -156,7 +166,8 @@ public class IniMap
           key = line.substring(start, pos).trim();
           isValue = true;
           start = pos + 1;
-        } else if (ch == '/' && pos+1 < line.length() && line.charAt(pos+1) == '/') {
+        } else if (!ignoreComments &&
+                   ch == '/' && pos+1 < line.length() && line.charAt(pos+1) == '/') {
           break;  // skip comments
         }
       }

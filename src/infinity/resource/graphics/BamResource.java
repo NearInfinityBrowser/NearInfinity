@@ -7,8 +7,10 @@ package infinity.resource.graphics;
 import infinity.NearInfinity;
 import infinity.gui.ButtonPanel;
 import infinity.gui.ButtonPopupMenu;
+import infinity.gui.ChildFrame;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
+import infinity.gui.converter.ConvertToBam;
 import infinity.icon.Icons;
 import infinity.resource.Profile;
 import infinity.resource.Resource;
@@ -77,6 +79,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
   private static final ButtonPanel.Control CtrlPlay       = ButtonPanel.Control.Custom5;
   private static final ButtonPanel.Control CtrlCycleLabel = ButtonPanel.Control.Custom6;
   private static final ButtonPanel.Control CtrlFrameLabel = ButtonPanel.Control.Custom7;
+  private static final ButtonPanel.Control CtrlEdit       = ButtonPanel.Control.Custom8;
 
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
@@ -241,6 +244,14 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         }
         exportFrames(filePath, fileName, fileExt, format);
       }
+    } else if (buttonPanel.getControlByType(CtrlEdit) == event.getSource()) {
+      ConvertToBam dlg = (ConvertToBam)ChildFrame.getFirstFrame(ConvertToBam.class);
+      if (dlg == null) {
+        dlg = new ConvertToBam(entry);
+      } else {
+        dlg.setVisible(true);
+        dlg.framesImportBam(entry);
+      }
     }
   }
 
@@ -359,6 +370,10 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.ExportMenu);
     bpmExport.setMenuItems(mi);
 
+    JButton bEdit = new JButton("Edit BAM", Icons.getIcon("Application16.gif"));
+    bEdit.setToolTipText("Opens resource in BAM Converter.");
+    bEdit.addActionListener(this);
+
     JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon("Play16.gif"));
     bPlay.addActionListener(this);
 
@@ -398,6 +413,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     buttonPanel.addControl(bPlay, CtrlPlay);
     buttonPanel.addControl(bFind, ButtonPanel.Control.FindReferences);
     buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
+    buttonPanel.addControl(bEdit, CtrlEdit);
     buttonPanel.add(optionsPanel);
 
     panel = new JPanel(new BorderLayout());

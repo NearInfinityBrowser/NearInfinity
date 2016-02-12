@@ -8,6 +8,7 @@ import infinity.gui.ViewerUtil;
 import infinity.resource.graphics.DxtEncoder;
 import infinity.resource.graphics.PseudoBamDecoder;
 import infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import infinity.util.Misc;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -70,6 +71,103 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
   {
     // does not modify the source image
     return entry;
+  }
+
+  @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(spinnerSplitX.getValue()).append(';');
+    sb.append(spinnerSplitY.getValue()).append(';');
+    sb.append(cbSplitAuto.isSelected()).append(';');
+    sb.append(cbSuffixDigits.getSelectedIndex()).append(';');
+    sb.append(spinnerSuffixStart.getValue()).append(';');
+    sb.append(spinnerSuffixStep.getValue());
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.split(";");
+        Integer splitX = Integer.MIN_VALUE;
+        Integer splitY = Integer.MIN_VALUE;
+        boolean auto = true;
+        int digits = -1;
+        Integer start = Integer.MIN_VALUE;
+        Integer step = Integer.MIN_VALUE;
+
+        if (params.length > 0) {
+          int min = ((Number)((SpinnerNumberModel)spinnerSplitX.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerSplitX.getModel()).getMaximum()).intValue();
+          splitX = decodeNumber(params[0], min, max, Integer.MIN_VALUE);
+          if (splitX == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 1) {
+          int min = ((Number)((SpinnerNumberModel)spinnerSplitY.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerSplitY.getModel()).getMaximum()).intValue();
+          splitY = decodeNumber(params[1], min, max, Integer.MIN_VALUE);
+          if (splitY == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 2) {
+          if (params[2].equalsIgnoreCase("true")) {
+            auto = true;
+          } else if (params[2].equalsIgnoreCase("false")) {
+            auto = false;
+          } else {
+            return false;
+          }
+        }
+        if (params.length > 3) {
+          digits = Misc.toNumber(params[3], -1);
+          if (digits < 0 || digits >= cbSuffixDigits.getModel().getSize()) {
+            return false;
+          }
+        }
+        if (params.length > 4) {
+          int min = ((Number)((SpinnerNumberModel)spinnerSuffixStart.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerSuffixStart.getModel()).getMaximum()).intValue();
+          start = decodeNumber(params[4], min, max, Integer.MIN_VALUE);
+          if (start == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 5) {
+          int min = ((Number)((SpinnerNumberModel)spinnerSuffixStep.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerSuffixStep.getModel()).getMaximum()).intValue();
+          step = decodeNumber(params[5], min, max, Integer.MIN_VALUE);
+          if (step == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+
+        if (splitX != Integer.MIN_VALUE) {
+          spinnerSplitX.setValue(splitX);
+        }
+        if (splitY != Integer.MIN_VALUE) {
+          spinnerSplitY.setValue(splitY);
+        }
+        cbSplitAuto.setSelected(auto);
+        if (digits >= 0) {
+          cbSuffixDigits.setSelectedIndex(digits);
+        }
+        if (start != Integer.MIN_VALUE) {
+          spinnerSuffixStart.setValue(start);
+        }
+        if (step != Integer.MIN_VALUE) {
+          spinnerSuffixStep.setValue(step);
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   @Override

@@ -7,6 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
+import infinity.icon.Icons;
 import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
@@ -316,6 +317,8 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 
   private void init()
   {
+    setIconImage(Icons.getImage("Application16.gif"));
+
     // setting up input section
     JPanel pInputAdd = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
