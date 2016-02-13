@@ -13,9 +13,10 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.Viewable;
-import infinity.resource.graphics.BamResource;
+import infinity.resource.graphics.BamDecoder;
 import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource;
+import infinity.resource.graphics.BamDecoder.BamControl;
 import infinity.resource.key.ResourceEntry;
 
 import java.awt.BorderLayout;
@@ -117,10 +118,11 @@ public final class ViewerUtil
     ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamResource iconBam = new BamResource(iconEntry);
+        BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        BamControl ctrl = decoder.createControl();
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
-        frameNr = Math.min(frameNr, iconBam.getFrameCount() - 1);
-        label.setIcon(new ImageIcon(iconBam.getFrame(frameNr)));
+        frameNr = Math.min(frameNr, decoder.frameCount() - 1);
+        label.setIcon(new ImageIcon(decoder.frameGet(ctrl, frameNr)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
@@ -136,15 +138,16 @@ public final class ViewerUtil
     ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamResource iconBam = new BamResource(iconEntry);
+        BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        BamControl ctrl = decoder.createControl();
         JLabel label = new JLabel(iconRef.getName(), JLabel.CENTER);
         int frameIdx = -1;
         for (int curAnimIdx = animNr; curAnimIdx >= 0 && frameIdx < 0; curAnimIdx--) {
           for (int curFrameIdx = frameNr; curFrameIdx >= 0 && frameIdx < 0; curFrameIdx--) {
-            frameIdx = iconBam.getFrameIndex(curAnimIdx, curFrameIdx);
+            frameIdx = ctrl.cycleGetFrameIndexAbsolute(curAnimIdx, curFrameIdx);
           }
         }
-        label.setIcon(new ImageIcon(iconBam.getFrame(frameIdx)));
+        label.setIcon(new ImageIcon(decoder.frameGet(ctrl, frameIdx)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
