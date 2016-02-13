@@ -19,6 +19,7 @@ import infinity.resource.ViewableContainer;
 import infinity.resource.Writeable;
 import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.SimpleListModel;
 import infinity.util.io.FileNI;
 
 import java.awt.BorderLayout;
@@ -36,7 +37,6 @@ import java.io.OutputStream;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -70,7 +70,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
-  private DefaultListModel listModel;
+  private SimpleListModel<ResourceEntry> listModel;
   private JList filelist;
   private JPanel panel;
   private List<ResourceEntry> entries;
@@ -93,7 +93,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
     } else if (buttonPanel.getControlByType(CtrlDecompress) == event.getSource()) {
       decompressData(true);
     } else if (buttonPanel.getControlByType(CtrlEdit) == event.getSource()) {
-      ResourceEntry fileentry = (ResourceEntry)entries.get(filelist.getSelectedIndex());
+      ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
       Resource res = ResourceFactory.getResource(fileentry);
       new ViewFrame(panel.getTopLevelAncestor(), res);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
@@ -179,7 +179,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    listModel = new DefaultListModel();
+    listModel = new SimpleListModel<ResourceEntry>();
     for (int i = 0; i < handler.getFileEntries().size(); i++) {
       listModel.addElement(handler.getFileEntries().get(i));
     }
@@ -192,7 +192,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
-          ResourceEntry fileentry = (ResourceEntry)entries.get(filelist.getSelectedIndex());
+          ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
           Resource res = ResourceFactory.getResource(fileentry);
           new ViewFrame(panel.getTopLevelAncestor(), res);
         }
@@ -396,7 +396,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
   private void removeResource(int entryIndex)
   {
     if (entryIndex >= 0 && entryIndex < entries.size()) {
-      ResourceEntry resourceEntry = (ResourceEntry)entries.get(entryIndex);
+      ResourceEntry resourceEntry = entries.get(entryIndex);
       File file = resourceEntry.getActualFile();
       if (file != null) {
         file.delete();

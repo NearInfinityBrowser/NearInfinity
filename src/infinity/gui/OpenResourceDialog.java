@@ -19,13 +19,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
-import javax.swing.AbstractListModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -49,6 +47,7 @@ import infinity.resource.Profile;
 import infinity.resource.ResourceFactory;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.ObjectString;
+import infinity.util.SimpleListModel;
 
 /**
  * Provides a modal dialog for selecting a single or multiple game resources of one or more
@@ -567,138 +566,5 @@ public class OpenResourceDialog extends JDialog
     setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     setLocationRelativeTo(getOwner());
     list.requestFocusInWindow();
-  }
-
-
-//-------------------------- INNER CLASSES --------------------------
-
-  /**
-   * A speed optimized implementation of the {@link AbstractListModel}.
-   */
-  private static class SimpleListModel<E> extends AbstractListModel
-  {
-    private final ArrayList<E> delegate = new ArrayList<E>();
-
-    public SimpleListModel()
-    {
-    }
-
-    @SuppressWarnings("unused")
-    public SimpleListModel(Collection<E> items)
-    {
-      addAll(items);
-    }
-
-    @Override
-    public E getElementAt(int index)
-    {
-      return delegate.get(index);
-    }
-
-    @Override
-    public int getSize()
-    {
-      return delegate.size();
-    }
-
-    @Override
-    public String toString()
-    {
-      return delegate.toString();
-    }
-
-    public int size()
-    {
-      return delegate.size();
-    }
-
-    @SuppressWarnings("unused")
-    public boolean contains(E item)
-    {
-      return delegate.contains(item);
-    }
-
-    @SuppressWarnings("unused")
-    public int indexOf(E item)
-    {
-      return delegate.indexOf(item);
-    }
-
-    public E get(int index)
-    {
-      return delegate.get(index);
-    }
-
-    @SuppressWarnings("unused")
-    public E set(int index, E newItem)
-    {
-      E retVal = delegate.get(index);
-      delegate.set(index, newItem);
-      fireContentsChanged(this, index, index);
-      return retVal;
-    }
-
-    @SuppressWarnings("unused")
-    public boolean add(E item)
-    {
-      int index = delegate.size();
-      boolean retVal = delegate.add(item);
-      fireIntervalAdded(this, index, index);
-      return retVal;
-    }
-
-    @SuppressWarnings("unused")
-    public void add(int index, E item)
-    {
-      delegate.add(index, item);
-      fireIntervalAdded(this, index, index);
-    }
-
-    public boolean addAll(Collection<E> coll)
-    {
-      return addAll(delegate.size(), coll);
-    }
-
-    public boolean addAll(int index, Collection<E> coll)
-    {
-      if (coll == null) {
-        throw new NullPointerException();
-      }
-      int index0 = index;
-      int index1 = index0 + coll.size() - 1;
-      delegate.addAll(index, coll);
-      if (index1 >= index0) {
-        fireIntervalAdded(this, index0, index1);
-      }
-      return (index1 >= index0);
-    }
-
-    @SuppressWarnings("unused")
-    public E remove(int index)
-    {
-      E retVal = delegate.remove(index);
-      fireIntervalRemoved(this, index, index);
-      return retVal;
-    }
-
-    @SuppressWarnings("unused")
-    public boolean remove(E item)
-    {
-      int index = delegate.indexOf(item);
-      if (index >= 0) {
-        delegate.remove(index);
-        fireIntervalRemoved(this, index, index);
-      }
-      return (index >= 0);
-    }
-
-    public void clear()
-    {
-      int index1 = delegate.size();
-      delegate.clear();
-      if (index1 > 0) {
-        fireIntervalRemoved(this, 0, index1);
-      }
-    }
   }
 }

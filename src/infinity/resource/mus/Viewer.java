@@ -7,6 +7,7 @@ package infinity.resource.mus;
 import infinity.gui.BrowserMenuBar;
 import infinity.icon.Icons;
 import infinity.resource.sound.AudioPlayer;
+import infinity.util.SimpleListModel;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
@@ -20,7 +21,6 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -32,7 +32,7 @@ import javax.swing.UIManager;
 
 public class Viewer extends JPanel implements Runnable, ActionListener
 {
-  private final DefaultListModel listModel = new DefaultListModel();
+  private final SimpleListModel<Entry> listModel = new SimpleListModel<Entry>();
   private final JList list = new JList(listModel);
   private final AudioPlayer player = new AudioPlayer();
   private final List<Entry> entryList = new Vector<Entry>();

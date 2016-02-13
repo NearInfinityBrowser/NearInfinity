@@ -12,6 +12,7 @@ import infinity.resource.key.ResourceEntry;
 import infinity.resource.mus.Entry;
 import infinity.resource.sound.AudioBuffer;
 import infinity.resource.sound.AudioPlayer;
+import infinity.util.SimpleListModel;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -42,8 +42,8 @@ import javax.swing.event.ListSelectionListener;
 public final class InfinityAmp extends ChildFrame
                                 implements ActionListener, ListSelectionListener, Runnable, Closeable
 {
-  private final DefaultListModel allMusModel = new DefaultListModel();
-  private final DefaultListModel selectedMusModel = new DefaultListModel();
+  private final SimpleListModel<ResourceEntry> allMusModel = new SimpleListModel<ResourceEntry>();
+  private final SimpleListModel<ResourceEntry> selectedMusModel = new SimpleListModel<ResourceEntry>();
   private final JButton bPlay = new JButton(Icons.getIcon("Play16.gif"));
   private final JButton bStop = new JButton(Icons.getIcon("Stop16.gif"));
   private final JButton bAdd = new JButton(Icons.getIcon("Forward16.gif"));
@@ -172,13 +172,13 @@ public void actionPerformed(ActionEvent event)
    }
    else if (event.getSource() == bUp) {
      int index = selectedMusList.getSelectedIndex();
-     Object o = selectedMusModel.remove(index);
+     ResourceEntry o = selectedMusModel.remove(index);
      selectedMusModel.add(index - 1, o);
      selectedMusList.addSelectionInterval(index - 1, index - 1);
    }
    else if (event.getSource() == bDown) {
      int index = selectedMusList.getSelectedIndex();
-     Object o = selectedMusModel.remove(index);
+     ResourceEntry o = selectedMusModel.remove(index);
      selectedMusModel.add(index + 1, o);
      selectedMusList.addSelectionInterval(index + 1, index + 1);
    }
@@ -236,7 +236,7 @@ public void run()
    if (selectedMusList.getSelectedIndex() != -1)
      index = selectedMusList.getSelectedIndex();
    while (keepPlaying) {
-     ResourceEntry musEntry = (ResourceEntry)selectedMusModel.get(index++);
+     ResourceEntry musEntry = selectedMusModel.get(index++);
      playMus(musEntry);
      if (index == selectedMusModel.size()) {
        if (cbLoop.isSelected())

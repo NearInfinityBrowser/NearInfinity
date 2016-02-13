@@ -18,6 +18,7 @@ import infinity.resource.graphics.BmpResource;
 import infinity.resource.graphics.MosResource;
 import infinity.resource.graphics.BamDecoder.BamControl;
 import infinity.resource.key.ResourceEntry;
+import infinity.util.SimpleListModel;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -39,7 +40,6 @@ import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -282,7 +282,7 @@ public final class ViewerUtil
     private final AbstractStruct struct;
     private final Class<? extends StructEntry> listClass;
     private final JList list;
-    private final DefaultListModel listModel = new DefaultListModel();
+    private final SimpleListModel<Object> listModel = new SimpleListModel<Object>();
     private final JButton bOpen = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
     private Comparator<AbstractStruct> comp;
 

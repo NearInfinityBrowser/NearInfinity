@@ -5,6 +5,8 @@
 package infinity.gui;
 
 import infinity.NearInfinity;
+import infinity.gui.BrowserMenuBar.Bookmark;
+import infinity.util.SimpleListModel;
 
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -22,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.AbstractAction;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -43,7 +44,7 @@ import javax.swing.event.ListSelectionListener;
  */
 public class BookmarkEditor extends JDialog implements ActionListener, FocusListener, ListSelectionListener
 {
-  private final DefaultListModel modelEntries = new DefaultListModel();
+  private final SimpleListModel<Bookmark> modelEntries = new SimpleListModel<Bookmark>();
   private final JList listEntries = new JList(modelEntries);
   private final JButton bUp = new JButton("Up");
   private final JButton bDown = new JButton("Down");
@@ -316,7 +317,7 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
       int oldIdx = listEntries.getSelectedIndex();
       if (oldIdx > 0) {
         int newIdx = oldIdx - 1;
-        Object obj = modelEntries.remove(oldIdx);
+        Bookmark obj = modelEntries.remove(oldIdx);
         modelEntries.add(newIdx, obj);
         listEntries.setSelectedIndex(newIdx);
         updateEntry(newIdx);
@@ -325,7 +326,7 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
       int oldIdx = listEntries.getSelectedIndex();
       if (oldIdx >= 0 && oldIdx < modelEntries.size() - 1) {
         int newIdx = oldIdx + 1;
-        Object obj = modelEntries.remove(oldIdx);
+        Bookmark obj = modelEntries.remove(oldIdx);
         modelEntries.add(newIdx, obj);
         listEntries.setSelectedIndex(newIdx);
         updateEntry(newIdx);

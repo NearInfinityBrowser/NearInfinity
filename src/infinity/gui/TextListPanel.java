@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -24,11 +23,12 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import infinity.util.Misc;
+import infinity.util.SimpleListModel;
 
 public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
 {
   private boolean sortValues = true;
-  private final DefaultListModel listmodel = new DefaultListModel();
+  private final SimpleListModel<Object> listmodel = new SimpleListModel<Object>();
   private final JList list;
   private final JTextField tfield = new JTextField(10);
 

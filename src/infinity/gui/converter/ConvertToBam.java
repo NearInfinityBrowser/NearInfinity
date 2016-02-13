@@ -52,7 +52,6 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -110,6 +109,7 @@ import infinity.util.IniMapEntry;
 import infinity.util.IniMapSection;
 import infinity.util.Misc;
 import infinity.util.Pair;
+import infinity.util.SimpleListModel;
 import infinity.util.io.FileNI;
 
 public class ConvertToBam extends ChildFrame
@@ -171,7 +171,7 @@ public class ConvertToBam extends ChildFrame
   private BamFramesListModel modelFrames;   // Frames == FramesAvail
   private BamCycleFramesListModel modelCurCycle;
   private BamCyclesListModel modelCycles;
-  private DefaultListModel modelFilters;
+  private SimpleListModel<BamFilterBase> modelFilters;
   private JList listFrames, listCycles, listFramesAvail, listCurCycle, listFilters;
   private JMenuItem miFramesAddFiles, miFramesAddResources, miFramesAddFolder, miFramesImportFile,
                     miFramesImportResource, miFramesRemove, miFramesRemoveAll, miFramesDropUnused,
@@ -1658,7 +1658,7 @@ public class ConvertToBam extends ChildFrame
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersDesc.add(taFiltersDesc, c);
 
-    modelFilters = new DefaultListModel();
+    modelFilters = new SimpleListModel<BamFilterBase>();
     listFilters = new JList(modelFilters);
     listFilters.setCellRenderer(new IndexedCellRenderer());
     listFilters.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -2107,7 +2107,7 @@ public class ConvertToBam extends ChildFrame
     final String fmt = "Name: %1$s\n\nDescription:\n%2$s";
     int idx = listFilters.getSelectedIndex();
     if (idx >= 0) {
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(idx);
+      BamFilterBase filter = modelFilters.get(idx);
       taFiltersDesc.setText(String.format(fmt, filter.getName(), filter.getDescription()));
     } else {
       taFiltersDesc.setText(String.format(fmt, "", ""));
@@ -2120,7 +2120,7 @@ public class ConvertToBam extends ChildFrame
     pFiltersSettings.removeAll();
     int idx = listFilters.getSelectedIndex();
     if (idx >= 0) {
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(idx);
+      BamFilterBase filter = modelFilters.get(idx);
       pFiltersSettings.add(filter.getControls(), BorderLayout.CENTER);
     } else {
       // insert empty dummy control
@@ -3439,7 +3439,7 @@ public class ConvertToBam extends ChildFrame
       Class<? extends BamFilterBase> filterClass = info.getFilterClass();
       if (BamFilterBaseOutput.class.isAssignableFrom(filterClass)) {
         for (int i = 0; i < modelFilters.getSize(); i++) {
-          BamFilterBase filter = (BamFilterBase)modelFilters.get(i);
+          BamFilterBase filter = modelFilters.get(i);
           if (filter.getClass().equals(filterClass)) {
             listFilters.setSelectedIndex(i);
             return null;
@@ -3472,7 +3472,7 @@ public class ConvertToBam extends ChildFrame
   private void filterRemove(int index)
   {
     if (index >= 0 && index < modelFilters.size()) {
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(index);
+      BamFilterBase filter = modelFilters.get(index);
       filter.close();
       modelFilters.remove(index);
       if (index < modelFilters.size()) {
@@ -3490,7 +3490,7 @@ public class ConvertToBam extends ChildFrame
   {
     listFilters.setSelectedIndex(-1);
     for (int i = modelFilters.size() - 1; i >= 0; i--) {
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(i);
+      BamFilterBase filter = modelFilters.get(i);
       filter.close();
     }
     modelFilters.clear();
@@ -3503,7 +3503,7 @@ public class ConvertToBam extends ChildFrame
   {
     int index = listFilters.getSelectedIndex();
     if (index > 0 && index < modelFilters.size()) {
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(index - 1);
+      BamFilterBase filter = modelFilters.get(index - 1);
       modelFilters.set(index - 1, modelFilters.get(index));
       modelFilters.set(index, filter);
     }
@@ -3518,7 +3518,7 @@ public class ConvertToBam extends ChildFrame
   {
     int index = listFilters.getSelectedIndex();
     if (index >= 0 && index < modelFilters.size() - 1) {
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(index + 1);
+      BamFilterBase filter = modelFilters.get(index + 1);
       modelFilters.set(index + 1, modelFilters.get(index));
       modelFilters.set(index, filter);
     }
@@ -3620,7 +3620,7 @@ public class ConvertToBam extends ChildFrame
   private void filterUpdateControls()
   {
     for (int i = 0; i < modelFilters.size(); i++) {
-      ((BamFilterBase)modelFilters.get(i)).updateControls();
+      modelFilters.get(i).updateControls();
     }
   }
 
@@ -3820,7 +3820,7 @@ public class ConvertToBam extends ChildFrame
       PseudoBamFrameEntry entry = entryFilterPreview;
       for (int i = 0; i < curFilterIdx; i++) {
         if (modelFilters.get(i) instanceof BamFilterBase) {
-          BamFilterBase filter = (BamFilterBase)modelFilters.get(i);
+          BamFilterBase filter = modelFilters.get(i);
           entry = filter.updatePreview(entry);
         }
       }
@@ -3835,7 +3835,7 @@ public class ConvertToBam extends ChildFrame
       entry = new PseudoBamFrameEntry(ColorConvert.cloneImage(entryFilterPreview.getFrame()),
                                       entryFilterPreview.getCenterX(),
                                       entryFilterPreview.getCenterY());
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(curFilterIdx);
+      BamFilterBase filter = modelFilters.get(curFilterIdx);
       if (filter != null) {
         entry = filter.updatePreview(entry);
       }
@@ -3913,7 +3913,7 @@ public class ConvertToBam extends ChildFrame
     List<BamFilterBase> retVal = new ArrayList<BamFilterBase>();
     List<BamFilterBase> outFilters = new ArrayList<BamFilterBase>();
     for (int i = 0; i < modelFilters.size(); i++) {
-      BamFilterBase filter = (BamFilterBase)modelFilters.get(i);
+      BamFilterBase filter = modelFilters.get(i);
       if (filter instanceof BamFilterBaseOutput) {
         outFilters.add(filter);
       } else {
@@ -5504,11 +5504,9 @@ public class ConvertToBam extends ChildFrame
         if (isFiltersSelected()) {
           sb.append('[').append(SECTION_FILTERS).append(']').append(LINEBREAK);
           for (int i = 0; i < bam.modelFilters.getSize(); i++) {
-            if (bam.modelFilters.getElementAt(i) instanceof BamFilterBase) {
-              BamFilterBase filter = (BamFilterBase)bam.modelFilters.getElementAt(i);
-              sb.append(KEY_FILTER_NAME).append(i).append('=').append(filter.getName()).append(LINEBREAK);
-              sb.append(KEY_FILTER_CONFIG).append(i).append('=').append(filter.getConfiguration()).append(LINEBREAK);
-            }
+            BamFilterBase filter = bam.modelFilters.getElementAt(i);
+            sb.append(KEY_FILTER_NAME).append(i).append('=').append(filter.getName()).append(LINEBREAK);
+            sb.append(KEY_FILTER_CONFIG).append(i).append('=').append(filter.getConfiguration()).append(LINEBREAK);
           }
           sb.append(LINEBREAK);
         }

@@ -13,6 +13,7 @@ import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
 import infinity.resource.graphics.DxtEncoder;
 import infinity.util.DynamicArray;
+import infinity.util.SimpleListModel;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileOutputStreamNI;
 
@@ -37,7 +38,6 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -58,7 +58,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
   private static String currentDir = Profile.getGameRoot().toString();
 
   private JList lInputList;
-  private DefaultListModel lInputModel;
+  private SimpleListModel<File> lInputModel;
   private JButton bConvert, bCancel;
   private JButton bInputAdd, bInputAddFolder, bInputRemove, bInputRemoveAll;
   private JButton bTargetDir, bCompressionHelp;
@@ -351,7 +351,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     pInputCtrl.add(pInputAdd, BorderLayout.WEST);
     pInputCtrl.add(pInputRemove, BorderLayout.EAST);
 
-    lInputModel = new DefaultListModel();
+    lInputModel = new SimpleListModel<File>();
     lInputList = new JList(lInputModel);
     lInputList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     JScrollPane scroll = new JScrollPane(lInputList);
@@ -527,7 +527,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     }
     File[] inputFiles = new File[lInputModel.size()];
     for (int i = 0; i < lInputModel.size(); i++) {
-      inputFiles[i] = (File)lInputModel.get(i);
+      inputFiles[i] = lInputModel.get(i);
     }
     boolean isSingle = inputFiles.length == 1;
 

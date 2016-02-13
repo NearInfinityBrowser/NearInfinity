@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -98,6 +97,7 @@ import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
 import infinity.util.Misc;
 import infinity.util.Pair;
+import infinity.util.SimpleListModel;
 import infinity.util.io.FileNI;
 
 public class SearchResource extends ChildFrame
@@ -418,7 +418,7 @@ public class SearchResource extends ChildFrame
       // creating Results section
       JLabel lResult = new JLabel("Result:");
       lResults = new JLabel("");
-      listResults = new JList(new DefaultListModel());
+      listResults = new JList(new SimpleListModel<NamedResourceEntry>());
       listResults.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       listResults.addMouseListener(new MouseAdapter() {
         @Override
