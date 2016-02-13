@@ -11,16 +11,24 @@ import infinity.gui.ChildFrame;
 import infinity.gui.RenderCanvas;
 import infinity.gui.WindowBlocker;
 import infinity.gui.converter.ConvertToBam;
+import infinity.gui.hexview.GenericHexViewer;
 import infinity.icon.Icons;
+import infinity.resource.Closeable;
 import infinity.resource.Profile;
 import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
+import infinity.resource.Writeable;
+import infinity.resource.key.BIFFResourceEntry;
+import infinity.resource.key.FileResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.search.ReferenceSearcher;
 import infinity.util.DynamicArray;
 import infinity.util.IntegerHashMap;
 import infinity.util.io.FileNI;
+import infinity.util.io.FileWriterNI;
+import tv.porst.jhexview.DataChangedEvent;
+import tv.porst.jhexview.IDataChangedListener;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
@@ -39,8 +47,10 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,19 +68,21 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JToggleButton;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class BamResource implements Resource, ActionListener, PropertyChangeListener
+public class BamResource implements Resource, Closeable, Writeable, ActionListener,
+                                    PropertyChangeListener, ChangeListener, IDataChangedListener
 {
   private static final Color TransparentColor = new Color(0, true);
-  private static final int ANIM_DELAY = 1000 / 10;    // 10 fps in milliseconds
-
-  private static boolean transparencyEnabled = true;
+  private static final int ANIM_DELAY = 1000 / 15;    // 15 fps in milliseconds
 
   private static final ButtonPanel.Control CtrlNextCycle  = ButtonPanel.Control.Custom1;
   private static final ButtonPanel.Control CtrlPrevCycle  = ButtonPanel.Control.Custom2;
@@ -79,17 +91,22 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
   private static final ButtonPanel.Control CtrlPlay       = ButtonPanel.Control.Custom5;
   private static final ButtonPanel.Control CtrlCycleLabel = ButtonPanel.Control.Custom6;
   private static final ButtonPanel.Control CtrlFrameLabel = ButtonPanel.Control.Custom7;
-  private static final ButtonPanel.Control CtrlEdit       = ButtonPanel.Control.Custom8;
+  private static final ButtonPanel.Control BamEdit        = ButtonPanel.Control.Custom8;
+
+  private static boolean transparencyEnabled = true;
 
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final ButtonPanel buttonControlPanel = new ButtonPanel();
 
   private BamDecoder decoder;
   private BamDecoder.BamControl bamControl;
+  private JTabbedPane tabbedPane;
+  private GenericHexViewer hexViewer;
   private JMenuItem miExport, miExportBAM, miExportBAMC, miExportFramesPNG;
   private RenderCanvas rcDisplay;
   private JCheckBox cbTransparency;
-  private JPanel panel;
+  private JPanel panelMain, panelRaw;
   private int curCycle, curFrame;
   private Timer timer;
   private RootPaneContainer rpc;
@@ -116,42 +133,81 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     WindowBlocker.blockWindow(false);
   }
 
+//--------------------- Begin Interface Closeable ---------------------
+
+ @Override
+ public void close() throws Exception
+ {
+   if (isRawModified()) {
+     File output = null;
+     if (entry instanceof BIFFResourceEntry) {
+       output = FileNI.getFile(Profile.getRootFolders(),
+                               Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+     } else if (entry instanceof FileResourceEntry) {
+       output = entry.getActualFile();
+     }
+
+     if (output != null) {
+       final String options[] = {"Save changes", "Discard changes", "Cancel"};
+       int result = JOptionPane.showOptionDialog(panelMain, "Save changes to " + output.toString(),
+                                                 "Resource changed", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+       if (result == 0) {
+         ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor());
+       } else if (result != 1) {
+         throw new Exception("Save aborted");
+       }
+     }
+   }
+ }
+
+//--------------------- End Interface Closeable ---------------------
+
+//--------------------- Begin Interface Writeable ---------------------
+
+ @Override
+ public void write(OutputStream os) throws IOException
+ {
+   FileWriterNI.writeBytes(os, hexViewer.getData());
+ }
+
+//--------------------- End Interface Writeable ---------------------
 
 //--------------------- Begin Interface ActionListener ---------------------
 
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonPanel.getControlByType(CtrlPrevCycle) == event.getSource()) {
+    if (buttonControlPanel.getControlByType(CtrlPrevCycle) == event.getSource()) {
       curCycle--;
       bamControl.setSharedPerCycle(curCycle >= 0);
       bamControl.cycleSet(curCycle);
       updateCanvasSize();
       if (timer != null && timer.isRunning() && bamControl.cycleFrameCount() == 0) {
         timer.stop();
-        ((JToggleButton)buttonPanel.getControlByType(CtrlPlay)).setSelected(false);
+        ((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).setSelected(false);
       }
       curFrame = 0;
       showFrame();
-    } else if (buttonPanel.getControlByType(CtrlNextCycle) == event.getSource()) {
+    } else if (buttonControlPanel.getControlByType(CtrlNextCycle) == event.getSource()) {
       curCycle++;
       bamControl.setSharedPerCycle(curCycle >= 0);
       bamControl.cycleSet(curCycle);
       updateCanvasSize();
       if (timer != null && timer.isRunning() && bamControl.cycleFrameCount() == 0) {
         timer.stop();
-        ((JToggleButton)buttonPanel.getControlByType(CtrlPlay)).setSelected(false);
+        ((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).setSelected(false);
       }
       curFrame = 0;
       showFrame();
-    } else if (buttonPanel.getControlByType(CtrlPrevFrame) == event.getSource()) {
+    } else if (buttonControlPanel.getControlByType(CtrlPrevFrame) == event.getSource()) {
       curFrame--;
       showFrame();
-    } else if (buttonPanel.getControlByType(CtrlNextFrame) == event.getSource()) {
+    } else if (buttonControlPanel.getControlByType(CtrlNextFrame) == event.getSource()) {
       curFrame++;
       showFrame();
-    } else if (buttonPanel.getControlByType(CtrlPlay) == event.getSource()) {
-      if (((JToggleButton)buttonPanel.getControlByType(CtrlPlay)).isSelected()) {
+    } else if (buttonControlPanel.getControlByType(CtrlPlay) == event.getSource()) {
+      if (((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).isSelected()) {
         if (timer == null) {
           timer = new Timer(ANIM_DELAY, this);
         }
@@ -162,7 +218,11 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         }
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
-      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+      new ReferenceSearcher(entry, panelMain.getTopLevelAncestor());
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
+      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
+        setRawModified(false);
+      }
     } else if (event.getSource() == timer) {
       if (curCycle >= 0) {
         curFrame = (curFrame + 1) % bamControl.cycleFrameCount();
@@ -173,12 +233,12 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     } else if (event.getSource() == cbTransparency) {
       setTransparencyEnabled(cbTransparency.isSelected());
     } else if (event.getSource() == miExport) {
-      ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
+      ResourceFactory.exportResource(entry, panelMain.getTopLevelAncestor());
     } else if (event.getSource() == miExportBAM) {
       if (decoder != null) {
         if (decoder.getType() == BamDecoder.Type.BAMV2) {
           // create new BAM V1 from scratch
-          if (checkCompatibility(panel.getTopLevelAncestor())) {
+          if (checkCompatibility(panelMain.getTopLevelAncestor())) {
             blocker = new WindowBlocker(rpc);
             blocker.setBlocked(true);
             startConversion(false);
@@ -188,7 +248,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           try {
             byte data[] = Compressor.decompress(entry.getResourceData());
             ResourceFactory.exportResource(entry, data, entry.toString(),
-                                                         panel.getTopLevelAncestor());
+                                           panelMain.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -198,7 +258,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       if (decoder != null) {
         if (decoder.getType() == BamDecoder.Type.BAMV2) {
           // create new BAMC V1 from scratch
-          if (checkCompatibility(panel.getTopLevelAncestor())) {
+          if (checkCompatibility(panelMain.getTopLevelAncestor())) {
             blocker = new WindowBlocker(rpc);
             blocker.setBlocked(true);
             startConversion(true);
@@ -207,7 +267,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
           // compress existing BAM V1 and save as BAMC V1
           try {
             byte data[] = Compressor.compress(entry.getResourceData(), "BAMC", "V1  ");
-            ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, data, entry.toString(), panelMain.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -230,7 +290,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       }
       fc.setFileFilter(fc.getChoosableFileFilters()[0]);
 
-      if (fc.showSaveDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
+      if (fc.showSaveDialog(panelMain.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
         String filePath = fc.getSelectedFile().getParent();
         String fileName = fc.getSelectedFile().getName();
         String fileExt = null;
@@ -244,7 +304,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         }
         exportFrames(filePath, fileName, fileExt, format);
       }
-    } else if (buttonPanel.getControlByType(CtrlEdit) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(BamEdit) == event.getSource()) {
       ConvertToBam dlg = (ConvertToBam)ChildFrame.getFirstFrame(ConvertToBam.class);
       if (dlg == null) {
         dlg = new ConvertToBam(entry);
@@ -282,15 +342,15 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         }
         if (bamData != null) {
           if (bamData.length > 0) {
-            ResourceFactory.exportResource(entry, bamData, entry.toString(), panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, bamData, entry.toString(), panelMain.getTopLevelAncestor());
           } else {
-            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+            JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
                                           JOptionPane.INFORMATION_MESSAGE);
           }
           bamData = null;
         } else {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+          JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
                                         JOptionPane.ERROR_MESSAGE);
         }
@@ -299,6 +359,64 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
   }
 
 //--------------------- End Interface PropertyChangeListener ---------------------
+
+//--------------------- Begin Interface ChangeListener ---------------------
+
+  @Override
+  public void stateChanged(ChangeEvent event)
+  {
+    if (event.getSource() == tabbedPane) {
+      if (tabbedPane.getSelectedComponent() == panelRaw) {
+        // lazy initialization of hex viewer
+        if (hexViewer == null) {
+          // confirm action when opening first time
+          int ret = JOptionPane.showConfirmDialog(panelMain,
+                                                  "Editing BAM resources directly may result in corrupt data. " +
+                                                      "Open hex editor?",
+                                                  "Warning", JOptionPane.YES_NO_OPTION,
+                                                  JOptionPane.WARNING_MESSAGE);
+          if (ret == JOptionPane.YES_OPTION) {
+            try {
+              WindowBlocker.blockWindow(true);
+              hexViewer = new GenericHexViewer(entry);
+              hexViewer.addDataChangedListener(this);
+              hexViewer.setCurrentOffset(0L);
+              panelRaw.add(hexViewer, BorderLayout.CENTER);
+            } catch (Exception e) {
+              e.printStackTrace();
+            } finally {
+              WindowBlocker.blockWindow(false);
+            }
+          } else {
+            tabbedPane.setSelectedIndex(0);
+            return;
+          }
+        }
+
+        // stop playback
+        if (((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).isSelected()) {
+          if (timer != null) {
+            timer.stop();
+          }
+          ((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).setSelected(false);
+        }
+
+        hexViewer.requestFocusInWindow();
+      }
+    }
+  }
+
+//--------------------- End Interface ChangeListener ---------------------
+
+//--------------------- Begin Interface IDataChangedListener ---------------------
+
+  @Override
+  public void dataChanged(DataChangedEvent event)
+  {
+    setRawModified(true);
+  }
+
+//--------------------- End Interface IDataChangedListener ---------------------
 
 //--------------------- Begin Interface Resource ---------------------
 
@@ -321,6 +439,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       rpc = NearInfinity.getInstance();
     }
 
+    // creating "View" tab
     Dimension dim = (decoder != null) ? bamControl.getSharedDimension() : new Dimension(1, 1);
     rcDisplay = new RenderCanvas(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
@@ -329,6 +448,56 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     JButton bFind = (JButton)ButtonPanel.createControl(ButtonPanel.Control.FindReferences);
     bFind.addActionListener(this);
 
+    JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon("Play16.gif"));
+    bPlay.addActionListener(this);
+
+    JLabel lCycle = new JLabel("", JLabel.CENTER);
+    JButton bPrevCycle = new JButton(Icons.getIcon("Back16.gif"));
+    bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
+    bPrevCycle.addActionListener(this);
+    JButton bNextCycle = new JButton(Icons.getIcon("Forward16.gif"));
+    bNextCycle.setMargin(bPrevCycle.getMargin());
+    bNextCycle.addActionListener(this);
+
+    JLabel lFrame = new JLabel("", JLabel.CENTER);
+    JButton bPrevFrame = new JButton(Icons.getIcon("Back16.gif"));
+    bPrevFrame.setMargin(bPrevCycle.getMargin());
+    bPrevFrame.addActionListener(this);
+    JButton bNextFrame = new JButton(Icons.getIcon("Forward16.gif"));
+    bNextFrame.setMargin(bPrevCycle.getMargin());
+    bNextFrame.addActionListener(this);
+
+    cbTransparency = new JCheckBox("Enable transparency", transparencyEnabled);
+    if (decoder != null) {
+      cbTransparency.setEnabled(decoder.getType() != BamDecoder.Type.BAMV2);
+    }
+    cbTransparency.setToolTipText("Affects only legacy BAM resources (BAM v1)");
+    cbTransparency.addActionListener(this);
+    JPanel optionsPanel = new JPanel();
+    BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
+    optionsPanel.setLayout(bl);
+    optionsPanel.add(cbTransparency);
+
+    buttonControlPanel.addControl(lCycle, CtrlCycleLabel);
+    buttonControlPanel.addControl(bPrevCycle, CtrlPrevCycle);
+    buttonControlPanel.addControl(bNextCycle, CtrlNextCycle);
+    buttonControlPanel.addControl(lFrame, CtrlFrameLabel);
+    buttonControlPanel.addControl(bPrevFrame, CtrlPrevFrame);
+    buttonControlPanel.addControl(bNextFrame, CtrlNextFrame);
+    buttonControlPanel.addControl(bPlay, CtrlPlay);
+    buttonControlPanel.add(optionsPanel);
+    buttonControlPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
+
+    JPanel pView = new JPanel(new BorderLayout());
+    pView.add(rcDisplay, BorderLayout.CENTER);
+    pView.add(buttonControlPanel, BorderLayout.SOUTH);
+
+
+    // creating "Raw" tab (stub)
+    panelRaw = new JPanel(new BorderLayout());
+    hexViewer = null;
+
+    // creating main panel
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
     if (decoder != null) {
@@ -374,61 +543,32 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
     bEdit.setToolTipText("Opens resource in BAM Converter.");
     bEdit.addActionListener(this);
 
-    JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon("Play16.gif"));
-    bPlay.addActionListener(this);
-
-    JLabel lCycle = new JLabel("", JLabel.CENTER);
-    JButton bPrevCycle = new JButton(Icons.getIcon("Back16.gif"));
-    bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
-    bPrevCycle.addActionListener(this);
-    JButton bNextCycle = new JButton(Icons.getIcon("Forward16.gif"));
-    bNextCycle.setMargin(bPrevCycle.getMargin());
-    bNextCycle.addActionListener(this);
-
-    JLabel lFrame = new JLabel("", JLabel.CENTER);
-    JButton bPrevFrame = new JButton(Icons.getIcon("Back16.gif"));
-    bPrevFrame.setMargin(bPrevCycle.getMargin());
-    bPrevFrame.addActionListener(this);
-    JButton bNextFrame = new JButton(Icons.getIcon("Forward16.gif"));
-    bNextFrame.setMargin(bPrevCycle.getMargin());
-    bNextFrame.addActionListener(this);
-
-    cbTransparency = new JCheckBox("Enable transparency", transparencyEnabled);
-    if (decoder != null) {
-      cbTransparency.setEnabled(decoder.getType() != BamDecoder.Type.BAMV2);
-    }
-    cbTransparency.setToolTipText("Affects only legacy BAM resources (BAM v1)");
-    cbTransparency.addActionListener(this);
-    JPanel optionsPanel = new JPanel();
-    BoxLayout bl = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
-    optionsPanel.setLayout(bl);
-    optionsPanel.add(cbTransparency);
-
-    buttonPanel.addControl(lCycle, CtrlCycleLabel);
-    buttonPanel.addControl(bPrevCycle, CtrlPrevCycle);
-    buttonPanel.addControl(bNextCycle, CtrlNextCycle);
-    buttonPanel.addControl(lFrame, CtrlFrameLabel);
-    buttonPanel.addControl(bPrevFrame, CtrlPrevFrame);
-    buttonPanel.addControl(bNextFrame, CtrlNextFrame);
-    buttonPanel.addControl(bPlay, CtrlPlay);
     buttonPanel.addControl(bFind, ButtonPanel.Control.FindReferences);
     buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
-    buttonPanel.addControl(bEdit, CtrlEdit);
-    buttonPanel.add(optionsPanel);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.Save)).addActionListener(this);
+    buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(false);
+    buttonPanel.addControl(bEdit, BamEdit);
+    buttonPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
-    panel = new JPanel(new BorderLayout());
-    panel.add(rcDisplay, BorderLayout.CENTER);
-    panel.add(buttonPanel, BorderLayout.SOUTH);
-    rcDisplay.setBorder(BorderFactory.createLoweredBevelBorder());
+    tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+    tabbedPane.setBorder(BorderFactory.createEmptyBorder());
+    tabbedPane.addTab("View", pView);
+    tabbedPane.addTab("Raw", panelRaw);
+    tabbedPane.setSelectedIndex(0);
+    tabbedPane.addChangeListener(this);
+
+    panelMain = new JPanel(new BorderLayout());
+    panelMain.add(tabbedPane, BorderLayout.CENTER);
+    panelMain.add(buttonPanel, BorderLayout.SOUTH);
     showFrame();
-    return panel;
+    return panelMain;
   }
 
 //--------------------- End Interface Viewable ---------------------
 
   private boolean viewerInitialized()
   {
-    return (panel != null && rcDisplay != null);
+    return (panelMain != null && rcDisplay != null);
   }
 
   public boolean isTransparencyEnabled()
@@ -566,32 +706,33 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
         updateCanvas();
 
         if (curCycle >= 0) {
-          ((JLabel)buttonPanel.getControlByType(CtrlCycleLabel))
-            .setText(String.format("Cycle: %1$d/%2$d", curCycle+1, bamControl.cycleCount()));
-          ((JLabel)buttonPanel.getControlByType(CtrlFrameLabel))
-            .setText(String.format("Frame: %1$d/%2$d", curFrame+1, bamControl.cycleFrameCount()));
+          ((JLabel)buttonControlPanel.getControlByType(CtrlCycleLabel))
+            .setText("Cycle: " + (curCycle + 1) + "/" + bamControl.cycleCount());
+          ((JLabel)buttonControlPanel.getControlByType(CtrlFrameLabel))
+            .setText("Frame: " + (curFrame + 1) + "/" + bamControl.cycleFrameCount());
         } else {
-          ((JLabel)buttonPanel.getControlByType(CtrlCycleLabel)).setText("All frames");
-          ((JLabel)buttonPanel.getControlByType(CtrlFrameLabel)).setText(String.format("Frame: %1$d/%2$d", curFrame+1, decoder.frameCount()));
+          ((JLabel)buttonControlPanel.getControlByType(CtrlCycleLabel)).setText("All frames");
+          ((JLabel)buttonControlPanel.getControlByType(CtrlFrameLabel))
+            .setText("Frame: " + (curFrame + 1) + "/" + decoder.frameCount());
         }
 
-        buttonPanel.getControlByType(CtrlPrevCycle).setEnabled(curCycle > -1);
-        buttonPanel.getControlByType(CtrlNextCycle).setEnabled(curCycle + 1 < bamControl.cycleCount());
-        buttonPanel.getControlByType(CtrlPrevFrame).setEnabled(curFrame > 0);
+        buttonControlPanel.getControlByType(CtrlPrevCycle).setEnabled(curCycle > -1);
+        buttonControlPanel.getControlByType(CtrlNextCycle).setEnabled(curCycle + 1 < bamControl.cycleCount());
+        buttonControlPanel.getControlByType(CtrlPrevFrame).setEnabled(curFrame > 0);
         if (curCycle >= 0) {
-          buttonPanel.getControlByType(CtrlNextFrame).setEnabled(curFrame + 1 < bamControl.cycleFrameCount());
-          buttonPanel.getControlByType(CtrlPlay).setEnabled(bamControl.cycleFrameCount() > 1);
+          buttonControlPanel.getControlByType(CtrlNextFrame).setEnabled(curFrame + 1 < bamControl.cycleFrameCount());
+          buttonControlPanel.getControlByType(CtrlPlay).setEnabled(bamControl.cycleFrameCount() > 1);
         } else {
-          buttonPanel.getControlByType(CtrlNextFrame).setEnabled(curFrame + 1 < decoder.frameCount());
-          buttonPanel.getControlByType(CtrlPlay).setEnabled(decoder.frameCount() > 1);
+          buttonControlPanel.getControlByType(CtrlNextFrame).setEnabled(curFrame + 1 < decoder.frameCount());
+          buttonControlPanel.getControlByType(CtrlPlay).setEnabled(decoder.frameCount() > 1);
         }
 
       } else {
-        buttonPanel.getControlByType(CtrlPlay).setEnabled(false);
-        buttonPanel.getControlByType(CtrlPrevCycle).setEnabled(false);
-        buttonPanel.getControlByType(CtrlNextCycle).setEnabled(false);
-        buttonPanel.getControlByType(CtrlPrevFrame).setEnabled(false);
-        buttonPanel.getControlByType(CtrlNextFrame).setEnabled(false);
+        buttonControlPanel.getControlByType(CtrlPlay).setEnabled(false);
+        buttonControlPanel.getControlByType(CtrlPrevCycle).setEnabled(false);
+        buttonControlPanel.getControlByType(CtrlNextCycle).setEnabled(false);
+        buttonControlPanel.getControlByType(CtrlPrevFrame).setEnabled(false);
+        buttonControlPanel.getControlByType(CtrlNextFrame).setEnabled(false);
       }
     }
   }
@@ -708,7 +849,7 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       blocker = null;
     }
     if (msg != null) {
-      JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), msg, "Information",
+      JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(), msg, "Information",
                                     JOptionPane.INFORMATION_MESSAGE);
     }
   }
@@ -1085,5 +1226,23 @@ public class BamResource implements Resource, ActionListener, PropertyChangeList
       }
     }
     return retVal;
+  }
+
+  private boolean isRawModified()
+  {
+    if (hexViewer != null) {
+      return hexViewer.isModified();
+    }
+    return false;
+  }
+
+  private void setRawModified(boolean modified)
+  {
+    if (hexViewer != null) {
+      if (!modified) {
+        hexViewer.clearModified();
+      }
+      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(modified);
+    }
   }
 }
