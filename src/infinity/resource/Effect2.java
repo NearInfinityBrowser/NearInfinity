@@ -28,6 +28,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
   public static final String EFFECT_DISPEL_TYPE       = "Dispel/Resistance";
   public static final String EFFECT_PARAMETER_3       = "Parameter 3";
   public static final String EFFECT_PARAMETER_4       = "Parameter 4";
+  public static final String EFFECT_TIME_APPLIED      = "Time applied (ticks)";
   public static final String EFFECT_RESOURCE_2        = "Resource 2";
   public static final String EFFECT_RESOURCE_3        = "Resource 3";
   public static final String EFFECT_CASTER_LOCATION_X = "Caster location: X";
@@ -62,7 +63,12 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     list.add(new Bitmap(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, EffectType.s_dispel));
     list.add(new DecNumber(buffer, offset + 20, 4, EFFECT_PARAMETER_3));
     list.add(new DecNumber(buffer, offset + 24, 4, EFFECT_PARAMETER_4));
-    list.add(new Unknown(buffer, offset + 28, 8));
+    list.add(new Unknown(buffer, offset + 28, 4));
+    if (Profile.isEnhancedEdition()) {
+      list.add(new DecNumber(buffer, offset + 32, 4, EFFECT_TIME_APPLIED));
+    } else {
+      list.add(new Unknown(buffer, offset + 32, 4));
+    }
     list.add(new TextString(buffer, offset + 36, 8, EFFECT_RESOURCE_2));
     list.add(new TextString(buffer, offset + 44, 8, EFFECT_RESOURCE_3));
     list.add(new DecNumber(buffer, offset + 52, 4, EFFECT_CASTER_LOCATION_X));
