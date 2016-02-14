@@ -4,16 +4,16 @@
 
 package infinity.util;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractListModel;
-import javax.swing.DefaultListModel;
 
 /**
- * A speed optimized alternative of the {@link DefaultListModel}.
+ * A speed optimized alternative of the {@code DefaultListModel}.
  */
 public class SimpleListModel<E> extends AbstractListModel
 {
@@ -24,16 +24,25 @@ public class SimpleListModel<E> extends AbstractListModel
   {
   }
 
+  /** Constructs a ListModel object containing the elements from the specified array. */
+  public SimpleListModel(E[] items)
+  {
+    delegate.ensureCapacity(items.length);
+    for (int i = 0, c = items.length; i < c; i++) {
+      delegate.add(items[i]);
+    }
+  }
+
   /** Constructs a ListModel object containing the elements from the specified collection. */
   public SimpleListModel(Collection<E> items)
   {
-    addAll(items);
+    delegate.addAll(items);
   }
 
   @Override
   public E getElementAt(int index)
   {
-    return delegate.get(index);
+    return delegate.elementAt(index);
   }
 
   @Override
@@ -280,6 +289,23 @@ public class SimpleListModel<E> extends AbstractListModel
   }
 
   /**
+   * Appends all of the elements in the specified Array to the end of this list.
+   */
+  public boolean addAll(E[] items)
+  {
+    return addAll(delegate.size(), Arrays.asList(items));
+  }
+
+  /**
+   * Inserts all of the elements in the specified Array into this list
+   * at the specified position.
+   */
+  public boolean addAll(int index, E[] items)
+  {
+    return addAll(index, Arrays.asList(items));
+  }
+
+  /**
    * Appends all of the elements in the specified Collection to the end of this list,
    * in the order that they are returned by the specified Collection's Iterator.
    */
@@ -294,9 +320,6 @@ public class SimpleListModel<E> extends AbstractListModel
    */
   public boolean addAll(int index, Collection<E> coll)
   {
-    if (coll == null) {
-      throw new NullPointerException();
-    }
     int index0 = index;
     int index1 = index0 + coll.size() - 1;
     delegate.addAll(index, coll);
