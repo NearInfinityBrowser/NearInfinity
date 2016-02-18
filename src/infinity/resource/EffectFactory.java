@@ -678,6 +678,8 @@ public final class EffectFactory
       if (effType != null) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         switch (opcode) {
+          case 78:  // Disease
+              return updateOpcode78(struct);
           case 232:     // Cast spell on condition
             return updateOpcode232(struct);
           case 319:     // Item Usability
@@ -690,6 +692,33 @@ public final class EffectFactory
     return false;
   }
 
+  // Effect type "Disease" (78)
+  private static boolean updateOpcode78(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      if (Profile.isEnhancedEdition()) {
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 78) {
+          int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          switch (param2) {
+            case 11:  // Mold Touch/Single
+            case 12:  // Mold Touch/Decrement
+              replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE,
+                           new ResourceRef(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0, 8,
+                                           EFFECT_RESOURCE, "SPL"));
+              break;
+            default:
+              replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE,
+                           new Unknown(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0, 8,
+                                       AbstractStruct.COMMON_UNUSED));
+              break;
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   // Effect type "Cast spell on condition" (232)
   private static boolean updateOpcode232(AbstractStruct struct) throws Exception
@@ -2499,13 +2528,26 @@ public final class EffectFactory
                                   "Strength", "Dexterity", "Constitution", "Intelligence",
                                   "Wisdom", "Charisma", "Slow target", "Mold touch", "",
                                   "Contagion", "Cloud of pestilence", "Dolorous decay"};
+          } else if (Profile.isEnhancedEdition()) {
+            s_type = new String[]{"1 damage per second", "Amount damage per round",
+                                  "Amount damage per second", "1 damage per amount seconds",
+                                  "Strength", "Dexterity", "Constitution", "Intelligence",
+                                  "Wisdom", "Charisma", "Slow target", "Mold touch/Single",
+                                  "Mold touch/Decrement", "Contagion"};
           } else {
             s_type = new String[]{"1 damage per second", "Amount damage per round",
                                   "Amount damage per second", "1 damage per amount seconds",
                                   "Strength", "Dexterity", "Constitution", "Intelligence",
                                   "Wisdom", "Charisma", "Slow target"};
           }
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disease type", s_type));
+          Bitmap bmp = new Bitmap(buffer, offset + 4, 4, "Disease type", s_type);
+          s.add(bmp);
+          if (Profile.isEnhancedEdition() && parent != null && parent instanceof UpdateListener) {
+            bmp.addUpdateListener((UpdateListener)parent);
+            if (bmp.getValue() == 11 || bmp.getValue() == 12) {
+              restype = "SPL";
+            }
+          }
         }
         break;
 
