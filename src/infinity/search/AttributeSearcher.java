@@ -310,6 +310,12 @@ public final class AttributeSearcher implements Runnable, ActionListener
           List<StructEntry> flatList = resource.getFlatList();
           for (int j = 0; j < flatList.size(); j++) {
             StructEntry searchEntry = (StructEntry)flatList.get(j);
+
+            // skipping fields located in different parent structures
+            if (structEntry.getParent().getClass() != searchEntry.getParent().getClass()) {
+              continue;
+            }
+
             if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass() ||
                 searchEntry.getName().equalsIgnoreCase(structEntry.getName())) {
               boolean hit = false;
