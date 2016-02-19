@@ -112,10 +112,16 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     panel.add(scroll, gbc);
 
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+                            GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     panel.add(bUpdate, gbc);
 
     panel.setPreferredSize(DIM_MEDIUM);
+
+    // making "Attribute" column wider
+    int tableWidth = DIM_MEDIUM.width - bUpdate.getPreferredSize().width - 8;
+    tValues.getColumnModel().getColumn(0).setPreferredWidth(tableWidth * 3 / 4);
+    tValues.getColumnModel().getColumn(1).setPreferredWidth(tableWidth * 1 / 4);
+
     return panel;
   }
 
