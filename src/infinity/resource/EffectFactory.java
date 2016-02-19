@@ -706,11 +706,17 @@ public final class EffectFactory
               replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE,
                            new ResourceRef(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0, 8,
                                            EFFECT_RESOURCE, "SPL"));
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new MultiNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
+                                           "Behavior", 16, 2, new String[]{"Apply per amount rounds",
+                                                                           "Use Parameter1 damage?"}));
               break;
             default:
               replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE,
                            new Unknown(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0, 8,
                                        AbstractStruct.COMMON_UNUSED));
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                           new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, EFFECT_SPECIAL));
               break;
           }
           return true;
@@ -4883,6 +4889,18 @@ public final class EffectFactory
                          new String[]{"Default", "Drain HP to caster", "Transfer HP to target",
                                       "Fist damage only", "", "", "", "", "", "Save for half",
                                       "Made save", "Does not wake sleepers"}));
+          break;
+
+        case 78:
+          switch (param2) {
+            case 11:  // Mold touch/Single
+            case 12:  // Mold touch/Decrement
+              s.add(new MultiNumber(buffer, offset, 4, "Behavior", 16, 2,
+                                    new String[]{"Apply per amount rounds", "Use Parameter1 damage?"}));
+              break;
+            default:
+              s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
+          }
           break;
 
         case 181:   // Disallow item type
