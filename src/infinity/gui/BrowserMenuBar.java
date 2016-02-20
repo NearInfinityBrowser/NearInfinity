@@ -94,7 +94,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v1.36-20151216";
+  public static final String VERSION = "v1.36-20160214";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -192,6 +192,11 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean showStrrefs()
   {
     return optionsMenu.optionShowStrrefs.isSelected();
+  }
+
+  public boolean showDlgTreeIcons()
+  {
+    return optionsMenu.optionDlgShowIcons.isSelected();
   }
 
   public boolean getHexColorMapEnabled()
@@ -1296,23 +1301,23 @@ public final class BrowserMenuBar extends JMenuBar
       add(convertMenu);
 
       toolConvImageToBam =
-          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToBam);
 
       toolConvImageToBmp =
-          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToBmp);
 
       toolConvImageToMos =
-          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToMos);
 
       toolConvImageToPvrz =
-          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToPvrz);
 
       toolConvImageToTis =
-          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon("Application16.gif"), -1, this);
       convertMenu.add(toolConvImageToTis);
       // *** End Convert submenu ***
 
@@ -1542,6 +1547,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
+    private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
@@ -1606,7 +1612,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride;
     private JCheckBoxMenuItem optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride;
-    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionShowHexColored;
+    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionDlgShowIcons,
+                              optionShowHexColored;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
@@ -1653,6 +1660,9 @@ public final class BrowserMenuBar extends JMenuBar
       optionShowStrrefs =
           new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
+      optionDlgShowIcons =
+          new JCheckBoxMenuItem("Show icons in DLG tree viewer", getPrefs().getBoolean(OPTION_DLG_SHOWICONS, true));
+      add(optionDlgShowIcons);
       optionShowHexColored =
           new JCheckBoxMenuItem("Show colored blocks in Raw tabs", getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
@@ -2199,6 +2209,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
+      getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());

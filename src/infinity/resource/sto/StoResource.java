@@ -16,7 +16,7 @@ import infinity.datatype.Unknown;
 import infinity.datatype.UnsignDecNumber;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -33,6 +33,33 @@ import javax.swing.JScrollPane;
 
 public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  // STO-specific field labels
+  public static final String STO_TYPE                   = "Type";
+  public static final String STO_NAME                   = "Name";
+  public static final String STO_FLAGS                  = "Flags";
+  public static final String STO_MARKUP_SELL            = "Sell markup";
+  public static final String STO_MARKUP_BUY             = "Buy markup";
+  public static final String STO_DEPRECIATION_RATE      = "Depreciation rate";
+  public static final String STO_STEALING_DIFFICULTY    = "Stealing difficulty";
+  public static final String STO_STORAGE_CAPACITY       = "Storage capacity";
+  public static final String STO_OFFSET_ITEMS_PURCHASED = "Items purchased offset";
+  public static final String STO_NUM_ITEMS_PURCHASED    = "# items purchased";
+  public static final String STO_OFFSET_ITEMS_FOR_SALE  = "Items for sale offset";
+  public static final String STO_NUM_ITEMS_FOR_SALE     = "# items for sale";
+  public static final String STO_LORE                   = "Lore";
+  public static final String STO_COST_TO_IDENTIFY       = "Cost to identify";
+  public static final String STO_RUMORS_DRINKS          = "Rumors (drinks)";
+  public static final String STO_OFFSET_DRINKS          = "Drinks for sale offset";
+  public static final String STO_NUM_DRINKS             = "# drinks for sale";
+  public static final String STO_RUMORS_DONATIONS       = "Rumors (donations)";
+  public static final String STO_ROOMS_AVAILABLE        = "Available rooms";
+  public static final String STO_PRICE_ROOM_PEASANT     = "Price peasant room";
+  public static final String STO_PRICE_ROOM_MERCHANT    = "Price merchant room";
+  public static final String STO_PRICE_ROOM_NOBLE       = "Price noble room";
+  public static final String STO_PRICE_ROOM_ROYAL       = "Price royal room";
+  public static final String STO_OFFSET_CURES           = "Cures for sale offset";
+  public static final String STO_NUM_CURES              = "# cures for sale";
+
 //  private static final String[] s_type = {"Store", "Tavern", "Inn", "Temple"};
   public static final String[] s_type9 = {"Store", "Tavern", "Inn", "Temple", "Container"};
   public static final String[] s_type_bg2 = {"Store", "Tavern", "Inn", "Temple", "", "Container"};
@@ -46,7 +73,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
                                               "EE: Can sell critical"};
   public static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public static String getSearchString(byte buffer[])
   {
@@ -63,11 +90,23 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
-    TextString version = (TextString)getAttribute("Version");
+    TextString version = (TextString)getAttribute(COMMON_VERSION);
     if (version.toString().equals("V1.1"))
       return new AddRemovable[]{new Purchases(), new ItemSale11(), new Drink(), new Cure()};
     else
       return new AddRemovable[]{new Purchases(), new ItemSale(), new Drink(), new Cure()};
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -106,7 +145,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
       case 1:
       {
         if (hexViewer == null) {
-          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
       }
@@ -125,49 +164,49 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    TextString version = new TextString(buffer, offset + 4, 4, "Version");
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
     if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-      addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type_bg2));
-      addField(new StringRef(buffer, offset + 12, "Name"));
+      addField(new Bitmap(buffer, offset + 8, 4, STO_TYPE, s_type_bg2));
+      addField(new StringRef(buffer, offset + 12, STO_NAME));
     } else {
-      addField(new Bitmap(buffer, offset + 8, 4, "Type", s_type9));
-      addField(new StringRef(buffer, offset + 12, "Name"));
+      addField(new Bitmap(buffer, offset + 8, 4, STO_TYPE, s_type9));
+      addField(new StringRef(buffer, offset + 12, STO_NAME));
     }
-    addField(new Flag(buffer, offset + 16, 4, "Flags", s_flag_bg2));
-    addField(new DecNumber(buffer, offset + 20, 4, "Sell markup"));
-    addField(new DecNumber(buffer, offset + 24, 4, "Buy markup"));
-    addField(new DecNumber(buffer, offset + 28, 4, "Depreciation rate"));
+    addField(new Flag(buffer, offset + 16, 4, STO_FLAGS, s_flag_bg2));
+    addField(new DecNumber(buffer, offset + 20, 4, STO_MARKUP_SELL));
+    addField(new DecNumber(buffer, offset + 24, 4, STO_MARKUP_BUY));
+    addField(new DecNumber(buffer, offset + 28, 4, STO_DEPRECIATION_RATE));
 //    addField(new Unknown(buffer, offset + 30, 2));
-    addField(new DecNumber(buffer, offset + 32, 2, "Stealing difficulty"));
+    addField(new DecNumber(buffer, offset + 32, 2, STO_STEALING_DIFFICULTY));
     if (version.toString().equalsIgnoreCase("V9.0")) {
       addField(new Unknown(buffer, offset + 34, 2));
     } else {
-      addField(new UnsignDecNumber(buffer, offset + 34, 2, "Storage capacity"));
+      addField(new UnsignDecNumber(buffer, offset + 34, 2, STO_STORAGE_CAPACITY));
     }
     addField(new Unknown(buffer, offset + 36, 8));
-    SectionOffset offset_purchased = new SectionOffset(buffer, offset + 44, "Items purchased offset",
+    SectionOffset offset_purchased = new SectionOffset(buffer, offset + 44, STO_OFFSET_ITEMS_PURCHASED,
                                                        Purchases.class);
     addField(offset_purchased);
-    SectionCount count_purchased = new SectionCount(buffer, offset + 48, 4, "# items purchased",
+    SectionCount count_purchased = new SectionCount(buffer, offset + 48, 4, STO_NUM_ITEMS_PURCHASED,
                                                     Purchases.class);
     addField(count_purchased);
     SectionOffset offset_sale;
     SectionCount count_sale;
     if (version.toString().equals("V1.0") || version.toString().equals("V9.0")) {
-      offset_sale = new SectionOffset(buffer, offset + 52, "Items for sale offset",
+      offset_sale = new SectionOffset(buffer, offset + 52, STO_OFFSET_ITEMS_FOR_SALE,
                                       ItemSale.class);
       addField(offset_sale);
-      count_sale = new SectionCount(buffer, offset + 56, 4, "# items for sale",
+      count_sale = new SectionCount(buffer, offset + 56, 4, STO_NUM_ITEMS_FOR_SALE,
                                     ItemSale.class);
       addField(count_sale);
     }
     else if (version.toString().equals("V1.1")) {
-      offset_sale = new SectionOffset(buffer, offset + 52, "Items for sale offset",
+      offset_sale = new SectionOffset(buffer, offset + 52, STO_OFFSET_ITEMS_FOR_SALE,
                                       ItemSale11.class);
       addField(offset_sale);
-      count_sale = new SectionCount(buffer, offset + 56, 4, "# items for sale",
+      count_sale = new SectionCount(buffer, offset + 56, 4, STO_NUM_ITEMS_FOR_SALE,
                                     ItemSale11.class);
       addField(count_sale);
     }
@@ -175,30 +214,30 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
       clearFields();
       throw new Exception("Unsupported version: " + version);
     }
-    addField(new DecNumber(buffer, offset + 60, 4, "Lore"));
-    addField(new DecNumber(buffer, offset + 64, 4, "Cost to identify"));
-    addField(new ResourceRef(buffer, offset + 68, "Rumors (drinks)", "DLG"));
-    SectionOffset offset_drinks = new SectionOffset(buffer, offset + 76, "Drinks offset",
+    addField(new DecNumber(buffer, offset + 60, 4, STO_LORE));
+    addField(new DecNumber(buffer, offset + 64, 4, STO_COST_TO_IDENTIFY));
+    addField(new ResourceRef(buffer, offset + 68, STO_RUMORS_DRINKS, "DLG"));
+    SectionOffset offset_drinks = new SectionOffset(buffer, offset + 76, STO_OFFSET_DRINKS,
                                                     Drink.class);
     addField(offset_drinks);
-    SectionCount count_drinks = new SectionCount(buffer, offset + 80, 4, "# drinks for sale",
+    SectionCount count_drinks = new SectionCount(buffer, offset + 80, 4, STO_NUM_DRINKS,
                                                  Drink.class);
     addField(count_drinks);
-    addField(new ResourceRef(buffer, offset + 84, "Rumors (donations)", "DLG"));
-    addField(new Flag(buffer, offset + 92, 4, "Available rooms", s_rooms));
-    addField(new DecNumber(buffer, offset + 96, 4, "Price peasant room"));
-    addField(new DecNumber(buffer, offset + 100, 4, "Price merchant room"));
-    addField(new DecNumber(buffer, offset + 104, 4, "Price noble room"));
-    addField(new DecNumber(buffer, offset + 108, 4, "Price royal room"));
-    SectionOffset offset_cures = new SectionOffset(buffer, offset + 112, "Cures offset",
+    addField(new ResourceRef(buffer, offset + 84, STO_RUMORS_DONATIONS, "DLG"));
+    addField(new Flag(buffer, offset + 92, 4, STO_ROOMS_AVAILABLE, s_rooms));
+    addField(new DecNumber(buffer, offset + 96, 4, STO_PRICE_ROOM_PEASANT));
+    addField(new DecNumber(buffer, offset + 100, 4, STO_PRICE_ROOM_MERCHANT));
+    addField(new DecNumber(buffer, offset + 104, 4, STO_PRICE_ROOM_NOBLE));
+    addField(new DecNumber(buffer, offset + 108, 4, STO_PRICE_ROOM_ROYAL));
+    SectionOffset offset_cures = new SectionOffset(buffer, offset + 112, STO_OFFSET_CURES,
                                                    Cure.class);
     addField(offset_cures);
-    SectionCount count_cures = new SectionCount(buffer, offset + 116, 4, "# cures for sale",
+    SectionCount count_cures = new SectionCount(buffer, offset + 116, 4, STO_NUM_CURES,
                                                 Cure.class);
     addField(count_cures);
     addField(new Unknown(buffer, offset + 120, 36));
     if (version.toString().equals("V9.0")) {
-      addField(new UnsignDecNumber(buffer, offset + 156, 2, "Storage capacity"));
+      addField(new UnsignDecNumber(buffer, offset + 156, 2, STO_STORAGE_CAPACITY));
       addField(new Unknown(buffer, offset + 158, 82));
     }
 
@@ -302,8 +341,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparations
-        DecNumber ofs = (DecNumber)sto.getAttribute("Items for sale offset", false);
-        DecNumber cnt = (DecNumber)sto.getAttribute("# items for sale", false);
+        DecNumber ofs = (DecNumber)sto.getAttribute(STO_OFFSET_ITEMS_FOR_SALE, false);
+        DecNumber cnt = (DecNumber)sto.getAttribute(STO_NUM_ITEMS_FOR_SALE, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           String itemLabel = SearchOptions.getResourceName(SearchOptions.STO_Item_Item1);
           items = new ResourceRef[cnt.getValue()];
@@ -329,8 +368,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
           items = new ResourceRef[0];
         }
 
-        ofs = (DecNumber)sto.getAttribute("Items purchased offset", false);
-        cnt = (DecNumber)sto.getAttribute("# items purchased", false);
+        ofs = (DecNumber)sto.getAttribute(STO_OFFSET_ITEMS_PURCHASED, false);
+        cnt = (DecNumber)sto.getAttribute(STO_NUM_ITEMS_PURCHASED, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           purchases = new Bitmap[cnt.getValue()];
           for (int i = 0; i < cnt.getValue(); i++) {

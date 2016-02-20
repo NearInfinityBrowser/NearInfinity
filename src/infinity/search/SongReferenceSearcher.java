@@ -18,6 +18,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.are.AreResource;
+import infinity.resource.are.Song;
 import infinity.resource.bcs.BcsResource;
 import infinity.resource.bcs.Decompiler;
 import infinity.resource.dlg.AbstractCode;
@@ -84,7 +85,7 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchAre(ResourceEntry entry, AreResource are)
   {
-    StructEntry se = are.getAttribute("Songs");
+    StructEntry se = are.getAttribute(Song.ARE_SONGS);
     if (se instanceof AbstractStruct) {
       searchStruct(entry, (AbstractStruct)se);
     }

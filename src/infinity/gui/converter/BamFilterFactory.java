@@ -60,7 +60,7 @@ public class BamFilterFactory
     return FilterInfoList.size();
   }
 
-  /** Returns a FilterInfo object containing information about the specified BAM filter. */
+  /** Returns a FilterInfo object at the specified list index. */
   public static FilterInfo getFilterInfo(int index)
   {
     if (index >= 0 && index < FilterInfoList.size()) {
@@ -68,6 +68,19 @@ public class BamFilterFactory
     } else {
       return null;
     }
+  }
+
+  /** Returns a FilterInfo object of the specified name. */
+  public static FilterInfo getFilterInfo(String filterName)
+  {
+    if (filterName != null && !filterName.isEmpty()) {
+      for (final FilterInfo fi: FilterInfoList) {
+        if (fi.getName().equalsIgnoreCase(filterName)) {
+          return fi;
+        }
+      }
+    }
+    return null;
   }
 
   /** Returns a list of all class types compatible with the specified class. */

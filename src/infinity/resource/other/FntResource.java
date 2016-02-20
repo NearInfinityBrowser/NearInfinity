@@ -9,7 +9,7 @@ import infinity.datatype.ResourceRef;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.gui.hexview.ResourceDataProvider;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Closeable;
@@ -22,7 +22,12 @@ import javax.swing.JComponent;
 
 public final class FntResource extends AbstractStruct implements Resource, Closeable, HasViewerTabs
 {
-  private HexViewer hexViewer;
+  // FNT-specific field labels
+  public static final String FNT_NUM_EXTRA_LETTERS = "# extra letters";
+  public static final String FNT_LETTERS = "Letters";
+  public static final String FNT_EXTRA_LETTERS = "Extra letters";
+
+  private StructHexViewer hexViewer;
 
   public FntResource(ResourceEntry entry) throws Exception
   {
@@ -44,9 +49,9 @@ public final class FntResource extends AbstractStruct implements Resource, Close
 
     byte[] b = new byte[8];
     System.arraycopy(resName.getBytes(), 0, b, 0, resName.length());
-    addField(new DecNumber(buffer, startoffset, 4, "# extra letters"));
-    addField(new ResourceRef(b, 0, "Letters", "BAM"));
-    addField(new ResourceRef(b, 0, "Extra letters", "BMP"));
+    addField(new DecNumber(buffer, startoffset, 4, FNT_NUM_EXTRA_LETTERS));
+    addField(new ResourceRef(b, 0, FNT_LETTERS, "BAM"));
+    addField(new ResourceRef(b, 0, FNT_EXTRA_LETTERS, "BMP"));
     return buffer.length;
   }
 
@@ -68,7 +73,7 @@ public final class FntResource extends AbstractStruct implements Resource, Close
   public JComponent getViewerTab(int index)
   {
     if (hexViewer == null) {
-      hexViewer = new HexViewer(this, new BasicColorMap(this, true),
+      hexViewer = new StructHexViewer(this, new BasicColorMap(this, true),
                                 new ResourceDataProvider(getResourceEntry()));
     }
     return hexViewer;

@@ -75,6 +75,74 @@ public class BamFilterColorHSL extends BamFilterBaseColor
   }
 
   @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(sliderHue.getValue()).append(';');
+    sb.append(sliderSaturation.getValue()).append(';');
+    sb.append(sliderLightness.getValue()).append(';');
+    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.trim().split(";");
+        Integer hValue = Integer.MIN_VALUE;
+        Integer sValue = Integer.MIN_VALUE;
+        Integer lValue = Integer.MIN_VALUE;
+        int[] indices = null;
+
+        // parsing configuration data
+        if (params.length > 0) {  // set hue value
+          hValue = decodeNumber(params[0], sliderHue.getMinimum(), sliderHue.getMaximum(), Integer.MIN_VALUE);
+          if (hValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 1) {  // set saturation value
+          sValue = decodeNumber(params[1], sliderSaturation.getMinimum(), sliderSaturation.getMaximum(), Integer.MIN_VALUE);
+          if (sValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 2) {  // set lightness value
+          lValue = decodeNumber(params[2], sliderLightness.getMinimum(), sliderLightness.getMaximum(), Integer.MIN_VALUE);
+          if (lValue == Integer.MIN_VALUE) {
+            return false;
+          }
+        }
+        if (params.length > 3) {
+          indices = decodeColorList(params[3]);
+          if (indices == null) {
+            return false;
+          }
+        }
+
+        // applying configuration data
+        if (hValue != Integer.MIN_VALUE) {
+          sliderHue.setValue(hValue);
+        }
+        if (sValue != Integer.MIN_VALUE) {
+          sliderSaturation.setValue(sValue);
+        }
+        if (lValue != Integer.MIN_VALUE) {
+          sliderLightness.setValue(lValue);
+        }
+        if (indices != null) {
+          pExcludeColors.setSelectedIndices(indices);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

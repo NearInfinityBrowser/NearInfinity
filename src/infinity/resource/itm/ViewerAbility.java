@@ -4,9 +4,11 @@
 
 package infinity.resource.itm;
 
+import infinity.datatype.EffectType;
 import infinity.datatype.Flag;
 import infinity.datatype.ResourceRef;
 import infinity.gui.ViewerUtil;
+import infinity.resource.AbstractAbility;
 import infinity.resource.Effect;
 import infinity.resource.StructEntry;
 
@@ -26,18 +28,17 @@ final class ViewerAbility extends JPanel
   ViewerAbility(Ability ability)
   {
     JPanel fieldPanel = makeFieldPanel(ability);
-    JPanel effectsPanel = ViewerUtil.makeListPanel("Effects", ability, Effect.class,
-                                                   "Type");
-    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)ability.getAttribute("Icon"), 0);
-    JComponent boxPanel1 = ViewerUtil.makeCheckLabel(ability.getAttribute("Identify to use?"), "Yes (1)");
-    JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag)ability.getAttribute("Flags"), 1);
+    JPanel effectsPanel = ViewerUtil.makeListPanel("Effects", ability, Effect.class, EffectType.EFFECT_TYPE);
+    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)ability.getAttribute(AbstractAbility.ABILITY_ICON), 0);
+    JComponent boxPanel1 = ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IDENTIFY_TO_USE), "Yes (1)");
+    JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag)ability.getAttribute(Ability.ITM_ABIL_FLAGS), 1);
 
     JPanel boxPanel2 = new JPanel(new GridLayout(0, 1, 0, 3));
 //    boxPanel.add(ViewerUtil.makeCheckLabel(ability.getAttribute("Identify to use?"), "Yes (1)"));
 //    boxPanel.add(ViewerUtil.makeCheckLabel(ability.getAttribute("Allow strength bonus?"), "Yes (1)"));
-    boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute("Is arrow?"), "Yes (1)"));
-    boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute("Is bolt?"), "Yes (1)"));
-    boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute("Is bullet?"), "Yes (1)"));
+    boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IS_ARROW), "Yes (1)"));
+    boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IS_BOLT), "Yes (1)"));
+    boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IS_BULLET), "Yes (1)"));
 
     JPanel boxPanel = new JPanel(new BorderLayout(0, 6));
     boxPanel.add(boxPanel1, BorderLayout.NORTH);
@@ -72,14 +73,14 @@ final class ViewerAbility extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Type"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Target"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Range (feet)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Speed"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Bonus to hit"), gbl, gbc, true);
-    StructEntry s1 = ability.getAttribute("Dice size");
-    StructEntry s2 = ability.getAttribute("# dice thrown");
-    StructEntry s3 = ability.getAttribute("Damage bonus");
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_TYPE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_TARGET), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_RANGE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(Ability.ITM_ABIL_SPEED), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_HIT_BONUS), gbl, gbc, true);
+    StructEntry s1 = ability.getAttribute(AbstractAbility.ABILITY_DICE_SIZE);
+    StructEntry s2 = ability.getAttribute(AbstractAbility.ABILITY_DICE_COUNT);
+    StructEntry s3 = ability.getAttribute(AbstractAbility.ABILITY_DAMAGE_BONUS);
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -93,8 +94,8 @@ final class ViewerAbility extends JPanel
     tf1.setFont(tf1.getFont().deriveFont(Font.PLAIN));
     gbl.setConstraints(tf1, gbc);
     fieldPanel.add(tf1);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("Damage type"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("# charges"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_DAMAGE_TYPE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_NUM_CHARGES), gbl, gbc, true);
 
     return fieldPanel;
   }

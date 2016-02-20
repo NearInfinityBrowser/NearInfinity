@@ -74,7 +74,9 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   @Override
   public boolean equals(Object o)
   {
-    if (o instanceof ResourceEntry) {
+    if (o == this) {
+      return true;
+    } else if (o instanceof ResourceEntry) {
       return getResourceName().equalsIgnoreCase(((ResourceEntry)o).getResourceName());
     }
     return false;
@@ -85,7 +87,11 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   @Override
   public int compareTo(ResourceEntry entry)
   {
-    return getResourceName().compareToIgnoreCase(entry.getResourceName());
+    if (entry == this) {
+      return 0;
+    } else {
+      return getResourceName().compareToIgnoreCase(entry.getResourceName());
+    }
   }
 
 // --------------------- End Interface Comparable ---------------------

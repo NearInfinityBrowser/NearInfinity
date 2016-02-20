@@ -18,7 +18,7 @@ import infinity.datatype.Unknown;
 import infinity.gui.ButtonPanel;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Profile;
@@ -29,7 +29,11 @@ import infinity.util.DynamicArray;
 
 public final class TohResource extends AbstractStruct implements Resource, HasViewerTabs
 {
-  private HexViewer hexViewer;
+  // TOH-specific field labels
+  public static final String TOH_NUM_ENTRIES    = "# strref entries";
+  public static final String TOH_OFFSET_ENTRIES = "Strref entries offset";
+
+  private StructHexViewer hexViewer;
 
   public TohResource(ResourceEntry entry) throws Exception
   {
@@ -59,7 +63,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
       colorMap.setColoredEntry(BasicColorMap.Coloring.GREEN, StrRefEntry2.class);
       colorMap.setColoredEntry(BasicColorMap.Coloring.RED, StringEntry.class);
       colorMap.setColoredEntry(BasicColorMap.Coloring.CYAN, StringEntry2.class);
-      hexViewer = new HexViewer(this, colorMap);
+      hexViewer = new StructHexViewer(this, colorMap);
     }
     return hexViewer;
   }
@@ -83,14 +87,14 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
   {
     int startOffset = offset;
     boolean isEnhanced = Profile.isEnhancedEdition() && (DynamicArray.getInt(buffer, offset + 4) == 2);
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new DecNumber(buffer, offset + 4, 4, "Version"));
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new DecNumber(buffer, offset + 4, 4, COMMON_VERSION));
     addField(new Unknown(buffer, offset + 8, 4));
-    SectionCount scStrref = new SectionCount(buffer, offset + 12, 4, "# strref entries", StrRefEntry.class);
+    SectionCount scStrref = new SectionCount(buffer, offset + 12, 4, TOH_NUM_ENTRIES, StrRefEntry.class);
     addField(scStrref);
     SectionOffset soStrref = null;
     if (isEnhanced) {
-      soStrref = new SectionOffset(buffer, offset + 16, "Strref entries offset", StrRefEntry.class);
+      soStrref = new SectionOffset(buffer, offset + 16, TOH_OFFSET_ENTRIES, StrRefEntry.class);
       addField(soStrref);
     } else {
       addField(new Unknown(buffer, offset + 16, 4));

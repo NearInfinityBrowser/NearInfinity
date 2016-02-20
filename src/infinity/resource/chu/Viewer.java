@@ -1345,7 +1345,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private static final HashSet<String> ignoreResourceSet = new HashSet<String>();
 
     static {
-      // Hack: ignore a set of known background BAMs with cycle and frame indices
+      // XXX: ignore a set of known background BAMs with cycle and frame indices
       ignoreResourceSet.add("BIGBUTT.BAM:0:0");
       ignoreResourceSet.add("BIGBUTT.BAM:0:1");
       ignoreResourceSet.add("BIGBUTT.BAM:0:2");
@@ -1426,19 +1426,19 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             // 2. drawing control
             if (isVisible()) {
               // loading BAM
-              String resName = ((ResourceRef)getResource().getAttribute("Button")).getResourceName();
+              String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_BTN_RESREF)).getResourceName();
               // getting specified cycle index
-              int cycleIdx = ((DecNumber)getResource().getAttribute("Animation number")).getValue();
+              int cycleIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_BTN_ANIMATION_INDEX)).getValue();
               int frameIdx = 0;
               // getting specified cycle frame index
               if (isUnpressed()) {
-                frameIdx = ((DecNumber)getResource().getAttribute("Frame number: Unpressed")).getValue();
+                frameIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_UNPRESSED)).getValue();
               } else if (isPressed()) {
-                frameIdx = ((DecNumber)getResource().getAttribute("Frame number: Pressed")).getValue();
+                frameIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_PRESSED)).getValue();
               } else if (isSelected()) {
-                frameIdx = ((DecNumber)getResource().getAttribute("Frame number: Selected")).getValue();
+                frameIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_SELECTED)).getValue();
               } else if (isDisabled()) {
-                frameIdx = ((DecNumber)getResource().getAttribute("Frame number: Disabled")).getValue();
+                frameIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_DISABLED)).getValue();
               }
               if (!isResourceIgnored(resName, cycleIdx, frameIdx)) {
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
@@ -1534,7 +1534,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             // 2.1. drawing background image
-            String resName = ((ResourceRef)getResource().getAttribute("Background image")).getResourceName();
+            String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_SLD_BACKGROUND)).getResourceName();
             MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
             if (mos != null) {
               if (mos instanceof MosV1Decoder) {
@@ -1545,29 +1545,29 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2.2. drawing control elements
             if (isVisible()) {
-              resName = ((ResourceRef)getResource().getAttribute("Slider knob")).getResourceName();
+              resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB)).getResourceName();
               BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
                 BamControl bamCtrl = bam.createControl();
                 bamCtrl.setMode(BamControl.Mode.Individual);
                 // getting specified cycle index
-                int cycleIdx = ((DecNumber)getResource().getAttribute("Animation number")).getValue();
+                int cycleIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SLD_ANIMATION_INDEX)).getValue();
                 cycleIdx = Math.min(bamCtrl.cycleCount()-1, Math.max(0, cycleIdx));
                 bamCtrl.cycleSet(cycleIdx);
                 int frameIdx;
                 // getting specified cycle frame index
                 if (isGrabbed()) {
-                  frameIdx = ((DecNumber)getResource().getAttribute("Frame number: Grabbed")).getValue();
+                  frameIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SLD_FRAME_INDEX_GRABBED)).getValue();
                 } else {
-                  frameIdx = ((DecNumber)getResource().getAttribute("Frame number: Ungrabbed")).getValue();
+                  frameIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SLD_FRAME_INDEX_UNGRABBED)).getValue();
                 }
                 frameIdx = Math.min(bamCtrl.cycleFrameCount()-1, Math.max(0, frameIdx));
                 bamCtrl.cycleSetFrameIndex(frameIdx);
 
                 // drawing frame
                 Image knob = bamCtrl.cycleGetFrame();
-                int knobX = ((DecNumber)getResource().getAttribute("Knob position: X")).getValue();
-                int knobY = ((DecNumber)getResource().getAttribute("Knob position: Y")).getValue();
+                int knobX = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB_POSITION_X)).getValue();
+                int knobY = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB_POSITION_Y)).getValue();
                 g.drawImage(knob, knobX, knobY, knob.getWidth(null), knob.getHeight(null), null);
               }
             }
@@ -1587,7 +1587,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private static final HashSet<String> ignoreResourceSet = new HashSet<String>();
 
     static {
-      // Hack: ignore a set of known background MOS resources
+      // XXX: ignore a set of known background MOS resources
       ignoreResourceSet.add("XXXXGRBG.MOS");
     }
 
@@ -1643,7 +1643,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             // 2.1. drawing background image (is it actually used?)
-            String resName = ((ResourceRef)getResource().getAttribute("Background 1")).getResourceName();
+            String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_TF_BACKGROUND_1)).getResourceName();
             if (!isResourceIgnored(resName)) {
               MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
               if (mos != null) {
@@ -1656,18 +1656,18 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2.2. drawing text
             if (isVisible()) {
-              int caretX = ((DecNumber)getResource().getAttribute("Caret position: X")).getValue();
-              int caretY = ((DecNumber)getResource().getAttribute("Caret position: Y")).getValue();
+              int caretX = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET_POSITION_X)).getValue();
+              int caretY = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET_POSITION_Y)).getValue();
 
-              String text = ((TextString)getResource().getAttribute("Initial text")).toString();
+              String text = ((TextString)getResource().getAttribute(Control.CHU_CONTROL_TF_TEXT)).toString();
               if (!text.isEmpty()) {
-                resName = ((ResourceRef)getResource().getAttribute("Font")).getResourceName();
+                resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_TF_FONT)).getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
-                  int maxLen = ((DecNumber)getResource().getAttribute("Field length")).getValue();
+                  int maxLen = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_TF_FIELD_LENGTH)).getValue();
                   if (text.length() > maxLen) text = text.substring(0, maxLen);
-                  int flags = ((Bitmap)getResource().getAttribute("Allowed case")).getValue();
+                  int flags = ((Bitmap)getResource().getAttribute(Control.CHU_CONTROL_TF_ALLOWED_CSE)).getValue();
                   text = convertText(text, flags);
                   Image textImage = drawText(text, bam, null, false);
                   if (textImage != null) {
@@ -1679,17 +1679,17 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
               // 2.3. drawing caret
               if (isCaretEnabled()) {
-                resName = ((ResourceRef)getResource().getAttribute("Caret")).getResourceName();
+                resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET)).getResourceName();
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   BamControl bamCtrl = bam.createControl();
                   bamCtrl.setMode(BamControl.Mode.Individual);
                   // getting specified cycle index
-                  int cycleIdx = ((DecNumber)getResource().getAttribute("Animation number")).getValue();
+                  int cycleIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_TF_ANIMATION_INDEX)).getValue();
                   cycleIdx = Math.min(bamCtrl.cycleCount()-1, Math.max(0, cycleIdx));
                   bamCtrl.cycleSet(cycleIdx);
                   // getting specified cycle frame index
-                  int frameIdx = ((DecNumber)getResource().getAttribute("Frame number")).getValue();
+                  int frameIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_TF_FRAME_INDEX)).getValue();
                   frameIdx = Math.min(bamCtrl.cycleFrameCount()-1, Math.max(0, frameIdx));
                   bamCtrl.cycleSetFrameIndex(frameIdx);
 
@@ -1811,16 +1811,16 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             if (isVisible()) {
-              String text = StringResource.getStringRef(((StringRef)getResource().getAttribute("Initial text")).getValue());
+              String text = StringResource.getStringRef(((StringRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
               if (text != null) {
-                String resName = ((ResourceRef)getResource().getAttribute("Font")).getResourceName();
+                String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT)).getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
-                  Flag flags = (Flag)getResource().getAttribute("Text flags");
+                  Flag flags = (Flag)getResource().getAttribute(Control.CHU_CONTROL_LBL_FLAGS);
                   Color col = null;
                   if (flags.isFlagSet(0)) {
-                    col = new Color(((ColorPicker)getResource().getAttribute("Color 1")).getValue());
+                    col = new Color(((ColorPicker)getResource().getAttribute(Control.CHU_CONTROL_LBL_COLOR_1)).getValue());
                   }
                   Image textImage = drawText(text, bam, col, flags.isFlagSet(1));
                   if (textImage != null) {
@@ -1918,22 +1918,22 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             if (isVisible()) {
-              String resName = ((ResourceRef)getResource().getAttribute("Graphics")).getResourceName();
+              String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_SB_GRAPHICS)).getResourceName();
               BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
-                int cycleIdx = ((DecNumber)getResource().getAttribute("Animation number")).getValue();
-                int frameTroughIdx = ((DecNumber)getResource().getAttribute("Frame number: Trough")).getValue();
-                int frameSliderIdx = ((DecNumber)getResource().getAttribute("Frame number: Slider")).getValue();
+                int cycleIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SB_ANIMATION_INDEX)).getValue();
+                int frameTroughIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_TROUGH)).getValue();
+                int frameSliderIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_SLIDER)).getValue();
                 int frameUpIdx, frameDownIdx;
                 if (isUpArrowPressed()) {
-                  frameUpIdx = ((DecNumber)getResource().getAttribute("Frame number: Up-arrow, pressed")).getValue();
+                  frameUpIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_UP_PRESSED)).getValue();
                 } else {
-                  frameUpIdx = ((DecNumber)getResource().getAttribute("Frame number: Up-arrow, unpressed")).getValue();
+                  frameUpIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_UP_UNPRESSED)).getValue();
                 }
                 if (isDownArrowPressed()) {
-                  frameDownIdx = ((DecNumber)getResource().getAttribute("Frame number: Down-arrow, pressed")).getValue();
+                  frameDownIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_DOWN_PRESSED)).getValue();
                 } else {
-                  frameDownIdx = ((DecNumber)getResource().getAttribute("Frame number: Down-arrow, unpressed")).getValue();
+                  frameDownIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_DOWN_UNPRESSED)).getValue();
                 }
                 BamControl ctrl = bam.createControl();
                 ctrl.cycleSet(cycleIdx);

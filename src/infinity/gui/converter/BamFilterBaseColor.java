@@ -7,6 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ColorGrid;
 import infinity.gui.ColorGrid.MouseOverEvent;
 import infinity.gui.ColorGrid.MouseOverListener;
+import infinity.util.Misc;
 import infinity.gui.ViewerUtil;
 
 import java.awt.Color;
@@ -46,6 +47,46 @@ public abstract class BamFilterBaseColor extends BamFilterBase
    */
   public abstract BufferedImage process(BufferedImage frame) throws Exception;
 
+
+  /** Parses a list of palette indices from a parameter string of the format "[idx1,idx2,...]". */
+  protected int[] decodeColorList(String param)
+  {
+    int[] indices = null;
+    if (param != null && param.matches("\\[.*\\]")) {
+      String colorString = param.substring(1, param.length() - 1).trim();
+      if (!colorString.isEmpty()) {
+        String[] colors = colorString.split(",");
+        indices = new int[colors.length];
+        for (int i = 0; i < colors.length; i++) {
+          indices[i] = Misc.toNumber(colors[i], -1);
+          if (indices[i] < 0 || indices[i] > 255) {
+            indices = null;
+            break;
+          }
+        }
+      } else {
+        indices = new int[0];
+      }
+    }
+    return indices;
+  }
+
+  /** Converts a list of palette indices into a parameter string. */
+  protected String encodeColorList(int[] indices)
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append('[');
+    if (indices != null) {
+      for (int i = 0; i < indices.length; i++) {
+        if (i > 0) {
+          sb.append(',');
+        }
+        sb.append(indices[i]);
+      }
+    }
+    sb.append(']');
+    return sb.toString();
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -135,6 +176,15 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     public boolean isSelectedIndex(int index)
     {
       return cgPalette.isSelectedIndex(index);
+    }
+
+    /** Selects the specified color indices. Previous selections will be cleared. */
+    public void setSelectedIndices(int[] indices)
+    {
+      cgPalette.clearSelection();
+      if (indices != null) {
+        cgPalette.setSelectedIndices(indices);
+      }
     }
 
     //--------------------- Begin Interface MouseOverListener ---------------------

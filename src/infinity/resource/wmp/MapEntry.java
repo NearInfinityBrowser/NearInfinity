@@ -18,9 +18,24 @@ import javax.swing.JComponent;
 
 final class MapEntry extends AbstractStruct implements HasViewerTabs
 {
+  // WMP/MapEntry-specific field labels
+  public static final String WMP_MAP                    = "Map";
+  public static final String WMP_MAP_RESREF             = "Map";
+  public static final String WMP_MAP_WIDTH              = "Width";
+  public static final String WMP_MAP_HEIGHT             = "Height";
+  public static final String WMP_MAP_ID                 = "Map ID";
+  public static final String WMP_MAP_NAME               = "Name";
+  public static final String WMP_MAP_CENTER_X           = "Center location: X";
+  public static final String WMP_MAP_CENTER_Y           = "Center location: Y";
+  public static final String WMP_MAP_NUM_AREAS          = "# areas";
+  public static final String WMP_MAP_OFFSET_AREAS       = "Areas offset";
+  public static final String WMP_MAP_OFFSET_AREA_LINKS  = "Area links offset";
+  public static final String WMP_MAP_NUM_AREA_LINKS     = "# area links";
+  public static final String WMP_MAP_ICONS              = "Map icons";
+
   MapEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Map " + nr, buffer, offset);
+    super(superStruct, WMP_MAP + " " + nr, buffer, offset);
   }
 
 // --------------------- Begin Interface HasViewerTabs ---------------------
@@ -54,22 +69,22 @@ final class MapEntry extends AbstractStruct implements HasViewerTabs
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new ResourceRef(buffer, offset, "Map", "MOS"));
-    addField(new DecNumber(buffer, offset + 8, 4, "Width"));
-    addField(new DecNumber(buffer, offset + 12, 4, "Height"));
-    addField(new DecNumber(buffer, offset + 16, 4, "Map ID"));
-    addField(new StringRef(buffer, offset + 20, "Name"));
-    addField(new DecNumber(buffer, offset + 24, 4, "Center location: X"));
-    addField(new DecNumber(buffer, offset + 28, 4, "Center location: Y"));
-    SectionCount area_count = new SectionCount(buffer, offset + 32, 4, "# areas", AreaEntry.class);
+    addField(new ResourceRef(buffer, offset, WMP_MAP_RESREF, "MOS"));
+    addField(new DecNumber(buffer, offset + 8, 4, WMP_MAP_WIDTH));
+    addField(new DecNumber(buffer, offset + 12, 4, WMP_MAP_HEIGHT));
+    addField(new DecNumber(buffer, offset + 16, 4, WMP_MAP_ID));
+    addField(new StringRef(buffer, offset + 20, WMP_MAP_NAME));
+    addField(new DecNumber(buffer, offset + 24, 4, WMP_MAP_CENTER_X));
+    addField(new DecNumber(buffer, offset + 28, 4, WMP_MAP_CENTER_Y));
+    SectionCount area_count = new SectionCount(buffer, offset + 32, 4, WMP_MAP_NUM_AREAS, AreaEntry.class);
     addField(area_count);
-    SectionOffset area_offset = new SectionOffset(buffer, offset + 36, "Areas offset", AreaEntry.class);
+    SectionOffset area_offset = new SectionOffset(buffer, offset + 36, WMP_MAP_OFFSET_AREAS, AreaEntry.class);
     addField(area_offset);
-    SectionOffset link_offset = new SectionOffset(buffer, offset + 40, "Area links offset", AreaLink.class);
+    SectionOffset link_offset = new SectionOffset(buffer, offset + 40, WMP_MAP_OFFSET_AREA_LINKS, AreaLink.class);
     addField(link_offset);
-    SectionCount link_count = new SectionCount(buffer, offset + 44, 4, "# area links", AreaLink.class);
+    SectionCount link_count = new SectionCount(buffer, offset + 44, 4, WMP_MAP_NUM_AREA_LINKS, AreaLink.class);
     addField(link_count);
-    addField(new ResourceRef(buffer, offset + 48, "Map icons", "BAM"));
+    addField(new ResourceRef(buffer, offset + 48, WMP_MAP_ICONS, "BAM"));
     addField(new Unknown(buffer, offset + 56, 128));
 
     int curOfs = area_offset.getValue();

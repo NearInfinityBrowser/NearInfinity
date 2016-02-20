@@ -10,7 +10,6 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.ViewableContainer;
 import infinity.resource.key.ResourceEntry;
-import infinity.resource.other.UnknownResource;
 import infinity.util.DynamicArray;
 
 import java.awt.BorderLayout;
@@ -37,22 +36,11 @@ public final class PltResource implements Resource, ActionListener
 
   private RenderCanvas rcCanvas;
   private JPanel panel;
-  private Resource externalResource;
 
   public PltResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
     buffer = entry.getResourceData();
-
-    // checking actual data type
-    String s = new String(buffer, 0, 4);
-    if (s.equals("PLT ")) {
-      externalResource = null;
-    } else if (s.equals("BAMC") || s.equals("BAM ")) {
-      externalResource = new BamResource(entry);
-    } else {
-      externalResource = new UnknownResource(entry);
-    }
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -86,36 +74,32 @@ public final class PltResource implements Resource, ActionListener
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    if (externalResource == null) {
-      JComboBox cbColorBMP = new JComboBox();
-      cbColorBMP.addItem("None");
-      List<ResourceEntry> bmps = ResourceFactory.getResources("BMP");
-      for (int i = 0; i < bmps.size(); i++) {
-        Object o = bmps.get(i);
-        if (o.toString().startsWith("PLT"))
-          cbColorBMP.addItem(o);
-      }
-      cbColorBMP.setEditable(false);
-      cbColorBMP.setSelectedIndex(0);
-      cbColorBMP.addActionListener(this);
-
-      buttonPanel.addControl(new JLabel("Colors: "));
-      buttonPanel.addControl(cbColorBMP, CtrlColorList);
-      ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
-
-      rcCanvas = new RenderCanvas(getImage());
-      JScrollPane scroll = new JScrollPane(rcCanvas);
-
-      panel = new JPanel();
-      panel.setLayout(new BorderLayout());
-      panel.add(scroll, BorderLayout.CENTER);
-      panel.add(buttonPanel, BorderLayout.SOUTH);
-      scroll.setBorder(BorderFactory.createLoweredBevelBorder());
-
-      return panel;
-    } else {
-      return externalResource.makeViewer(container);
+    JComboBox cbColorBMP = new JComboBox();
+    cbColorBMP.addItem("None");
+    List<ResourceEntry> bmps = ResourceFactory.getResources("BMP");
+    for (int i = 0; i < bmps.size(); i++) {
+      Object o = bmps.get(i);
+      if (o.toString().startsWith("PLT"))
+        cbColorBMP.addItem(o);
     }
+    cbColorBMP.setEditable(false);
+    cbColorBMP.setSelectedIndex(0);
+    cbColorBMP.addActionListener(this);
+
+    buttonPanel.addControl(new JLabel("Colors: "));
+    buttonPanel.addControl(cbColorBMP, CtrlColorList);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+
+    rcCanvas = new RenderCanvas(getImage());
+    JScrollPane scroll = new JScrollPane(rcCanvas);
+
+    panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+    panel.add(scroll, BorderLayout.CENTER);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
+    scroll.setBorder(BorderFactory.createLoweredBevelBorder());
+
+    return panel;
   }
 
 // --------------------- End Interface Viewable ---------------------

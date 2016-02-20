@@ -52,6 +52,18 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput
   }
 
   @Override
+  public String getConfiguration()
+  {
+    return "";
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    return true;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

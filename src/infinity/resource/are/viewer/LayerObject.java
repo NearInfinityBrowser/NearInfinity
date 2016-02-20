@@ -19,6 +19,7 @@ import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.LayerItemListener;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
+import infinity.resource.Viewable;
 import infinity.resource.vertex.Vertex;
 
 /**
@@ -151,14 +152,14 @@ public abstract class LayerObject
    * multiple structures, then the first one available will be returned.
    * @return The structure associated with the layer object.
    */
-  public abstract AbstractStruct getStructure();
+  public abstract Viewable getViewable();
 
   /**
    * Returns all structures associated with the layer object. This method is useful for layer objects
    * consisting of multiple structures.
    * @return A list of structures associated with the layer object.
    */
-  public abstract AbstractStruct[] getStructures();
+  public abstract Viewable[] getViewables();
 
   /**
    * Returns the layer item associated with the layer object. If the layer object consists of
@@ -241,8 +242,8 @@ public abstract class LayerObject
           if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
             if (idx >= index) {
               Vertex vertex = (Vertex)list.get(i);
-              coords[cnt] = new Point(((DecNumber)vertex.getAttribute("X")).getValue(),
-                                      ((DecNumber)vertex.getAttribute("Y")).getValue());
+              coords[cnt] = new Point(((DecNumber)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
+                                      ((DecNumber)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
               cnt++;
               if (cnt >= count) {
                 break;

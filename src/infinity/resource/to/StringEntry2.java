@@ -9,14 +9,18 @@ import infinity.resource.AbstractStruct;
 
 public class StringEntry2 extends AbstractStruct
 {
+  // TOH/StringEntry2-specific field labels
+  public static final String TOH_STRING       = "String entry";
+  public static final String TOH_STRING_TEXT  = "Override string";
+
   public StringEntry2() throws Exception
   {
-    super(null, "String entry", new byte[524], 0);
+    super(null, TOH_STRING, new byte[524], 0);
   }
 
   public StringEntry2(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "String entry " + nr, buffer, offset);
+    super(superStruct, TOH_STRING + " " + nr, buffer, offset);
   }
 
   public StringEntry2(AbstractStruct superStruct, String name, byte[] buffer, int offset) throws Exception
@@ -31,7 +35,7 @@ public class StringEntry2 extends AbstractStruct
     while ((len < buffer.length - offset) && buffer[offset + len] != 0) {
       len++;
     }
-    TextEdit edit = new TextEdit(buffer, offset, len + 1, "Override string");
+    TextEdit edit = new TextEdit(buffer, offset, len + 1, TOH_STRING_TEXT);
     edit.setEolType(TextEdit.EOLType.UNIX);
     edit.setCharset("UTF-8");
     edit.setEditable(false);

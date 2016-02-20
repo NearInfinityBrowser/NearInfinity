@@ -638,8 +638,8 @@ public class TilesetRenderer extends RenderCanvas
   {
     if (wed != null) {
       // loading overlay structures
-      SectionOffset so = (SectionOffset)wed.getAttribute("Overlays offset");
-      SectionCount sc = (SectionCount)wed.getAttribute("# overlays");
+      SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_OVERLAYS);
+      SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_OVERLAYS);
       if (so != null && sc != null) {
         for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
           Overlay ovl = (Overlay)wed.getAttribute(curOfs, false);
@@ -657,18 +657,18 @@ public class TilesetRenderer extends RenderCanvas
       }
 
       // loading door structures
-      so = (SectionOffset)wed.getAttribute("Doors offset");
-      sc = (SectionCount)wed.getAttribute("# doors");
-      HexNumber lookupOfs = (HexNumber)wed.getAttribute("Door tilemap lookup offset");
+      so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
+      sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_DOORS);
+      HexNumber lookupOfs = (HexNumber)wed.getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
       if (so != null && sc != null && lookupOfs != null) {
         for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
           Door door = (Door)wed.getAttribute(curOfs, false);
           if (door != null) {
-            String name = ((TextString)door.getAttribute("Name")).toString();
-            boolean isClosed = ((Bitmap)door.getAttribute("Is door?")).getValue() == 1;
+            String name = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
+            boolean isClosed = ((Bitmap)door.getAttribute(Door.WED_DOOR_IS_DOOR)).getValue() == 1;
             final int tileSize = 2;
-            int tileIdx = ((DecNumber)door.getAttribute("Tilemap lookup index")).getValue();
-            int tileCount = ((SectionCount)door.getAttribute("# tilemap indexes")).getValue();
+            int tileIdx = ((DecNumber)door.getAttribute(Door.WED_DOOR_TILEMAP_LOOKUP_INDEX)).getValue();
+            int tileCount = ((SectionCount)door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
             if (tileCount < 0) tileCount = 0;
             int[] indices = new int[tileCount];
             for (int j = 0; j < tileCount; j++) {
@@ -988,8 +988,13 @@ public class TilesetRenderer extends RenderCanvas
       for (int i = 0, size = listDoorTileIndices.size(); i < size; i++) {
         DoorInfo di = listDoorTileIndices.get(i);
         for (int j = 0, iCount = di.getIndicesCount(); j < iCount; j++) {
-          if (di.getIndex(j) == tileIdx) {
-            return true;
+          try {
+            int idx = listTilesets.get(0).listTiles.get(di.getIndex(j)).getPrimaryIndex();
+            if (idx == tileIdx) {
+              return true;
+            }
+          } catch (Exception e) {
+            // ignore invalid tile indices
           }
         }
       }
@@ -1071,10 +1076,10 @@ public class TilesetRenderer extends RenderCanvas
         }
 
         // storing tile information
-        tilesX = ((DecNumber)ovl.getAttribute("Width")).getValue();
-        tilesY = ((DecNumber)ovl.getAttribute("Height")).getValue();
-        int mapOfs = ((SectionOffset)ovl.getAttribute("Tilemap offset")).getValue();
-        int idxOfs = ((DecNumber)ovl.getAttribute("Tilemap lookup offset")).getValue();
+        tilesX = ((DecNumber)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+        tilesY = ((DecNumber)ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
+        int mapOfs = ((SectionOffset)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP)).getValue();
+        int idxOfs = ((DecNumber)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP_LOOKUP)).getValue();
         int tileCount = tilesX * tilesY;
         for (int i = 0, curOfs = mapOfs; i < tileCount; i++) {
           Tilemap tile = (Tilemap)ovl.getAttribute(curOfs, false);
@@ -1085,8 +1090,8 @@ public class TilesetRenderer extends RenderCanvas
           if (tile != null) {
             // initializing list of primary tile indices
             final int idxSize = 2;
-            int index = ((DecNumber)tile.getAttribute("Primary tile index")).getValue();
-            int count = ((DecNumber)tile.getAttribute("Primary tile count")).getValue();
+            int index = ((DecNumber)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
+            int count = ((DecNumber)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_COUNT_PRI)).getValue();
             if (count < 0) count = 0;
             int[] tileIdx = new int[count];
             for (int j = 0; j < count; j++) {
@@ -1103,10 +1108,10 @@ public class TilesetRenderer extends RenderCanvas
             }
 
             // initializing secondary tile index
-            int tileIdx2 = ((DecNumber)tile.getAttribute("Secondary tile index")).getValue();
+            int tileIdx2 = ((DecNumber)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
 
             // initializing overlay flags
-            Flag drawOverlays = (Flag)tile.getAttribute("Draw Overlays");
+            Flag drawOverlays = (Flag)tile.getAttribute(Tilemap.WED_TILEMAP_DRAW_OVERLAYS);
             int flags = (int)drawOverlays.getValue() & 255;
 
             listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTilesetV1));
@@ -1134,7 +1139,7 @@ public class TilesetRenderer extends RenderCanvas
     {
       ResourceEntry entry = null;
       if (wed != null && ovl != null) {
-        String tisName = ((ResourceRef)ovl.getAttribute("Tileset")).getResourceName().toUpperCase(Locale.ENGLISH);
+        String tisName = ((ResourceRef)ovl.getAttribute(Overlay.WED_OVERLAY_TILESET)).getResourceName().toUpperCase(Locale.ENGLISH);
         if (tisName == null || "None".equalsIgnoreCase(tisName)) {
           tisName = "";
         }

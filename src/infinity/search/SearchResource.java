@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -93,10 +92,12 @@ import infinity.resource.pro.ProResource;
 import infinity.resource.pro.ProSingleType;
 import infinity.resource.spl.SplResource;
 import infinity.resource.sto.StoResource;
+import infinity.util.Debugging;
 import infinity.util.IdsMapEntry;
 import infinity.util.LongIntegerHashMap;
 import infinity.util.Misc;
 import infinity.util.Pair;
+import infinity.util.SimpleListModel;
 import infinity.util.io.FileNI;
 
 public class SearchResource extends ChildFrame
@@ -241,6 +242,7 @@ public class SearchResource extends ChildFrame
 
       // executing search
       try {
+        Debugging.timerReset();
         OptionsBasePanel panel = mapOptionsPanel.get(type);
         if (panel != null) {
           SearchOptions so = panel.getOptions();
@@ -277,6 +279,7 @@ public class SearchResource extends ChildFrame
           }
         }
       } finally {
+        Debugging.timerShow("Extended Search", Debugging.TimeFormat.MILLISECONDS);
         blocker.setBlocked(false);
         bSearch.setEnabled(true);
         clBottomBar.show(pBottomBar, "buttons");
@@ -415,7 +418,7 @@ public class SearchResource extends ChildFrame
       // creating Results section
       JLabel lResult = new JLabel("Result:");
       lResults = new JLabel("");
-      listResults = new JList(new DefaultListModel());
+      listResults = new JList(new SimpleListModel<NamedResourceEntry>());
       listResults.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       listResults.addMouseListener(new MouseAdapter() {
         @Override
@@ -1623,8 +1626,7 @@ public class SearchResource extends ChildFrame
       pTiming = new TimingModePanel();
       bpwTiming = new ButtonPopupWindow(setOptionsText, pTiming);
 
-      String[] saveType = (Profile.getEngine() == Profile.Engine.IWD2) ?
-                          EffectFactory.s_savetype2 : EffectFactory.s_savetype;
+      String[] saveType = EffectFactory.getSaveType();
       pSaveType = new FlagsPanel(4, saveType);
       bpwSaveType = new ButtonPopupWindow(setOptionsText, pSaveType);
 

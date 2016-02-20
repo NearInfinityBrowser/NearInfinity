@@ -9,9 +9,12 @@ import infinity.resource.Profile;
 
 public final class NonPartyNPC extends PartyNPC
 {
+  // GAM/NonPartyNPC-specific field labels
+  public static final String GAM_EXNPC = "Non-party character";
+
   NonPartyNPC() throws Exception
   {
-    super(null, "Non-party character",
+    super(null, GAM_EXNPC,
           (Profile.getEngine() == Profile.Engine.BG1 ||
           Profile.getEngine() == Profile.Engine.BG2 ||
           Profile.isEnhancedEdition()) ? new byte[352] :
@@ -22,6 +25,6 @@ public final class NonPartyNPC extends PartyNPC
 
   NonPartyNPC(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Non-party character " + nr, buffer, offset);
+    super(superStruct, GAM_EXNPC + " " + nr, buffer, offset);
   }
 }

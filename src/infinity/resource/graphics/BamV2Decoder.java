@@ -35,7 +35,8 @@ public class BamV2Decoder extends BamDecoder
 
   private BamV2Control defaultControl;
   private byte[] bamData;               // contains the raw (uncompressed) BAM v2 data
-  File bamPath;                         // base path of the BAM resource (or null if BAM is biffed)
+  private File bamPath;                 // base path of the BAM resource (or null if BAM is biffed)
+  private int numDataBlocks;            // number of PVRZ data blocks
 
   public BamV2Decoder(ResourceEntry bamEntry)
   {
@@ -139,6 +140,11 @@ public class BamV2Decoder extends BamDecoder
     }
   }
 
+  /** Returns the number of PVRZ data blocks referred to in this BAM. */
+  public int getDataBlockCount()
+  {
+    return numDataBlocks;
+  }
 
   private void init()
   {
@@ -180,8 +186,8 @@ public class BamV2Decoder extends BamDecoder
         if (cyclesCount <= 0) {
           throw new Exception("Invalid number of cycles");
         }
-        int blockCount = DynamicArray.getInt(bamData, 0x10);
-        if (blockCount <= 0) {
+        numDataBlocks = DynamicArray.getInt(bamData, 0x10);
+        if (numDataBlocks <= 0) {
           throw new Exception("Invalid number of data blocks");
         }
         int ofsFrames = DynamicArray.getInt(bamData, 0x14);

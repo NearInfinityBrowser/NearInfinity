@@ -7,11 +7,10 @@ package infinity.gui;
 import java.awt.BorderLayout;
 import java.awt.event.MouseListener;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -23,12 +22,13 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import infinity.util.Misc;
+import infinity.util.SimpleListModel;
+
 public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
 {
-  private static final Comparator<Object> ignoreCaseComparator = new IgnoreCaseComparator();
-
   private boolean sortValues = true;
-  private final DefaultListModel listmodel = new DefaultListModel();
+  private final SimpleListModel<Object> listmodel = new SimpleListModel<Object>();
   private final JList list;
   private final JTextField tfield = new JTextField(10);
 
@@ -108,6 +108,11 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     list.addListSelectionListener(listener);
   }
 
+  public void removeListSelectionListener(ListSelectionListener listener)
+  {
+    list.removeListSelectionListener(listener);
+  }
+
   public void ensureIndexIsVisible(int i)
   {
     list.ensureIndexIsVisible(i);
@@ -144,7 +149,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
   public void setValues(List<? extends Object> values)
   {
     if (this.sortValues) {
-      Collections.sort(values, ignoreCaseComparator);
+      Collections.sort(values, Misc.IgnoreCaseComparator);
     }
     listmodel.clear();
     for (int i = 0; i < values.size(); i++) {
@@ -159,36 +164,19 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 
   private void selectClosest(String text)
   {
-    ListModel lm = list.getModel();
     int selected = 0;
-    while (selected < lm.getSize() && text.compareToIgnoreCase(lm.getElementAt(selected).toString()) > 0) {
-      selected++;
+    if (!text.isEmpty()) {
+      text = text.toUpperCase(Locale.ENGLISH);
+      for (int size = listmodel.getSize(); selected < size; selected++) {
+        final String s = listmodel.getElementAt(selected).toString().toUpperCase(Locale.ENGLISH);
+        if (s.startsWith(text)) {
+          break;
+        }
+      }
     }
-    if (selected == lm.getSize()) {
-      selected--;
-    }
-    list.setSelectedIndex(selected);
-    list.ensureIndexIsVisible(selected);
-  }
-
-// -------------------------- INNER CLASSES --------------------------
-
-  private static final class IgnoreCaseComparator implements Comparator<Object>
-  {
-    private IgnoreCaseComparator()
-    {
-    }
-
-    @Override
-    public int compare(Object o1, Object o2)
-    {
-      return o1.toString().compareToIgnoreCase(o2.toString());
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-      return toString().equalsIgnoreCase(obj.toString());
+    if (selected < listmodel.getSize()) {
+      list.setSelectedIndex(selected);
+      list.ensureIndexIsVisible(selected);
     }
   }
 }

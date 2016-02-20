@@ -16,7 +16,9 @@ public class Table2daCache
   /** Removes the specified 2DA resource from the cache. */
   public static synchronized void cacheInvalid(ResourceEntry entry)
   {
-    map.remove(entry);
+    if (entry != null) {
+      map.remove(entry);
+    }
   }
 
   /** Removes all cached 2DA resources. */

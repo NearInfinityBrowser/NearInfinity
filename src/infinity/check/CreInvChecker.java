@@ -265,15 +265,15 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
   {
     final List<StructEntry> items = new ArrayList<StructEntry>();
     final List<StructEntry> slots = new ArrayList<StructEntry>();
-    HexNumber slots_offset = (HexNumber)cre.getAttribute("Item slots offset");
+    HexNumber slots_offset = (HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
     for (int i = 0; i < cre.getFieldCount(); i++) {
       StructEntry entry = cre.getField(i);
       if (entry instanceof Item)
         items.add(entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
                entry instanceof DecNumber
-               && !entry.getName().equals("Weapon slot selected")
-               && !entry.getName().equals("Weapon ability selected"))
+               && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_SLOT)
+               && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_ABILITY))
         slots.add(entry);
     }
     for (int i = 0; i < slots.size(); i++) {

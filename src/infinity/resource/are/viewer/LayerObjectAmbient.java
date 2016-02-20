@@ -18,7 +18,7 @@ import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.Ambient;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -55,18 +55,18 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return ambient;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
     if (isLocal()) {
-      return new AbstractStruct[]{ambient, ambient};
+      return new Viewable[]{ambient, ambient};
     } else {
-      return new AbstractStruct[]{ambient};
+      return new Viewable[]{ambient};
     }
   }
 
@@ -184,20 +184,20 @@ public class LayerObjectAmbient extends LayerObject
       Shape circle = null;
       Color[] color = new Color[ColorRange.length];
       try {
-        location.x = ((DecNumber)ambient.getAttribute("Origin: X")).getValue();
-        location.y = ((DecNumber)ambient.getAttribute("Origin: Y")).getValue();
-        radiusLocal = ((DecNumber)ambient.getAttribute("Radius")).getValue();
-        volume = ((DecNumber)ambient.getAttribute("Volume")).getValue();
-        if (((Flag)ambient.getAttribute("Flags")).isFlagSet(2)) {
+        location.x = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
+        location.y = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
+        radiusLocal = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
+        volume = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
+        if (((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2)) {
           icon = IconGlobal;
           radiusLocal = 0;
         } else {
           icon = IconLocal;
         }
 
-        scheduleFlags = ((Flag)ambient.getAttribute("Active at"));
+        scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
 
-        msg = ((TextString)ambient.getAttribute("Name")).toString();
+        msg = ((TextString)ambient.getAttribute(Ambient.ARE_AMBIENT_NAME)).toString();
         if (icon == IconLocal) {
           circle = createShape(1.0);
           double minAlpha = 0.0, maxAlpha = 64.0;

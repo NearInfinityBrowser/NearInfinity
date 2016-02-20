@@ -338,6 +338,7 @@ public class ResourceBitmap extends Datatype
     private final ResourceEntry entry;  // contains resource if available
     private final String searchString;  // resource-dependent search string
     private String fmt;                 // format string for textual representation
+    private String desc;                // cached textual output for toString() method
 
     public RefEntry(long value, String ref)
     {
@@ -352,22 +353,22 @@ public class ResourceBitmap extends Datatype
     public RefEntry(long value, String ref, String search, List<File> searchDirs)
     {
       this.value = value;
-      if (ResourceFactory.resourceExists(ref, true, searchDirs)) {
-        this.entry = ResourceFactory.getResourceEntry(ref, true, searchDirs);
+      this.entry = (ref.lastIndexOf('.') > 0) ? ResourceFactory.getResourceEntry(ref, true, searchDirs) : null;
+      if (this.entry != null) {
         this.searchString = (search != null) ? search : entry.getSearchString();
         this.name = null;
       } else {
-        this.entry = null;
         this.searchString = (search != null) ? search : "";
         this.name = ref;
       }
       this.fmt = FMT_REF_VALUE;
+      this.desc = String.format(fmt, getResourceName(), getSearchString(), Long.toString(value));
     }
 
     @Override
     public String toString()
     {
-      return String.format(fmt, getResourceName(), getSearchString(), Long.toString(value));
+      return desc;
     }
 
     @Override
@@ -406,7 +407,12 @@ public class ResourceBitmap extends Datatype
 
     public void setFormatString(String fmt)
     {
-      this.fmt = fmt;
+      if (fmt != null) {
+        this.fmt = fmt;
+      } else {
+        this.fmt = FMT_REF_VALUE;
+      }
+      this.desc = String.format(fmt, getResourceName(), getSearchString(), Long.toString(value));
     }
   }
 }

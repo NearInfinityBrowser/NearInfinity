@@ -11,14 +11,17 @@ import infinity.datatype.EffectType;
 
 public final class Effect extends AbstractStruct implements AddRemovable
 {
+  // Effect-specific field labels
+  public static final String EFFECT = "Effect";
+
   public Effect() throws Exception
   {
-    super(null, "Effect", new byte[48], 0);
+    super(null, EFFECT, new byte[48], 0);
   }
 
   public Effect(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Effect " + number, buffer, offset);
+    super(superStruct, EFFECT + " " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

@@ -8,14 +8,17 @@ import infinity.resource.AbstractStruct;
 
 public final class OpenPolygon extends Polygon
 {
+  // WED/OpenPolygon-specific field labels
+  public static final String WED_POLY_OPEN  = "Open polygon";
+
   public OpenPolygon() throws Exception
   {
-    super(null, "Open polygon", new byte[18], 0);
+    super(null, WED_POLY_OPEN, new byte[18], 0);
   }
 
   public OpenPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Open polygon " + nr, buffer, offset);
+    super(superStruct, WED_POLY_OPEN + " " + nr, buffer, offset);
   }
 }
 

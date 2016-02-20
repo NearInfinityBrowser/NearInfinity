@@ -25,17 +25,23 @@ import javax.swing.JComponent;
 
 public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
+  // SPL/Ability-specific field labels (more fields defined in AbstractAbility)
+  public static final String SPL_ABIL                     = "Spell ability";
+  public static final String SPL_ABIL_HOSTILITY           = "Hostility";
+  public static final String SPL_ABIL_MIN_LEVEL           = "Minimum level";
+  public static final String SPL_ABIL_CASTING_SPEED       = "Casting speed";
+
   public static final String[] s_hostility = {"Hostile", "", "", "", "Non-hostile"};
   public static final String[] s_abilityuse = {"", "", "Spell slots", "", "Innate slots"};
 
   Ability() throws Exception
   {
-    super(null, "Spell ability", new byte[40], 0);
+    super(null, SPL_ABIL, new byte[40], 0);
   }
 
   Ability(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Spell ability " + number, buffer, offset);
+    super(superStruct, SPL_ABIL + " " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
@@ -44,6 +50,18 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Effect()};
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -92,35 +110,35 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public int read(byte buffer[], int offset) throws Exception
   {
     if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Bitmap(buffer, offset, 1, "Type", s_type));
-      addField(new Bitmap(buffer, offset + 1, 1, "Hostility", s_hostility));
+      addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, s_type));
+      addField(new Bitmap(buffer, offset + 1, 1, SPL_ABIL_HOSTILITY, s_hostility));
     } else {
-      addField(new Bitmap(buffer, offset, 2, "Type", s_type));
+      addField(new Bitmap(buffer, offset, 2, ABILITY_TYPE, s_type));
     }
-    addField(new Bitmap(buffer, offset + 2, 2, "Ability location", s_abilityuse));
-    addField(new ResourceRef(buffer, offset + 4, "Icon", "BAM"));
-    addField(new Bitmap(buffer, offset + 12, 1, "Target", s_targettype));
-    addField(new UnsignDecNumber(buffer, offset + 13, 1, "# targets"));
-    addField(new DecNumber(buffer, offset + 14, 2, "Range (feet)"));
-    addField(new DecNumber(buffer, offset + 16, 2, "Minimum level"));
-    addField(new DecNumber(buffer, offset + 18, 2, "Casting speed"));
-    addField(new DecNumber(buffer, offset + 20, 2, "Bonus to hit"));
-    addField(new DecNumber(buffer, offset + 22, 2, "Dice size"));
-    addField(new DecNumber(buffer, offset + 24, 2, "# dice thrown"));
-    addField(new DecNumber(buffer, offset + 26, 2, "Damage bonus"));
-    addField(new Bitmap(buffer, offset + 28, 2, "Damage type", s_dmgtype));
-    addField(new SectionCount(buffer, offset + 30, 2, "# effects", Effect.class));
-    addField(new DecNumber(buffer, offset + 32, 2, "First effect index"));
-    addField(new DecNumber(buffer, offset + 34, 2, "# charges"));
+    addField(new Bitmap(buffer, offset + 2, 2, ABILITY_LOCATION, s_abilityuse));
+    addField(new ResourceRef(buffer, offset + 4, ABILITY_ICON, "BAM"));
+    addField(new Bitmap(buffer, offset + 12, 1, ABILITY_TARGET, s_targettype));
+    addField(new UnsignDecNumber(buffer, offset + 13, 1, ABILITY_NUM_TARGETS));
+    addField(new DecNumber(buffer, offset + 14, 2, ABILITY_RANGE));
+    addField(new DecNumber(buffer, offset + 16, 2, SPL_ABIL_MIN_LEVEL));
+    addField(new DecNumber(buffer, offset + 18, 2, SPL_ABIL_CASTING_SPEED));
+    addField(new DecNumber(buffer, offset + 20, 2, ABILITY_HIT_BONUS));
+    addField(new DecNumber(buffer, offset + 22, 2, ABILITY_DICE_SIZE));
+    addField(new DecNumber(buffer, offset + 24, 2, ABILITY_DICE_COUNT));
+    addField(new DecNumber(buffer, offset + 26, 2, ABILITY_DAMAGE_BONUS));
+    addField(new Bitmap(buffer, offset + 28, 2, ABILITY_DAMAGE_TYPE, s_dmgtype));
+    addField(new SectionCount(buffer, offset + 30, 2, ABILITY_NUM_EFFECTS, Effect.class));
+    addField(new DecNumber(buffer, offset + 32, 2, ABILITY_FIRST_EFFECT_INDEX));
+    addField(new DecNumber(buffer, offset + 34, 2, ABILITY_NUM_CHARGES));
     addField(new Unknown(buffer, offset + 36, 2));
     if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
-      addField(new ProRef(buffer, offset + 38, "Projectile"));
+      addField(new ProRef(buffer, offset + 38, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Bitmap(buffer, offset + 38, 2, "Projectile", s_proj_pst));
+      addField(new Bitmap(buffer, offset + 38, 2, ABILITY_PROJECTILE, s_proj_pst));
     } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
-      addField(new Bitmap(buffer, offset + 38, 2, "Projectile", s_proj_iwd));
+      addField(new Bitmap(buffer, offset + 38, 2, ABILITY_PROJECTILE, s_proj_iwd));
     } else {
-      addField(new Bitmap(buffer, offset + 38, 2, "Projectile", s_projectile));
+      addField(new Bitmap(buffer, offset + 38, 2, ABILITY_PROJECTILE, s_projectile));
     }
     return offset + 40;
   }

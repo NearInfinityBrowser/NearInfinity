@@ -10,14 +10,21 @@ import infinity.resource.AbstractStruct;
 
 public final class StringEntry extends AbstractStruct
 {
+  // TOT/StringEntry-specific field labels
+  public static final String TOT_STRING                     = "String entry";
+  public static final String TOT_STRING_OFFSET_FREE_REGION  = "Offset to next free region";
+  public static final String TOT_STRING_OFFSET_PREV_ENTRY   = "Offset of preceeding entry";
+  public static final String TOT_STRING_TEXT                = "Text";
+  public static final String TOT_STRING_OFFSET_NEXT_ENTRY   = "Offset of following entry";
+
   public StringEntry() throws Exception
   {
-    super(null, "String entry", new byte[524], 0);
+    super(null, TOT_STRING, new byte[524], 0);
   }
 
   public StringEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "String entry " + nr, buffer, offset);
+    super(superStruct, TOT_STRING + " " + nr, buffer, offset);
   }
 
   public StringEntry(AbstractStruct superStruct, String name, byte[] buffer, int offset) throws Exception
@@ -28,10 +35,10 @@ public final class StringEntry extends AbstractStruct
   @Override
   public int read(byte[] buffer, int offset) throws Exception
   {
-    addField(new HexNumber(buffer, offset, 4, "Offset to next free region"));
-    addField(new HexNumber(buffer, offset + 4, 4, "Offset of preceeding entry"));
-    addField(new TextEdit(buffer, offset + 8, 512, "String data"));
-    addField(new HexNumber(buffer, offset + 520, 4, "Offset of following entry"));
+    addField(new HexNumber(buffer, offset, 4, TOT_STRING_OFFSET_FREE_REGION));
+    addField(new HexNumber(buffer, offset + 4, 4, TOT_STRING_OFFSET_PREV_ENTRY));
+    addField(new TextEdit(buffer, offset + 8, 512, TOT_STRING_TEXT));
+    addField(new HexNumber(buffer, offset + 520, 4, TOT_STRING_OFFSET_NEXT_ENTRY));
     return offset + 524;
   }
 }

@@ -108,12 +108,12 @@ final class ViewerSpells extends JPanel implements ActionListener
         StructEntry o = cre.getField(i);
         if (o instanceof SpellMemorization) {
           SpellMemorization inf = (SpellMemorization)o;
-          int lvl = ((DecNumber)inf.getAttribute("Spell level")).getValue();
+          int lvl = ((DecNumber)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_LEVEL)).getValue();
           for (int j = 0; j < inf.getFieldCount(); j++) {
             StructEntry p = inf.getField(j);
             if (p instanceof MemorizedSpells) {
               MemorizedSpells spell = (MemorizedSpells)p;
-              addSpell(lvl, (ResourceRef)spell.getAttribute("Spell"));
+              addSpell(lvl, (ResourceRef)spell.getAttribute(MemorizedSpells.CRE_MEMORIZED_RESREF));
             }
           }
         }
@@ -150,12 +150,11 @@ final class ViewerSpells extends JPanel implements ActionListener
     public Object getValueAt(int rowIndex, int columnIndex)
     {
       MemSpellTableEntry entry = list.get(rowIndex);
-      if (columnIndex == 0)
-        return new Integer(entry.lvl + 1);
-      else if (columnIndex == 1)
-        return new Integer(entry.count + 1);
-      else
-        return entry.spell;
+      switch (columnIndex) {
+        case 0:  return new Integer(entry.lvl + 1);
+        case 1:  return new Integer(entry.count + 1);
+        default: return entry.spell;
+      }
     }
 
     @Override
@@ -167,11 +166,11 @@ final class ViewerSpells extends JPanel implements ActionListener
     @Override
     public String getColumnName(int column)
     {
-      if (column == 0)
-        return "Level";
-      else if (column == 1)
-        return "#";
-      return "Spell";
+      switch (column) {
+        case 0:  return "Level";
+        case 1:  return "#";
+        default: return "Spell";
+      }
     }
   }
 

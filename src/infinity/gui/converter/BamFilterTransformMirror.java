@@ -52,6 +52,62 @@ public class BamFilterTransformMirror extends BamFilterBaseTransform implements 
   }
 
   @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(cbHorizontal.isSelected()).append(';');
+    sb.append(cbVertical.isSelected()).append(';');
+    sb.append(cbAdjustCenter.isSelected());
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.split(";");
+        boolean h = false, v = false, a = true;
+
+        if (params.length > 0) {
+          if (params[0].equalsIgnoreCase("true")) {
+            h = true;
+          } else if (params[0].equalsIgnoreCase("false")) {
+            h = false;
+          } else {
+            return false;
+          }
+        }
+        if (params.length > 1) {
+          if (params[1].equalsIgnoreCase("true")) {
+            v = true;
+          } else if (params[1].equalsIgnoreCase("false")) {
+            v = false;
+          } else {
+            return false;
+          }
+        }
+        if (params.length > 2) {
+          if (params[2].equalsIgnoreCase("true")) {
+            a = true;
+          } else if (params[2].equalsIgnoreCase("false")) {
+            a = false;
+          } else {
+            return false;
+          }
+        }
+
+        cbHorizontal.setSelected(h);
+        cbVertical.setSelected(v);
+        cbAdjustCenter.setSelected(a);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

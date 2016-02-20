@@ -8,7 +8,7 @@ import javax.swing.JComponent;
 
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -18,7 +18,7 @@ import infinity.resource.key.ResourceEntry;
 
 public final class VarResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public VarResource(ResourceEntry entry) throws Exception
   {
@@ -31,6 +31,18 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Entry()};
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -55,7 +67,7 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
     if (hexViewer == null) {
       BasicColorMap colorMap = new BasicColorMap(this, false);
       colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, Entry.class);
-      hexViewer = new HexViewer(this, colorMap);
+      hexViewer = new StructHexViewer(this, colorMap);
     }
     return hexViewer;
   }

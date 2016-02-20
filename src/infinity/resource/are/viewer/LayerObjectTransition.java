@@ -12,6 +12,7 @@ import infinity.datatype.ResourceRef;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
 
 /**
@@ -44,13 +45,13 @@ public class LayerObjectTransition extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return are;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
     return new AbstractStruct[]{are};
   }

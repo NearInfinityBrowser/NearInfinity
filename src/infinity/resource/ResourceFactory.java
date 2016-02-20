@@ -107,13 +107,11 @@ public final class ResourceFactory
     return getResource(entry, null);
   }
 
-  public static Resource getResource(ResourceEntry entry, String ext)
+  public static Resource getResource(ResourceEntry entry, String forcedExtension)
   {
     Resource res = null;
     try {
-      if (ext == null || ext.isEmpty()) {
-        ext = entry.getExtension();
-      }
+      String ext = (forcedExtension != null) ? forcedExtension : entry.getExtension();
       if (ext.equalsIgnoreCase("BAM")) {
         res = new BamResource(entry);
       } else if (ext.equalsIgnoreCase("TIS")) {
@@ -142,7 +140,7 @@ public final class ResourceFactory
         res = new MveResource(entry);
       } else if (ext.equalsIgnoreCase("WBM")) {
         res = new WbmResource(entry);
-      } else if (ext.equalsIgnoreCase("PLT")) {
+      } else if (ext.equalsIgnoreCase("PLT") && ext.equals(forcedExtension)) {
         res = new PltResource(entry);
       } else if (ext.equalsIgnoreCase("BCS") ||
                  ext.equalsIgnoreCase("BS")) {
@@ -310,14 +308,32 @@ public final class ResourceFactory
   public static void exportResource(ResourceEntry entry, Component parent)
   {
     if (getInstance() != null) {
-      getInstance().exportResourceInternal(entry, parent);
+      try {
+        getInstance().exportResourceInternal(entry, parent, null);
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(parent, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
     }
   }
 
   public static void exportResource(ResourceEntry entry, byte data[], String filename, Component parent)
   {
     if (getInstance() != null) {
-      getInstance().exportResourceInternal(entry, data, filename, parent);
+      try {
+        getInstance().exportResourceInternal(entry, data, filename, parent, null);
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(parent, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+
+  /** Exports "entry" to "output" without any user interaction. */
+  public static void exportResource(ResourceEntry entry, File output) throws Exception
+  {
+    if (getInstance() != null && output != null) {
+      getInstance().exportResourceInternal(entry, null, output);
     }
   }
 
@@ -406,6 +422,7 @@ public final class ResourceFactory
   public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
   {
     if (getInstance() != null) {
+//      System.out.println(String.format("ResourceFactory.getResourceEntry(\"%s\", %s, ???)", resourceName, Boolean.toString(searchExtraDirs)));
       ResourceEntry entry = getInstance().treeModel.getResourceEntry(resourceName);
 
       // checking default override folder list
@@ -424,7 +441,7 @@ public final class ResourceFactory
       }
 
       // checking custom folder list
-      if (extraDirs != null) {
+      if (extraDirs != null && (entry == null)) {
         for (final File folder: extraDirs) {
           File f = new FileNI(folder, resourceName);
           if (f.isFile()) {
@@ -729,7 +746,7 @@ public final class ResourceFactory
     // nothing to do yet...
   }
 
-  private void exportResourceInternal(ResourceEntry entry, Component parent)
+  private void exportResourceInternal(ResourceEntry entry, Component parent, File output) throws Exception
   {
     try {
       byte data[] = entry.getResourceData();
@@ -743,48 +760,56 @@ public final class ResourceFactory
                                            ext.equalsIgnoreCase("SQL") ||
                                            ext.equalsIgnoreCase("GLSL")))) {
         if (data[0] == -1) {
-          exportResource(entry, Decryptor.decrypt(data, 2, data.length).getBytes(),
-                         entry.toString(), parent);
+          exportResourceInternal(entry, Decryptor.decrypt(data, 2, data.length).getBytes(),
+                                 entry.toString(), parent, output);
         } else {
-          exportResource(entry, data, entry.toString(), parent);
+          exportResourceInternal(entry, data, entry.toString(), parent, output);
         }
       } else {
-        exportResource(entry, data, entry.toString(), parent);
+        exportResourceInternal(entry, data, entry.toString(), parent, output);
       }
     } catch (Exception e) {
-      JOptionPane.showMessageDialog(parent, "Can't read " + entry, "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      throw new Exception("Can't read " + entry);
     }
   }
 
-  private void exportResourceInternal(ResourceEntry entry, byte data[], String filename, Component parent)
+  private void exportResourceInternal(ResourceEntry entry, byte data[], String filename, Component parent,
+                                      File output) throws Exception
   {
-    if (fc == null) {
-      fc = new JFileChooser(Profile.getGameRoot());
-      fc.setDialogTitle("Export resource");
-      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    }
-    fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), filename));
-    if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-      File output = fc.getSelectedFile();
-      if (output.exists()) {
-        final String options[] = {"Overwrite", "Cancel"};
-        if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", "Export resource",
-                                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                         null, options, options[0]) != 0) {
-          return;
+    // ask for output file path if needed
+    boolean interactive = (output == null);
+    if (interactive) {
+      if (fc == null) {
+        fc = new JFileChooser(Profile.getGameRoot());
+        fc.setDialogTitle("Export resource");
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      }
+      fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), filename));
+      if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+        output = fc.getSelectedFile();
+        if (output.exists()) {
+          final String options[] = {"Overwrite", "Cancel"};
+          if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", "Export resource",
+                                           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                                           null, options, options[0]) != 0) {
+            return;
+          }
         }
       }
+    }
+
+    // exporting resource
+    if (output != null) {
       try {
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
         bos.write(data, 0, data.length);
         bos.close();
-        JOptionPane.showMessageDialog(parent, "File exported to " + output, "Export complete",
-                                      JOptionPane.INFORMATION_MESSAGE);
+        if (interactive) {
+          JOptionPane.showMessageDialog(parent, "File exported to " + output, "Export complete",
+                                        JOptionPane.INFORMATION_MESSAGE);
+        }
       } catch (IOException e) {
-        JOptionPane.showMessageDialog(parent, "Error while exporting " + entry, "Error",
-                                      JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        throw new Exception("Error while exporting " + entry);
       }
     }
   }

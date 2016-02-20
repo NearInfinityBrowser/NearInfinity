@@ -54,11 +54,15 @@ public final class UnknownDecimal extends Unknown
   public String toString()
   {
     if (data != null && data.length > 0) {
-      StringBuffer sb = new StringBuffer(4 * data.length);
+      StringBuffer sb = new StringBuffer(4 * data.length + 1);
       for (final byte d : data) {
-        sb.append(String.format("%1$03d ", (int)d & 0xff));
+        String text = Integer.toString((int)d & 0xff);
+        for (int j = 0, count = 3 - text.length(); j < count; j++) {
+          sb.append('0');
+        }
+        sb.append(text).append(' ');
       }
-      sb.append(' ');
+      sb.append('d');
       return sb.toString();
     } else
       return new String();

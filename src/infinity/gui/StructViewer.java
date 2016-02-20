@@ -405,6 +405,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
         createViewFrame(getTopLevelAncestor(), selected);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.Remove) == event.getSource()) {
+        if (!(struct instanceof HasAddRemovable)) {
+          return;
+        }
         Window wnd = SwingUtilities.getWindowAncestor(this);
         if (wnd == null) {
           wnd = NearInfinity.getInstance();
@@ -415,7 +418,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           for (int i = rows.length - 1; i >= 0; i--) {
             Object entry = table.getModel().getValueAt(rows[i], 1);
             if (entry instanceof AddRemovable) {
-              struct.removeDatatype((AddRemovable)entry, true);
+              try {
+                if (((HasAddRemovable)struct).confirmRemoveEntry((AddRemovable)entry)) {
+                  struct.removeDatatype((AddRemovable)entry, true);
+                }
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
             }
           }
         } finally {
@@ -531,6 +540,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     if (event.getSource() instanceof ButtonPopupMenu &&
         buttonPanel.getControlPosition((JComponent)event.getSource()) >= 0) {
       if (buttonPanel.getControlByType(ButtonPanel.Control.Add) == event.getSource()) {
+        if (!(struct instanceof HasAddRemovable)) {
+          return;
+        }
         ButtonPopupMenu bpmAdd = (ButtonPopupMenu)event.getSource();
         JMenuItem item = bpmAdd.getSelectedItem();
         AddRemovable toadd = null;
@@ -541,8 +553,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           }
         }
         try {
-          toadd = (AddRemovable)toadd.clone();
-        } catch (CloneNotSupportedException e) {
+          toadd = ((HasAddRemovable)struct).confirmAddEntry(toadd);
+          if (toadd != null) {
+            toadd = (AddRemovable)toadd.clone();
+          }
+        } catch (Exception e) {
           e.printStackTrace();
           return;
         }

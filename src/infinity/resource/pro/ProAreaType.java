@@ -20,6 +20,31 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable
 {
+  // PRO/Area-specific field labels
+  public static final String PRO_AREA                               = "Area effect info";
+  public static final String PRO_AREA_FLAGS                         = "Area flags";
+  public static final String PRO_AREA_RAY_COUNT                     = "Ray count";
+  public static final String PRO_AREA_TRAP_SIZE                     = "Trap size";
+  public static final String PRO_AREA_EXPLOSION_SIZE                = "Explosion size";
+  public static final String PRO_AREA_EXPLOSION_SOUND               = "Explosion sound";
+  public static final String PRO_AREA_EXPLOSION_FREQUENCY           = "Explosion frequency (frames)";
+  public static final String PRO_AREA_FRAGMENT_ANIMATION            = "Fragment animation";
+  public static final String PRO_AREA_SECONDARY_PROJECTILE          = "Secondary projectile";
+  public static final String PRO_AREA_NUM_REPETITIONS               = "# repetitions";
+  public static final String PRO_AREA_EXPLOSION_EFFECT              = "Explosion effect";
+  public static final String PRO_AREA_EXPLOSION_COLOR               = "Explosion color";
+  public static final String PRO_AREA_EXPLOSION_PROJECTILE          = "Explosion projectile";
+  public static final String PRO_AREA_EXPLOSION_ANIMATION           = "Explosion animation";
+  public static final String PRO_AREA_CONE_WIDTH                    = "Cone width";
+  public static final String PRO_AREA_SPREAD_ANIMATION              = "Spread animation";
+  public static final String PRO_AREA_RING_ANIMATION                = "Ring animation";
+  public static final String PRO_AREA_SOUND                         = "Area sound";
+  public static final String PRO_AREA_EX_FLAGS                      = "Extended flags";
+  public static final String PRO_AREA_DICE_COUNT                    = "# dice for multiple targets";
+  public static final String PRO_AREA_DICE_SIZE                     = "Dice size for multiple targets";
+  public static final String PRO_AREA_ANIMATION_GRANULARITY         = "Animation granularity";
+  public static final String PRO_AREA_ANIMATION_GRANULARITY_DIVIDER = "Animation granularity divider";
+
   public static final LongIntegerHashMap<String> m_proj = new LongIntegerHashMap<String>();
   public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
@@ -60,13 +85,13 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
 
   public ProAreaType() throws Exception
   {
-    super(null, "Area effect info", new byte[256], 0);
+    super(null, PRO_AREA, new byte[256], 0);
     setOffset(512);
   }
 
   public ProAreaType(AbstractStruct superStruct, byte[] buffer, int offset) throws Exception
   {
-    super(superStruct, "Area effect info", buffer, offset);
+    super(superStruct, PRO_AREA, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -85,31 +110,31 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
                                                          : new String[]{"VEF", "VVC", "BAM"};
 
-    addField(new Flag(buffer, offset, 2, "Area flags", s_areaflags));
-    addField(new DecNumber(buffer, offset + 2, 2, "Ray count"));
-    addField(new DecNumber(buffer, offset + 4, 2, "Trap size"));
-    addField(new DecNumber(buffer, offset + 6, 2, "Explosion size"));
-    addField(new ResourceRef(buffer, offset + 8, "Explosion sound", "WAV"));
-    addField(new DecNumber(buffer, offset + 16, 2, "Explosion frequency (frames)"));
-    addField(new IdsBitmap(buffer, offset + 18, 2, "Fragment animation", "ANIMATE.IDS"));
-    addField(new ProRef(buffer, offset + 20, "Secondary projectile", false));
-    addField(new DecNumber(buffer, offset + 22, 1, "# repetitions"));
-    addField(new HashBitmap(buffer, offset + 23, 1, "Explosion effect", m_proj));
-    addField(new ColorValue(buffer, offset + 24, 1, "Explosion color"));
-    addField(new Unknown(buffer, offset + 25, 1, "Unused"));
-    addField(new ProRef(buffer, offset + 26, "Explosion projectile"));
-    addField(new ResourceRef(buffer, offset + 28, "Explosion animation", s_types));
-    addField(new DecNumber(buffer, offset + 36, 2, "Cone width"));
+    addField(new Flag(buffer, offset, 2, PRO_AREA_FLAGS, s_areaflags));
+    addField(new DecNumber(buffer, offset + 2, 2, PRO_AREA_RAY_COUNT));
+    addField(new DecNumber(buffer, offset + 4, 2, PRO_AREA_TRAP_SIZE));
+    addField(new DecNumber(buffer, offset + 6, 2, PRO_AREA_EXPLOSION_SIZE));
+    addField(new ResourceRef(buffer, offset + 8, PRO_AREA_EXPLOSION_SOUND, "WAV"));
+    addField(new DecNumber(buffer, offset + 16, 2, PRO_AREA_EXPLOSION_FREQUENCY));
+    addField(new IdsBitmap(buffer, offset + 18, 2, PRO_AREA_FRAGMENT_ANIMATION, "ANIMATE.IDS"));
+    addField(new ProRef(buffer, offset + 20, PRO_AREA_SECONDARY_PROJECTILE, false));
+    addField(new DecNumber(buffer, offset + 22, 1, PRO_AREA_NUM_REPETITIONS));
+    addField(new HashBitmap(buffer, offset + 23, 1, PRO_AREA_EXPLOSION_EFFECT, m_proj));
+    addField(new ColorValue(buffer, offset + 24, 1, PRO_AREA_EXPLOSION_COLOR));
+    addField(new Unknown(buffer, offset + 25, 1, COMMON_UNUSED));
+    addField(new ProRef(buffer, offset + 26, PRO_AREA_EXPLOSION_PROJECTILE));
+    addField(new ResourceRef(buffer, offset + 28, PRO_AREA_EXPLOSION_ANIMATION, s_types));
+    addField(new DecNumber(buffer, offset + 36, 2, PRO_AREA_CONE_WIDTH));
     if (Profile.isEnhancedEdition()) {
       addField(new Unknown(buffer, offset + 38, 2));
-      addField(new ResourceRef(buffer, offset + 40, "Spread animation", s_types));
-      addField(new ResourceRef(buffer, offset + 48, "Ring animation", s_types));
-      addField(new ResourceRef(buffer, offset + 56, "Area sound", "WAV"));
-      addField(new Flag(buffer, offset + 64, 4, "Extended flags", s_areaflagsEx));
-      addField(new UnsignDecNumber(buffer, offset + 68, 2, "# dice for multiple targets"));
-      addField(new UnsignDecNumber(buffer, offset + 70, 2, "Dice size for multiple targets"));
-      addField(new DecNumber(buffer, offset + 72, 2, "Animation granularity"));
-      addField(new DecNumber(buffer, offset + 74, 2, "Animation granularity divider"));
+      addField(new ResourceRef(buffer, offset + 40, PRO_AREA_SPREAD_ANIMATION, s_types));
+      addField(new ResourceRef(buffer, offset + 48, PRO_AREA_RING_ANIMATION, s_types));
+      addField(new ResourceRef(buffer, offset + 56, PRO_AREA_SOUND, "WAV"));
+      addField(new Flag(buffer, offset + 64, 4, PRO_AREA_EX_FLAGS, s_areaflagsEx));
+      addField(new UnsignDecNumber(buffer, offset + 68, 2, PRO_AREA_DICE_COUNT));
+      addField(new UnsignDecNumber(buffer, offset + 70, 2, PRO_AREA_DICE_SIZE));
+      addField(new DecNumber(buffer, offset + 72, 2, PRO_AREA_ANIMATION_GRANULARITY));
+      addField(new DecNumber(buffer, offset + 74, 2, PRO_AREA_ANIMATION_GRANULARITY_DIVIDER));
       addField(new Unknown(buffer, offset + 76, 180));
     } else {
       addField(new Unknown(buffer, offset + 38, 218));

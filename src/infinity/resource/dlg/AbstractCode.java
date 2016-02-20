@@ -46,6 +46,11 @@ import javax.swing.event.DocumentListener;
 public abstract class AbstractCode extends Datatype
     implements Editable, IsTextual, AddRemovable, ActionListener, DocumentListener, ItemListener
 {
+  // DLG/AbstractCode-specific field labels
+  public static final String DLG_CODE_OFFSET = "Offset";
+  public static final String DLG_CODE_LENGTH = "Length";
+  public static final String DLG_CODE_TEXT    = "Text";
+
   private static final ButtonPanel.Control CtrlUpdate   = ButtonPanel.Control.Custom1;
   private static final ButtonPanel.Control CtrlCheck    = ButtonPanel.Control.Custom2;
   private static final ButtonPanel.Control CtrlErrors   = ButtonPanel.Control.Custom3;
@@ -69,7 +74,7 @@ public abstract class AbstractCode extends Datatype
   {
     super(offset, 8, nane);
     read(buffer, offset);
-    text = new String(buffer, off.getValue(), len.getValue());
+    text = (len.getValue() > 0) ? new String(buffer, off.getValue(), len.getValue()) : "";
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -298,8 +303,8 @@ public abstract class AbstractCode extends Datatype
   @Override
   public int read(byte[] buffer, int offset)
   {
-    off = new DecNumber(buffer, offset, 4, "Offset");
-    len = new DecNumber(buffer, offset + 4, 4, "Length");
+    off = new DecNumber(buffer, offset, 4, DLG_CODE_OFFSET);
+    len = new DecNumber(buffer, offset + 4, 4, DLG_CODE_LENGTH);
     return offset + getSize();
   }
 
@@ -326,7 +331,7 @@ public abstract class AbstractCode extends Datatype
     flatList.add(off);
     flatList.add(len);
     try {
-      TextString ts = new TextString(text.getBytes(), 0, len.getValue(), "Text");
+      TextString ts = new TextString(text.getBytes(), 0, len.getValue(), DLG_CODE_TEXT);
       ts.setOffset(off.getValue());
       flatList.add(ts);
     } catch (Exception e) {

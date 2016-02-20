@@ -20,6 +20,7 @@ import infinity.gui.layeritem.ShapedLayerItem;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Profile;
 import infinity.resource.StructEntry;
+import infinity.resource.Viewable;
 import infinity.resource.vertex.Vertex;
 import infinity.resource.wed.Door;
 import infinity.resource.wed.WedResource;
@@ -48,15 +49,15 @@ public class LayerObjectDoorPoly extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return door;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{door};
+    return new Viewable[]{door};
   }
 
   @Override
@@ -168,10 +169,10 @@ public class LayerObjectDoorPoly extends LayerObject
       Rectangle[] bounds = null;
       int count = 0;
       try {
-        int ofsOpen = ((SectionOffset)door.getAttribute("Polygons open offset")).getValue();
-        int ofsClosed = ((SectionOffset)door.getAttribute("Polygons closed offset")).getValue();
-        int numOpen = ((SectionCount)door.getAttribute("# polygons open")).getValue();
-        int numClosed = ((SectionCount)door.getAttribute("# polygons closed")).getValue();
+        int ofsOpen = ((SectionOffset)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_OPEN)).getValue();
+        int ofsClosed = ((SectionOffset)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_CLOSED)).getValue();
+        int numOpen = ((SectionCount)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_OPEN)).getValue();
+        int numClosed = ((SectionCount)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_CLOSED)).getValue();
         count = numOpen + numClosed;
         openCount = numOpen;
         location = new Point[count];
@@ -185,15 +186,15 @@ public class LayerObjectDoorPoly extends LayerObject
         for (int i = 0; i < numOpen; i++) {
           infinity.resource.wed.Polygon p = getPolygonStructure(door, ofsOpen, i);
           if (p != null) {
-            String s = ((TextString)door.getAttribute("Name")).toString();
-            Flag flags = (Flag)p.getAttribute("Polygon flags");
+            String s = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
+            Flag flags = (Flag)p.getAttribute(infinity.resource.wed.Polygon.WED_POLY_FLAGS);
             if (numOpen > 1) {
               msg[i] = String.format("%1$s %2$d/%3$d %4$s", s, i+1, numOpen, createFlags(flags, desc));
             } else {
               msg[i] = String.format("%1$s %2$s", s, createFlags(flags, desc));
             }
-            int vNum = ((SectionCount)p.getAttribute("# vertices")).getValue();
-            int vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
+            int vNum = ((SectionCount)p.getAttribute(infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
+            int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
             shapeCoords[i] = loadVertices(p, vOfs, 0, vNum, Vertex.class);
             poly[i] = createPolygon(shapeCoords[i], 1.0);
             bounds[i] = normalizePolygon(poly[i]);
@@ -204,15 +205,15 @@ public class LayerObjectDoorPoly extends LayerObject
         for (int i = 0; i < numClosed; i++) {
           infinity.resource.wed.Polygon p = getPolygonStructure(door, ofsClosed, i);
           if (p != null) {
-            String s = ((TextString)door.getAttribute("Name")).toString();
-            Flag flags = (Flag)p.getAttribute("Polygon flags");
+            String s = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
+            Flag flags = (Flag)p.getAttribute(infinity.resource.wed.Polygon.WED_POLY_FLAGS);
             if (numClosed > 1) {
               msg[numOpen+i] = String.format("%1$s %2$d/%3$d %4$s", s, i+1, numClosed, createFlags(flags, desc));
             } else {
               msg[numOpen+i] = String.format("%1$s %2$s", s, createFlags(flags, desc));
             }
-            int vNum = ((SectionCount)p.getAttribute("# vertices")).getValue();
-            int vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
+            int vNum = ((SectionCount)p.getAttribute(infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
+            int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
             shapeCoords[numOpen+i] = loadVertices(p, vOfs, 0, vNum, Vertex.class);
             poly[numOpen+i] = createPolygon(shapeCoords[numOpen+i], 1.0);
             bounds[numOpen+i] = normalizePolygon(poly[numOpen+i]);

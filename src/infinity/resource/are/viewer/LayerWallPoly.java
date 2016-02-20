@@ -34,8 +34,8 @@ public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
       List<LayerObjectWallPoly> list = getLayerObjects();
       if (hasWed()) {
         WedResource wed = getWed();
-        SectionOffset so = (SectionOffset)wed.getAttribute("Wall polygons offset");
-        SectionCount sc = (SectionCount)wed.getAttribute("# wall polygons");
+        SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS);
+        SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_WALL_POLYGONS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

@@ -13,7 +13,7 @@ import infinity.datatype.EffectType;
 import infinity.datatype.TextString;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.Effect2;
 import infinity.resource.HasViewerTabs;
@@ -24,7 +24,11 @@ import infinity.search.SearchOptions;
 
 public final class EffResource extends AbstractStruct implements Resource, HasViewerTabs
 {
-  private HexViewer hexViewer;
+  // EFF-specific field labels
+  public static final String EFF_SIGNATURE_2  = "Signature 2";
+  public static final String EFF_VERSION_2    = "Version 2";
+
+  private StructHexViewer hexViewer;
 
   public EffResource(ResourceEntry entry) throws Exception
   {
@@ -34,10 +38,10 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    addField(new TextString(buffer, offset + 8, 4, "Signature 2"));
-    addField(new TextString(buffer, offset + 12, 4, "Version 2"));
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    addField(new TextString(buffer, offset + 8, 4, EFF_SIGNATURE_2));
+    addField(new TextString(buffer, offset + 12, 4, EFF_VERSION_2));
     EffectType type = new EffectType(buffer, offset + 16, 4);
     addField(type);
     List<StructEntry> list = new ArrayList<StructEntry>();
@@ -69,7 +73,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
   public JComponent getViewerTab(int index)
   {
     if (hexViewer == null) {
-      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+      hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
     return hexViewer;
   }

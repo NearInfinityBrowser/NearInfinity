@@ -13,16 +13,23 @@ import infinity.resource.AddRemovable;
 
 public final class AutomapNotePST extends AbstractStruct implements AddRemovable
 {
+  // ARE/Automap Notes-specific field labels
+  public static final String ARE_AUTOMAP            = "Automap note";
+  public static final String ARE_AUTOMAP_LOCATION_X = "Coordinate: X";
+  public static final String ARE_AUTOMAP_LOCATION_Y = "Coordinate: Y";
+  public static final String ARE_AUTOMAP_TEXT       = "Text";
+  public static final String ARE_AUTOMAP_READ_ONLY  = "Is read only?";
+
   public static final String[] s_noyes = { "No", "Yes" };
 
   AutomapNotePST() throws Exception
   {
-    super(null, "Automap note", new byte[532], 0);
+    super(null, ARE_AUTOMAP, new byte[532], 0);
   }
 
   AutomapNotePST(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Automap note " + number, buffer, offset);
+    super(superStruct, ARE_AUTOMAP + " " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -38,10 +45,10 @@ public final class AutomapNotePST extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new DecNumber(buffer, offset, 4, "Coordinate: X"));
-    addField(new DecNumber(buffer, offset + 4, 4, "Coordinate: Y"));
-    addField(new TextString(buffer, offset + 8, 500, "Text"));
-    addField(new Bitmap(buffer, offset + 508, 4, "Is read only?", s_noyes));
+    addField(new DecNumber(buffer, offset, 4, ARE_AUTOMAP_LOCATION_X));
+    addField(new DecNumber(buffer, offset + 4, 4, ARE_AUTOMAP_LOCATION_Y));
+    addField(new TextString(buffer, offset + 8, 500, ARE_AUTOMAP_TEXT));
+    addField(new Bitmap(buffer, offset + 508, 4, ARE_AUTOMAP_READ_ONLY, s_noyes));
     addField(new Unknown(buffer, offset + 512, 20));
     return offset + 532;
   }

@@ -11,6 +11,10 @@ import infinity.resource.HasAddRemovable;
 
 public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
 {
+  // CRE/Iwd2Struct-specific field labels
+  public static final String CRE_STRUCT_NUM_MEMORIZABLE = "# memorizable (total)";
+  public static final String CRE_STRUCT_NUM_REMAINING = "# free uses remaining";
+
   public static final int TYPE_SPELL = 0;
   public static final int TYPE_ABILITY = 1;
   public static final int TYPE_SHAPE = 2;
@@ -41,8 +45,8 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
         addField(new Iwd2Song(this, buffer, offset + 16 * i));
       }
     }
-    addField(new DecNumber(buffer, offset + 16 * count.getValue(), 4, "# memorizable (total)"));
-    addField(new DecNumber(buffer, offset + 16 * count.getValue() + 4, 4, "# free uses remaining"));
+    addField(new DecNumber(buffer, offset + 16 * count.getValue(), 4, CRE_STRUCT_NUM_MEMORIZABLE));
+    addField(new DecNumber(buffer, offset + 16 * count.getValue() + 4, 4, CRE_STRUCT_NUM_REMAINING));
     setOffset(offset);
   }
 
@@ -63,6 +67,18 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
       default:
         return new AddRemovable[]{};
     }
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------

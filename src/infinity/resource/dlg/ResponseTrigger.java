@@ -6,18 +6,19 @@ package infinity.resource.dlg;
 
 public final class ResponseTrigger extends AbstractCode
 {
-  public static final String FMT_NAME = "Response trigger %1$d";
+  // DLG/ResponseTrigger-specific field labels
+  public static final String DLG_RESPONSETRIGGER = "Response trigger";
 
   private int nr;
 
   ResponseTrigger()
   {
-    super("Response trigger");
+    super(DLG_RESPONSETRIGGER);
   }
 
   ResponseTrigger(byte buffer[], int offset, int count)
   {
-    super(buffer, offset, String.format(FMT_NAME, count));
+    super(buffer, offset, DLG_RESPONSETRIGGER + " " + count);
     this.nr = count;
   }
 

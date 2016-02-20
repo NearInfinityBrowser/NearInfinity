@@ -9,7 +9,7 @@ import javax.swing.JComponent;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.HasViewerTabs;
 import infinity.resource.Resource;
@@ -18,7 +18,10 @@ import infinity.resource.key.ResourceEntry;
 
 public final class TotResource extends AbstractStruct implements Resource, HasViewerTabs
 {
-  private HexViewer hexViewer;
+  // TOT-specific field labels
+  public static final String TOT_EMPTY = "(empty)";
+
+  private StructHexViewer hexViewer;
 
   public TotResource(ResourceEntry entry) throws Exception
   {
@@ -45,7 +48,7 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
     if (hexViewer == null) {
       BasicColorMap colorMap = new BasicColorMap(this, false);
       colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, StringEntry.class);
-      hexViewer = new HexViewer(this, colorMap);
+      hexViewer = new StructHexViewer(this, colorMap);
     }
     return hexViewer;
   }
@@ -69,7 +72,7 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
         addField(entry);
       }
     } else {
-      addField(new Unknown(buffer, offset, 0, "(Empty)"));  // Placeholder for empty structure
+      addField(new Unknown(buffer, offset, 0, TOT_EMPTY));  // Placeholder for empty structure
     }
 
     int endoffset = offset;

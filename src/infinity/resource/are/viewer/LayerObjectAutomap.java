@@ -18,8 +18,8 @@ import infinity.datatype.TextEdit;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
 import infinity.resource.Profile;
+import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.AutomapNote;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -56,15 +56,15 @@ public class LayerObjectAutomap extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return note;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{note};
+    return new Viewable[]{note};
   }
 
   @Override
@@ -117,16 +117,16 @@ public class LayerObjectAutomap extends LayerObject
     if (note != null) {
       String msg = "";
       try {
-        location.x = ((DecNumber)note.getAttribute("Coordinate: X")).getValue();
-        location.y = ((DecNumber)note.getAttribute("Coordinate: Y")).getValue();
-        if (((Bitmap)note.getAttribute("Text location")).getValue() == 1) {
+        location.x = ((DecNumber)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_X)).getValue();
+        location.y = ((DecNumber)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_Y)).getValue();
+        if (((Bitmap)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT_LOCATION)).getValue() == 1) {
           // fetching string from dialog.tlk
-          msg = ((StringRef)note.getAttribute("Text")).toString();
+          msg = ((StringRef)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).toString();
         } else {
           // fetching string from talk override
           msg = "[user-defined]";
           try {
-            int srcStrref = ((StringRef)note.getAttribute("Text")).getValue();
+            int srcStrref = ((StringRef)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).getValue();
             if (srcStrref > 0) {
               String path = getParentStructure().getResourceEntry().getActualFile().toString();
               path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
@@ -136,18 +136,18 @@ public class LayerObjectAutomap extends LayerObject
                 if (tohFile.exists()) {
                   FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                   TohResource toh = new TohResource(tohEntry);
-                  SectionOffset so = (SectionOffset)toh.getAttribute("Strref entries offset");
-                  SectionCount sc = (SectionCount)toh.getAttribute("# strref entries");
+                  SectionOffset so = (SectionOffset)toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
+                  SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
                   if (so != null && sc != null && sc.getValue() > 0) {
                     for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
                       StrRefEntry2 strref = (StrRefEntry2)toh.getAttribute(curOfs, false);
                       if (strref != null) {
-                        int v = ((StringRef)strref.getAttribute("Overridden strref")).getValue();
+                        int v = ((StringRef)strref.getAttribute(StrRefEntry2.TOH_STRREF_OVERRIDDEN)).getValue();
                         if (v == srcStrref) {
-                          int sofs = ((HexNumber)strref.getAttribute("Relative override string offset")).getValue();
+                          int sofs = ((HexNumber)strref.getAttribute(StrRefEntry2.TOH_STRREF_OFFSET_STRING)).getValue();
                           StringEntry2 se = (StringEntry2)toh.getAttribute(so.getValue() + sofs, false);
                           if (se != null) {
-                            msg = ((TextEdit)se.getAttribute("Override string")).toString();
+                            msg = ((TextEdit)se.getAttribute(StringEntry2.TOH_STRING_TEXT)).toString();
                           }
                           break;
                         }
@@ -165,17 +165,17 @@ public class LayerObjectAutomap extends LayerObject
                   FileResourceEntry totEntry = new FileResourceEntry(totFile);
                   TohResource toh = new TohResource(tohEntry);
                   TotResource tot = new TotResource(totEntry);
-                  SectionCount sc = (SectionCount)toh.getAttribute("# strref entries");
+                  SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
                   if (sc != null && sc.getValue() > 0) {
                     for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
                       StrRefEntry strref = (StrRefEntry)toh.getAttribute(curOfs, false);
                       if (strref != null) {
-                        int v = ((StringRef)strref.getAttribute("Overridden strref")).getValue();
+                        int v = ((StringRef)strref.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
                         if (v == srcStrref) {
-                          int sofs = ((HexNumber)strref.getAttribute("TOT string offset")).getValue();
+                          int sofs = ((HexNumber)strref.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
                           StringEntry se = (StringEntry)tot.getAttribute(sofs, false);
                           if (se != null) {
-                            msg = ((TextEdit)se.getAttribute("String data")).toString();
+                            msg = ((TextEdit)se.getAttribute(StringEntry.TOT_STRING_TEXT)).toString();
                           }
                           break;
                         }

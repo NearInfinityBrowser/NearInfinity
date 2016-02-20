@@ -7,6 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
+import infinity.icon.Icons;
 import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
@@ -755,6 +756,7 @@ public class ConvertToMos extends ChildFrame
 
   private void init()
   {
+    setIconImage(Icons.getImage("Application16.gif"));
     GridBagConstraints c = new GridBagConstraints();
 
     // setting up input/output section (Legacy V1)

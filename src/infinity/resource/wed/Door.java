@@ -17,16 +17,28 @@ import infinity.resource.HasAddRemovable;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
+  // WED/Door-specific field labels
+  public static final String WED_DOOR                         = "Door";
+  public static final String WED_DOOR_NAME                    = "Name";
+  public static final String WED_DOOR_IS_DOOR                 = "Is door?";
+  public static final String WED_DOOR_TILEMAP_LOOKUP_INDEX    = "Tilemap lookup index";
+  public static final String WED_DOOR_NUM_TILEMAP_INDICES     = "# tilemap indices";
+  public static final String WED_DOOR_NUM_POLYGONS_OPEN       = "# polygons open";
+  public static final String WED_DOOR_NUM_POLYGONS_CLOSED     = "# polygons closed";
+  public static final String WED_DOOR_OFFSET_POLYGONS_OPEN    = "Polygons open offset";
+  public static final String WED_DOOR_OFFSET_POLYGONS_CLOSED  = "Polygons closed offset";
+  public static final String WED_DOOR_TILEMAP_INDEX           = "Tilemap index";
+
   public static final String[] s_noyes = {"No", "Yes"};
 
   public Door() throws Exception
   {
-    super(null, "Door", new byte[26], 0);
+    super(null, WED_DOOR, new byte[26], 0);
   }
 
   public Door(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Door " + number, buffer, offset);
+    super(superStruct, WED_DOOR + " " + number, buffer, offset);
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
@@ -35,6 +47,18 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new OpenPolygon(), new ClosedPolygon()};
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -54,7 +78,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof RemovableDecNumber) {
-      int offset = ((HexNumber)getSuperStruct().getAttribute("Door tilemap lookup offset")).getValue();
+      int offset = ((HexNumber)getSuperStruct().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP)).getValue();
       int index = getTilemapIndex().getValue();
       datatype.setOffset(offset + index * 2);
     }
@@ -62,7 +86,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
   public DecNumber getTilemapIndex()
   {
-    return (DecNumber)getAttribute("Tilemap lookup index");
+    return (DecNumber)getAttribute(WED_DOOR_TILEMAP_LOOKUP_INDEX);
   }
 
   public void readVertices(byte buffer[], int offset) throws Exception
@@ -86,40 +110,39 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     if (polyOffset != Integer.MAX_VALUE) {
       offset = polyOffset;
     }
-    ((SectionOffset)getAttribute("Polygons open offset")).setValue(offset);
+    ((SectionOffset)getAttribute(WED_DOOR_OFFSET_POLYGONS_OPEN)).setValue(offset);
     for (int i = 0; i < getFieldCount(); i++) {
       if (getField(i) instanceof OpenPolygon) {
         offset += 18;
       }
     }
-    ((SectionOffset)getAttribute("Polygons closed offset")).setValue(offset);
+    ((SectionOffset)getAttribute(WED_DOOR_OFFSET_POLYGONS_CLOSED)).setValue(offset);
     for (int i = 0; i < getFieldCount(); i++) {
       if (getField(i) instanceof ClosedPolygon) {
         offset += 18;
       }
     }
-//    return offset;
   }
 
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 8, "Name"));
-    addField(new Bitmap(buffer, offset + 8, 2, "Is door?", s_noyes));
-    DecNumber indexTileCell = new DecNumber(buffer, offset + 10, 2, "Tilemap lookup index");
+    addField(new TextString(buffer, offset, 8, WED_DOOR_NAME));
+    addField(new Bitmap(buffer, offset + 8, 2, WED_DOOR_IS_DOOR, s_noyes));
+    DecNumber indexTileCell = new DecNumber(buffer, offset + 10, 2, WED_DOOR_TILEMAP_LOOKUP_INDEX);
     addField(indexTileCell);
-    SectionCount countTileCell = new SectionCount(buffer, offset + 12, 2, "# tilemap indexes",
+    SectionCount countTileCell = new SectionCount(buffer, offset + 12, 2, WED_DOOR_NUM_TILEMAP_INDICES,
                                                   RemovableDecNumber.class);
     addField(countTileCell);
-    SectionCount countOpen = new SectionCount(buffer, offset + 14, 2, "# polygons open", OpenPolygon.class);
+    SectionCount countOpen = new SectionCount(buffer, offset + 14, 2, WED_DOOR_NUM_POLYGONS_OPEN, OpenPolygon.class);
     addField(countOpen);
-    SectionCount countClosed = new SectionCount(buffer, offset + 16, 2, "# polygons closed",
+    SectionCount countClosed = new SectionCount(buffer, offset + 16, 2, WED_DOOR_NUM_POLYGONS_CLOSED,
                                                 ClosedPolygon.class);
     addField(countClosed);
-    SectionOffset offsetOpen = new SectionOffset(buffer, offset + 18, "Polygons open offset",
+    SectionOffset offsetOpen = new SectionOffset(buffer, offset + 18, WED_DOOR_OFFSET_POLYGONS_OPEN,
                                                  OpenPolygon.class);
     addField(offsetOpen);
-    SectionOffset offsetClosed = new SectionOffset(buffer, offset + 22, "Polygons closed offset",
+    SectionOffset offsetClosed = new SectionOffset(buffer, offset + 22, WED_DOOR_OFFSET_POLYGONS_CLOSED,
                                                    ClosedPolygon.class);
     addField(offsetClosed);
 
@@ -132,11 +155,11 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     }
 
     if (getSuperStruct() != null) {
-      HexNumber offsetTileCell = (HexNumber)getSuperStruct().getAttribute("Door tilemap lookup offset");
+      HexNumber offsetTileCell = (HexNumber)getSuperStruct().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
       for (int i = 0; i < countTileCell.getValue(); i++) {
         addField(new RemovableDecNumber(buffer, offsetTileCell.getValue() +
                                                 2 * (indexTileCell.getValue() + i), 2,
-                                        "Tilemap index " + i));
+                                                WED_DOOR_TILEMAP_INDEX + " " + i));
       }
     }
     return offset + 26;

@@ -13,18 +13,27 @@ import infinity.resource.AddRemovable;
 
 public final class AutomapNote extends AbstractStruct implements AddRemovable
 {
+  // ARE/Automap Notes-specific field labels
+  public static final String ARE_AUTOMAP                = "Automap note";
+  public static final String ARE_AUTOMAP_LOCATION_X     = "Coordinate: X";
+  public static final String ARE_AUTOMAP_LOCATION_Y     = "Coordinate: Y";
+  public static final String ARE_AUTOMAP_TEXT           = "Text";
+  public static final String ARE_AUTOMAP_TEXT_LOCATION  = "Text location";
+  public static final String ARE_AUTOMAP_MARKER_COLOR   = "Marker color";
+  public static final String ARE_AUTOMAP_CONTROL_ID     = "Control ID";
+
   public static final String[] s_flag = {"Gray", "Violet", "Green", "Orange", "Red", "Blue",
                                           "Dark blue", "Light gray"};
   public static final String[] s_source = {"Talk override", "Dialog.tlk"};
 
   AutomapNote() throws Exception
   {
-    super(null, "Automap note", new byte[52], 0);
+    super(null, ARE_AUTOMAP, new byte[52], 0);
   }
 
   AutomapNote(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Automap note " + number, buffer, offset);
+    super(superStruct, ARE_AUTOMAP + " " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -40,12 +49,12 @@ public final class AutomapNote extends AbstractStruct implements AddRemovable
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new DecNumber(buffer, offset, 2, "Coordinate: X"));
-    addField(new DecNumber(buffer, offset + 2, 2, "Coordinate: Y"));
-    addField(new StringRef(buffer, offset + 4, "Text"));
-    addField(new Bitmap(buffer, offset + 8, 2, "Text location", s_source));
-    addField(new Bitmap(buffer, offset + 10, 2, "Marker color", s_flag));
-    addField(new DecNumber(buffer, offset + 12, 4, "Control ID"));
+    addField(new DecNumber(buffer, offset, 2, ARE_AUTOMAP_LOCATION_X));
+    addField(new DecNumber(buffer, offset + 2, 2, ARE_AUTOMAP_LOCATION_Y));
+    addField(new StringRef(buffer, offset + 4, ARE_AUTOMAP_TEXT));
+    addField(new Bitmap(buffer, offset + 8, 2, ARE_AUTOMAP_TEXT_LOCATION, s_source));
+    addField(new Bitmap(buffer, offset + 10, 2, ARE_AUTOMAP_MARKER_COLOR, s_flag));
+    addField(new DecNumber(buffer, offset + 12, 4, ARE_AUTOMAP_CONTROL_ID));
     addField(new Unknown(buffer, offset + 16, 36));
     return offset + 52;
   }

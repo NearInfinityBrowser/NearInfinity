@@ -8,6 +8,7 @@ import infinity.datatype.Bitmap;
 import infinity.datatype.DecNumber;
 import infinity.datatype.Flag;
 import infinity.datatype.HexNumber;
+import infinity.datatype.IsNumeric;
 import infinity.datatype.ResourceRef;
 import infinity.datatype.SectionCount;
 import infinity.datatype.SectionOffset;
@@ -15,7 +16,7 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -29,10 +30,56 @@ import java.io.OutputStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 
 public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  // GAM-specific field labels
+  public static final String GAM_GAME_TIME                        = "Game time (game seconds)";
+  public static final String GAM_SELECTED_FORMATION               = "Selected formation";
+  public static final String GAM_FORMATION_BUTTON_FMT             = "Formation button %d";
+  public static final String GAM_PARTY_GOLD                       = "Party gold";
+  public static final String GAM_NUM_NPCS_IN_PARTY                = "# NPCs in party";
+  public static final String GAM_WEATHER                          = "Weather";
+  public static final String GAM_OFFSET_PARTY_MEMBERS             = "Party members offset";
+  public static final String GAM_NUM_PARTY_MEMBERS                = "# party members";
+  public static final String GAM_OFFSET_UNUSED                    = "Unused offset";
+  public static final String GAM_NUM_UNUSED                       = "Unused count";
+  public static final String GAM_OFFSET_NON_PARTY_MEMBERS         = "Non-party characters offset";
+  public static final String GAM_NUM_NON_PARTY_MEMBERS            = "# non-party characters";
+  public static final String GAM_OFFSET_GLOBAL_VARIABLES          = "Global variables offset";
+  public static final String GAM_NUM_GLOBAL_VARIABLES             = "# global variables";
+  public static final String GAM_MASTER_AREA                      = "Master area";
+  public static final String GAM_CURRENT_LINK                     = "Current link";
+  public static final String GAM_NUM_JOURNAL_ENTRIES              = "# journal entries";
+  public static final String GAM_OFFSET_JOURNAL_ENTRIES           = "Journal entries offset";
+  public static final String GAM_REPUTATION                       = "Reputation";
+  public static final String GAM_CURRENT_AREA                     = "Current area";
+  public static final String GAM_CURRENT_AREA_2                   = "Current area 2";
+  public static final String GAM_CONFIGURATION                    = "Configuration";
+  public static final String GAM_SAVE_VERSION                     = "Save version";
+  public static final String GAM_NUM_UNKNOWN                      = "Unknown section count";
+  public static final String GAM_OFFSET_UNKNOWN                   = "Unknown section offset";
+  public static final String GAM_OFFSET_MODRON_MAZE               = "Modron maze offset";
+  public static final String GAM_OFFSET_KILL_VARIABLES            = "Kill variables offset";
+  public static final String GAM_NUM_KILL_VARIABLES               = "# kill variables";
+  public static final String GAM_OFFSET_BESTIARY                  = "Bestiary offset";
+  public static final String GAM_OFFSET_FAMILIAR_INFO             = "Familiar info offset";
+  public static final String GAM_OFFSET_STORED_LOCATIONS          = "Stored locations offset";
+  public static final String GAM_NUM_STORED_LOCATIONS             = "# stored locations";
+  public static final String GAM_REAL_TIME                        = "Game time (real seconds)";
+  public static final String GAM_OFFSET_POCKET_PLANE_LOCATIONS    = "Pocket plane locations offset";
+  public static final String GAM_NUM_POCKET_PLANE_LOCATIONS       = "# pocket plane locations";
+  public static final String GAM_ZOOM_LEVEL                       = "Zoom level";
+  public static final String GAM_RANDOM_ENCOUNTER_AREA            = "Random encounter area";
+  public static final String GAM_WORLDMAP                         = "Worldmap";
+  public static final String GAM_FAMILIAR_OWNER                   = "Familiar owner";
+  public static final String GAM_BESTIARY                         = "Bestiary";
+  public static final String GAM_OFFSET_END_OF_UNKNOWN_STRUCTURE  = "End of unknown structure offset";
+  public static final String GAM_UNKNOWN_STRUCTURE                = "Unknown structure";
+  public static final String GAM_POCKET_PLANE                     = "Pocket plane";
+
   public static final String[] s_formation = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   public static final String[] s_weather = {"No weather", "Raining", "Snowing", "Light weather",
                                             "Medium weather", "Light wind", "Medium wind", "Rare lightning",
@@ -62,7 +109,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       "Party member 0", "Party member 1", "Party member 2", "Party member 3",
       "Party member 4", "Party member 5"};
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public GamResource(ResourceEntry entry) throws Exception
   {
@@ -74,11 +121,40 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
-    if (Profile.getEngine() == Profile.Engine.PST)
-      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
-        new NonPartyNPC()};
-    else
-      return new AddRemovable[]{new Variable(), new JournalEntry(), new NonPartyNPC()};
+    if (Profile.getEngine() == Profile.Engine.PST) {
+      // TODO: missing CRE resource when adding PartyNPC structures
+      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable()};
+//      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
+//                                new PartyNPC(), new NonPartyNPC()};
+    } else {
+      return new AddRemovable[]{new Variable(), new JournalEntry()};
+//      return new AddRemovable[]{new Variable(), new JournalEntry(), new PartyNPC(),
+//                                new NonPartyNPC()};
+    }
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    if (entry instanceof PartyNPC) {
+      int numPartyMembers = ((IsNumeric)getAttribute(GAM_NUM_PARTY_MEMBERS)).getValue();
+      if (numPartyMembers >= 6) {
+        int ret = JOptionPane.showConfirmDialog(getViewer(),
+                                                "This game supports only up to 6 active party members. " +
+                                                    "Do you want to add a new entry?",
+                                                "Add new party member", JOptionPane.YES_NO_OPTION);
+        if (ret != JOptionPane.YES_OPTION) {
+          entry = null;
+        }
+      }
+    }
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -117,7 +193,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       case 1:
       {
         if (hexViewer == null) {
-          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
       }
@@ -189,53 +265,51 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    TextString version = new TextString(buffer, offset + 4, 4, "Version");
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
-    addField(new DecNumber(buffer, offset + 8, 4, "Game time (game seconds)"));
+    addField(new DecNumber(buffer, offset + 8, 4, GAM_GAME_TIME));
     if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Bitmap(buffer, offset + 12, 2, "Selected formation", s_torment));
+      addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, s_torment));
     } else {
-      addField(new Bitmap(buffer, offset + 12, 2, "Selected formation", s_formation));
+      addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, s_formation));
     }
-    addField(new DecNumber(buffer, offset + 14, 2, "Formation button 1"));
-    addField(new DecNumber(buffer, offset + 16, 2, "Formation button 2"));
-    addField(new DecNumber(buffer, offset + 18, 2, "Formation button 3"));
-    addField(new DecNumber(buffer, offset + 20, 2, "Formation button 4"));
-    addField(new DecNumber(buffer, offset + 22, 2, "Formation button 5"));
-    addField(new DecNumber(buffer, offset + 24, 4, "Party gold"));
-    addField(new DecNumber(buffer, offset + 28, 2, "# NPCs in party"));
-    addField(new Flag(buffer, offset + 30, 2, "Weather", s_weather));
-    SectionOffset offset_partynpc = new SectionOffset(buffer, offset + 32, "Party members offset",
+    for (int i = 0; i < 5; i++) {
+      addField(new DecNumber(buffer, offset + 14 + (i * 2), 2, String.format(GAM_FORMATION_BUTTON_FMT, i+1)));
+    }
+    addField(new DecNumber(buffer, offset + 24, 4, GAM_PARTY_GOLD));
+    addField(new DecNumber(buffer, offset + 28, 2, GAM_NUM_NPCS_IN_PARTY));
+    addField(new Flag(buffer, offset + 30, 2, GAM_WEATHER, s_weather));
+    SectionOffset offset_partynpc = new SectionOffset(buffer, offset + 32, GAM_OFFSET_PARTY_MEMBERS,
                                                       PartyNPC.class);
     addField(offset_partynpc);
-    SectionCount count_partynpc = new SectionCount(buffer, offset + 36, 4, "# party members",
+    SectionCount count_partynpc = new SectionCount(buffer, offset + 36, 4, GAM_NUM_PARTY_MEMBERS,
                                                    PartyNPC.class);
     addField(count_partynpc);
-    SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, "Party inventory offset",
+    SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, GAM_OFFSET_UNUSED,
                                                      UnknownSection2.class);
     addField(offset_unknown);
-    SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, "Party inventory count",
+    SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, GAM_NUM_UNUSED,
                                                   UnknownSection2.class);
     addField(count_unknown);
-    SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, "Non-party characters offset",
+    SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, GAM_OFFSET_NON_PARTY_MEMBERS,
                                                          NonPartyNPC.class);
     addField(offset_nonpartynpc);
-    SectionCount count_nonpartynpc = new SectionCount(buffer, offset + 52, 4, "# non-party characters",
+    SectionCount count_nonpartynpc = new SectionCount(buffer, offset + 52, 4, GAM_NUM_NON_PARTY_MEMBERS,
                                                       NonPartyNPC.class);
     addField(count_nonpartynpc);
-    SectionOffset offset_global = new SectionOffset(buffer, offset + 56, "Global variables offset",
+    SectionOffset offset_global = new SectionOffset(buffer, offset + 56, GAM_OFFSET_GLOBAL_VARIABLES,
                                                     Variable.class);
     addField(offset_global);
-    SectionCount count_global = new SectionCount(buffer, offset + 60, 4, "# global variables",
+    SectionCount count_global = new SectionCount(buffer, offset + 60, 4, GAM_NUM_GLOBAL_VARIABLES,
                                                  Variable.class);
     addField(count_global);
-    addField(new ResourceRef(buffer, offset + 64, "Master area", "ARE"));
-    addField(new DecNumber(buffer, offset + 72, 4, "Current link"));
-    SectionCount count_journal = new SectionCount(buffer, offset + 76, 4, "# journal entries",
+    addField(new ResourceRef(buffer, offset + 64, GAM_MASTER_AREA, "ARE"));
+    addField(new DecNumber(buffer, offset + 72, 4, GAM_CURRENT_LINK));
+    SectionCount count_journal = new SectionCount(buffer, offset + 76, 4, GAM_NUM_JOURNAL_ENTRIES,
                                                   JournalEntry.class);
     addField(count_journal);
-    SectionOffset offset_journal = new SectionOffset(buffer, offset + 80, "Journal entries offset",
+    SectionOffset offset_journal = new SectionOffset(buffer, offset + 80, GAM_OFFSET_JOURNAL_ENTRIES,
                                                      JournalEntry.class);
     addField(offset_journal);
 
@@ -244,65 +318,65 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionCount numKillVariable = null, numIWD2 = null, numIWD = null, numLocation = null, numPocket = null;
 
     if (Profile.getEngine() == Profile.Engine.BG1) { // V1.1
-      addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration_bg1));
-      addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version_bg1));
+      addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
+      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_bg1));
+      addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, s_version_bg1));
       addField(new Unknown(buffer, offset + 104, 76));
     }
     else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
-      addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration_iwd));
-      numIWD = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
+      addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
+      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_iwd));
+      numIWD = new SectionCount(buffer, offset + 100, 4, GAM_NUM_UNKNOWN, UnknownSection3.class);
       addField(numIWD);
-      offIWD = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
+      offIWD = new SectionOffset(buffer, offset + 104, GAM_OFFSET_UNKNOWN, UnknownSection3.class);
       addField(offIWD);
       addField(new Unknown(buffer, offset + 108, 72));
     }
     else if (Profile.getEngine() == Profile.Engine.PST) { // V1.1
-      offRubikon = new SectionOffset(buffer, offset + 84, "Modron maze offset", Unknown.class);
+      offRubikon = new SectionOffset(buffer, offset + 84, GAM_OFFSET_MODRON_MAZE, Unknown.class);
       addField(offRubikon);
-      addField(new DecNumber(buffer, offset + 88, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 92, "Current area", "ARE"));
-      offKillvariable = new SectionOffset(buffer, offset + 100, "Kill variables offset", KillVariable.class);
+      addField(new DecNumber(buffer, offset + 88, 4, GAM_REPUTATION));
+      addField(new ResourceRef(buffer, offset + 92, GAM_CURRENT_AREA, "ARE"));
+      offKillvariable = new SectionOffset(buffer, offset + 100, GAM_OFFSET_KILL_VARIABLES, KillVariable.class);
       addField(offKillvariable);
-      numKillVariable = new SectionCount(buffer, offset + 104, 4, "# kill variables", KillVariable.class);
+      numKillVariable = new SectionCount(buffer, offset + 104, 4, GAM_NUM_KILL_VARIABLES, KillVariable.class);
       addField(numKillVariable);
-      offBestiary = new SectionOffset(buffer, offset + 108, "Bestiary offset", Unknown.class);
+      offBestiary = new SectionOffset(buffer, offset + 108, GAM_OFFSET_BESTIARY, Unknown.class);
       addField(offBestiary);
-      addField(new ResourceRef(buffer, offset + 112, "Current area?", "ARE"));
+      addField(new ResourceRef(buffer, offset + 112, GAM_CURRENT_AREA_2, "ARE"));
       addField(new Unknown(buffer, offset + 120, 64));
     }
     else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0
-      addField(new DecNumber(buffer, offset + 84, 4, "Reputation"));
-      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration));
+      addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
+      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration));
 
       if (Profile.getGame() == Profile.Game.IWDEE) {
-        addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version_iwdee));   // to be confirmed
+        addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, s_version_iwdee));   // to be confirmed
       } else {
-        addField(new Bitmap(buffer, offset + 100, 4, "Save version", s_version));
+        addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, s_version));
       }
 
-      offFamiliar = new SectionOffset(buffer, offset + 104, "Familiar info offset", Familiar.class);
+      offFamiliar = new SectionOffset(buffer, offset + 104, GAM_OFFSET_FAMILIAR_INFO, Familiar.class);
       addField(offFamiliar);
-      offLocation = new SectionOffset(buffer, offset + 108, "Stored locations offset", StoredLocation.class);
+      offLocation = new SectionOffset(buffer, offset + 108, GAM_OFFSET_STORED_LOCATIONS, StoredLocation.class);
       addField(offLocation);
-      numLocation = new SectionCount(buffer, offset + 112, 4, "# stored locations", StoredLocation.class);
+      numLocation = new SectionCount(buffer, offset + 112, 4, GAM_NUM_STORED_LOCATIONS, StoredLocation.class);
       addField(numLocation);
-      addField(new DecNumber(buffer, offset + 116, 4, "Game time (real seconds)"));
-      offPocket = new SectionOffset(buffer, offset + 120, "Pocket plane locations offset", StoredLocation.class);
+      addField(new DecNumber(buffer, offset + 116, 4, GAM_REAL_TIME));
+      offPocket = new SectionOffset(buffer, offset + 120, GAM_OFFSET_POCKET_PLANE_LOCATIONS, StoredLocation.class);
       addField(offPocket);
-      numPocket = new SectionCount(buffer, offset + 124, 4, "# pocket plane locations", StoredLocation.class);
+      numPocket = new SectionCount(buffer, offset + 124, 4, GAM_NUM_POCKET_PLANE_LOCATIONS, StoredLocation.class);
       addField(numPocket);
       if (Profile.isEnhancedEdition()) {
-        addField(new DecNumber(buffer, offset + 128, 4, "Zoom level"));
-        addField(new ResourceRef(buffer, offset + 132, "Random encounter area", "ARE"));
-        addField(new ResourceRef(buffer, offset + 140, "Worldmap", "WMP"));
+        addField(new DecNumber(buffer, offset + 128, 4, GAM_ZOOM_LEVEL));
+        addField(new ResourceRef(buffer, offset + 132, GAM_RANDOM_ENCOUNTER_AREA, "ARE"));
+        addField(new ResourceRef(buffer, offset + 140, GAM_WORLDMAP, "WMP"));
         if (Profile.getGame() == Profile.Game.IWDEE) {
           addField(new Unknown(buffer, offset + 148, 8));
-          addField(new Bitmap(buffer, offset + 156, 4, "Familiar owner", s_familiar_owner));
+          addField(new Bitmap(buffer, offset + 156, 4, GAM_FAMILIAR_OWNER, s_familiar_owner));
           addField(new Unknown(buffer, offset + 160, 20));
         } else {
           addField(new Unknown(buffer, offset + 148, 32));
@@ -313,11 +387,11 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
     else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
       addField(new Unknown(buffer, offset + 84, 4));
-      addField(new ResourceRef(buffer, offset + 88, "Current area", "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, "Configuration", s_configuration_iwd2));
-      numIWD2 = new SectionCount(buffer, offset + 100, 4, "Unknown section count", UnknownSection3.class);
+      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_iwd2));
+      numIWD2 = new SectionCount(buffer, offset + 100, 4, GAM_NUM_UNKNOWN, UnknownSection3.class);
       addField(numIWD2);
-      offIWD2 = new SectionOffset(buffer, offset + 104, "Unknown section offset", UnknownSection3.class);
+      offIWD2 = new SectionOffset(buffer, offset + 104, GAM_OFFSET_UNKNOWN, UnknownSection3.class);
       addField(offIWD2);
       addField(new Unknown(buffer, offset + 108, 72));
     }
@@ -377,7 +451,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (offBestiary != null) { // Torment
       offset = offBestiary.getValue();
       if (offset > 0) {
-        addField(new Unknown(buffer, offset, 260, "Bestiary"));
+        addField(new Unknown(buffer, offset, 260, GAM_BESTIARY));
         offset += 260;
       }
     }
@@ -400,12 +474,12 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
           offset += unknown.getSize();
           addField(unknown);
         }
-        HexNumber offEOS = new HexNumber(buffer, offset, 4, "End of unknown structure offset");
+        HexNumber offEOS = new HexNumber(buffer, offset, 4, GAM_OFFSET_END_OF_UNKNOWN_STRUCTURE);
         addField(offEOS);
         offset += 4;
         int unknownSize = (offEOS.getValue() > buffer.length - 4) ?
                               buffer.length - offset - 4 : offEOS.getValue() - offset;
-        addField(new Unknown(buffer, offset, unknownSize, "Unknown structure"));
+        addField(new Unknown(buffer, offset, unknownSize, GAM_UNKNOWN_STRUCTURE));
         offset += unknownSize;
         addField(new Unknown(buffer, offset, 4));
         offset += 4;
@@ -421,11 +495,11 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
           offset += unknown.getSize();
           addField(unknown);
         }
-        HexNumber offEOS = new HexNumber(buffer, offset, 4, "End of unknown structure offset");
+        HexNumber offEOS = new HexNumber(buffer, offset, 4, GAM_OFFSET_END_OF_UNKNOWN_STRUCTURE);
         addField(offEOS);
         offset += 4;
         int unknownSize = offEOS.getValue() > buffer.length ? buffer.length - offset : offEOS.getValue() - offset;
-        addField(new Unknown(buffer, offset, unknownSize, "Unknown structure"));
+        addField(new Unknown(buffer, offset, unknownSize, GAM_UNKNOWN_STRUCTURE));
         offset += unknownSize;
       }
     }
@@ -445,7 +519,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       offset = offPocket.getValue();
       if (offset > 0) {
         for (int i = 0; i < numPocket.getValue(); i++) {
-          StoredLocation location = new StoredLocation(this, "Pocket plane", buffer, offset, i);
+          StoredLocation location = new StoredLocation(this, GAM_POCKET_PLANE, buffer, offset, i);
           offset += location.getSize();
           addField(location);
         }

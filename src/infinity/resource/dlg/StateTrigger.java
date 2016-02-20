@@ -6,18 +6,19 @@ package infinity.resource.dlg;
 
 public final class StateTrigger extends AbstractCode
 {
-  public static final String FMT_NAME = "State trigger %1$d";
+  // DLG/StateTrigger-specific field labels
+  public static final String DLG_STATETRIGGER = "State trigger";
 
   private int nr;
 
   StateTrigger()
   {
-    super("State trigger");
+    super(DLG_STATETRIGGER);
   }
 
   StateTrigger(byte buffer[], int offset, int count)
   {
-    super(buffer, offset, String.format(FMT_NAME, count));
+    super(buffer, offset, DLG_STATETRIGGER + " " + count);
     this.nr = count;
   }
 

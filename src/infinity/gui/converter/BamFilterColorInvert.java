@@ -68,6 +68,37 @@ public class BamFilterColorInvert extends BamFilterBaseColor
   }
 
   @Override
+  public String getConfiguration()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
+    return sb.toString();
+  }
+
+  @Override
+  public boolean setConfiguration(String config)
+  {
+    if (config != null) {
+      config = config.trim();
+      if (!config.isEmpty()) {
+        String[] params = config.trim().split(";");
+        int[] indices = null;
+        if (params.length > 0) {
+          indices = decodeColorList(params[0]);
+          if (indices == null) {
+            return false;
+          }
+        }
+        if (indices != null) {
+          pExcludeColors.setSelectedIndices(indices);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   protected JPanel loadControls()
   {
     GridBagConstraints c = new GridBagConstraints();

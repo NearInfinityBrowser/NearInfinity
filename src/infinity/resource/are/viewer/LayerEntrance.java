@@ -34,8 +34,8 @@ public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
       List<LayerObjectEntrance> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Entrances offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# entrances");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ENTRANCES);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ENTRANCES);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

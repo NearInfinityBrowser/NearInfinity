@@ -16,6 +16,7 @@ import infinity.resource.Resource;
 import infinity.resource.ResourceFactory;
 import infinity.resource.StructEntry;
 import infinity.resource.key.ResourceEntry;
+import infinity.resource.spl.SplResource;
 import infinity.search.ReferenceHitFrame;
 import infinity.util.Debugging;
 import infinity.util.Misc;
@@ -184,14 +185,14 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
 
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
-    int numGlobalEffects = ((SectionCount) struct.getAttribute("# global effects")).getValue();
+    int numGlobalEffects = ((SectionCount) struct.getAttribute(SplResource.SPL_NUM_GLOBAL_EFFECTS)).getValue();
     int expectedEffectsIndex = numGlobalEffects;
     List<StructEntry> structList = struct.getList();
     for (int i = 0; i < structList.size(); i++) {
       Object o = structList.get(i);
       if (o instanceof AbstractAbility) {
         AbstractAbility abil = (AbstractAbility) o;
-        int effectsIndex = ((DecNumber) abil.getAttribute("First effect index")).getValue();
+        int effectsIndex = ((DecNumber) abil.getAttribute(AbstractAbility.ABILITY_FIRST_EFFECT_INDEX)).getValue();
         if (effectsIndex != expectedEffectsIndex) {
           synchronized (hitFrame) {
             hitFrame.addHit(entry, entry.getSearchString(), abil);

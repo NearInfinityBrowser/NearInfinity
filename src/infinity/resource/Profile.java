@@ -672,6 +672,142 @@ public final class Profile
     return false;
   }
 
+  /**
+   * Returns a list of supported resource types by the current game.
+   * @return String array containing format extensions.
+   */
+  public static String[] getAvailableResourceTypes()
+  {
+    return getAvailableResourceTypes(false);
+  }
+
+  /**
+   * Returns a list of known or supported resource types by the current game.
+   * @param ignoreGame If <code>true</code>, returns all known resource types.
+   *                   If <code>false</code>, returns resource types supported by the current game.
+   * @return String array containing format extensions.
+   */
+  public static String[] getAvailableResourceTypes(boolean ignoreGame)
+  {
+    ArrayList<String> list = new ArrayList<String>();
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_2DA))     { list.add("2DA"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_ACM))     { list.add("ACM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_ARE_V10) ||
+        (Boolean)getProperty(IS_SUPPORTED_ARE_V91)) { list.add("ARE"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_BAM_V1) ||
+        (Boolean)getProperty(IS_SUPPORTED_BAM_V2) ||
+        (Boolean)getProperty(IS_SUPPORTED_BAMC_V1)) { list.add("BAM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_BCS))     { list.add("BCS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_BIK))     { list.add("BIK"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_BIO))     { list.add("BIO"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_BMP_ALPHA) ||
+        (Boolean)getProperty(IS_SUPPORTED_BMP_PAL)) { list.add("BMP"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_CHR_V10) ||
+        (Boolean)getProperty(IS_SUPPORTED_CHR_V20) ||
+        (Boolean)getProperty(IS_SUPPORTED_CHR_V21) ||
+        (Boolean)getProperty(IS_SUPPORTED_CHR_V22)) { list.add("CHR"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_CHU))     { list.add("CHU"); }
+    if ((Boolean)getProperty(IS_SUPPORTED_CRE_V10) ||
+        (Boolean)getProperty(IS_SUPPORTED_CRE_V12) ||
+        (Boolean)getProperty(IS_SUPPORTED_CRE_V22) ||
+        (Boolean)getProperty(IS_SUPPORTED_CRE_V90)) { list.add("CRE"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_DLG))     { list.add("DLG"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_EFF))     { list.add("EFF"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_FNT))     { list.add("FNT"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_GAM_V11) ||
+        (Boolean)getProperty(IS_SUPPORTED_GAM_V20) ||
+        (Boolean)getProperty(IS_SUPPORTED_GAM_V21) ||
+        (Boolean)getProperty(IS_SUPPORTED_GAM_V22)) { list.add("GAM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_GLSL))    { list.add("GLSL"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_GUI))     { list.add("GUI"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_IDS))     { list.add("IDS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_INI))     { list.add("INI"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_ITM_V10) ||
+        (Boolean)getProperty(IS_SUPPORTED_ITM_V11) ||
+        (Boolean)getProperty(IS_SUPPORTED_ITM_V20)) { list.add("ITM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_MOS_V1) ||
+        (Boolean)getProperty(IS_SUPPORTED_MOS_V2) ||
+        (Boolean)getProperty(IS_SUPPORTED_MOSC_V1)) { list.add("MOS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_MUS))     { list.add("MUS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_MVE))     { list.add("MVE"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_PLT))     { list.add("PLT"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_PRO))     { list.add("PRO"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_PVRZ))    { list.add("PVRZ"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_RES))     { list.add("RES"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_SAV))     { list.add("SAV"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_SPL_V1) ||
+        (Boolean)getProperty(IS_SUPPORTED_SPL_V2))  { list.add("SPL"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_SQL))     { list.add("SQL"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_SRC_IWD2) ||
+        (Boolean)getProperty(IS_SUPPORTED_SRC_PST)) { list.add("SRC"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_STO_V10) ||
+        (Boolean)getProperty(IS_SUPPORTED_STO_V11) ||
+        (Boolean)getProperty(IS_SUPPORTED_STO_V90)) { list.add("STO"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_TIS_V1) ||
+        (Boolean)getProperty(IS_SUPPORTED_TIS_V2))  { list.add("TIS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_TO_V1))   { list.add("TOH"); list.add("TOT"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_TO_V2))   { list.add("TOH"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_VAR))     { list.add("VAR"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_VEF))     { list.add("VEF"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_VVC))     { list.add("VVC"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_WAV) ||
+        (Boolean)getProperty(IS_SUPPORTED_WAVC) ||
+        (Boolean)getProperty(IS_SUPPORTED_OGG))     { list.add("WAV"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_WBM))     { list.add("WBM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_WED))     { list.add("WED"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_WFX))     { list.add("WFX"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(IS_SUPPORTED_WMP))     { list.add("WMP"); }
+
+    String[] retVal = new String[list.size()];
+    for (int i = 0; i < retVal.length; i++) {
+      retVal[i] = list.get(i);
+    }
+
+    return retVal;
+  }
+
   // Returns the Property object assigned to the given key.
   private static Property getEntry(int key)
   {
@@ -757,7 +893,13 @@ public final class Profile
       game = Game.IWDEE;
       addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/pocketzz.wbm").isFile()) {
-      game = Game.BG2EE;
+      if (new FileNI(gameRoot, "override/EET.flag").isFile() ||
+          new FileNI(gameRoot, "data/eetTU00.bif").isFile()) {
+        // REMEMBER: EET is still in development
+        game = Game.EET;
+      } else {
+        game = Game.BG2EE;
+      }
       addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/bgenter.wbm").isFile()) {
       game = Game.BG1EE;
@@ -804,10 +946,10 @@ public final class Profile
     // determining game engine
     initGameEngine();
 
-    boolean isEE = (game == Game.BG1EE || game == Game.BG2EE || game == Game.IWDEE);
-    addEntry(IS_ENHANCED_EDITION, Type.Boolean, Boolean.valueOf(isEE));
+    // initializing method isEnhancedEdition()
+    addEntry(IS_ENHANCED_EDITION, Type.Boolean, Boolean.valueOf(getEngine() == Engine.EE));
 
-    if (isEE) {
+    if (isEnhancedEdition()) {
       File langDir = new FileNI(gameRoot, "lang");
       if (langDir.isDirectory()) {
         addEntry(GET_GAME_LANG_FOLDER_BASE, Type.File, langDir);
@@ -852,9 +994,6 @@ public final class Profile
       }
     } else if (game == Game.BG1 && ResourceFactory.resourceExists("DURLAG.MVE")) {
       game = Game.BG1TotSC;
-    } else if (game == Game.BG2EE && ResourceFactory.resourceExists("FH2600.ARE")) {
-      // Note: EET is still in development
-      game = Game.EET;
     }
 
     // updating game type

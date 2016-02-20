@@ -13,7 +13,7 @@ import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.SpawnPoint;
 import infinity.resource.are.viewer.icon.ViewerIcons;
@@ -43,15 +43,15 @@ public class LayerObjectSpawnPoint extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return sp;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{sp};
+    return new Viewable[]{sp};
   }
 
   @Override
@@ -115,12 +115,12 @@ public class LayerObjectSpawnPoint extends LayerObject
     if (sp != null) {
       String msg = "";
       try {
-        location.x = ((DecNumber)sp.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)sp.getAttribute("Location: Y")).getValue();
+        location.x = ((DecNumber)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_X)).getValue();
+        location.y = ((DecNumber)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_Y)).getValue();
 
-        scheduleFlags = ((Flag)sp.getAttribute("Active at"));
+        scheduleFlags = ((Flag)sp.getAttribute(SpawnPoint.ARE_SPAWN_ACTIVE_AT));
 
-        msg = ((TextString)sp.getAttribute("Name")).toString();
+        msg = ((TextString)sp.getAttribute(SpawnPoint.ARE_SPAWN_NAME)).toString();
       } catch (Exception e) {
         e.printStackTrace();
       }

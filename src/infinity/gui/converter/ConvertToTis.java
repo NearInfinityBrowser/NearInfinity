@@ -7,6 +7,7 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
+import infinity.icon.Icons;
 import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
 import infinity.resource.graphics.Compressor;
@@ -872,6 +873,8 @@ public class ConvertToTis extends ChildFrame
 
   private void init()
   {
+    setIconImage(Icons.getImage("Application16.gif"));
+
     // setting up files section
     JPanel pFiles = new JPanel(new GridBagLayout());
     pFiles.setBorder(BorderFactory.createTitledBorder("Input & Output "));

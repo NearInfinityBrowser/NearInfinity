@@ -4,10 +4,12 @@
 
 package infinity;
 
+import infinity.datatype.ProRef;
 import infinity.gui.BrowserMenuBar;
 import infinity.gui.ButtonPopupWindow;
 import infinity.gui.ChildFrame;
 import infinity.gui.InfinityTextArea;
+import infinity.gui.OpenFileFrame;
 import infinity.gui.PopupWindowEvent;
 import infinity.gui.PopupWindowListener;
 import infinity.gui.QuickSearch;
@@ -33,7 +35,9 @@ import infinity.updater.UpdateCheck;
 import infinity.updater.UpdateInfo;
 import infinity.updater.Updater;
 import infinity.util.IdsMapCache;
+import infinity.util.IniMapCache;
 import infinity.util.StringResource;
+import infinity.util.Table2daCache;
 import infinity.util.io.FileLookup;
 import infinity.util.io.FileNI;
 
@@ -45,6 +49,13 @@ import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -182,10 +193,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static boolean reloadFactory(boolean refreshonly)
   {
     boolean retVal = false;
-    FileLookup.getInstance().clearCache();
-    IdsMapCache.clearCache();
-    SearchFrame.clearCache();
-    StringResource.close();
+    clearCache();
     File keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
       EffectFactory.init();
@@ -408,6 +416,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
     tablePanelHeight = Math.max(50, prefs.getInt(TABLE_PANEL_HEIGHT, 250));
 
+    // enabling file drag and drop for whole window
+    new DropTarget(getRootPane(), new FileDropTargetListener());
+
     // Checking for updates
     if (Updater.getInstance().isAutoUpdateCheckEnabled() &&
         Updater.getInstance().hasAutoUpdateCheckDateExpired()) {
@@ -581,10 +592,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     try {
       Profile.Game oldGame = Profile.getGame();
       String oldFile = Profile.getChitinKey().toString();
-      FileLookup.getInstance().clearCache();
-      IdsMapCache.clearCache();
-      SearchFrame.clearCache();
-      StringResource.close();
+      clearCache();
       EffectFactory.init();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
       Compiler.restartCompiler();
@@ -746,6 +754,18 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
+  // Central method for clearing cached data
+  private static void clearCache()
+  {
+    FileLookup.getInstance().clearCache();
+    IdsMapCache.clearCache();
+    IniMapCache.clearCache();
+    Table2daCache.clearCache();
+    SearchFrame.clearCache();
+    StringResource.close();
+    ProRef.clearCache();
+  }
+
   private void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
@@ -797,6 +817,83 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         text.append(new String(buf, off, len));
       } catch (Exception e) {
         e.printStackTrace();
+      }
+    }
+  }
+
+
+  private class FileDropTargetListener implements DropTargetListener, Runnable
+  {
+    private List<File> files;
+
+    private FileDropTargetListener()
+    {
+    }
+
+    @Override
+    public void dragEnter(DropTargetDragEvent event)
+    {
+    }
+
+    @Override
+    public void dragOver(DropTargetDragEvent event)
+    {
+    }
+
+    @Override
+    public void dropActionChanged(DropTargetDragEvent event)
+    {
+    }
+
+    @Override
+    public void dragExit(DropTargetEvent event)
+    {
+    }
+
+    @Override
+    public void drop(DropTargetDropEvent event)
+    {
+      if (event.isLocalTransfer() || !event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+        event.rejectDrop();
+        return;
+      }
+      try {
+        event.acceptDrop(DnDConstants.ACTION_COPY);
+        files = (List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+      } catch (Exception e) {
+        e.printStackTrace();
+        event.dropComplete(false);
+      }
+      event.dropComplete(true);
+      if (files != null && files.size() == 1) {
+        File file = files.get(0);
+        if (file != null && file.isFile() &&
+            file.getName().toUpperCase(Locale.ENGLISH).endsWith(".KEY")) {
+          File curFile = (File)Profile.getProperty(Profile.GET_GAME_CHITIN_KEY);
+          if (!file.equals(curFile)) {
+            int ret = JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
+                                                    "Open game \"" + file.getPath() + "\"?",
+                                                    "Open game", JOptionPane.YES_NO_OPTION,
+                                                    JOptionPane.QUESTION_MESSAGE);
+            if (ret == JOptionPane.YES_OPTION) {
+              NearInfinity.getInstance().openGame(file);
+            }
+          }
+          return;
+        }
+      }
+      new Thread(this).start();
+    }
+
+    @Override
+    public void run()
+    {
+      if (files != null) {
+        for (final File file: files) {
+          if (file != null && !file.isDirectory()) {
+            OpenFileFrame.openExternalFile(NearInfinity.getInstance(), file);
+          }
+        }
       }
     }
   }

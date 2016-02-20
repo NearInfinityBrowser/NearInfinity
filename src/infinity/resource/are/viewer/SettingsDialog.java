@@ -7,6 +7,7 @@ package infinity.resource.are.viewer;
 import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.are.viewer.Settings;
+import infinity.util.SimpleListModel;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -25,7 +26,6 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -62,7 +62,7 @@ public class SettingsDialog extends JDialog
                                                          "Spawn Points", "Map Transitions", "Projectile Traps",
                                                          "Door Polygons", "Wall Polygons" };
 
-  private DefaultListModel modelLayers;
+  private SimpleListModel<LayerEntry> modelLayers;
   private JList listLayers;
   private JButton bUp, bDown, bDefaultOrder;
   private JComboBox cbFrames, cbQualityMap, cbQualityAnim;
@@ -122,7 +122,7 @@ public class SettingsDialog extends JDialog
   private void updateSettings()
   {
     for (int i = 0; i < modelLayers.size(); i++) {
-      LayerEntry lt = (LayerEntry)modelLayers.get(i);
+      LayerEntry lt = modelLayers.get(i);
       Settings.ListLayerOrder.set(i, lt.layer);
     }
 
@@ -183,7 +183,7 @@ public class SettingsDialog extends JDialog
   {
     int idx = listLayers.getSelectedIndex();
     if (idx > 0) {
-      LayerEntry lt = (LayerEntry)modelLayers.get(idx);
+      LayerEntry lt = modelLayers.get(idx);
       modelLayers.set(idx, modelLayers.get(idx-1));
       modelLayers.set(idx-1, lt);
       listLayers.setSelectedIndex(idx - 1);
@@ -195,7 +195,7 @@ public class SettingsDialog extends JDialog
   {
     int idx = listLayers.getSelectedIndex();
     if (idx < modelLayers.size() - 1) {
-      LayerEntry lt = (LayerEntry)modelLayers.get(idx);
+      LayerEntry lt = modelLayers.get(idx);
       modelLayers.set(idx, modelLayers.get(idx+1));
       modelLayers.set(idx+1, lt);
       listLayers.setSelectedIndex(idx+1);
@@ -218,7 +218,7 @@ public class SettingsDialog extends JDialog
     settingsChanged = false;
 
     // Initializing layer items order
-    modelLayers = new DefaultListModel();
+    modelLayers = new SimpleListModel<LayerEntry>();
     listLayers = new JList(modelLayers);
     listLayers.setCellRenderer(new IndexedCellRenderer(1));
     listLayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

@@ -12,16 +12,21 @@ import infinity.resource.AddRemovable;
 
 public final class MemorizedSpells extends AbstractStruct implements AddRemovable
 {
+  // CRE/MemorizedSpells-specific field labels
+  public static final String CRE_MEMORIZED              = "Memorized spell";
+  public static final String CRE_MEMORIZED_RESREF       = "Spell";
+  public static final String CRE_MEMORIZED_MEMORIZATION = "Memorization";
+
   private static final String[] s_mem = {"Spell already cast", "Spell memorized", "Spell disabled"};
 
   MemorizedSpells() throws Exception
   {
-    super(null, "Memorized spell", new byte[12], 0);
+    super(null, CRE_MEMORIZED, new byte[12], 0);
   }
 
   MemorizedSpells(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
-    super(superStruct, "Memorized spell", buffer, offset);
+    super(superStruct, CRE_MEMORIZED, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -37,8 +42,8 @@ public final class MemorizedSpells extends AbstractStruct implements AddRemovabl
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new ResourceRef(buffer, offset, "Spell", "SPL"));
-    addField(new Bitmap(buffer, offset + 8, 2, "Memorization", s_mem));
+    addField(new ResourceRef(buffer, offset, CRE_MEMORIZED_RESREF, "SPL"));
+    addField(new Bitmap(buffer, offset + 8, 2, CRE_MEMORIZED_MEMORIZATION, s_mem));
     addField(new Unknown(buffer, offset + 10, 2));
     return offset + 12;
   }

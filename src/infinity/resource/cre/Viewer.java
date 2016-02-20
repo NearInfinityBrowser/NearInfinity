@@ -4,7 +4,9 @@
 
 package infinity.resource.cre;
 
+import infinity.datatype.EffectType;
 import infinity.datatype.Flag;
+import infinity.datatype.IsNumeric;
 import infinity.datatype.ResourceRef;
 import infinity.gui.ViewerUtil;
 import infinity.resource.AbstractStruct;
@@ -39,38 +41,38 @@ public final class Viewer extends JPanel
     JPanel panel = new JPanel(gbl);
 
     gbc.insets = new Insets(2, 6, 3, 0);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Allegiance"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Alignment"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("General"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Race"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Class"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gender"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALLEGIANCE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALIGNMENT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENERAL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
     if (ResourceFactory.resourceExists("KIT.IDS")) {
-      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Kit"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
     } else {
-      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Mage type"), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MAGE_TYPE), gbl, gbc, true);
     }
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Racial enemy"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Animation"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Morale"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Morale break"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Morale recovery"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. death"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. wand"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. polymorph"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. breath"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Save vs. spell"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist fire"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist cold"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist electricity"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist acid"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist magic"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist magic fire"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist magic cold"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist slashing"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist crushing"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist piercing"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Resist missile"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACIAL_ENEMY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ANIMATION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MORALE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MORALE_BREAK), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MORALE_RECOVERY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_DEATH), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_WAND), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_POLYMORPH), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_BREATH), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_SPELL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_FIRE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_COLD), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_ELECTRICITY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_ACID), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_MAGIC), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_MAGIC_FIRE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_MAGIC_COLD), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_SLASHING), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_CRUSHING), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_PIERCING), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RESISTANCE_MISSILE), gbl, gbc, true);
     return panel;
   }
 
@@ -83,31 +85,31 @@ public final class Viewer extends JPanel
     gbc.insets = new Insets(2, 6, 3, 0);
 
     // 22
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Allegiance"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("General"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Race"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Class"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALLEGIANCE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENERAL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
 //    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Specific"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gender"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Alignment"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Kit"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Challenge rating"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Fortitude save"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Reflex save"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Will save"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("# items"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("# attacks/round"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALIGNMENT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CHALLENGE_RATING), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_FORTITUDE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_REFLEX), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_WILL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NUM_ITEMS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ATTACKS_PER_ROUND), gbl, gbc, true);
 
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Script name"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_NAME), gbl, gbc, true);
 //    gbc.insets = new Insets(4, 3, 4, 0);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Override script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Special script 1"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Team script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Special script 2"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Combat script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Special script 3"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Movement script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Dialogue"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_OVERRIDE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_SPECIAL_1), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_TEAM), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_SPECIAL_2), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_COMBAT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_SPECIAL_3), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_MOVEMENT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DIALOG), gbl, gbc, true);
     return panel;
   }
 
@@ -117,7 +119,7 @@ public final class Viewer extends JPanel
     JScrollPane scroll = new JScrollPane(makeMainPanel(cre));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     tabs.addTab("Stats", scroll);
-    StructEntry version = cre.getAttribute("Version");
+    StructEntry version = cre.getAttribute(AbstractStruct.COMMON_VERSION);
     if (version.toString().equalsIgnoreCase("V2.2")) {
       tabs.addTab("Feats/Skills", makeFeatsPanel(cre));
       tabs.addTab("Items/Spells", makeItemSpellsPanelIWD2(cre));
@@ -131,12 +133,12 @@ public final class Viewer extends JPanel
   private JPanel makeFeatsPanel(CreResource cre)
   {
     JPanel p = new JPanel(new BorderLayout());
-    p.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute("Feats (3/3)"), 1), BorderLayout.NORTH);
+    p.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute(CreResource.CRE_FEATS_3), 1), BorderLayout.NORTH);
     p.add(makeSkillPanelIWD2(cre), BorderLayout.CENTER);
 
     JPanel panel = new JPanel(new GridLayout(1, 6, 6, 0));
-    panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute("Feats (1/3)"), 1));
-    panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute("Feats (2/3)"), 1));
+    panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute(CreResource.CRE_FEATS_1), 1));
+    panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute(CreResource.CRE_FEATS_2), 1));
     panel.add(p);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     return panel;
@@ -146,7 +148,7 @@ public final class Viewer extends JPanel
   {
     JPanel rightPanel = new JPanel(new GridLayout(2, 1, 0, 6));
     rightPanel.add(
-            ViewerUtil.makeListPanel("Known spells", cre, KnownSpells.class, "Spell"));
+            ViewerUtil.makeListPanel("Known spells", cre, KnownSpells.class, KnownSpells.CRE_KNOWN_RESREF));
     rightPanel.add(new ViewerSpells(cre));
     JPanel panel = new JPanel(new GridLayout(1, 2, 6, 0));
     panel.add(new ViewerItems(cre));
@@ -168,22 +170,24 @@ public final class Viewer extends JPanel
   private JPanel makeMainPanel(CreResource cre)
   {
     JPanel effectPanel;
-    StructEntry effectFlag = cre.getAttribute("Effect flag");
-    if (effectFlag == null)
+    IsNumeric effectVersion = (IsNumeric)cre.getAttribute(CreResource.CRE_EFFECT_VERSION);
+    if (effectVersion == null) {
       return new JPanel();
-    else if (effectFlag.toString().equalsIgnoreCase("1"))
-      effectPanel = ViewerUtil.makeListPanel("Effects", cre, Effect2.class, "Type");
-    else
-      effectPanel = ViewerUtil.makeListPanel("Effects", cre, Effect.class, "Type");
-    ResourceRef imageRef = (ResourceRef)cre.getAttribute("Large portrait");
+    } else if (effectVersion.getValue() == 1) {
+      effectPanel = ViewerUtil.makeListPanel("Effects", cre, Effect2.class, EffectType.EFFECT_TYPE);
+    } else {
+      effectPanel = ViewerUtil.makeListPanel("Effects", cre, Effect.class, EffectType.EFFECT_TYPE);
+    }
+    ResourceRef imageRef = (ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_LARGE);
     JComponent imagePanel;
 //    if (imageRef.getResourceName().endsWith(".BAM"))
 //      imagePanel = ViewerUtil.makeBamPanel(imageRef, 0);
     if (imageRef.getResourceName().endsWith(".BMP") &&
-        ResourceFactory.resourceExists(imageRef.getResourceName()))
+        ResourceFactory.resourceExists(imageRef.getResourceName())) {
       imagePanel = ViewerUtil.makeImagePanel(imageRef);
-    else
-      imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute("Small portrait"));
+    } else {
+      imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL));
+    }
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -201,7 +205,7 @@ public final class Viewer extends JPanel
 
     JPanel panel = new JPanel(new GridLayout(1, 3));
     panel.add(leftPanel);
-    String version = cre.getAttribute("Version").toString();
+    String version = cre.getAttribute(AbstractStruct.COMMON_VERSION).toString();
     if (version.equalsIgnoreCase("V2.2")) {
       panel.add(makeStatsPanelIWD2(cre));
       panel.add(makeMiscPanelIWD2(cre));
@@ -222,22 +226,22 @@ public final class Viewer extends JPanel
 
     gbc.insets = new Insets(1, 6, 2, 0);
     gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Alchemy"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Animal empathy"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Bluff"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Concentration"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Diplomacy"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Disable device"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Hide"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Intimidate"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Knowledge (arcana)"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Move silently"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Open lock"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Pick pocket"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Search"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Spellcraft"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Use magic device"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Wilderness lore"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALCHEMY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ANIMAL_EMPATHY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_BLUFF), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CONCENTRATION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DIPLOMACY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DISABLE_DEVICE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_HIDE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_INTIMIDATE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KNOWLEDGE_ARCANA), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MOVE_SILENTLY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_OPEN_LOCKS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_PICK_POCKETS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SEARCH), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SPELLCRAFT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_USE_MAGIC_DEVICE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_WILDERNESS_LORE), gbl, gbc, true);
     panel.setBorder(BorderFactory.createTitledBorder("Skills"));
     return panel;
   }
@@ -249,14 +253,14 @@ public final class Viewer extends JPanel
     JPanel panel = new JPanel(gbl);
 
     gbc.insets = new Insets(2, 6, 3, 0);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Name"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP value"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Gold"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP_VALUE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GOLD), gbl, gbc, true);
 
-    StructEntry s1 = cre.getAttribute("Level first class");
-    StructEntry s2 = cre.getAttribute("Level second class");
-    StructEntry s3 = cre.getAttribute("Level third class");
+    StructEntry s1 = cre.getAttribute(CreResource.CRE_LEVEL_FIRST_CLASS);
+    StructEntry s2 = cre.getAttribute(CreResource.CRE_LEVEL_SECOND_CLASS);
+    StructEntry s3 = cre.getAttribute(CreResource.CRE_LEVEL_THIRD_CLASS);
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -271,10 +275,10 @@ public final class Viewer extends JPanel
     gbl.setConstraints(tf1, gbc);
     panel.add(tf1);
 
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Effective AC"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_AC_EFFECTIVE), gbl, gbc, true);
 
-    s1 = cre.getAttribute("Current HP");
-    s2 = cre.getAttribute("Maximum HP");
+    s1 = cre.getAttribute(CreResource.CRE_HP_CURRENT);
+    s2 = cre.getAttribute(CreResource.CRE_HP_MAX);
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -289,8 +293,8 @@ public final class Viewer extends JPanel
     gbl.setConstraints(tf2, gbc);
     panel.add(tf2);
 
-    s1 = cre.getAttribute("Strength");
-    s2 = cre.getAttribute("Strength bonus");
+    s1 = cre.getAttribute(CreResource.CRE_STRENGTH);
+    s2 = cre.getAttribute(CreResource.CRE_STRENGTH_BONUS);
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -305,29 +309,29 @@ public final class Viewer extends JPanel
     gbl.setConstraints(tf3, gbc);
     panel.add(tf3);
 
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Dexterity"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Constitution"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Intelligence"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Wisdom"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Charisma"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("THAC0"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("# attacks"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Hide in shadows"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Detect illusions"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Set traps"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Lore"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Open locks"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Move silently"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Find/disarm traps"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Pickpockets"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DEXTERITY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CONSTITUTION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_INTELLIGENCE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_WISDOM), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CHARISMA), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_THAC0), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ATTACKS_PER_ROUND), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_HIDE_IN_SHADOWS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DETECT_ILLUSION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SET_TRAPS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LORE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_OPEN_LOCKS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MOVE_SILENTLY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_FIND_TRAPS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_PICK_POCKETS), gbl, gbc, true);
 //    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Tracking"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Script name"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Override script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Class script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Race script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("General script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Default script"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Dialogue"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_OVERRIDE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_CLASS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_RACE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_GENERAL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_DEFAULT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DIALOG), gbl, gbc, true);
 
     return panel;
   }
@@ -339,14 +343,14 @@ public final class Viewer extends JPanel
     JPanel panel = new JPanel(gbl);
 
     gbc.insets = new Insets(2, 6, 3, 0);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Name"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("XP value"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Total level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Armor class"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP_VALUE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVELS_TOTAL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ARMOR_CLASS), gbl, gbc, true);
 
-    StructEntry s1 = cre.getAttribute("Current HP");
-    StructEntry s2 = cre.getAttribute("Maximum HP");
+    StructEntry s1 = cre.getAttribute(CreResource.CRE_HP_CURRENT);
+    StructEntry s2 = cre.getAttribute(CreResource.CRE_HP_MAX);
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -361,23 +365,23 @@ public final class Viewer extends JPanel
     gbl.setConstraints(tf1, gbc);
     panel.add(tf1);
 
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Strength"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Dexterity"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Constitution"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Intelligence"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Wisdom"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Charisma"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Barbarian level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Bard level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Cleric level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Druid level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Fighter level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Monk level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Paladin level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Ranger level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Rogue level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Sorcerer level"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Wizard level"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_STRENGTH), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_DEXTERITY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CONSTITUTION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_INTELLIGENCE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_WISDOM), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CHARISMA), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_BARBARIAN), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_BARD), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_CLERIC), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_DRUID), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_FIGHTER), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_MONK), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_PALADIN), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_RANGER), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_ROGUE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_SORCERER), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVEL_WIZARD), gbl, gbc, true);
 
     return panel;
   }

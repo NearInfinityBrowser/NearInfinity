@@ -14,7 +14,6 @@ import infinity.gui.StructViewer;
 import infinity.resource.are.Actor;
 import infinity.resource.cre.CreResource;
 import infinity.resource.dlg.AbstractCode;
-import infinity.resource.gam.GamResource;
 import infinity.resource.key.BIFFResourceEntry;
 import infinity.resource.key.ResourceEntry;
 import infinity.util.io.FileNI;
@@ -38,6 +37,13 @@ import javax.swing.table.AbstractTableModel;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
 {
+  // Commonly used field labels
+  public static final String COMMON_SIGNATURE     = "Signature";
+  public static final String COMMON_VERSION       = "Version";
+  public static final String COMMON_UNKNOWN       = "Unknown";
+  public static final String COMMON_UNUSED        = "Unused";
+  public static final String COMMON_UNUSED_BYTES  = "Unused bytes?";
+
 //  private static final boolean CONSISTENCY_CHECK = false;
 //  private static final boolean DEBUG_MESSAGES = false;
   private List<StructEntry> list;
@@ -89,18 +95,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 //              System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
           }
         }
-      }
-    }
-  }
-
-  private static void getStructsOfClass(AbstractStruct struct, Class<? extends StructEntry> cl,
-                                        List<StructEntry> container)
-  {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      if (struct.getField(i).getClass() == cl) {
-        container.add(struct.getField(i));
-      } else if (struct.getField(i) instanceof AbstractStruct) {
-        getStructsOfClass((AbstractStruct)struct.getField(i), cl, container);
       }
     }
   }
@@ -903,77 +897,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       superStruct.setStructChanged(changed);
   }
 
-  public void testStruct()
-  {
-    StringBuffer sb = new StringBuffer(1000);
-    sb.append("Testing: ").append(getName()).append('\n');
-
-    sb.append("1: Testing flatList:\n");
-    List<StructEntry> flatList = getFlatList();
-    StructEntry firstEntry = flatList.get(0);
-    for (int i = 1; i < flatList.size(); i++) {
-      StructEntry secondEntry = flatList.get(i);
-      if (firstEntry.getOffset() + firstEntry.getSize() != secondEntry.getOffset()) {
-        sb.append("ERR-> ").append(firstEntry.getName()).append(' ');
-        sb.append(Integer.toHexString(firstEntry.getOffset())).append("h + ");
-        sb.append(Integer.toHexString(firstEntry.getSize())).append("h = ");
-        sb.append(Integer.toHexString(firstEntry.getOffset() + firstEntry.getSize())).append("h != ");
-        sb.append(secondEntry.getName()).append(' ').append(Integer.toHexString(secondEntry.getOffset())).append(
-                "h\n");
-      }
-      firstEntry = secondEntry;
-    }
-
-    if (this instanceof HasAddRemovable) {
-      List<StructEntry> temp = new ArrayList<StructEntry>();
-      sb.append("2: Testing SectionCounts:\n");
-      for (int i = 0; i < list.size(); i++) {
-        if (list.get(i) instanceof SectionCount) {
-          SectionCount sectionCount = (SectionCount)list.get(i);
-          temp.clear();
-          if (!(sectionCount.getSection() == Unknown.class))
-            getStructsOfClass(this, sectionCount.getSection(), temp);
-          if (sectionCount.getValue() != temp.size()) {
-            sb.append("ERR-> ").append(sectionCount.getName()).append(' ').append(sectionCount.getValue()).append(
-                    " != ");
-            sb.append("Actual count: ").append(temp.size()).append('\n');
-          }
-        }
-      }
-
-      sb.append("3: Testing SectionOffsets:\n");
-      for (int i = 0; i < list.size(); i++) {
-        if (list.get(i) instanceof SectionOffset) {
-          SectionOffset sectionOffset = (SectionOffset)list.get(i);
-          temp.clear();
-          if (!(sectionOffset.getSection() == Unknown.class))
-            getStructsOfClass(this, sectionOffset.getSection(), temp);
-          if (temp.size() > 0) {
-            Collections.sort(temp);
-            StructEntry se = temp.get(0);
-            if (sectionOffset.getValue() + getExtraOffset() != se.getOffset()) {
-              sb.append("ERR-> ").append(sectionOffset.getName()).append(' ').append(
-                      sectionOffset.toString()).append(" + ");
-              sb.append(Integer.toHexString(getExtraOffset())).append("h != ");
-              sb.append(se.getName()).append(" @ ").append(Integer.toHexString(se.getOffset())).append("h\n");
-            }
-          }
-        }
-      }
-    }
-    if (this instanceof GamResource) {
-      sb.append("4: Testing embedded CREs:\n");
-      List<StructEntry> temp = new ArrayList<StructEntry>();
-      getStructsOfClass(this, CreResource.class, temp);
-      for (int i = 0; i < temp.size(); i++)
-        ((CreResource)temp.get(i)).testStruct();
-    }
-
-    String s = sb.toString();
-    if (s.indexOf("ERR->") != -1)
-      System.err.println(s);
-  }
-
   public String toMultiLineString()
   {
     StringBuffer sb = new StringBuffer(30 * list.size());
@@ -988,6 +911,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     // List of components to be added to the bottom panel of the StructView component
     viewerComponents = list;
+  }
+
+  /** Returns the SectionOffset entry linked to the specified StructEntry object if available. */
+  public SectionOffset getSectionOffset(Class<? extends StructEntry> cls)
+  {
+    return offsetmap.get(cls);
+  }
+
+  /** Returns the SectionCount entry linked to the specified StructEntry object if available. */
+  public SectionCount getSectionCount(Class<? extends StructEntry> cls)
+  {
+    return countmap.get(cls);
   }
 
   private void addFlatList(List<StructEntry> flatList)
@@ -1085,17 +1020,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     for (int i = 0; i < flatList.size(); i++) {
       StructEntry se = flatList.get(i);
       int delta = se.getOffset() - offset;
-      if (delta > 0) {
-        Unknown hole = new Unknown(buffer, offset, delta, "Unused bytes?");
+      if (se.getSize() > 0 && delta > 0) {
+        Unknown hole = new Unknown(buffer, offset, delta, COMMON_UNUSED_BYTES);
         list.add(hole);
         flatList.add(i, hole);
         System.out.println("Hole: " + name + " off: " + Integer.toHexString(offset) + "h len: " + delta);
         i++;
       }
-      offset = se.getOffset() + se.getSize();
+      // Using max() as shared data regions may confuse the hole detection algorithm
+      offset = Math.max(offset, se.getOffset() + se.getSize());
     }
     if (endoffset < buffer.length) { // Does this break anything?
-      list.add(new Unknown(buffer, endoffset, buffer.length - endoffset, "Unused bytes?"));
+      list.add(new Unknown(buffer, endoffset, buffer.length - endoffset, COMMON_UNUSED_BYTES));
       System.out.println("Hole: " + name + " off: " + Integer.toHexString(offset) + "h len: " +
                          (buffer.length - endoffset));
       endoffset = buffer.length;

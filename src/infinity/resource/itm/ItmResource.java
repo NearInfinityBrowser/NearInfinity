@@ -17,7 +17,8 @@ import infinity.datatype.TextString;
 import infinity.datatype.Unknown;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
+import infinity.resource.AbstractAbility;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.Effect;
@@ -39,6 +40,48 @@ import javax.swing.JScrollPane;
 
 public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
+  // ITM-specific field labels
+  public static final String ITM_NAME_GENERAL           = "General name";
+  public static final String ITM_NAME_IDENTIFIED        = "Identified name";
+  public static final String ITM_DROP_SOUND             = "Drop sound";
+  public static final String ITM_FLAGS                  = "Flags";
+  public static final String ITM_CATEGORY               = "Category";
+  public static final String ITM_UNUSABLE_BY            = "Unusable by";
+  public static final String ITM_EQUIPPED_APPEARANCE    = "Equipped appearance";
+  public static final String ITM_USED_UP_ITEM           = "Used up item";
+  public static final String ITM_MIN_LEVEL              = "Minimum level";
+  public static final String ITM_MIN_STRENGTH           = "Minimum strength";
+  public static final String ITM_MIN_STRENGTH_BONUS     = "Minimum strength bonus";
+  public static final String ITM_MIN_INTELLIGENCE       = "Minimum intelligence";
+  public static final String ITM_MIN_DEXTERITY          = "Minimum dexterity";
+  public static final String ITM_MIN_WISDOM             = "Minimum wisdom";
+  public static final String ITM_MIN_CONSTITUTION       = "Minimum constitution";
+  public static final String ITM_MIN_CHARISMA           = "Minimum charisma";
+  public static final String ITM_UNUSABLE_BY_1          = "Unusable by (1/4)";
+  public static final String ITM_UNUSABLE_BY_2          = "Unusable by (2/4)";
+  public static final String ITM_UNUSABLE_BY_3          = "Unusable by (3/4)";
+  public static final String ITM_UNUSABLE_BY_4          = "Unusable by (4/4)";
+  public static final String ITM_WEAPON_PROFICIENCY     = "Weapon proficiency";
+  public static final String ITM_PRICE                  = "Price";
+  public static final String ITM_MAX_IN_STACK           = "Maximum in stack";
+  public static final String ITM_ICON                   = "Icon";
+  public static final String ITM_LORE                   = "Lore to identify";
+  public static final String ITM_ICON_GROUND            = "Ground icon";
+  public static final String ITM_WEIGHT                 = "Weight";
+  public static final String ITM_DESCRIPTION_GENERAL    = "General description";
+  public static final String ITM_DESCRIPTION_IDENTIFIED = "Identified description";
+  public static final String ITM_PICK_UP_SOUND          = "Pick up sound";
+  public static final String ITM_DESCRIPTION_IMAGE      = "Description image";
+  public static final String ITM_ENCHANTMENT            = "Enchantment";
+  public static final String ITM_OFFSET_ABILITIES       = "Abilities offset";
+  public static final String ITM_NUM_ABILITIES          = "# abilities";
+  public static final String ITM_OFFSET_EFFECTS         = "Effects offset";
+  public static final String ITM_FIRST_EFFECT_INDEX     = "First effect index";
+  public static final String ITM_NUM_GLOBAL_EFFECTS     = "# global effects";
+  public static final String ITM_DIALOG                 = "Dialogue";
+  public static final String ITM_SPEAKER_NAME           = "Speaker name";
+  public static final String ITM_WEAPON_COLOR           = "Weapon color";
+
   public static final String[] s_categories =
           {"Miscellaneous", "Amulets and necklaces", "Armor", "Belts and girdles",
            "Boots", "Arrows", "Bracers and gauntlets", "Headgear",
@@ -180,7 +223,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Sling", "Spear", "Short sword", "War hammer", "Wings?", "Feathered wings"
           };
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public static String getSearchString(byte buffer[])
   {
@@ -202,6 +245,18 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Ability(), new Effect()};
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -240,7 +295,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       case 1:
       {
         if (hexViewer == null) {
-          hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
       }
@@ -291,7 +346,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute("# global effects")).getValue();
+      int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
       for (int i = 0; i < getFieldCount(); i++) {
         Object o = getField(i);
         if (o instanceof Ability) {
@@ -334,7 +389,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute("# global effects")).getValue();
+      int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
       for (int i = 0; i < getFieldCount(); i++) {
         Object o = getField(i);
         if (o instanceof Ability) {
@@ -369,103 +424,103 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(byte buffer[], int offset) throws Exception
   {
-    addField(new TextString(buffer, 0, 4, "Signature"));
-    TextString version = new TextString(buffer, 4, 4, "Version");
+    addField(new TextString(buffer, 0, 4, COMMON_SIGNATURE));
+    TextString version = new TextString(buffer, 4, 4, COMMON_VERSION);
     addField(version);
-    addField(new StringRef(buffer, 8, "General name"));
-    addField(new StringRef(buffer, 12, "Identified name"));
+    addField(new StringRef(buffer, 8, ITM_NAME_GENERAL));
+    addField(new StringRef(buffer, 12, ITM_NAME_IDENTIFIED));
     if (version.toString().equalsIgnoreCase("V1.1")) {
-      addField(new ResourceRef(buffer, 16, "Drop sound", "WAV"));
-      addField(new Flag(buffer, 24, 4, "Flags", s_flags11));
-      addField(new Bitmap(buffer, 28, 2, "Category", s_categories11));
-      addField(new Flag(buffer, 30, 4, "Unusable by", s_usability11));
-      addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag11, s_anim11));
+      addField(new ResourceRef(buffer, 16, ITM_DROP_SOUND, "WAV"));
+      addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags11));
+      addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories11));
+      addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability11));
+      addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag11, s_anim11));
     }
     else {
-      addField(new ResourceRef(buffer, 16, "Used up item", "ITM"));
-      addField(new Flag(buffer, 24, 4, "Flags", s_flags));
-      addField(new Bitmap(buffer, 28, 2, "Category", s_categories));
+      addField(new ResourceRef(buffer, 16, ITM_USED_UP_ITEM, "ITM"));
+      addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags));
+      addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories));
       if (version.toString().equalsIgnoreCase("V2.0")) {
-        addField(new Flag(buffer, 30, 4, "Unusable by", s_usability20));
+        addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability20));
       } else {
-        addField(new Flag(buffer, 30, 4, "Unusable by", s_usability));
+        addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability));
       }
       if (Profile.isEnhancedEdition()) {
-        addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag_1pp, s_anim_1pp));
+        addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag_1pp, s_anim_1pp));
       }
       else {
-        addField(new TextBitmap(buffer, 34, 2, "Equipped appearance", s_tag, s_anim));
+        addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag, s_anim));
       }
     }
-    addField(new DecNumber(buffer, 36, 2, "Minimum level"));
-    addField(new DecNumber(buffer, 38, 2, "Minimum strength"));
+    addField(new DecNumber(buffer, 36, 2, ITM_MIN_LEVEL));
+    addField(new DecNumber(buffer, 38, 2, ITM_MIN_STRENGTH));
 //    addField(new Unknown(buffer, 39, 1));
     if (ResourceFactory.resourceExists("KIT.IDS")) {
-      addField(new DecNumber(buffer, 40, 1, "Minimum strength bonus"));
-      addField(new Flag(buffer, 41, 1, "Unusable by (1/4)", s_kituse1));
-      addField(new DecNumber(buffer, 42, 1, "Minimum intelligence"));
-      addField(new Flag(buffer, 43, 1, "Unusable by (2/4)", s_kituse2));
-      addField(new DecNumber(buffer, 44, 1, "Minimum dexterity"));
-      addField(new Flag(buffer, 45, 1, "Unusable by (3/4)", s_kituse3));
-      addField(new DecNumber(buffer, 46, 1, "Minimum wisdom"));
-      addField(new Flag(buffer, 47, 1, "Unusable by (4/4)", s_kituse4));
-      addField(new DecNumber(buffer, 48, 1, "Minimum constitution"));
+      addField(new DecNumber(buffer, 40, 1, ITM_MIN_STRENGTH_BONUS));
+      addField(new Flag(buffer, 41, 1, ITM_UNUSABLE_BY_1, s_kituse1));
+      addField(new DecNumber(buffer, 42, 1, ITM_MIN_INTELLIGENCE));
+      addField(new Flag(buffer, 43, 1, ITM_UNUSABLE_BY_2, s_kituse2));
+      addField(new DecNumber(buffer, 44, 1, ITM_MIN_DEXTERITY));
+      addField(new Flag(buffer, 45, 1, ITM_UNUSABLE_BY_3, s_kituse3));
+      addField(new DecNumber(buffer, 46, 1, ITM_MIN_WISDOM));
+      addField(new Flag(buffer, 47, 1, ITM_UNUSABLE_BY_1, s_kituse4));
+      addField(new DecNumber(buffer, 48, 1, ITM_MIN_CONSTITUTION));
       if (ResourceFactory.resourceExists("PROFTYPE.IDS")) {
-        addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "PROFTYPE.IDS"));
+        addField(new IdsBitmap(buffer, 49, 1, ITM_WEAPON_PROFICIENCY, "PROFTYPE.IDS"));
       } else {
-        addField(new IdsBitmap(buffer, 49, 1, "Weapon proficiency", "STATS.IDS"));
+        addField(new IdsBitmap(buffer, 49, 1, ITM_WEAPON_PROFICIENCY, "STATS.IDS"));
       }
     }
     else {
-      addField(new DecNumber(buffer, 40, 2, "Minimum strength bonus"));
-      addField(new DecNumber(buffer, 42, 2, "Minimum intelligence"));
-      addField(new DecNumber(buffer, 44, 2, "Minimum dexterity"));
-      addField(new DecNumber(buffer, 46, 2, "Minimum wisdom"));
-      addField(new DecNumber(buffer, 48, 2, "Minimum constitution"));
+      addField(new DecNumber(buffer, 40, 2, ITM_MIN_STRENGTH_BONUS));
+      addField(new DecNumber(buffer, 42, 2, ITM_MIN_INTELLIGENCE));
+      addField(new DecNumber(buffer, 44, 2, ITM_MIN_DEXTERITY));
+      addField(new DecNumber(buffer, 46, 2, ITM_MIN_WISDOM));
+      addField(new DecNumber(buffer, 48, 2, ITM_MIN_CONSTITUTION));
 //      addField(new Unknown(buffer, 41, 1));
 //      addField(new Unknown(buffer, 43, 1));
 //      addField(new Unknown(buffer, 45, 1));
 //      addField(new Unknown(buffer, 47, 1));
 //      addField(new Unknown(buffer, 49, 1));
     }
-    addField(new DecNumber(buffer, 50, 2, "Minimum charisma"));
+    addField(new DecNumber(buffer, 50, 2, ITM_MIN_CHARISMA));
 //    addField(new Unknown(buffer, 51, 1));
-    addField(new DecNumber(buffer, 52, 4, "Price"));
-    addField(new DecNumber(buffer, 56, 2, "Maximum in stack"));
-    addField(new ResourceRef(buffer, 58, "Icon", "BAM"));
-    addField(new DecNumber(buffer, 66, 2, "Lore to identify"));
-    addField(new ResourceRef(buffer, 68, "Ground icon", "BAM"));
-    addField(new DecNumber(buffer, 76, 4, "Weight"));
-    addField(new StringRef(buffer, 80, "General description"));
-    addField(new StringRef(buffer, 84, "Identified description"));
+    addField(new DecNumber(buffer, 52, 4, ITM_PRICE));
+    addField(new DecNumber(buffer, 56, 2, ITM_MAX_IN_STACK));
+    addField(new ResourceRef(buffer, 58, ITM_ICON, "BAM"));
+    addField(new DecNumber(buffer, 66, 2, ITM_LORE));
+    addField(new ResourceRef(buffer, 68, ITM_ICON_GROUND, "BAM"));
+    addField(new DecNumber(buffer, 76, 4, ITM_WEIGHT));
+    addField(new StringRef(buffer, 80, ITM_DESCRIPTION_GENERAL));
+    addField(new StringRef(buffer, 84, ITM_DESCRIPTION_IDENTIFIED));
     if (version.toString().equalsIgnoreCase("V1.1")) {
-      addField(new ResourceRef(buffer, 88, "Pick up sound", "WAV"));
+      addField(new ResourceRef(buffer, 88, ITM_PICK_UP_SOUND, "WAV"));
     } else {
       if (Profile.isEnhancedEdition()) {
-        addField(new ResourceRef(buffer, 88, "Description image", new String[]{"BAM", "BMP"}));
+        addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, new String[]{"BAM", "BMP"}));
       } else {
-        addField(new ResourceRef(buffer, 88, "Description image", "BAM"));
+        addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
       }
     }
-    addField(new DecNumber(buffer, 96, 4, "Enchantment"));
-    SectionOffset abil_offset = new SectionOffset(buffer, 100, "Abilities offset",
+    addField(new DecNumber(buffer, 96, 4, ITM_ENCHANTMENT));
+    SectionOffset abil_offset = new SectionOffset(buffer, 100, ITM_OFFSET_ABILITIES,
                                                   Ability.class);
     addField(abil_offset);
-    SectionCount abil_count = new SectionCount(buffer, 104, 2, "# abilities",
+    SectionCount abil_count = new SectionCount(buffer, 104, 2, ITM_NUM_ABILITIES,
                                                Ability.class);
     addField(abil_count);
-    SectionOffset global_offset = new SectionOffset(buffer, 106, "Effects offset",
+    SectionOffset global_offset = new SectionOffset(buffer, 106, ITM_OFFSET_EFFECTS,
                                                     Effect.class);
     addField(global_offset);
-    addField(new DecNumber(buffer, 110, 2, "First effect index"));
-    SectionCount global_count = new SectionCount(buffer, 112, 2, "# global effects",
+    addField(new DecNumber(buffer, 110, 2, ITM_FIRST_EFFECT_INDEX));
+    SectionCount global_count = new SectionCount(buffer, 112, 2, ITM_NUM_GLOBAL_EFFECTS,
                                                  Effect.class);
     addField(global_count);
 
     if (version.toString().equalsIgnoreCase("V1.1")) {
-      addField(new ResourceRef(buffer, 114, "Dialogue", "DLG"));
-      addField(new StringRef(buffer, 122, "Speaker name"));
-      addField(new IdsBitmap(buffer, 126, 2, "Weapon color", "CLOWNCLR.IDS"));
+      addField(new ResourceRef(buffer, 114, ITM_DIALOG, "DLG"));
+      addField(new StringRef(buffer, 122, ITM_SPEAKER_NAME));
+      addField(new IdsBitmap(buffer, 126, 2, ITM_WEAPON_COLOR, "CLOWNCLR.IDS"));
       addField(new Unknown(buffer, 128, 26));
     }
     else if (version.toString().equalsIgnoreCase("V2.0")) {
@@ -509,8 +564,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)itm.getAttribute("Effects offset", false);
-        DecNumber cnt = (DecNumber)itm.getAttribute("# global effects", false);
+        DecNumber ofs = (DecNumber)itm.getAttribute(ITM_OFFSET_EFFECTS, false);
+        DecNumber cnt = (DecNumber)itm.getAttribute(ITM_NUM_GLOBAL_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -521,8 +576,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)itm.getAttribute("Abilities offset", false);
-        cnt = (DecNumber)itm.getAttribute("# abilities", false);
+        ofs = (DecNumber)itm.getAttribute(ITM_OFFSET_ABILITIES, false);
+        cnt = (DecNumber)itm.getAttribute(ITM_NUM_ABILITIES, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -536,7 +591,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute("# effects", false);
+            cnt = (DecNumber)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {

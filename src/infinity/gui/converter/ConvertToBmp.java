@@ -7,8 +7,10 @@ package infinity.gui.converter;
 import infinity.gui.ChildFrame;
 import infinity.gui.ViewerUtil;
 import infinity.gui.WindowBlocker;
+import infinity.icon.Icons;
 import infinity.resource.Profile;
 import infinity.resource.graphics.ColorConvert;
+import infinity.util.SimpleListModel;
 import infinity.util.io.FileNI;
 import infinity.util.io.FileOutputStreamNI;
 
@@ -40,7 +42,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -60,7 +61,7 @@ public class ConvertToBmp extends ChildFrame
 {
   private static String currentPath = Profile.getGameRoot().toString();
 
-  private DefaultListModel modelInputFiles;
+  private SimpleListModel<String> modelInputFiles;
   private JList listInputFiles;
   private JButton bAdd, bAddFolder, bRemove, bRemoveAll;
   private JTextField tfOutput;
@@ -297,6 +298,7 @@ public class ConvertToBmp extends ChildFrame
 
   private void init()
   {
+    setIconImage(Icons.getImage("Application16.gif"));
     GridBagConstraints c = new GridBagConstraints();
 
     bAdd = new JButton("Add...");
@@ -334,7 +336,7 @@ public class ConvertToBmp extends ChildFrame
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(pRemove, c);
 
-    modelInputFiles = new DefaultListModel();
+    modelInputFiles = new SimpleListModel<String>();
     listInputFiles = new JList(modelInputFiles);
     JScrollPane scroll = new JScrollPane(listInputFiles);
     JPanel pInputFrame = new JPanel(new GridBagLayout());
@@ -489,7 +491,7 @@ public class ConvertToBmp extends ChildFrame
   {
     String rootPath = null;
     if (!modelInputFiles.isEmpty()) {
-      rootPath = new FileNI((String)modelInputFiles.get(modelInputFiles.size() - 1)).toString();
+      rootPath = new FileNI(modelInputFiles.get(modelInputFiles.size() - 1)).toString();
     }
     File[] files = getOpenFileName(this, "Choose file(s)", rootPath, true, getGraphicsFilters(), 0);
     if (files != null) {
@@ -529,7 +531,7 @@ public class ConvertToBmp extends ChildFrame
   {
     String rootPath = null;
     if (!modelInputFiles.isEmpty()) {
-      rootPath = new FileNI((String)modelInputFiles.get(modelInputFiles.size() - 1)).toString();
+      rootPath = new FileNI(modelInputFiles.get(modelInputFiles.size() - 1)).toString();
     }
     File path = getOpenPathName(this, "Choose folder", rootPath);
     if (path != null && path.exists() && path.isDirectory()) {
@@ -637,7 +639,7 @@ public class ConvertToBmp extends ChildFrame
         progress.setProgress(progressIdx++);
 
         // 1. prepare data
-        File inFile = new FileNI((String)modelInputFiles.get(i));
+        File inFile = new FileNI(modelInputFiles.get(i));
         File outFile= new FileNI(outPath, setFileExtension(inFile.getName(), "BMP"));
         if (outFile.exists()) {
           if (cbOverwrite.getSelectedIndex() == 0) {          // ask

@@ -38,8 +38,8 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
       List<LayerObjectDoorPoly> list = getLayerObjects();
       if (hasWed()) {
         WedResource wed = getWed();
-        SectionOffset so = (SectionOffset)wed.getAttribute("Doors offset");
-        SectionCount sc = (SectionCount)wed.getAttribute("# doors");
+        SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
+        SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_DOORS);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

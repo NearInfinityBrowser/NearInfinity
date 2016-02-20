@@ -7,6 +7,7 @@ package infinity.datatype;
 import infinity.gui.InfinityScrollPane;
 import infinity.gui.InfinityTextArea;
 import infinity.gui.StructViewer;
+import infinity.gui.ViewerUtil;
 import infinity.icon.Icons;
 import infinity.resource.AbstractStruct;
 import infinity.resource.StructEntry;
@@ -38,6 +39,10 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     UNIX, WINDOWS
   }
 
+  public static enum Align {
+    LEFT, RIGHT, TOP, BOTTOM
+  }
+
   private static final EnumMap<EOLType, String> EOL = new EnumMap<EOLType, String>(EOLType.class);
   static {
     EOL.put(EOLType.UNIX, "\n");
@@ -45,6 +50,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   }
 
   private InfinityTextArea textArea;
+  private Align buttonAlign;
   private byte[] bytes;
   private String text;
   private EOLType eolType;
@@ -53,10 +59,20 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 
   public TextEdit(byte buffer[], int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name);
+    this(null, buffer, offset, length, name, Align.RIGHT);
+  }
+
+  public TextEdit(byte buffer[], int offset, int length, String name, Align buttonAlignment)
+  {
+    this(null, buffer, offset, length, name, buttonAlignment);
   }
 
   public TextEdit(StructEntry parent, byte buffer[], int offset, int length, String name)
+  {
+    this(parent, buffer, offset, length, name, Align.RIGHT);
+  }
+
+  public TextEdit(StructEntry parent, byte buffer[], int offset, int length, String name, Align buttonAlignment)
   {
     super(parent, offset, length, name);
     read(buffer, offset);
@@ -64,6 +80,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     this.charsetName = Charset.defaultCharset().name();
     this.terminateString = false;
     this.editable = true;
+    this.buttonAlign = (buttonAlignment != null) ? buttonAlignment : Align.RIGHT;
   }
 
   // --------------------- Begin Interface Editable ---------------------
@@ -82,6 +99,8 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
       textArea.setEditable(editable);
     }
     textArea.setText(toString());
+    textArea.setCaretPosition(0);
+    textArea.discardAllEdits();
     InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
     scroll.setLineNumbersEnabled(false);
 
@@ -94,17 +113,36 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
 
-    gbc.weightx = 1.0;
-    gbc.weighty = 1.0;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbl.setConstraints(scroll, gbc);
-    panel.add(scroll);
+    int curGridX = 0;
+    int curGridY = 0;
+    if (buttonAlign == Align.TOP) {
+      gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
+                              GridBagConstraints.NONE, new Insets(4, 0, 6, 0), 0, 0);
+      panel.add(bUpdate, gbc);
+      curGridY++;
+    }
+    if (buttonAlign == Align.LEFT) {
+      gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER,
+                              GridBagConstraints.NONE, new Insets(0, 0, 0, 6), 0, 0);
+      panel.add(bUpdate, gbc);
+      curGridX++;
+    }
 
-    gbc.weightx = 0.0;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.insets.left = 6;
-    gbl.setConstraints(bUpdate, gbc);
-    panel.add(bUpdate);
+    gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(scroll, gbc);
+
+    if (buttonAlign == Align.RIGHT) {
+      gbc = ViewerUtil.setGBC(gbc, curGridX + 1, curGridY, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER,
+                              GridBagConstraints.NONE, new Insets(0, 6, 0, 0), 0, 0);
+      panel.add(bUpdate, gbc);
+    }
+
+    if (buttonAlign == Align.BOTTOM) {
+      gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY + 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
+                              GridBagConstraints.NONE, new Insets(6, 0, 4, 0), 0, 0);
+      panel.add(bUpdate, gbc);
+    }
 
     panel.setMinimumSize(DIM_BROAD);
     panel.setPreferredSize(DIM_BROAD);

@@ -8,14 +8,17 @@ import infinity.resource.AbstractStruct;
 
 public final class ClosedPolygon extends Polygon
 {
+  // WED/ClosedPolygon-specific field labels
+  public static final String WED_POLY_CLOSED  = "Closed polygon";
+
   public ClosedPolygon() throws Exception
   {
-    super(null, "Closed polygon", new byte[18], 0);
+    super(null, WED_POLY_CLOSED, new byte[18], 0);
   }
 
   public ClosedPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
-    super(superStruct, "Closed polygon " + nr, buffer, offset);
+    super(superStruct, WED_POLY_CLOSED + " " + nr, buffer, offset);
   }
 }
 

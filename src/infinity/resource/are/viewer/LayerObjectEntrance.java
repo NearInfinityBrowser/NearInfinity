@@ -13,7 +13,7 @@ import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.IconLayerItem;
 import infinity.icon.Icons;
-import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.Actor;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.Entrance;
@@ -42,15 +42,15 @@ public class LayerObjectEntrance extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return entrance;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{entrance};
+    return new Viewable[]{entrance};
   }
 
   @Override
@@ -103,11 +103,11 @@ public class LayerObjectEntrance extends LayerObject
     if (entrance != null) {
       String msg = "";
       try {
-        location.x = ((DecNumber)entrance.getAttribute("Location: X")).getValue();
-        location.y = ((DecNumber)entrance.getAttribute("Location: Y")).getValue();
-        int o = ((Bitmap)entrance.getAttribute("Orientation")).getValue();
+        location.x = ((DecNumber)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_X)).getValue();
+        location.y = ((DecNumber)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_Y)).getValue();
+        int o = ((Bitmap)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
         if (o < 0) o = 0; else if (o >= Actor.s_orientation.length) o = Actor.s_orientation.length - 1;
-        msg = String.format("%1$s (%2$s)", ((TextString)entrance.getAttribute("Name")).toString(),
+        msg = String.format("%1$s (%2$s)", ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString(),
                             Actor.s_orientation[o]);
       } catch (Exception e) {
         e.printStackTrace();

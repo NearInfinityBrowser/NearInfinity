@@ -9,9 +9,12 @@ import infinity.resource.AbstractStruct;
 
 final class UnknownSection3 extends AbstractStruct
 {
+  // GAM/Unknown-specific field labels
+  public static final String GAM_UNKNOWN  = "Unknown section";
+
   UnknownSection3(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
   {
-    super(superStruct, "Unknown section", buffer, offset);
+    super(superStruct, GAM_UNKNOWN, buffer, offset);
   }
 
   @Override

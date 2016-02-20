@@ -15,7 +15,7 @@ import infinity.datatype.HexNumber;
 import infinity.datatype.TextString;
 import infinity.gui.layeritem.AbstractLayerItem;
 import infinity.gui.layeritem.ShapedLayerItem;
-import infinity.resource.AbstractStruct;
+import infinity.resource.Viewable;
 import infinity.resource.are.AreResource;
 import infinity.resource.are.ITEPoint;
 import infinity.resource.vertex.Vertex;
@@ -44,15 +44,15 @@ public class LayerObjectRegion extends LayerObject
   }
 
   @Override
-  public AbstractStruct getStructure()
+  public Viewable getViewable()
   {
     return region;
   }
 
   @Override
-  public AbstractStruct[] getStructures()
+  public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{region};
+    return new Viewable[]{region};
   }
 
   @Override
@@ -111,11 +111,11 @@ public class LayerObjectRegion extends LayerObject
       Polygon poly = null;
       Rectangle bounds = null;
       try {
-        int type = ((Bitmap)region.getAttribute("Type")).getValue();
+        int type = ((Bitmap)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
         if (type < 0) type = 0; else if (type >= Type.length) type = Type.length - 1;
-        msg = String.format("%1$s (%2$s)", ((TextString)region.getAttribute("Name")).toString(), Type[type]);
-        int vNum = ((DecNumber)region.getAttribute("# vertices")).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute("Vertices offset")).getValue();
+        msg = String.format("%1$s (%2$s)", ((TextString)region.getAttribute(ITEPoint.ARE_TRIGGER_NAME)).toString(), Type[type]);
+        int vNum = ((DecNumber)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
+        int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
         poly = createPolygon(shapeCoords, 1.0);
         bounds = normalizePolygon(poly);

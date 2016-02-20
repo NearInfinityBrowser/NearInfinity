@@ -24,7 +24,7 @@ import infinity.datatype.UpdateEvent;
 import infinity.datatype.UpdateListener;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -38,6 +38,24 @@ import infinity.util.LongIntegerHashMap;
 
 public final class ProResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs, UpdateListener
 {
+  // PRO-specific field labels
+  public static final String PRO_TYPE = "Projectile type";
+  public static final String PRO_SPEED = "Speed";
+  public static final String PRO_BEHAVIOR = "Behavior";
+  public static final String PRO_SOUND_FIRE = "Fire sound";
+  public static final String PRO_SOUND_IMPACT = "Impact sound";
+  public static final String PRO_SOURCE_ANIMATION = "Source animation";
+  public static final String PRO_PARTICLE_COLOR = "Particle color";
+  public static final String PRO_WIDTH = "Projectile width";
+  public static final String PRO_EX_FLAGS = "Extended flags";
+  public static final String PRO_STRING = "String";
+  public static final String PRO_COLOR = "Color";
+  public static final String PRO_COLOR_SPEED = "Color speed";
+  public static final String PRO_SCREEN_SHAKE_AMOUNT = "Screen shake amount";
+  public static final String PRO_CREATURE_TYPE = "Creature type";
+  public static final String PRO_SPELL_DEFAULT = "Default spell";
+  public static final String PRO_SPELL_SUCCESS = "Success spell";
+
   public static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
                                            "Green", "Purple", "Red", "White", "Ice",
                                            "Stone", "Magenta", "Orange"};
@@ -60,7 +78,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     m_projtype.put(3L, "Area of effect");
   }
 
-  private HexViewer hexViewer;
+  private StructHexViewer hexViewer;
 
   public ProResource(ResourceEntry entry) throws Exception
   {
@@ -75,6 +93,18 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     return null;
   }
 
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
+  }
+
 //--------------------- End Interface HasAddRemovable ---------------------
 
 //--------------------- Begin Interface UpdateListener ---------------------
@@ -83,7 +113,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   public boolean valueUpdated(UpdateEvent event)
   {
     if (event.getSource() instanceof Flag &&
-        ((StructEntry)event.getSource()).getName().equals("Extended flags")) {
+        ((StructEntry)event.getSource()).getName().equals(PRO_EX_FLAGS)) {
       boolean isIwdStyle = ((Flag)event.getSource()).isFlagSet(30);
       AbstractStruct struct = event.getStructure();
       boolean bRet = false;
@@ -97,7 +127,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       return bRet;
     }
     else if (event.getSource() instanceof HashBitmap &&
-             ((StructEntry)event.getSource()).getName().equals("Projectile type")) {
+             ((StructEntry)event.getSource()).getName().equals(PRO_TYPE)) {
       HashBitmap proType = (HashBitmap)event.getSource();
       AbstractStruct struct = event.getStructure();
       // add/remove extended sections in the parent structure depending on the current value
@@ -168,7 +198,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       BasicColorMap colorMap = new BasicColorMap(this, false);
       colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, ProSingleType.class);
       colorMap.setColoredEntry(BasicColorMap.Coloring.GREEN, ProAreaType.class);
-      hexViewer = new HexViewer(this, colorMap);
+      hexViewer = new StructHexViewer(this, colorMap);
     }
     return hexViewer;
   }
@@ -187,32 +217,32 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
                                                          : new String[]{"VEF", "VVC", "BAM"};
 
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    HashBitmap projtype = new HashBitmap(buffer, offset + 8, 2, "Projectile type", m_projtype);
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    HashBitmap projtype = new HashBitmap(buffer, offset + 8, 2, PRO_TYPE, m_projtype);
     projtype.addUpdateListener(this);
     addField(projtype);
-    addField(new DecNumber(buffer, offset + 10, 2, "Speed"));
-    addField(new Flag(buffer, offset + 12, 4, "Behavior", s_behave));
-    addField(new ResourceRef(buffer, offset + 16, "Fire sound", "WAV"));
-    addField(new ResourceRef(buffer, offset + 24, "Impact sound", "WAV"));
-    addField(new ResourceRef(buffer, offset + 32, "Source animation", s_types));
-    addField(new Bitmap(buffer, offset + 40, 2, "Particle color", s_color));
+    addField(new DecNumber(buffer, offset + 10, 2, PRO_SPEED));
+    addField(new Flag(buffer, offset + 12, 4, PRO_BEHAVIOR, s_behave));
+    addField(new ResourceRef(buffer, offset + 16, PRO_SOUND_FIRE, "WAV"));
+    addField(new ResourceRef(buffer, offset + 24, PRO_SOUND_IMPACT, "WAV"));
+    addField(new ResourceRef(buffer, offset + 32, PRO_SOURCE_ANIMATION, s_types));
+    addField(new Bitmap(buffer, offset + 40, 2, PRO_PARTICLE_COLOR, s_color));
     if (Profile.isEnhancedEdition()) {
-      addField(new DecNumber(buffer, offset + 42, 2, "Projectile width"));
-      Flag flag = new Flag(buffer, offset + 44, 4, "Extended flags", s_flagsEx);
+      addField(new DecNumber(buffer, offset + 42, 2, PRO_WIDTH));
+      Flag flag = new Flag(buffer, offset + 44, 4, PRO_EX_FLAGS, s_flagsEx);
       addField(flag);
-      addField(new StringRef(buffer, offset + 48, "String"));
-      addField(new ColorPicker(buffer, offset + 52, "Color", ColorPicker.Format.BGRX));
-      addField(new DecNumber(buffer, offset + 56, 2, "Color speed"));
-      addField(new DecNumber(buffer, offset + 58, 2, "Screen shake amount"));
+      addField(new StringRef(buffer, offset + 48, PRO_STRING));
+      addField(new ColorPicker(buffer, offset + 52, PRO_COLOR, ColorPicker.Format.BGRX));
+      addField(new DecNumber(buffer, offset + 56, 2, PRO_COLOR_SPEED));
+      addField(new DecNumber(buffer, offset + 58, 2, PRO_SCREEN_SHAKE_AMOUNT));
       if (Profile.isEnhancedEdition()) {
         flag.addUpdateListener(this);
         if (flag.isFlagSet(30)) {
-          SpellProtType type = new SpellProtType(buffer, offset + 62, 2, "Creature type", 1);
+          SpellProtType type = new SpellProtType(buffer, offset + 62, 2, PRO_CREATURE_TYPE, 1);
           addField(type.createCreatureValueFromType(buffer, offset + 60));
           addField(type);
-          type = new SpellProtType(buffer, offset + 66, 2, "Creature type", 2);
+          type = new SpellProtType(buffer, offset + 66, 2, PRO_CREATURE_TYPE, 2);
           addField(type.createCreatureValueFromType(buffer, offset + 64));
           addField(type);
         } else {
@@ -231,8 +261,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
         addField(type.createIdsValueFromType(buffer));
         addField(type);
       }
-      addField(new ResourceRef(buffer, 68, "Default spell", "SPL"));
-      addField(new ResourceRef(buffer, 76, "Success spell", "SPL"));
+      addField(new ResourceRef(buffer, 68, PRO_SPELL_DEFAULT, "SPL"));
+      addField(new ResourceRef(buffer, 76, PRO_SPELL_SUCCESS, "SPL"));
       addField(new Unknown(buffer, offset + 84, 172));
     } else {
       addField(new Unknown(buffer, offset + 42, 214));

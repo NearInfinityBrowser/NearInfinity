@@ -9,14 +9,17 @@ import infinity.resource.AddRemovable;
 
 public final class KillVariable extends Variable implements AddRemovable
 {
+  // GAM/KillVariable-specific field labels
+  public static final String GAM_KILLVAR = "Kill variable";
+
   KillVariable() throws Exception
   {
-    super(null, "Kill variable", new byte[84], 0);
+    super(null, GAM_KILLVAR, new byte[84], 0);
   }
 
   KillVariable(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, "Kill variable " + number, buffer, offset);
+    super(superStruct, GAM_KILLVAR + " " + number, buffer, offset);
   }
 }
 

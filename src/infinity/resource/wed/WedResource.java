@@ -12,7 +12,7 @@ import infinity.datatype.SectionOffset;
 import infinity.datatype.TextString;
 import infinity.gui.StructViewer;
 import infinity.gui.hexview.BasicColorMap;
-import infinity.gui.hexview.HexViewer;
+import infinity.gui.hexview.StructHexViewer;
 import infinity.resource.AbstractStruct;
 import infinity.resource.AddRemovable;
 import infinity.resource.HasAddRemovable;
@@ -34,7 +34,21 @@ import javax.swing.JComponent;
 
 public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
-  private HexViewer hexViewer;
+  // WED-specific field labels
+  public static final String WED_NUM_OVERLAYS               = "# overlays";
+  public static final String WED_NUM_DOORS                  = "# doors";
+  public static final String WED_OFFSET_OVERLAYS            = "Overlays offset";
+  public static final String WED_OFFSET_SECOND_HEADER       = "Second header offset";
+  public static final String WED_OFFSET_DOORS               = "Doors offset";
+  public static final String WED_OFFSET_DOOR_TILEMAP_LOOKUP = "Door tilemap lookup offset";
+  public static final String WED_NUM_WALL_POLYGONS          = "# wall polygons";
+  public static final String WED_OFFSET_WALL_POLYGONS       = "Wall polygons offset";
+  public static final String WED_OFFSET_VERTICES            = "Vertices offset";
+  public static final String WED_OFFSET_WALL_GROUPS         = "Wall groups offset";
+  public static final String WED_OFFSET_WALL_POLYGON_LOOKUP = "Wall polygon lookup offset";
+  public static final String WED_WALL_POLYGON_INDEX         = "Wall polygon index";
+
+  private StructHexViewer hexViewer;
 
   public WedResource(ResourceEntry entry) throws Exception
   {
@@ -47,6 +61,18 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   public AddRemovable[] getAddRemovables() throws Exception
   {
     return new AddRemovable[]{new Door(), new WallPolygon(), new Wallgroup()};
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
+  {
+    return entry;
+  }
+
+  @Override
+  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  {
+    return true;
   }
 
 // --------------------- End Interface HasAddRemovable ---------------------
@@ -80,7 +106,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   public JComponent getViewerTab(int index)
   {
     if (hexViewer == null) {
-      hexViewer = new HexViewer(this, new BasicColorMap(this, true));
+      hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
     return hexViewer;
   }
@@ -168,23 +194,23 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   {
     int startOffset = offset;
 
-    addField(new TextString(buffer, offset, 4, "Signature"));
-    addField(new TextString(buffer, offset + 4, 4, "Version"));
-    SectionCount countOverlays = new SectionCount(buffer, offset + 8, 4, "# overlays",
+    addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
+    addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
+    SectionCount countOverlays = new SectionCount(buffer, offset + 8, 4, WED_NUM_OVERLAYS,
                                                   Overlay.class);
     addField(countOverlays);
-    SectionCount countDoors = new SectionCount(buffer, offset + 12, 4, "# doors",
+    SectionCount countDoors = new SectionCount(buffer, offset + 12, 4, WED_NUM_DOORS,
                                                Door.class);
     addField(countDoors);
-    SectionOffset offsetOverlays = new SectionOffset(buffer, offset + 16, "Overlays offset",
+    SectionOffset offsetOverlays = new SectionOffset(buffer, offset + 16, WED_OFFSET_OVERLAYS,
                                                      Overlay.class);
     addField(offsetOverlays);
-    SectionOffset offsetHeader2 = new SectionOffset(buffer, offset + 20, "Second header offset", null);
+    SectionOffset offsetHeader2 = new SectionOffset(buffer, offset + 20, WED_OFFSET_SECOND_HEADER, null);
     addField(offsetHeader2);
-    SectionOffset offsetDoors = new SectionOffset(buffer, offset + 24, "Doors offset",
+    SectionOffset offsetDoors = new SectionOffset(buffer, offset + 24, WED_OFFSET_DOORS,
                                                   Door.class);
     addField(offsetDoors);
-    HexNumber offsetDoortile = new HexNumber(buffer, offset + 28, 4, "Door tilemap lookup offset");
+    HexNumber offsetDoortile = new HexNumber(buffer, offset + 28, 4, WED_OFFSET_DOOR_TILEMAP_LOOKUP);
     addField(offsetDoortile);
 
     offset = offsetOverlays.getValue();
@@ -195,18 +221,18 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
 
     offset = offsetHeader2.getValue();
-    SectionCount countWallpolygons = new SectionCount(buffer, offset, 4, "# wall polygons",
+    SectionCount countWallpolygons = new SectionCount(buffer, offset, 4, WED_NUM_WALL_POLYGONS,
                                                       WallPolygon.class);
     addField(countWallpolygons);
-    SectionOffset offsetPolygons = new SectionOffset(buffer, offset + 4, "Wall polygons offset",
+    SectionOffset offsetPolygons = new SectionOffset(buffer, offset + 4, WED_OFFSET_WALL_POLYGONS,
                                                      WallPolygon.class);
     addField(offsetPolygons);
-    HexNumber offsetVertices = new HexNumber(buffer, offset + 8, 4, "Vertices offset");
+    HexNumber offsetVertices = new HexNumber(buffer, offset + 8, 4, WED_OFFSET_VERTICES);
     addField(offsetVertices);
-    SectionOffset offsetWallgroups = new SectionOffset(buffer, offset + 12, "Wall groups offset",
+    SectionOffset offsetWallgroups = new SectionOffset(buffer, offset + 12, WED_OFFSET_WALL_GROUPS,
                                                        Wallgroup.class);
     addField(offsetWallgroups);
-    SectionOffset offsetPolytable = new SectionOffset(buffer, offset + 16, "Wall polygon lookup offset",
+    SectionOffset offsetPolytable = new SectionOffset(buffer, offset + 16, WED_OFFSET_WALL_POLYGON_LOOKUP,
                                                       RemovableDecNumber.class);
     addField(offsetPolytable);
 
@@ -252,7 +278,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetPolytable.getValue();
     for (int i = 0; i < countPolytable; i++) {
-      addField(new DecNumber(buffer, offset + i * 2, 2, "Wall polygon index " + i));
+      addField(new DecNumber(buffer, offset + i * 2, 2, WED_WALL_POLYGON_INDEX + " " + i));
     }
 
     int endoffset = offset;
@@ -269,13 +295,13 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   private void updateSectionOffsets(AddRemovable datatype, int size)
   {
     if (!(datatype instanceof Vertex)) {
-      HexNumber offset_vertices = (HexNumber)getAttribute("Vertices offset");
+      HexNumber offset_vertices = (HexNumber)getAttribute(WED_OFFSET_VERTICES);
       if (datatype.getOffset() <= offset_vertices.getValue()) {
         offset_vertices.incValue(size);
       }
     }
     if (!(datatype instanceof RemovableDecNumber)) {
-      HexNumber offset_doortilemap = (HexNumber)getAttribute("Door tilemap lookup offset");
+      HexNumber offset_doortilemap = (HexNumber)getAttribute(WED_OFFSET_DOOR_TILEMAP_LOOKUP);
       if (datatype.getOffset() <= offset_doortilemap.getValue()) {
         offset_doortilemap.incValue(size);
       }
@@ -289,8 +315,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
 
     // Assumes polygon offset is correct
-    int offset = ((SectionOffset)getAttribute("Wall polygons offset")).getValue();
-    offset += ((SectionCount)getAttribute("# wall polygons")).getValue() * 18;
+    int offset = ((SectionOffset)getAttribute(WED_OFFSET_WALL_POLYGONS)).getValue();
+    offset += ((SectionCount)getAttribute(WED_NUM_WALL_POLYGONS)).getValue() * 18;
     for (int i = 0; i < getFieldCount(); i++) {
       Object o = getField(i);
       if (o instanceof Door) {
@@ -302,7 +328,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   private void updateVertices()
   {
     // Assumes vertices offset is correct
-    int offset = ((HexNumber)getAttribute("Vertices offset")).getValue();
+    int offset = ((HexNumber)getAttribute(WED_OFFSET_VERTICES)).getValue();
     int count = 0;
     for (int i = 0; i < getFieldCount(); i++) {
       Object o = getField(i);

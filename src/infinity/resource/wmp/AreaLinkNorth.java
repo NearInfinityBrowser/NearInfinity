@@ -8,13 +8,16 @@ import infinity.resource.AbstractStruct;
 
 class AreaLinkNorth extends AreaLink
 {
+  // WMP/AreaLinkNorth-specific field labels
+  public static final String WMP_LINK_NORTH = "North link";
+
   AreaLinkNorth() throws Exception
   {
-    super("North link");
+    super(WMP_LINK_NORTH);
   }
 
   AreaLinkNorth(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
   {
-    super(superStruct, buffer, offset, "North link " + number);
+    super(superStruct, buffer, offset, WMP_LINK_NORTH + " " + number);
   }
 }

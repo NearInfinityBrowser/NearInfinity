@@ -44,8 +44,8 @@ public class LayerAutomap extends BasicLayer<LayerObject>
       List<LayerObject> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute("Automap notes offset");
-        SectionCount sc = (SectionCount)are.getAttribute("# automap notes");
+        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AUTOMAP_NOTES);
+        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AUTOMAP_NOTES);
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();

@@ -6,6 +6,7 @@ package infinity.resource.sto;
 
 import infinity.datatype.Flag;
 import infinity.gui.ViewerUtil;
+import infinity.resource.AbstractStruct;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -24,14 +25,14 @@ public final class Viewer extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Name"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Type"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Sell markup"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Buy markup"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Lore"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Cost to identify"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Stealing difficulty"), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute("Depreciation rate"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_TYPE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_MARKUP_SELL), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_MARKUP_BUY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_LORE), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_COST_TO_IDENTIFY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_STEALING_DIFFICULTY), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_DEPRECIATION_RATE), gbl, gbc, true);
 
     return fieldPanel;
   }
@@ -39,19 +40,19 @@ public final class Viewer extends JPanel
   Viewer(StoResource sto)
   {
     JPanel salePanel;
-    if (sto.getAttribute("Version").toString().equalsIgnoreCase("V1.1"))
+    if (sto.getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V1.1"))
       salePanel =
-      ViewerUtil.makeListPanel("Items for sale", sto, ItemSale11.class, "Item");
+      ViewerUtil.makeListPanel("Items for sale", sto, ItemSale11.class, ItemSale11.STO_SALE_ITEM);
     else
       salePanel =
-      ViewerUtil.makeListPanel("Items for sale", sto, ItemSale.class, "Item");
+      ViewerUtil.makeListPanel("Items for sale", sto, ItemSale.class, ItemSale.STO_SALE_ITEM);
     JPanel curePanel = ViewerUtil.makeListPanel("Cures for sale", sto, Cure.class,
-                                                "Spell");
+                                                Cure.STO_CURE_SPELL);
     JPanel drinkPanel = ViewerUtil.makeListPanel("Drinks for sale", sto, Drink.class,
-                                                 "Drink name");
+                                                 Drink.STO_DRINK_NAME);
     JPanel buyPanel = ViewerUtil.makeListPanel("Items purchased", sto, Purchases.class,
                                                null);
-    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag)sto.getAttribute("Flags"), 1);
+    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag)sto.getAttribute(StoResource.STO_FLAGS), 1);
     JPanel fieldPanel = makeFieldPanel(sto);
 
     setLayout(new GridLayout(2, 3, 6, 6));
