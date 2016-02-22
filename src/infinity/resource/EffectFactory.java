@@ -1153,6 +1153,7 @@ public final class EffectFactory
             "Change weather", "Remove effects by resource"};
         break;
 
+      case BG1SoD:
       case BG2EE:
       case EET:
         s_effname = new String[]{
@@ -3977,7 +3978,8 @@ public final class EffectFactory
         break;
 
       case 360: // Ignore reputation breaking point
-        if (Profile.getGame() == Profile.Game.BG2EE ||
+        if (Profile.getGame() == Profile.Game.BG1SoD ||
+            Profile.getGame() == Profile.Game.BG2EE ||
             Profile.getGame() == Profile.Game.EET) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));

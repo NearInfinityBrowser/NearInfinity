@@ -19,7 +19,7 @@ import java.util.List;
  * Provides engine- and game-specific properties of the currently opened Infinity Engine game.<br>
  * <br>
  * Properties can be accessed by unique identifiers. The returned property can be
- * of any type defined by the enum {@link Profile.Type} or <code>null</code>.
+ * of any type defined by the enum {@link Profile.Type} or {@code null}.
  */
 public final class Profile
 {
@@ -36,18 +36,45 @@ public final class Profile
     /** Property data is of type {@link java.io.File}. */
     File,
     /** Property data is of any custom data type. */
-    Object
+    Object,
   }
 
   /** Supported Infinity Engine games. */
   public enum Game {
+    /** Default for unrecognized or unsupported engine. */
     Unknown,
-    BG1, BG1TotSC,
-    BG2SoA, BG2ToB, Tutu, BGT,
+    /** Baldur's Gate */
+    BG1,
+    /** Baldur's Gate: Tales of the Sword Coast */
+    BG1TotSC,
+    /** Baldur's Gate II: Shadows of Amn */
+    BG2SoA,
+    /** Baldur's Gate II: Throne of Bhaal */
+    BG2ToB,
+    /** BGTutu and EasyTutu */
+    Tutu,
+    /** Baldur's Gate Trilogy */
+    BGT,
+    /** Planescape: Torment */
     PST,
-    IWD, IWDHoW, IWDHowToTLM,
+    /** Icewind Dale */
+    IWD,
+    /** Icewind Dale: Heart of Winter */
+    IWDHoW,
+    /** Icewind Dale: Trials of the Luremaster */
+    IWDHowToTLM,
+    /** Icewind Dale II */
     IWD2,
-    BG1EE, BG2EE, IWDEE, EET
+    /** Baldur's Gate: Enhanced Edition */
+    BG1EE,
+    /** Baldur's Gate: Siege of Dragonspear */
+    BG1SoD,
+    /** Baldur's Gate II: Enhanced Edition */
+    BG2EE,
+    /** Icewind Dale: Enhanced Edition */
+    IWDEE,
+    /** Enhanced Edition Trilogy */
+    EET,
   }
 
   /** Supported Infinity Engine types by feature levels. */
@@ -60,12 +87,12 @@ public final class Profile
     BG2,
     /** Includes PST. */
     PST,
-    /** Includes IWD, IWDHoW and IWDHowTotLM. */
+    /** Includes IWD, IWDHoW and IWDTotLM. */
     IWD,
     /** Includes IWD2. */
     IWD2,
-    /** Includes BG1EE, BG2EE, IWDEE and EET. */
-    EE
+    /** Includes BG1EE, BG1SoD, BG2EE, IWDEE and EET. */
+    EE,
   }
 
   /*
@@ -144,7 +171,7 @@ public final class Profile
   /** Property: (File) Path to the currently selected <code>dialog.tlk</code>. */
   public static final int GET_GAME_DIALOG_FILE                = 120;
   /** Property: (File) Path to the currently selected female <code>dialogf.tlk</code>.
-   *            Returns <code>null</code> if the language does not require a dialogf.tlk. */
+   *            Returns {@code null} if the language does not require a dialogf.tlk. */
   public static final int GET_GAME_DIALOGF_FILE               = 121;
   /** Property: (List&lt;File&gt;) Unsorted list of extra folders containing BIFF archives.
    *            (Non-Enhanced Editions only) */
@@ -334,6 +361,7 @@ public final class Profile
     GAME_TITLE.put(Game.IWDHowToTLM, "Icewind Dale: Trials of the Luremaster");
     GAME_TITLE.put(Game.IWD2, "Icewind Dale II");
     GAME_TITLE.put(Game.BG1EE, "Baldur's Gate: Enhanced Edition");
+    GAME_TITLE.put(Game.BG1SoD, "Baldur's Gate: Siege of Dragonspear");
     GAME_TITLE.put(Game.BG2EE, "Baldur's Gate II: Enhanced Edition");
     GAME_TITLE.put(Game.IWDEE, "Icewind Dale: Enhanced Edition");
     GAME_TITLE.put(Game.EET, "Baldur's Gate - Enhanced Edition Trilogy");
@@ -345,8 +373,8 @@ public final class Profile
     final String[] BGEE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPSave", "MPBPSave",
                                           "Music", "Portraits", "Save", "Sounds", "ScrnShot", "Scripts",
                                           "Temp", "TempSave" };
-    final String[] IWDEE_EXTRA_FOLDERS = { "Characters", "Fonts", "Movies", "MPSave", "Music", "Portraits",
-                                           "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave" };
+    final String[] EE_EXTRA_FOLDERS = { "Characters", "Fonts", "Movies", "MPSave", "Music", "Portraits",
+                                        "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave" };
     GAME_EXTRA_FOLDERS.put(Game.Unknown, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.BG1, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, Arrays.asList(BG_EXTRA_FOLDERS));
@@ -360,12 +388,14 @@ public final class Profile
     GAME_EXTRA_FOLDERS.put(Game.IWDHowToTLM, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.IWD2, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.BG1EE, Arrays.asList(BGEE_EXTRA_FOLDERS));
+    GAME_EXTRA_FOLDERS.put(Game.BG1SoD, Arrays.asList(EE_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.BG2EE, Arrays.asList(BGEE_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.IWDEE, Arrays.asList(IWDEE_EXTRA_FOLDERS));
+    GAME_EXTRA_FOLDERS.put(Game.IWDEE, Arrays.asList(EE_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.EET, Arrays.asList(BGEE_EXTRA_FOLDERS));
 
     // initializing home folder names for Enhanced Edition games
     GAME_HOME_FOLDER.put(Game.BG1EE, "Baldur's Gate - Enhanced Edition");
+    GAME_HOME_FOLDER.put(Game.BG1SoD, "Baldur's Gate - Siege of Dragonspear");   // TODO: confirm!
     GAME_HOME_FOLDER.put(Game.BG2EE, "Baldur's Gate II - Enhanced Edition");
     GAME_HOME_FOLDER.put(Game.EET, GAME_HOME_FOLDER.get(Game.BG2EE));
     GAME_HOME_FOLDER.put(Game.IWDEE, "Icewind Dale - Enhanced Edition");
@@ -441,7 +471,7 @@ public final class Profile
   /**
    * Returns the data type of the specified property.
    * @param key The unique key identifying the property.
-   * @return The data type of the property, or <code>null</code> if not available.
+   * @return The data type of the property, or {@code null} if not available.
    */
   public static Type getPropertyType(int key)
   {
@@ -456,7 +486,7 @@ public final class Profile
   /**
    * Returns the actual data of the specified property.
    * @param key The unique key identifying the property.
-   * @return The data of the property, or <code>null</code> if not available.
+   * @return The data of the property, or {@code null} if not available.
    */
   public static Object getProperty(int key)
   {
@@ -467,8 +497,8 @@ public final class Profile
    * Returns the actual data of the specified property.
    * @param key The unique key identifying the property.
    * @param param An additional parameter required by a small number of properties.
-   *              Specify <code>null</code> to always return the parent structure of the property.
-   * @return The data of the property, or <code>null</code> if not available.
+   *              Specify {@code null} to always return the parent structure of the property.
+   * @return The data of the property, or {@code null} if not available.
    */
   public static Object getProperty(int key, Object param)
   {
@@ -505,7 +535,7 @@ public final class Profile
    * the previous Property value.
    * @param key The Property key.
    * @param data The new value of the Property instance.
-   * @return the previous value of the specified Property, or <code>null</code> if not available or applicable.
+   * @return the previous value of the specified Property, or {@code null} if not available or applicable.
    */
   public static Object updateProperty(int key, Object data)
   {
@@ -895,11 +925,13 @@ public final class Profile
     } else if (new FileNI(gameRoot, "movies/pocketzz.wbm").isFile()) {
       if (new FileNI(gameRoot, "override/EET.flag").isFile() ||
           new FileNI(gameRoot, "data/eetTU00.bif").isFile()) {
-        // REMEMBER: EET is still in development
         game = Game.EET;
       } else {
         game = Game.BG2EE;
       }
+      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
+    } else if (new FileNI(gameRoot, "movies/sodcin01.wbm").isFile()) {
+      game = Game.BG1SoD;
       addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/bgenter.wbm").isFile()) {
       game = Game.BG1EE;
@@ -1045,6 +1077,7 @@ public final class Profile
         engine = Engine.IWD2;
         break;
       case BG1EE:
+      case BG1SoD:
       case BG2EE:
       case IWDEE:
       case EET:
