@@ -35,7 +35,7 @@
          includes="**/*">
       <zipgroupfileset dir="${lib.path.abs}" includes="**/*.jar"/>
       <manifest>
-        <attribute name="Main-Class" value="infinity.NearInfinity"/>
+        <attribute name="Main-Class" value="org.infinity.NearInfinity"/>
       </manifest>
     </jar>
   </target>
