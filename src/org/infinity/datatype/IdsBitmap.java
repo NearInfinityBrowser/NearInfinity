@@ -83,6 +83,12 @@ public class IdsBitmap extends HashBitmap
       } else {
         retVal = idsMap.getMap();
       }
+
+      // XXX: ugly hack to add EA.IDS/ANYONE
+      if (resource.equalsIgnoreCase("EA.IDS") && !retVal.containsKey(0L)) {
+        retVal.put(0L, new IdsMapEntry(0L, "ANYONE", null));
+      }
+
     }
     return retVal;
   }
