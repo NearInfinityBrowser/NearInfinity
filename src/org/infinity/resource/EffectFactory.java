@@ -3412,7 +3412,7 @@ public final class EffectFactory
       case 233: // Modify proficiencies
         s.add(new MultiNumber(buffer, offset, 4, "# stars", 3, 2,
                               new String[]{"Active class", "Original class"}));
-        if (isTobEx) {
+        if (isTobEx || Profile.isEnhancedEdition()) {
           s.add(new IdsBitmap(buffer, offset + 4, 2, "Proficiency", "STATS.IDS"));
           s.add(new Bitmap(buffer, offset + 6, 2, "Behavior", new String[]{"Set if higher", "Increment"}));
         } else {
