@@ -128,7 +128,7 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     if (!asLink) {
       setText(text);
     } else if (resource != null && !resource.isEmpty()) {
-      setText("<html><a href=" + resource + '>' + text + "</a></html");
+      setText("<html><a href=\"" + resource + "\">" + text + "</a></html");
       addMouseListener(this);
       setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     } else {

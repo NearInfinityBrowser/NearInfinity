@@ -5,7 +5,6 @@
 package org.infinity.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -50,7 +49,6 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -88,6 +86,7 @@ import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.UpdaterSettings;
 import org.infinity.util.MassExporter;
+import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
 import org.infinity.util.StringResource;
 import org.infinity.util.io.FileNI;
@@ -2768,22 +2767,20 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void displayAbout()
     {
-      final String hauglidPage = "http://www.idi.ntnu.no/~joh/ni/";
-      final String[] githubPages = {"https://github.com/Argent77/NearInfinity/",
-                                    "https://github.com/NearInfinityBrowser/NearInfinity/"};
-      final String versionText = "Near Infinity " + VERSION;
-      final String hauglidVersionText = "From Near Infinity 1.32.1 beta 24";
-      final String hauglidCopyrightText = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
-      final String hauglidHTML = "<html><a href=" + hauglidPage + "/>" + hauglidPage + "</a></html>";
-
-      // NearInfinity copyright message
-      final String[] copyNearInfinityText = new String[]{
-          "This program is free and may be distributed according to the terms of ",
-          "the GNU Lesser General Public License."
+      // title string
+      final String versionString = "Near Infinity " + VERSION;
+      // list of current links
+      final ObjectString[] currentLinks = {
+          new ObjectString("Active branch", "https://github.com/Argent77/NearInfinity/"),
+          new ObjectString("Main branch", "https://github.com/NearInfinityBrowser/NearInfinity/"),
+          new ObjectString("Wiki page", "https://github.com/NearInfinityBrowser/NearInfinity/wiki"),
       };
-
+      // original author
+      final String originalVersion = "From Near Infinity 1.32.1 beta 24";
+      final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
+      final ObjectString originalLink = new ObjectString("Website", "http://www.idi.ntnu.no/~joh/ni/");
       // List of contributors (ordered chronologically)
-      final String[] contributorsText = new String[]{
+      final String[] contributors = {
           "devSin",
           "FredSRichardson",
           "Taimon",
@@ -2791,12 +2788,17 @@ public final class BrowserMenuBar extends JMenuBar
           "Fredrik Lindgren (aka Wisp)",
           "Argent77",
       };
-      final String[] contributorsMisc = new String[]{
+      // More contributors, in separate block
+      final String[] contributorsMisc = {
           "Near Infinity logo/icon by Cuv and Troodon80",
       };
-
+      // copyright message
+      final String[] copyNearInfinityText = {
+          "This program is free and may be distributed according to the terms of ",
+          "the GNU Lesser General Public License."
+      };
       // Third-party copyright messages
-      final String[] copyThirdPartyText = new String[]{
+      final String[] copyThirdPartyText = {
           "Most icons (\u00A9) eclipse.org - Common Public License.",
           "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
           "Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.",
@@ -2810,137 +2812,177 @@ public final class BrowserMenuBar extends JMenuBar
       final Font bigFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
       final Font smallFont = defaultfont.deriveFont(11.0f);
 
-      JLabel version = new JLabel(versionText);
-      version.setFont(bigFont);
-
-      JLabel[] githubLinks = new JLabel[githubPages.length];
-      for (int i = 0; i < githubLinks.length; i++) {
-        githubLinks[i] = new JLabel("<html><a href=" + githubPages[i] + "/>" + githubPages[i] + "</a></html>",
-                                    JLabel.LEADING);
-        githubLinks[i].setFont(font);
-        githubLinks[i].addMouseListener(new UrlBrowser(githubPages[i]));
-        githubLinks[i].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      }
-
-      JLabel hauglidVersion = new JLabel(hauglidVersionText, JLabel.LEADING);
-      hauglidVersion.setFont(font);
-      JLabel hauglidCopyright = new JLabel(hauglidCopyrightText, JLabel.LEADING);
-      hauglidCopyright.setFont(font);
-      JLabel hauglidLink = new JLabel(hauglidHTML, JLabel.LEADING);
-      hauglidLink.setFont(font);
-      hauglidLink.addMouseListener(new UrlBrowser(hauglidPage));
-      hauglidLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-      JPanel panel = new JPanel();
-      GridBagLayout gbl = new GridBagLayout();
       GridBagConstraints gbc = new GridBagConstraints();
-      panel.setLayout(gbl);
 
-      gbc.insets = new Insets(6, 6, 3, 6);
-      gbc.weightx = 1.0;
-      gbc.fill = GridBagConstraints.HORIZONTAL;
-      gbc.gridwidth = GridBagConstraints.REMAINDER;
-      gbl.setConstraints(version, gbc);
-      panel.add(version);
-      gbc.insets = new Insets(3, 6, 0, 6);
-      for (int i = 0; i < githubLinks.length; i++) {
-        if (i == githubLinks.length - 1) {
-          gbc.insets = new Insets(3, 6, 3, 6);
+      // version
+      JLabel lVersion = new JLabel(versionString);
+      lVersion.setFont(bigFont);
+
+      JPanel pLinks = new JPanel(new GridBagLayout());
+      {
+        int row = 0;
+        // current links
+        for (int i = 0; i < currentLinks.length; i++, row++) {
+          int top = (i > 0) ? 4 : 0;
+          JLabel lTitle = new JLabel(currentLinks[i].getString() + ":");
+          lTitle.setFont(font);
+          String link = currentLinks[i].getObject().toString();
+          JLabel lLink = ViewerUtil.createUrlLabel(link);
+          lLink.setFont(font);
+          gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                  GridBagConstraints.HORIZONTAL, new Insets(top, 0, 0, 0), 0, 0);
+          pLinks.add(lTitle, gbc);
+          gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                  GridBagConstraints.HORIZONTAL, new Insets(top, 4, 0, 0), 0, 0);
+          pLinks.add(lLink, gbc);
         }
-        gbl.setConstraints(githubLinks[i], gbc);
-        panel.add(githubLinks[i]);
+
+        // original author block
+        JLabel label = new JLabel(originalVersion);
+        label.setFont(font);
+        gbc = ViewerUtil.setGBC(gbc, 0, row, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+        pLinks.add(label, gbc);
+        row++;
+        label = new JLabel(originalCopyright);
+        label.setFont(font);
+        gbc = ViewerUtil.setGBC(gbc, 0, row, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        pLinks.add(label, gbc);
+        row++;
+        label = new JLabel(originalLink.getString() + ":");
+        label.setFont(font);
+        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+        pLinks.add(label, gbc);
+        String link = originalLink.getObject().toString();
+        label = ViewerUtil.createUrlLabel(link);
+        label.setFont(font);
+        gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+        pLinks.add(label, gbc);
+        row++;
       }
 
-      gbc.insets = new Insets(6, 6, 0, 6);
-      gbl.setConstraints(hauglidVersion, gbc);
-      panel.add(hauglidVersion);
-      gbc.insets = new Insets(0, 6, 0, 6);
-      gbl.setConstraints(hauglidCopyright, gbc);
-      panel.add(hauglidCopyright);
-      gbc.insets = new Insets(3, 6, 3, 6);
-      gbl.setConstraints(hauglidLink, gbc);
-      panel.add(hauglidLink);
+      // contributors
+      JPanel pContrib = new JPanel(new GridBagLayout());
+      {
+        // trying to limit line width to a certain maximum
+        FontMetrics fm = getFontMetrics(font);
+        double maxWidth = 0.0;
+        for (int i = 0; i < currentLinks.length; i++) {
+          String s = currentLinks[i].getString() + ": " + currentLinks[i].getObject().toString();
+          maxWidth = Math.max(maxWidth, fm.getStringBounds(s, getGraphics()).getWidth());
+        }
 
-      // Adding code contributors
-      gbc.insets = new Insets(9, 6, 0, 6);
-      // trying to limit line width to a certain maximum
-      FontMetrics fm = getFontMetrics(font);
-      double maxWidth = fm.getStringBounds(hauglidCopyrightText, getGraphics()).getWidth() * 1.75;
+        // adding title
+        int row = 0;
+        JLabel label = new JLabel("Additional Contributors (in chronological order):");
+        label.setFont(smallFont.deriveFont(12.0f));
+        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
+        pContrib.add(label, gbc);
+        row++;
 
-      // adding title
-      JLabel label = new JLabel("Additional Contributors:", SwingConstants.LEADING);
-      label.setFont(smallFont.deriveFont(12.0f));
-      gbl.setConstraints(label, gbc);
-      panel.add(label);
-      gbc.insets.top = 1;
-
-      // adding names
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < contributorsText.length; i++) {
-        if (i > 0) {
-          if (i+1 == contributorsText.length) {
-            sb.append(" and ");
-          } else {
-            sb.append(", ");
+        // adding names
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < contributors.length; i++) {
+          if (i > 0) {
+            if (i+1 == contributors.length) {
+              sb.append(" and ");
+            } else {
+              sb.append(", ");
+            }
           }
+          String s = sb.toString() + contributors[i];
+          if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
+            label = new JLabel(sb.toString());
+            label.setFont(smallFont);
+            gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                    GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+            pContrib.add(label, gbc);
+            row++;
+            sb = new StringBuilder();
+          }
+          sb.append(contributors[i]);
         }
-        String s = sb.toString() + contributorsText[i];
-        if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
-          label = new JLabel(sb.toString(), SwingConstants.LEADING);
+        label = new JLabel(sb.toString());
+        label.setFont(smallFont);
+        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        pContrib.add(label, gbc);
+        row++;
+
+        // Adding misc. contributors
+        for (int i = 0; i < contributorsMisc.length; i++) {
+          label = new JLabel(contributorsMisc[i]);
           label.setFont(smallFont);
-          gbl.setConstraints(label, gbc);
-          panel.add(label);
-          gbc.insets.top = 0;
-          sb = new StringBuilder();
+          gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                  GridBagConstraints.HORIZONTAL, new Insets(i == 0 ? 4 : 0, 0, 0, 0), 0, 0);
+          pContrib.add(label, gbc);
+          row++;
         }
-        sb.append(contributorsText[i]);
-      }
-      label = new JLabel(sb.toString(), SwingConstants.LEADING);
-      label.setFont(smallFont);
-      gbl.setConstraints(label, gbc);
-      panel.add(label);
-
-      // Adding misc. contributors
-      gbc.insets.top = 4;
-      for (int i = 0; i < contributorsMisc.length; i++) {
-        label = new JLabel(contributorsMisc[i], SwingConstants.LEADING);
-        label.setFont(smallFont);
-        gbl.setConstraints(label, gbc);
-        panel.add(label);
-        gbc.insets.top = 0;
       }
 
-      // NearInfinity copyright message
-      gbc.insets.top = 12;
-      label = new JLabel("Near Infinity license:");
-      label.setFont(smallFont.deriveFont(12.0f));
-      gbl.setConstraints(label, gbc);
-      panel.add(label);
-      gbc.insets.top = 1;
+      // Near Infinity license
+      JPanel pLicense = new JPanel(new GridBagLayout());
+      {
+        int row = 0;
+        JLabel label = new JLabel("Near Infinity license:");
+        label.setFont(smallFont.deriveFont(12.0f));
+        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
+        pLicense.add(label, gbc);
+        row++;
 
-      for (int i = 0; i < copyNearInfinityText.length; i++) {
-        label = new JLabel(copyNearInfinityText[i], SwingConstants.LEADING);
-        label.setFont(smallFont);
-        gbl.setConstraints(label, gbc);
-        panel.add(label);
-        gbc.insets.top = 0;
+        for (int i = 0; i < copyNearInfinityText.length; i++) {
+          label = new JLabel(copyNearInfinityText[i]);
+          label.setFont(smallFont);
+          gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                  GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          pLicense.add(label, gbc);
+          row++;
+        }
       }
 
-      // Third-party copyright messages
-      gbc.insets.top = 12;
-      label = new JLabel("Additional licenses:");
-      label.setFont(smallFont.deriveFont(12.0f));
-      gbl.setConstraints(label, gbc);
-      panel.add(label);
-      gbc.insets.top = 1;
+      // Additional licenses
+      JPanel pMiscLicenses = new JPanel(new GridBagLayout());
+      {
+        int row = 0;
+        JLabel label = new JLabel("Additional licenses:");
+        label.setFont(smallFont.deriveFont(12.0f));
+        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
+        pMiscLicenses.add(label, gbc);
+        row++;
 
-      for (int i = 0; i < copyThirdPartyText.length; i++) {
-        label = new JLabel(copyThirdPartyText[i], SwingConstants.LEADING);
-        label.setFont(smallFont);
-        gbl.setConstraints(label, gbc);
-        panel.add(label);
-        gbc.insets.top = 0;
+        for (int i = 0; i < copyThirdPartyText.length; i++) {
+          label = new JLabel(copyThirdPartyText[i]);
+          label.setFont(smallFont);
+          gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                  GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          pMiscLicenses.add(label, gbc);
+          row++;
+        }
       }
+
+      // putting all together
+      JPanel panel = new JPanel(new GridBagLayout());
+      gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      panel.add(lVersion, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+      panel.add(pLinks, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+      panel.add(pContrib, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+      panel.add(pLicense, gbc);
+      gbc = ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+      panel.add(pMiscLicenses, gbc);
 
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "About Near Infinity",
                                     JOptionPane.INFORMATION_MESSAGE, Icons.getIcon("App128.png"));

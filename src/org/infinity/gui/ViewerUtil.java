@@ -6,6 +6,7 @@ package org.infinity.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -271,6 +272,27 @@ public final class ViewerUtil
     gbc.ipady = iPadY;
 
     return gbc;
+  }
+
+  /** Returns a JLabel control containing a clickable link. */
+  public static JLabel createUrlLabel(String url)
+  {
+    return createUrlLabel(url, url, SwingConstants.LEADING);
+  }
+
+  /** Returns a JLabel control containing a clickable link. */
+  public static JLabel createUrlLabel(String text, String url)
+  {
+    return createUrlLabel(text, url, SwingConstants.LEADING);
+  }
+
+  /** Returns a JLabel control containing a clickable link. */
+  public static JLabel createUrlLabel(String text, String url, int horizontalAlignment)
+  {
+    JLabel l = new JLabel("<html><a href=\"" + url + "\">" + text + "</a></html>", horizontalAlignment);
+    l.addMouseListener(new UrlBrowser(url));
+    l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    return l;
   }
 
   private ViewerUtil(){}
