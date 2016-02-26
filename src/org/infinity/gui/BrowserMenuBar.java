@@ -2471,7 +2471,7 @@ public final class BrowserMenuBar extends JMenuBar
     private void applyCustomFont(Font font)
     {
       int index = FONTS.length - 1;
-      FONTS[index] = (font != null) ? font : (new JMenuItem()).getFont().deriveFont(Font.PLAIN);
+      FONTS[index] = (font != null) ? font : UIManager.getFont("MenuItem.font").deriveFont(Font.PLAIN);
       selectFont[index].setText(String.format("Select font... (%1$s %2$d)",
                                               FONTS[index].getName(), FONTS[index].getSize()));
       selectFont[index].setFont(FONTS[index].deriveFont((float)12.0f));
@@ -2815,7 +2815,7 @@ public final class BrowserMenuBar extends JMenuBar
       };
 
       // Fixed elements
-      final Font defaultfont = (new JLabel()).getFont();
+      final Font defaultfont = UIManager.getFont("Label.font");
       final Font font = defaultfont.deriveFont(13.0f);
       final Font bigFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
       final Font smallFont = defaultfont.deriveFont(11.0f);

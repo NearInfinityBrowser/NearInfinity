@@ -5,9 +5,11 @@
 package org.infinity.resource.are.viewer;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -35,6 +37,7 @@ import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -237,15 +240,16 @@ public class SettingsDialog extends JDialog
     bDefaultOrder = new JButton("Default stacking order");
     bDefaultOrder.addActionListener(this);
 
-    JLabel lDummy = new JLabel();
     JTextArea taOrderNote = new JTextArea();
     taOrderNote.setEditable(false);
     taOrderNote.setWrapStyleWord(true);
     taOrderNote.setLineWrap(true);
-    taOrderNote.setFont(lDummy.getFont());
-    taOrderNote.setBackground(lDummy.getBackground());
-    taOrderNote.setSelectionColor(lDummy.getBackground());
-    taOrderNote.setSelectedTextColor(lDummy.getForeground());
+    Font fnt = UIManager.getFont("Label.font");
+    Color bg = UIManager.getColor("Label.background");
+    taOrderNote.setFont(fnt);
+    taOrderNote.setBackground(bg);
+    taOrderNote.setSelectionColor(bg);
+    taOrderNote.setSelectedTextColor(bg);
     taOrderNote.setText("Note: Layers of higher priority are drawn on top of layers of lower priority.");
 
     JPanel pLayersArrows = new JPanel(new GridBagLayout());
@@ -333,10 +337,10 @@ public class SettingsDialog extends JDialog
     taFrameRatesNote.setEditable(false);
     taFrameRatesNote.setWrapStyleWord(true);
     taFrameRatesNote.setLineWrap(true);
-    taFrameRatesNote.setFont(lDummy.getFont());
-    taFrameRatesNote.setBackground(lDummy.getBackground());
-    taFrameRatesNote.setSelectionColor(lDummy.getBackground());
-    taFrameRatesNote.setSelectedTextColor(lDummy.getForeground());
+    taFrameRatesNote.setFont(fnt);
+    taFrameRatesNote.setBackground(bg);
+    taFrameRatesNote.setSelectionColor(bg);
+    taFrameRatesNote.setSelectedTextColor(bg);
     taFrameRatesNote.setText("Caution: The area viewer may become less responsive on higher frame rates.");
 
     sOverlaysFps = new JSpinner(new SpinnerNumberModel(Settings.FrameRateOverlays, 1.0, 30.0, 0.5));

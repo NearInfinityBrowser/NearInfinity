@@ -5,6 +5,7 @@
 package org.infinity.gui.converter;
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -27,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -161,13 +163,13 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
     cbType.addActionListener(this);
     spinnerFactor = new JSpinner(new SpinnerNumberModel(1.0, 0.01, 10.0, 0.05));
     spinnerFactor.addChangeListener(this);
-    JLabel l = new JLabel();
     taInfo = new JTextArea(2, 0);
     taInfo.setEditable(false);
-    taInfo.setFont(l.getFont());
-    taInfo.setBackground(l.getBackground());
-    taInfo.setSelectionColor(l.getBackground());
-    taInfo.setSelectedTextColor(l.getForeground());
+    taInfo.setFont(UIManager.getFont("Label.font"));
+    Color bg = UIManager.getColor("Label.background");
+    taInfo.setBackground(bg);
+    taInfo.setSelectionColor(bg);
+    taInfo.setSelectedTextColor(bg);
     taInfo.setWrapStyleWord(true);
     taInfo.setLineWrap(true);
     cbAdjustCenter = new JCheckBox("Adjust center position", true);

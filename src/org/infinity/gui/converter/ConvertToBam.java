@@ -76,6 +76,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -1645,13 +1646,13 @@ public class ConvertToBam extends ChildFrame
 
     JPanel pFiltersDesc = new JPanel(new GridBagLayout());
     pFiltersDesc.setBorder(BorderFactory.createTitledBorder("Filter Description "));
-    JLabel l = new JLabel();
     taFiltersDesc = new JTextArea(8, 0);
     taFiltersDesc.setEditable(false);
-    taFiltersDesc.setFont(l.getFont());
-    taFiltersDesc.setBackground(l.getBackground());
-    taFiltersDesc.setSelectionColor(l.getBackground());
-    taFiltersDesc.setSelectedTextColor(l.getForeground());
+    taFiltersDesc.setFont(UIManager.getFont("Label.font"));
+    Color bg = UIManager.getColor("Label.background");
+    taFiltersDesc.setBackground(bg);
+    taFiltersDesc.setSelectionColor(bg);
+    taFiltersDesc.setSelectedTextColor(bg);
     taFiltersDesc.setWrapStyleWord(true);
     taFiltersDesc.setLineWrap(true);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
@@ -1700,7 +1701,7 @@ public class ConvertToBam extends ChildFrame
 
     // creating "Quick Preview" section
     JPanel pFiltersPreviewControls = new JPanel(new GridBagLayout());
-    l = new JLabel("Frame:");
+    JLabel l = new JLabel("Frame:");
     cbFiltersShowMarker = new JCheckBox("Show markers", false);
     cbFiltersShowMarker.addActionListener(this);
     sFiltersPreviewFrame = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));

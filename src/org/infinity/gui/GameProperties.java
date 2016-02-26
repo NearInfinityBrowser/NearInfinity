@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 
 import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
@@ -347,7 +348,6 @@ public final class GameProperties extends ChildFrame implements ActionListener
   // Creates a read-only text field, optionally with visible caret
   private static JTextField createReadOnlyField(String text, boolean showCaret)
   {
-    JLabel l = new JLabel();
     JTextField tf = new JTextField();
     if (showCaret) {
       tf.addFocusListener(new FocusListener() {
@@ -366,7 +366,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
       });
     }
     tf.setEditable(false);
-    tf.setFont(l.getFont());
+    tf.setFont(UIManager.getFont("Label.font"));
     if (text != null) {
       tf.setText(text);
       tf.setCaretPosition(0);

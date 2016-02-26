@@ -31,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -256,7 +257,6 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
   // Creates a read-only text field, optionally with visible caret
   private static JTextField createReadOnlyField(String text, boolean showCaret)
   {
-    JLabel l = new JLabel();
     JTextField tf = new JTextField();
     if (showCaret) {
       tf.addFocusListener(new FocusListener() {
@@ -275,7 +275,7 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
       });
     }
     tf.setEditable(false);
-    tf.setFont(l.getFont());
+    tf.setFont(UIManager.getFont("Label.font"));
     if (text != null) {
       tf.setText(text);
       tf.setCaretPosition(0);
