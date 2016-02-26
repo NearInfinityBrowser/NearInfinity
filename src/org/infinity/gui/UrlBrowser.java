@@ -7,6 +7,7 @@ package org.infinity.gui;
 import java.awt.Desktop;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.net.URI;
 
 import javax.swing.JOptionPane;
@@ -21,6 +22,22 @@ import org.infinity.NearInfinity;
 class UrlBrowser implements MouseListener
 {
   private final URI url;
+
+  /** Opens the specified URL in the system's default browser. */
+  static boolean openUrl(String url)
+  {
+    boolean retVal = false;
+    Desktop desktop = Desktop.getDesktop();
+    if (desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
+      try {
+        desktop.browse(URI.create(url));
+        retVal = true;
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return retVal;
+  }
 
   UrlBrowser(String urlText)
   {

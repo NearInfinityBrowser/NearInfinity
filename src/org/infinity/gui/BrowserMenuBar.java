@@ -2675,7 +2675,9 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class HelpMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem helpAbout, helpLicense,
+    private static final String wikiUrl = "https://github.com/NearInfinityBrowser/NearInfinity/wiki";
+
+    private final JMenuItem helpAbout, helpWiki, helpLicense,
                             helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense,
                             helpMonteMediaLicense, helpJFontChooserLicense,
                             helpUpdateSettings, helpUpdateCheck;
@@ -2687,6 +2689,10 @@ public final class BrowserMenuBar extends JMenuBar
 
       helpAbout = makeMenuItem("About Near Infinity", KeyEvent.VK_A, Icons.getIcon("About16.gif"), -1, this);
       add(helpAbout);
+
+      helpWiki = makeMenuItem("Near Infinity Wiki", KeyEvent.VK_W, Icons.getIcon("Help16.gif"), -1, this);
+      helpWiki.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
+      add(helpWiki);
 
       helpLicense =
           makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.getIcon("Edit16.gif"), -1, this);
@@ -2730,6 +2736,8 @@ public final class BrowserMenuBar extends JMenuBar
     {
       if (event.getSource() == helpAbout) {
         displayAbout();
+      } else if (event.getSource() == helpWiki) {
+        UrlBrowser.openUrl(wikiUrl);
       } else if (event.getSource() == helpLicense) {
         displayLicense("org/infinity/License.txt", "LGPL License");
       } else if (event.getSource() == helpJOrbisLicense) {
@@ -2773,7 +2781,7 @@ public final class BrowserMenuBar extends JMenuBar
       final ObjectString[] currentLinks = {
           new ObjectString("Active branch", "https://github.com/Argent77/NearInfinity/"),
           new ObjectString("Main branch", "https://github.com/NearInfinityBrowser/NearInfinity/"),
-          new ObjectString("Wiki page", "https://github.com/NearInfinityBrowser/NearInfinity/wiki"),
+          new ObjectString("Wiki page", wikiUrl),
       };
       // original author
       final String originalVersion = "From Near Infinity 1.32.1 beta 24";
