@@ -6,6 +6,7 @@ package org.infinity.resource.dlg;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -28,7 +29,6 @@ import java.util.Stack;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -41,6 +41,7 @@ import javax.swing.JViewport;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -66,6 +67,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.LinkButton;
+import org.infinity.gui.ScriptTextArea;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
@@ -1558,13 +1560,16 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private static final String CARD_STATE    = "State";
     private static final String CARD_RESPONSE = "Response";
 
+    private static final Color  COLOR_BACKGROUND = UIManager.getColor("Panel.background");
+    private static final Font   FONT_DEFAULT = UIManager.getFont("Label.font").deriveFont(0);
+
     private final CardLayout cardLayout;
     private final JPanel pMainPanel, pState, pResponse, pStateText, pStateWAV, pStateTrigger,
                          pResponseFlags, pResponseText, pResponseJournal, pResponseTrigger,
                          pResponseAction;
-    private final JTextArea taStateText, taStateTrigger;
+    private final ScriptTextArea taStateTrigger, taResponseTrigger, taResponseAction;
     private final LinkButton lbStateWAV;
-    private final JTextArea taResponseText, taResponseJournal, taResponseTrigger, taResponseAction;
+    private final JTextArea taStateText, taResponseText, taResponseJournal;
     private final JTextField tfResponseFlags;
 
 
@@ -1601,7 +1606,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
                               GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
       pStateWAV.add(lbStateWAV, gbc);
 
-      taStateTrigger = createReadOnlyTextArea();
+      taStateTrigger = createScriptTextArea(true);
       taStateTrigger.setFont(BrowserMenuBar.getInstance().getScriptFont());
       taStateTrigger.setMargin(new Insets(0, 4, 0, 4));
       pStateTrigger = new JPanel(new BorderLayout());
@@ -1645,14 +1650,14 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pResponseJournal.setBorder(createTitledBorder("Journal entry", Font.BOLD, false));
       pResponseJournal.add(taResponseJournal, BorderLayout.CENTER);
 
-      taResponseTrigger = createReadOnlyTextArea();
+      taResponseTrigger = createScriptTextArea(true);
       taResponseTrigger.setFont(BrowserMenuBar.getInstance().getScriptFont());
       taResponseTrigger.setMargin(new Insets(0, 4, 0, 4));
       pResponseTrigger = new JPanel(new BorderLayout());
       pResponseTrigger.setBorder(createTitledBorder("Response trigger", Font.BOLD, false));
       pResponseTrigger.add(taResponseTrigger, BorderLayout.CENTER);
 
-      taResponseAction = createReadOnlyTextArea();
+      taResponseAction = createScriptTextArea(true);
       taResponseAction.setFont(BrowserMenuBar.getInstance().getScriptFont());
       taResponseAction.setMargin(new Insets(0, 4, 0, 4));
       pResponseAction = new JPanel(new BorderLayout());
@@ -1780,14 +1785,27 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     // Helper method for creating a read-only textarea component
     private JTextArea createReadOnlyTextArea()
     {
-      JLabel l = new JLabel();
       JTextArea ta = new JTextArea();
       ta.setEditable(false);
-      ta.setFont(new Font(l.getFont().getFamily(), 0, l.getFont().getSize()));
-      ta.setBackground(l.getBackground());
+      ta.setFont(FONT_DEFAULT);
+      ta.setBackground(COLOR_BACKGROUND);
       ta.setWrapStyleWord(true);
       ta.setLineWrap(true);
-      l = null;
+
+      return ta;
+    }
+
+    // Helper method for creating a ScriptTextArea component
+    private ScriptTextArea createScriptTextArea(boolean readOnly)
+    {
+      ScriptTextArea ta = new ScriptTextArea();
+      if (readOnly) {
+        ta.setBackground(COLOR_BACKGROUND);
+        ta.setHighlightCurrentLine(false);
+      }
+      ta.setEditable(!readOnly);
+      ta.setWrapStyleWord(true);
+      ta.setLineWrap(true);
 
       return ta;
     }
@@ -1795,13 +1813,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     // Helper method for creating a read-only textfield component
     private JTextField createReadOnlyTextField()
     {
-      JLabel l = new JLabel();
       JTextField tf = new JTextField();
       tf.setBorder(BorderFactory.createEmptyBorder());
       tf.setEditable(false);
-      tf.setFont(new Font(l.getFont().getFamily(), 0, l.getFont().getSize()));
-      tf.setBackground(l.getBackground());
-      l = null;
+      tf.setFont(FONT_DEFAULT);
+      tf.setBackground(COLOR_BACKGROUND);
 
       return tf;
     }
@@ -1813,7 +1829,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       TitledBorder tb = BorderFactory.createTitledBorder(title);
       Font f = tb.getTitleFont();
       if (f == null) {
-        f = (new JLabel()).getFont();
+        f = FONT_DEFAULT;
       }
       if (f != null) {
         tb.setTitleFont(new Font(f.getFamily(), fontStyle, isTitle ? (f.getSize() + 1) : f.getSize()));
