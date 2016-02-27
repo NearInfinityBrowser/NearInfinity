@@ -7,7 +7,7 @@ package org.infinity.datatype;
 import java.util.EventListener;
 
 /**
- * Used in conjunction with infinity.datatype.Editable's updateValue() method.
+ * Used in conjunction with {@code infinity.datatype.Editable}'s updateValue() method.
  * @author argent77
  */
 public interface UpdateListener extends EventListener
