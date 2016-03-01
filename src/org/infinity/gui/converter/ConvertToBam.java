@@ -48,6 +48,7 @@ import java.util.Locale;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
@@ -248,10 +249,11 @@ public class ConvertToBam extends ChildFrame
   public static FileNameExtensionFilter[] getGraphicsFilters()
   {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bam, *.bmp, *.png, *,jpg, *.jpeg)",
-                                    "bam", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("Graphics files (*.bam, *.bmp, *.gif, *.png, *,jpg, *.jpeg)",
+                                    "bam", "bmp", "gif", "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BAM files (*.bam)", "bam"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
+        new FileNameExtensionFilter("GIF files (*.gif)", "gif"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
     };
@@ -2345,7 +2347,7 @@ public class ConvertToBam extends ChildFrame
                 skippedFiles.add(entries[i].toString());
               }
             } else {
-              if (framesAddImage(idx + 1, entries[i]) != null) {
+              if (framesAddImage(idx + 1, entries[i], -1)) {
                 idx++;
               } else {
                 skippedFiles.add(entries[i].toString());
@@ -2487,74 +2489,98 @@ public class ConvertToBam extends ChildFrame
     return -1;
   }
 
-  private BufferedImage framesAddImage(int listIndex, File file)
+  private boolean framesAddImage(int listIndex, File file, int frameIndex)
   {
     if (file != null) {
-      return framesAddImage(listIndex, new FileResourceEntry(file));
+      return framesAddImage(listIndex, new FileResourceEntry(file), frameIndex);
     } else {
-      return null;
+      return false;
     }
   }
 
-  // Specific: Adds the specified source image to the frames list.
-  // Returns the BufferedImage object of the source image, or null on error.
-  private BufferedImage framesAddImage(int listIndex, ResourceEntry entry)
+  /**
+   * Adds the specified source graphics file to the frames list.
+   * @param listIndex The start position of the image or images in the frames list.
+   * @param entry The resource entry pointing to the graphics file.
+   * @param frameIndex An optional index for graphics files with multiple frames.
+   *                   This is relevant for loading specific frames from animated GIFs.
+   *                   Specify {@code -1} to load all available frames.
+   * @return {@code true} if image or images have been successfully added to the frames list.
+   */
+  private boolean framesAddImage(int listIndex, ResourceEntry entry, int frameIndex)
   {
+    boolean retVal = false;
     if (listIndex >= 0 && entry != null) {
       try {
         InputStream is = entry.getResourceDataAsStream();
-        BufferedImage image = ColorConvert.toBufferedImage(ImageIO.read(is), true, false);
-
-        // transparency detection for paletted images
-        if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-          if (!((IndexColorModel)image.getColorModel()).hasAlpha()) {
-            int[] cmap = new int[256];
-            int transIndex = -1;
-            IndexColorModel srcCm = (IndexColorModel)image.getColorModel();
-            int numColors = 1 << srcCm.getPixelSize();
-            for (int i = 0; i < numColors; i++) {
-              cmap[i] = (srcCm.getRed(i) << 16) | (srcCm.getGreen(i) << 8) | srcCm.getBlue(i);
-              // marking first occurence of "Green" as transparent
-              if (transIndex < 0 && cmap[i] == 0x0000ff00) {
-                transIndex = i;
-              }
-            }
-
-            // fallback to index 0 as transparent color
-            if (transIndex < 0) {
-              transIndex = 0;
-            }
-
-            // Adding transparency to image
-            IndexColorModel cm = new IndexColorModel(8, 256, cmap, 0, false, transIndex, DataBuffer.TYPE_BYTE);
-            BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
-            byte[] srcBuffer = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
-            byte[] dstBuffer = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
-            System.arraycopy(srcBuffer, 0, dstBuffer, 0, srcBuffer.length);
-            srcBuffer = null; dstBuffer = null;
-            cmap = null;
-            image = dstImage;
+        ImageReader reader = (ImageReader)ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
+        reader.setInput(ImageIO.createImageInputStream(is), false);
+        int numFrames = reader.getNumImages(true);
+        retVal = (numFrames > 0);
+        for (int frameIdx = 0, curFrameIdx = 0; frameIdx < numFrames; frameIdx++) {
+          BufferedImage image = reader.read(frameIdx);
+          if (image == null) {
+            retVal = false;
+            break;
           }
-        }
+          if (frameIndex >= 0 && frameIdx != frameIndex) {
+            // skip if frame has not been requested
+            continue;
+          }
 
-        if (image != null) {
-          modelFrames.insert(listIndex, image, new Point());
+          // transparency detection for paletted images
+          if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+            if (!((IndexColorModel)image.getColorModel()).hasAlpha()) {
+              int[] cmap = new int[256];
+              int transIndex = -1;
+              IndexColorModel srcCm = (IndexColorModel)image.getColorModel();
+              int numColors = 1 << srcCm.getPixelSize();
+              for (int i = 0; i < numColors; i++) {
+                cmap[i] = (srcCm.getRed(i) << 16) | (srcCm.getGreen(i) << 8) | srcCm.getBlue(i);
+                // marking first occurence of "Green" as transparent
+                if (transIndex < 0 && cmap[i] == 0x0000ff00) {
+                  transIndex = i;
+                }
+              }
+
+              // fallback to index 0 as transparent color
+              if (transIndex < 0) {
+                transIndex = 0;
+              }
+
+              // Adding transparency to image
+              IndexColorModel cm = new IndexColorModel(8, 256, cmap, 0, false, transIndex, DataBuffer.TYPE_BYTE);
+              BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
+              byte[] srcBuffer = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+              byte[] dstBuffer = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+              System.arraycopy(srcBuffer, 0, dstBuffer, 0, srcBuffer.length);
+              srcBuffer = null; dstBuffer = null;
+              cmap = null;
+              image = dstImage;
+            }
+          }
+
+          modelFrames.insert(listIndex + curFrameIdx, image, new Point());
           // setting required extra options
-          PseudoBamFrameEntry fe2 = modelFrames.getDecoder().getFrameInfo(listIndex);
+          PseudoBamFrameEntry fe2 = modelFrames.getDecoder().getFrameInfo(listIndex + curFrameIdx);
           if (entry instanceof FileResourceEntry) {
             fe2.setOption(BAM_FRAME_OPTION_PATH, entry.getActualFile().getPath());
           } else {
             fe2.setOption(BAM_FRAME_OPTION_PATH, BAM_FRAME_PATH_BIFF + entry.getResourceName());
           }
-          fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, Integer.valueOf(0));
-          fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName());
-          return image;
+          fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, Integer.valueOf(frameIdx));
+          if (numFrames > 1) {
+            fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName() + ":" + frameIdx);
+          } else {
+            fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName());
+          }
+          curFrameIdx++;
         }
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
-    return null;
+    return retVal;
   }
 
   // Action for "Import BAM file...": loads a complete frames/cycles structure
@@ -5274,7 +5300,7 @@ public class ConvertToBam extends ChildFrame
           if (data.isBam) {
             bam.framesAddBamFrame(i, data.decoder, data.control, frame.index, data.cm);
           } else {
-            bam.framesAddImage(i, data.file);
+            bam.framesAddImage(i, data.file, frame.index);
           }
         }
         bam.updateFramesList();
@@ -5595,7 +5621,7 @@ public class ConvertToBam extends ChildFrame
           if (name.indexOf(':') > 0) {
             name = name.substring(0, name.indexOf(':'));
           }
-          if (!name.isEmpty() && name.length() <= 12) {
+          if (!name.isEmpty()) {
             File file = new File(ConvertToBam.currentPath, name);
             retVal = ensureFileExtension(file, "ini").getPath().toLowerCase(Locale.ENGLISH);
           }
