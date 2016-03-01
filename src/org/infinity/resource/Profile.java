@@ -1100,10 +1100,10 @@ public final class Profile
     if (!langRoot.isDirectory()) {
       langRoot = null;
     }
-    // fallback language in case the selected language is not available
+    // fallback language added if selected language is non-english
     String languageDef = ResourceFactory.fetchGameLanguage(null);
     File langRootDef = FileNI.getFile((File)getProperty(GET_GAME_LANG_FOLDER_BASE), languageDef);
-    if (langRoot != null || language.equals(languageDef) || !langRootDef.isDirectory()) {
+    if (languageDef.equals(language)) {
       langRootDef = null;
     }
 
