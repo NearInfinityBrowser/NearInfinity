@@ -44,6 +44,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ColorGrid.MouseOverEvent;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.io.FileInputStreamNI;
 
 // TODO: change filter to display the palette in the state after applying previous filters (if any)
@@ -114,6 +115,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
   public String getConfiguration()
   {
     StringBuilder sb = new StringBuilder();
+    sb.append(encodeColorList(paletteDialog.getPalette()));
     return sb.toString();
   }
 
@@ -127,7 +129,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         int[] colors = null;
 
         if (params.length > 0) {
-          colors = decodeColorList(params[0]);
+          colors = decodePalette(params[0]);
           if (colors == null) {
             return false;
           }
@@ -165,6 +167,9 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         int height = srcImage.getHeight();
         IndexColorModel cm = (IndexColorModel)srcImage.getColorModel();
         int[] newPalette = paletteDialog.getPalette();
+        for (int i = 0; i < newPalette.length; i++) {
+          newPalette[i] |= 0xff000000;
+        }
 
         IndexColorModel cm2 = new IndexColorModel(8, 256, newPalette, 0, cm.hasAlpha(),
                                                   cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
@@ -179,6 +184,24 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
     return dstImage;
   }
 
+  /** Parses a list of color values from a parameter string of the format "[rgb1,rgb2,...]". */
+  private int[] decodePalette(String param)
+  {
+    int[] palette = null;
+    if (param != null && param.matches("\\[.*\\]")) {
+      String colorString = param.substring(1, param.length() - 1).trim();
+      if (!colorString.isEmpty()) {
+        String[] colors = colorString.split(",");
+        palette = new int[colors.length];
+        for (int i = 0; i < colors.length; i++) {
+          palette[i] = Misc.toNumber(colors[i], 0);
+        }
+      } else {
+        palette = new int[0];
+      }
+    }
+    return palette;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -225,6 +248,13 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
     public void close()
     {
       if (isVisible()) {
+        if (tfColorRed.isFocusOwner()) {
+          registerColorValue(tfColorRed);
+        } else if (tfColorGreen.isFocusOwner()) {
+          registerColorValue(tfColorGreen);
+        } else if (tfColorBlue.isFocusOwner()) {
+          registerColorValue(tfColorBlue);
+        }
         setVisible(false);
       }
     }
@@ -244,7 +274,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       int[] retVal = new int[256];
       int max = Math.min(retVal.length, cgPalette.getColorCount());
       for (int i = 0; i < max; i++) {
-        retVal[i] = cgPalette.getColor(i).getRGB();
+        retVal[i] = cgPalette.getColor(i).getRGB() & 0xffffff;
       }
       return retVal;
     }
@@ -379,18 +409,8 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
     @Override
     public void focusLost(FocusEvent event)
     {
-      if (event.getSource() == tfColorRed) {
-        currentRed = ConvertToBam.numberValidator(tfColorRed.getText(), 0, 255, currentRed);
-        tfColorRed.setText(Integer.toString(currentRed));
-        updateCurrentColor();
-      } else if (event.getSource() == tfColorGreen) {
-        currentGreen = ConvertToBam.numberValidator(tfColorGreen.getText(), 0, 255, currentGreen);
-        tfColorGreen.setText(Integer.toString(currentGreen));
-        updateCurrentColor();
-      } else if (event.getSource() == tfColorBlue) {
-        currentBlue = ConvertToBam.numberValidator(tfColorBlue.getText(), 0, 255, currentBlue);
-        tfColorBlue.setText(Integer.toString(currentBlue));
-        updateCurrentColor();
+      if (event.getSource() instanceof JTextField) {
+        registerColorValue((JTextField)event.getSource());
       }
     }
 
@@ -625,6 +645,24 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
           cgPalette.setColor(cgPalette.getSelectedIndex(), c);
           setModified();
         }
+      }
+    }
+
+    // Parses color component value from specified text field
+    private void registerColorValue(JTextField tf)
+    {
+      if (tf == tfColorRed) {
+        currentRed = ConvertToBam.numberValidator(tfColorRed.getText(), 0, 255, currentRed);
+        tfColorRed.setText(Integer.toString(currentRed));
+        updateCurrentColor();
+      } else if (tf == tfColorGreen) {
+        currentGreen = ConvertToBam.numberValidator(tfColorGreen.getText(), 0, 255, currentGreen);
+        tfColorGreen.setText(Integer.toString(currentGreen));
+        updateCurrentColor();
+      } else if (tf == tfColorBlue) {
+        currentBlue = ConvertToBam.numberValidator(tfColorBlue.getText(), 0, 255, currentBlue);
+        tfColorBlue.setText(Integer.toString(currentBlue));
+        updateCurrentColor();
       }
     }
 
