@@ -14,28 +14,28 @@ import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 
 /**
  * Manages global area viewer settings.
- * @author argent77
  */
 public class Settings
 {
   // Default layer order on map
-  public static final ViewerConstants.LayerStackingType[] DefaultLayerOrder =
-      new ViewerConstants.LayerStackingType[]{ViewerConstants.LayerStackingType.Actor,
-                                              ViewerConstants.LayerStackingType.Entrance,
-                                              ViewerConstants.LayerStackingType.Ambient,
-                                              ViewerConstants.LayerStackingType.Animation,
-                                              ViewerConstants.LayerStackingType.Automap,
-                                              ViewerConstants.LayerStackingType.SpawnPoint,
-                                              ViewerConstants.LayerStackingType.ProTrap,
-                                              ViewerConstants.LayerStackingType.Container,
-                                              ViewerConstants.LayerStackingType.Region,
-                                              ViewerConstants.LayerStackingType.Door,
-                                              ViewerConstants.LayerStackingType.DoorPoly,
-                                              ViewerConstants.LayerStackingType.WallPoly,
-                                              ViewerConstants.LayerStackingType.AmbientRange,
-                                              ViewerConstants.LayerStackingType.Transition };
-  public static final String[] LabelZoomFactor = new String[]{"Auto-fit", "25%", "33%", "50%", "100%", "200%", "300%", "400%"};
-  public static final double[] ItemZoomFactor = new double[]{0.0, 0.25, 1.0/3.0, 0.5, 1.0, 2.0, 3.0, 4.0};
+  public static final ViewerConstants.LayerStackingType[] DefaultLayerOrder = {
+      ViewerConstants.LayerStackingType.Actor,
+      ViewerConstants.LayerStackingType.Entrance,
+      ViewerConstants.LayerStackingType.Ambient,
+      ViewerConstants.LayerStackingType.Animation,
+      ViewerConstants.LayerStackingType.Automap,
+      ViewerConstants.LayerStackingType.SpawnPoint,
+      ViewerConstants.LayerStackingType.ProTrap,
+      ViewerConstants.LayerStackingType.Container,
+      ViewerConstants.LayerStackingType.Region,
+      ViewerConstants.LayerStackingType.Door,
+      ViewerConstants.LayerStackingType.DoorPoly,
+      ViewerConstants.LayerStackingType.WallPoly,
+      ViewerConstants.LayerStackingType.AmbientRange,
+      ViewerConstants.LayerStackingType.Transition
+  };
+  public static final String[] LabelZoomFactor = {"Auto-fit", "25%", "33%", "50%", "100%", "200%", "300%", "400%"};
+  public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 1.0, 2.0, 3.0, 4.0};
   public static final int ZoomFactorIndexAuto = 0;       // points to the auto-fit zoom factor
   public static final int ZoomFactorIndexDefault = 4;    // points to the default zoom factor (1x)
 

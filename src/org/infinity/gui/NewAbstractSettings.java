@@ -70,11 +70,11 @@ public abstract class NewAbstractSettings extends JDialog implements ActionListe
   {
     accepted = false;
 
-    okButton = new JButton("Create", Icons.getIcon("New16.gif"));
+    okButton = new JButton("Create", Icons.getIcon(Icons.ICON_NEW_16));
     okButton.addActionListener(this);
     getRootPane().setDefaultButton(okButton);
 
-    cancelButton = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
+    cancelButton = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
     cancelButton.addActionListener(this);
 
     getRootPane().getActionMap().put("NIclose", new AbstractAction() {

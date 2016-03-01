@@ -36,7 +36,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
   private final BIFFEditor editor;
   private final JButton bok = new JButton("OK");
   private final JButton bcancel = new JButton("Cancel");
-  private final JComboBox cbbifname;
+  private final JComboBox<BIFFEntry> cbbifname;
   private final JRadioButton rbbiff = new JRadioButton("BIFF - All games");
   private final JRadioButton rbbif = new JRadioButton("BIF - Only Icewind Dale");
   private final JRadioButton rbbifc = new JRadioButton("BIFC - Only Baldur's Gate 2");
@@ -47,7 +47,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
   ChooseBIFFrame(BIFFEditor editor)
   {
     super("Edit BIFF: Select file", true);
-    setIconImage(Icons.getIcon("Edit16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
     this.editor = editor;
     bok.setMnemonic('o');
     bcancel.setMnemonic('c');
@@ -89,7 +89,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
     rbedit.addActionListener(this);
     rbcreate.addActionListener(this);
 
-    cbbifname = new JComboBox(ResourceFactory.getKeyfile().getBIFFEntriesSorted());
+    cbbifname = new JComboBox<>(ResourceFactory.getKeyfile().getBIFFEntriesSorted());
     cbbifname.setSelectedIndex(0);
     cbbifname.setEditable(false);
 

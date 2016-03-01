@@ -164,13 +164,17 @@ public class Updater
     if (jarPath != null && !jarPath.isEmpty()) {
       try {
         JarFile jf = new JarFile(jarPath);
+        try {
         ZipEntry manifest = jf.getEntry("META-INF/MANIFEST.MF");
-        if (manifest != null) {
-          Calendar cal = Calendar.getInstance();
-          if (manifest.getTime() >= 0L) {
-            cal.setTimeInMillis(manifest.getTime());
-            return cal;
+          if (manifest != null) {
+            Calendar cal = Calendar.getInstance();
+            if (manifest.getTime() >= 0L) {
+              cal.setTimeInMillis(manifest.getTime());
+              return cal;
+            }
           }
+        } finally {
+          jf.close();
         }
       } catch (Exception e) {
         e.printStackTrace();

@@ -81,8 +81,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private static final String[] CHECKTYPES = {"ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
                                               "TIS", "VEF", "VVC", "WAV", "WED"};
   private final ChildFrame selectframe = new ChildFrame("Find unused files", true);
-  private final JButton bstart = new JButton("Search", Icons.getIcon("Find16.gif"));
-  private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
+  private final JButton bstart = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
+  private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
   private final JRadioButton[] typeButtons = new JRadioButton[CHECKTYPES.length];
   private final List<ResourceEntry> checkList = new ArrayList<ResourceEntry>();
   private ChildFrame resultFrame;
@@ -108,7 +108,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
     bstart.addActionListener(this);
     bcancel.addActionListener(this);
     selectframe.getRootPane().setDefaultButton(bstart);
-    selectframe.setIconImage(Icons.getIcon("Find16.gif").getImage());
+    selectframe.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
     radioPanel.setBorder(BorderFactory.createTitledBorder("Select type to search:"));
 
     JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -272,10 +272,10 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       else {
         table.tableComplete();
         resultFrame = new ChildFrame("Result", true);
-        resultFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
-        bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
-        bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
-        bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
+        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+        bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+        bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+        bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
         bopen.setMnemonic('o');
         bopennew.setMnemonic('n');
         bsave.setMnemonic('s');

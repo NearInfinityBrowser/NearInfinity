@@ -162,10 +162,10 @@ public class ResourceBitmap extends Datatype
       list.setSelectedValue(curEntry, true);
     }
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
-    bView = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
+    bView = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
     bView.addActionListener(this);
     bView.setEnabled(list.getSelectedValue() instanceof RefEntry &&
                      ((RefEntry)list.getSelectedValue()).isResource());

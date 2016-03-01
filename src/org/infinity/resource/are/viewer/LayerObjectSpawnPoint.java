@@ -24,8 +24,8 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectSpawnPoint extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_SpawnPoint1.png"),
-                                                  Icons.getImage(ViewerIcons.class, "itm_SpawnPoint2.png")};
+  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_1),
+                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_2)};
   private static Point Center = new Point(22, 22);
 
   private final SpawnPoint sp;

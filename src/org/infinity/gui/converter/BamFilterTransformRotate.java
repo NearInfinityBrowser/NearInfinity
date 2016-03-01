@@ -38,11 +38,11 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   private static final int ANGLE_90   = 0;
   private static final int ANGLE_180  = 1;
   private static final int ANGLE_270  = 2;
-  private static final String[] AngleItems = new String[]{"90\u00B0", "180\u00B0", "270\u00B0"};
+  private static final String[] AngleItems = {"90\u00B0", "180\u00B0", "270\u00B0"};
 
   private JRadioButton rbCW, rbCCW;
   private JCheckBox cbAdjustCenter;
-  private JComboBox cbAngle;
+  private JComboBox<String> cbAngle;
 
   public static String getFilterName() { return FilterName; }
   public static String getFilterDesc() { return FilterDesc; }
@@ -138,7 +138,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
     rbCCW.addActionListener(this);
     bg.add(rbCW);
     bg.add(rbCCW);
-    cbAngle = new JComboBox(AngleItems);
+    cbAngle = new JComboBox<>(AngleItems);
     cbAngle.addActionListener(this);
     cbAdjustCenter = new JCheckBox("Adjust center position", true);
     cbAdjustCenter.addActionListener(this);

@@ -30,12 +30,12 @@ import org.infinity.resource.cre.CreResource;
  */
 public class LayerObjectAreActor extends LayerObjectActor
 {
-  private static final Image[] IconGood = new Image[]{Icons.getImage(ViewerIcons.class, "itm_AreActorG1.png"),
-                                                      Icons.getImage(ViewerIcons.class, "itm_AreActorG2.png")};
-  private static final Image[] IconNeutral = new Image[]{Icons.getImage(ViewerIcons.class, "itm_AreActorB1.png"),
-                                                         Icons.getImage(ViewerIcons.class, "itm_AreActorB2.png")};
-  private static final Image[] IconEvil = new Image[]{Icons.getImage(ViewerIcons.class, "itm_AreActorR1.png"),
-                                                      Icons.getImage(ViewerIcons.class, "itm_AreActorR2.png")};
+  private static final Image[] IconGood = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_1),
+                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_2)};
+  private static final Image[] IconNeutral = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_1),
+                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_2)};
+  private static final Image[] IconEvil = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_1),
+                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_2)};
   private static final Point Center = new Point(12, 40);
 
   private final Actor actor;

@@ -449,22 +449,22 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     JButton bFind = (JButton)ButtonPanel.createControl(ButtonPanel.Control.FindReferences);
     bFind.addActionListener(this);
 
-    JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon("Play16.gif"));
+    JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
     bPlay.addActionListener(this);
 
     JLabel lCycle = new JLabel("", JLabel.CENTER);
-    JButton bPrevCycle = new JButton(Icons.getIcon("Back16.gif"));
+    JButton bPrevCycle = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
     bPrevCycle.addActionListener(this);
-    JButton bNextCycle = new JButton(Icons.getIcon("Forward16.gif"));
+    JButton bNextCycle = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bNextCycle.setMargin(bPrevCycle.getMargin());
     bNextCycle.addActionListener(this);
 
     JLabel lFrame = new JLabel("", JLabel.CENTER);
-    JButton bPrevFrame = new JButton(Icons.getIcon("Back16.gif"));
+    JButton bPrevFrame = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPrevFrame.setMargin(bPrevCycle.getMargin());
     bPrevFrame.addActionListener(this);
-    JButton bNextFrame = new JButton(Icons.getIcon("Forward16.gif"));
+    JButton bNextFrame = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bNextFrame.setMargin(bPrevCycle.getMargin());
     bNextFrame.addActionListener(this);
 
@@ -540,7 +540,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.ExportMenu);
     bpmExport.setMenuItems(mi);
 
-    JButton bEdit = new JButton("Edit BAM", Icons.getIcon("Application16.gif"));
+    JButton bEdit = new JButton("Edit BAM", Icons.getIcon(Icons.ICON_APPLICATION_16));
     bEdit.setToolTipText("Opens resource in BAM Converter.");
     bEdit.addActionListener(this);
 

@@ -42,7 +42,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform
   private static final int EDGE_BOTTOM  = 1;
   private static final int EDGE_LEFT    = 2;
   private static final int EDGE_RIGHT   = 3;
-  private static final String[] EdgeLabels = new String[]{"Top", "Bottom", "Left", "Right"};
+  private static final String[] EdgeLabels = {"Top", "Bottom", "Left", "Right"};
 
   private JCheckBox[] cbEdges;
 

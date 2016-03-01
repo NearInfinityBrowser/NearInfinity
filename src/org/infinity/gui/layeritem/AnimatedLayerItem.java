@@ -36,7 +36,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
 {
   private static final Color TransparentColor = new Color(0, true);
 
-  private final FrameInfo[] frameInfos = new FrameInfo[]{new FrameInfo(), new FrameInfo()};
+  private final FrameInfo[] frameInfos = {new FrameInfo(), new FrameInfo()};
 
   private BasicAnimationProvider animation;
   private boolean isAutoPlay;

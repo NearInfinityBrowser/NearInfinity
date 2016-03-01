@@ -50,8 +50,8 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
 {
   private static final JFileChooser fc = new JFileChooser(".");
   private final JButton bExternalBrowse = new JButton("Browse...");
-  private final JButton bOpen = new JButton("Open", Icons.getIcon("Open16.gif"));
-  private final JButton bOpenNew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+  private final JButton bOpen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bOpenNew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JCheckBox cbStayOpen = new JCheckBox("Keep this dialog open");
   private final JLabel lExternalDrop = new JLabel("or drop file(s) here", JLabel.CENTER);
   private final JRadioButton rbExternal = new JRadioButton("Open external file");
@@ -62,7 +62,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
   OpenFileFrame()
   {
     super("Open File");
-    setIconImage(Icons.getIcon("Open16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_OPEN_16).getImage());
     rbExternal.addActionListener(this);
     rbInternal.addActionListener(this);
     rbExternal.setMnemonic('e');
@@ -272,6 +272,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     {
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void drop(DropTargetDropEvent event)
     {

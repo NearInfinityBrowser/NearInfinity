@@ -76,7 +76,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   private static int PvrzIndex              = DefaultPvrzIndex;
 
   private JButton bOK, bCancel, bDefaults, bTransparencyHelp;
-  private JComboBox cbBamVersion, cbCompressionType;
+  private JComboBox<String> cbBamVersion, cbCompressionType;
   private JCheckBox cbCloseOnExit, cbAutoClear, cbCompressBam;
   private JSpinner sTransparency, sPvrzIndex;
   private JTextField tfPath;
@@ -223,7 +223,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     // initializing "General" panel
     JLabel l1 = new JLabel("Default BAM version:");
     JLabel l2 = new JLabel("Default root path:");
-    cbBamVersion = new JComboBox(ConvertToBam.BamVersionItems);
+    cbBamVersion = new JComboBox<>(ConvertToBam.BamVersionItems);
     cbBamVersion.setSelectedIndex(getBamVersion());
     tfPath = new JTextField();
     tfPath.setText(getPath());
@@ -288,7 +288,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     // initializing "PVRZ-based BAM" panel
     l1 = new JLabel("Default compression:");
     l2 = new JLabel("Default PVRZ index:");
-    cbCompressionType = new JComboBox(ConvertToBam.CompressionItems);
+    cbCompressionType = new JComboBox<>(ConvertToBam.CompressionItems);
     cbCompressionType.setSelectedIndex(getCompressionType());
     model = new SpinnerNumberModel(getPvrzIndex(), 0, 99999, 1);
     sPvrzIndex = new JSpinner(model);

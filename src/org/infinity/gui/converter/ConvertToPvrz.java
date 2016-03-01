@@ -57,13 +57,13 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 {
   private static String currentDir = Profile.getGameRoot().toString();
 
-  private JList lInputList;
+  private JList<File> lInputList;
   private SimpleListModel<File> lInputModel;
   private JButton bConvert, bCancel;
   private JButton bInputAdd, bInputAddFolder, bInputRemove, bInputRemoveAll;
   private JButton bTargetDir, bCompressionHelp;
   private JTextField tfTargetDir;
-  private JComboBox cbOverwrite, cbCompression;
+  private JComboBox<String> cbOverwrite, cbCompression;
   private JCheckBox cbCloseOnExit;
   private SwingWorker<List<String>, Void> workerConvert;
   private ProgressMonitor progress;
@@ -317,7 +317,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 
   private void init()
   {
-    setIconImage(Icons.getImage("Application16.gif"));
+    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
 
     // setting up input section
     JPanel pInputAdd = new JPanel(new GridBagLayout());
@@ -352,7 +352,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     pInputCtrl.add(pInputRemove, BorderLayout.EAST);
 
     lInputModel = new SimpleListModel<File>();
-    lInputList = new JList(lInputModel);
+    lInputList = new JList<>(lInputModel);
     lInputList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     JScrollPane scroll = new JScrollPane(lInputList);
 
@@ -372,9 +372,9 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     tfTargetDir = new JTextField();
     bTargetDir = new JButton("...");
     bTargetDir.addActionListener(this);
-    cbOverwrite = new JComboBox(new Object[]{"Ask", "Replace", "Skip"});
+    cbOverwrite = new JComboBox<>(new String[]{"Ask", "Replace", "Skip"});
     cbOverwrite.setSelectedIndex(1);
-    cbCompression = new JComboBox(new Object[]{"Auto", "DXT1", "DXT5"});
+    cbCompression = new JComboBox<>(new String[]{"Auto", "DXT1", "DXT5"});
     cbCompression.setSelectedIndex(0);
     bCompressionHelp = new JButton("?");
     bCompressionHelp.setToolTipText("About compression types");

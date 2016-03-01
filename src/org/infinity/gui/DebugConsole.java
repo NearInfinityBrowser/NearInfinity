@@ -49,8 +49,8 @@ import org.infinity.util.io.PrintWriterNI;
 final class DebugConsole extends ChildFrame implements ActionListener, ItemListener
 {
   private final ButtonPopupMenu testPopup;
-  private final JButton bclearconsole = new JButton("Clear", Icons.getIcon("New16.gif"));
-  private final JButton bsaveconsole = new JButton("Save...", Icons.getIcon("Save16.gif"));
+  private final JButton bclearconsole = new JButton("Clear", Icons.getIcon(Icons.ICON_NEW_16));
+  private final JButton bsaveconsole = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JMenuItem miReadTest = new JMenuItem("Read test...");
   private final JMenuItem miWriteTest = new JMenuItem("Write test...");
   private final JMenuItem miCutPasteTest = new JMenuItem("Cut/Paste test...");
@@ -113,11 +113,11 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
   DebugConsole()
   {
     super("Debug Console");
-    setIconImage(Icons.getIcon("Properties16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_PROPERTIES_16).getImage());
     testPopup =
     new ButtonPopupMenu("Debug tests..", new JMenuItem[]{miReadTest, miWriteTest, miCutPasteTest});
     testPopup.addItemListener(this);
-    testPopup.setIcon(Icons.getIcon("Refresh16.gif"));
+    testPopup.setIcon(Icons.getIcon(Icons.ICON_REFRESH_16));
 
     bclearconsole.setMnemonic('c');
     bclearconsole.addActionListener(this);

@@ -418,14 +418,14 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     InfinityScrollPane scrollSource = new InfinityScrollPane(sourceText, true);
     scrollSource.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    JButton bCompile = new JButton("Compile", Icons.getIcon("Redo16.gif"));
+    JButton bCompile = new JButton("Compile", Icons.getIcon(Icons.ICON_REDO_16));
     bCompile.setMnemonic('c');
     bCompile.addActionListener(this);
     ButtonPopupMenu bpmErrors = new ButtonPopupMenu("Errors (0)...", new JMenuItem[]{});
-    bpmErrors.setIcon(Icons.getIcon("Up16.gif"));
+    bpmErrors.setIcon(Icons.getIcon(Icons.ICON_UP_16));
     bpmErrors.addItemListener(this);
     ButtonPopupMenu bpmWarnings = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[]{});
-    bpmWarnings.setIcon(Icons.getIcon("Up16.gif"));
+    bpmWarnings.setIcon(Icons.getIcon(Icons.ICON_UP_16));
     bpmWarnings.addItemListener(this);
     bpSource.addControl(bCompile, CtrlCompile);
     bpSource.addControl(bpmErrors, CtrlErrors);
@@ -444,7 +444,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     InfinityScrollPane scrollCode = new InfinityScrollPane(codeText, true);
     scrollCode.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    JButton bDecompile = new JButton("Decompile", Icons.getIcon("Undo16.gif"));
+    JButton bDecompile = new JButton("Decompile", Icons.getIcon(Icons.ICON_UNDO_16));
     bDecompile.setMnemonic('d');
     bDecompile.addActionListener(this);
     bpCode.addControl(bDecompile, CtrlDecompile);
@@ -459,13 +459,13 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
     ButtonPopupMenu bpmUses = new ButtonPopupMenu("Uses...", new JMenuItem[]{});
-    bpmUses.setIcon(Icons.getIcon("Find16.gif"));
+    bpmUses.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
     bpmUses.addItemListener(this);
     buttonPanel.addControl(bpmUses, CtrlUses);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
     JButton bSave = (JButton)buttonPanel.addControl(ButtonPanel.Control.Save);
     bSave.addActionListener(this);
-    JButton bSaveScript = new JButton("Save code", Icons.getIcon("Save16.gif"));
+    JButton bSaveScript = new JButton("Save code", Icons.getIcon(Icons.ICON_SAVE_16));
     bSaveScript.addActionListener(this);
     buttonPanel.addControl(bSaveScript, CtrlSaveScript);
 

@@ -31,8 +31,8 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerObjectDoorPoly extends LayerObject
 {
-  private static final Color[] Color = new Color[]{new Color(0xFF603080, true), new Color(0xFF603080, true),
-                                                   new Color(0x80A050C0, true), new Color(0xC0C060D0, true)};
+  private static final Color[] Color = {new Color(0xFF603080, true), new Color(0xFF603080, true),
+                                        new Color(0x80A050C0, true), new Color(0xC0C060D0, true)};
 
   private final Door door;
 

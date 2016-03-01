@@ -76,11 +76,11 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   private final ButtonPopupMenu bfind;
   private final CardLayout cards = new CardLayout();
   private final File stringfile;
-  private final JButton badd = new JButton("Add", Icons.getIcon("Add16.gif"));
-  private final JButton bdelete = new JButton("Delete", Icons.getIcon("Remove16.gif"));
-  private final JButton breread = new JButton("Revert", Icons.getIcon("Undo16.gif"));
-  private final JButton bsave = new JButton("Save", Icons.getIcon("Save16.gif"));
-  private final JButton bexport = new JButton("Export as TXT...", Icons.getIcon("Export16.gif"));
+  private final JButton badd = new JButton("Add", Icons.getIcon(Icons.ICON_ADD_16));
+  private final JButton bdelete = new JButton("Delete", Icons.getIcon(Icons.ICON_REMOVE_16));
+  private final JButton breread = new JButton("Revert", Icons.getIcon(Icons.ICON_UNDO_16));
+  private final JButton bsave = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bexport = new JButton("Export as TXT...", Icons.getIcon(Icons.ICON_EXPORT_16));
   private final JMenuItem ifindattribute = new JMenuItem("selected attribute");
   private final JMenuItem ifindstring = new JMenuItem("string");
   private final JMenuItem ifindref = new JMenuItem("references to this entry");
@@ -101,7 +101,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   public StringEditor(File stringfile, int init_show)
   {
     super("Edit: " + stringfile);
-    setIconImage(Icons.getIcon("Edit16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
     this.stringfile = stringfile;
     if (init_show >= 0)
       this.init_show = init_show;
@@ -121,7 +121,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     ifindattribute.setEnabled(false);
     breread.setToolTipText("Undo all changes");
     bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindattribute, ifindstring, ifindref});
-    bfind.setIcon(Icons.getIcon("Find16.gif"));
+    bfind.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
     badd.setMnemonic('a');
     bdelete.setMnemonic('d');
     bsave.setMnemonic('s');

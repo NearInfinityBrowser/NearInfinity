@@ -26,9 +26,9 @@ import org.infinity.resource.vertex.Vertex;
  */
 public class LayerObjectRegion extends LayerObject
 {
-  private static final String[] Type = new String[]{"Proximity trigger", "Info point", "Travel region"};
-  private static final Color[] Color = new Color[]{new Color(0xFF400000, true), new Color(0xFF400000, true),
-                                                   new Color(0xC0800000, true), new Color(0xC0C00000, true)};
+  private static final String[] Type = {"Proximity trigger", "Info point", "Travel region"};
+  private static final Color[] Color = {new Color(0xFF400000, true), new Color(0xFF400000, true),
+                                        new Color(0xC0800000, true), new Color(0xC0C00000, true)};
 
   private final ITEPoint region;
   private final Point location = new Point();

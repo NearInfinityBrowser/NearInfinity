@@ -50,7 +50,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
 
   private JSpinner spinnerSplitX, spinnerSplitY, spinnerSuffixStart, spinnerSuffixStep;
   private JCheckBox cbSplitAuto;
-  private JComboBox cbSuffixDigits;
+  private JComboBox<String> cbSuffixDigits;
 
   public static String getFilterName() { return FilterName; }
   public static String getFilterDesc() { return FilterDesc; }
@@ -195,7 +195,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     for (int i = 0; i < items.length; i++) {
       items[i] = String.format("%1$d", i+1);
     }
-    cbSuffixDigits = new JComboBox(items);
+    cbSuffixDigits = new JComboBox<>(items);
     cbSuffixDigits.setSelectedIndex(1);
     cbSuffixDigits.addActionListener(this);
     spinnerSuffixStart = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));

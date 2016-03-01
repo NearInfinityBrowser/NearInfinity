@@ -163,9 +163,9 @@ public final class ViewerUtil
   {
     JLabel check = new JLabel(entry.getName());
     if (entry.toString().equalsIgnoreCase(yes))
-      check.setIcon(Icons.getIcon("Check16.gif"));
+      check.setIcon(Icons.getIcon(Icons.ICON_CHECK_16));
     else
-      check.setIcon(Icons.getIcon("Check_Not16.gif"));
+      check.setIcon(Icons.getIcon(Icons.ICON_CHECK_NOT_16));
     return check;
   }
 
@@ -177,9 +177,9 @@ public final class ViewerUtil
       if (s != null && !s.equals("") && !s.startsWith("Unknown")) {
         JLabel check = new JLabel(flag.getString(i));
         if (flag.isFlagSet(i))
-          check.setIcon(Icons.getIcon("Check16.gif"));
+          check.setIcon(Icons.getIcon(Icons.ICON_CHECK_16));
         else
-          check.setIcon(Icons.getIcon("Check_Not16.gif"));
+          check.setIcon(Icons.getIcon(Icons.ICON_CHECK_NOT_16));
         panel.add(check);
       }
     }
@@ -216,14 +216,14 @@ public final class ViewerUtil
 
   public static JPanel makeListPanel(String title, AbstractStruct struct,
                                      Class<? extends StructEntry> listClass,
-                                     String attrName, ListCellRenderer renderer)
+                                     String attrName, ListCellRenderer<Object> renderer)
   {
     return new StructListPanel(title, struct, listClass, attrName, renderer, null);
   }
 
   public static JPanel makeListPanel(String title, AbstractStruct struct,
                                      Class<? extends StructEntry> listClass, String attrName,
-                                     ListCellRenderer renderer, ListSelectionListener listener)
+                                     ListCellRenderer<Object> renderer, ListSelectionListener listener)
   {
     return new StructListPanel(title, struct, listClass, attrName, renderer, listener);
   }
@@ -303,20 +303,20 @@ public final class ViewerUtil
   {
     private final AbstractStruct struct;
     private final Class<? extends StructEntry> listClass;
-    private final JList list;
+    private final JList<Object> list;
     private final SimpleListModel<Object> listModel = new SimpleListModel<Object>();
-    private final JButton bOpen = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
+    private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
     private Comparator<AbstractStruct> comp;
 
     private StructListPanel(String title, AbstractStruct struct,
                             Class<? extends StructEntry> listClass, String attrName,
-                            ListCellRenderer renderer, ListSelectionListener listener)
+                            ListCellRenderer<Object> renderer, ListSelectionListener listener)
     {
       super(new BorderLayout(0, 3));
       this.struct = struct;
       this.listClass = listClass;
       struct.addTableModelListener(this);
-      list = new JList(listModel);
+      list = new JList<>(listModel);
       if (listener != null)
         list.addListSelectionListener(listener);
       list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -367,7 +367,7 @@ public final class ViewerUtil
     }
 
     /** Provides access to the list component of the panel. */
-    public JList getList() { return list; }
+    public JList<Object> getList() { return list; }
 
     @Override
     public void actionPerformed(ActionEvent event)
@@ -446,7 +446,7 @@ public final class ViewerUtil
     }
 
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
                                                   boolean cellHasFocus)
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);

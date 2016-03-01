@@ -23,8 +23,8 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectAutomapPST extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_Automap1.png"),
-                                                  Icons.getImage(ViewerIcons.class, "itm_Automap2.png")};
+  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_1),
+                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_2)};
   private static Point Center = new Point(26, 26);
   private static final double MapScale = 32.0 / 3.0;    // scaling factor for MOS to TIS coordinates
 

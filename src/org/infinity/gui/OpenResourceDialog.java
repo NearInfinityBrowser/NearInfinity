@@ -60,9 +60,9 @@ public class OpenResourceDialog extends JDialog
 
   private ResourceEntry[] result;
   private ObjectString[] extensions;
-  private JList list;
+  private JList<ResourceEntry> list;
   private SimpleListModel<ResourceEntry> listModel;
-  private JComboBox cbType;
+  private JComboBox<ObjectString> cbType;
   private JTextField tfSearch;
   private PlainDocument searchDoc;
   private JButton bOpen, bCancel;
@@ -255,17 +255,9 @@ public class OpenResourceDialog extends JDialog
   private void accept()
   {
     setVisible(false);
-    Object[] objects = list.getSelectedValues();
-    if (objects != null) {
-      List<ResourceEntry> entries = new ArrayList<ResourceEntry>();
-      for (final Object o: objects)
-        if (o instanceof ResourceEntry) {
-          entries.add((ResourceEntry)o);
-      }
-      result = new ResourceEntry[entries.size()];
-      for (int i = 0; i < entries.size(); i++) {
-        result[i] = entries.get(i);
-      }
+    List<ResourceEntry> entries = list.getSelectedValuesList();
+    if (entries != null) {
+      result = entries.toArray(new ResourceEntry[entries.size()]);
     } else {
       result = new ResourceEntry[0];
     }
@@ -302,7 +294,7 @@ public class OpenResourceDialog extends JDialog
   // Initializes type combobox
   private void updateGui()
   {
-    DefaultComboBoxModel model = (DefaultComboBoxModel)cbType.getModel();
+    DefaultComboBoxModel<ObjectString> model = (DefaultComboBoxModel<ObjectString>)cbType.getModel();
     model.removeAllElements();
     if (extensions != null) {
       for (final ObjectString os: extensions) {
@@ -473,7 +465,7 @@ public class OpenResourceDialog extends JDialog
     getRootPane().getActionMap().put(bOpen, actOpen);
     getRootPane().getActionMap().put(bCancel, actCancel);
 
-    cbType = new JComboBox(new DefaultComboBoxModel());
+    cbType = new JComboBox<>(new DefaultComboBoxModel<ObjectString>());
     cbType.setEditable(false);
     cbType.addItemListener(this);
     JLabel lType = new JLabel("Type:");
@@ -488,7 +480,7 @@ public class OpenResourceDialog extends JDialog
     lSearch.setLabelFor(tfSearch);
 
     listModel = new SimpleListModel<ResourceEntry>();
-    list = new JList(listModel);
+    list = new JList<>(listModel);
     list.setLayoutOrientation(JList.VERTICAL_WRAP);
     list.setVisibleRowCount(0);   // no limit
     list.addListSelectionListener(this);

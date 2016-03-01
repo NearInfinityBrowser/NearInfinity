@@ -38,6 +38,7 @@ public final class ArrayUtil
    * @param more More arrays of the same type to merge.
    * @return A new array containing the data of all specified arrays.
    */
+  @SafeVarargs
   public static <T> T[] mergeArrays(T[] first, T[]... more)
   {
     int totalLength = first.length;

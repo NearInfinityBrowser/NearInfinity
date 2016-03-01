@@ -100,7 +100,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     JScrollPane scroll = new JScrollPane(tValues);
     scroll.setBorder(BorderFactory.createEmptyBorder());
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

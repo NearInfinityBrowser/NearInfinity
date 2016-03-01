@@ -24,8 +24,8 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectProTrap extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_ProTrap1.png"),
-                                                  Icons.getImage(ViewerIcons.class, "itm_ProTrap2.png")};
+  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_PRO_TRAP_1),
+                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_PRO_TRAP_2)};
   private static Point Center = new Point(14, 14);
 
   private final ProTrap trap;

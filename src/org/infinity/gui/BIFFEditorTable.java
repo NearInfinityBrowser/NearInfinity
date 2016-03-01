@@ -38,12 +38,12 @@ import org.infinity.resource.key.ResourceEntry;
 
 final class BIFFEditorTable extends JPanel implements ActionListener
 {
-  private static final ImageIcon updatedicon20 = Icons.getIcon("BlueCircle20.gif");
-  private static final ImageIcon newicon20 = Icons.getIcon("YellowCircle20.gif");
-  private static final ImageIcon bificon20 = Icons.getIcon("Circle20.gif");
-  private static final ImageIcon updatedicon16 = Icons.getIcon("BlueCircle16.gif");
-  private static final ImageIcon newicon16 = Icons.getIcon("YellowCircle16.gif");
-  private static final ImageIcon bificon16 = Icons.getIcon("GreenCircle16.gif");
+  private static final ImageIcon updatedicon20 = Icons.getIcon(Icons.ICON_BLUE_CIRCLE_20);
+  private static final ImageIcon newicon20 = Icons.getIcon(Icons.ICON_YELLOW_CIRCLE_20);
+  private static final ImageIcon bificon20 = Icons.getIcon(Icons.ICON_CIRCLE_20);
+  private static final ImageIcon updatedicon16 = Icons.getIcon(Icons.ICON_BLUE_CIRCLE_16);
+  private static final ImageIcon newicon16 = Icons.getIcon(Icons.ICON_YELLOW_CIRCLE_16);
+  private static final ImageIcon bificon16 = Icons.getIcon(Icons.ICON_GREEN_CIRCLE_16);
   static final int TYPE_BIF = 0;
   static final int TYPE_NEW = 1;
   static final int TYPE_UPD = 2;

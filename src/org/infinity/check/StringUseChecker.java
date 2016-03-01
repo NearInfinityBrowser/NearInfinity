@@ -191,7 +191,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(fileMenu);
         resultFrame.setJMenuBar(menuBar);
-        resultFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
+        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
         JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", JLabel.CENTER);
         count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
         JScrollPane scrollTable = new JScrollPane(table);

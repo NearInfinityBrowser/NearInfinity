@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -22,6 +23,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.bcs.BcsResource;
+import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
@@ -29,20 +31,21 @@ import org.infinity.util.IdsMapEntry;
 public final class IdsBrowser extends ChildFrame implements ActionListener
 {
   private final JButton binsert;
-  private final JComboBox idsfiles;
+  private final JComboBox<ResourceEntry> idsfiles;
   private final TextListPanel list;
 
   public IdsBrowser()
   {
     super("IDS Browser");
-    setIconImage(Icons.getIcon("History16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
 
-    idsfiles = new JComboBox(ResourceFactory.getResources("IDS").toArray());
+    List<ResourceEntry> resList = ResourceFactory.getResources("IDS");
+    idsfiles = new JComboBox<>(resList.toArray(new ResourceEntry[resList.size()]));
     idsfiles.setEditable(false);
     idsfiles.setSelectedIndex(0);
     idsfiles.addActionListener(this);
 
-    binsert = new JButton("Insert reference", Icons.getIcon("Paste16.gif"));
+    binsert = new JButton("Insert reference", Icons.getIcon(Icons.ICON_PASTE_16));
     binsert.setMnemonic('i');
     binsert.addActionListener(this);
     binsert.setToolTipText("Inserts selected text into script displayed in main window");

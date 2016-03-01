@@ -26,8 +26,8 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerObjectWallPoly extends LayerObject
 {
-  private static final Color[] Color = new Color[]{new Color(0xFF005046, true), new Color(0xFF005046, true),
-                                                   new Color(0x8020A060, true), new Color(0xA030B070, true)};
+  private static final Color[] Color = {new Color(0xFF005046, true), new Color(0xFF005046, true),
+                                        new Color(0x8020A060, true), new Color(0xA030B070, true)};
 
   private final WallPolygon wall;
   private final Point location = new Point();

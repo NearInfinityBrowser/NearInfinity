@@ -85,7 +85,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     list.add(new StrrefItem(40276, "Biography of a barbarian"));
   }
 
-  private JComboBox cbStrref;
+  private JComboBox<StrrefItem> cbStrref;
   private JButton updateButton;
   private GameType gameType;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
   private int lastStrref;
@@ -126,7 +126,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   {
     getRootPane().setDefaultButton(null);   // prevent accidental file creation
 
-    cbStrref = new JComboBox(STRREF_ITEM.get(gameType));
+    cbStrref = new JComboBox<>(STRREF_ITEM.get(gameType));
     cbStrref.addKeyListener(this);
     lastStrref = -1;
 
@@ -134,7 +134,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     strrefLabel.setLabelFor(cbStrref);
     strrefLabel.setDisplayedMnemonic(KeyEvent.VK_S);
 
-    updateButton = new JButton("Update text", Icons.getIcon("Refresh16.gif"));
+    updateButton = new JButton("Update text", Icons.getIcon(Icons.ICON_REFRESH_16));
     updateButton.setMnemonic(KeyEvent.VK_U);
     updateButton.addActionListener(this);
 

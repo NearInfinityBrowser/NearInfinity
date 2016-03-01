@@ -38,8 +38,8 @@ import org.infinity.util.io.FileNI;
  */
 public class LayerObjectAutomap extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_Automap1.png"),
-                                                  Icons.getImage(ViewerIcons.class, "itm_Automap2.png")};
+  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_1),
+                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_2)};
   private static Point Center = new Point(26, 26);
 
   private final AutomapNote note;

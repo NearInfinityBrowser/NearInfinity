@@ -792,7 +792,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   // Meta class for identifying root node
   private static final class RootItem extends ItemBase
   {
-    private static final ImageIcon ICON = Icons.getIcon("RowInsertAfter16.gif");
+    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
     private final ArrayList<StateItem> states = new ArrayList<StateItem>();
     private final ImageIcon icon;
@@ -899,7 +899,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   // Encapsulates a dialog state entry
   private static final class StateItem extends ItemBase
   {
-    private static final ImageIcon ICON = Icons.getIcon("Stop16.gif");
+    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_STOP_16);
     private static final int MAX_LENGTH = 100;    // max. string length to display
 
     private final ImageIcon icon;
@@ -950,7 +950,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   // Encapsulates a dialog transition entry
   private static final class TransitionItem extends ItemBase
   {
-    private static final ImageIcon ICON = Icons.getIcon("Play16.gif");
+    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_PLAY_16);
     private static final int MAX_LENGTH = 100;    // max. string length to display
 
     private final ImageIcon icon;

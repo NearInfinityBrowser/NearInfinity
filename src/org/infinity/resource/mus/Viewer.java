@@ -33,7 +33,7 @@ import org.infinity.util.SimpleListModel;
 public class Viewer extends JPanel implements Runnable, ActionListener
 {
   private final SimpleListModel<Entry> listModel = new SimpleListModel<Entry>();
-  private final JList list = new JList(listModel);
+  private final JList<Entry> list = new JList<>(listModel);
   private final AudioPlayer player = new AudioPlayer();
   private final List<Entry> entryList = new Vector<Entry>();
 
@@ -181,12 +181,12 @@ public class Viewer extends JPanel implements Runnable, ActionListener
 
   private void initGUI()
   {
-    bPlay = new JButton("Play", Icons.getIcon("Play16.gif"));
+    bPlay = new JButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
     bPlay.addActionListener(this);
-    bEnd = new JButton("Finish", Icons.getIcon("End16.gif"));
+    bEnd = new JButton("Finish", Icons.getIcon(Icons.ICON_END_16));
     bEnd.setEnabled(false);
     bEnd.addActionListener(this);
-    bStop = new JButton("Stop", Icons.getIcon("Stop16.gif"));
+    bStop = new JButton("Stop", Icons.getIcon(Icons.ICON_STOP_16));
     bStop.setEnabled(false);
     bStop.addActionListener(this);
 

@@ -46,7 +46,7 @@ import org.infinity.gui.WindowBlocker;
  */
 public class UpdaterSettings extends JDialog
 {
-  private final JComboBox cbUpdateInterval = new JComboBox(new String[]{
+  private final JComboBox<String> cbUpdateInterval = new JComboBox<>(new String[]{
       "Once per session", "Daily", "Once per week", "Once per month"});
   private final JTextField tfProxyAddress = new JTextField(12);
   private final JTextField tfProxyPort = new JTextField(6);

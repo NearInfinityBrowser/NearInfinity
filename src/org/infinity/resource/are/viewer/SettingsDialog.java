@@ -53,22 +53,20 @@ import org.infinity.util.SimpleListModel;
 public class SettingsDialog extends JDialog
   implements ActionListener, ListSelectionListener
 {
-  private static final String[] AnimationFrames = new String[]{"Never",
-                                                               "On mouse-over only",
-                                                               "Always"};
-  private static final String[] QualityItems = new String[]{"Choose optimal filtering automatically",
-                                                            "Always use nearest neighbor filtering",
-                                                            "Always use bilinear filtering"};
-  private static final String[] LayerDesc = new String[]{"Actors", "Regions", "Entrances", "Containers",
-                                                         "Ambient Sounds", "Ambient Sound Ranges",
-                                                         "Doors", "Background Animations", "Automap Notes",
-                                                         "Spawn Points", "Map Transitions", "Projectile Traps",
-                                                         "Door Polygons", "Wall Polygons" };
+  private static final String[] AnimationFrames = {"Never", "On mouse-over only", "Always"};
+  private static final String[] QualityItems = {"Choose optimal filtering automatically",
+                                                "Always use nearest neighbor filtering",
+                                                "Always use bilinear filtering"};
+  private static final String[] LayerDesc = {"Actors", "Regions", "Entrances", "Containers",
+                                             "Ambient Sounds", "Ambient Sound Ranges",
+                                             "Doors", "Background Animations", "Automap Notes",
+                                             "Spawn Points", "Map Transitions", "Projectile Traps",
+                                             "Door Polygons", "Wall Polygons" };
 
   private SimpleListModel<LayerEntry> modelLayers;
-  private JList listLayers;
+  private JList<LayerEntry> listLayers;
   private JButton bUp, bDown, bDefaultOrder;
-  private JComboBox cbFrames, cbQualityMap, cbQualityAnim;
+  private JComboBox<String> cbFrames, cbQualityMap, cbQualityAnim;
   private JCheckBox cbOverrideAnimVisibility, cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
@@ -222,7 +220,7 @@ public class SettingsDialog extends JDialog
 
     // Initializing layer items order
     modelLayers = new SimpleListModel<LayerEntry>();
-    listLayers = new JList(modelLayers);
+    listLayers = new JList<>(modelLayers);
     listLayers.setCellRenderer(new IndexedCellRenderer(1));
     listLayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listLayers.setBorder(BorderFactory.createLineBorder(getForeground()));
@@ -253,11 +251,11 @@ public class SettingsDialog extends JDialog
     taOrderNote.setText("Note: Layers of higher priority are drawn on top of layers of lower priority.");
 
     JPanel pLayersArrows = new JPanel(new GridBagLayout());
-    bUp = new JButton(Icons.getIcon("Up16.gif"));
+    bUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
     bUp.setMargin(new Insets(16, 2, 16, 2));
     bUp.addActionListener(this);
     bUp.setEnabled(listLayers.getSelectedIndex() > 0);
-    bDown = new JButton(Icons.getIcon("Down16.gif"));
+    bDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
     bDown.setMargin(new Insets(16, 2, 16, 2));
     bDown.addActionListener(this);
     updateLayerButtons();
@@ -294,7 +292,7 @@ public class SettingsDialog extends JDialog
     JPanel pShowFrame = new JPanel(new GridBagLayout());
     pShowFrame.setBorder(BorderFactory.createTitledBorder("Background animations: "));
     JLabel lFrames = new JLabel("Show frame:");
-    cbFrames = new JComboBox(AnimationFrames);
+    cbFrames = new JComboBox<>(AnimationFrames);
     cbFrames.setSelectedIndex(Settings.ShowFrame);
     cbOverrideAnimVisibility = new JCheckBox("Show animations regardless of their active state", Settings.OverrideAnimVisibility);
     cbOverrideAnimVisibility.setToolTipText("Requires a restart of the area viewer or a map update via toolbar button.");
@@ -312,10 +310,10 @@ public class SettingsDialog extends JDialog
     JPanel pQuality = new JPanel(new GridBagLayout());
     pQuality.setBorder(BorderFactory.createTitledBorder("Visual quality: "));
     JLabel lQualityMap = new JLabel("Map tilesets:");
-    cbQualityMap = new JComboBox(QualityItems);
+    cbQualityMap = new JComboBox<>(QualityItems);
     cbQualityMap.setSelectedIndex(Settings.InterpolationMap);
     JLabel lQualityAnim = new JLabel("Animations:");
-    cbQualityAnim = new JComboBox(QualityItems);
+    cbQualityAnim = new JComboBox<>(QualityItems);
     cbQualityAnim.setSelectedIndex(Settings.InterpolationAnim);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
@@ -485,7 +483,7 @@ public class SettingsDialog extends JDialog
     }
 
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index,
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                   boolean isSelected, boolean cellHasFocus)
     {
       String template = "%1$0" +

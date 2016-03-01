@@ -380,9 +380,9 @@ public final class GameProperties extends ChildFrame implements ActionListener
     if (key != null && desc != null && Profile.getProperty(key) instanceof Boolean) {
       ImageIcon icon;
       if ((Boolean)Profile.getProperty(key)) {
-        icon = Icons.getIcon("Check16.gif");
+        icon = Icons.getIcon(Icons.ICON_CHECK_16);
       } else {
-        icon = Icons.getIcon("Check_Not16.gif");
+        icon = Icons.getIcon(Icons.ICON_CHECK_NOT_16);
       }
       JLabel label = new JLabel(desc, icon, SwingConstants.LEFT);
       label.setFont(new Font(Font.MONOSPACED, label.getFont().getStyle(), label.getFont().getSize()));

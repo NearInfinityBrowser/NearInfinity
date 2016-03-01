@@ -149,7 +149,7 @@ public class AreaViewer extends ChildFrame
   private ButtonPopupWindow bpwDayTime;
   private DayTimePanel pDayTime;
   private JCheckBox cbDrawClosed, cbDrawOverlays, cbAnimateOverlays, cbDrawGrid, cbEnableSchedules;
-  private JComboBox cbZoomLevel;
+  private JComboBox<String> cbZoomLevel;
   private JCheckBox cbLayerAmbientRange;
   private JLabel lPosX, lPosY;
   private JTextArea taInfo;
@@ -325,7 +325,7 @@ public class AreaViewer extends ChildFrame
     // Adding Visual State elements
     // Note: the string is required for setting the correct size of the button
     bpwDayTime = new ButtonPopupWindow(String.format("  %1$s  ", DayTimePanel.getButtonText(21)),
-                                       Icons.getIcon("ArrowDown15.gif"));
+                                       Icons.getIcon(Icons.ICON_ARROW_DOWN_15));
     Dimension d = bpwDayTime.getPreferredSize();
     bpwDayTime.setIconTextGap(8);
     pDayTime = new DayTimePanel(bpwDayTime, getHour());
@@ -352,7 +352,7 @@ public class AreaViewer extends ChildFrame
     cbAnimateOverlays.addActionListener(getListeners());
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
-    cbZoomLevel = new JComboBox(Settings.LabelZoomFactor);
+    cbZoomLevel = new JComboBox<>(Settings.LabelZoomFactor);
     cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
     cbZoomLevel.addActionListener(getListeners());
     JPanel pZoom = new JPanel(new GridBagLayout());
@@ -497,12 +497,12 @@ public class AreaViewer extends ChildFrame
     toolBar = new JToolBar("Area Viewer Controls", SwingConstants.HORIZONTAL);
     toolBar.setRollover(true);
     toolBar.setFloatable(false);
-    tbView = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_viewMode.png"), true);
+    tbView = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_VIEW_MODE), true);
     tbView.setToolTipText("Enter view mode");
     tbView.addActionListener(getListeners());
     tbView.setEnabled(false);
 //    toolBar.add(tbView);
-    tbEdit = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_editMode.png"), false);
+    tbEdit = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_EDIT_MODE), false);
     tbEdit.setToolTipText("Enter edit mode");
     tbEdit.addActionListener(getListeners());
     tbEdit.setEnabled(false);
@@ -511,73 +511,73 @@ public class AreaViewer extends ChildFrame
 //    toolBar.addSeparator(dimSeparator);
 
     JToggleButton tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addActor.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_ACTOR), false);
     tb.setToolTipText("Add a new actor to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Actor)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addRegion.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_REGION), false);
     tb.setToolTipText("Add a new region to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Region)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addEntrance.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_ENTRANCE), false);
     tb.setToolTipText("Add a new entrance to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Entrance)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addContainer.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_CONTAINER), false);
     tb.setToolTipText("Add a new container to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Container)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAmbient.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_AMBIENT), false);
     tb.setToolTipText("Add a new global ambient sound to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Ambient)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addDoor.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_DOOR), false);
     tb.setToolTipText("Add a new door to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Door)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAnim.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_ANIM), false);
     tb.setToolTipText("Add a new background animation to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Animation)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addAutomap.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_AUTOMAP), false);
     tb.setToolTipText("Add a new automap note to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Automap)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addSpawnPoint.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_SPAWN_POINT), false);
     tb.setToolTipText("Add a new spawn point to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.SpawnPoint)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addProTrap.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_PRO_TRAP), false);
     tb.setToolTipText("Add a new projectile trap to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.ProTrap)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addDoorPoly.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_DOOR_POLY), false);
     tb.setToolTipText("Add a new door polygon to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
     tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)] = tb;
-    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, "icn_addWallPoly.png"), false);
+    tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_WALL_POLY), false);
     tb.setToolTipText("Add a new wall polygon to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
@@ -586,36 +586,36 @@ public class AreaViewer extends ChildFrame
 
 //    toolBar.addSeparator(dimSeparator);
 
-    tbAre = new JButton(Icons.getIcon(ViewerIcons.class, "icn_mapAre.png"));
+    tbAre = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_MAP_ARE));
     tbAre.setToolTipText(String.format("Edit ARE structure (%1$s)", map.getAre().getName()));
     tbAre.addActionListener(getListeners());
     toolBar.add(tbAre);
-    tbWed = new JButton(Icons.getIcon(ViewerIcons.class, "icn_mapWed.png"));
+    tbWed = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_MAP_WED));
     tbWed.addActionListener(getListeners());
     toolBar.add(tbWed);
-    tbSongs = new JButton(Icons.getIcon(ViewerIcons.class, "icn_songs.png"));
+    tbSongs = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_SONGS));
     tbSongs.setToolTipText("Edit song entries");
     tbSongs.addActionListener(getListeners());
     toolBar.add(tbSongs);
-    tbRest = new JButton(Icons.getIcon(ViewerIcons.class, "icn_rest.png"));
+    tbRest = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_REST));
     tbRest.setToolTipText("Edit rest encounters");
     tbRest.addActionListener(getListeners());
     toolBar.add(tbRest);
 
     toolBar.addSeparator(dimSeparator);
 
-    tbSettings = new JButton(Icons.getIcon(ViewerIcons.class, "icn_settings.png"));
+    tbSettings = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_SETTINGS));
     tbSettings.setToolTipText("Area viewer settings");
     tbSettings.addActionListener(getListeners());
     toolBar.add(tbSettings);
-    tbRefresh = new JButton(Icons.getIcon(ViewerIcons.class, "icn_refresh.png"));
+    tbRefresh = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_REFRESH));
     tbRefresh.setToolTipText("Update map");
     tbRefresh.addActionListener(getListeners());
     toolBar.add(tbRefresh);
 
     toolBar.addSeparator(dimSeparator);
 
-    tbExportPNG = new JButton(Icons.getIcon(ViewerIcons.class, "icn_export.png"));
+    tbExportPNG = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_EXPORT));
     tbExportPNG.setToolTipText("Export current map state as PNG");
     tbExportPNG.addActionListener(getListeners());
     toolBar.add(tbExportPNG);
@@ -1254,7 +1254,7 @@ public class AreaViewer extends ChildFrame
         LayerStackingType stacking = Settings.ListLayerOrder.get(i);
         LayerType layer = Settings.stackingToLayer(stacking);
         if (isLayerEnabled(stacking)) {
-          List<LayerObject> itemList = layerManager.getLayerObjects(layer);
+          List<? extends LayerObject> itemList = layerManager.getLayerObjects(layer);
           if (itemList != null && !itemList.isEmpty()) {
             // for each layer object...
             for (int j = 0, ilSize = itemList.size(); j < ilSize; j++) {
@@ -1542,7 +1542,7 @@ public class AreaViewer extends ChildFrame
   private void updateRealAnimationsLighting(int visualState)
   {
     if (layerManager != null) {
-      List<LayerObject> list = layerManager.getLayerObjects(LayerType.Animation);
+      List<? extends LayerObject> list = layerManager.getLayerObjects(LayerType.Animation);
       if (list != null) {
         for (int i = 0, size = list.size(); i < size; i++) {
           LayerObjectAnimation obj = (LayerObjectAnimation)list.get(i);
@@ -1620,7 +1620,7 @@ public class AreaViewer extends ChildFrame
   private void addLayerItems(LayerStackingType layer)
   {
     if (layer != null && layerManager != null) {
-      List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
+      List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
         for (int i = 0, size = list.size(); i < size; i++) {
           addLayerItem(layer, list.get(i));
@@ -1668,7 +1668,7 @@ public class AreaViewer extends ChildFrame
   private void removeLayerItems(LayerStackingType layer)
   {
     if (layer != null && layerManager != null) {
-      List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
+      List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
         for (int i = 0, size = list.size(); i < size; i++) {
           removeLayerItem(layer, list.get(i));
@@ -1707,7 +1707,7 @@ public class AreaViewer extends ChildFrame
     if (layerManager != null) {
       int index = 0;
       for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
-        List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(Settings.ListLayerOrder.get(i)));
+        List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(Settings.ListLayerOrder.get(i)));
         if (list != null) {
           for (int j = 0, size = list.size(); j < size; j++) {
             if (Settings.ListLayerOrder.get(i) == LayerStackingType.AmbientRange) {
@@ -1754,7 +1754,7 @@ public class AreaViewer extends ChildFrame
   private void updateLayerItems(LayerStackingType layer)
   {
     if (layer != null && layerManager != null) {
-      List<LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
+      List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
         for (int i = 0, size = list.size(); i < size; i++) {
           updateLayerItem(list.get(i));

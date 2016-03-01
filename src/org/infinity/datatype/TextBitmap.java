@@ -65,7 +65,7 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     }
 
     JScrollPane scroll = new JScrollPane(table);
-    JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

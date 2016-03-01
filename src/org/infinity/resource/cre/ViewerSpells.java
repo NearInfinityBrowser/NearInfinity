@@ -33,7 +33,7 @@ import org.infinity.resource.StructEntry;
 
 final class ViewerSpells extends JPanel implements ActionListener
 {
-  private final JButton bOpen = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
+  private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
   private final JTable table;
   private final MemSpellTableModel tableModel;
 

@@ -30,7 +30,7 @@ import org.infinity.util.io.FileWriterNI;
 
 public final class Keyfile
 {
-  public static final ImageIcon ICON_STRUCT = Icons.getIcon("RowInsertAfter16.gif");
+  public static final ImageIcon ICON_STRUCT = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
   public static final int TYPE_BMP    = 0x001;
   public static final int TYPE_MVE    = 0x002;
@@ -72,13 +72,13 @@ public final class Keyfile
   public static final int TYPE_MUS    = 0xffe;  // not in bif?
   public static final int TYPE_ACM    = 0xfff;  // not in bif?
 
-  private static final ImageIcon ICON_TEXT = Icons.getIcon("Edit16.gif");
-  private static final ImageIcon ICON_UNKNOWN = Icons.getIcon("Help16.gif");
-  private static final ImageIcon ICON_SOUND = Icons.getIcon("Volume16.gif");
-  private static final ImageIcon ICON_MOVIE = Icons.getIcon("Movie16.gif");
-  private static final ImageIcon ICON_SCRIPT = Icons.getIcon("History16.gif");
-  private static final ImageIcon ICON_IMAGE = Icons.getIcon("Color16.gif");
-  private static final ImageIcon ICON_BUNDLE = Icons.getIcon("Bundle16.gif");
+  private static final ImageIcon ICON_TEXT = Icons.getIcon(Icons.ICON_EDIT_16);
+  private static final ImageIcon ICON_UNKNOWN = Icons.getIcon(Icons.ICON_HELP_16);
+  private static final ImageIcon ICON_SOUND = Icons.getIcon(Icons.ICON_VOLUME_16);
+  private static final ImageIcon ICON_MOVIE = Icons.getIcon(Icons.ICON_MOVIE_16);
+  private static final ImageIcon ICON_SCRIPT = Icons.getIcon(Icons.ICON_HISTORY_16);
+  private static final ImageIcon ICON_IMAGE = Icons.getIcon(Icons.ICON_COLOR_16);
+  private static final ImageIcon ICON_BUNDLE = Icons.getIcon(Icons.ICON_BUNDLE_16);
   private final File keyfile;
   private final IntegerHashMap<String> extmap = new IntegerHashMap<String>();
   private final Map<String, ImageIcon> resourceicons = new HashMap<String, ImageIcon>();
@@ -267,11 +267,11 @@ public final class Keyfile
     }
   }
 
-  public Object[] getBIFFEntriesSorted()
+  public BIFFEntry[] getBIFFEntriesSorted()
   {
     List<BIFFEntry> list = new ArrayList<BIFFEntry>(biffEntries);
     Collections.sort(list);
-    return list.toArray();
+    return list.toArray(new BIFFEntry[list.size()]);
   }
 
   public BIFFEntry getBIFFEntry(int index)

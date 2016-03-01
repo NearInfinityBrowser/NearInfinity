@@ -27,8 +27,8 @@ import org.infinity.resource.Viewable;
 
 final class ViewerArea extends JPanel implements ActionListener
 {
-  private final JButton bOpen = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
-  private JList list;
+  private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+  private JList<Object> list;
 
   private static JPanel makeInfoPanel(AreaEntry areaEntry)
   {

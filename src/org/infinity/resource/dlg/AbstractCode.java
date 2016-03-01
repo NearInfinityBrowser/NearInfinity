@@ -163,24 +163,24 @@ public abstract class AbstractCode extends Datatype
     textArea.setCaretPosition(0);
     textArea.getDocument().addDocumentListener(this);
 
-    JButton bUpdate = new JButton("Update", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bUpdate.setEnabled(false);
     buttonPanel.addControl(bUpdate, CtrlUpdate);
 
-    JButton bCheck = new JButton("Compile Check", Icons.getIcon("Redo16.gif"));
+    JButton bCheck = new JButton("Compile Check", Icons.getIcon(Icons.ICON_REDO_16));
     bCheck.addActionListener(this);
     buttonPanel.addControl(bCheck, CtrlCheck);
 
     ButtonPopupMenu bpmErrors = new ButtonPopupMenu("Errors (0)...", new JMenuItem[]{});
-    bpmErrors.setIcon(Icons.getIcon("Up16.gif"));
+    bpmErrors.setIcon(Icons.getIcon(Icons.ICON_UP_16));
     bpmErrors.addItemListener(this);
     bpmErrors.setEnabled(false);
     buttonPanel.addControl(bpmErrors, CtrlErrors);
 
     ButtonPopupMenu bpmWarnings = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[]{});
-    bpmWarnings.setIcon(Icons.getIcon("Up16.gif"));
+    bpmWarnings.setIcon(Icons.getIcon(Icons.ICON_UP_16));
     bpmWarnings.addItemListener(this);
     bpmWarnings.setEnabled(false);
     buttonPanel.addControl(bpmWarnings, CtrlWarnings);

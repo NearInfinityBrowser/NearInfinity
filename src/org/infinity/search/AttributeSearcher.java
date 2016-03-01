@@ -48,7 +48,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
 
   private final ChildFrame inputFrame;
   private final Component parent;
-  private final JButton bsearch = new JButton("Search", Icons.getIcon("FindAgain16.gif"));
+  private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbnot = new JCheckBox("Negate result");
@@ -75,7 +75,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
     files =
     ResourceFactory.getResources(filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH));
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
-    inputFrame.setIconImage(Icons.getIcon("Find16.gif").getImage());
+    inputFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
     tfinput.setText(structEntry.toString());
     bsearch.addActionListener(this);

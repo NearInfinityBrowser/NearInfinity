@@ -42,7 +42,7 @@ import org.infinity.resource.wed.WedResource;
  */
 public class TilesetRenderer extends RenderCanvas
 {
-  public static final String[] LabelVisualStates = new String[]{"Day", "Twilight", "Night"};
+  public static final String[] LabelVisualStates = {"Day", "Twilight", "Night"};
 
   // Rendering modes for tiles (affects how to render overlayed tiles)
   public static final int MODE_AUTO = 0;    // mode based on current game id

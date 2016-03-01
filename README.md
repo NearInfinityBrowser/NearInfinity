@@ -1,31 +1,32 @@
-# Near Infinity #
+# Near Infinity
 
-A file browser and editor for the Infinity Engine.
+A file browser and editor for the Infinity Engine. You can find out more in 
+the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wiki).
 
-## How to build Near Infinity ##
+## How to build Near Infinity
 
 **Required tools:**
-- Java SE Development Kit 6 or higher ([Link](http://www.oracle.com/technetwork/java/javase/downloads/index.html))
-- Apache Ant ([Link](http://ant.apache.org/))
+- [Java SE Development Kit 8 or higher](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+- [Apache Ant](http://ant.apache.org/)
 
 If you wish to compile Near Infinity from source, the easiest way to do so is 
 by using the included Ant build script. The default target builds the `NearInfinity.jar`.
 
-```
+```bash
 cd NearInfinity
 ant
 ```
 
-The sources also contain configuration files for the [Eclipse IDE](http://www.eclipse.org/). 
+The sources also contain configuration files for the [Eclipse IDE](http://www.eclipse.org/).
 It is preferred to use `Apache Ant` for compiling Near Infinity, however.
 
-## Contributors ##
+## Contributors
 
 This section contains information intended for those who contribute
 code to Near Infinity (NI). It contains some information on style and
 explains how the code is organised and added to.
 
-### Style ###
+### Style
 
 Code style is intended to improve code readability and to reduce
 "diff noise" (meaningless changes).
@@ -58,15 +59,16 @@ When in doubt, refer to the official
 [Java conventions](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) (outdated)
 or [Google's Java Style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html).
 
-### Workflow ###
+### Workflow
 
-There are 2 sets of 2 persistent branches. Of the first set:
+The project consists of two active branches:
 
-* `master` - code that reflects the latest stable release.
+* `master` - code that reflects the latest stable release. It is only
+  updated by a change of the version number which happens very rarely.
 
-* `devel` - code that is ready to go into the next unstable release with
-  little to no adjustment. That is, it should be complete and behave
-  well locally, even if it has not been exhaustively tested under a
+* `devel` - code that is ready to go into the next work-in-progress (WIP)
+  release with little to no adjustment. That is, it should be complete and
+  behave well locally, even if it has not been exhaustively tested under a
   wide variety of conditions.
 
 If you work on something you should generally do so on a feature
@@ -81,12 +83,14 @@ since they are able to pull your changes and simply check out your
 branch (compared to needing to merge your devel branch into their own,
 or clone a new local repository for your code).
 
-The second set of branches `ci` and `devel-ci` have been used
-in the past allowing NI to run on a lower-cased game in a case-sensitive
-environment. These branches have been superseded by the current `devel`
-and `master` branches and should not be updated anymore.
+The branch `gh-pages` is primarily used for hosting the update definition
+file which is used to notify users when a new Near Infinity version has been
+released.
 
-### Specifics ###
+Other branches, if any, are either used for testing purposes or are not 
+actively maintained anymore.
+
+### Specifics
 
 To maximise compatibility with available systems, NI's code base is using the
 feature set of a specific Java version. You can find the currently supported

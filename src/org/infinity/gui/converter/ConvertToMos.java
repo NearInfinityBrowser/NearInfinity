@@ -74,7 +74,7 @@ public class ConvertToMos extends ChildFrame
   private JButton bConvert, bCancel;
   private JSpinner sPvrzIndex;
   private JLabel lPvrzInfo;
-  private JComboBox cbCompression;
+  private JComboBox<String> cbCompression;
   private JCheckBox cbCompress, cbCloseOnExit;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
@@ -756,7 +756,7 @@ public class ConvertToMos extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage("Application16.gif"));
+    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
     GridBagConstraints c = new GridBagConstraints();
 
     // setting up input/output section (Legacy V1)
@@ -845,7 +845,7 @@ public class ConvertToMos extends ChildFrame
     sPvrzIndex = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
     sPvrzIndex.setToolTipText("Enter a number from 0 to 99999");
     sPvrzIndex.addChangeListener(this);
-    cbCompression = new JComboBox(new Object[]{"Auto", "DXT1", "DXT5"});
+    cbCompression = new JComboBox<>(new String[]{"Auto", "DXT1", "DXT5"});
     cbCompression.setSelectedIndex(0);
     bCompressionHelp = new JButton("?");
     bCompressionHelp.setToolTipText("About compression types");

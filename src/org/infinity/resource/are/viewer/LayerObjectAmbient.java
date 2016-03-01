@@ -30,13 +30,13 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectAmbient extends LayerObject
 {
-  private static final Image[] IconGlobal = new Image[]{Icons.getImage(ViewerIcons.class, "itm_AmbientG1.png"),
-                                                        Icons.getImage(ViewerIcons.class, "itm_AmbientG2.png")};
-  private static final Image[] IconLocal = new Image[]{Icons.getImage(ViewerIcons.class, "itm_AmbientL1.png"),
-                                                       Icons.getImage(ViewerIcons.class, "itm_AmbientL2.png")};
+  private static final Image[] IconGlobal = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_1),
+                                             Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_2)};
+  private static final Image[] IconLocal = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_1),
+                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_2)};
   private static final Point Center = new Point(16, 16);
-  final Color[] ColorRange = new Color[]{new Color(0xA0000080, true), new Color(0xA0000080, true),
-                                         new Color(0x00204080, true), new Color(0x004060C0, true)};
+  final Color[] ColorRange = {new Color(0xA0000080, true), new Color(0xA0000080, true),
+                              new Color(0x00204080, true), new Color(0x004060C0, true)};
 
   private final Ambient ambient;
   private final Point location = new Point();

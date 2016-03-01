@@ -29,7 +29,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
 {
   private boolean sortValues = true;
   private final SimpleListModel<Object> listmodel = new SimpleListModel<Object>();
-  private final JList list;
+  private final JList<Object> list;
   private final JTextField tfield = new JTextField(10);
 
   public TextListPanel(List<? extends Object> values)
@@ -41,7 +41,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
   {
     this.sortValues = sortValues;
     setValues(values);
-    list = new JList(listmodel);
+    list = new JList<>(listmodel);
     list.setSelectedIndex(0);
     list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     list.addListSelectionListener(this);
@@ -118,7 +118,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     list.ensureIndexIsVisible(i);
   }
 
-  public ListModel getModel()
+  public ListModel<Object> getModel()
   {
     return listmodel;
   }

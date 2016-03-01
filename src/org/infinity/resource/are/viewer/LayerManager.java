@@ -19,7 +19,7 @@ import org.infinity.resource.wed.WedResource;
 public final class LayerManager
 {
   // Defines order of drawing
-  public static final LayerType[] LayerOrdered = new LayerType[]{
+  public static final LayerType[] LayerOrdered = {
     LayerType.Actor,
     LayerType.Entrance,
     LayerType.Ambient,
@@ -52,7 +52,7 @@ public final class LayerManager
     LayerLabels.put(LayerType.WallPoly, "Wall Polygons");
   }
 
-  private final EnumMap<LayerType, BasicLayer<?>> layers = new EnumMap<LayerType, BasicLayer<?>>(LayerType.class);
+  private final EnumMap<LayerType, BasicLayer<? extends LayerObject>> layers = new EnumMap<LayerType, BasicLayer<? extends LayerObject>>(LayerType.class);
   private final AreaViewer viewer;
 
   private AreResource are;
@@ -379,11 +379,11 @@ public final class LayerManager
    * @param layer The layer of the objects
    * @return A list of objects or <code>null</code> if not found.
    */
-  public List<LayerObject> getLayerObjects(LayerType layer)
+  public List<? extends LayerObject> getLayerObjects(LayerType layer)
   {
-    BasicLayer<?> bl = layers.get(layer);
+    BasicLayer<? extends LayerObject> bl = layers.get(layer);
     if (bl != null) {
-      return (List<LayerObject>)bl.getLayerObjects();
+      return bl.getLayerObjects();
     }
     return null;
   }

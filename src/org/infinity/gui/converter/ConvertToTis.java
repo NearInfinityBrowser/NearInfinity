@@ -74,7 +74,7 @@ public class ConvertToTis extends ChildFrame
   private JTextField tfInput, tfOutput, tfTileNum;
   private JButton bConvert, bCancel;
   private JButton bInput, bOutput, bVersionHelp;
-  private JComboBox cbVersion;
+  private JComboBox<String> cbVersion;
   private JCheckBox cbCloseOnExit;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
@@ -873,7 +873,7 @@ public class ConvertToTis extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage("Application16.gif"));
+    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
 
     // setting up files section
     JPanel pFiles = new JPanel(new GridBagLayout());
@@ -919,7 +919,7 @@ public class ConvertToTis extends ChildFrame
     // setting up options section
     JPanel pSubOptions = new JPanel(new GridBagLayout());
     JLabel lVersion = new JLabel("TIS version:");
-    cbVersion = new JComboBox(new Object[]{"Legacy", "PVRZ-based"});
+    cbVersion = new JComboBox<>(new String[]{"Legacy", "PVRZ-based"});
     cbVersion.setSelectedIndex(0);
     bVersionHelp = new JButton("?");
     bVersionHelp.setToolTipText("About TIS versions");

@@ -75,7 +75,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
       list.setSelectedIndex(index);
     }
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

@@ -25,8 +25,8 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectEntrance extends LayerObject
 {
-  private static final Image[] Icon = new Image[]{Icons.getImage(ViewerIcons.class, "itm_Entrance1.png"),
-                                                  Icons.getImage(ViewerIcons.class, "itm_Entrance2.png")};
+  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_1),
+                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_2)};
   private static Point Center = new Point(11, 18);
 
   private final Entrance entrance;

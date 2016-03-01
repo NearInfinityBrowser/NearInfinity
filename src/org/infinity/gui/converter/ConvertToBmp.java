@@ -62,13 +62,13 @@ public class ConvertToBmp extends ChildFrame
   private static String currentPath = Profile.getGameRoot().toString();
 
   private SimpleListModel<String> modelInputFiles;
-  private JList listInputFiles;
+  private JList<String> listInputFiles;
   private JButton bAdd, bAddFolder, bRemove, bRemoveAll;
   private JTextField tfOutput;
   private JButton bOutput;
   private JButton bConvert, bCancel;
   private JCheckBox cbCloseOnExit, cbEnableAlpha, cbFixPremultipliedAlpha;
-  private JComboBox cbOverwrite;
+  private JComboBox<String> cbOverwrite;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
 
@@ -298,7 +298,7 @@ public class ConvertToBmp extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage("Application16.gif"));
+    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
     GridBagConstraints c = new GridBagConstraints();
 
     bAdd = new JButton("Add...");
@@ -337,7 +337,7 @@ public class ConvertToBmp extends ChildFrame
     pInputButtons.add(pRemove, c);
 
     modelInputFiles = new SimpleListModel<String>();
-    listInputFiles = new JList(modelInputFiles);
+    listInputFiles = new JList<>(modelInputFiles);
     JScrollPane scroll = new JScrollPane(listInputFiles);
     JPanel pInputFrame = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
@@ -359,7 +359,7 @@ public class ConvertToBmp extends ChildFrame
     bOutput = new JButton("...");
     bOutput.addActionListener(this);
     JLabel lOverwrite = new JLabel("Overwrite:");
-    cbOverwrite = new JComboBox(new Object[]{"Ask", "Replace", "Skip"});
+    cbOverwrite = new JComboBox<>(new String[]{"Ask", "Replace", "Skip"});
     cbOverwrite.setSelectedIndex(1);
     cbEnableAlpha = new JCheckBox("Enable transparency support", true);
     cbEnableAlpha.setToolTipText("Activate to create bitmap files with alpha channel");

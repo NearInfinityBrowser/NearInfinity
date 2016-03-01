@@ -26,11 +26,11 @@ import org.infinity.resource.vertex.Vertex;
  */
 public class LayerObjectContainer extends LayerObject
 {
-  private static final String[] Type = new String[]{"Unknown", "Bag", "Chest", "Drawer", "Pile",
-                                                    "Table", "Shelf", "Altar", "Invisible",
-                                                    "Spellbook", "Body", "Barrel", "Crate"};
-  private static final Color[] Color = new Color[]{new Color(0xFF004040, true), new Color(0xFF004040, true),
-                                                   new Color(0xC0008080, true), new Color(0xC000C0C0, true)};
+  private static final String[] Type = {"Unknown", "Bag", "Chest", "Drawer", "Pile",
+                                        "Table", "Shelf", "Altar", "Invisible",
+                                        "Spellbook", "Body", "Barrel", "Crate"};
+  private static final Color[] Color = {new Color(0xFF004040, true), new Color(0xFF004040, true),
+                                        new Color(0xC0008080, true), new Color(0xC000C0C0, true)};
 
   private final Container container;
   private final Point location = new Point();

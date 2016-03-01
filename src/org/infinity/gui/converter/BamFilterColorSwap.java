@@ -38,11 +38,11 @@ public class BamFilterColorSwap extends BamFilterBaseColor
                                            "channels in any desired order.";
 
   // Supported swap combinations
-  private static final String[] SwapTypeItems = new String[]{"RBG", "GRB", "GBR", "BGR", "BRG"};
-  private static final int[][] SwapTypeShift = new int[][]{ {0, -8, 8}, {-8, 8, 0}, {-16, 8, 8},
-                                                            {-16, 0, 16}, {-8, -8, 16} };
+  private static final String[] SwapTypeItems = {"RBG", "GRB", "GBR", "BGR", "BRG"};
+  private static final int[][] SwapTypeShift = { {0, -8, 8}, {-8, 8, 0}, {-16, 8, 8},
+                                                 {-16, 0, 16}, {-8, -8, 16} };
 
-  private JComboBox cbSwapType;
+  private JComboBox<String> cbSwapType;
   private ButtonPopupWindow bpwExclude;
   private BamFilterBaseColor.ExcludeColorsPanel pExcludeColors;
 
@@ -130,7 +130,7 @@ public class BamFilterColorSwap extends BamFilterBaseColor
     pExcludeColors = new BamFilterBaseColor.ExcludeColorsPanel(
         getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
     pExcludeColors.addChangeListener(this);
-    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon("ArrowDown15.gif"), pExcludeColors);
+    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon(Icons.ICON_ARROW_DOWN_15), pExcludeColors);
     bpwExclude.setIconTextGap(8);
     bpwExclude.addActionListener(this);
     bpwExclude.setEnabled(getConverter().isBamV1Selected());
@@ -146,7 +146,7 @@ public class BamFilterColorSwap extends BamFilterBaseColor
     pExclude.add(new JPanel(), c);
 
     JLabel l = new JLabel("RGB =>");
-    cbSwapType = new JComboBox(SwapTypeItems);
+    cbSwapType = new JComboBox<>(SwapTypeItems);
     cbSwapType.addActionListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());

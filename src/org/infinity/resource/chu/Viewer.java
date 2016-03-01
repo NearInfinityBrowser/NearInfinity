@@ -76,7 +76,8 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   private RenderCanvas rcMain;
   private ListPanelsModel panelsModel;
   private ListControlsModel controlsModel;
-  private JList panelsList, controlsList;
+  private JList<Panel> panelsList;
+  private JList<BaseControl> controlsList;
   private JCheckBox cbTransparentPanel, cbOutlineControls;
   private PropertiesPanel pProperties;
 
@@ -361,7 +362,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     JLabel lPanels = new JLabel("Panels:");
     panelsModel = new ListPanelsModel(this);
-    panelsList = new JList(panelsModel);
+    panelsList = new JList<>(panelsModel);
     panelsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     panelsList.addListSelectionListener(this);
     panelsList.addMouseListener(this);
@@ -372,7 +373,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     JLabel lControls = new JLabel("Controls:");
     controlsModel = new ListControlsModel(this, null);    // assigning resource later
-    controlsList = new JList(controlsModel);
+    controlsList = new JList<>(controlsModel);
     controlsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     controlsList.addListSelectionListener(this);
     controlsList.addMouseListener(this);
@@ -426,7 +427,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 //----------------------------- INNER CLASSES -----------------------------
 
   // Data model for the panels list
-  private class ListPanelsModel extends AbstractListModel
+  private class ListPanelsModel extends AbstractListModel<Panel>
   {
     private final List<Panel> listPanels = new ArrayList<Panel>();
     private final Viewer viewer;
@@ -450,7 +451,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public Object getElementAt(int index)
+    public Panel getElementAt(int index)
     {
       if (index >= 0 && index < listPanels.size()) {
         return listPanels.get(index);
@@ -474,7 +475,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
 
   // Data model for the controls list
-  private class ListControlsModel extends AbstractListModel
+  private class ListControlsModel extends AbstractListModel<BaseControl>
   {
     private final List<BaseControl> listControls = new ArrayList<BaseControl>();
     private final Viewer viewer;
@@ -497,7 +498,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public Object getElementAt(int index)
+    public BaseControl getElementAt(int index)
     {
       return getEntry(index);
     }

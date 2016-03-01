@@ -15,7 +15,7 @@ import javax.swing.AbstractListModel;
 /**
  * A speed optimized alternative of the {@code DefaultListModel}.
  */
-public class SimpleListModel<E> extends AbstractListModel
+public class SimpleListModel<E> extends AbstractListModel<E>
 {
   private final Vector<E> delegate = new Vector<E>();
 

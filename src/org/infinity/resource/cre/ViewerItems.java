@@ -87,7 +87,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
       }
     });
     JScrollPane scroll = new JScrollPane(table);
-    bOpen = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
+    bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
     bOpen.addActionListener(this);
 //    bOpen.setEnabled(tableModel.getRowCount() > 0);
     table.getSelectionModel().setSelectionInterval(0, 0);

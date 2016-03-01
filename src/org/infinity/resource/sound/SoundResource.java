@@ -157,11 +157,11 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     gbc.insets = new Insets(3, 3, 3, 3);
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    bPlay = new JButton(Icons.getIcon("Play16.gif"));
+    bPlay = new JButton(Icons.getIcon(Icons.ICON_PLAY_16));
     bPlay.addActionListener(this);
     gbl.setConstraints(bPlay, gbc);
     controlPanel.add(bPlay);
-    bStop = new JButton(Icons.getIcon("Stop16.gif"));
+    bStop = new JButton(Icons.getIcon(Icons.ICON_STOP_16));
     bStop.addActionListener(this);
     bStop.setEnabled(false);
     gbc.gridwidth = GridBagConstraints.REMAINDER;

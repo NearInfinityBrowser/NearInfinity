@@ -55,9 +55,9 @@ import org.infinity.util.io.PrintWriterNI;
 public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
   private final Component parent;
-  private final JButton bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
-  private final JButton bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
+  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JLabel count;
   private final Object query;
   private final SortableTable table;
@@ -67,7 +67,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     super("Result", true);
     this.query = query;
     this.parent = parent;
-    setIconImage(Icons.getIcon("History16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);

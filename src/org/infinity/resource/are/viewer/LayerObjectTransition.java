@@ -21,15 +21,15 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerObjectTransition extends LayerObject
 {
-  public static final String[] FieldName = new String[]{"Area north", "Area east", "Area south", "Area west"};
+  public static final String[] FieldName = {"Area north", "Area east", "Area south", "Area west"};
 
-  private static final Color[] Color = new Color[]{new Color(0xFF404000, true), new Color(0xFF404000, true),
-                                                   new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
+  private static final Color[] Color = {new Color(0xFF404000, true), new Color(0xFF404000, true),
+                                        new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
   private static final int Width = 16;    // "width" of the transition polygon
 
   private final AreResource are;
   private final Point location = new Point();
-  private final Point[] shapeCoords = new Point[]{new Point(), new Point(), new Point(), new Point()};
+  private final Point[] shapeCoords = {new Point(), new Point(), new Point(), new Point()};
   private final int edge;
   private final TilesetRenderer renderer;
 

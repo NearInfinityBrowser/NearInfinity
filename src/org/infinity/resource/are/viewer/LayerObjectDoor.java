@@ -27,11 +27,11 @@ import org.infinity.resource.vertex.OpenVertex;
  */
 public class LayerObjectDoor extends LayerObject
 {
-  private static final Color[] Color = new Color[]{new Color(0xFF400040, true), new Color(0xFF400040, true),
-                                                   new Color(0xC0800080, true), new Color(0xC0C000C0, true)};
+  private static final Color[] Color = {new Color(0xFF400040, true), new Color(0xFF400040, true),
+                                        new Color(0xC0800080, true), new Color(0xC0C000C0, true)};
 
   private final Door door;
-  private final Point[] location = new Point[]{new Point(), new Point()};
+  private final Point[] location = {new Point(), new Point()};
   private final ShapedLayerItem[] items = new ShapedLayerItem[2];
   private final Point[][] shapeCoords = new Point[2][];
 

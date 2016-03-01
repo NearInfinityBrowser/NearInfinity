@@ -83,9 +83,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
                                          "PLT", "PRO", "PVRZ", "SPL", "SQL", "SRC", "STO",
                                          "TIS", "TOH", "TOT", "VEF", "VVC", "WAV", "WBM",
                                          "WED", "WFX", "WMP"};
-  private final JButton bExport = new JButton("Export", Icons.getIcon("Export16.gif"));
-  private final JButton bCancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
-  private final JButton bDirectory = new JButton(Icons.getIcon("Open16.gif"));
+  private final JButton bExport = new JButton("Export", Icons.getIcon(Icons.ICON_EXPORT_16));
+  private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
+  private final JButton bDirectory = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
   private final JCheckBox cbDecompile = new JCheckBox("Decompile scripts", true);
   private final JCheckBox cbDecrypt = new JCheckBox("Decrypt text files", true);
   private final JCheckBox cbConvertWAV = new JCheckBox("Convert sounds", true);
@@ -93,16 +93,16 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbDecompress = new JCheckBox("Decompress BAM/MOS", false);
   private final JCheckBox cbConvertToPNG = new JCheckBox("Export MOS/PVRZ/TIS as PNG", false);
   private final JCheckBox cbConvertTisVersion = new JCheckBox("Convert TIS to ", false);
-  private final JComboBox cbConvertTisList = new JComboBox(new String[]{"Palette-based", "PVRZ-based"});
+  private final JComboBox<String> cbConvertTisList = new JComboBox<>(new String[]{"Palette-based", "PVRZ-based"});
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExportMVEasAVI = new JCheckBox("Export MVE as AVI", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
-  private final JComboBox cbExtractFramesBAMFormat = new JComboBox(new String[]{"PNG", "BMP"});
-  private final JList listTypes = new JList(TYPES);
+  private final JComboBox<String> cbExtractFramesBAMFormat = new JComboBox<>(new String[]{"PNG", "BMP"});
+  private final JList<String> listTypes = new JList<>(TYPES);
   private final JTextField tfDirectory = new JTextField(20);
   private File outputDir;
-  private Object[] selectedTypes;
+  private List<String> selectedTypes;
   private ProgressMonitor progress;
   private int progressIndex;
   private List<ResourceEntry> selectedFiles;
@@ -227,7 +227,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bExport) {
-      selectedTypes = listTypes.getSelectedValues();
+      selectedTypes = listTypes.getSelectedValuesList();
       outputDir = new FileNI(tfDirectory.getText());
       outputDir.mkdirs();
       setVisible(false);
@@ -263,8 +263,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     try {
       selectedFiles = new ArrayList<ResourceEntry>(1000);
-      for (final Object newVar : selectedTypes) {
-        selectedFiles.addAll(ResourceFactory.getResources((String)newVar));
+      for (final String newVar : selectedTypes) {
+        selectedFiles.addAll(ResourceFactory.getResources(newVar));
       }
 
       // executing multithreaded search

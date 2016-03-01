@@ -34,8 +34,8 @@ import org.infinity.icon.Icons;
 
 public final class SearchMaster extends JPanel implements Runnable, ActionListener
 {
-  private final JButton bnext = new JButton("Find Next", Icons.getIcon("FindAgain16.gif"));
-  private final JButton bclear = new JButton("New Search", Icons.getIcon("New16.gif"));
+  private final JButton bnext = new JButton("Find Next", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
+  private final JButton bclear = new JButton("New Search", Icons.getIcon(Icons.ICON_NEW_16));
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
@@ -51,7 +51,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
   public static void createAsFrame(SearchClient slave, String title, Component parent)
   {
     ChildFrame frame = new ChildFrame("Find: " + title, true);
-    frame.setIconImage(Icons.getIcon("Find16.gif").getImage());
+    frame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
     JPanel pane = (JPanel)frame.getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(new SearchMaster(slave, frame), BorderLayout.CENTER);

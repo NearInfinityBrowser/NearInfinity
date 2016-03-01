@@ -51,11 +51,11 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 {
   private static final SearchFrame searchframe = null;
   private final CardLayout cards = new CardLayout();
-  private final JButton bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
-  private final JButton binsert = new JButton("Insert reference", Icons.getIcon("Paste16.gif"));
-  private final JButton bsearch = new JButton("Search", Icons.getIcon("Find16.gif"));
-  private final JList list = new JList();
+  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton binsert = new JButton("Insert reference", Icons.getIcon(Icons.ICON_PASTE_16));
+  private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
+  private final JList<String> list = new JList<>();
   private final JPanel bpanel;
   private final JProgressBar progress = new JProgressBar();
   private final JRadioButton rbcre = new JRadioButton("Creatures");
@@ -67,7 +67,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   public static void clearCache()
   {
     if (searchframe != null) {
-      searchframe.list.setListData(new Object[]{});
+      searchframe.list.setListData(new String[0]);
       searchframe.bopen.setEnabled(false);
       searchframe.bopennew.setEnabled(false);
       searchframe.binsert.setEnabled(false);
@@ -77,7 +77,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   public SearchFrame()
   {
     super("Find");
-    setIconImage(Icons.getIcon("Find16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
     getRootPane().setDefaultButton(bsearch);
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');
@@ -116,7 +116,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2) {
-          String selected = (String)list.getSelectedValue();
+          String selected = list.getSelectedValue();
           String resname = selected.substring(0, selected.indexOf(" - "));
           ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
           NearInfinity.getInstance().showResourceEntry(entry);
@@ -224,13 +224,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       new Thread(this).start();
     }
     else if (event.getSource() == bopen) {
-      String selected = (String)list.getSelectedValue();
+      String selected = list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
       ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
       NearInfinity.getInstance().showResourceEntry(entry);
     }
     else if (event.getSource() == bopennew) {
-      String selected = (String)list.getSelectedValue();
+      String selected = list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
       new ViewFrame(this, ResourceFactory.getResource(ResourceFactory.getResourceEntry(resname)));
     }
@@ -241,7 +241,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
                                       JOptionPane.ERROR_MESSAGE);
         return;
       }
-      String selected = (String)list.getSelectedValue();
+      String selected = list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf("."));
       ((BcsResource)viewable).insertString('\"' + resname + '\"');
     }
@@ -275,7 +275,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
     binsert.setEnabled(false);
-    list.setListData(new Object[]{});
+    list.setListData(new String[]{});
     rbcre.setEnabled(false);
     rbitm.setEnabled(false);
     rbspl.setEnabled(false);
@@ -309,7 +309,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     list.ensureIndexIsVisible(0);
     if (found.size() > 0) {
       Collections.sort(found);
-      list.setListData(found.toArray());
+      list.setListData(found.toArray(new String[found.size()]));
       list.setEnabled(true);
     }
 

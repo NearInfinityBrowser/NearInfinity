@@ -122,26 +122,26 @@ public class ConvertToBam extends ChildFrame
   static final int TAB_CYCLES   = 1;
   static final int TAB_PREVIEW  = 2;
   static final int TAB_FILTERS  = 3;
-  static final String[] TabNames = new String[]{"Frames", "Cycles", "Preview", "Post-processing"};
+  static final String[] TabNames = {"Frames", "Cycles", "Preview", "Post-processing"};
 
   // Available DXT compression types for BAM v2 export
   static final int COMPRESSION_AUTO = 0;
   static final int COMPRESSION_DXT1 = 1;
   static final int COMPRESSION_DXT5 = 2;
-  static final String[] CompressionItems = new String[]{"Auto", "DXT1", "DXT5"};
+  static final String[] CompressionItems = {"Auto", "DXT1", "DXT5"};
 
   // Available BAM versions
   static final int VERSION_BAMV1 = 0;
   static final int VERSION_BAMV2 = 1;
-  static final String[] BamVersionItems = new String[]{"Legacy (v1)", "PVRZ-based (v2)"};
+  static final String[] BamVersionItems = {"Legacy (v1)", "PVRZ-based (v2)"};
 
   // Available playback modes for preview
   static final int MODE_CURRENT_CYCLE_ONCE    = 0;
   static final int MODE_CURRENT_CYCLE_LOOPED  = 1;
   static final int MODE_ALL_CYCLES_ONCE       = 2;
   static final int MODE_ALL_CYCLES_LOOPED     = 3;
-  static final String[] PlaybackModeItems = new String[]{"Current cycle once", "Current cycle looped",
-                                                         "All cycles once", "All cycles looped"};
+  static final String[] PlaybackModeItems = {"Current cycle once", "Current cycle looped",
+                                             "All cycles once", "All cycles looped"};
 
   // PseudoBamDecoder->setOption(): Full path to frame source
   static final String BAM_FRAME_OPTION_PATH         = "Path";
@@ -173,7 +173,9 @@ public class ConvertToBam extends ChildFrame
   private BamCycleFramesListModel modelCurCycle;
   private BamCyclesListModel modelCycles;
   private SimpleListModel<BamFilterBase> modelFilters;
-  private JList listFrames, listCycles, listFramesAvail, listCurCycle, listFilters;
+  private JList<PseudoBamFrameEntry> listFrames, listFramesAvail, listCurCycle;
+  private JList<PseudoBamCycleEntry> listCycles;
+  private JList<BamFilterBase> listFilters;
   private JMenuItem miFramesAddFiles, miFramesAddResources, miFramesAddFolder, miFramesImportFile,
                     miFramesImportResource, miFramesRemove, miFramesRemoveAll, miFramesDropUnused,
                     miSessionExport, miSessionImport;
@@ -191,7 +193,9 @@ public class ConvertToBam extends ChildFrame
   private JCheckBox cbCloseOnExit, cbCompressFrame, cbCompressBam, cbPreviewShowMarker, cbPreviewZoom,
                     cbFiltersShowMarker;
   private JPanel pFramesCurFrame, pCurrentCycle, pFramesOptionsVersion, pFiltersSettings;
-  private JComboBox cbVersion, cbCompression, cbPreviewMode, cbFiltersAdd;
+  private JComboBox<String> cbPreviewMode;
+  private JComboBox<BamFilterFactory.FilterInfo> cbFiltersAdd;
+  private JComboBox<String> cbVersion, cbCompression;
   private JTextArea taFiltersDesc;
   private RenderCanvas rcFramesPreview, rcCyclesPreview, rcPreview, rcFiltersPreview;
   private JScrollPane scrollPreview, scrollFiltersPreview;
@@ -906,7 +910,7 @@ public class ConvertToBam extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage("Application16.gif"));
+    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
     BamOptionsDialog.loadSettings(false);
 
     currentPath = BamOptionsDialog.getPath();
@@ -944,7 +948,7 @@ public class ConvertToBam extends ChildFrame
     miSessionImport.addActionListener(this);
     bpmSession = new ButtonPopupMenu("BAM session", new JMenuItem[]{miSessionExport, miSessionImport});
     bpmSession.setToolTipText("Export or import BAM frame, cycle or filter definitions.");
-    bpmSession.setIcon(Icons.getIcon("ArrowUp15.gif"));
+    bpmSession.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
     bpmSession.setIconTextGap(8);
     Insets i = bpmSession.getInsets();
     bpmSession.setMargin(new Insets(i.top + 1, i.left, i.bottom + 1, i.right));
@@ -1008,10 +1012,10 @@ public class ConvertToBam extends ChildFrame
 
     // creating "Frames List"
     JPanel pFramesListArrows = new JPanel(new GridBagLayout());
-    bFramesUp = new JButton(Icons.getIcon("Up16.gif"));
+    bFramesUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
     bFramesUp.setMargin(new Insets(bFramesUp.getInsets().top, 2, bFramesUp.getInsets().bottom, 2));
     bFramesUp.addActionListener(this);
-    bFramesDown = new JButton(Icons.getIcon("Down16.gif"));
+    bFramesDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
     bFramesDown.setMargin(new Insets(bFramesDown.getInsets().top, 2, bFramesDown.getInsets().bottom, 2));
     bFramesDown.addActionListener(this);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
@@ -1040,7 +1044,7 @@ public class ConvertToBam extends ChildFrame
                                                                  miFramesAddFolder,
                                                                  miFramesImportFile, miFramesImportResource},
                                        false, ButtonPopupMenu.Align.Top);
-    bpmFramesAdd.setIcon(Icons.getIcon("ArrowUp15.gif"));
+    bpmFramesAdd.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
     bpmFramesAdd.setIconTextGap(8);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -1056,7 +1060,7 @@ public class ConvertToBam extends ChildFrame
     miFramesDropUnused.setToolTipText("Remove frames that are not used in any cycle definitions.");
     bpmFramesRemove = new ButtonPopupMenu("Remove...", new JMenuItem[]{miFramesRemove, miFramesRemoveAll,
                                                                        miFramesDropUnused});
-    bpmFramesRemove.setIcon(Icons.getIcon("ArrowUp15.gif"));
+    bpmFramesRemove.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
     bpmFramesRemove.setIconTextGap(8);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -1076,7 +1080,7 @@ public class ConvertToBam extends ChildFrame
     JPanel pFramesList = new JPanel(new GridBagLayout());
     JLabel lFramesTitle = new JLabel("Frames:");
     modelFrames = new BamFramesListModel(this);
-    listFrames = new JList(modelFrames);
+    listFrames = new JList<>(modelFrames);
     listFrames.setCellRenderer(new IndexedCellRenderer());
     listFrames.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFrames.addListSelectionListener(this);
@@ -1189,7 +1193,7 @@ public class ConvertToBam extends ChildFrame
     sPvrzIndex.setToolTipText("Enter a number from 0 to 99999");
     sPvrzIndex.addChangeListener(this);
     JLabel lFramesCompression = new JLabel("Compression type:");
-    cbCompression = new JComboBox(CompressionItems);
+    cbCompression = new JComboBox<>(CompressionItems);
     cbCompression.setSelectedIndex(BamOptionsDialog.getCompressionType());
     bCompressionHelp = new JButton("?");
     bCompressionHelp.setMargin(new Insets(2, 4, 2, 4));
@@ -1219,7 +1223,7 @@ public class ConvertToBam extends ChildFrame
     JPanel pFramesExport = new JPanel(new GridBagLayout());
     pFramesExport.setBorder(BorderFactory.createTitledBorder("Output options "));
     JLabel lFramesVersion = new JLabel("BAM version:");
-    cbVersion = new JComboBox(BamVersionItems);
+    cbVersion = new JComboBox<>(BamVersionItems);
     cbVersion.addActionListener(this);
     cbVersion.setSelectedIndex(BamOptionsDialog.getBamVersion());
     bVersionHelp = new JButton("?");
@@ -1274,10 +1278,10 @@ public class ConvertToBam extends ChildFrame
     pCyclesButtons.add(bCyclesRemoveAll, c);
 
     JPanel pCyclesArrows = new JPanel(new GridBagLayout());
-    bCyclesUp = new JButton(Icons.getIcon("Up16.gif"));
+    bCyclesUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
     bCyclesUp.setMargin(new Insets(bCyclesUp.getInsets().top, 2, bCyclesUp.getInsets().bottom, 2));
     bCyclesUp.addActionListener(this);
-    bCyclesDown = new JButton(Icons.getIcon("Down16.gif"));
+    bCyclesDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
     bCyclesDown.setMargin(new Insets(bCyclesDown.getInsets().top, 2, bCyclesDown.getInsets().bottom, 2));
     bCyclesDown.addActionListener(this);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1290,7 +1294,7 @@ public class ConvertToBam extends ChildFrame
     JPanel pCyclesList = new JPanel(new GridBagLayout());
     JLabel lCycles = new JLabel("Cycles:");
     modelCycles = new BamCyclesListModel(this);
-    listCycles = new JList(modelCycles);
+    listCycles = new JList<>(modelCycles);
     listCycles.setCellRenderer(new IndexedCellRenderer());
     listCycles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCycles.addListSelectionListener(this);
@@ -1390,11 +1394,11 @@ public class ConvertToBam extends ChildFrame
 
     // creating "Current Cycles" section
     JPanel pCycleTransfer = new JPanel(new GridBagLayout());
-    bCurCycleAdd = new JButton(Icons.getIcon("Forward16.gif"));
+    bCurCycleAdd = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bCurCycleAdd.setMargin(new Insets(2, bCurCycleAdd.getInsets().left,
                                       2, bCurCycleAdd.getInsets().right));
     bCurCycleAdd.addActionListener(this);
-    bCurCycleRemove = new JButton(Icons.getIcon("Back16.gif"));
+    bCurCycleRemove = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bCurCycleRemove.setMargin(new Insets(2, bCurCycleRemove.getInsets().left,
                                          2, bCurCycleRemove.getInsets().right));
     bCurCycleRemove.addActionListener(this);
@@ -1406,10 +1410,10 @@ public class ConvertToBam extends ChildFrame
     pCycleTransfer.add(bCurCycleRemove, c);
 
     JPanel pCurCycleArrows = new JPanel(new GridBagLayout());
-    bCurCycleUp = new JButton(Icons.getIcon("Up16.gif"));
+    bCurCycleUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
     bCurCycleUp.setMargin(new Insets(bCurCycleUp.getInsets().top, 2, bCurCycleUp.getInsets().bottom, 2));
     bCurCycleUp.addActionListener(this);
-    bCurCycleDown = new JButton(Icons.getIcon("Down16.gif"));
+    bCurCycleDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
     bCurCycleDown.setMargin(new Insets(bCurCycleDown.getInsets().top, 2, bCurCycleDown.getInsets().bottom, 2));
     bCurCycleDown.addActionListener(this);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1420,7 +1424,7 @@ public class ConvertToBam extends ChildFrame
     pCurCycleArrows.add(bCurCycleDown, c);
 
     JLabel lCurCycleFrames = new JLabel("Available frames:");
-    listFramesAvail = new JList(modelFrames);
+    listFramesAvail = new JList<>(modelFrames);
     listFramesAvail.setCellRenderer(new IndexedCellRenderer());
     listFramesAvail.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFramesAvail.addListSelectionListener(this);
@@ -1428,7 +1432,7 @@ public class ConvertToBam extends ChildFrame
     scroll = new JScrollPane(listFramesAvail);
     JLabel lCurCycle = new JLabel("Current cycle:");
     modelCurCycle = new BamCycleFramesListModel(this);
-    listCurCycle = new JList(modelCurCycle);
+    listCurCycle = new JList<>(modelCurCycle);
     listCurCycle.setCellRenderer(new IndexedCellRenderer());
     listCurCycle.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCurCycle.addListSelectionListener(this);
@@ -1476,30 +1480,30 @@ public class ConvertToBam extends ChildFrame
 
     // create bottom control bar
     lPreviewCycle = new JLabel("Cycle: X/Y");
-    bPreviewCyclePrev = new JButton(Icons.getIcon("Back16.gif"));
+    bPreviewCyclePrev = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPreviewCyclePrev.setMargin(new Insets(bPreviewCyclePrev.getMargin().top, 2,
                                            bPreviewCyclePrev.getMargin().bottom, 2));
     bPreviewCyclePrev.addActionListener(this);
-    bPreviewCycleNext = new JButton(Icons.getIcon("Forward16.gif"));
+    bPreviewCycleNext = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bPreviewCycleNext.setMargin(new Insets(bPreviewCycleNext.getMargin().top, 2,
                                            bPreviewCycleNext.getMargin().bottom, 2));
     bPreviewCycleNext.addActionListener(this);
 
     lPreviewFrame = new JLabel("Frame: X/Y");
-    bPreviewFramePrev = new JButton(Icons.getIcon("Back16.gif"));
+    bPreviewFramePrev = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPreviewFramePrev.setMargin(new Insets(bPreviewFramePrev.getMargin().top, 2,
                                            bPreviewFramePrev.getMargin().bottom, 2));
     bPreviewFramePrev.addActionListener(this);
-    bPreviewFrameNext = new JButton(Icons.getIcon("Forward16.gif"));
+    bPreviewFrameNext = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bPreviewFrameNext.setMargin(new Insets(bPreviewFrameNext.getMargin().top, 2,
                                            bPreviewFrameNext.getMargin().bottom, 2));
     bPreviewFrameNext.addActionListener(this);
 
-    bPreviewPlay = new JButton("Pause", Icons.getIcon("Play16.gif"));
+    bPreviewPlay = new JButton("Pause", Icons.getIcon(Icons.ICON_PLAY_16));
     bPreviewPlay.setMinimumSize(bPreviewPlay.getPreferredSize());
     bPreviewPlay.setText("Play");
     bPreviewPlay.addActionListener(this);
-    bPreviewStop = new JButton("Stop", Icons.getIcon("Stop16.gif"));
+    bPreviewStop = new JButton("Stop", Icons.getIcon(Icons.ICON_STOP_16));
     bPreviewStop.addActionListener(this);
     JPanel pControls = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -1533,7 +1537,7 @@ public class ConvertToBam extends ChildFrame
     sPreviewFps.addChangeListener(this);
     currentFps = (Double)spinnerModel.getValue();
     JLabel lPreviewMode = new JLabel("Playback mode:");
-    cbPreviewMode = new JComboBox(PlaybackModeItems);
+    cbPreviewMode = new JComboBox<>(PlaybackModeItems);
     cbPreviewMode.setSelectedIndex(MODE_CURRENT_CYCLE_LOOPED);
     cbPreviewMode.addActionListener(this);
     cbPreviewShowMarker = new JCheckBox("Show markers");
@@ -1604,7 +1608,7 @@ public class ConvertToBam extends ChildFrame
       filters.add(BamFilterFactory.getFilterInfo(i));
     }
     Collections.sort(filters);
-    cbFiltersAdd = new JComboBox(filters);
+    cbFiltersAdd = new JComboBox<>(filters);
     bFiltersAdd = new JButton("Add");
     bFiltersAdd.addActionListener(this);
     JPanel pFiltersAdd = new JPanel(new GridBagLayout());
@@ -1630,10 +1634,10 @@ public class ConvertToBam extends ChildFrame
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFiltersRemove.add(bFiltersRemoveAll, c);
 
-    bFiltersUp = new JButton(Icons.getIcon("Up16.gif"));
+    bFiltersUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
     bFiltersUp.setMargin(new Insets(16, 2, 16, 2));
     bFiltersUp.addActionListener(this);
-    bFiltersDown = new JButton(Icons.getIcon("Down16.gif"));
+    bFiltersDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
     bFiltersDown.setMargin(new Insets(16, 2, 16, 2));
     bFiltersDown.addActionListener(this);
     JPanel pFiltersMove = new JPanel(new GridBagLayout());
@@ -1660,7 +1664,7 @@ public class ConvertToBam extends ChildFrame
     pFiltersDesc.add(taFiltersDesc, c);
 
     modelFilters = new SimpleListModel<BamFilterBase>();
-    listFilters = new JList(modelFilters);
+    listFilters = new JList<>(modelFilters);
     listFilters.setCellRenderer(new IndexedCellRenderer());
     listFilters.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listFilters.addListSelectionListener(this);
@@ -3112,13 +3116,13 @@ public class ConvertToBam extends ChildFrame
       timer.stop();
       isPreviewPlaying = false;
       bPreviewPlay.setText("Play");
-      bPreviewPlay.setIcon(Icons.getIcon("Play16.gif"));
+      bPreviewPlay.setIcon(Icons.getIcon(Icons.ICON_PLAY_16));
       bPreviewStop.setEnabled(true);
       updatePreview();
     } else {
       isPreviewPlaying = true;
       bPreviewPlay.setText("Pause");
-      bPreviewPlay.setIcon(Icons.getIcon("Pause16.gif"));
+      bPreviewPlay.setIcon(Icons.getIcon(Icons.ICON_PAUSE_16));
       bPreviewStop.setEnabled(true);
       timer.start();
     }
@@ -3130,7 +3134,7 @@ public class ConvertToBam extends ChildFrame
     timer.stop();
     isPreviewPlaying = false;
     bPreviewPlay.setText("Play");
-    bPreviewPlay.setIcon(Icons.getIcon("Play16.gif"));
+    bPreviewPlay.setIcon(Icons.getIcon(Icons.ICON_PLAY_16));
     bPreviewStop.setEnabled(false);
     if (bamControlPreview != null) {
       bamControlPreview.cycleSetFrameIndex(0);
@@ -4254,7 +4258,7 @@ public class ConvertToBam extends ChildFrame
 //-------------------------- INNER CLASSES --------------------------
 
   // Manages the frames aspect of BAM resources
-  private static class BamFramesListModel extends AbstractListModel
+  private static class BamFramesListModel extends AbstractListModel<PseudoBamFrameEntry>
   {
     private final ConvertToBam converter;
     private final PseudoBamDecoder decoder;
@@ -4425,7 +4429,7 @@ public class ConvertToBam extends ChildFrame
 
 
   // Manages frames within a cycle
-  private static class BamCycleFramesListModel extends AbstractListModel
+  private static class BamCycleFramesListModel extends AbstractListModel<PseudoBamFrameEntry>
   {
     private final ConvertToBam converter;
     private final PseudoBamDecoder decoder;
@@ -4604,7 +4608,7 @@ public class ConvertToBam extends ChildFrame
 
 
   // Manages the cycles aspect of BAM resources
-  private static class BamCyclesListModel extends AbstractListModel
+  private static class BamCyclesListModel extends AbstractListModel<PseudoBamCycleEntry>
   {
     private final ConvertToBam converter;
     private final PseudoBamDecoder decoder;
@@ -4784,7 +4788,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index,
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
         boolean isSelected, boolean cellHasFocus)
     {
       String template = "%1$0" +

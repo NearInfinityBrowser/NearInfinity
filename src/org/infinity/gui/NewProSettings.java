@@ -18,9 +18,9 @@ import javax.swing.JPanel;
 
 public final class NewProSettings extends NewAbstractSettings
 {
-  private static final String PRODESC[] = {"1 - No BAM", "2 - Single target", "3 - Area of effect"};
+  private static final String[] PRODESC = {"1 - No BAM", "2 - Single target", "3 - Area of effect"};
 
-  private JComboBox cbType;
+  private JComboBox<String> cbType;
   private ProConfig config;
 
   public NewProSettings(Window parent)
@@ -52,7 +52,7 @@ public final class NewProSettings extends NewAbstractSettings
 
   private void initDialog(Window parent)
   {
-    cbType = new JComboBox(PRODESC);
+    cbType = new JComboBox<>(PRODESC);
     cbType.setSelectedIndex(config.getProjectileType() - 1);
 
     JLabel label = new JLabel("Select projectile type:");

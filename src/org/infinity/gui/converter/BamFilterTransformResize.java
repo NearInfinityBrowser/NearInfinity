@@ -50,10 +50,10 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   private static final int TYPE_BILINEAR          = 1;
   private static final int TYPE_BICUBIC           = 2;
   private static final int TYPE_SCALEX            = 3;
-  private static final String[] ScalingTypeItems = new String[]{"Nearest neighbor", "Bilinear",
-                                                                "Bicubic", "Scale2x/3x/4x"};
+  private static final String[] ScalingTypeItems = {"Nearest neighbor", "Bilinear",
+                                                    "Bicubic", "Scale2x/3x/4x"};
 
-  private JComboBox cbType;
+  private JComboBox<String> cbType;
   private JCheckBox cbAdjustCenter;
   private JSpinner spinnerFactor;
   private JTextArea taInfo;
@@ -159,7 +159,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
 
     JLabel l1 = new JLabel("Type:");
     JLabel l2 = new JLabel("Factor:");
-    cbType = new JComboBox(ScalingTypeItems);
+    cbType = new JComboBox<>(ScalingTypeItems);
     cbType.addActionListener(this);
     spinnerFactor = new JSpinner(new SpinnerNumberModel(1.0, 0.01, 10.0, 0.05));
     spinnerFactor.addChangeListener(this);

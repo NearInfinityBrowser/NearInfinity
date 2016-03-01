@@ -51,8 +51,8 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
 
   private final ChildFrame selectframe = new ChildFrame("References", true);
   private final Component parent;
-  private final JButton bStart = new JButton("Search", Icons.getIcon("Find16.gif"));
-  private final JButton bCancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
+  private final JButton bStart = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
+  private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
   private final JButton bInvert = new JButton("Invert");
   private final JButton bClear = new JButton("Clear");
   private final JButton bSet = new JButton("Set");
@@ -117,7 +117,7 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
       bSet.addActionListener(this);
       bDefault.addActionListener(this);
       selectframe.getRootPane().setDefaultButton(bStart);
-      selectframe.setIconImage(Icons.getIcon("Find16.gif").getImage());
+      selectframe.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
 
       JPanel boxpanel = new JPanel(new GridLayout(0, 2, 3, 3));
       for (int i = 0; i < boxes.length; i++) {

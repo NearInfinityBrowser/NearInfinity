@@ -39,15 +39,15 @@ public class LayerObjectAnimation extends LayerObject
 {
   private static final Image[][] Icon = new Image[][]{
     // active versions
-    {Icons.getImage(ViewerIcons.class, "itm_Anim1.png"), Icons.getImage(ViewerIcons.class, "itm_Anim2.png")},
-    {Icons.getImage(ViewerIcons.class, "itm_AnimWBM1.png"), Icons.getImage(ViewerIcons.class, "itm_AnimWBM2.png")},
-    {Icons.getImage(ViewerIcons.class, "itm_AnimPVRZ1.png"), Icons.getImage(ViewerIcons.class, "itm_AnimPVRZ2.png")},
-    {Icons.getImage(ViewerIcons.class, "itm_AnimBAM1.png"), Icons.getImage(ViewerIcons.class, "itm_AnimBAM2.png")},
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_2)},
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_2)},
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_2)},
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_2)},
     // inactive versions
-    {Icons.getImage(ViewerIcons.class, "itm_Anim1_bw.png"), Icons.getImage(ViewerIcons.class, "itm_Anim2_bw.png")},
-    {Icons.getImage(ViewerIcons.class, "itm_AnimWBM1_bw.png"), Icons.getImage(ViewerIcons.class, "itm_AnimWBM2_bw.png")},
-    {Icons.getImage(ViewerIcons.class, "itm_AnimPVRZ1_bw.png"), Icons.getImage(ViewerIcons.class, "itm_AnimPVRZ2_bw.png")},
-    {Icons.getImage(ViewerIcons.class, "itm_AnimBAM1_bw.png"), Icons.getImage(ViewerIcons.class, "itm_AnimBAM2_bw.png")}
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_2_BW)},
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_2_BW)},
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_2_BW)},
+    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_2_BW)}
   };
   private static Point Center = new Point(16, 17);
 

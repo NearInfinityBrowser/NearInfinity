@@ -444,23 +444,23 @@ public final class BrowserMenuBar extends JMenuBar
       super("Game");
       setMnemonic(KeyEvent.VK_G);
 
-      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.getIcon("Open16.gif"),
+      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_OPEN_16),
                                   KeyEvent.VK_I, this);
       add(gameOpenFile);
-      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.getIcon("Open16.gif"),
+      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.getIcon(Icons.ICON_OPEN_16),
                                   KeyEvent.VK_O, NearInfinity.getInstance());
       gameOpenGame.setActionCommand("Open");
       add(gameOpenGame);
-      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.getIcon("Refresh16.gif"),
+      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.getIcon(Icons.ICON_REFRESH_16),
                                  -1, NearInfinity.getInstance());
       gameRefresh.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
       gameRefresh.setActionCommand("Refresh");
       add(gameRefresh);
-      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon("Release16.gif"),
+      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon(Icons.ICON_RELEASE_16),
                                   -1, this);
       add(gameCloseTLK);
 
-      gameProperties = makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.getIcon("Edit16.gif"), -1, this);
+      gameProperties = makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       add(gameProperties);
 
       addSeparator();
@@ -526,7 +526,7 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
-      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.getIcon("Exit16.gif"), KeyEvent.VK_Q,
+      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.getIcon(Icons.ICON_EXIT_16), KeyEvent.VK_Q,
                               NearInfinity.getInstance());
       gameExit.setActionCommand("Exit");
       add(gameExit);
@@ -928,25 +928,25 @@ public final class BrowserMenuBar extends JMenuBar
       setMnemonic(KeyEvent.VK_F);
 
       newFileMenu = new JMenu("New Resource");
-      newFileMenu.setIcon(Icons.getIcon("New16.gif"));
+      newFileMenu.setIcon(Icons.getIcon(Icons.ICON_NEW_16));
       newFileMenu.setMnemonic(KeyEvent.VK_N);
       add(newFileMenu);
-      fileOpenNew = makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.getIcon("Open16.gif"), -1, this);
+      fileOpenNew = makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_OPEN_16), -1, this);
       fileOpenNew.setEnabled(false);
       add(fileOpenNew);
-      fileExport = makeMenuItem("Export...", KeyEvent.VK_E, Icons.getIcon("Export16.gif"), -1, this);
+      fileExport = makeMenuItem("Export...", KeyEvent.VK_E, Icons.getIcon(Icons.ICON_EXPORT_16), -1, this);
       fileExport.setEnabled(false);
       add(fileExport);
-      fileAddCopy = makeMenuItem("Add Copy Of...", KeyEvent.VK_A, Icons.getIcon("Add16.gif"), -1, this);
+      fileAddCopy = makeMenuItem("Add Copy Of...", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_ADD_16), -1, this);
       fileAddCopy.setEnabled(false);
       add(fileAddCopy);
-      fileRename = makeMenuItem("Rename...", KeyEvent.VK_R, Icons.getIcon("Edit16.gif"), -1, this);
+      fileRename = makeMenuItem("Rename...", KeyEvent.VK_R, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       fileRename.setEnabled(false);
       add(fileRename);
-      fileDelete = makeMenuItem("Delete", KeyEvent.VK_D, Icons.getIcon("Delete16.gif"), -1, this);
+      fileDelete = makeMenuItem("Delete", KeyEvent.VK_D, Icons.getIcon(Icons.ICON_DELETE_16), -1, this);
       fileDelete.setEnabled(false);
       add(fileDelete);
-      fileRestore = makeMenuItem("Restore backup", KeyEvent.VK_B, Icons.getIcon("Undo16.gif"), -1, this);
+      fileRestore = makeMenuItem("Restore backup", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_UNDO_16), -1, this);
       fileRestore.setEnabled(false);
       add(fileRestore);
     }
@@ -1029,16 +1029,16 @@ public final class BrowserMenuBar extends JMenuBar
       setMnemonic(KeyEvent.VK_E);
 
       editString =
-      makeMenuItem("Dialog.tlk", KeyEvent.VK_D, Icons.getIcon("Edit16.gif"), KeyEvent.VK_S, this);
+      makeMenuItem("Dialog.tlk", KeyEvent.VK_D, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_S, this);
       add(editString);
-      editString2 = makeMenuItem("DialogF.tlk", KeyEvent.VK_F, Icons.getIcon("Edit16.gif"), -1, this);
+      editString2 = makeMenuItem("DialogF.tlk", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       add(editString2);
-      editIni = makeMenuItem("baldur.ini", KeyEvent.VK_I, Icons.getIcon("Edit16.gif"), -1, NearInfinity.getInstance());
+      editIni = makeMenuItem("baldur.ini", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_EDIT_16), -1, NearInfinity.getInstance());
       editIni.setActionCommand("GameIni");
       add(editIni);
-      editVarVar = makeMenuItem("Var.var", KeyEvent.VK_V, Icons.getIcon("RowInsertAfter16.gif"), -1, this);
+      editVarVar = makeMenuItem("Var.var", KeyEvent.VK_V, Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16), -1, this);
       add(editVarVar);
-      editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.getIcon("Edit16.gif"), KeyEvent.VK_E, this);
+      editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_E, this);
       add(editBIFF);
     }
 
@@ -1125,19 +1125,19 @@ public final class BrowserMenuBar extends JMenuBar
       setMnemonic(KeyEvent.VK_S);
 
       searchString =
-          makeMenuItem("StringRef...", KeyEvent.VK_S, Icons.getIcon("Find16.gif"), KeyEvent.VK_L, this);
+          makeMenuItem("StringRef...", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_FIND_16), KeyEvent.VK_L, this);
       add(searchString);
       searchFile =
-          makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.getIcon("Find16.gif"), KeyEvent.VK_F, this);
+          makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_FIND_16), KeyEvent.VK_F, this);
       add(searchFile);
       searchResource =
-          makeMenuItem("Extended search...", KeyEvent.VK_X, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("Extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,
           Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.ALT_MASK));
       add(searchResource);
 
       textSearchMenu = new JMenu("Text Search");
-      textSearchMenu.setIcon(Icons.getIcon("Edit16.gif"));
+      textSearchMenu.setIcon(Icons.getIcon(Icons.ICON_EDIT_16));
       for (final String type : TEXTSEARCH) {
         JMenuItem textSearch = new JMenuItem(type);
         textSearch.addActionListener(this);
@@ -1224,25 +1224,25 @@ public final class BrowserMenuBar extends JMenuBar
       super("Tools");
       setMnemonic(KeyEvent.VK_T);
 
-      toolInfinityAmp = makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.getIcon("Volume16.gif"), -1, this);
+      toolInfinityAmp = makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_VOLUME_16), -1, this);
       add(toolInfinityAmp);
 
       addSeparator();
 
       toolCleanKeyfile =
-          makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.getIcon("Refresh16.gif"), -1, this);
+          makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.getIcon(Icons.ICON_REFRESH_16), -1, this);
       add(toolCleanKeyfile);
 
       addSeparator();
 
       // *** Begin Check submenu ***
       JMenu checkMenu = new JMenu("Check");
-//      checkMenu.setIcon(Icons.getIcon("Find16.gif"));
+//      checkMenu.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
       checkMenu.setMnemonic('c');
       add(checkMenu);
 
       JMenu checkSubMenu = new JMenu("Triggers & Actions For");
-      checkSubMenu.setIcon(Icons.getIcon("Refresh16.gif"));
+      checkSubMenu.setIcon(Icons.getIcon(Icons.ICON_REFRESH_16));
       toolCheckAllDialog = new JMenuItem("All Dialogues");
       toolCheckAllDialog.addActionListener(this);
       checkSubMenu.add(toolCheckAllDialog);
@@ -1252,22 +1252,22 @@ public final class BrowserMenuBar extends JMenuBar
       checkMenu.add(checkSubMenu);
 
       toolCheckScripts =
-          makeMenuItem("Scripts", KeyEvent.VK_S, Icons.getIcon("Refresh16.gif"), -1, this);
+          makeMenuItem("Scripts", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_REFRESH_16), -1, this);
       checkMenu.add(toolCheckScripts);
 
       toolCheckCREInv =
-          makeMenuItem("For CRE Items Not in Inventory", KeyEvent.VK_C, Icons.getIcon("Refresh16.gif"),
+          makeMenuItem("For CRE Items Not in Inventory", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_REFRESH_16),
                        -1, this);
       toolCheckCREInv.setToolTipText("Reports items present in the file but not in the inventory");
       checkMenu.add(toolCheckCREInv);
 
       toolCheckResRef =
-          makeMenuItem("For Illegal ResourceRefs...", KeyEvent.VK_R, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("For Illegal ResourceRefs...", KeyEvent.VK_R, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       toolCheckResRef.setToolTipText("Reports resource references pointing to nonexistent files");
       checkMenu.add(toolCheckResRef);
 
       JMenu findMenu = new JMenu("For Unknown IDS References In");
-      findMenu.setIcon(Icons.getIcon("Find16.gif"));
+      findMenu.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
       toolCheckIDSBCSRef = new JMenuItem("BCS & BS Files");
       toolCheckIDSBCSRef.addActionListener(this);
       findMenu.add(toolCheckIDSBCSRef);
@@ -1280,24 +1280,24 @@ public final class BrowserMenuBar extends JMenuBar
       toolCheckIDSRef.setToolTipText("Note: \"0\" references are ignored");
 
       toolCheckStructs =
-          makeMenuItem("For Corrupted Files...", KeyEvent.VK_F, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("For Corrupted Files...", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       toolCheckStructs.setToolTipText("Reports structured files with partially overlapping subsections or resource-specific corruptions");
       checkMenu.add(toolCheckStructs);
 
       toolCheckStringUse =
-          makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       checkMenu.add(toolCheckStringUse);
 
       toolCheckStringIndex =
-          makeMenuItem("For Illegal Strrefs...", KeyEvent.VK_S, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("For Illegal Strrefs...", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       toolCheckStringIndex.setToolTipText("Reports resources with out-of-range string references");
       checkMenu.add(toolCheckStringIndex);
 
-      toolCheckFileUse = makeMenuItem("For Unused Files...", -1, Icons.getIcon("Find16.gif"), -1, this);
+      toolCheckFileUse = makeMenuItem("For Unused Files...", -1, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       checkMenu.add(toolCheckFileUse);
 
       toolCheckEffectsIndex =
-          makeMenuItem("For Mis-indexed Effects", -1, Icons.getIcon("Find16.gif"), -1, this);
+          makeMenuItem("For Mis-indexed Effects", -1, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       checkMenu.add(toolCheckEffectsIndex);
       // *** End Check submenu ***
 
@@ -1307,52 +1307,52 @@ public final class BrowserMenuBar extends JMenuBar
       add(convertMenu);
 
       toolConvImageToBam =
-          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon("Application16.gif"), -1, this);
+          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
       convertMenu.add(toolConvImageToBam);
 
       toolConvImageToBmp =
-          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon("Application16.gif"), -1, this);
+          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
       convertMenu.add(toolConvImageToBmp);
 
       toolConvImageToMos =
-          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon("Application16.gif"), -1, this);
+          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
       convertMenu.add(toolConvImageToMos);
 
       toolConvImageToPvrz =
-          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon("Application16.gif"), -1, this);
+          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
       convertMenu.add(toolConvImageToPvrz);
 
       toolConvImageToTis =
-          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon("Application16.gif"), -1, this);
+          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
       convertMenu.add(toolConvImageToTis);
       // *** End Convert submenu ***
 
       addSeparator();
 
       toolIDSBrowser =
-          makeMenuItem("IDS Browser", KeyEvent.VK_B, Icons.getIcon("History16.gif"), KeyEvent.VK_B, this);
+          makeMenuItem("IDS Browser", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_HISTORY_16), KeyEvent.VK_B, this);
       add(toolIDSBrowser);
       toolDropZone =
-          makeMenuItem("Script Drop Zone", KeyEvent.VK_Z, Icons.getIcon("History16.gif"), KeyEvent.VK_Z, this);
+          makeMenuItem("Script Drop Zone", KeyEvent.VK_Z, Icons.getIcon(Icons.ICON_HISTORY_16), KeyEvent.VK_Z, this);
       add(toolDropZone);
 
       addSeparator();
 
       toolMassExport =
-          makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.getIcon("Export16.gif"), -1, this);
+          makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.getIcon(Icons.ICON_EXPORT_16), -1, this);
       add(toolMassExport);
 
       addSeparator();
 
-      toolClipBoard = new JCheckBoxMenuItem("Show Clipboard", Icons.getIcon("Paste16.gif"));
+      toolClipBoard = new JCheckBoxMenuItem("Show Clipboard", Icons.getIcon(Icons.ICON_PASTE_16));
       toolClipBoard.addActionListener(this);
       add(toolClipBoard);
-      toolConsole = new JCheckBoxMenuItem("Show Debug Console", Icons.getIcon("Properties16.gif"));
+      toolConsole = new JCheckBoxMenuItem("Show Debug Console", Icons.getIcon(Icons.ICON_PROPERTIES_16));
       toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK));
       toolConsole.addActionListener(this);
       add(toolConsole);
 
-//      toolBatchJob = makeMenuItem("Batch jobs", KeyEvent.VK_J, ResourceFactory.getIcon("History16.gif"), KeyEvent.VK_J, this);
+//      toolBatchJob = makeMenuItem("Batch jobs", KeyEvent.VK_J, Icons.getIcon(Icons.ICON_HISTORY_16), KeyEvent.VK_J, this);
 //      add(toolBatchJob);
     }
 
@@ -1510,27 +1510,27 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String DefaultCharset = "Auto";
     private static final List<String[]> CharsetsUsed = new ArrayList<String[]>();
     // BCS indentations to use when decompiling (indent, title)
-    private static final String[][] BCSINDENT = {
-      new String[]{"  ", "2 Spaces"}, new String[]{"    ", "4 Spaces"}, new String[]{"\t", "Tab"},
-    };
+    private static final String[][] BCSINDENT = { {"  ", "2 Spaces"},
+                                                  {"    ", "4 Spaces"},
+                                                  {"\t", "Tab"} };
     // Available color schemes for highlighted BCS format (scheme, title, description)
     private static final String[][] BCSCOLORSCHEME = {
-      new String[]{InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
-      new String[]{InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
-      new String[]{InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
-      new String[]{InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
-      new String[]{InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
-      new String[]{InfinityTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
-//      new String[]{null, "External color scheme...", "Use an external color scheme definition file"},
+      {InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
+      {InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
+      {InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
+      {InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      {InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
+      {InfinityTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
+//      {null, "External color scheme...", "Use an external color scheme definition file"},
     };
     // Available color schemes for remaining highlighted formats (scheme, title, description)
     private static final String[][] COLORSCHEME = {
-      new String[]{InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
-      new String[]{InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
-      new String[]{InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
-      new String[]{InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
-      new String[]{InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
-//      new String[]{null, "External color scheme...", "Use an external color scheme definition file"},
+      {InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
+      {InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
+      {InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
+      {InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      {InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
+//      {null, "External color scheme...", "Use an external color scheme definition file"},
     };
 
     static {
@@ -1598,15 +1598,15 @@ public final class BrowserMenuBar extends JMenuBar
 
     private final List<DataRadioButtonMenuItem> lookAndFeel = new ArrayList<DataRadioButtonMenuItem>();
 
-    private final JRadioButtonMenuItem showOverrides[] = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem showResRef[] = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem viewOrEditShown[] = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem selectFont[] = new JRadioButtonMenuItem[FONTS.length];
-    private final JRadioButtonMenuItem selectTextTabSize[] = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem selectBcsIndent[] = new JRadioButtonMenuItem[BCSINDENT.length];
-    private final JRadioButtonMenuItem selectBcsColorScheme[] = new JRadioButtonMenuItem[BCSCOLORSCHEME.length];
-    private final JRadioButtonMenuItem selectGlslColorScheme[] = new JRadioButtonMenuItem[COLORSCHEME.length];
-    private final JRadioButtonMenuItem selectSqlColorScheme[] = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private final JRadioButtonMenuItem[] showOverrides = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem[] showResRef = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem[] viewOrEditShown = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem[] selectFont = new JRadioButtonMenuItem[FONTS.length];
+    private final JRadioButtonMenuItem[] selectTextTabSize = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem[] selectBcsIndent = new JRadioButtonMenuItem[BCSINDENT.length];
+    private final JRadioButtonMenuItem[] selectBcsColorScheme = new JRadioButtonMenuItem[BCSCOLORSCHEME.length];
+    private final JRadioButtonMenuItem[] selectGlslColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private final JRadioButtonMenuItem[] selectSqlColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
                               optionBCSEnableSyntax, optionBCSEnableCodeFolding,
@@ -2687,15 +2687,15 @@ public final class BrowserMenuBar extends JMenuBar
       super("Help");
       setMnemonic(KeyEvent.VK_H);
 
-      helpAbout = makeMenuItem("About Near Infinity", KeyEvent.VK_A, Icons.getIcon("About16.gif"), -1, this);
+      helpAbout = makeMenuItem("About Near Infinity", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_ABOUT_16), -1, this);
       add(helpAbout);
 
-      helpWiki = makeMenuItem("Near Infinity Wiki", KeyEvent.VK_W, Icons.getIcon("Help16.gif"), -1, this);
+      helpWiki = makeMenuItem("Near Infinity Wiki", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_HELP_16), -1, this);
       helpWiki.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
       add(helpWiki);
 
       helpLicense =
-          makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       add(helpLicense);
 
       JMenu miscLicenses = new JMenu("Third-party licenses");
@@ -2703,23 +2703,23 @@ public final class BrowserMenuBar extends JMenuBar
       add(miscLicenses);
 
       helpJOrbisLicense =
-          makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpJOrbisLicense);
 
       helpFifeLicense =
-          makeMenuItem("Fifesoft License", KeyEvent.VK_F, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("Fifesoft License", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpFifeLicense);
 
       helpJHexViewLicense =
-          makeMenuItem("JHexView License", KeyEvent.VK_H, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("JHexView License", KeyEvent.VK_H, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpJHexViewLicense);
 
       helpMonteMediaLicense =
-          makeMenuItem("Monte Media License", KeyEvent.VK_M, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("Monte Media License", KeyEvent.VK_M, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpMonteMediaLicense);
 
       helpJFontChooserLicense =
-          makeMenuItem("JFontChooser License", KeyEvent.VK_C, Icons.getIcon("Edit16.gif"), -1, this);
+          makeMenuItem("JFontChooser License", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpJFontChooserLicense);
 
       addSeparator();
@@ -2727,7 +2727,7 @@ public final class BrowserMenuBar extends JMenuBar
       helpUpdateSettings = makeMenuItem("Update settings...", KeyEvent.VK_S, null, -1, this);
       add(helpUpdateSettings);
 
-      helpUpdateCheck = makeMenuItem("Check for updates", KeyEvent.VK_U, Icons.getIcon("Find16.gif"), -1, this);
+      helpUpdateCheck = makeMenuItem("Check for updates", KeyEvent.VK_U, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       add(helpUpdateCheck);
     }
 
@@ -2993,7 +2993,7 @@ public final class BrowserMenuBar extends JMenuBar
       panel.add(pMiscLicenses, gbc);
 
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "About Near Infinity",
-                                    JOptionPane.INFORMATION_MESSAGE, Icons.getIcon("App128.png"));
+                                    JOptionPane.INFORMATION_MESSAGE, Icons.getIcon(Icons.ICON_APP_128));
     }
 
     private void displayLicense(String classPath, String title)

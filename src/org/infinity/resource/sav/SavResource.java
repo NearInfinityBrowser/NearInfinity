@@ -71,7 +71,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private SimpleListModel<ResourceEntry> listModel;
-  private JList filelist;
+  private JList<ResourceEntry> filelist;
   private JPanel panel;
   private List<ResourceEntry> entries;
   private JMenuItem miAddExternal;
@@ -183,7 +183,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
     for (int i = 0; i < handler.getFileEntries().size(); i++) {
       listModel.addElement(handler.getFileEntries().get(i));
     }
-    filelist = new JList(listModel);
+    filelist = new JList<>(listModel);
     filelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     filelist.addListSelectionListener(this);
     filelist.addMouseListener(new MouseAdapter()
@@ -199,16 +199,16 @@ public final class SavResource implements Resource, Closeable, Writeable,
       }
     });
 
-    JButton bDecompress = new JButton("Decompress", Icons.getIcon("Export16.gif"));
+    JButton bDecompress = new JButton("Decompress", Icons.getIcon(Icons.ICON_EXPORT_16));
     bDecompress.setMnemonic('d');
     bDecompress.addActionListener(this);
 
-    JButton bEdit = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
+    JButton bEdit = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
     bEdit.setMnemonic('v');
     bEdit.addActionListener(this);
     bEdit.setEnabled(false);
 
-    JButton bDelete = new JButton("Delete file", Icons.getIcon("Delete16.gif"));
+    JButton bDelete = new JButton("Delete file", Icons.getIcon(Icons.ICON_DELETE_16));
     bDelete.addActionListener(this);
     bDelete.setEnabled(false);
 
@@ -217,10 +217,10 @@ public final class SavResource implements Resource, Closeable, Writeable,
     miAddInternal = new JMenuItem("Game resource");
     miAddInternal.addActionListener(this);
     ButtonPopupMenu bpmAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miAddExternal, miAddInternal});
-    bpmAdd.setIcon(Icons.getIcon("Add16.gif"));
+    bpmAdd.setIcon(Icons.getIcon(Icons.ICON_ADD_16));
     bpmAdd.setEnabled(false);
 
-    JButton bCompress = new JButton("Compress", Icons.getIcon("Import16.gif"));
+    JButton bCompress = new JButton("Compress", Icons.getIcon(Icons.ICON_IMPORT_16));
     bCompress.setMnemonic('c');
     bCompress.addActionListener(this);
     bCompress.setEnabled(false);

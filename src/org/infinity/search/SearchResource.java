@@ -110,10 +110,10 @@ public class SearchResource extends ChildFrame
 
   private final HashMap<String, OptionsBasePanel> mapOptionsPanel = new HashMap<String, OptionsBasePanel>();
   private JPanel pFindOptions, pBottomBar;
-  private JList listResults;
+  private JList<NamedResourceEntry> listResults;
   private JLabel lResults;
   private JButton bSearch, bInsertRef, bOpen, bOpenNew;
-  private JComboBox cbResourceType;
+  private JComboBox<ObjectString> cbResourceType;
   private JToggleButton bShowHideOptions;
   private CardLayout clOptions, clBottomBar;
   private JProgressBar pbProgress;
@@ -220,7 +220,7 @@ public class SearchResource extends ChildFrame
   @Override
   public void run()
   {
-    listResults.setListData(new Object[]{});
+    listResults.setListData(new NamedResourceEntry[0]);
     listResults.setEnabled(false);
     bInsertRef.setEnabled(false);
     bOpen.setEnabled(false);
@@ -300,7 +300,7 @@ public class SearchResource extends ChildFrame
     pm.setMillisToPopup(0);
     pm.setProgress(progress++);
     try {
-      setIconImage(Icons.getIcon("Find16.gif").getImage());
+      setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
       GridBagConstraints c = new GridBagConstraints();
 
       boolean effSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_EFF);
@@ -363,10 +363,10 @@ public class SearchResource extends ChildFrame
         resTypeList[resTypeCount++] = new ObjectString("Visual Effects", optionPanels[7]);
       }
 
-      cbResourceType = new JComboBox(resTypeList);
+      cbResourceType = new JComboBox<>(resTypeList);
       cbResourceType.setSelectedIndex(0);
       cbResourceType.addActionListener(this);
-      bSearch = new JButton("Search", Icons.getIcon("Find16.gif"));
+      bSearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
       bSearch.setEnabled(false);
       bSearch.addActionListener(this);
       bShowHideOptions = new JToggleButton(setShowHideText[1], true);
@@ -418,7 +418,7 @@ public class SearchResource extends ChildFrame
       // creating Results section
       JLabel lResult = new JLabel("Result:");
       lResults = new JLabel("");
-      listResults = new JList(new SimpleListModel<NamedResourceEntry>());
+      listResults = new JList<>(new SimpleListModel<NamedResourceEntry>());
       listResults.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       listResults.addMouseListener(new MouseAdapter() {
         @Override
@@ -453,15 +453,15 @@ public class SearchResource extends ChildFrame
       pResultMain.add(pResult, c);
 
       // creating bottom bar for buttons and progress
-      bInsertRef = new JButton("Insert reference", Icons.getIcon("Paste16.gif"));
+      bInsertRef = new JButton("Insert reference", Icons.getIcon(Icons.ICON_PASTE_16));
       bInsertRef.setMnemonic('r');
       bInsertRef.setEnabled(false);
       bInsertRef.addActionListener(this);
-      bOpen = new JButton("Open", Icons.getIcon("Open16.gif"));
+      bOpen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
       bOpen.setMnemonic('o');
       bOpen.setEnabled(false);
       bOpen.addActionListener(this);
-      bOpenNew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
+      bOpenNew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
       bOpenNew.setMnemonic('n');
       bOpenNew.setEnabled(false);
       bOpenNew.addActionListener(this);
@@ -658,7 +658,7 @@ public class SearchResource extends ChildFrame
     private FlagsPanel pType, pLocation;
     private CustomFilterPanel pCustomFilter;
     private ButtonPopupWindow bpwType, bpwLocation, bpwCustomFilter;
-    private JComboBox cbActor, cbAnimation, cbScript, cbItem;
+    private JComboBox<NamedResourceEntry> cbActor, cbAnimation, cbScript, cbItem;
 
 
     public OptionsAREPanel(SearchResource searchResource)
@@ -931,7 +931,7 @@ public class SearchResource extends ChildFrame
     private JTextField tfName, tfScriptName;
     private ButtonPopupWindow bpwFlags, bpwTypes, bpwLevel, bpwScripts, bpwGameSpecific, bpwEffects,
                               bpwItems, bpwSpells, bpwCustomFilter;
-    private JComboBox cbAnimation;
+    private JComboBox<IdsMapEntry> cbAnimation;
 
 
     public OptionsCREPanel(SearchResource searchResource)
@@ -1295,9 +1295,9 @@ public class SearchResource extends ChildFrame
       pScripts = new CreScriptsPanel(3);
       bpwScripts = new ButtonPopupWindow(setOptionsText, pScripts);
 
-      cbAnimation = new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0,0,0,0}, 0, 4,
-                                                                            "Animation", "ANIMATE.IDS")));
-      cbAnimation.setPrototypeDisplayValue(Utils.ProtoTypeString);
+      cbAnimation = new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0,0,0,0}, 0, 4,
+                                                                              "Animation", "ANIMATE.IDS")));
+      cbAnimation.setPreferredSize(Utils.getPrototypeSize(cbAnimation));
 
       pGameSpecific = new CreGameSpecificPanel();
       bpwGameSpecific = new ButtonPopupWindow(setOptionsText, pGameSpecific);
@@ -1730,7 +1730,8 @@ public class SearchResource extends ChildFrame
     private CustomFilterPanel pCustomFilter;
     private JTextField tfName;
     private ButtonPopupWindow bpwFlags, bpwUsability, bpwStats, bpwAbility, bpwEffects, bpwCustomFilter;
-    private JComboBox cbAppearance, cbCategory;
+    private JComboBox<ObjectString> cbAppearance;
+    private JComboBox<IndexedString> cbCategory;
 
 
     public OptionsITMPanel(SearchResource searchResource)
@@ -2058,9 +2059,9 @@ public class SearchResource extends ChildFrame
       } else {
         osAppearance = ObjectString.createString(ItmResource.s_anim, ItmResource.s_tag);
       }
-      cbAppearance = new AutoComboBox(osAppearance);
+      cbAppearance = new AutoComboBox<>(osAppearance);
 
-      cbCategory = new AutoComboBox(IndexedString.createArray(sCat, 0, 0));
+      cbCategory = new AutoComboBox<>(IndexedString.createArray(sCat, 0, 0));
 
       pStats = new ItmStatsPanel();
       bpwStats = new ButtonPopupWindow(setOptionsText, pStats);
@@ -2184,7 +2185,9 @@ public class SearchResource extends ChildFrame
     private FlagsPanel pBehavior, pFlags, pAreaFlags;
     private CustomFilterPanel pCustomFilter;
     private ButtonPopupWindow bpwFlags, bpwBehavior, bpwAreaFlags, bpwCustomFilter;
-    private JComboBox cbAnimation, cbType, cbExplosionEffect;
+    private JComboBox<NamedResourceEntry> cbAnimation;
+    private JComboBox<IndexedString> cbType;
+    private JComboBox<ObjectString> cbExplosionEffect;
 
 
     public OptionsPROPanel(SearchResource searchResource)
@@ -2377,10 +2380,10 @@ public class SearchResource extends ChildFrame
       cbOptions[ID_Custom] = cb;
 
       cbAnimation = Utils.createNamedResourceComboBox(new String[]{"BAM"}, false);
-      cbAnimation.setPrototypeDisplayValue(Utils.ProtoTypeString);
+      cbAnimation.setPreferredSize(Utils.getPrototypeSize(cbAnimation));
 
-      cbType = new AutoComboBox(IndexedString.createArray(new String[]{"No BAM", "Single target",
-                                                                       "Area of effect"}, 0, 1));
+      cbType = new AutoComboBox<>(IndexedString.createArray(new String[]{"No BAM", "Single target",
+                                                                         "Area of effect"}, 0, 1));
 
       long[] keys = ProAreaType.m_proj.keys();
       Object[] values = ProAreaType.m_proj.values().toArray();
@@ -2392,7 +2395,7 @@ public class SearchResource extends ChildFrame
       for (int i = 0; i < values.length; i++) {
         strings[i] = (String)values[i];
       }
-      cbExplosionEffect = new AutoComboBox(ObjectString.createString(strings, objects));
+      cbExplosionEffect = new AutoComboBox<>(ObjectString.createString(strings, objects));
 
       pBehavior = new FlagsPanel(4, ProResource.s_behave);
       bpwBehavior = new ButtonPopupWindow(setOptionsText, pBehavior);
@@ -2515,7 +2518,8 @@ public class SearchResource extends ChildFrame
     private CustomFilterPanel pCustomFilter;
     private JTextField tfName;
     private ButtonPopupWindow bpwFlags, bpwExclusion, bpwAbility, bpwEffects, bpwCustomFilter;
-    private JComboBox cbSpellType, cbCastingAnim, cbPrimary, cbSecondary;
+    private JComboBox<IndexedString> cbSpellType, cbCastingAnim, cbSecondary;
+    private JComboBox<ObjectString> cbPrimary;
 
 
     public OptionsSPLPanel(SearchResource searchResource)
@@ -2768,21 +2772,21 @@ public class SearchResource extends ChildFrame
       pFlags = new FlagsPanel(4, SplResource.s_spellflag);
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
 
-      cbSpellType = new AutoComboBox(IndexedString.createArray(SplResource.s_spelltype, 0, 0));
+      cbSpellType = new AutoComboBox<>(IndexedString.createArray(SplResource.s_spelltype, 0, 0));
 
       pExclusion = new FlagsPanel(4, SplResource.s_exclude);
       bpwExclusion = new ButtonPopupWindow(setOptionsText, pExclusion);
 
-      cbCastingAnim = new AutoComboBox(IndexedString.createArray(SplResource.s_anim, 0, 0));
+      cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim, 0, 0));
 
       String[] priType = PriTypeBitmap.getTypeArray();
       ObjectString[] prim = new ObjectString[priType.length];
       for (int i = 0; i < priType.length; i++) {
         prim[i] = new ObjectString(priType[i], Integer.valueOf(i));
       }
-      cbPrimary = new AutoComboBox(prim);
+      cbPrimary = new AutoComboBox<>(prim);
 
-      cbSecondary = new AutoComboBox(IndexedString.createArray(SecTypeBitmap.getTypeArray(), 0, 0));
+      cbSecondary = new AutoComboBox<>(IndexedString.createArray(SecTypeBitmap.getTypeArray(), 0, 0));
 
       pAbility = new SplAbilityPanel();
       bpwAbility = new ButtonPopupWindow(setOptionsText, pAbility);
@@ -2907,7 +2911,7 @@ public class SearchResource extends ChildFrame
     private CustomFilterPanel pCustomFilter;
     private JTextField tfName;
     private ButtonPopupWindow bpwFlags, bpwPurchased, bpwRoomsAvailable, bpwItemsForSale, bpwCustomFilter;
-    private JComboBox cbType;
+    private JComboBox<StorageString> cbType;
 
 
     public OptionsSTOPanel(SearchResource searchResource)
@@ -3159,7 +3163,7 @@ public class SearchResource extends ChildFrame
       } else {
         types = IndexedString.createArray(StoResource.s_type9, 0, 0);
       }
-      cbType = new AutoComboBox(types);
+      cbType = new AutoComboBox<>(types);
 
       pFlags = new FlagsPanel(4, StoResource.s_flag_bg2);
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
@@ -3293,7 +3297,7 @@ public class SearchResource extends ChildFrame
     private FlagsPanel pFlags, pColor, pSequencing, pOrientation;
     private CustomFilterPanel pCustomFilter;
     private ButtonPopupWindow bpwFlags, bpwColor, bpwSequencing, bpwOrientation, bpwCustomFilter;
-    private JComboBox cbAnimation;
+    private JComboBox<NamedResourceEntry> cbAnimation;
 
 
     public OptionsVVCPanel(SearchResource searchResource)
@@ -3802,12 +3806,12 @@ public class SearchResource extends ChildFrame
     private final int entryCount;
     private final String label;
     private final JCheckBox[] cbLabel;
-    private final JComboBox[] cbFilterType;
+    private final JComboBox<?>[] cbFilterType;
     private final JTextField[] tfFieldName;
     private final JTextField[] tfFieldValueString;
     private final JSpinner[][] sFieldValueNumber;
-    private final JComboBox[] cbFieldValueResource;
-    private final JComboBox[] cbFieldValueResourceType;
+    private final JComboBox<?>[] cbFieldValueResource;
+    private final JComboBox<?>[] cbFieldValueResourceType;
     private final FlagsPanel[] pFieldValueFlags;
     private final ButtonPopupWindow[] bpwFieldValueFlags;
     private final CardLayout[] clFilter;
@@ -3948,10 +3952,10 @@ public class SearchResource extends ChildFrame
         }
         case FILTER_RESOURCE:
         {
-          cbFieldValueResourceType[entry] = new JComboBox(ResourceTypes);
+          cbFieldValueResourceType[entry] = new JComboBox<>(ResourceTypes);
           cbFieldValueResourceType[entry].addActionListener(this);
-          cbFieldValueResource[entry] = new JComboBox();
-          cbFieldValueResource[entry].setPrototypeDisplayValue(Utils.ProtoTypeString);
+          cbFieldValueResource[entry] = new JComboBox<>();
+          cbFieldValueResource[entry].setPreferredSize(Utils.getPrototypeSize(cbFieldValueResource[entry]));
           updateResourceList(entry, (String)cbFieldValueResourceType[entry].getSelectedItem());
           c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -3983,7 +3987,8 @@ public class SearchResource extends ChildFrame
     {
       if (entry < 0) entry = 0; else if (entry >= entryCount) entry = entryCount - 1;
       if (ext != null) {
-        JComboBox cb = cbFieldValueResource[entry];
+        @SuppressWarnings("unchecked")
+        JComboBox<Object> cb = (JComboBox<Object>)cbFieldValueResource[entry];
         cb.setEnabled(false);
         try {
           cb.removeAllItems();
@@ -4009,7 +4014,7 @@ public class SearchResource extends ChildFrame
         cbLabel[i] = new JCheckBox(String.format("%1$s %2$d:", label, i+1));
         cbLabel[i].addActionListener(this);
 
-        cbFilterType[i] = new JComboBox(FilterText);
+        cbFilterType[i] = new JComboBox<>(FilterText);
         cbFilterType[i].addActionListener(this);
 
         tfFieldName[i] = Utils.defaultWidth(new JTextField());
@@ -4091,7 +4096,7 @@ public class SearchResource extends ChildFrame
 
     private final JCheckBox[] cbTiming = new JCheckBox[EntryCount];
     private final JSpinner[] sDuration = new JSpinner[EntryCount];
-    private JComboBox cbMode;
+    private JComboBox<IndexedString> cbMode;
 
     public TimingModePanel()
     {
@@ -4163,7 +4168,7 @@ public class SearchResource extends ChildFrame
         cbTiming[i].addActionListener(this);
       }
 
-      cbMode = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(EffectFactory.m_duration)), 130);
+      cbMode = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(EffectFactory.m_duration)), 130);
       sDuration[0] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 0, 1);
       sDuration[1] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 3600, 1);
 
@@ -4434,7 +4439,7 @@ public class SearchResource extends ChildFrame
                                                        "Allegiance:", "Kit:", "Sex:"};
 
     private final JCheckBox[] cbLabel = new JCheckBox[EntryCount];
-    private final JComboBox[] cbType = new JComboBox[EntryCount];
+    private final JComboBox<?>[] cbType = new JComboBox[EntryCount];
 
     public CreTypePanel()
     {
@@ -4506,26 +4511,26 @@ public class SearchResource extends ChildFrame
 
       final int defaultSize = 160;
       cbType[TYPE_GENERAL] = Utils.defaultWidth(
-          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "General", "GENERAL.IDS"))),
+          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "General", "GENERAL.IDS"))),
           defaultSize);
       cbType[TYPE_CLASS] = Utils.defaultWidth(
-          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Class", "CLASS.IDS"))),
+          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Class", "CLASS.IDS"))),
           defaultSize);
       cbType[TYPE_SPECIFICS] = Utils.defaultWidth(
-          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Specifics", "SPECIFIC.IDS"))),
+          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Specifics", "SPECIFIC.IDS"))),
           defaultSize);
       String idsFile = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
       cbType[TYPE_ALIGNMENT] = Utils.defaultWidth(
-          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Alignment", idsFile))),
+          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Alignment", idsFile))),
           defaultSize);
       cbType[TYPE_GENDER] = Utils.defaultWidth(
-          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Gender", "GENDER.IDS"))),
+          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Gender", "GENDER.IDS"))),
           defaultSize);
       cbType[TYPE_RACE] = Utils.defaultWidth(
-          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Race", "RACE.IDS"))),
+          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Race", "RACE.IDS"))),
           defaultSize);
       cbType[TYPE_ALLEGIANCE] = Utils.defaultWidth(
-          new AutoComboBox(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "EA.IDS"))),
+          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "EA.IDS"))),
           defaultSize);
 
       StorageString[] kitList;
@@ -4545,7 +4550,7 @@ public class SearchResource extends ChildFrame
       } else {
         kitList = new StorageString[]{};
       }
-      cbType[TYPE_KIT] = Utils.defaultWidth(new AutoComboBox(kitList), defaultSize);
+      cbType[TYPE_KIT] = Utils.defaultWidth(new AutoComboBox<>(kitList), defaultSize);
       cbType[TYPE_KIT].setEnabled(hasKit);
 
       // placing components
@@ -4708,7 +4713,7 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox[] cbItems;
+    private final JComboBox<?>[] cbItems;
 
     public CreItemsPanel(int itemCount)
     {
@@ -4816,7 +4821,7 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox[] cbSpells;
+    private final JComboBox<?>[] cbSpells;
 
     public CreSpellsPanel(int spellCount)
     {
@@ -4925,7 +4930,7 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox[] cbScripts;
+    private final JComboBox<?>[] cbScripts;
 
     public CreScriptsPanel(int scriptCount)
     {
@@ -5314,7 +5319,8 @@ public class SearchResource extends ChildFrame
     private final FlagsPanel flagsPanel = new FlagsPanel(4, org.infinity.resource.itm.Ability.s_recharge);
 
     private EffectsPanel pEffects;
-    private JComboBox cbType, cbTarget, cbLauncher, cbDamageType, cbProjectile;
+    private JComboBox<IndexedString> cbType, cbTarget, cbLauncher, cbDamageType;
+    private JComboBox<StorageString> cbProjectile;
     private ButtonPopupWindow bpwFlags, bpwEffects;
     private JCheckBox cbOneAbilityExclusive;
 
@@ -5528,10 +5534,10 @@ public class SearchResource extends ChildFrame
         cbItems[i].addActionListener(this);
       }
 
-      cbType = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
-      cbTarget = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
-      cbLauncher = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(org.infinity.resource.itm.Ability.s_launcher, 0, 0)));
-      cbDamageType = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(org.infinity.resource.AbstractAbility.s_dmgtype, 0, 0)));
+      cbType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
+      cbTarget = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
+      cbLauncher = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.itm.Ability.s_launcher, 0, 0)));
+      cbDamageType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.AbstractAbility.s_dmgtype, 0, 0)));
 
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
@@ -5549,7 +5555,7 @@ public class SearchResource extends ChildFrame
       } else {
         pro = IndexedString.createArray(AbstractAbility.s_projectile, 0, 0);
       }
-      cbProjectile = Utils.defaultWidth(new AutoComboBox(pro));
+      cbProjectile = Utils.defaultWidth(new AutoComboBox<>(pro));
 
       bpwFlags = Utils.defaultWidth(new ButtonPopupWindow(setOptionsText, flagsPanel));
 
@@ -5692,7 +5698,8 @@ public class SearchResource extends ChildFrame
     private final JSpinner[] sLevel = new JSpinner[2];
     private final JSpinner[] sSpeed = new JSpinner[2];
     private EffectsPanel pEffects;
-    private JComboBox cbType, cbLocation, cbTarget, cbProjectile;
+    private JComboBox<IndexedString> cbType, cbLocation, cbTarget;
+    private JComboBox<StorageString> cbProjectile;
     private JCheckBox cbOneAbilityExclusive;
     private ButtonPopupWindow bpwEffects;
 
@@ -5839,9 +5846,9 @@ public class SearchResource extends ChildFrame
         cbSpells[i].addActionListener(this);
       }
 
-      cbType = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
-      cbLocation = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(org.infinity.resource.spl.Ability.s_abilityuse, 0, 0)));
-      cbTarget = Utils.defaultWidth(new AutoComboBox(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
+      cbType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
+      cbLocation = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.spl.Ability.s_abilityuse, 0, 0)));
+      cbTarget = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
 
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
@@ -5859,7 +5866,7 @@ public class SearchResource extends ChildFrame
       } else {
         pro = IndexedString.createArray(AbstractAbility.s_projectile, 1, 0);
       }
-      cbProjectile = Utils.defaultWidth(new AutoComboBox(pro));
+      cbProjectile = Utils.defaultWidth(new AutoComboBox<>(pro));
 
       sRange[0] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, -32768, 32767, 0, 1);
       sRange[1] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, -32768, 32767, 32767, 1);
@@ -5955,7 +5962,7 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox[] cbCategory;
+    private final JComboBox<?>[] cbCategory;
 
     public StoCategoriesPanel(int purchasedCount)
     {
@@ -6027,7 +6034,7 @@ public class SearchResource extends ChildFrame
 
         String[] cat = ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V11)) ?
                        ItmResource.s_categories11 : ItmResource.s_categories;
-        cbCategory[i] = new AutoComboBox(IndexedString.createArray(cat, 0, 0));
+        cbCategory[i] = new AutoComboBox<>(IndexedString.createArray(cat, 0, 0));
       }
 
       // placing components
@@ -6070,7 +6077,7 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox[] cbItems;
+    private final JComboBox<?>[] cbItems;
 
     public StoForSalePanel(int itemCount)
     {
@@ -6424,14 +6431,14 @@ public class SearchResource extends ChildFrame
     }
 
     // returns a combobox containing all available resource of specified extensions
-    public static JComboBox createNamedResourceComboBox(String[] extensions, boolean usePrototype)
+    public static JComboBox<NamedResourceEntry> createNamedResourceComboBox(String[] extensions, boolean usePrototype)
     {
       Vector<NamedResourceEntry> names = createNamedResourceList(extensions, false);
       NamedResourceEntry nre = names.get(0);
       Collections.sort(names, Utils.NamedResourceComparator);
-      JComboBox cb = new JComboBox(names);
+      JComboBox<NamedResourceEntry> cb = new JComboBox<>(names);
       if (usePrototype) {
-        cb.setPrototypeDisplayValue(Utils.ProtoTypeString);
+        cb.setPreferredSize(Utils.getPrototypeSize(cb));
       }
       cb.setSelectedItem(nre);
 
@@ -6592,10 +6599,16 @@ public class SearchResource extends ChildFrame
       }
       return new Pair<Integer>(0, 0);
     }
+
+    /** Returns a protype dimension object based on the height of @(code c} and the width of (@code prototype}. */
+    public static Dimension getPrototypeSize(JComponent c)
+    {
+      return Misc.getPrototypeSize(c, ProtoTypeString);
+    }
   }
 
   // Adds "auto-select item" feature to JComboBox
-  public static class AutoComboBox extends JComboBox
+  public static class AutoComboBox<E> extends JComboBox<E>
   {
     public AutoComboBox()
     {
@@ -6603,19 +6616,19 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    public AutoComboBox(ComboBoxModel aModel)
+    public AutoComboBox(ComboBoxModel<E> aModel)
     {
       super(aModel);
       init();
     }
 
-    public AutoComboBox(Object[] items)
+    public AutoComboBox(E[] items)
     {
       super(items);
       init();
     }
 
-    public AutoComboBox(Vector<?> items)
+    public AutoComboBox(Vector<E> items)
     {
       super(items);
       init();
@@ -6624,31 +6637,32 @@ public class SearchResource extends ChildFrame
     private void init()
     {
       setEditable(true);
-      new AutoDocument(this);
+      new AutoDocument<>(this);
     }
   }
 
   // Implements the auto-selection of items for AutoComboBox
-  private static class AutoDocument extends PlainDocument
+  private static class AutoDocument<E> extends PlainDocument
   {
     private final FocusListener editorFocusListener;
-    private final JComboBox comboBox;
+    private final JComboBox<E> comboBox;
 
-    private ComboBoxModel model;
+    private ComboBoxModel<E> model;
     private JTextComponent editor;
     private boolean selecting = false;
 
-    public AutoDocument(final JComboBox comboBox)
+    public AutoDocument(final JComboBox<E> comboBox)
     {
       this.comboBox = comboBox;
       this.model = this.comboBox.getModel();
 
       this.comboBox.addPropertyChangeListener(new PropertyChangeListener() {
+        @SuppressWarnings("unchecked")
         @Override
         public void propertyChange(PropertyChangeEvent evt)
         {
           if (evt.getPropertyName().equals("editor")) { configureEditor((ComboBoxEditor)evt.getNewValue()); }
-          if (evt.getPropertyName().equals("model")) { model = (ComboBoxModel)evt.getNewValue(); }
+          if (evt.getPropertyName().equals("model")) { model = (ComboBoxModel<E>)evt.getNewValue(); }
         }
       });
 

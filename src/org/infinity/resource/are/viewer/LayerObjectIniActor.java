@@ -27,12 +27,12 @@ import org.infinity.util.IniMapSection;
  */
 public class LayerObjectIniActor extends LayerObjectActor
 {
-  private static final Image[] IconGood = new Image[]{Icons.getImage(ViewerIcons.class, "itm_IniActorG1.png"),
-                                                      Icons.getImage(ViewerIcons.class, "itm_IniActorG2.png")};
-  private static final Image[] IconNeutral = new Image[]{Icons.getImage(ViewerIcons.class, "itm_IniActorB1.png"),
-                                                         Icons.getImage(ViewerIcons.class, "itm_IniActorB2.png")};
-  private static final Image[] IconEvil = new Image[]{Icons.getImage(ViewerIcons.class, "itm_IniActorR1.png"),
-                                                      Icons.getImage(ViewerIcons.class, "itm_IniActorR2.png")};
+  private static final Image[] IconGood = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_1),
+                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_2)};
+  private static final Image[] IconNeutral = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_1),
+                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_2)};
+  private static final Image[] IconEvil = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_1),
+                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_2)};
   private static final Point Center = new Point(12, 40);
 
   private final PlainTextResource ini;

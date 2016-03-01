@@ -58,7 +58,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
   private ChildFrame editframe;
 
   private JButton bcancel, bsave, btobif, bfrombif;
-  private JComboBox cbformat;
+  private JComboBox<String> cbformat;
   private int format;
 
   public BIFFEditor()
@@ -223,7 +223,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     this.bifentry = bifentry;
     this.format = format;
     editframe = new ChildFrame("Edit BIFF", true);
-    editframe.setIconImage(Icons.getIcon("Edit16.gif").getImage());
+    editframe.setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
     Container pane = editframe.getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -248,12 +248,12 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     biftable.addListSelectionListener(this);
     overridetable.addListSelectionListener(this);
-    bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
-    bsave = new JButton("Save", Icons.getIcon("Save16.gif"));
+    bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
+    bsave = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
     bcancel.setMnemonic('c');
     bsave.setMnemonic('s');
-    btobif = new JButton(Icons.getIcon("Back16.gif"));
-    bfrombif = new JButton(Icons.getIcon("Forward16.gif"));
+    btobif = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    bfrombif = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
 
     biftable.setBorder(BorderFactory.createTitledBorder("Files in " + bifentry.toString()));
     overridetable.setBorder(BorderFactory.createTitledBorder("Files in override"));
@@ -274,7 +274,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIFC)) {
       formats.add(s_bifformat[BIFC]);
     }
-    cbformat = new JComboBox(formats.toArray());
+    cbformat = new JComboBox<>(formats.toArray(new String[formats.size()]));
     cbformat.addActionListener(this);
     if (format != BIFF)
       cbformat.setSelectedIndex(1);

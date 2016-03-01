@@ -489,7 +489,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     b = (JButton)buttonPanel.addControl(BUTTON_SAVE);
     b.addActionListener(this);
     b = (JButton)buttonPanel.addControl(new JButton("Refresh"), BUTTON_REFRESH);
-    b.setIcon(Icons.getIcon("Refresh16.gif"));
+    b.setIcon(Icons.getIcon(Icons.ICON_REFRESH_16));
     b.setToolTipText("Force a refresh of the displayed data");
     b.addActionListener(this);
 
@@ -757,8 +757,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
   // Manages the representation of a single StructEntry instance
   private class StructEntryTableModel extends AbstractTableModel
   {
-    private final String[] names = new String[]{"Name", "Start offset", "Length",
-                                                 "Structure type", "Value"};
+    private final String[] names = {"Name", "Start offset", "Length", "Structure type", "Value"};
 
     private final StructEntry entry;
 

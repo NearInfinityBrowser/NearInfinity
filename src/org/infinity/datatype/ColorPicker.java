@@ -146,7 +146,7 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     tfBlue = new JTextField(4);   // range: [0..255]
     tfBlue.addFocusListener(this);
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

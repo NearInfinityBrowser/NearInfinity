@@ -46,7 +46,7 @@ import org.infinity.util.SimpleListModel;
 public class BookmarkEditor extends JDialog implements ActionListener, FocusListener, ListSelectionListener
 {
   private final SimpleListModel<Bookmark> modelEntries = new SimpleListModel<Bookmark>();
-  private final JList listEntries = new JList(modelEntries);
+  private final JList<Bookmark> listEntries = new JList<Bookmark>(modelEntries);
   private final JButton bUp = new JButton("Up");
   private final JButton bDown = new JButton("Down");
   private final JButton bRemove = new JButton("Remove");

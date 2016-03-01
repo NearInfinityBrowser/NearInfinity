@@ -105,13 +105,13 @@ public class ButtonPanel extends JPanel
       case Add:
       {
         ButtonPopupMenu bpm = new ButtonPopupMenu("Add...", new JMenuItem[]{});
-        bpm.setIcon(Icons.getIcon("Add16.gif"));
+        bpm.setIcon(Icons.getIcon(Icons.ICON_ADD_16));
         retVal = bpm;
         break;
       }
       case ExportButton:
       {
-        JButton b = new JButton("Export...", Icons.getIcon("Export16.gif"));
+        JButton b = new JButton("Export...", Icons.getIcon(Icons.ICON_EXPORT_16));
         b.setToolTipText("NB! Will export last *saved* version");
         b.setMnemonic('e');
         retVal = b;
@@ -120,13 +120,13 @@ public class ButtonPanel extends JPanel
       case ExportMenu:
       {
         ButtonPopupMenu bpm = new ButtonPopupMenu("Export...", new JMenuItem[]{});
-        bpm.setIcon(Icons.getIcon("Export16.gif"));
+        bpm.setIcon(Icons.getIcon(Icons.ICON_EXPORT_16));
         retVal = bpm;
         break;
       }
       case FindButton:
       {
-        JButton b = new JButton("Find...", Icons.getIcon("Find16.gif"));
+        JButton b = new JButton("Find...", Icons.getIcon(Icons.ICON_FIND_16));
         b.setMnemonic('f');
         retVal = b;
         break;
@@ -134,20 +134,20 @@ public class ButtonPanel extends JPanel
       case FindMenu:
       {
         ButtonPopupMenu bpm = new ButtonPopupMenu("Find...", new JMenuItem[]{});
-        bpm.setIcon(Icons.getIcon("Find16.gif"));
+        bpm.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
         retVal = bpm;
         break;
       }
       case FindReferences:
       {
-        JButton b = new JButton("Find references...", Icons.getIcon("Find16.gif"));
+        JButton b = new JButton("Find references...", Icons.getIcon(Icons.ICON_FIND_16));
         b.setMnemonic('f');
         retVal = b;
         break;
       }
       case Print:
       {
-        JButton b =  new JButton(Icons.getIcon("Print16.gif"));
+        JButton b =  new JButton(Icons.getIcon(Icons.ICON_PRINT_16));
         b.setMargin(new Insets(b.getMargin().top, 3, b.getMargin().bottom, 3));
         b.setToolTipText("Print");
         retVal = b;
@@ -155,26 +155,26 @@ public class ButtonPanel extends JPanel
       }
       case Remove:
       {
-        JButton b = new JButton("Remove", Icons.getIcon("Remove16.gif"));
+        JButton b = new JButton("Remove", Icons.getIcon(Icons.ICON_REMOVE_16));
         b.setMnemonic('r');
         retVal = b;
         break;
       }
       case Save:
       {
-        JButton b = new JButton("Save", Icons.getIcon("Save16.gif"));
+        JButton b = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
         b.setMnemonic('a');
         retVal = b;
         break;
       }
       case TrimSpaces:
       {
-        retVal = new JButton("Trim spaces", Icons.getIcon("Refresh16.gif"));
+        retVal = new JButton("Trim spaces", Icons.getIcon(Icons.ICON_REFRESH_16));
         break;
       }
       case ViewEdit:
       {
-        JButton b = new JButton("View/Edit", Icons.getIcon("Zoom16.gif"));
+        JButton b = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
         b.setMnemonic('v');
         retVal = b;
         break;

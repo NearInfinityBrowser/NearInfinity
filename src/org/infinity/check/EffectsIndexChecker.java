@@ -42,9 +42,9 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
   private static final String FMT_PROGRESS = "Checking %ss...";
 
   private static final String[] FILETYPES = {"ITM", "SPL"};
-  private final JButton bstart = new JButton("Check", Icons.getIcon("Find16.gif"));
-  private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
-  private final JButton binvert = new JButton("Invert", Icons.getIcon("Refresh16.gif"));
+  private final JButton bstart = new JButton("Check", Icons.getIcon(Icons.ICON_FIND_16));
+  private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
+  private final JButton binvert = new JButton("Invert", Icons.getIcon(Icons.ICON_REFRESH_16));
   private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
   private final ReferenceHitFrame hitFrame;
   private List<ResourceEntry> files;
@@ -54,7 +54,7 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
   public EffectsIndexChecker()
   {
     super("Effects Index Checker");
-    setIconImage(Icons.getIcon("Refresh16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
     hitFrame = new ReferenceHitFrame("Mis-indexed Effects", NearInfinity.getInstance());
 
     bstart.setMnemonic('s');

@@ -63,7 +63,7 @@ class BamPaletteDialog extends JDialog
   /** Specifies external palette type */
   public static final int TYPE_EXTERNAL   = 1;
 
-  private static final String[] PaletteTypeInfo = new String[]{"Generated palette", "External palette"};
+  private static final String[] PaletteTypeInfo = {"Generated palette", "External palette"};
   private static final String FmtInfoRGB    = "%1$d  %2$d  %3$d";
   private static final String FmtInfoHexRGB = "#%1$02X%2$02X%3$02X";
 
@@ -606,7 +606,7 @@ class BamPaletteDialog extends JDialog
     miPaletteClear.addActionListener(this);
     miPaletteClear.setEnabled(currentPaletteType == TYPE_EXTERNAL);
     bpmPalette = new ButtonPopupMenu("External palette", new JMenuItem[]{miPaletteClear, miPaletteSet});
-    bpmPalette.setIcon(Icons.getIcon("ArrowUp15.gif"));
+    bpmPalette.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
     bpmPalette.setIconTextGap(8);
     cbLockPalette = new JCheckBox("Lock palette");
     cbLockPalette.setToolTipText("Selecting this option prevents automatic palette generation when modifying the global frames list");

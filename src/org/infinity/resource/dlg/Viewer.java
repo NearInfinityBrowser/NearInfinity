@@ -92,26 +92,26 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     bpmFind.addItemListener(this);
     bpmFind.addActionListener(this);
 
-    JButton bNextState = new JButton(Icons.getIcon("Forward16.gif"));
+    JButton bNextState = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bNextState.setMargin(new Insets(bNextState.getMargin().top, 0, bNextState.getMargin().bottom, 0));
     bNextState.addActionListener(this);
 
-    JButton bPrevState = new JButton(Icons.getIcon("Back16.gif"));
+    JButton bPrevState = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPrevState.setMargin(bNextState.getMargin());
     bPrevState.addActionListener(this);
 
-    JButton bNextTrans = new JButton(Icons.getIcon("Forward16.gif"));
+    JButton bNextTrans = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bNextTrans.setMargin(bNextState.getMargin());
     bNextTrans.addActionListener(this);
 
-    JButton bPrevTrans = new JButton(Icons.getIcon("Back16.gif"));
+    JButton bPrevTrans = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPrevTrans.setMargin(bNextState.getMargin());
     bPrevTrans.addActionListener(this);
 
-    JButton bSelect = new JButton("Select", Icons.getIcon("Redo16.gif"));
+    JButton bSelect = new JButton("Select", Icons.getIcon(Icons.ICON_REDO_16));
     bSelect.addActionListener(this);
 
-    JButton bUndo = new JButton("Undo", Icons.getIcon("Undo16.gif"));
+    JButton bUndo = new JButton("Undo", Icons.getIcon(Icons.ICON_UNDO_16));
     bUndo.addActionListener(this);
 
     int width = (int)tfState.getPreferredSize().getWidth();
@@ -519,9 +519,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
   private final class DlgPanel extends JPanel implements ActionListener
   {
-    private final JButton bView = new JButton(Icons.getIcon("Zoom16.gif"));
-    private final JButton bGoto = new JButton(Icons.getIcon("RowInsertAfter16.gif"));
-    private final JButton bPlay = new JButton(Icons.getIcon("Volume16.gif"));
+    private final JButton bView = new JButton(Icons.getIcon(Icons.ICON_ZOOM_16));
+    private final JButton bGoto = new JButton(Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16));
+    private final JButton bPlay = new JButton(Icons.getIcon(Icons.ICON_VOLUME_16));
     private final ScriptTextArea textArea = new ScriptTextArea();
     private final JLabel label = new JLabel();
     private final String title;

@@ -88,12 +88,12 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   }
 
   private final ChildFrame resultFrame = new ChildFrame("Corrupted files found", true);
-  private final JButton bstart = new JButton("Check", Icons.getIcon("Find16.gif"));
-  private final JButton bcancel = new JButton("Cancel", Icons.getIcon("Delete16.gif"));
-  private final JButton binvert = new JButton("Invert", Icons.getIcon("Refresh16.gif"));
-  private final JButton bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
-  private final JButton bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
+  private final JButton bstart = new JButton("Check", Icons.getIcon(Icons.ICON_FIND_16));
+  private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
+  private final JButton binvert = new JButton("Invert", Icons.getIcon(Icons.ICON_REFRESH_16));
+  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
   private final List<ResourceEntry> files = new ArrayList<ResourceEntry>();
   private final SortableTable table;
@@ -103,7 +103,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   public StructChecker()
   {
     super("Find Corrupted Files");
-    setIconImage(Icons.getIcon("Refresh16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
 
     List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
     colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
@@ -291,7 +291,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
       } else {
         table.tableComplete();
-        resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
+        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
         JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
         count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
         bopen.setMnemonic('o');

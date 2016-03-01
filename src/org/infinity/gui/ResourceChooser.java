@@ -56,7 +56,7 @@ public class ResourceChooser extends JComponent implements ActionListener
 
   private final EventListenerList listeners = new EventListenerList();
 
-  private JComboBox cbType;
+  private JComboBox<String> cbType;
   private TextListPanel lpResources;
   private int dialogResult;
 
@@ -179,7 +179,7 @@ public class ResourceChooser extends JComponent implements ActionListener
   private void init(String initialExtension)
   {
     JLabel lType = new JLabel("Resource type:");
-    cbType = new JComboBox(Profile.getAvailableResourceTypes());
+    cbType = new JComboBox<>(Profile.getAvailableResourceTypes());
     if (cbType.getModel().getSize() > 0) {
       if (initialExtension != null) {
         cbType.setSelectedItem(initialExtension);

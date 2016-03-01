@@ -4,11 +4,14 @@
 
 package org.infinity.util;
 
+import java.awt.Dimension;
 import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.JComponent;
 
 /**
  * A general-purpose class containing useful function not fitting elsewhere.
@@ -205,6 +208,23 @@ public class Misc
       return executor.getQueue().size() <= executor.getCorePoolSize();
     }
     return false;
+  }
+
+  /**
+   * Returns a prototype dimension object based on the height of {@code c} and the width of (@code prototype}.
+   * @param c The component to derive height and properties for calculating width.
+   * @param prototype The prototype string used to derive width.
+   * @return The {@link Dimension} object with calculated width and height.
+   */
+  public static Dimension getPrototypeSize(JComponent c, String prototype)
+  {
+    Dimension d = null;
+    if (c != null) {
+      d = new Dimension();
+      d.height = c.getPreferredSize().height;
+      d.width = c.getFontMetrics(c.getFont()).stringWidth(prototype);
+    }
+    return d;
   }
 
 

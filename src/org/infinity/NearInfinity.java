@@ -91,7 +91,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
   }
 
-  private static final int[] JAVA_VERSION = {1, 6};   // the minimum java version supported
+  private static final int[] JAVA_VERSION = {1, 8};   // the minimum java version supported
 
   private static final boolean DEBUG = false;    // indicates whether to enable debugging features
 
@@ -353,33 +353,33 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     JButton b;
     toolBar.setRollover(true);
     toolBar.setFloatable(false);
-    b = new JButton(Icons.getIcon("Expand16.png"));
+    b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_16));
     b.addActionListener(this);
     b.setActionCommand("Expand");
     b.setToolTipText("Expand selected node");
     b.setMargin(new Insets(4, 4, 4, 4));
     toolBar.add(b);
-    b = new JButton(Icons.getIcon("Collapse16.png"));
+    b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_16));
     b.addActionListener(this);
     b.setActionCommand("Collapse");
     b.setToolTipText("Collapse selected node");
     b.setMargin(new Insets(4, 4, 4, 4));
     toolBar.add(b);
     toolBar.addSeparator(new Dimension(8, 24));
-    b = new JButton(Icons.getIcon("ExpandAll24.png"));
+    b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
     b.addActionListener(this);
     b.setActionCommand("ExpandAll");
     b.setToolTipText("Expand all");
     b.setMargin(new Insets(0, 0, 0, 0));
     toolBar.add(b);
-    b = new JButton(Icons.getIcon("CollapseAll24.png"));
+    b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_ALL_24));
     b.addActionListener(this);
     b.setActionCommand("CollapseAll");
     b.setToolTipText("Collapse all");
     b.setMargin(new Insets(0, 0, 0, 0));
     toolBar.add(b);
     toolBar.addSeparator(new Dimension(8, 24));
-    bpwQuickSearch = new ButtonPopupWindow(Icons.getIcon("Magnify16.png"));
+    bpwQuickSearch = new ButtonPopupWindow(Icons.getIcon(Icons.ICON_MAGNIFY_16));
     bpwQuickSearch.setToolTipText("Find resource");
     bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
     toolBar.add(bpwQuickSearch);
@@ -903,6 +903,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     {
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void drop(DropTargetDropEvent event)
     {

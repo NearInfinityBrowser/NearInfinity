@@ -62,8 +62,8 @@ import org.infinity.util.io.PrintWriterNI;
 
 final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
-  private final JButton bOpen = new JButton("Open selected", Icons.getIcon("Open16.gif"));
-  private final JButton bSelectDir = new JButton(Icons.getIcon("Open16.gif"));
+  private final JButton bOpen = new JButton("Open selected", Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bSelectDir = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
   private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", JLabel.CENTER);
@@ -81,7 +81,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   BcsDropFrame()
   {
     super("Script Drop Zone");
-    setIconImage(Icons.getIcon("History16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
 
     blocker = new WindowBlocker(this);
     compZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
@@ -366,7 +366,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private final class MyDropTargetListener implements DropTargetListener, Runnable
   {
     private final Component component;
-    private java.util.List<File> files;
+    private List<File> files;
 
     private MyDropTargetListener(Component component)
     {
@@ -393,6 +393,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     {
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void drop(DropTargetDropEvent event)
     {
@@ -402,7 +403,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       }
       try {
         event.acceptDrop(DnDConstants.ACTION_COPY);
-        files = (java.util.List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+        files = (List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
         e.printStackTrace();
         event.dropComplete(false);

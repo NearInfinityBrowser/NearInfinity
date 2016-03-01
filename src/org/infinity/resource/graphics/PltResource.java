@@ -74,13 +74,13 @@ public final class PltResource implements Resource, ActionListener
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    JComboBox cbColorBMP = new JComboBox();
+    JComboBox<Object> cbColorBMP = new JComboBox<>();
     cbColorBMP.addItem("None");
     List<ResourceEntry> bmps = ResourceFactory.getResources("BMP");
-    for (int i = 0; i < bmps.size(); i++) {
-      Object o = bmps.get(i);
-      if (o.toString().startsWith("PLT"))
-        cbColorBMP.addItem(o);
+    for (final ResourceEntry re: bmps) {
+      if (re.getResourceName().startsWith("PLT")) {
+        cbColorBMP.addItem(re);
+      }
     }
     cbColorBMP.setEditable(false);
     cbColorBMP.setSelectedIndex(0);
@@ -107,7 +107,7 @@ public final class PltResource implements Resource, ActionListener
   private BufferedImage getImage()
   {
     Palette palette = null;
-    Object item = ((JComboBox)buttonPanel.getControlByType(CtrlColorList)).getSelectedItem();
+    Object item = ((JComboBox<?>)buttonPanel.getControlByType(CtrlColorList)).getSelectedItem();
     if (!item.toString().equalsIgnoreCase("None")) {
       try {
         palette = new BmpResource((ResourceEntry)item).getPalette();

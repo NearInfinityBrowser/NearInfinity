@@ -95,7 +95,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
       list.setSelectedValue(selected, true);
     }
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

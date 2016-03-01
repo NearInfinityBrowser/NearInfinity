@@ -578,7 +578,7 @@ public class ViewerMap extends JPanel
     public void valueChanged(ListSelectionEvent event)
     {
       if (!event.getValueIsAdjusting()) {
-        JList list = (JList)event.getSource();
+        JList<?> list = (JList<?>)event.getSource();
         if (miShowDistances.isSelected()) {
           showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
         } else {
@@ -604,7 +604,7 @@ public class ViewerMap extends JPanel
     }
 
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
                                                   boolean cellHasFocus)
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);

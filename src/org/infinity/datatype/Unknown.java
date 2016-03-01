@@ -71,7 +71,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
       InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
       scroll.setLineNumbersEnabled(false);
 
-      bUpdate = new JButton("Update value", Icons.getIcon("Refresh16.gif"));
+      bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
       bUpdate.addActionListener(container);
       bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

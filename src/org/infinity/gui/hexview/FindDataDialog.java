@@ -52,7 +52,7 @@ public class FindDataDialog extends JDialog implements ActionListener, ItemListe
   private JCheckBox cbCaseSensitive;
   private JButton bOk, bCancel;
   private JTextField tfSearch;
-  private JComboBox cbType;
+  private JComboBox<String> cbType;
 
   public FindDataDialog(Window parent)
   {
@@ -190,7 +190,7 @@ public class FindDataDialog extends JDialog implements ActionListener, ItemListe
     JLabel lType = new JLabel("Datatype:", SwingConstants.RIGHT);
     tfSearch = new JTextField();
     tfSearch.getDocument().addDocumentListener(this);
-    cbType = new JComboBox(new String[]{"Text String", "Hex Values"});
+    cbType = new JComboBox<>(new String[]{"Text String", "Hex Values"});
     cbType.addItemListener(this);
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);

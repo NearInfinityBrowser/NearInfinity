@@ -37,6 +37,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.MapTree;
+import org.infinity.util.Misc;
 
 /**
  * Implements a search panel for quickly finding specific resources.
@@ -60,7 +61,7 @@ public class QuickSearch extends JPanel implements Runnable
   private final JPanel mainPanel = new JPanel(new GridBagLayout());
 
   private JLabel lSearch;
-  private JComboBox cbSearch;
+  private JComboBox<ResourceEntry> cbSearch;
   private JButton bOk, bOkNew, bCancel;
   private String keyword;
   private Command command;
@@ -160,20 +161,20 @@ public class QuickSearch extends JPanel implements Runnable
 
     lSearch = new JLabel("Search:", SwingConstants.LEFT);
 
-    cbSearch = new JComboBox();
-    cbSearch.setPrototypeDisplayValue("WWWWWWWW.WWWW");   // space for at least 8.4 characters
+    cbSearch = new JComboBox<>();
+    cbSearch.setPreferredSize(Misc.getPrototypeSize(cbSearch, "WWWWWWWW.WWWW"));    // space for at least 8.4 characters
     cbSearch.setEditable(true);
     cbSearch.getEditor().getEditorComponent().addKeyListener(keyListener);
 
-    bOk = new JButton(Icons.getIcon("Check16.gif"));
+    bOk = new JButton(Icons.getIcon(Icons.ICON_CHECK_16));
     bOk.addActionListener(acceptAction);
     bOk.setMargin(new Insets(1, 4, 1, 4));
     bOk.setToolTipText("Open (Shortcut: Enter)");
-    bOkNew = new JButton(Icons.getIcon("Open16.gif"));
+    bOkNew = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
     bOkNew.addActionListener(acceptNewAction);
     bOkNew.setMargin(new Insets(1, 5, 1, 4));
     bOkNew.setToolTipText("Open in new window (Shortcut: Shift+Enter)");
-    bCancel = new JButton(Icons.getIcon("Check_Not16.gif"));
+    bCancel = new JButton(Icons.getIcon(Icons.ICON_CHECK_NOT_16));
     bCancel.setMargin(new Insets(1, 2, 1, 2));
     bCancel.setToolTipText("Cancel search (Shortcut: Esc)");
     bCancel.addActionListener(rejectAction);
@@ -366,7 +367,7 @@ public class QuickSearch extends JPanel implements Runnable
             }
 
             // setting matching resource entries
-            DefaultComboBoxModel cbModel = (DefaultComboBoxModel)cbSearch.getModel();
+            DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
 
             // Deactivating listeners to prevent autoselecting items
             ListDataListener[] listeners = cbModel.getListDataListeners();

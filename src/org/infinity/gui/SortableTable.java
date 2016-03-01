@@ -110,7 +110,7 @@ public final class SortableTable extends JTable
       }
 
       if (sortByColumn == column)
-        setIcon(sortAscending ? Icons.getIcon("Up16.gif") : Icons.getIcon("Down16.gif"));
+        setIcon(sortAscending ? Icons.getIcon(Icons.ICON_UP_16) : Icons.getIcon(Icons.ICON_DOWN_16));
       else
         setIcon(null);
       return this;

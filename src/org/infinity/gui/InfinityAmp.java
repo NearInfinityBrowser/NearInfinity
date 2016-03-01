@@ -44,15 +44,15 @@ public final class InfinityAmp extends ChildFrame
 {
   private final SimpleListModel<ResourceEntry> allMusModel = new SimpleListModel<ResourceEntry>();
   private final SimpleListModel<ResourceEntry> selectedMusModel = new SimpleListModel<ResourceEntry>();
-  private final JButton bPlay = new JButton(Icons.getIcon("Play16.gif"));
-  private final JButton bStop = new JButton(Icons.getIcon("Stop16.gif"));
-  private final JButton bAdd = new JButton(Icons.getIcon("Forward16.gif"));
-  private final JButton bRemove = new JButton(Icons.getIcon("Back16.gif"));
-  private final JButton bUp = new JButton(Icons.getIcon("Up16.gif"));
-  private final JButton bDown = new JButton(Icons.getIcon("Down16.gif"));
+  private final JButton bPlay = new JButton(Icons.getIcon(Icons.ICON_PLAY_16));
+  private final JButton bStop = new JButton(Icons.getIcon(Icons.ICON_STOP_16));
+  private final JButton bAdd = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+  private final JButton bRemove = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+  private final JButton bUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
+  private final JButton bDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
   private final JCheckBox cbLoop = new JCheckBox("Loop", true);
-  private final JList allMusList;
-  private final JList selectedMusList;
+  private final JList<ResourceEntry> allMusList;
+  private final JList<ResourceEntry> selectedMusList;
   private final JTextField tfNowPlaying = new JTextField(10);
   private final AudioPlayer player = new AudioPlayer();
   private List<Entry> entryList = new ArrayList<Entry>();
@@ -61,13 +61,13 @@ public final class InfinityAmp extends ChildFrame
   public InfinityAmp()
   {
     super("InfinityAmp");
-    setIconImage(Icons.getIcon("Volume16.gif").getImage());
+    setIconImage(Icons.getIcon(Icons.ICON_VOLUME_16).getImage());
     List<ResourceEntry> files = ResourceFactory.getResources("MUS");
     for (int i = 0; i < files.size(); i++) {
       allMusModel.addElement(files.get(i));
     }
-    allMusList = new JList(allMusModel);
-    selectedMusList = new JList(selectedMusModel);
+    allMusList = new JList<>(allMusModel);
+    selectedMusList = new JList<>(selectedMusModel);
     bPlay.addActionListener(this);
     bStop.addActionListener(this);
     bAdd.addActionListener(this);

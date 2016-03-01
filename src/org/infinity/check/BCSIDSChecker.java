@@ -199,10 +199,10 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       } else {
         table.tableComplete();
         resultFrame = new ChildFrame("Result", true);
-        resultFrame.setIconImage(Icons.getIcon("Refresh16.gif").getImage());
-        bopen = new JButton("Open", Icons.getIcon("Open16.gif"));
-        bopennew = new JButton("Open in new window", Icons.getIcon("Open16.gif"));
-        bsave = new JButton("Save...", Icons.getIcon("Save16.gif"));
+        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+        bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+        bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+        bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
         JLabel count = new JLabel(table.getRowCount() + " hits(s) found", JLabel.CENTER);
         count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
         bopen.setMnemonic('o');

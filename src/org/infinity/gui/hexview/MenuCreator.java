@@ -41,19 +41,19 @@ public class MenuCreator implements IMenuCreator, ActionListener
 
     int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     popup = new JPopupMenu();
-    miUndo = new JMenuItem("Undo", Icons.getIcon("Undo16.gif"));
+    miUndo = new JMenuItem("Undo", Icons.getIcon(Icons.ICON_UNDO_16));
     miUndo.setMnemonic('u');
     miUndo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ctrl));
 
-    miRedo = new JMenuItem("Redo", Icons.getIcon("Redo16.gif"));
+    miRedo = new JMenuItem("Redo", Icons.getIcon(Icons.ICON_REDO_16));
     miRedo.setMnemonic('r');
     miRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ctrl));
 
-    miCopy = new JMenuItem("Copy", Icons.getIcon("Copy16.gif"));
+    miCopy = new JMenuItem("Copy", Icons.getIcon(Icons.ICON_COPY_16));
     miCopy.setMnemonic('c');
     miCopy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ctrl));
 
-    miPaste = new JMenuItem("Paste", Icons.getIcon("Paste16.gif"));
+    miPaste = new JMenuItem("Paste", Icons.getIcon(Icons.ICON_PASTE_16));
     miPaste.setMnemonic('p');
     miPaste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ctrl));
 

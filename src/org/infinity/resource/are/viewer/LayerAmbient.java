@@ -20,9 +20,9 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
 {
-  private static final String[] AvailableFmt = new String[]{"Global ambient sounds: %1$d",
-                                                            "Local ambient sound: %1$d",
-                                                            "Ambient sounds: %1$d"};
+  private static final String[] AvailableFmt = {"Global ambient sounds: %1$d",
+                                                "Local ambient sound: %1$d",
+                                                "Ambient sounds: %1$d"};
 
   // stores ambient sound objects with local radius
   private final List<LayerObjectAmbient> listGlobalSounds = new ArrayList<LayerObjectAmbient>();
